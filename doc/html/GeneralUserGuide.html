@@ -1,0 +1,241 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - General User Guide</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
+
+<CENTER>
+<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
+<FONT SIZE=7><B>General User Guide</B></FONT><P>
+<FONT SIZE=2>Copyright &copy; 2008 Oliver Hamann.
+Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
+</CENTER>
+
+<H1>Contents</H1>
+<A HREF="#1">1 Introduction</A><BR>
+<A HREF="#2">2 Navigation</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.1">2.1 The three most important functions</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.2">2.2 Additional functions</A></SMALL><BR>
+<A HREF="#3">3 Elements of the user interface</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Windows, views and panels</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 Keyboard focus</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 Popup-zoom</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.4">3.4 Content view and control view</A></SMALL><BR>
+<A HREF="#4">4 Finding more help</A><BR>
+<A HREF="#5">5 When Eagle Mode hangs</A><BR>
+
+<H1><A NAME="1"></A>1 Introduction</H1>
+Eagle Mode is a zoomable user interface with many plugin applications. This
+documents describes its general usage and gives hints where to find further
+help.
+<P>
+Even impatient users should read at least the "Navigation" chapter right below.
+But originally, that chapter would have to come after the "Elements of the user
+interface" chapter, because the former uses some words defined in the latter. So
+if you have the time to read all, read the latter first.
+
+<H1><A NAME="2"></A>2 Navigation</H1>
+This chapter describes how you can navigate through the panels of a view in
+Eagle Mode.
+
+<H2><A NAME="2.1"></A>2.1 The three most important functions</H2>
+<H3>Zooming by mouse wheel</H3>
+For zooming in, move the mouse pointer to the location where you want to zoom
+in, and then push the mouse wheel upwards. For zooming out, push the wheel
+downwards.
+<P>
+<CENTER><IMG WIDTH=350 HEIGHT=153 BORDER=0 SRC="images/MouseFunc1.png"></CENTER>
+<P>
+<P>
+Tips:
+<UL>
+	<LI>For a slower zooming, hold the Shift key or the middle mouse button
+	while pushing the wheel.</LI>
+	<P>
+	<LI>By zooming in and out with different mouse positions, you can
+	simulate a scrolling.</LI>
+	<P>
+	<LI>If you want to zoom into a panel which is, for example, on the right
+	side of the view, then you should position the mouse pointer near the
+	right edge of that panel. Thereby, and with some practice, you can get
+	the panel somewhat centered when you zoom in.</LI>
+</UL>
+<H3>Scrolling by mouse</H3>
+For scrolling, press and hold the middle mouse button, and move the mouse into
+the desired scroll direction. (With most mice, wheel and middle button are the
+same unit)
+<P>
+<CENTER><IMG WIDTH=397 HEIGHT=166 BORDER=0 SRC="images/MouseFunc2.png"></CENTER>
+<P>
+Hold the Shift key for a slower scrolling.
+<H3>Showing a panel full-sized, by mouse</H3>
+For showing a panel full-sized, double-click with the middle mouse button on it.
+With some panel types, this function depends on the size and layout of the panel
+contents. Then it is a good idea to repeat the function after the panel has
+loaded or changed.
+<P>
+<CENTER><IMG WIDTH=351 HEIGHT=168 BORDER=0 SRC="images/MouseFunc3.png"></CENTER>
+
+<H2><A NAME="2.2"></A>2.2 Additional functions</H2>
+<H3>Zooming by mouse</H3>
+For zooming by mouse movement, press and hold the Ctrl key and the middle mouse
+button, and move the mouse vertically. The initial mouse position is like with
+zooming by wheel. Hold the Shift key for a slower zooming.
+<H3>Keyboard functions</H3>
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+	<TR VALIGN="top">
+		<TD><B>Key</B></TD>
+		<TD><B>Effect</B></TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Alt+Cursor-Key</TD>
+		<TD>Scrolling</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Shift+Alt+Cursor-Key</TD>
+		<TD>Slow scrolling</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Alt+Page-Up/Down</TD>
+		<TD>Zooming</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Shift+Alt+Page-Up/Down</TD>
+		<TD>Slow zooming</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Alt+Home</TD>
+		<TD>Show the focused panel full-sized.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Cursor-Key</TD>
+		<TD>Move focus to a sister panel in the desired direction.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Page-Up</TD>
+		<TD>Move focus to first child panel.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Page-Down</TD>
+		<TD>Move focus to parent panel.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Tab or Shift+Tab</TD>
+		<TD>Move focus to next or previous panel.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Home or End</TD>
+		<TD>Move focus to first or last panel.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Escape</TD>
+		<TD>Switch focus between content view and control view, and pop
+		the control view up or down, respectively. This hotkey is useful
+		especially when having the control view minimized by the
+		slider.</TD>
+	</TR>
+</TABLE>
+<P>
+<H1><A NAME="3"></A>3 Elements of the user interface</H1>
+
+<H2><A NAME="3.1"></A>3.1 Windows, views and panels</H2>
+In Eagle Mode, the user interface is made of windows, views and panels. A window
+is such a thing on the desktop that has a title bar, a border and a content
+area. The content area of a window is made of one or more views. Such a view
+shows something like a two-dimensional virtual world which can be zoomed and
+scrolled. Such a "world" consists of panels. A panel can be a simple things like
+a button or an input field, or it can be a more complex thing like a group or a
+plugin application. Each panel can have child panels which are making up more
+details. This relationship of parents and children is also called a tree of
+panels. Thus, each view shows a tree of panels.
+
+<H2><A NAME="3.2"></A>3.2 Keyboard focus</H2>
+There is always at most one panel on the screen which has the (keyboard) focus.
+Any keyboard input goes to that focused panel. The focus is shown by small
+arrows which surround the panel and point to it. There are several ways to move
+the focus to another panel. One is to zoom into the desired panel, another is to
+click on it. Further ways are described in the "Navigation" chapter.
+<P>
+Views and windows can also be focused: The focused panel is always in the
+focused view, and the focused view is always in the focused window.
+<P>
+The focused panel is even called the active panel of a view. It remains active
+even when the view and the panel are losing the focus. In that state, the active
+panel is still indicated by arrows, but more pale. As soon as the view is
+focused again, its active panel is automatically focused too.
+
+<H2><A NAME="3.3"></A>3.3 Popup-zoom</H2>
+Some views have the popup-zoom feature. It means that when you zoom in, the view
+pops up and gets larger so that it is clipped by the screen bounds only. This
+makes small views much more comfortable, but it is suitable only for certain
+views like the control view (see more below) and dialog windows.
+<P>
+Similar to a classic popup menu, a popup-zoomed view automatically pops down
+when you click outside, or when you trigger a button in it. Not all buttons have
+that effect, but most of them. If you want to trigger a button without popping
+the view down, hold the Shift key while triggering the button.
+
+<H2><A NAME="3.4"></A>3.4 Content view and control view</H2>
+The main window of Eagle Mode has two views: a large content view at the bottom
+and a small control view at the top. The content view is for the things you are
+working on, and the control view is for commands, status information, settings
+and similar things. One could say the control view is a replacement for classic
+menu bars, tool bars and status bars. It has the popup-zoom feature.
+<P>
+<CENTER><IMG WIDTH=500 HEIGHT=283 BORDER=0 SRC="images/ControlAndContent.png"></CENTER>
+<P>
+There is a slider for sizing the control view. You can drag it up and down with
+the left mouse button.
+<P>
+The control view itself is divided into two parts. On the left is a general
+control panel which always stays the same. And on the right is a
+context-sensitive control panel. This means, the right control panel depends on
+what is activated (focused) in the content view. Just navigate around in the
+content view and see how the right part of the control view changes. Note that
+some content panels do not provide any control panel, and so they leave the
+right side of the control view empty.
+<P>
+Hint: Many buttons of the control panels can be triggered by entering hotkeys.
+These hotkeys are functioning only when a panel in the content view is focused,
+and not in the control view.
+
+<H1><A NAME="4"></A>4 Finding more help</H1>
+Many help texts can be found directly in the panels they are describing - just
+zoom in! Toolkit panels like buttons, input fields and groups often have a
+description right below their caption. In addition, interactive toolkit panels
+like buttons and input fields have general help texts ("How to use this panel")
+very small in the center of the left edge of the border. For example, a text
+input field describes all its functions there.
+<P>
+The file manager is described in another document: <A
+HREF="emFileManUserGuide.html"><I>emFileMan User Guide</I></A>
+<P>
+The games SilChess and emMines are showing help texts in their control panels.
+
+<H1><A NAME="5"></A>5 When Eagle Mode hangs</H1>
+Sometimes Eagle Mode may hang for a short time. This could happen when zooming
+into a slow medium like a floppy disk, or when zooming into a disk that has to
+be woken up from a sleep state. Another reason could be that the operating
+system is busy in executing disk write operations which have been cached some
+time before (to avoid this best possible, many file manager commands are doing a
+<TT>sync</TT> at the end).
+<P>
+If it actually happens that Eagle Mode hangs and you feel that it does not
+respond to input, do not give wild input. Just wait - Eagle Mode will respond to
+the last input as soon as it gets active again.
+<P>
+If you think Eagle Mode hangs forever and you are in a fullscreen mode and you
+don't know how to come out, then you could try the following key combinations in
+that order: Alt+F4 (close window), Alt+Tab (switch to another window),
+Ctrl+Alt+Backspace (kill the X-Server and all windows), Ctrl+Alt+Del (soft reset
+- kills everything). If all that does not help, you may have to hard reset the
+computer, but note that this could mean some damage to the file system (don't do
+it before there is no disk activity for a long time).
+
+<P>&nbsp;<P>
+<TABLE BORDER=0><TR><TD>
+	<HR NOSHADE SIZE=1>
+	Next Reading: <A HREF="emFileManUserGuide.html">emFileMan User Guide</A>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

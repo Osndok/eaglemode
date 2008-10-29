@@ -1,0 +1,56 @@
+#%rec:emFpPlugin%#
+
+FileTypes = {
+ ".abw"
+ ".awt"
+ ".bzabw"
+ ".dbk"
+ ".doc"
+ ".dot"
+ ".odt"
+ ".rtf"
+ ".sdw"
+ ".sxw"
+ ".wpd"
+ ".wri"
+ ".zabw"
+}
+Priority = 0.4
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".ps"
+ }
+ {
+  Name="Command"
+  Value="
+   abiword --help 2>&1 | grep -e --to-name > /dev/null
+   case $? in
+   0)
+    break
+   ;;
+   1)
+    abiword --help 2>&1 | grep -e --print > /dev/null
+    case $? in
+    0)
+     exec abiword \"--print=$OUTFILE\" \"$INFILE\" > /dev/null
+    ;;
+    1)
+     break
+    ;;
+    *)
+     exit 1
+    ;;
+    esac
+    break
+   ;;
+   *)
+    exit 1
+   ;;
+   esac
+   exec abiword --to=ps \"--to-name=$OUTFILE\" \"$INFILE\" > /dev/null
+  "
+ }
+}

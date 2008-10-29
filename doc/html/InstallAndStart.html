@@ -1,0 +1,146 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - Install and Start</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
+
+<CENTER>
+<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
+<FONT SIZE=7><B>Install and Start</B></FONT><P>
+<FONT SIZE=2>Copyright &copy; 2008 Oliver Hamann.
+Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
+</CENTER>
+
+<H1>Contents</H1>
+<A HREF="#1">1 How to install Eagle Mode</A><BR>
+<A HREF="#2">2 How to start Eagle Mode</A><BR>
+<A HREF="#3">3 Special cases</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Proper installation to /usr</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 FreeBSD</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 Cygwin</A></SMALL><BR>
+
+<H1><A NAME="1"></A>1 How to install Eagle Mode</H1>
+For installing Eagle Mode, first unpack the source package and cd into the
+unpacked directory. After that, the project has to be compiled (built) and then
+it can be installed. Here are the basic commands for doing that:
+<P>
+<TT>&nbsp;&nbsp;&nbsp;perl make.pl build</TT><BR>
+<TT>&nbsp;&nbsp;&nbsp;perl make.pl install</TT>
+<P>
+This would build the project using the GNU compiler, and it would install to a
+default directory (on UNIX-like systems it is <TT>/usr/local/eaglemode</TT>).
+There are some options you could give to the commands. For example, if you want
+to install to another directory, say something like:
+<P>
+<TT>&nbsp;&nbsp;&nbsp;perl make.pl install dir=/opt/eaglemode</TT>
+<P>
+A full description of all the options can be seen with:
+<P>
+<TT>&nbsp;&nbsp;&nbsp;perl make.pl help</TT>
+<P>
+Hints:
+<UL>
+<LI>You could skip the <TT>install</TT> step and run Eagle Mode directly from
+the source directory after <TT>build</TT>.</LI>
+<P>
+<LI><TT>make.pl</TT> installs nothing outside the installation directory.</LI>
+<P>
+<LI>There is no problem in moving the installation directory afterwards. Its
+path and name are not stored in any files.</LI>
+</UL>
+<P>
+
+<H1><A NAME="2"></A>2 How to start Eagle Mode</H1>
+For starting Eagle Mode, go into the directory where Eagle Mode has been
+installed, and run the file <TT>eaglemode.sh</TT>. Exception: Windows users have
+to run <TT>eaglemode.wsf</TT> instead.
+<P>
+If you wonder about the files in the <TT>bin</TT> directory: These executables
+need some special environment variables and cannot be run directly.
+<P>
+
+<H1><A NAME="3"></A>3 Special cases</H1>
+
+<H2><A NAME="3.1"></A>3.1 Proper installation to /usr</H2>
+Originally, Eagle Mode is designed for being installed in an own directory like
+<TT>/usr/local/eaglemode</TT> or <TT>/opt/eaglemode</TT>. But if you want to
+have it divided in <TT>/usr/bin</TT>, <TT>/usr/lib</TT>, <TT>/usr/share</TT> and
+so on, you could do it like in this example:
+<P>
+<BLOCKQUOTE><SMALL>
+<TT>perl make.pl build</TT><BR>
+<TT>perl make.pl install dir=/usr/lib/eaglemode</TT><BR>
+<TT> </TT><BR>
+<TT>cd /usr/lib/eaglemode</TT><BR>
+<TT>mv -T doc ../../share/doc/eaglemode</TT><BR>
+<TT>ln -s ../../share/doc/eaglemode doc</TT><BR>
+<TT>mv -T res ../../share/eaglemode</TT><BR>
+<TT>ln -s ../../share/eaglemode res</TT><BR>
+<TT>mv -T etc /etc/eaglemode</TT><BR>
+<TT>ln -s /etc/eaglemode etc</TT><BR>
+<TT> </TT><BR>
+<TT>cd /usr/bin</TT><BR>
+<TT>ln -s ../lib/eaglemode/eaglemode.sh eaglemode</TT><BR>
+<TT> </TT><BR>
+<TT>cd /usr/lib</TT><BR>
+<TT>ln -s eaglemode/lib/*.so .</TT><BR>
+<TT> </TT><BR>
+<TT>cd /usr/include</TT><BR>
+<TT>ln -s ../lib/eaglemode/include/* .</TT><BR>
+</SMALL></BLOCKQUOTE>
+
+<H2><A NAME="3.2"></A>3.2 FreeBSD</H2>
+Before building Eagle Mode on FreeBSD, you should execute the following
+commands, otherwise certain plugins may fail to build.
+<P>
+<BLOCKQUOTE>
+<TT>CPATH=/usr/local/include</TT><BR>
+<TT>export CPATH</TT><BR>
+<TT>LIBRARY_PATH=/usr/local/lib</TT><BR>
+<TT>export LIBRARY_PATH</TT><BR>
+</BLOCKQUOTE>
+
+<H2><A NAME="3.3"></A>3.3 Cygwin</H2>
+<U>Rebase DLL's!</U>
+<P>
+After installing Eagle Mode on Cygwin, and before starting it for the first
+time, you must rebase all Cygwin DLL's including those of Eagle Mode. Please get
+familiar with the <I>rebaseall</I> program. The basic steps are as follows
+(remember to replace the paths according to your installation):
+<P>
+<BLOCKQUOTE>
+Quit all programs, stop the "CYGWIN cygserver" service (if running), open a
+Windows Command box and type these commands:<BR>
+<SMALL><TT># set PATH=c:\cygwin\bin</TT><BR>
+<TT># ash</TT><BR>
+<TT># bash</TT><BR>
+<TT># ls -1 --indicator-style=none /usr/local/eaglemode/lib/*.dll &gt; /tmp/extra.lst</TT><BR>
+<I>(At this point you could add further non-standard DLL's to /tmp/extra.lst)</I><BR>
+<TT># cat /tmp/extra.lst</TT><BR>
+<I>(Check that the Eagle Mode DLL's are shown by the above command)</I><BR>
+<TT># exit</TT><BR>
+<I>(Back in ash, never do the following in bash or while any other Cygwin program is running)</I><BR>
+<TT># rebaseall -T /tmp/extra.lst -v</TT><BR>
+</SMALL>
+</BLOCKQUOTE>
+<P>
+<U>You have the choice: emX11 or emWnds</U>
+<P>
+If you want Eagle Mode to use the Windows API directly instead of X11, set the
+environment variable <TT>EM_GUI_LIB=emWnds</TT> before starting. But note that
+the file manager commands require X11 in any case.
+<P>
+<U>Flaws</U>
+<UL>
+<LI>Eagle Mode does not perform very fast on Cygwin.</LI>
+<LI>Do not enter the fullscreen mode with emX11 on Cygwin. Otherwise the
+keyboard focus may get lost.</LI>
+</UL>
+
+<P>&nbsp;<P>
+<TABLE BORDER=0><TR><TD>
+	<HR NOSHADE SIZE=1>
+	Next Reading: <A HREF="GeneralUserGuide.html">General User Guide</A>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

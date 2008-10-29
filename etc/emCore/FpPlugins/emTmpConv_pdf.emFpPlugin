@@ -1,0 +1,16 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".pdf" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".ps"
+ }
+ {
+  Name="Command"
+  Value="exec pdf2ps \"$INFILE\" \"$OUTFILE\""
+ }
+}

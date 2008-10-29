@@ -1,0 +1,11 @@
+#[[BEGIN PROPERTIES]]
+# Type = Group
+# Order = 9.0
+# Directory = Run
+# Caption = Run
+# Descr =Commands for execution of files
+# BgColor = #756
+# FgColor = #DDE
+# ButtonBgColor = #BBB
+# ButtonFgColor = #000
+#[[END PROPERTIES]]

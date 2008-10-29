@@ -1,0 +1,16 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Clock"
+
+PosX  = 0.67
+PosY  = 0.23
+Width = 0.04
+ContentTallness = 1.0
+
+BorderScaling = 0.0
+
+BackgroundColor = { 0 0 0 0 }
+BorderColor = { 0 0 0 0 }
+
+FileName = "Clock1.emClock"
+CopyToUser = true

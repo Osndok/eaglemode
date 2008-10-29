@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Change Log"
+
+PosX  = 0.09717
+PosY  = 0.100
+Width = 0.00434
+ContentTallness = 1.2
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "ChangeLog.emFileLink"
+CopyToUser = false

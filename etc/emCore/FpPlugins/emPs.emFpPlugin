@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".ps" }
+Priority = 1.0
+Library = "emPs"
+Function = "emPsFpPluginFunc"

@@ -1,0 +1,16 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".xwd" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".pnm"
+ }
+ {
+  Name="Command"
+  Value="exec xwdtopnm < \"$INFILE\" > \"$OUTFILE\""
+ }
+}

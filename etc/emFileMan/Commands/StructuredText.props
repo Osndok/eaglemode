@@ -1,0 +1,12 @@
+#[[BEGIN PROPERTIES]]
+# Type = Group
+# Order = 13.0
+# Directory = StructuredText
+# Caption = Structured Text
+# Descr =Commands for structured text files like HTML, PDF,
+# Descr =PostScript, office documents and so on
+# BgColor = #323
+# FgColor = #DDB
+# ButtonBgColor = #DDC
+# ButtonFgColor = #112
+#[[END PROPERTIES]]

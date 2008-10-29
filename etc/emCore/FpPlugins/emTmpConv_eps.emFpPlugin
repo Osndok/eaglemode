@@ -1,0 +1,16 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".eps" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".ps"
+ }
+ {
+  Name="Command"
+  Value="exec gs -q -dNOPAUSE -dSAFER -sDEVICE=pswrite \"-sOutputFile=$OUTFILE\" - < \"$INFILE\""
+ }
+}

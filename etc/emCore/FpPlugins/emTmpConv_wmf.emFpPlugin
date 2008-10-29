@@ -1,0 +1,16 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".wmf" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".png"
+ }
+ {
+  Name="Command"
+  Value="exec wmf2gd -t png \"$INFILE\" > \"$OUTFILE\""
+ }
+}

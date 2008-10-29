@@ -1,0 +1,12 @@
+#%rec:emFractal%#
+
+type = julia
+julia_x = 0.78
+julia_y = 0.127
+depth = 2040
+colors = {
+	{ color = "#000000" fade = 50 }
+	{ color = "#80ffe8" fade = 10 }
+	{ color = "#ffffdd" fade = 20 }
+	{ color = "#ff1810" fade = 50 }
+}

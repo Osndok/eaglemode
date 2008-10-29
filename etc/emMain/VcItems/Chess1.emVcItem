@@ -1,0 +1,13 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "SilChess"
+
+PosX  = 0.22
+PosY  = 0.33
+Width = 0.04
+ContentTallness = 0.7
+
+BackgroundColor = "#975"
+
+FileName = "Chess1.silchess"
+CopyToUser = true

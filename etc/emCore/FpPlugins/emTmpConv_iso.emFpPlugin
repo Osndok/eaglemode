@@ -1,0 +1,30 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".iso" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".txt"
+ }
+ {
+  Name="Command"
+  Value="
+   {
+    echo \"Info-scan on ISO file \\\"$INFILE\\\"\"
+    echo
+    echo
+    echo \"General information (isoinfo -d -i <file>)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\"
+    isoinfo -d -i \"$INFILE\" || exit 1
+    echo
+    echo
+    echo \"Directory tree (isoinfo -l -J -R -i <file>)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\"
+    isoinfo -l -J -R -i \"$INFILE\" || exit 1
+   } > \"$OUTFILE\"
+  "
+ }
+}

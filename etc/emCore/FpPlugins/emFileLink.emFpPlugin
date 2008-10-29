@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".emFileLink" }
+Priority = 1.0
+Library = "emFileMan"
+Function = "emFileLinkFpPluginFunc"

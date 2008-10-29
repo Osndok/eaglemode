@@ -1,0 +1,353 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - emFileMan Customization</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
+<CENTER>
+<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
+<FONT SIZE=7><B>emFileMan Customization</B></FONT><P>
+<FONT SIZE=2>Copyright &copy; 2008 Oliver Hamann.
+Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
+</CENTER>
+<H1>Contents</H1>
+<A HREF="#1">1 Introduction</A><BR>
+<A HREF="#2">2 Simple modifications</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.1">2.1 Setting the preferred application for a file type</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.2">2.2 Adding a new application for a file type</A></SMALL><BR>
+<A HREF="#3">3 Reference</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Properties</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 Precedence of default commands</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 The Perl utility functions</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.4">3.4 Arguments</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.5">3.5 Environment variables</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.6">3.6 The file manager's emMiniIpc server</A></SMALL><BR>
+
+<H1><A NAME="1"></A>1 Introduction</H1>
+This document describes how to customize the commands of the Eagle Mode File
+Manager. The commands are made of small script files written in the Perl
+programming language. But for simple modifications described below, you do not
+need to know anything about Perl.
+<P>
+The script files are located in the directory
+<TT>$EM_DIR/etc/emFileMan/Commands</TT> (replace <TT>$EM_DIR</TT> by the
+installation directory of Eagle Mode). Commands of subgroups are located in
+corresponding subdirectories. You could modify the commands directly there, but
+this may require administrator privileges. Alternatively, you could create a
+copy of the whole directory tree, so that it is possible to modify the files
+with user privileges. The required path for that copy is
+<TT>$HOME/.eaglemode/emFileMan/Commands</TT> (or on Windows:
+<TT>%APPDATA%\eaglemode\emFileMan\Commands</TT>). If that directory exists and
+seems okay, the script files are loaded from there, and the other is ignored.
+<P>
+Adding a new command simply consists of adding a new script file. To make a
+change visible to Eagle Mode, trigger the button <I>Reload Files</I>. Error
+messages for bad script files are printed to STDERR, and therefore it is a good
+idea to run Eagle Mode from a terminal while working on the commands (exception:
+on Windows the messages are written to <TT>%TMP%\emCoreBasedAppLog.log</TT>).
+<P>
+Remember to make backups of your modifications, because they could be removed
+when reinstalling Eagle Mode.
+
+<H1><A NAME="2"></A>2 Simple modifications</H1>
+
+<H2><A NAME="2.1"></A>2.1 Setting the preferred application for a file type</H2>
+For example, if you want to make Kate the default text editor, edit the file
+<TT>PlainText/Kate.pl</TT> (below the <I>Commands</I> directory described above)
+and find the following line in it:
+<P>
+<TT>&nbsp;&nbsp;&nbsp;# Order = 3.0</TT>
+<P>
+Simply set the order number to zero:
+<P>
+<TT>&nbsp;&nbsp;&nbsp;# Order = 0.0</TT>
+<P>
+Thereby, Kate gets precedence over all the other text editors. And besides, the
+button moves to the beginning of the group.
+
+<H2><A NAME="2.2"></A>2.2 Adding a new application for a file type</H2>
+Assumed you have an application that can edit or show files of a certain file
+type, and you want to be able to run it out of the file manager. Then you have
+to create a new file in the desired group directory. Give it a name that ends
+with <TT>.pl</TT> and fill it with this template:
+<P>
+<TABLE BORDER=0 BGCOLOR="#D0D0D0" FGCOLOR="#000000"><TR><TD>
+<TT>
+#!/usr/bin/perl<BR>
+#[[BEGIN PROPERTIES]]<BR>
+# Type = Command<BR>
+# Order = 0.0<BR>
+# Interpreter = perl<BR>
+# DefaultFor = </TT><I><B>type</B></I><TT><BR>
+# Caption = </TT><I><B>name</B></I><TT><BR>
+#[[END PROPERTIES]]<BR>
+<BR>
+use strict;<BR>
+use warnings;<BR>
+BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; }<BR>
+<BR>
+OpenSingleTargetFileWith('</TT><I><B>program</B></I><TT>');<BR>
+</TT>
+</TD></TR></TABLE>
+<BR>
+And then replace three things in the template:
+<P>
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+	<TR VALIGN="top">
+		<TD><I><B>type</B></I></TD>
+		<TD>Replace this by the file type the application is able to
+		handle. It must be a file name ending including the leading dot
+		(something like <TT>.avi</TT>), or a colon-separated list of
+		such (e.g. <TT>.avi:.mpg</TT>), or the special keyword
+		<TT>file</TT> for the case the application is a plain text
+		editor.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><I><B>name</B></I></TD>
+		<TD>Replace this by the application name. It is shown in the
+		button.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><I><B>program</B></I></TD>
+		<TD>Replace this by the executable file name of the application,
+		like it is called in a shell, with or without path.</TD>
+	</TR>
+</TABLE>
+<BR>
+If you want to be able to open multiple files at once, and if supported by the
+application, you could replace, in the last line of the script, the word
+<TT>OpenSingleTargetFileWith</TT> by <TT>OpenTargetFilesWith</TT>.
+
+<H1><A NAME="3"></A>3 Reference</H1>
+
+<H2><A NAME="3.1"></A>3.1 Properties</H2>
+Each command script file has a special section containing properties. And for
+each command group directory, there is a file which even has such a section. The
+properties are configuration parameters read and used by the file manager.
+<P>
+The format of the properties section is:
+<P>
+<TT>#[[BEGIN PROPERTIES]]</TT><BR>
+<TT>#&nbsp;</TT><I>name</I><TT>&nbsp;=&nbsp;</TT><I>value</I><BR>
+<TT>#&nbsp;</TT><I>name</I><TT>&nbsp;=&nbsp;</TT><I>value</I><BR>
+<TT>#&nbsp;</TT><I>name</I><TT>&nbsp;=&nbsp;</TT><I>value</I><BR>
+<I>...</I><BR>
+<TT>#[[END PROPERTIES]]</TT>
+<P>
+Possible properties are:
+<P>
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+	<TR VALIGN="top">
+		<TD><B>Name</B></TD>
+		<TD><B>Description</B></TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Type</TT></TD>
+		<TD>Type of the element. Possible values are:<BR>
+		<TT>&nbsp;Command&nbsp;</TT>- The file is a command script.<BR>
+		<TT>&nbsp;Group&nbsp;&nbsp;&nbsp;</TT>- The file describes a
+		command group.<BR>
+		This property must always be there.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Order</TT></TD>
+		<TD>Order of the element. This can be any number. Within a
+		group, the elements are sorted by these numbers. The element
+		with the lowest number is at the beginning.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Interpreter</TT></TD>
+		<TD>This property is only for commands. It specifies the program
+		to be called as the interpreter for the script. For Perl
+		scripts, say <TT>perl</TT>. </TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Directory</TT></TD>
+		<TD>This property is only for groups, and there it is always
+		required. It specifies the name (without path) of a subdirectory
+		containing the elements of the group.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>DefaultFor</TT></TD>
+		<TD>This property is only for commands. It specifies the file
+		types for which the command is a default command. The value for
+		this property must be one of:
+		<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=4>
+			<TR VALIGN="top">
+				<TD>&nbsp;*</TD>
+				<TD>A colon-separated list of file name endings,
+				each including the leading dot.</TD>
+			</TR>
+			<TR VALIGN="top">
+				<TD>&nbsp;*</TD>
+				<TD>The keyword <TT>file</TT>. This means to
+				match all regular files.</TD>
+			</TR>
+			<TR VALIGN="top">
+				<TD>&nbsp;*</TD>
+				<TD>The keyword <TT>directory</TT>. This means
+				to match directories.</TD>
+			</TR>
+		</TABLE>
+		</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Caption</TT></TD>
+		<TD>A caption to be shown in the label of the button or
+		group.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Description</TT><BR>or <TT>Descr</TT></TD>
+		<TD>A description to be shown in the label of the button or
+		group. This property can be given multiple times for creating a
+		multi-line description.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Icon</TT></TD>
+		<TD>An icon to be shown in the label of the button or group. It
+		can be specified by a file name (without path) of a TGA file in
+		the directory <TT>$EM_DIR/res/icons</TT>.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>BgColor<BR>FgColor<BR>ButtonBgColor<BR>ButtonFgColor</TT></TD>
+		<TD>Background and foreground colors of the borders and buttons.
+		The colors of a group are used as the default for the elements
+		of the group. A color can be specified as a color name like
+		<TT>Powder Blue</TT>, or as a hexadecimal RGB value like
+		<TT>#B0E0E6</TT> or <TT>#BEE</TT>.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>Hotkey</TT></TD>
+		<TD>This property specifies a hotkey for the command. Sample
+		values are: <TT>Ctrl+C</TT>, <TT>Shift+Alt+D</TT>,
+		<TT>Meta+F10</TT></TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>BorderScaling</TT></TD>
+		<TD>Scale factor for the size of the border. The default is 1.0.
+		Zero means to make a group panel unfocusable.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>PrefChildTallness</TT></TD>
+		<TD>Preferred height/width ratio of the elements of the group.
+		The default is 0.2.</TD>
+	</TR>
+</TABLE>
+<P>
+
+<H2><A NAME="3.2"></A>3.2 Precedence of default commands</H2>
+By setting the <TT>DefaultFor</TT> property, you can make a command the default
+command for a file type. But if multiple commands are the default for the same
+file, there is a conflict. In that case, the file manager chooses a command by
+the following rules (strongest-first):
+<UL>
+	<LI>If a command A matches the file by file name ending and a command B
+	matches just by matching every file (keyword <TT>file</TT>), then A has
+	precedence over B.</LI>
+	<P>
+	<LI>If a command A matches the file by a longer file name ending than a
+	command B (e.g. <TT>.tar.gz</TT> vs. <TT>.gz</TT>), then A has
+	precedence over B.</LI>
+	<P>
+	<LI>If a command A lies in a parent group (or ancestor group) of the
+	group of a command B, then A has precedence over B.</LI>
+	<P>
+	<LI>If a command A has a lower <TT>Order</TT> number than a command B,
+	then A has precedence over B.</LI>
+</UL>
+The rest is tree sorting by captions, case-sensitive.
+
+<H2><A NAME="3.3"></A>3.3 The Perl utility functions</H2>
+The original command scripts are implemented in Perl, and the first lines
+are always:
+<P>
+<SMALL><TT>
+&nbsp;&nbsp;use strict;<BR>
+&nbsp;&nbsp;use warnings;<BR>
+&nbsp;&nbsp;BEGIN { require &quot;$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl&quot;; }
+</TT></SMALL>
+<P>
+This loads and executes a framework which performs some initializations and
+defines a lot of of utility functions. For information about those functions,
+please have a look into the file
+<TT>$EM_DIR/res/emFileMan/scripts/cmd-util.pl</TT>, and take all the existing
+command scripts as usage examples.
+<P>
+The rest of this document may be of interest only for understanding the
+implementation of the framework, or for writing a new framework in another
+scripting language.
+
+<H2><A NAME="3.4"></A>3.4 Arguments</H2>
+The file manager calls the command scripts with certain arguments: The first
+argument is the number of source-selected files and the second argument is the
+number of target-selected files. Then there are the absolute paths of the
+selected files, with one argument per file, and with the source-selected files
+first.
+
+<H2><A NAME="3.5"></A>3.5 Environment variables</H2>
+When the file manager calls a command script, following environment variables
+are set in addition to normal variables:
+<P>
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+	<TR VALIGN="top">
+		<TD><B>Name</B></TD>
+		<TD><B>Description</B></TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>EM_DIR</TT></TD>
+		<TD>Directory where Eagle Mode has been installed.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>LD_LIBRARY_PATH</TT></TD>
+		<TD>Contains $EM_DIR/lib, for that the libraries can be found.
+		</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>EM_FM_SERVER_NAME</TT></TD>
+		<TD>Name of the file manager's emMiniIpc server.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>EM_COMMAND_RUN_ID</TT></TD>
+		<TD>An identification for this run of a command.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><TT>EM_X<BR>EM_Y<BR>EM_WIDTH<BR>EM_HEIGHT</TT></TD>
+		<TD>Position and size of the application window. This can be
+		used to calculate a good position for popup dialogs.</TD>
+	</TR>
+</TABLE>
+<P>
+
+<H2><A NAME="3.6"></A>3.6 The file manager's emMiniIpc server</H2>
+A command script can send certain requests to the file manager. For doing that,
+the script can use the program <TT>emSendMiniIpc</TT> in the directory
+<TT>$EM_DIR/bin</TT>. The first argument must be the server name (say
+<TT>$EM_FM_SERVER_NAME</TT>), and all further arguments are making up the
+request, which can be one of these:
+<DL>
+	<P>
+	<DT><TT>update</TT></DT>
+	<DD>Require the file manager to reload all the shown files and
+	directories (mostly only if the file modification time has really
+	changed).</DD>
+	<P>
+	<DT><TT>select </TT><I>&lt;command-run-id&gt;</I> [<I>&lt;file&gt;</I>  [<I>&lt;file&gt;</I> ...]]</DT>
+	<DD>Like <TT>update</TT>, but also require the file manager to
+	target-select the given files, or to clear the target selection if no
+	files are given. As usual, the source selection is set to the old target
+	selection. The <I>&lt;command-run-id&gt;</I> must be set to the value
+	given with the environment variable <TT>EM_COMMAND_RUN_ID</TT>. The
+	sense of that id is: If the user has modified the selection since the
+	file manager command has been started, or if another command has been
+	started afterwards, the selection request is ignored automatically.</DD>
+	<P>
+	<DT><TT>selectks </TT><I>&lt;command-run-id&gt;</I> [<I>&lt;file&gt;</I>  [<I>&lt;file&gt;</I> ...]]</DT>
+	<DD>Like above, but the source selection is not changed (ks = keep
+	source).</DD>
+	<P>
+	<DT><TT>selectcs </TT><I>&lt;command-run-id&gt;</I> [<I>&lt;file&gt;</I>  [<I>&lt;file&gt;</I> ...]]</DT>
+	<DD>Like above, but the source selection is cleared (cs = clear
+	source).</DD>
+</DL>
+
+</BODY>
+</HTML>

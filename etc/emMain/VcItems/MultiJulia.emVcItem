@@ -1,0 +1,13 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Multi-Julia"
+
+PosX  = 0.567
+PosY  = 0.926
+Width = 0.002
+ContentTallness = 1.0
+
+BackgroundColor = "#333"
+
+FileName = "MultiJulia.emFractal"
+CopyToUser = false

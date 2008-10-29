@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".pnm" ".pbm" ".pgm" ".ppm" }
+Priority = 1.0
+Library = "emPnm"
+Function = "emPnmFpPluginFunc"

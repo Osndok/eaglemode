@@ -1,0 +1,45 @@
+#%rec:emFractal%#
+
+type = julia
+julia_x = -0.2318
+julia_y = 0.541
+depth = 2040
+colors = {
+	{ color = "black" fade = 20 }
+
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 0 }
+	{ color = "blue" fade = 0 }
+	{ color = "yellow" fade = 20 }
+
+	{ color = "black" fade = 20 }
+
+	{ color = "red" fade = 20 }
+	{ color = "orange" fade = 20 }
+	{ color = "yellow" fade = 15 }
+	{ color = "white" fade = 60 }
+}

@@ -1,0 +1,276 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - System Requirements</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
+<CENTER>
+<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
+<FONT SIZE=7><B>System Requirements</B></FONT><P>
+<FONT SIZE=2>Copyright &copy; 2008 Oliver Hamann.
+Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
+</CENTER>
+<P>&nbsp;<BR>
+This document lists the minimum system requirements for running Eagle Mode. The
+software may even run on a weaker computer, but not so comfortable. If you
+cannot resist to run Eagle Mode with less RAM or swap space, your first job
+after starting should be to navigate to the <I>Preferences</I> (somewhere in the
+upper left area of the control view) and lessen the value for <I>Max Megabytes
+Per View</I>.
+<P>
+<TABLE BORDER=0 CELLPADDING=2 CELLSPACING=6>
+	<TR VALIGN="top">
+		<TD><B>CPU:</B></TD>
+		<TD>3.4 GHz rated (per core), 1 MB cache (per core or shared),
+		one core or more</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>RAM:</B></TD>
+		<TD>1 GB</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>Swap&nbsp;space:</B></TD>
+		<TD>1 GB (or more RAM)</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>Disk&nbsp;space:</B></TD>
+		<TD>About 10 MB for installation, 1 GB for temporary files at
+		run-time.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>Disk&nbsp;type:</B></TD>
+		<TD>Quite fast and without any sleep states (notebook hard disks
+		are not so suitable).</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>OS:</B></TD>
+		<TD>An up-to-date full-featured Linux is highly recommended.
+		Other UNIX-like systems may also be suitable. Short more or less
+		successful tests have been made with FreeBSD, OpenSolaris and
+		Cygwin.
+		<P>
+		API and framework of Eagle Mode have also been ported to Windows
+		(the minimum is Windows 2000 SP2), but several plugin
+		applications are not functioning there, including the file
+		manager.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>Graphics:</B></TD>
+		<TD>An accelerated graphics driver. On UNIX-like systems it
+		should be an accelerated X-Server with a fast XShm extension.
+		3D acceleration is not needed.
+		<P>
+		It is not recommended to use something like a 3D desktop or
+		composite manager, because that could slow down Eagle Mode a
+		lot.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD><B>Mouse:</B></TD>
+		<TD>With three buttons (not emulated) and with a smooth-running
+		wheel.</TD>
+	</TR>
+</TABLE>
+<P>
+<TABLE BORDER=0 CELLPADDING=2 CELLSPACING=6>
+	<TR VALIGN="top">
+		<TD><B>Programs&nbsp;&amp;&nbsp;Libraries:</B></TD>
+	</TR>
+	<TR>
+		<TD>
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=1>
+	<TR VALIGN="top">
+		<TD><B>Program/Lib</B></TD>
+		<TD><B>Debian&nbsp;Package&nbsp;Name</B></TD>
+		<TD><B>Required?</B></TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>perl&nbsp;(Perl&nbsp;&gt;=5.8)</TD>
+		<TD>perl</TD>
+		<TD>By all means</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>gcc&nbsp;(GCC&nbsp;&gt;=3.3)</TD>
+		<TD>g++</TD>
+		<TD>Yes, or read the section <TT>Compilers</TT> in
+		<TT>makers/unicc/README</TT> in the source package, and make use
+		of the option <TT>compiler=<I>name</I></TT> when building.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>X11R6 library</TD>
+		<TD>libx11-dev</TD>
+		<TD>By all means, except on Windows</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>xterm</TD>
+		<TD>xterm</TD>
+		<TD>Highly recommended</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>gs&nbsp;(Ghostscript&nbsp;&gt;=8.x)</TD>
+		<TD>gs</TD>
+		<TD>Highly recommended</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>JPEG library</TD>
+		<TD>libjpeg62-dev</TD>
+		<TD>Only for viewing jpeg files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>PNG library</TD>
+		<TD>libpng12-dev</TD>
+		<TD>Only for viewing png files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>TIFF library</TD>
+		<TD>libtiff4-dev</TD>
+		<TD>Only for viewing tiff files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>xine library</TD>
+		<TD>libxine-dev</TD>
+		<TD>Only for playing audio and video files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>7z</TD>
+		<TD>p7zip-full</TD>
+		<TD>Only for working with 7z files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>ar</TD>
+		<TD>binutils</TD>
+		<TD>Only for working with ar files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>arc</TD>
+		<TD>arc</TD>
+		<TD>Only for working with arc files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>arj</TD>
+		<TD>arj</TD>
+		<TD>Only for working with arj files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>bzip2</TD>
+		<TD>bzip2</TD>
+		<TD>Only for working with bz and bz2 files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>gzip</TD>
+		<TD>gzip</TD>
+		<TD>Only for working with gz files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>lha</TD>
+		<TD>lha</TD>
+		<TD>Only for working with lha files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>lzop</TD>
+		<TD>lzop</TD>
+		<TD>Only for working with lzo files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>tar</TD>
+		<TD>tar</TD>
+		<TD>Only for working with tar files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>unrar</TD>
+		<TD>unrar</TD>
+		<TD>Only for working with rar files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>zip &amp; unzip</TD>
+		<TD>zip &amp; unzip</TD>
+		<TD>Only for working with zip files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>zoo</TD>
+		<TD>zoo</TD>
+		<TD>Only for working with zoo files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>abiword</TD>
+		<TD>abiword</TD>
+		<TD>Only for viewing files of type abw, doc, odt, rtf and some more.</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>dvips</TD>
+		<TD>tetex-bin</TD>
+		<TD>Only for viewing dvi files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>fig2dev</TD>
+		<TD>transfig</TD>
+		<TD>Only for viewing fig files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>g3topbm</TD>
+		<TD>netpbm</TD>
+		<TD>Only for viewing g3 files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>htmldoc</TD>
+		<TD>htmldoc</TD>
+		<TD>Only for viewing html files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>isoinfo</TD>
+		<TD>genisoimage</TD>
+		<TD>Only for viewing infos from iso files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>pdf2ps</TD>
+		<TD>gs-common</TD>
+		<TD>Only for viewing pdf files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>povray</TD>
+		<TD>povray</TD>
+		<TD>Only for viewing pov files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>rpm</TD>
+		<TD>rpm</TD>
+		<TD>Only for viewing infos from rpm files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>rsvg</TD>
+		<TD>librsvg2-bin</TD>
+		<TD>Only for viewing svg files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>wmf2gd</TD>
+		<TD>libwmf-bin</TD>
+		<TD>Only for viewing wmf files</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>xwdtopnm</TD>
+		<TD>netpbm</TD>
+		<TD>Only for viewing xwd files</TD>
+	</TR>
+</TABLE>
+</TD></TR></TABLE>
+<BR>&nbsp;<BR>
+<B><FONT SIZE=5>Do not have the wrong program to a name</FONT></B>
+<P>
+Eagle Mode runs many standard programs by names like they have on Debian
+GNU/Linux 4.0. Your system must not have another program with one of those
+names, otherwise unforeseeable things could happen. For example, Eagle Mode runs
+"gs" when it means Ghostscript, and therefore you should not have another
+program named "gs" which, for example, formats the hard disk. In detail, Eagle
+Mode runs standard UNIX shell commands like "cp", "mv", "rm", "grep" and so on,
+and it runs the programs listed in the table above. Many of these are run when
+you just navigate around in Eagle Mode, without asking you. In addition, many
+further programs (not listed above) are run by triggering the file manager
+commands. If you are unsure about the later, please study the file manager
+command scripts (see
+<A HREF="emFileManCustomization.html"><I>emFileMan Customization</I></A> for a
+description of the scripts).
+<P>&nbsp;<P>
+<TABLE BORDER=0><TR><TD>
+	<HR NOSHADE SIZE=1>
+	Next Reading: <A HREF="InstallAndStart.html">Install and Start</A>
+</TD></TR></TABLE>
+</BODY>
+</HTML>

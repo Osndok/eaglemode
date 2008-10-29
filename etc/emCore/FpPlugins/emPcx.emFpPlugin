@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".pcx" }
+Priority = 1.0
+Library = "emPcx"
+Function = "emPcxFpPluginFunc"

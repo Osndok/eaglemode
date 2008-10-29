@@ -1,0 +1,16 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".g3" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".pbm"
+ }
+ {
+  Name="Command"
+  Value="exec g3topbm < \"$INFILE\" > \"$OUTFILE\""
+ }
+}

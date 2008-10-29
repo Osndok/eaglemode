@@ -1,0 +1,16 @@
+About emTreeDump
+################
+
+(This is for computer experts and developers only)
+
+emTreeDump is a file format and a plugin application for viewing a data dump
+which has tree structure. It is possible to create a dump of the top-level C++
+objects of a running emCore-based program. If you want to create such a dump in
+Eagle Mode, please navigate to any desired place and enter the following cheat
+code:
+
+  chEat:td!
+
+This creates a file named "debug.emTreeDump" in the temporary directory. But you
+do not need to navigate there, just click on "Reload Files" and see the dump in
+the panel below:

@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".emTreeDump" }
+Priority = 1.0
+Library = "emTreeDump"
+Function = "emTreeDumpFpPluginFunc"

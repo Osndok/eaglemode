@@ -1,0 +1,20 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".pov" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".png"
+ }
+ {
+  Name="Command"
+  Value="
+   cd \"`dirname \"$INFILE\"`\" || exit 1
+   exec povray -D -P +K0.0 +KFI1 +KFF1 +W160 +H120\\
+    \"+I$INFILE\" \"+O$OUTFILE\" > /dev/null
+  "
+ }
+}

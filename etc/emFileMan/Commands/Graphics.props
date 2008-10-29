@@ -1,0 +1,11 @@
+#[[BEGIN PROPERTIES]]
+# Type = Group
+# Order = 14.0
+# Directory = Graphics
+# Caption = Graphics
+# Descr =Commands for bitmap and vector graphic files
+# BgColor = #033
+# FgColor = #DDB
+# ButtonBgColor = #980
+# ButtonFgColor = #200
+#[[END PROPERTIES]]

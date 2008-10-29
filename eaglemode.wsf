@@ -1,0 +1,91 @@
+<job><script language="JScript">
+//------------------------------------------------------------------------------
+// eaglemode.wsf
+//
+// Copyright (C) 2006-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+//------------------------------------------------------------------------------
+
+// Have some objects.
+FileSys=WScript.CreateObject("Scripting.FileSystemObject");
+WshShell=WScript.CreateObject("WScript.Shell");
+ProcEnv=WshShell.Environment("PROCESS");
+
+// Determine the directory where this script file is in.
+emDir=FileSys.GetParentFolderName(WScript.ScriptFullName);
+
+// Set the environment variable EM_DIR.
+ProcEnv("EM_DIR")=emDir;
+
+// Have our lib directory as the first in PATH.
+LibDir=emDir+"\\lib";
+NewPath=LibDir;
+OldPath=ProcEnv("PATH");
+for (i=0; i<OldPath.length; i=j+1) {
+	j=OldPath.indexOf(";",i);
+	if (j<0) j=OldPath.length;
+	k=OldPath.substr(i,j-i);
+	if (k.length>0 && k!=LibDir) NewPath=NewPath+";"+k;
+}
+ProcEnv("PATH")=NewPath;
+
+// Prepare an array of arguments for starting the executable.
+Args=new Array;
+Args[0]=emDir+"\\bin\\eaglemode.exe";
+for (i=0; i<WScript.Arguments.length; i++) Args[i+1]=WScript.Arguments(i);
+
+// Convert the array of arguments to a command string.
+function CommandFromArgs(argsArray)
+{
+	var i,j,k,c,cmd,arg;
+
+	cmd="";
+	for (i=0; i<argsArray.length; i++) {
+		if (i>0) cmd+=" ";
+		arg=argsArray[i];
+		for (j=arg.length-1; j>=0; j--) {
+			c=arg.charAt(j);
+			if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
+			    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-') break;
+		}
+		if (j<0) {
+			cmd+=arg;
+		}
+		else {
+			cmd+='"';
+			k=0;
+			for (j=0; j<arg.length; j++) {
+				c=arg.charAt(j);
+				if (c=='"') {
+					while (k>0) { cmd+='\\'; k--; }
+					cmd+='\\';
+				}
+				else if (c=='\\') k++;
+				else k=0;
+				cmd+=c;
+			}
+			while (k>0) { cmd+='\\'; k--; }
+			cmd+='"';
+		}
+	}
+	return cmd;
+}
+Cmd=CommandFromArgs(Args);
+
+// Run the command (without waiting for termination).
+WshShell.Run(Cmd);
+
+</script></job>

@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "emFileMan Customization"
+
+PosX  = 0.143
+PosY  = 0.134
+Width = 0.040
+ContentTallness = 0.2
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "emFileManCustomization.emFileLink"
+CopyToUser = false

@@ -1,0 +1,114 @@
+This README describes the emFpPlugin file format in general, and the
+configuration of temporary conversions (emTmpConv) in particular.
+
+
+FpPlugins - File Panel Plugins
+==============================
+
+The FpPlugins directory contains configuration files for the file panel plugins.
+Such a plugin is responsible for showing the contents of a file in a panel. The
+configuration files are telling the program which plugins have to be used for
+which file types. And because some file types can be shown by multiple plugins,
+there is a priority mechanism by which the plugins are sorted. In addition, some
+plugins have special parameters ("properties") which can also be configured.
+
+By default, the configuration files are in the directory
+"$EM_DIR/etc/emCore/FpPlugins" (replace $EM_DIR by the installation directory of
+Eagle Mode). But you can also create a copy of that directory, so that it is
+possible to modify the files without administrator privileges. The required path
+for the copy is "$HOME/.eaglemode/emCore/FpPlugins" (Windows:
+"%APPDATA%\eaglemode\emCore\FpPlugins"). If that directory exists and seems okay,
+the configuration files are loaded from there, and the other is ignored.
+
+For being recognized by the program, the names of the configuration files must
+end with ".emFpPlugin".
+
+Below is a description of the file format in form of a commented example for an
+imaginative plugin:
+
+#%rec:emFpPlugin%#
+  # Must be the first line of the file.
+
+FileTypes = { ".cherry" ".pear" ".banana" }
+  # Any number of file types the plugin is able to show. Each entry must be
+  # either a file name ending including the leading dot, or "file" which means
+  # all regular file types, or "directory".
+
+Priority = 1.0
+  # Priority for the plugin. This is important when there are multiple plugins
+  # able to show a file type. Then, the plugin with the highest priority is used
+  # as the primary viewer, and the others are used as alternative viewers in an
+  # order according to decreasing priority. The priority can be any number.
+  # Typical priorities are:
+  #  1.0 - Specialized file viewer
+  #  0.5 - Temporary conversion (emTmpConv)
+  #  0.1 - Plain text viewer
+  #  0.0 - Hex dump
+
+Library = "Fruit"
+  # Name of a dynamic link library making up the plugin. The name must be given
+  # without path, without ending and without the "lib" in front (e.g. say
+  # "Fruit" instead of "/usr/local/eaglemode/lib/libFruit.so").
+
+Function = "FruitFpPluginFunc"
+  # Symbol name of a C function in the library which creates the panel for a
+  # given file. The exact function declaration can be found in the header file
+  # "emFpPlugin.h".
+
+Properties = { { Name="color" Value="blue" } { Name="size" Value="7" } }
+  # This is optional. It is a list of additional configuration parameters in
+  # form of name/value pairs. Both, the names and the values are always quoted
+  # strings. The possible parameters are defined by the individual plugins. For
+  # an example, see the description of emTmpConv below.
+
+For any modifications to take effect, the program must be restarted.
+
+
+Configuring emTmpConv Plugins (Temporary Conversion)
+====================================================
+
+emTmpConv is a special file viewer which converts the file temporarily to
+another file format in order to show it through another plugin. The conversion
+is performed by small shell scripts defined directly in the FpPlugin
+configuration.
+
+The library is called "emTmpConv" and the function is "emTmpConvFpPluginFunc".
+Two required properties are defined:
+
+Properties = {
+
+  { Name = "OutFileEnding" Value = "insert your ending here" }
+    # Specifies the file name ending of the temporary created file, including
+    # the leading dot. This is important because the final file viewer is chosen
+    # by that. For example, if you want the temporary file to be shown by the
+    # PostScript viewer, say ".ps".
+
+  { Name="Command" Value="insert your script here" }
+    # Specifies the shell script for performing the conversion. It is executed
+    # by emTmpConv with /bin/sh -c <script>. Two important environment variables
+    # are defined:
+    #  $INFILE  - Absolute path of the original file to be read by the script.
+    #  $OUTFILE - Absolute path of the temporary file (or directory) to be
+    #             created by the script.
+    # On failure, the script should print an error message to stderr and it
+    # should exit with a non-zero return value.
+}
+
+Hints for making the shell scripts:
+
+- All double-quotes and backslashes have to be quoted by backslashes.
+
+- It is always a good idea to resolve path variables with double-quotes, for
+  the case a path contains spaces (and remember to quote the double-quotes).
+  Thus, say \"$INFILE\" and \"$OUTFILE\" instead of just $INFILE and $OUTFILE.
+
+- The script and the programs it calls should be quite stable and secure. No
+  file must be created, modified or deleted falsely.
+
+- The script should not depend on the current working directory. It is undefined
+  per definition.
+
+- It is allowed to insert line breaks within the script.
+
+For examples of emTmpConv configurations, please see all the files named like
+"emTmpConv_*.emFpPlugin".

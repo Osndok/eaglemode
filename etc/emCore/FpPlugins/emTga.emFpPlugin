@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".tga" }
+Priority = 1.0
+Library = "emTga"
+Function = "emTgaFpPluginFunc"

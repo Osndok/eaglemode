@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "System Requirements"
+
+PosX  = 0.11717
+PosY  = 0.100
+Width = 0.005
+ContentTallness = 1.033
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "SystemRequirements.emFileLink"
+CopyToUser = false

@@ -1,0 +1,19 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".html" ".htm" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".ps"
+ }
+ {
+  Name="Command"
+  Value="
+   exec htmldoc --webpage --header \"   \" --footer \"   \" \\
+    --format ps --outfile \"$OUTFILE\" \"$INFILE\" 1>&2
+  "
+ }
+}

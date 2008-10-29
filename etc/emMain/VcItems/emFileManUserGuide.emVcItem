@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "emFileMan User Guide"
+
+PosX  = 0.143
+PosY  = 0.100
+Width = 0.040
+ContentTallness = 0.7
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "emFileManUserGuide.emFileLink"
+CopyToUser = false

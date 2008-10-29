@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".jpeg" ".jpg" }
+Priority = 1.0
+Library = "emJpeg"
+Function = "emJpegFpPluginFunc"

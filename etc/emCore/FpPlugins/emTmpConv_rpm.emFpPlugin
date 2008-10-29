@@ -1,0 +1,53 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".rpm" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".txt"
+ }
+ {
+  Name="Command"
+  Value="
+   # rpm is buggy with spaces in the file path (at least version 4.1.1)
+   cd \"`dirname \"$INFILE\"`\" || exit 1
+   INFILE=\"`basename \"$INFILE\"`\" || exit 1
+   {
+    echo Info-scan on RPM file \"$INFILE\"
+    echo
+    echo
+    echo \"General information (-i)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~~~~\"
+    rpm -q -i -p \"$INFILE\" || exit 1
+    echo
+    echo
+    echo \"Files in package with states (-s)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\"
+    rpm -q -s -p \"$INFILE\" || exit 1
+    echo
+    echo
+    echo \"Requirements (-R)\"
+    echo \"~~~~~~~~~~~~~~~~~\"
+    rpm -q -R -p \"$INFILE\" || exit 1
+    echo
+    echo
+    echo \"Capabilities (--provides)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~~~~~\"
+    rpm -q --provides -p \"$INFILE\" || exit 1
+    echo
+    echo
+    echo \"Changes (--changelog)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~\"
+    rpm -q --changelog -p \"$INFILE\" || exit 1
+    echo
+    echo
+    echo \"Install/uninstall scripts (--scripts)\"
+    echo \"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\"
+    rpm -q --scripts -p \"$INFILE\" || exit 1
+   } > \"$OUTFILE\"
+  "
+ }
+}

@@ -1,0 +1,174 @@
+emAv Server Process Protocol
+############################
+
+An emAv server process is a child process run and managed by emAv. Its job is to
+decode audio and video files played with emAv. It is possible to configure
+different server processes for different file types (see the "ServerProc"
+property in the emFpPlugin files), and so we have another plugin interface just
+for the decoding.
+
+It is a process interface instead of a dynamic library to make Eagle Mode more
+stable, even if it's not the most efficient technique. (An early version of emAv
+was linked with the xine-lib directly, and it was terrible. For example, some
+xine-lib versions are doing something like setlocale(LC_NUMERIC,"") which is not
+supported by Eagle Mode. And on a certain Linux distribution, the xine-lib
+blocked for popping up a "Download Plugin" dialog - fatal when it blocks Eagle
+Mode in fullscreen mode while the dialog appears behind.)
+
+Now to the communication protocol. For simplicity, we call the server process
+the "server" and emAv the "client". The client starts the server without any
+arguments, it shares STDERR, and it communicates via a pipeline which is STDIN
+and STDOUT for the server. That communication is ASCII text, and so it is
+possible to run the server in a terminal for a test (without video display).
+Each message consists of one line of text. For both directions, all messages
+have the form:
+
+  <instance>:<tag>[:<data>[:<data>...]]
+
+With:
+  <instance> is a decimal number which identifies an opened file.
+             It must be in the range of 0 to 511.
+  <tag> is a word describing the type of the message.
+  <data> is any further data, depending on the tag.
+
+First of all, here comes an example:
+
+  Client starts the server process.
+  Client says: 0:open:auto:none:/tmp/hello.mp3
+  Server says: 0:set:type:audio
+  Server says: 0:set:state:stopped
+  Server says many more like above, and then:
+  Server says: 0:ok:open
+  Client says: 0:set:state:normal
+  Server says: 0:ok:set:state
+  Now you should hear the audio file /tmp/hello.mp3 playing (assumed it exists).
+
+Possible tags are:
+
+  ok
+    Direction: Server to client.
+    Meaning: Request successfully handled. Every message from the client
+             has to be answered by either this or by an error message (see
+             below).
+    Data: If it was a "set" request: set:<property name>
+          If it was another request: <original tag>
+
+  error
+    Direction: Server to client.
+    Meaning: An error occurred. The server may send this as an answer to
+             a request, or at any time.
+    Data: The error message.
+
+  open
+    Direction: Client to server.
+    Meaning: Open the instance. It means to open a file. Before sending
+             the "ok", the server must send all properties once.
+    Data: <audio driver>:<video driver>:<file path>
+          Possible audio drivers: none, auto
+          Possible video drivers: none, emAv
+          Hint: The client mostly opens the files temporarily with the "none"
+          drivers just to get all the properties. And then, if the file is
+          actually played, it is opened again with the other drivers. "emAv"
+          means the shared memory interface (see more below).
+
+  close
+    Direction: Client to server.
+    Meaning: Close the instance and detach from the shared memory segment, if
+             any. This should always be answered with an "ok", even if the
+             instance was not opened.
+    Data: none
+
+  minshmsize
+    Direction: Server to client.
+    Meaning: Request the client to prepare a shared memory segment which has at
+             least the given size. It is needed for transferring video frames
+             (see the description more below).
+    Data: Size in bytes.
+
+  attachshm
+    Direction: Client to server.
+    Meaning: Set shared memory segment and attach to it (with shmat).
+    Data: <id of the segment>:<size in bytes>
+
+  detachshm
+    Meaning: Detach from the shared memory segment (with shmdt). This should
+             always be answered with an "ok".
+    Direction: Client to server.
+    Data: none.
+
+  set
+    Direction: Depends.
+    Meaning: Set a property.
+    Data: <property name>:<property value>
+
+Properties for both directions are:
+
+  state          - Play state. Can be stopped, paused, normal, fast or slow.
+  pos            - Play position, in milliseconds.
+  audio_volume   - 0...100
+  audio_mute     - on or off.
+  audio_visu     - Which audio visualization to be used. For possible
+                   values see the audio_visus property more below.
+  audio_channel  - Which audio channel to be played. For possible values
+                   see the audio_channels property more below.
+  spu_channel    - Which spu (subtitle) channel to be played. For possible
+                   values see the spu_channels property more below.
+
+Properties for server-to-client-only are:
+
+  type           - General type of the file: audio or video.
+  length         - Play length, in milliseconds.
+  aspect         - Assumed aspect ratio of the video frames (integer *65536).
+  info           - Info text (title and so on). If the server wants to send
+                   a multi-line text, he should convert every 0x0a (line feed)
+                   to 0x1a and every 0x0d (carriage return) to 0x1d.
+  warning        - A warning text. Here, the server could tell about a missing
+                   codec or so. A multi-line text is possible like with
+                   the info property.
+  audio_visus    - Possible values for the audio_visu property, separated
+                   by colons.
+  audio_channels - Possible values for the audio_channel property, separated
+                   by colons.
+  spu_channels   - Possible values for the spu_channel property, separated
+                   by colons.
+
+Termination: For terminating the server, the client closes its write end of the
+pipe (STDIN of the server), and then it reads the other end without interpreting
+until the server exits. But after a time-out, the client sends a termination
+signal.
+
+Shared memory segment: The shared memory segment (of an instance) is used as
+a buffer for transferring the video frames to the client. The layout is:
+
+  int: Who is on:
+        0 = The client is not reading the segment and the server should write a
+            new video frame to the segment now. After that, the server should
+            set this value to 1.
+        1 = The server has written a new video frame into the segment, and the
+            client may read it now. After that, the client sets this value to 0.
+  int: Width of the frame, in pixels.
+  int: Height of the frame, in pixels.
+  int: Aspect ratio of the frame, *65536.
+  int: Format of the frame data. Possible values:
+       0 = RGB
+       1 = YV12
+       2 = YUY2
+
+  The rest of the segment depends on the format:
+
+RGB:
+  int: BytesPerLine (including an optional padding at the end of each line)
+  char[Height*BytesPerLine]: RGB data: 3 bytes per pixel.
+
+YV12:
+  int: BytesPerLine1 (including an optional padding at the end of each line)
+  int: BytesPerLine2 (including an optional padding at the end of each line)
+  char[Height*BytesPerLine1]: Y data: one byte per Y, one Y per pixel.
+  char[((Height+1)/2)*BytesPerLine2]: U data: one byte per U, one U per four
+                                      pixels.
+  char[((Height+1)/2)*BytesPerLine2]: V data: one byte per V, one V per four
+                                      pixels.
+
+YUY2:
+  int: BytesPerLine (including an optional padding at the end of each line)
+  char[Height*BytesPerLine]: YUYV data: four bytes = one YUYV = two pixels.

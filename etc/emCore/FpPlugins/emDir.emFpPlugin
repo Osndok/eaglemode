@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { "directory" }
+Priority = 1.0
+Library = "emFileMan"
+Function = "emDirFpPluginFunc"

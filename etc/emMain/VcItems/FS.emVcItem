@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "File System"
+
+PosX  = 0.37
+PosY  = 0.457
+Width = 0.26
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 2.5
+
+BackgroundColor = "#BBB"
+BorderColor = "#333"
+TitleColor = "#BBB"
+
+FileName = "FS.emFileLink"
+CopyToUser = false

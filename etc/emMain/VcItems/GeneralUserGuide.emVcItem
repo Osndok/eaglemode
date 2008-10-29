@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "General User Guide"
+
+PosX  = 0.090
+PosY  = 0.110
+Width = 0.045
+ContentTallness = 0.7
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "GeneralUserGuide.emFileLink"
+CopyToUser = false

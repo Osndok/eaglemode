@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".png" }
+Priority = 1.0
+Library = "emPng"
+Function = "emPngFpPluginFunc"
