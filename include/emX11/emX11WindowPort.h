@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,6 +79,8 @@ private:
 
 	void SetIconProperty(const emImage & icon);
 
+	void SendLaunchFeedback();
+
 	static void GetAbsWinGeometry(Display * disp, ::Window win,
 	                              int * pX, int *pY, int * pW, int *pH);
 
@@ -109,6 +111,7 @@ private:
 	bool TitlePending;
 	bool IconPending;
 	bool CursorPending;
+	bool LaunchFeedbackSent;
 	InvRect InvRectHeap[100];
 	InvRect * InvRectFreeList;
 	InvRect * InvRectList;

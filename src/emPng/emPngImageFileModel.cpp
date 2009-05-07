@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -88,7 +88,7 @@ void emPngImageFileModel::TryStartLoading() throw(emString)
 	memset(L,0,sizeof(emPngLoadingState));
 
 	L->file=fopen(GetFilePath(),"rb");
-	if (!L->file) throw emString(strerror(errno));
+	if (!L->file) throw emGetErrorText(errno);
 
 	if (setjmp(L->jmpbuffer)) throw emString(L->errorText);
 

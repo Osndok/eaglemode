@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirModel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -114,8 +114,8 @@ bool emDirModel::TryContinueLoading() throw(emString)
 		emSortSingleLinkedList(
 			(void**)(void*)&Names,offsetof(NameNode,Next),CompareName,NULL
 		);
-#		if defined(__CYGWIN__) //??? just Cygwin or all?
-			// I saw double names in the Cygwin proc fs.
+#		if defined(__CYGWIN__) || defined(_WIN32) //??? or all?
+			// I saw double names in the Cygwin proc fs and also in Windows.
 			for (node=Names; node->Next; ) {
 				if (CompareName(node,node->Next,NULL)==0) {
 					node->Next=node->Next->Next;

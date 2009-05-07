@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emInput.h>
+#include <emCore/emThread.h>
 
 
 //==============================================================================
@@ -112,19 +113,18 @@ static const emInputKeyName emInputKeyNames[] = {
 
 const char * emInputKeyToString(emInputKey key)
 {
+	static emThreadInitMutex initMutex;
 	static const char * table[256];
-	static bool tableInitialized=false;
 	int i;
 
-	if (!tableInitialized) {
-		//??? Not thread-reentrant
+	if (initMutex.Begin()) {
 		for (i=0; i<256; i++) table[i]=NULL;
 		for (i=0; i<(int)(sizeof(emInputKeyNames)/sizeof(emInputKeyName)); i++) {
 			if ((emInputKeyNames[i].Key&~255)==0) {
 				table[emInputKeyNames[i].Key]=emInputKeyNames[i].Name;
 			}
 		}
-		tableInitialized=true;
+		initMutex.End();
 	}
 	if ((key&~255)!=0) return NULL;
 	return table[key];
@@ -149,12 +149,11 @@ static int emCompareInputKeyNames(
 
 emInputKey emStringToInputKey(const char * str)
 {
+	static emThreadInitMutex initMutex;
 	static emInputKeyName table[sizeof(emInputKeyNames)/sizeof(emInputKeyName)];
-	static bool tableInitialized=false;
 	int i;
 
-	if (!tableInitialized) {
-		//??? Not thread-reentrant
+	if (initMutex.Begin()) {
 		memcpy(table,emInputKeyNames,sizeof(emInputKeyNames));
 		emSortArray(
 			table,
@@ -162,7 +161,7 @@ emInputKey emStringToInputKey(const char * str)
 			emCompareInputKeyNames,
 			(void*)NULL
 		);
-		tableInitialized=true;
+		initMutex.End();
 	}
 
 	i=emBinarySearch(

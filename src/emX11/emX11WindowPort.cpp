@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -217,6 +217,7 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	TitlePending=false;
 	IconPending=false;
 	CursorPending=false;
+	LaunchFeedbackSent=false;
 	InvRectFreeList=NULL;
 	InvRectList=NULL;
 	for (i=0; i<(int)(sizeof(InvRectHeap)/sizeof(InvRect)); i++) {
@@ -322,7 +323,7 @@ void emX11WindowPort::PreConstruct()
 		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
 		MinPaneW=32;
 		MinPaneH=32;
-		if (!Owner) {
+		if (!Owner && (GetWindowFlags()&emWindow::WF_MODAL)==0) {
 			d=emMin(vrw,vrh)*0.08;
 			PaneX=(int)(vrx+d*emGetDblRandom(0.5,1.5)+0.5);
 			PaneY=(int)(vry+d*emGetDblRandom(0.8,1.2)+0.5);
@@ -913,7 +914,7 @@ bool emX11WindowPort::Cycle()
 			SetViewGeometry(vrx,vry,vrw,vrh,Screen.PixelTallness);
 		}
 
-		// Workaround for lots of focus problems with several Window Managers:
+		// Workaround for lots of focus problems with several window managers:
 		if (Screen.GrabbingWinPort==this) {
 			XGetInputFocus(Disp,&win,&i);
 			wp=NULL;
@@ -1036,7 +1037,13 @@ bool emX11WindowPort::Cycle()
 		PostConstructed=true;
 	}
 
-	if (InvRectList && Mapped) UpdatePainting();
+	if (InvRectList && Mapped) {
+		UpdatePainting();
+		if (!LaunchFeedbackSent) {
+			LaunchFeedbackSent=true;
+			SendLaunchFeedback();
+		}
+	}
 
 	return false;
 }
@@ -1373,6 +1380,35 @@ void emX11WindowPort::SetIconProperty(const emImage & icon)
 	);
 
 	delete [] data;
+}
+
+
+void emX11WindowPort::SendLaunchFeedback()
+{
+	const char * id;
+	Atom _NET_STARTUP_INFO_BEGIN, _NET_STARTUP_INFO;
+	XEvent xevent;
+	emString msg;
+	int i,sz;
+
+	id=getenv("DESKTOP_STARTUP_ID");
+	if (!id || !*id) return;
+	msg=emString::Format("remove: ID=%s",id);
+	unsetenv("DESKTOP_STARTUP_ID");
+	sz=msg.GetLen()+1;
+	_NET_STARTUP_INFO_BEGIN=XInternAtom(Disp,"_NET_STARTUP_INFO_BEGIN",False);
+	_NET_STARTUP_INFO=XInternAtom(Disp,"_NET_STARTUP_INFO",False);
+	for (i=0; i<sz; i+=20) {
+		memset(&xevent,0,sizeof(xevent));
+		xevent.xclient.type=ClientMessage;
+		xevent.xclient.display=Disp;
+		xevent.xclient.window=Win;
+		if (i==0) xevent.xclient.message_type=_NET_STARTUP_INFO_BEGIN;
+		else xevent.xclient.message_type=_NET_STARTUP_INFO;
+		xevent.xclient.format=8;
+		memcpy(xevent.xclient.data.b,msg.Get()+i,emMin(sz-i,20));
+		XSendEvent(Disp,Screen.RootWin,False,PropertyChangeMask,&xevent);
+	}
 }
 
 

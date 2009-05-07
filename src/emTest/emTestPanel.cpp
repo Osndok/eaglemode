@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,7 +18,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <emTestPanel/emTestPanel.h>
+#include <emTest/emTestPanel.h>
 #include <emCore/emVarModel.h>
 
 

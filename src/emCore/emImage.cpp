@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2008 Oliver Hamann.
+// Copyright (C) 2001,2003-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -369,6 +369,7 @@ void emImage::TryParseTga(
 		else if ((imgType&~8)==3 && bitsPP==8) channelCount=1;
 		else {
 			channelCount=1;
+			runCol=0;
 			runLen=0;
 			p=tgaData;
 			for (x=h*w; x>0; x--) {
@@ -413,6 +414,7 @@ void emImage::TryParseTga(
 	}
 
 	Setup(w,h,channelCount);
+	runCol=0;
 	runLen=0;
 	p=tgaData;
 	for (y=0; y<h; y++) {

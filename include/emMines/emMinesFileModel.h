@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesFileModel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,7 +104,7 @@ private:
 		int SizeZ;
 		int MineCount;
 	};
-	static LevelParamsStruct LevelParams[5];
+	static const LevelParamsStruct LevelParams[5];
 };
 
 inline int emMinesFileModel::GetSizeX() const

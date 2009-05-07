@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -86,10 +86,12 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	RECT rect;
 	int i;
 
-	if (TheScreen) {
-		emFatalError("emWndsScreen: Multiple instances not yet supported.");
-	}
-	TheScreen=this;
+	InstanceListMutex.Lock();
+	NextInstance=InstanceList;
+	InstanceList=this;
+	InstanceListMutex.Unlock();
+
+	WindowProcRecursion=0;
 
 	WndsScheduler=dynamic_cast<emWndsScheduler*>(&GetScheduler());
 	if (!WndsScheduler) {
@@ -177,9 +179,14 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 
 emWndsScreen::~emWndsScreen()
 {
+	emWndsScreen * * pp;
+
 	DestroySendBufThread();
 	UnregisterClass(WinClassName.Get(),NULL);
-	TheScreen=NULL;
+	InstanceListMutex.Lock();
+	for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
+	*pp=NextInstance;
+	InstanceListMutex.Unlock();
 }
 
 
@@ -218,31 +225,37 @@ LRESULT CALLBACK emWndsScreen::WindowProc(
 	HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 )
 {
-	static int recursion=0;
 	emWndsScreen * s;
 	LRESULT res;
 	int i;
 
-	s=TheScreen;
-	if (s) {
+	InstanceListMutex.Lock();
+	for (s=InstanceList, i=-1; s; s=s->NextInstance) {
 		for (i=s->WinPorts.GetCount()-1; i>=0; i--) {
-			if (s->WinPorts[i]->HWnd==hWnd) {
-				s->InputStateToBeFlushed=true;
-				recursion++;
-				res=s->WinPorts[i]->WindowProc(
-					uMsg,
-					wParam,
-					lParam,
-					recursion==1 &&
-					s->WndsScheduler->GetState() ==
-						emWndsScheduler::HANDLING_MESSAGES
-				);
-				recursion--;
-				return res;
-			}
+			if (s->WinPorts[i]->HWnd==hWnd) break;
 		}
+		if (i>=0) break;
 	}
-	return DefWindowProc(hWnd,uMsg,wParam,lParam);
+	InstanceListMutex.Unlock();
+
+	if (s && i>=0) {
+		s->InputStateToBeFlushed=true;
+		s->WindowProcRecursion++;
+		res=s->WinPorts[i]->WindowProc(
+			uMsg,
+			wParam,
+			lParam,
+			s->WindowProcRecursion==1 &&
+			s->WndsScheduler->GetState() ==
+				emWndsScheduler::HANDLING_MESSAGES
+		);
+		s->WindowProcRecursion--;
+	}
+	else {
+		res=DefWindowProc(hWnd,uMsg,wParam,lParam);
+	}
+
+	return res;
 }
 
 
@@ -344,11 +357,17 @@ void emWndsScreen::CreateSendBufThread()
 	SendBufH=0;
 	SendBufEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
 	if (!SendBufEvent) {
-		emFatalError("emWndsScreen: CreateEvent failed (0x%lX)",GetLastError());
+		emFatalError(
+			"emWndsScreen: CreateEvent failed: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 	SendBufDoneEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
 	if (!SendBufDoneEvent) {
-		emFatalError("emWndsScreen: CreateEvent failed (0x%lX)",GetLastError());
+		emFatalError(
+			"emWndsScreen: CreateEvent failed:",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 	SendBufThread=CreateThread(
 		NULL,
@@ -359,7 +378,10 @@ void emWndsScreen::CreateSendBufThread()
 		&threadId
 	);
 	if (!SendBufThread) {
-		emFatalError("emWndsScreen: CreateThread failed (0x%lX)",GetLastError());
+		emFatalError(
+			"emWndsScreen: CreateThread failed:",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 }
 
@@ -530,4 +552,5 @@ emInputKey emWndsScreen::ConvertKey(unsigned vk, int * pVariant)
 }
 
 
-emWndsScreen * emWndsScreen::TheScreen = NULL;
+emThreadMiniMutex emWndsScreen::InstanceListMutex;
+emWndsScreen * emWndsScreen::InstanceList = NULL;

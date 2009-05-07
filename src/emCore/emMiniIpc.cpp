@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -105,7 +105,10 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 
 	inst->EventHandle=CreateEvent(NULL,TRUE,FALSE,NULL);
 	if (inst->EventHandle==NULL) {
-		emFatalError("emMiniIpc: CreateEvent failed: 0x%X",GetLastError());
+		emFatalError(
+			"emMiniIpc: CreateEvent failed: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 
 	return inst;
@@ -130,17 +133,26 @@ static void emMiniIpc_Receive(
 				inst->State=1;
 			}
 			else {
-				emFatalError("emMiniIpc: ConnectNamedPipe failed: 0x%X",GetLastError());
+				emFatalError(
+					"emMiniIpc: ConnectNamedPipe failed: %s",
+					emGetErrorText(GetLastError()).Get()
+				);
 			}
 		}
 		else if (inst->State==1) {
 			d=WaitForSingleObject(inst->EventHandle,0);
 			if (d==WAIT_TIMEOUT) break;
 			if (d!=WAIT_OBJECT_0) {
-				emFatalError("emMiniIpc: WaitForSingleObject failed: 0x%X",GetLastError());
+				emFatalError(
+					"emMiniIpc: WaitForSingleObject failed: %s",
+					emGetErrorText(GetLastError()).Get()
+				);
 			}
 			if (!GetOverlappedResult(inst->PipeHandle,&inst->Overlapped,&d,FALSE)) {
-				emFatalError("emMiniIpc: ConnectNamedPipe failed: 0x%X",GetLastError());
+				emFatalError(
+					"emMiniIpc: ConnectNamedPipe failed: %s",
+					emGetErrorText(GetLastError()).Get()
+				);
 			}
 			inst->State=2;
 		}
@@ -164,7 +176,10 @@ static void emMiniIpc_Receive(
 			d=WaitForSingleObject(inst->EventHandle,0);
 			if (d==WAIT_TIMEOUT) break;
 			if (d!=WAIT_OBJECT_0) {
-				emFatalError("emMiniIpc: WaitForSingleObject failed: 0x%X",GetLastError());
+				emFatalError(
+					"emMiniIpc: WaitForSingleObject failed: %s",
+					emGetErrorText(GetLastError()).Get()
+				);
 			}
 			if (!GetOverlappedResult(inst->PipeHandle,&inst->Overlapped,&d,FALSE)) {
 				DisconnectNamedPipe(inst->PipeHandle);
@@ -210,9 +225,9 @@ static void emMiniIpc_TrySendAtomic(
 		if (handle!=INVALID_HANDLE_VALUE) break;
 		if (GetLastError()!=ERROR_PIPE_BUSY) {
 			throw emString::Format(
-				"CreateFile with OPEN_EXISTING on \"%s\" failed: 0x%X",
+				"CreateFile with OPEN_EXISTING on \"%s\" failed: %s",
 				pipePath.Get(),
-				GetLastError()
+				emGetErrorText(GetLastError()).Get()
 			);
 		}
 		WaitNamedPipe(pipePath.Get(),1000);
@@ -223,9 +238,9 @@ static void emMiniIpc_TrySendAtomic(
 			d=GetLastError();
 			CloseHandle(handle);
 			throw emString::Format(
-				"Failed to write to \"%s\": 0x%X",
+				"Failed to write to \"%s\": %s",
 				pipePath.Get(),
-				d
+				emGetErrorText(d).Get()
 			);
 		}
 		if (d==0) {
@@ -268,7 +283,7 @@ static int emMiniIpc_Lock(const char * lockFilePath)
 		emFatalError(
 			"emMiniIpc_Lock: Failed to open or create \"%s\": %s",
 			lockFilePath,
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 
@@ -281,7 +296,7 @@ static int emMiniIpc_Lock(const char * lockFilePath)
 			emFatalError(
 				"emMiniIpc_Lock: Failed to lock \"%s\": %s",
 				lockFilePath,
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 	}
@@ -325,9 +340,9 @@ static emString emMiniIpc_CalcFifoBaseName(const char * serverName)
 }
 
 
-static const char * emMiniIpc_FifoEnding=".f.autoremoved";
-static const char * emMiniIpc_FifoLockEnding=".l.autoremoved";
-static const char * emMiniIpc_FifoCreationLockFileName="fifo-creation.lock";
+static const char * const emMiniIpc_FifoEnding=".f.autoremoved";
+static const char * const emMiniIpc_FifoLockEnding=".l.autoremoved";
+static const char * const emMiniIpc_FifoCreationLockFileName="fifo-creation.lock";
 	// Remember: Files with FifoEnding and FifoLockEnding are auto-removed
 	// by CleanUpFiles. The ending of FifoCreationLockFileName must differ.
 
@@ -491,7 +506,7 @@ static void emMiniIpc_TrySendAtomic(
 		throw emString::Format(
 			"Failed to open \"%s\": %s",
 			fifoPath.Get(),
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 
@@ -504,7 +519,7 @@ static void emMiniIpc_TrySendAtomic(
 		throw emString::Format(
 			"Failed to fcntl \"%s\": %s",
 			fifoPath.Get(),
-			strerror(e)
+			emGetErrorText(e).Get()
 		);
 	}
 
@@ -514,7 +529,7 @@ static void emMiniIpc_TrySendAtomic(
 		throw emString::Format(
 			"Failed to stat \"%s\": %s",
 			fifoPath.Get(),
-			strerror(e)
+			emGetErrorText(e).Get()
 		);
 	}
 
@@ -537,7 +552,7 @@ static void emMiniIpc_TrySendAtomic(
 			throw emString::Format(
 				"Failed to write to \"%s\": %s",
 				fifoPath.Get(),
-				strerror(e)
+				emGetErrorText(e).Get()
 			);
 		}
 		data+=l;

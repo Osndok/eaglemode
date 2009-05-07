@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emToolkit.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,8 +18,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <emCore/emRes.h>
 #include <emCore/emToolkit.h>
+#include <emCore/emInstallInfo.h>
+#include <emCore/emRes.h>
 
 
 //==============================================================================
@@ -239,27 +240,29 @@ emTkBorder::emTkBorder(
 	emPanel * p;
 	TkResources * r;
 	emRootContext * rc;
+	emString resDir;
 
 	rc=&GetRootContext();
 	TkResVarModel=emVarModel<TkResources>::Acquire(*rc,"");
 	r=&TkResVarModel->Var;
 	if (r->ImgButton.IsEmpty()) {
-		r->ImgButton=emGetInsResImage(*rc,"emCore","Button.tga");
-		r->ImgButtonBorder=emGetInsResImage(*rc,"emCore","ButtonBorder.tga");
-		r->ImgButtonChecked=emGetInsResImage(*rc,"emCore","ButtonChecked.tga");
-		r->ImgButtonPressed=emGetInsResImage(*rc,"emCore","ButtonPressed.tga");
-		r->ImgCheckBox=emGetInsResImage(*rc,"emCore","CheckBox.tga");
-		r->ImgCheckBoxPressed=emGetInsResImage(*rc,"emCore","CheckBoxPressed.tga");
-		r->ImgCustomRectBorder=emGetInsResImage(*rc,"emCore","CustomRectBorder.tga");
-		r->ImgGroupBorder=emGetInsResImage(*rc,"emCore","GroupBorder.tga");
-		r->ImgGroupInnerBorder=emGetInsResImage(*rc,"emCore","GroupInnerBorder.tga");
-		r->ImgIOField=emGetInsResImage(*rc,"emCore","IOField.tga");
-		r->ImgPopupBorder=emGetInsResImage(*rc,"emCore","PopupBorder.tga");
-		r->ImgRadioBox=emGetInsResImage(*rc,"emCore","RadioBox.tga");
-		r->ImgRadioBoxPressed=emGetInsResImage(*rc,"emCore","RadioBoxPressed.tga");
-		r->ImgSplitter=emGetInsResImage(*rc,"emCore","Splitter.tga");
-		r->ImgSplitterPressed=emGetInsResImage(*rc,"emCore","SplitterPressed.tga");
-		r->ImgTunnel=emGetInsResImage(*rc,"emCore","Tunnel.tga");
+		resDir=emGetInstallPath(EM_IDT_RES,"emCore","toolkit");
+		r->ImgButton=emGetResImage(*rc,emGetChildPath(resDir,"Button.tga"));
+		r->ImgButtonBorder=emGetResImage(*rc,emGetChildPath(resDir,"ButtonBorder.tga"));
+		r->ImgButtonChecked=emGetResImage(*rc,emGetChildPath(resDir,"ButtonChecked.tga"));
+		r->ImgButtonPressed=emGetResImage(*rc,emGetChildPath(resDir,"ButtonPressed.tga"));
+		r->ImgCheckBox=emGetResImage(*rc,emGetChildPath(resDir,"CheckBox.tga"));
+		r->ImgCheckBoxPressed=emGetResImage(*rc,emGetChildPath(resDir,"CheckBoxPressed.tga"));
+		r->ImgCustomRectBorder=emGetResImage(*rc,emGetChildPath(resDir,"CustomRectBorder.tga"));
+		r->ImgGroupBorder=emGetResImage(*rc,emGetChildPath(resDir,"GroupBorder.tga"));
+		r->ImgGroupInnerBorder=emGetResImage(*rc,emGetChildPath(resDir,"GroupInnerBorder.tga"));
+		r->ImgIOField=emGetResImage(*rc,emGetChildPath(resDir,"IOField.tga"));
+		r->ImgPopupBorder=emGetResImage(*rc,emGetChildPath(resDir,"PopupBorder.tga"));
+		r->ImgRadioBox=emGetResImage(*rc,emGetChildPath(resDir,"RadioBox.tga"));
+		r->ImgRadioBoxPressed=emGetResImage(*rc,emGetChildPath(resDir,"RadioBoxPressed.tga"));
+		r->ImgSplitter=emGetResImage(*rc,emGetChildPath(resDir,"Splitter.tga"));
+		r->ImgSplitterPressed=emGetResImage(*rc,emGetChildPath(resDir,"SplitterPressed.tga"));
+		r->ImgTunnel=emGetResImage(*rc,emGetChildPath(resDir,"Tunnel.tga"));
 	}
 
 	Aux=NULL;
@@ -456,6 +459,7 @@ void emTkBorder::RemoveAux()
 const emString & emTkBorder::GetAuxPanelName() const
 {
 	static const emString emptyString;
+		// Okay this is thread-safe as long as the string is empty.
 
 	if (!Aux) return emptyString;
 	return Aux->PanelName;
@@ -2177,6 +2181,49 @@ void emTkButton::PaintContent(
 }
 
 
+void emTkButton::PaintBoxSymbol(
+	const emPainter & painter, double x, double y, double w, double h,
+	emColor canvasColor
+)
+{
+	double d;
+
+	if (ShownChecked) {
+		if (ShownRadioed) {
+			d=w*0.25;
+			painter.PaintEllipse(
+				x+d,y+d,w-2*d,h-2*d,
+				GetLook().GetInputFgColor(),
+				canvasColor
+			);
+		}
+		else {
+			painter.PaintLine(
+				x+w*0.2,
+				y+h*0.6,
+				x+w*0.4,
+				y+h*0.8,
+				w*0.16,
+				emPainter::LC_ROUND,
+				emPainter::LC_ROUND,
+				GetLook().GetInputFgColor(),
+				canvasColor
+			);
+			painter.PaintLine(
+				x+w*0.4,
+				y+h*0.8,
+				x+w*0.8,
+				y+h*0.2,
+				w*0.16,
+				emPainter::LC_ROUND,
+				emPainter::LC_ROUND,
+				GetLook().GetInputFgColor()
+			);
+		}
+	}
+}
+
+
 bool emTkButton::CheckMouse(double mx, double my)
 {
 	bool b;
@@ -2283,39 +2330,7 @@ void emTkButton::DoButton(
 		painter->PaintRoundRect(fx,fy,fw,fh,fr,fr,color,canvasColor);
 		canvasColor=color;
 
-		if (ShownChecked) {
-			if (ShownRadioed) {
-				d=fw*0.25;
-				painter->PaintEllipse(
-					fx+d,fy+d,fw-2*d,fh-2*d,
-					GetLook().GetInputFgColor(),
-					canvasColor
-				);
-			}
-			else {
-				painter->PaintLine(
-					fx+fw*0.2,
-					fy+fh*0.6,
-					fx+fw*0.4,
-					fy+fh*0.8,
-					fw*0.16,
-					emPainter::LC_ROUND,
-					emPainter::LC_ROUND,
-					GetLook().GetInputFgColor(),
-					canvasColor
-				);
-				painter->PaintLine(
-					fx+fw*0.4,
-					fy+fh*0.8,
-					fx+fw*0.8,
-					fy+fh*0.2,
-					fw*0.16,
-					emPainter::LC_ROUND,
-					emPainter::LC_ROUND,
-					GetLook().GetInputFgColor()
-				);
-			}
-		}
+		PaintBoxSymbol(*painter,fx,fy,fw,fh,canvasColor);
 
 		if (!IsEnabled()) painter->PaintRoundRect(fx,fy,fw,fh,fr,fr,0x888888E0);
 
@@ -4351,6 +4366,19 @@ void emTkScalarField::SetTextOfValueFunc(
 }
 
 
+void emTkScalarField::DefaultTextOfValue(
+	char * buf, int bufSize, emInt64 value, emUInt64 markInterval,
+	void * context
+)
+{
+	int l;
+
+	l=emInt64ToStr(buf,bufSize,value);
+	if (l<0 || l>=bufSize) l=0;
+	buf[l]=0;
+}
+
+
 void emTkScalarField::SetTextBoxTallness(double textBoxTallness)
 {
 	if (TextBoxTallness!=textBoxTallness) {
@@ -4629,19 +4657,6 @@ void emTkScalarField::StepByKeyboard(int dir)
 		if (v<0) v=-((-v+dv-1)/dv)*dv; else v=(v/dv)*dv;
 	}
 	SetValue(v);
-}
-
-
-void emTkScalarField::DefaultTextOfValue(
-	char * buf, int bufSize, emInt64 value, emUInt64 markInterval,
-	void * context
-)
-{
-	int l;
-
-	l=emInt64ToStr(buf,bufSize,value);
-	if (l<0 || l>=bufSize) l=0;
-	buf[l]=0;
 }
 
 
@@ -5361,7 +5376,7 @@ void emTkSplitter::PaintContent(
 		btBgCol,
 		canvasColor
 	);
-	if (Vertical) d=gh*0.5; else d=gw*0.5;
+	d=emMin(gw,gh)*0.5;
 	painter.PaintBorderImage(
 		gx,gy,gw,gh,
 		d,d,d,d,

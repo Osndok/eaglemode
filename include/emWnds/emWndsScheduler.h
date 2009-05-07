@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScheduler.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emScheduler_h
 #include <emCore/emScheduler.h>
+#endif
+
+#ifndef emThread_h
+#include <emCore/emThread.h>
 #endif
 
 #ifndef _INC_WINDOWS
@@ -69,8 +73,9 @@ private:
 		HWND hwnd, UINT uMsg, TimerIdType idEvent, DWORD dwTime
 	);
 
-	static emWndsScheduler * TheRunningScheduler;
-
+	static emThreadMiniMutex InstanceListMutex;
+	static emWndsScheduler * InstanceList;
+	emWndsScheduler * NextInstance;
 	StateType State;
 	TimerIdType TimerId;
 	bool TerminationInitiated;

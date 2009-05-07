@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2008 Oliver Hamann.
+// Copyright (C) 2001,2003-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emPainter.h>
-#include <emCore/emRes.h>
+#include <emCore/emVarModel.h>
 
 
 emPainter::emPainter()
@@ -52,7 +52,7 @@ emPainter::emPainter(const emPainter & painter)
 	OriginY=painter.OriginY;
 	ScaleX=painter.ScaleX;
 	ScaleY=painter.ScaleY;
-	FontImage=painter.FontImage;
+	FontCache=painter.FontCache;
 }
 
 
@@ -73,7 +73,7 @@ emPainter::emPainter(
 	OriginY=painter.OriginY;
 	ScaleX=painter.ScaleX;
 	ScaleY=painter.ScaleY;
-	FontImage=painter.FontImage;
+	FontCache=painter.FontCache;
 }
 
 
@@ -95,7 +95,7 @@ emPainter::emPainter(
 	OriginY=originY;
 	ScaleX=scaleX;
 	ScaleY=scaleY;
-	FontImage=painter.FontImage;
+	FontCache=painter.FontCache;
 }
 
 
@@ -109,7 +109,8 @@ emPainter::emPainter(
 {
 	emUInt32 redRange,greenRange,blueRange;
 	int redShift,greenShift,blueShift;
-	SharedPixelFormat * pf;
+	SharedPixelFormat * list, * pf;
+	SharedPixelFormat * * ppf;
 	void * ht;
 	emUInt32 r,g,b,a,rm,gm,bm,pix,pixm;
 
@@ -124,14 +125,6 @@ emPainter::emPainter(
 		emFatalError("emPainter: Clip rect out of range (output image too large).");
 	}
 
-	FontImage=emGetInsResImage(rootContext,"emCore","Font.tga",1);
-	if (
-		FontImage.GetWidth()!=FontImageWidth ||
-		FontImage.GetHeight()!=FontImageHeight
-	) {
-		emFatalError("emPainter: Unexpected size of font image.");
-	}
-
 	Map=map;
 	BytesPerRow=bytesPerRow;
 	PixelFormat=NULL;
@@ -143,6 +136,7 @@ emPainter::emPainter(
 	OriginY=originY;
 	ScaleX=scaleX;
 	ScaleY=scaleY;
+	FontCache=emFontCache::Acquire(rootContext);
 
 	redRange=redMask;
 	redShift=0;
@@ -154,8 +148,12 @@ emPainter::emPainter(
 	blueShift=0;
 	if (blueRange) while (!(blueRange&1)) { blueRange>>=1; blueShift++; }
 
+	list=emVarModel<emPainter::SharedPixelFormat*>::Get(
+		rootContext,"emPainter::PixelFormatList",(SharedPixelFormat*)NULL
+	);
+
 	// Search for a matching pixel format.
-	for (pf=PixelFormatList;pf!=NULL;pf=pf->Next) {
+	for (pf=list; pf!=NULL; pf=pf->Next) {
 		if (
 			pf->BytesPerPixel==bytesPerPixel &&
 			pf->RedRange==redRange &&
@@ -168,11 +166,20 @@ emPainter::emPainter(
 	}
 	if (!pf) {
 		// Not found. Remove unused pixel formats here.
-		RemoveUnusedPixelFormats();
+		for (ppf=&list;;) {
+			pf=*ppf;
+			if (!pf) break;
+			if (pf->RefCount<=0) {
+				*ppf=pf->Next;
+				free(pf->HashTable);
+				free(pf);
+			}
+			else ppf=&pf->Next;
+		}
 		// Create a new pixel format.
 		pf=(SharedPixelFormat*)malloc(sizeof(SharedPixelFormat));
-		pf->Next=PixelFormatList;
-		PixelFormatList=pf;
+		pf->Next=list;
+		list=pf;
 		pf->RefCount=0;
 		pf->BytesPerPixel=bytesPerPixel;
 		pf->RedRange=redRange;
@@ -215,6 +222,10 @@ emPainter::emPainter(
 	// Use the found or created pixel format.
 	pf->RefCount++;
 	PixelFormat=pf;
+
+	emVarModel<emPainter::SharedPixelFormat*>::Set(
+		rootContext,"emPainter::PixelFormatList",list,UINT_MAX
+	);
 }
 
 
@@ -233,8 +244,7 @@ emPainter & emPainter::operator = (const emPainter & painter)
 	OriginY=painter.OriginY;
 	ScaleX=painter.ScaleX;
 	ScaleY=painter.ScaleY;
-	FontImage=painter.FontImage;
-	RemoveUnusedPixelFormats();
+	FontCache=painter.FontCache;
 	return *this;
 }
 
@@ -288,8 +298,10 @@ void emPainter::Clear(emColor color, emColor canvasColor) const
 }
 
 
-void emPainter::PaintRect(double x, double y, double w, double h,
-                           emColor color, emColor canvasColor) const
+void emPainter::PaintRect(
+	double x, double y, double w, double h, emColor color,
+	emColor canvasColor
+) const
 {
 	void * p, * p1, * p2, * p3, * p4, * hsAdd, * hsSub;
 	double x2,y2;
@@ -2912,25 +2924,15 @@ void emPainter::PaintText(
 	int textLen
 ) const
 {
-	static struct {
-		int Unicode;
-		int Fontcode;
-	} extraUnicodeMapping [] = {
-		{ 0x251C, 0x15 }, { 0x2524, 0x16 }, { 0x2534, 0x17 },
-		{ 0x252C, 0x18 }, { 0x2502, 0x19 }, { 0x2264, 0x1A }, { 0x2265, 0x1B },
-		{ 0x03C0, 0x1C }, { 0x2260, 0x1D }, { 0x2212, 0x1F },
-		{ 0x20AC, 0x80 }, { 0x201A, 0x82 }, { 0x0192, 0x83 },
-		{ 0x201E, 0x84 }, { 0x2026, 0x85 }, { 0x2020, 0x86 }, { 0x2021, 0x87 },
-		{ 0x02C6, 0x88 }, { 0x2030, 0x89 }, { 0x0160, 0x8A }, { 0x2039, 0x8B },
-		{ 0x0152, 0x8C }, { 0x0164, 0x8D }, { 0x017D, 0x8E }, { 0x0179, 0x8F },
-		{ 0x2035, 0x91 }, { 0x2032, 0x92 }, { 0x2036, 0x93 },
-		{ 0x2033, 0x94 }, { 0x2022, 0x95 }, { 0x2013, 0x96 }, { 0x2014, 0x97 },
-		{ 0x02DC, 0x98 }, { 0x2122, 0x99 }, { 0x0161, 0x9A }, { 0x203A, 0x9B },
-		{ 0x0153, 0x9C }, { 0x0165, 0x9D }, { 0x017E, 0x9E }, { 0x0178, 0x9F },
-		{ 0x0000, 0x00 } // terminator, other char.
+	static const int tab8BitLatin0x80To0x9F[32]={
+		0x20AC,0x0081,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,
+		0x02C6,0x2030,0x0160,0x2039,0x0152,0x0164,0x017D,0x0179,
+		0x0090,0x2035,0x2032,0x2036,0x2033,0x2022,0x2013,0x2014,
+		0x02DC,0x2122,0x0161,0x203A,0x0153,0x0165,0x017E,0x0178
 	};
-	double charWidth,cx1,cx2,x1,sx,sy;
-	int srcCharWidth,srcCharHeight,i,j,n,c,u,cTestUtf8;
+	double charWidth,showHeight,rcw,cx1,cx2,x1;
+	int i,n,c,cTestUtf8,imgX,imgY,imgW,imgH;
+	emImage * pImg;
 
 	if (
 		y*ScaleY+OriginY>=ClipY2 ||
@@ -2938,44 +2940,40 @@ void emPainter::PaintText(
 		x>=(cx2=(ClipX2-OriginX)/ScaleX) ||
 		ClipX1>=ClipX2 ||
 		charHeight*ScaleY<=0.1 ||
-		widthScale<=0.0
+		widthScale<=0.0 ||
+		FontCache==NULL
 	) return;
-	srcCharWidth=FontImage.GetWidth()/16;
-	srcCharHeight=FontImage.GetHeight()/16;
-	charWidth=charHeight*widthScale*srcCharWidth/srcCharHeight;
+	rcw=charHeight/CharBoxTallness;
+	charWidth=rcw*widthScale;
 	cx1=(ClipX1-OriginX)/ScaleX;
 	cTestUtf8=emIsUtf8System()?128:256;
 	if (charHeight*ScaleY>=1.7) {
 		for (i=0; i<textLen; i++) {
 			c=(unsigned char)text[i];
 			if (!c) break;
-			if (c>=cTestUtf8) {
-				n=emDecodeUtf8Char(&c,text+i,textLen-i);
-				if (n<=0) {
-					c=0;
+			if (c>=0x80) {
+				if (c>=cTestUtf8) {
+					n=emDecodeUtf8Char(&c,text+i,textLen-i);
+					if (n>1) i+=n-1;
 				}
-				else {
-					i+=n-1;
-					if (c>0xff || c<0xa0) {
-						for (j=0; ; j++) {
-							u=extraUnicodeMapping[j].Unicode;
-							if (u==c || !u) {
-								c=extraUnicodeMapping[j].Fontcode;
-								break;
-							}
-						}
-					}
+				else if (c<=0x9F) {
+					c=tab8BitLatin0x80To0x9F[c-0x80];
 				}
 			}
 			x1=x;
 			x+=charWidth;
 			if (x>cx1) {
 				if (x1>=cx2) break;
-				sx=(c&15)*srcCharWidth;
-				sy=((c>>4)&15)*srcCharHeight;
+				FontCache->GetChar(
+					c,charWidth*ScaleX,charHeight*ScaleY,
+					&pImg,&imgX,&imgY,&imgW,&imgH
+				);
+				showHeight=rcw*imgH/imgW;
+				if (showHeight>charHeight) showHeight=charHeight;
 				PaintShape(
-					x1,y,charWidth,charHeight,FontImage,
-					sx,sy,srcCharWidth,srcCharHeight,
+					x1,y+(charHeight-showHeight)*0.5,
+					charWidth,showHeight,
+					*pImg,imgX,imgY,imgW,imgH,
 					0,color,canvasColor
 				);
 			}
@@ -3059,7 +3057,7 @@ void emPainter::PaintTextBoxed(
 	}
 	if (formatted) {
 		cTestUtf8=emIsUtf8System()?128:256;
-		cw=ch*ws*FontImage.GetWidth()/FontImage.GetHeight();
+		cw=ch*ws/CharBoxTallness;
 		for (ty=y, i=0; ; ty+=ch*(1.0+relLineSpace)) {
 			tx=x;
 			if ((textAlignment&EM_ALIGN_LEFT)==0) {
@@ -3180,30 +3178,10 @@ double emPainter::GetTextSize(
 		rows=1;
 	}
 	if (pHeight) *pHeight=charHeight*(1.0+relLineSpace)*rows;
-	return charHeight*columns*FontImageWidth/FontImageHeight;
+	return charHeight*columns/CharBoxTallness;
 }
 
 
-void emPainter::RemoveUnusedPixelFormats()
-{
-	SharedPixelFormat * pf;
-	SharedPixelFormat * * ppf;
-
-	for (ppf=&PixelFormatList;;) {
-		pf=*ppf;
-		if (!pf) break;
-		if (pf->RefCount<=0) {
-			*ppf=pf->Next;
-			free(pf->HashTable);
-			free(pf);
-		}
-		else ppf=&pf->Next;
-	}
-}
-
-
-const int emPainter::FontImageWidth=1024;
-const int emPainter::FontImageHeight=1792;
-emPainter::SharedPixelFormat * emPainter::PixelFormatList=NULL;
+const double emPainter::CharBoxTallness=1.77;
 const unsigned emPainter::ImageDownscaleQuality=3;
 const double emPainter::CircleQuality=4.5;

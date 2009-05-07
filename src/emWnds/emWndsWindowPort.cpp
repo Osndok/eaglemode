@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -313,7 +313,7 @@ void emWndsWindowPort::PreConstruct()
 		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
 		MinPaneW=32;
 		MinPaneH=32;
-		if (!Owner) {
+		if (!Owner && (GetWindowFlags()&emWindow::WF_MODAL)==0) {
 			d=emMin(vrw,vrh)*0.08;
 			PaneX=(int)(vrx+d*emGetDblRandom(0.5,1.5)+0.5);
 			PaneY=(int)(vry+d*emGetDblRandom(0.8,1.2)+0.5);
@@ -406,7 +406,10 @@ void emWndsWindowPort::PreConstruct()
 		NULL
 	);
 	if (!HWnd) {
-		emFatalError("emWndsWindowPort: CreateWindow failed (0x%lX)",GetLastError());
+		emFatalError(
+			"emWndsWindowPort: CreateWindow failed: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 
 	if (ModalDescendants>0) EnableWindow(HWnd,FALSE);

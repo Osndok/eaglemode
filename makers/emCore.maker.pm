@@ -44,9 +44,13 @@ sub Build
 			"--link", "shell32"
 		)
 		: $Config{'osname'} eq 'linux' ? (
+			"--link", "pthread",
 			"--link", "dl"
 		)
+		: $Config{'osname'} eq 'cygwin' ? (
+		)
 		: (
+			"--link", "pthread"
 		),
 		"--type"          , "dynlib",
 		"--name"          , "emCore",
@@ -62,6 +66,7 @@ sub Build
 		"src/emCore/emErrorPanel.cpp",
 		"src/emCore/emFileModel.cpp",
 		"src/emCore/emFilePanel.cpp",
+		"src/emCore/emFontCache.cpp",
 		"src/emCore/emFpPlugin.cpp",
 		"src/emCore/emGUIFramework.cpp",
 		"src/emCore/emImage.cpp",
@@ -86,6 +91,7 @@ sub Build
 		"src/emCore/emStd2.cpp",
 		"src/emCore/emString.cpp",
 		"src/emCore/emSubViewPanel.cpp",
+		"src/emCore/emThread.cpp",
 		"src/emCore/emTimer.cpp",
 		"src/emCore/emTmpFile.cpp",
 		"src/emCore/emToolkit.cpp",

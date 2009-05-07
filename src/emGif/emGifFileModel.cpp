@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -320,7 +320,7 @@ void emGifFileModel::TryStartLoading() throw(emString)
 	File=fopen(GetFilePath(),"rb");
 	if (!File) goto Err;
 
-	fread(sigver,1,6,File);
+	if (fread(sigver,1,6,File)!=6) goto Err;
 	Width=Read16();
 	Height=Read16();
 	flags=Read8();
@@ -356,7 +356,7 @@ void emGifFileModel::TryStartLoading() throw(emString)
 
 	return;
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("GIF format error");
 }
 
@@ -384,7 +384,7 @@ bool emGifFileModel::TryContinueLoading() throw(emString)
 				}
 				r->Data=p;
 			}
-			fread(r->Data+r->DataFill,1,b,File);
+			if (fread(r->Data+r->DataFill,1,b,File)!=(size_t)b) goto Err;
 			r->DataFill+=b;
 		}
 		else {
@@ -473,7 +473,7 @@ bool emGifFileModel::TryContinueLoading() throw(emString)
 				if (!b) break;
 				i+=b;
 				if (i>=65536) goto Err;
-				fread(tmp,1,b,File);
+				if (fread(tmp,1,b,File)!=(size_t)b) goto Err;
 				tmp[b]=0;
 				Comment+=tmp;
 			}
@@ -518,7 +518,7 @@ bool emGifFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("GIF format error");
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,6 +104,8 @@ private:
 	double CenterX;
 	double CenterY;
 	double Radius;
+
+	emString TimeError;
 };
 
 

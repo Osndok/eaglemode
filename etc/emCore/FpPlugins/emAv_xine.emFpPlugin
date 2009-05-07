@@ -19,6 +19,8 @@ FileTypes = {
  ".asf"
  ".avi"
  ".fli"
+ ".flv"
+ ".m2t"
  ".m2v"
  ".mov"
  ".mp4"

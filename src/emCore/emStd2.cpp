@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,6 +45,7 @@
 #include <sys/stat.h>
 #include <emCore/emStd2.h>
 #include <emCore/emInstallInfo.h>
+#include <emCore/emThread.h>
 
 
 //==============================================================================
@@ -59,7 +60,10 @@ emString emGetHostName()
 
 	sz=sizeof(tmp)-1;
 	if (!GetComputerName(tmp,&sz)) {
-		emFatalError("Failed to get host name (error code %u)",GetLastError());
+		emFatalError(
+			"emGetHostName: GetComputerName failed: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 	tmp[sizeof(tmp)-1]=0;
 	return emString(tmp);
@@ -67,7 +71,10 @@ emString emGetHostName()
 	char tmp[512];
 
 	if (gethostname(tmp,sizeof(tmp))!=0) {
-		emFatalError("Failed to get host name (%s)",strerror(errno));
+		emFatalError(
+			"emGetHostName: gethostname failed: %s",
+			emGetErrorText(errno).Get()
+		);
 	}
 	tmp[sizeof(tmp)-1]=0;
 	return emString(tmp);
@@ -83,17 +90,26 @@ emString emGetUserName()
 
 	sz=sizeof(tmp)-1;
 	if (!GetUserName(tmp,&sz)) {
-		emFatalError("Failed to get user name (error code %u)",GetLastError());
+		emFatalError(
+			"emGetUserName: GetUserName failed: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 	tmp[sizeof(tmp)-1]=0;
 	return emString(tmp);
 #else
+	char tmp[1024];
+	struct passwd pwbuf;
 	struct passwd * pw;
+	int i;
 
 	errno=0;
-	pw=getpwuid(getuid()); //??? not thread-reentrant (use getpwuid_r)
-	if (!pw || !pw->pw_name) {
-		emFatalError("getpwuid(getuid()) failed: %s",strerror(errno));
+	i=getpwuid_r(getuid(),&pwbuf,tmp,sizeof(tmp),&pw);
+	if (i!=0 || !pw || !pw->pw_name) {
+		emFatalError(
+			"emGetUserName: getpwuid_r failed: %s",
+			emGetErrorText(errno).Get()
+		);
 	}
 	return emString(pw->pw_name);
 #endif
@@ -106,6 +122,50 @@ int emGetProcessId()
 	return GetCurrentProcessId();
 #else
 	return getpid();
+#endif
+}
+
+
+//==============================================================================
+//================================ Error Texts =================================
+//==============================================================================
+
+emString emGetErrorText(int errorNumber)
+{
+#if defined(_WIN32)
+	char tmp[512];
+
+	if (!FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		(DWORD)errorNumber,
+		0,
+		tmp,
+		sizeof(tmp)-1,
+		NULL
+	)) {
+		sprintf(tmp,"error #%d",errorNumber);
+	}
+	return emString(tmp);
+#elif defined(__GLIBC__) || defined(__CYGWIN__)
+	char tmp[512];
+	const char * p;
+
+	tmp[0]=0;
+	p=strerror_r(errorNumber,tmp,sizeof(tmp));
+	if (!p || !*p) {
+		sprintf(tmp,"error #%d",errorNumber);
+		p=tmp;
+	}
+	return emString(p);
+#else
+	char tmp[512];
+	int i;
+
+	tmp[0]=0;
+	i=strerror_r(errorNumber,tmp,sizeof(tmp));
+	if (i || !tmp[0]) sprintf(tmp,"error #%d",errorNumber);
+	return emString(tmp);
 #endif
 }
 
@@ -131,25 +191,30 @@ void emSleepMS(int millisecs)
 emUInt64 emGetClockMS()
 {
 #if defined(_WIN32)
-	//??? not thread-reentrant
+	static emThreadMiniMutex mutex;
 	static emUInt64 ms64=0;
 	static DWORD tcks=0;
 	DWORD t;
+	emUInt64 res;
 
+	mutex.Lock();
 	t=GetTickCount();
 	ms64+=(DWORD)(t-tcks);
 	tcks=t;
-	return ms64;
+	res=ms64;
+	mutex.Unlock();
+	return res;
 #else
-	//??? not thread-reentrant
+	static emThreadMiniMutex mutex;
 	static clock_t tcks=0;
 	static unsigned long tps=0;
 	static unsigned long rem=0;
 	static emUInt64 ms64=0;
-	emUInt64 t;
+	emUInt64 t,res;
 	clock_t d;
 	tms tb;
 
+	mutex.Lock();
 	d=times(&tb)-tcks;
 	if (d) {
 		tcks+=d;
@@ -163,7 +228,9 @@ emUInt64 emGetClockMS()
 		rem=(unsigned long)(t%tps);
 		ms64+=(emUInt64)(t/tps);
 	}
-	return ms64;
+	res=ms64;
+	mutex.Unlock();
+	return res;
 #endif
 }
 
@@ -176,7 +243,6 @@ emUInt64 emGetCPUTSC()
 
 	while (haveRDTSC<=0) {
 		if (haveRDTSC==0) return 0;
-		haveRDTSC=0;
 		asm volatile (
 #			if defined(__x86_64__)
 				"push %%rbx\n"
@@ -480,7 +546,7 @@ emUInt64 emTryGetFileSize(const char * path) throw(emString)
 		throw emString::Format(
 			"Failed to get size of \"%s\": %s",
 			path,
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 	return st.st_size;
@@ -495,7 +561,7 @@ time_t emTryGetFileTime(const char * path) throw(emString)
 		throw emString::Format(
 			"Failed to get modification time of \"%s\": %s",
 			path,
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 	return st.st_mtime;
@@ -507,7 +573,7 @@ emString emGetCurrentDirectory()
 	char tmp[1024];
 
 	if (getcwd(tmp,sizeof(tmp))==NULL) {
-		emFatalError("getcwd failed: %s",strerror(errno));
+		emFatalError("getcwd failed: %s",emGetErrorText(errno).Get());
 	}
 	return emString(tmp);
 }
@@ -526,6 +592,7 @@ emDirHandle emTryOpenDir(const char * path) throw(emString)
 {
 #if defined(_WIN32)
 	emWndsDirHandleContent * hc;
+	DWORD d;
 
 	hc=new emWndsDirHandleContent;
 	hc->handle=FindFirstFile(
@@ -533,12 +600,13 @@ emDirHandle emTryOpenDir(const char * path) throw(emString)
 		&hc->data
 	);
 	if (hc->handle==INVALID_HANDLE_VALUE) {
-		if (GetLastError()!=ERROR_NO_MORE_FILES) {
+		d=GetLastError();
+		if (d!=ERROR_NO_MORE_FILES) {
 			delete hc;
 			throw emString::Format(
 				"Failed to read directory \"%s\": %s",
 				path,
-				strerror(GetLastError())
+				emGetErrorText(d).Get()
 			);
 		}
 	}
@@ -552,7 +620,7 @@ emDirHandle emTryOpenDir(const char * path) throw(emString)
 		throw emString::Format(
 			"Failed to read directory \"%s\": %s",
 			path,
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 	return dir;
@@ -576,7 +644,7 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emString)
 				if (GetLastError()!=ERROR_NO_MORE_FILES) {
 					throw emString::Format(
 						"Failed to read directory: %s",
-						strerror(GetLastError())
+						emGetErrorText(GetLastError()).Get()
 					);
 				}
 				FindClose(hc->handle);
@@ -591,30 +659,34 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emString)
 		) return emString(hc->data.cFileName);
 	}
 #else
+	struct dirent * buf, * de;
+	emString res;
 	DIR * dir;
-	dirent * de;
 
+	// Hint: On some systems, the size of dirent.d_name is 1 and must be
+	// extended when creating a buffer for use with readdir_r.
+	buf=(struct dirent *)malloc(sizeof(struct dirent)+513);
 	dir=(DIR*)dirHandle;
 	for (;;) {
-		errno=0;
-		de=readdir(dir);
-		if (!de) {
-			if (errno) {
-				throw emString::Format(
-					"Failed to read directory: %s",
-					strerror(errno)
-				);
-			}
-			else {
-				return emString();
-			}
+		if (readdir_r(dir,buf,&de)!=0) {
+			free(buf);
+			throw emString::Format(
+				"Failed to read directory: %s",
+				emGetErrorText(errno).Get()
+			);
 		}
+		if (!de) break;
 		if (
 			de->d_name[0] &&
 			strcmp(de->d_name,".")!=0 &&
 			strcmp(de->d_name,"..")!=0
-		) return emString(de->d_name);
+		) {
+			res=emString(de->d_name);
+			break;
+		}
 	}
+	free(buf);
+	return res;
 #endif
 }
 
@@ -687,7 +759,7 @@ L_Err:
 	throw emString::Format(
 		"Failed to read file \"%s\": %s",
 		path,
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 }
 
@@ -714,7 +786,7 @@ L_Err:
 	throw emString::Format(
 		"Failed to write file \"%s\": %s",
 		path,
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 }
 
@@ -742,7 +814,7 @@ void emTryMakeDirectories(const char * path, int mode) throw(emString)
 			throw emString::Format(
 				"Failed to create directory \"%s\": %s",
 				path,
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 	}
@@ -772,7 +844,7 @@ L_TryIt:
 				throw emString::Format(
 					"Failed to remove directory \"%s\": %s",
 					path,
-					strerror(errno)
+					emGetErrorText(errno).Get()
 				);
 			}
 		}
@@ -781,7 +853,7 @@ L_TryIt:
 				throw emString::Format(
 					"Failed to remove \"%s\": %s",
 					path,
-					strerror(errno)
+					emGetErrorText(errno).Get()
 				);
 			}
 		}
@@ -883,7 +955,7 @@ L_Throw_per_errno:
 		"Failed to copy \"%s\" to \"%s\": %s",
 		sourcePath,
 		targetPath,
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 }
 
@@ -902,15 +974,15 @@ struct emLibTableEntry {
 #endif
 };
 
-
-static emArray<emLibTableEntry> emLibTable; //??? not thread-safe
+static emThreadMiniMutex emLibTableMutex;
+static emArray<emLibTableEntry*> emLibTable;
 
 
 static int emCompareLibEntryFilename(
-	const emLibTableEntry * entry, void * filename, void * context
+	emLibTableEntry * const * entry, void * filename, void * context
 )
 {
-	return strcmp(entry->Filename.Get(),(const char*)filename);
+	return strcmp((*entry)->Filename.Get(),(const char*)filename);
 }
 
 
@@ -931,29 +1003,39 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 	else {
 #if defined(_WIN32) || defined(__CYGWIN__)
 		filename=emString::Format("%s.dll",libName);
+#elif defined(__APPLE__)
+		filename=emString::Format("lib%s.dylib",libName);
 #else
 		filename=emString::Format("lib%s.so",libName);
 #endif
 	}
 
-	idx=emLibTable.BinarySearchByKey((void*)filename.Get(),emCompareLibEntryFilename);
+	emLibTableMutex.Lock();
+
+	idx=emLibTable.BinarySearchByKey(
+		(void*)filename.Get(),
+		emCompareLibEntryFilename
+	);
 	if (idx>=0) {
-		e=&emLibTable.GetWritable(idx);
+		e=emLibTable[idx];
 		if (e->RefCount) e->RefCount++;
+		emLibTableMutex.Unlock();
 		return e;
 	}
 #if defined(_WIN32)
 	hModule=LoadLibrary(filename.Get());
 	if (!hModule) {
+		emLibTableMutex.Unlock();
 		throw emString::Format(
-			"Failed to load library \"%s\": 0x%X",
+			"Failed to load library \"%s\": %s",
 			filename.Get(),
-			GetLastError()
+			emGetErrorText(GetLastError()).Get()
 		);
 	}
 #else
 	dlHandle=dlopen(filename,RTLD_NOW|RTLD_GLOBAL);
 	if (!dlHandle) {
+		emLibTableMutex.Unlock();
 #		if defined(__linux__) || defined(__sun__) || defined(__FreeBSD__)
 			throw emString(dlerror());
 #		else
@@ -965,9 +1047,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 #		endif
 	}
 #endif
-	idx=~idx;
-	emLibTable.InsertNew(idx);
-	e=&emLibTable.GetWritable(idx);
+	e=new emLibTableEntry;
 	e->Filename=filename;
 	e->RefCount=1;
 #if defined(_WIN32)
@@ -975,6 +1055,12 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 #else
 	e->DLHandle=dlHandle;
 #endif
+	emLibTable.Insert(~idx,e);
+
+	filename.Empty();
+	e->Filename.MakeNonShared();
+
+	emLibTableMutex.Unlock();
 	return e;
 }
 
@@ -995,10 +1081,10 @@ void * emTryResolveSymbolFromLib(
 	r=(void*)GetProcAddress(e->HModule,symbol);
 	if (!r) {
 		throw emString::Format(
-			"Failed to get address of \"%s\" in \"%s\": 0x%X",
+			"Failed to get address of \"%s\" in \"%s\": %s",
 			symbol,
 			e->Filename.Get(),
-			GetLastError()
+			emGetErrorText(GetLastError()).Get()
 		);
 	}
 #else
@@ -1026,6 +1112,7 @@ void emCloseLib(emLibHandle handle)
 {
 	emLibTableEntry * e;
 
+	emLibTableMutex.Lock();
 	e=(emLibTableEntry*)handle;
 	if (e->RefCount && !e->RefCount--) {
 #if defined(_WIN32)
@@ -1035,8 +1122,13 @@ void emCloseLib(emLibHandle handle)
 		dlclose(e->DLHandle);
 		e->DLHandle=NULL;
 #endif
-		emLibTable.Remove(emLibTable.PointerToIndex(e));
+		emLibTable.BinaryRemoveByKey(
+			(void*)e->Filename.Get(),
+			emCompareLibEntryFilename
+		);
+		delete e;
 	}
+	emLibTableMutex.Unlock();
 }
 
 
@@ -1049,7 +1141,9 @@ void * emTryResolveSymbol(
 
 	e=(emLibTableEntry*)emTryOpenLib(libName,isFilename);
 	r=emTryResolveSymbolFromLib(e,symbol);
+	emLibTableMutex.Lock();
 	e->RefCount=0;
+	emLibTableMutex.Unlock();
 	return r;
 }
 
@@ -1137,20 +1231,20 @@ emUInt32 emCalcAdler32(const char * src, int srcLen, emUInt32 start)
 
 emUInt32 emCalcCRC32(const char * src, int srcLen, emUInt32 start)
 {
-	static volatile emUInt32 tab[256];
-	static volatile bool tabInitialized=false;
+	static emThreadInitMutex initMutex;
+	static emUInt32 tab[256];
 	const char * end;
 	emUInt32 r;
 	int i,j;
 
-	if (!tabInitialized) {
+	if (initMutex.Begin()) {
 		for (i=0; i<256; i++) {
 			for (r=i, j=0; j<8; j++) {
 				if ((r&1)!=0) r=(r>>1)^0xEDB88320; else r>>=1;
 			}
 			tab[i]=r;
 		}
-		tabInitialized=true;
+		initMutex.End();
 	}
 
 	r=start;
@@ -1168,13 +1262,13 @@ emUInt32 emCalcCRC32(const char * src, int srcLen, emUInt32 start)
 
 emUInt64 emCalcCRC64(const char * src, int srcLen, emUInt64 start)
 {
-	static volatile emUInt64 tab[256];
-	static volatile bool tabInitialized=false;
+	static emThreadInitMutex initMutex;
+	static emUInt64 tab[256];
 	const char * end;
 	emUInt64 r;
 	int i,j;
 
-	if (!tabInitialized) {
+	if (initMutex.Begin()) {
 		for (i=0; i<256; i++) {
 			for (r=i, j=0; j<8; j++) {
 				if ((r&1)!=0) r=(r>>1)^(((emUInt64)0xD8000000)<<32);
@@ -1182,7 +1276,7 @@ emUInt64 emCalcCRC64(const char * src, int srcLen, emUInt64 start)
 			}
 			tab[i]=r;
 		}
-		tabInitialized=true;
+		initMutex.End();
 	}
 
 	r=start;

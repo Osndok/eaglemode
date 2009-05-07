@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -22,10 +22,12 @@
 #	include <sys/stat.h>
 #	include <windows.h>
 #else
+#	include <unistd.h>
 #	include <langinfo.h>
 #endif
 #include <locale.h>
 #include <emCore/emStd1.h>
+#include <emCore/emThread.h>
 
 
 //==============================================================================
@@ -54,6 +56,77 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 		);
 	}
 }
+
+
+//==============================================================================
+//============ Some adaptations to compilers and operating systems =============
+//==============================================================================
+
+#if defined(_WIN32)
+
+	static emThreadMiniMutex em_time_func_mutex;
+
+
+	char * em_asctime_r(const struct tm * ptm, char * buf)
+	{
+		char * p;
+
+		em_time_func_mutex.Lock();
+		p=asctime(ptm);
+		if (p) {
+			strcpy(buf,p);
+			p=buf;
+		}
+		em_time_func_mutex.Unlock();
+		return p;
+	}
+
+
+	char * em_ctime_r(const time_t * ptime, char * buf)
+	{
+		char * p;
+
+		em_time_func_mutex.Lock();
+		p=ctime(ptime);
+		if (p) {
+			strcpy(buf,p);
+			p=buf;
+		}
+		em_time_func_mutex.Unlock();
+		return p;
+	}
+
+
+	struct tm * em_gmtime_r(const time_t * ptime, struct tm * buf)
+	{
+		struct tm * p;
+
+		em_time_func_mutex.Lock();
+		p=gmtime(ptime);
+		if (p) {
+			memcpy(buf,p,sizeof(struct tm));
+			p=buf;
+		}
+		em_time_func_mutex.Unlock();
+		return p;
+	}
+
+
+	struct tm * em_localtime_r(const time_t * ptime, struct tm * buf)
+	{
+		struct tm * p;
+
+		em_time_func_mutex.Lock();
+		p=localtime(ptime);
+		if (p) {
+			memcpy(buf,p,sizeof(struct tm));
+			p=buf;
+		}
+		em_time_func_mutex.Unlock();
+		return p;
+	}
+
+#endif
 
 
 //==============================================================================
@@ -368,8 +441,8 @@ int emGetDecodedCharCount(const char * str, int strLen)
 static void emRawLog(const char * pre, const char * format, va_list args)
 {
 #if defined(_WIN32)
-	static const char * logFileName   ="emCoreBasedAppLog.log";
-	static const char * backupFileName="emCoreBasedAppLog-old.log";
+	static const char * const logFileName   ="emCoreBasedAppLog.log";
+	static const char * const backupFileName="emCoreBasedAppLog-old.log";
 	char logFilePath[_MAX_PATH+1], backupFilePath[_MAX_PATH+1];
 	struct stat st;
 	char * buf;
@@ -500,7 +573,7 @@ void emFatalError(const char * format, ...)
 		va_end(args);
 		MessageBox(NULL,tmp,"Fatal Error",MB_OK|MB_ICONERROR);
 	}
-	exit(255);
+	_exit(255);
 #else
 	va_list args;
 
@@ -509,7 +582,7 @@ void emFatalError(const char * format, ...)
 	vfprintf(stderr,format,args);
 	va_end(args);
 	fprintf(stderr,"\n");
-	exit(255);
+	_exit(255);
 #endif
 }
 

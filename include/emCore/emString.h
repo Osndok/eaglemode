@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -233,6 +233,10 @@ public:
 	unsigned int GetDataRefCount() const;
 		// Get number of references to the data behind this string.
 
+	void MakeNonShared();
+		// This must be called before handing the string to another
+		// thread.
+
 private:
 
 	struct SharedData {
@@ -437,6 +441,11 @@ inline bool operator < (const char * p, const emString & s)
 inline bool operator > (const char * p, const emString & s)
 {
 	return strcmp(p,s.Data->Buf)>0;
+}
+
+inline void emString::MakeNonShared()
+{
+	MakeWritable();
 }
 
 inline emString::emString(SharedData * d)

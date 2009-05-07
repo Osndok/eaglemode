@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -136,7 +136,7 @@ void emDirEntryPanel::Notice(NoticeFlags flags)
 		if (
 			(
 				soughtName &&
-				strcmp(soughtName,ContentName.Get())==0
+				strcmp(soughtName,ContentName)==0
 			) ||
 			(
 				IsViewed() &&
@@ -171,7 +171,7 @@ void emDirEntryPanel::Notice(NoticeFlags flags)
 		if (
 			(
 				soughtName &&
-				strcmp(soughtName,AltName.Get())==0
+				strcmp(soughtName,AltName)==0
 			) ||
 			(
 				IsViewed() &&
@@ -271,6 +271,7 @@ bool emDirEntryPanel::IsOpaque()
 void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
 	emColor color;
+	emString str;
 	char tmp[1024];
 	const char * p;
 	double w,ws,ch,cw,ch2,x,y,x1,y1;
@@ -398,17 +399,17 @@ void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
 				false
 			);
 			if (DirEntry.GetTargetPathErrNo()) {
-				p=strerror(DirEntry.GetTargetPathErrNo());
+				str=emGetErrorText(DirEntry.GetTargetPathErrNo());
 			}
 			else {
-				p=DirEntry.GetTargetPath();
+				str=DirEntry.GetTargetPath();
 			}
 			painter.PaintTextBoxed(
 				x,
 				y+ch/2,
 				w,
 				ch/2,
-				p,
+				str,
 				ch/2,
 				ColorSymLink,
 				canvasColor,
@@ -732,9 +733,10 @@ void emDirEntryPanel::RunDefaultCommand()
 
 void emDirEntryPanel::FormatTime(time_t t, char * buf)
 {
+	struct tm tmbuf;
 	struct tm * p;
 
-	p=localtime(&t); //??? not thread-reentrant (use localtime_r)
+	p=localtime_r(&t,&tmbuf);
 	if (!p) {
 		strcpy(buf,"0000-00-00 00:00:00");
 	}
@@ -753,8 +755,8 @@ void emDirEntryPanel::FormatTime(time_t t, char * buf)
 }
 
 
-const emString emDirEntryPanel::ContentName="";
-const emString emDirEntryPanel::AltName="a";
+const char * const emDirEntryPanel::ContentName="";
+const char * const emDirEntryPanel::AltName="a";
 const double emDirEntryPanel::HeightFactor=1/3.0;
 const double emDirEntryPanel::LayoutFrame=0.01;
 const double emDirEntryPanel::LayoutTitleX=0.012;

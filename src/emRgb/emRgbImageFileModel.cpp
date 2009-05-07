@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRgbImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -103,7 +103,7 @@ void emRgbImageFileModel::TryStartLoading() throw(emString)
 
 	return;
 ErrFile:
-	throw emString(strerror(errno));
+	throw emGetErrorText(errno);
 ErrFormat:
 	throw emString("SGI image file format error.");
 ErrUnsupported:
@@ -187,7 +187,7 @@ bool emRgbImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 ErrFile:
-	throw emString(strerror(errno));
+	throw emGetErrorText(errno);
 ErrFormat:
 	throw emString("SGI image file format error.");
 }

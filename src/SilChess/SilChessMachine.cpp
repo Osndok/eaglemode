@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessMachine.cpp
 //
-// Copyright (C) 2000-2005,2007-2008 Oliver Hamann.
+// Copyright (C) 2000-2005,2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -472,24 +472,24 @@ bool SilChessMachine::Load(const char * filename)
 
 	StartNewGame();
 	if ((f=fopen(filename,"rb"))==NULL) return false;
-	fgets(tmp,256,f);
+	if (!fgets(tmp,256,f)) tmp[0]=0;
 	if (memcmp(tmp,"_SilChess_",10)!=0) goto L_FormatError;
-	fgets(tmp,256,f);
+	if (!fgets(tmp,256,f)) tmp[0]=0;
 	if (memcmp(tmp,"search depth:",13)!=0) goto L_FormatError;
 	for (i=13; tmp[i]!=0 && (unsigned char)tmp[i]<=32; i++);
 	SearchDepth=atoi(tmp+i);
 	if (SearchDepth<0 || SearchDepth>MAX_SEARCH_DEPTH) goto L_FormatError;
-	fgets(tmp,256,f);
+	if (!fgets(tmp,256,f)) tmp[0]=0;
 	if (memcmp(tmp,"human side:",11)!=0) goto L_FormatError;
 	for (i=11; tmp[i]!=0 && (unsigned char)tmp[i]<=32; i++);
 	if (memcmp(tmp+i,"white",5)==0) HumanSide=TF_White;
 	else if (memcmp(tmp+i,"black",5)==0) HumanSide=TF_Black;
 	else goto L_FormatError;
-	fgets(tmp,256,f);
+	if (!fgets(tmp,256,f)) tmp[0]=0;
 	if (memcmp(tmp,"moves:",6)!=0) goto L_FormatError;
 	while (!feof(f)) {
 		tmp[0]=0;
-		fgets(tmp,256,f);
+		if (!fgets(tmp,256,f)) tmp[0]=0;
 		for (i=0; tmp[i]!=0 && (unsigned char)tmp[i]<=32; i++);
 		if (tmp[i]!=0) {
 			if (!m.FromString(tmp+i)) goto L_FormatError;

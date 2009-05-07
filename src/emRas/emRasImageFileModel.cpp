@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -91,7 +91,7 @@ void emRasImageFileModel::TryStartLoading() throw(emString)
 
 	return;
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("RAS format error");
 }
 
@@ -114,7 +114,7 @@ bool emRasImageFileModel::TryContinueLoading() throw(emString)
 		if (L->Depth<24) {
 			L->ColMap=new unsigned char[3<<L->Depth];
 			memset(L->ColMap,0,3<<L->Depth);
-			fread(L->ColMap,1,L->ColMapSize,L->File);
+			if (fread(L->ColMap,1,L->ColMapSize,L->File)!=(size_t)L->ColMapSize) goto Err;
 		}
 		L->PixBuf=new unsigned char[L->RowSize+256];
 		return false;
@@ -139,7 +139,7 @@ bool emRasImageFileModel::TryContinueLoading() throw(emString)
 		}
 	}
 	else {
-		fread(L->PixBuf,1,L->RowSize,L->File);
+		if (fread(L->PixBuf,1,L->RowSize,L->File)!=(size_t)L->RowSize) goto Err;
 		L->BufFill=L->RowSize;
 	}
 
@@ -193,7 +193,7 @@ bool emRasImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("RAS format error");
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockModel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -128,11 +128,16 @@ bool emAlarmClockModel::Cycle()
 
 	if (IsSignaled(TimeZonesModel->GetTimeSignal())) {
 		if (AlarmEnabled) {
-			TimeZonesModel->GetZoneTime(
-				emTimeZonesModel::LOCAL_ZONE_ID,
-				NULL,NULL,NULL,NULL,
-				&hour,&minute,&second
-			);
+			try {
+				TimeZonesModel->TryGetZoneTime(
+					emTimeZonesModel::LOCAL_ZONE_ID,
+					NULL,NULL,NULL,NULL,
+					&hour,&minute,&second
+				);
+			}
+			catch (emString) {
+				hour=minute=second=0;
+			}
 			d=hour*3600+minute*60+second-AlarmSecOfDay;
 			while (d>43200) d-=86400;
 			while (d<-43200) d+=86400;

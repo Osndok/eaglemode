@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXpmImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,7 +62,7 @@ void emXpmImageFileModel::TryStartLoading() throw(emString)
 	if (fseek(L->File,0,SEEK_SET)) goto Err;
 	return;
 Err:
-	throw emString(strerror(errno));
+	throw emGetErrorText(errno);
 }
 
 

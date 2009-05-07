@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,7 @@ emMainWindow::emMainWindow(emContext & parentContext)
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2008 Oliver Hamann.\n"
+		"Copyright (C) 2001-2009 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"

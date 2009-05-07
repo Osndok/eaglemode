@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,6 +48,8 @@ protected:
 	virtual double CalcFileProgress();
 
 private:
+
+	static void ThrowTiffError() throw(emString);
 
 	struct LoadingState {
 		void * Tif;

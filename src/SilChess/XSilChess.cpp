@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // XSilChess.cpp - X11 version of SilChess
 //
-// Copyright (C) 2001-2005,2007-2008 Oliver Hamann.
+// Copyright (C) 2001-2005,2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,7 +97,7 @@ private:
 	GC ViewGC;
 	SilChessRayTracer RT;
 
-	static const char * AboutText;
+	static const char * const AboutText;
 };
 
 
@@ -874,9 +874,9 @@ void XSilChessWindow::PaintSel()
 }
 
 
-const char * XSilChessWindow::AboutText=
+const char * const XSilChessWindow::AboutText=
 	"XSilChess 3.1\n\n"
-	"Copyright (C) 2001-2008 Oliver Hamann\n"
+	"Copyright (C) 2001-2009 Oliver Hamann\n"
 ;
 
 

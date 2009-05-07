@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # eaglemode.sh
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2009 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -32,33 +32,36 @@ EM_DIR="`pwd`"
 cd "$OLD_DIR"
 export EM_DIR
 
-# Have $EM_DIR/lib as the first in LD_LIBRARY_PATH.
-OLD_IFS="$IFS"
-IFS=":"
-NEW_LD_LIBRARY_PATH="$EM_DIR/lib"
-for i in $LD_LIBRARY_PATH ; do
-	if test "$i" != "$EM_DIR/lib" ; then
-		NEW_LD_LIBRARY_PATH="$NEW_LD_LIBRARY_PATH:$i"
-	fi
-done
-IFS="$OLD_IFS"
-LD_LIBRARY_PATH="$NEW_LD_LIBRARY_PATH"
-export LD_LIBRARY_PATH
-
-# Special case for cygwin.
-if test "$OSTYPE" = "cygwin" ; then
+# Helper function for extending a search path.
+extendPath ()
+{
+	NEW_PATH="$2"
 	OLD_IFS="$IFS"
 	IFS=":"
-	NEW_PATH="$EM_DIR/lib"
-	for i in $PATH ; do
-		if test "$i" != "$EM_DIR/lib" ; then
+	for i in $1 ; do
+		if test "$i" != "$2" ; then
 			NEW_PATH="$NEW_PATH:$i"
 		fi
 	done
 	IFS="$OLD_IFS"
-	PATH="$NEW_PATH"
-	export PATH
-fi
+	echo "$NEW_PATH"
+}
+
+# Have $EM_DIR/lib as the first in the corresponding search path.
+case "$OSTYPE" in
+	cygwin*)
+		PATH="`extendPath "$PATH" "$EM_DIR/lib"`"
+		export PATH
+	;;
+	darwin*)
+		DYLD_LIBRARY_PATH="`extendPath "$DYLD_LIBRARY_PATH" "$EM_DIR/lib"`"
+		export DYLD_LIBRARY_PATH
+	;;
+	*)
+		LD_LIBRARY_PATH="`extendPath "$LD_LIBRARY_PATH" "$EM_DIR/lib"`"
+		export LD_LIBRARY_PATH
+	;;
+esac
 
 # Execute the binary.
 exec "$EM_DIR/bin/eaglemode" "$@"

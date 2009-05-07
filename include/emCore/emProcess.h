@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -136,15 +136,16 @@ public:
 		WF_WAIT_STDOUT = 1<<1,
 		WF_WAIT_STDERR = 1<<2
 	};
-	void WaitPipes(int waitFlags, int maxMillisecs);
+	void WaitPipes(int waitFlags, unsigned timeoutMS=UINT_MAX);
 		// Wait until a pipe is ready for writing and/or reading.
 		// Arguments:
-		//   waitFlags    - Combination of flags from enum WaitFlags.
-		//                  This specifies the pipes to wait for. The
-		//                  method returns when at least one of these
-		//                  pipes is ready.
-		//   maxMillisecs - After this time-out in milliseconds, the
-		//                  method returns even if no pipe is ready.
+		//   waitFlags - Combination of flags from enum WaitFlags. This
+		//               specifies the pipes to wait for. The method
+		//               returns when at least one of these pipes is
+		//               ready.
+		//   timeoutMS - After this time-out in milliseconds, the
+		//               method returns even if no pipe is ready.
+		//               UINT_MAX means infinite.
 
 	void CloseWriting();
 	void CloseReading();
@@ -163,10 +164,11 @@ public:
 		// process. On Windows, the SDK function TerminateProcess is
 		// called.
 
-	bool WaitForTermination(int maxMillisecs);
+	bool WaitForTermination(unsigned timeoutMS=UINT_MAX);
 		// Wait for the child process to terminate.
 		// Arguments:
-		//   maxMillisecs - Time-out in milliseconds.
+		//   timeoutMS - Time-out in milliseconds. UINT_MAX means
+		//               infinite.
 		// Returns:
 		//   true  - Child process terminated (or never started).
 		//   false - Timed out.
@@ -175,7 +177,7 @@ public:
 		// true if a child process has been started and not yet
 		// terminated.
 
-	void Terminate(int fatalTimeout=20000);
+	void Terminate(unsigned fatalTimeoutMS=20000);
 		// Like SendTerminationSignal plus WaitForTermination. But if
 		// the process does not terminate within the given time-out in
 		// milliseconds, emFatalError is called (because it is assumed

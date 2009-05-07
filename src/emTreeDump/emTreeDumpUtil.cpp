@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpUtil.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -366,13 +366,14 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 
 void emTreeDumpFromRootContext(emRootContext * rootContext, emTreeDumpRec * rec)
 {
+	char tmp[256];
 	emString tstr;
 	emUInt64 cputsc;
 	time_t t;
 	int i,chr;
 
 	t=time(NULL);
-	tstr=ctime(&t); //??? Not thread-reentrant (use ctime_r)
+	tstr=ctime_r(&t,tmp);
 
 	for (i=tstr.GetLen(); i>0 && (emByte)tstr[i-1]<=32; i--) {
 		tstr=tstr.GetSubString(0,i-1);

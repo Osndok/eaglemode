@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -683,7 +683,7 @@ void emFileManModel::LoadChildCommands(CommandNode * parent)
 {
 	emArray<emString> names;
 	emString path;
-	int i;
+	int i,l;
 
 	try {
 		names=emTryLoadDir(parent->Dir);
@@ -695,6 +695,7 @@ void emFileManModel::LoadChildCommands(CommandNode * parent)
 	for (i=0; i<names.GetCount(); i++) {
 		path=emGetChildPath(parent->Dir,names[i]);
 		if (!emIsRegularFile(path)) continue;
+		if ((l=names[i].GetLen())>0 && names[i][l-1]=='~') continue;
 		LoadCommand(parent,path);
 	}
 	parent->DirCRC=CalcDirCRC(parent->Dir,names);
@@ -987,7 +988,7 @@ L_ErrFile:
 	emWarning(
 		"Failed to read file \"%s\": %s",
 		cmdPath.Get(),
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 	goto L_Err;
 L_Err:

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,8 +69,8 @@ private:
 		emImage InnerBorderImage;
 	};
 
-	static const emString ContentName;
-	static const emString AltName;
+	static const char * const ContentName;
+	static const char * const AltName;
 	static const double LayoutLabelX;
 	static const double LayoutLabelY;
 	static const double LayoutLabelW;

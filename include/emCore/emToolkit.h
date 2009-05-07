@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emToolkit.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -105,6 +105,10 @@ public:
 
 	unsigned int GetDataRefCount() const;
 		// Get number of references to the internal data of this object.
+
+	void MakeNonShared();
+		// This must be called before handing the look to another
+		// thread.
 
 private:
 
@@ -211,6 +215,11 @@ inline emColor emTkLook::GetOutputFgColor() const
 inline emColor emTkLook::GetOutputHlColor() const
 {
 	return Data->OutputHlColor;
+}
+
+inline void emTkLook::MakeNonShared()
+{
+	MakeWritable();
 }
 
 
@@ -1056,6 +1065,11 @@ protected:
 		double h, emColor canvasColor
 	);
 
+	virtual void PaintBoxSymbol(
+		const emPainter & painter, double x, double y, double w,
+		double h, emColor canvasColor
+	);
+
 	virtual bool CheckMouse(double mx, double my);
 
 	bool IsShownChecked() const;
@@ -1713,6 +1727,13 @@ public:
 		// The context argument is forwarded to the function for any
 		// use. The default performs simple decimal conversion.
 
+	static void DefaultTextOfValue(
+		char * buf, int bufSize, emInt64 value, emUInt64 markInterval,
+		void * context
+	);
+		// This is the default text-of-value-function. It performs
+		// decimal conversion.
+
 	double GetTextBoxTallness() const;
 	void SetTextBoxTallness(double textBoxTallness);
 		// Tallness of the text box of a scale mark. The default is 0.5.
@@ -1754,11 +1775,6 @@ private:
 	);
 
 	void StepByKeyboard(int dir);
-
-	static void DefaultTextOfValue(
-		char * buf, int bufSize, emInt64 value, emUInt64 markInterval,
-		void * context
-	);
 
 	bool Editable;
 	emSignal ValueSignal;
@@ -1993,7 +2009,7 @@ public:
 		// Destructor.
 
 	bool IsVertical() const;
-	void SetVertical(bool vertical);
+	void SetVertical(bool vertical=true);
 		// Whether the child panels are laid out left-right (false) or
 		// on top of each other (true).
 

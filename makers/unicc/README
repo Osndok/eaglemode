@@ -45,7 +45,7 @@ be given in any order.
   names. The default is "gnu".
 
 --cpus <count>
-  Number of CPU's to be used. More precisely, it is the maximum number of source
+  Number of CPUs to be used. More precisely, it is the maximum number of source
   files to be compiled in parallel. The default is 1.
 
 --type <type>

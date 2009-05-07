@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -167,7 +167,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	_NET_WM_ICON=XInternAtom(Disp,"_NET_WM_ICON",False);
 
 	try {
-		emX11_LoadLibXxf86vm();
+		emX11_TryLoadLibXxf86vm();
 	}
 	catch (emString errorMessage) {
 		emWarning("emX11Screen: %s",errorMessage.Get());
@@ -205,13 +205,14 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	// --- End of Buffer Configuration ---
 
 	try {
-		emX11_LoadLibXext();
+		emX11_TryLoadLibXext();
 	}
 	catch (emString errorMessage) {
 		emWarning("emX11Screen: %s",errorMessage.Get());
 	}
 	UsingXShm=false;
 	XSync(Disp,False);
+	ErrorHandlerMutex.Lock();
 	ErrorHandlerCalled=false;
 	originalHandler=XSetErrorHandler(ErrorHandler);
 	for (;;) {
@@ -326,6 +327,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	}
 	XSync(Disp,False);
 	XSetErrorHandler(originalHandler);
+	ErrorHandlerMutex.Unlock();
 
 	if (!UsingXShm) {
 		emWarning("emX11Screen: no XShm (=>slow)");
@@ -341,6 +343,19 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 			bytesPerPixel<<3,
 			BufWidth*bytesPerPixel
 		);
+		if (
+			bytesPerPixel==4 &&
+			BufImg[0]->bits_per_pixel==24 &&
+			BufImg[0]->bitmap_unit==32 &&
+			BufImg[0]->bytes_per_line>=4*BufImg[0]->width
+		) {
+			//??? hack / workaround: Either there are buggy X-Servers,
+			//??? or it is true that it is allowed to have XImages with
+			//??? three bytes per pixel - no matter, force four bytes
+			//??? per pixel here. Unfortunately, this does not work for
+			//??? XShmCreateImage.
+			BufImg[0]->bits_per_pixel=32;
+		}
 		BufImg[1]=NULL;
 #		if EM_BYTE_ORDER==4321
 			BufImg[0]->byte_order=MSBFirst;
@@ -829,4 +844,5 @@ int emX11Screen::ErrorHandler(Display * display, XErrorEvent * event)
 }
 
 
+emThreadMiniMutex emX11Screen::ErrorHandlerMutex;
 bool emX11Screen::ErrorHandlerCalled=false;

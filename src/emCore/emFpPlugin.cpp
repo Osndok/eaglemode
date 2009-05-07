@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -142,7 +142,7 @@ emPanel * emFpPluginList::CreateFilePanel(
 	int i,j,fnLen,typeLen;
 
 	if (statErr) {
-		return new emErrorPanel(parent,name,strerror(statErr));
+		return new emErrorPanel(parent,name,emGetErrorText(statErr));
 	}
 
 	found=NULL;

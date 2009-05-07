@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_wat.pm
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2009 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -102,6 +102,7 @@ sub Compile
 		push(@args,"-wcd=656");
 		push(@args,"-wcd=657");
 		push(@args,"-wcd=726");
+		push(@args,"-wcd=730");
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-i=$s"); }
 		foreach my $s (@{GetDefines()}) { push(@args,"-d$s"); }
 		push(@args,"-c");

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -142,6 +142,8 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	}
 #else
 	char tmp[1024];
+	struct passwd pwbuf;
+	struct group grbuf;
 	struct passwd * pw;
 	struct group * gr;
 	int i;
@@ -180,12 +182,12 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 		Data->TargetPath=tmp;
 	}
 
-	pw=getpwuid(Data->Stat.st_uid); //??? not thread-reentrant (use getpwuid_r)
-	if (pw && pw->pw_name) Data->Owner=pw->pw_name;
+	i=getpwuid_r(Data->Stat.st_uid,&pwbuf,tmp,sizeof(tmp),&pw);
+	if (i==0 && pw && pw->pw_name) Data->Owner=pw->pw_name;
 	else Data->Owner=emString::Format("%lu",(unsigned long)Data->Stat.st_uid);
 
-	gr=getgrgid(Data->Stat.st_gid); //??? not thread-reentrant (use getgrgid_r)
-	if (gr && gr->gr_name) Data->Group=gr->gr_name;
+	i=getgrgid_r(Data->Stat.st_gid,&grbuf,tmp,sizeof(tmp),&gr);
+	if (i==0 && gr && gr->gr_name) Data->Group=gr->gr_name;
 	else Data->Group=emString::Format("%lu",(unsigned long)Data->Stat.st_gid);
 
 	Data->Hidden=(Data->Name[0]=='.');

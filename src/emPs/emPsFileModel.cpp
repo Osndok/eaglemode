@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFileModel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ void emPsFileModel::TryStartLoading() throw(emString)
 		fseek(L->File,0,SEEK_END)!=0 ||
 		(l=ftell(L->File))<0 ||
 		fseek(L->File,0,SEEK_SET)!=0
-	) throw emString(strerror(errno));
+	) throw emGetErrorText(errno);
 
 	if (l>INT_MAX) throw emString("File too large.");
 
@@ -82,7 +82,7 @@ bool emPsFileModel::TryContinueLoading() throw(emString)
 	if (len>4096) len=4096;
 	if (len>0) {
 		len=fread(L->Buffer.GetWritable()+L->FilePos,1,len,L->File);
-		if (ferror(L->File)) throw emString(strerror(errno));
+		if (ferror(L->File)) throw emGetErrorText(errno);
 		if (len>0) L->FilePos+=len;
 		if (!feof(L->File)) return false;
 	}

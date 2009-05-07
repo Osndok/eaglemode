@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -86,8 +86,8 @@ private:
 
 	static void FormatTime(time_t t, char * buf);
 
-	static const emString ContentName;
-	static const emString AltName;
+	static const char * const ContentName;
+	static const char * const AltName;
 	static const double HeightFactor;
 	static const double LayoutFrame;
 	static const double LayoutTitleX;

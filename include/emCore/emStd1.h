@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,8 +37,8 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 72
-#define EM_MICRO_VERSION 0
+#define EM_MINOR_VERSION 75
+#define EM_MICRO_VERSION 1
 	// Version numbers.
 
 const char * emGetVersion();
@@ -85,6 +85,22 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 #	endif
 #endif
 
+// Imitation of some UNIX functions on Windows
+#if defined(_WIN32)
+#	define strcasecmp stricmp
+#	define strncasecmp strnicmp
+#	define snprintf _snprintf
+#	define vsnprintf _vsnprintf
+	char * em_asctime_r(const struct tm * ptm, char * buf);
+#	define asctime_r em_asctime_r
+	char * em_ctime_r(const time_t * ptime, char * buf);
+#	define ctime_r em_ctime_r
+	struct tm * em_gmtime_r(const time_t * ptime, struct tm * buf);
+#	define gmtime_r em_gmtime_r
+	struct tm * em_localtime_r(const time_t * ptime, struct tm * buf);
+#	define localtime_r em_localtime_r
+#endif
+
 
 //==============================================================================
 //=================== About RTTI (Run-Time Type Information) ===================
@@ -114,18 +130,6 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 #	define EM_FUNC_ATTR_PRINTF(pos) __attribute__((format(__printf__,pos,pos+1)))
 #else
 #	define EM_FUNC_ATTR_PRINTF(pos)
-#endif
-
-
-//==============================================================================
-//=========================== About string functions ===========================
-//==============================================================================
-
-#if defined(_WIN32)
-#	define strcasecmp stricmp
-#	define strncasecmp strnicmp
-#	define snprintf _snprintf
-#	define vsnprintf _vsnprintf
 #endif
 
 

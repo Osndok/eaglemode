@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.h
 //
-// Copyright (C) 2001,2003-2008 Oliver Hamann.
+// Copyright (C) 2001,2003-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -352,6 +352,10 @@ public:
 	unsigned int GetDataRefCount() const;
 		// Get number of references to the data behind this image.
 
+	void MakeNonShared();
+		// This must be called before handing the image to another
+		// thread.
+
 private:
 
 	void MakeWritable();
@@ -469,6 +473,11 @@ inline void emImage::CopyChannel(
 inline emImage emImage::GetConverted(int channelCount) const
 {
 	return GetCropped(0,0,Data->Width,Data->Height,channelCount);
+}
+
+inline void emImage::MakeNonShared()
+{
+	MakeWritable();
 }
 
 

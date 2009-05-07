@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -477,7 +477,7 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emString)
 	if (inst->ShmId==-1) {
 		throw emString::Format(
 			"Failed to create shared memory segment: %s",
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 	inst->ShmAddr=(int*)shmat(inst->ShmId,0,0);
@@ -487,7 +487,7 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emString)
 		inst->ShmId=-1;
 		throw emString::Format(
 			"Failed to attach shared memory segment: %s",
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 #if defined(__linux__)
@@ -495,7 +495,7 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emString)
 	if (shmctl(inst->ShmId,IPC_RMID,0)!=0) {
 		emFatalError(
 			"emAvServerModel: shmctl failed: %s",
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 #endif
@@ -519,7 +519,7 @@ void emAvServerModel::DeleteShm(Instance * inst)
 		if (shmctl(inst->ShmId,IPC_RMID,0)!=0) {
 			emFatalError(
 				"emAvServerModel: shmctl failed: %s",
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 #endif

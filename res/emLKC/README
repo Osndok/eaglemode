@@ -1,0 +1,33 @@
+What is emLKC?
+==============
+
+emLKC is a Linux Kernel Configurator based on Eagle Mode. It allows to configure
+the Linux kernel in a zoomable user interface. The minimum supported kernel
+version is 2.6.25, and the latest tested version is 2.6.30-rc2. emLKC comes as a
+kernel source patch. After patching the kernel, you can run it like the original
+configurators.
+
+
+How to patch the kernel
+=======================
+
+Here are example commands for applying the patch to a kernel source tree. Please
+replace the kernel source directory (/usr/src/linux) and the Eagle Mode
+directory (/usr/local/eaglemode) according to your installation.
+
+  cd /usr/src/linux
+  bzcat /usr/local/eaglemode/res/emLKC/emLKC.patch.bz2 | patch -p1
+
+
+How to start emLKC in a patched kernel
+======================================
+
+In order to start emLKC, just cd into the kernel source directory and type:
+
+  make emconfig
+
+This tries to find the Eagle Mode installation automatically. If that fails, you
+may have to set the variable EM_DIR to the directory where Eagle Mode has been
+installed. Example:
+
+  make emconfig EM_DIR=/apps/eaglemode

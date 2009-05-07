@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPnmImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,7 +72,7 @@ void emPnmImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("PNM format error");
 }
 
@@ -157,7 +157,7 @@ bool emPnmImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("PNM format error");
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -60,13 +60,13 @@ void emIlbmImageFileModel::TryStartLoading() throw(emString)
 	L->Body=NULL;
 
 	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) throw emString(strerror(errno));
+	if (!L->File) throw emGetErrorText(errno);
 
 	Read32();
 	Read32();
 	name=Read32();
 
-	if (ferror(L->File)) throw emString(strerror(errno));
+	if (ferror(L->File)) throw emGetErrorText(errno);
 
 	if (feof(L->File) || name!=0x494C424D/*ILBM*/) {
 		throw emString("ILBM format error");
@@ -101,14 +101,14 @@ bool emIlbmImageFileModel::TryContinueLoading() throw(emString)
 		else if (name==0x434D4150/*CMAP*/) {
 			if (!L->HeaderFound || L->Palette) goto ErrFormat;
 			L->Palette=new unsigned char[3<<L->Depth];
-			fread(L->Palette,1,3<<L->Depth,L->File);
+			if (fread(L->Palette,1,3<<L->Depth,L->File)!=(size_t)(3<<L->Depth)) goto ErrFormat;
 			fseek(L->File,((size+1)&~1)-(3<<L->Depth),SEEK_CUR);
 			if (ferror(L->File)) goto ErrFile;
 		}
 		else if (name==0x424F4459/*BODY*/) {
 			if (!L->HeaderFound || L->Body) goto ErrFormat;
 			L->Body=new unsigned char[size];
-			fread(L->Body,1,size,L->File);
+			if (fread(L->Body,1,size,L->File)!=(size_t)size) goto ErrFormat;
 			fseek(L->File,((size+1)&~1)-size,SEEK_CUR);
 			if (ferror(L->File)) goto ErrFile;
 		}
@@ -189,7 +189,7 @@ bool emIlbmImageFileModel::TryContinueLoading() throw(emString)
 	return true;
 
 ErrFile:
-	throw emString(strerror(errno));
+	throw emGetErrorText(errno);
 ErrFormat:
 	throw emString("ILBM format error");
 }

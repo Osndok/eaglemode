@@ -114,7 +114,7 @@ default:
     Name of compiler and linker to be used.
 
   "cpus"
-    Number of CPU's to be used.
+    Number of CPUs to be used.
 
   "debug"
     Whether to produce debug information. Must be "yes" or "no".

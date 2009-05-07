@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2009 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -90,7 +90,7 @@ sub Help
 		"      debug=yes|no  (default: no)\n".
 		"        Whether to have debug information in the binaries.\n".
 		"      cpus=<n>  (default: 1)\n".
-		"        Number of CPU's to be used. More precisely, it is the maximum\n".
+		"        Number of CPUs to be used. More precisely, it is the maximum\n".
 		"        number of source files to be compiled in parallel.\n".
 		"      Further options may be defined by the maker scripts (see below).\n".
 		"  perl $0 show-extra-options\n".

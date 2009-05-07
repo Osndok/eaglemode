@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -320,6 +320,23 @@ void emClockPanel::Paint(const emPainter & painter, emColor canvasColor)
 			painter.PaintPolygon(xy,4,FgColor,canvasColor);
 		}
 	}
+
+	if (!TimeError.IsEmpty() && vc>20.0 ) {
+		w=Radius*1.6;
+		h=Radius*0.2;
+		x=CenterX-w*0.5;
+		y=CenterY-h*0.5;
+		painter.PaintRect(
+			x,y,w,h,
+			0x880000FF
+		);
+		painter.PaintTextBoxed(
+			x,y,w,h,
+			TimeError,
+			h,
+			0xFFFF00FF
+		);
+	}
 }
 
 
@@ -389,7 +406,7 @@ void emClockPanel::CreateOrDestroyChildren()
 	bool haveHands, b, anyCreated;
 	double vc;
 
-	b=IsVFSGood();
+	b = (IsVFSGood() && TimeError.IsEmpty());
 	haveDate=b;
 	haveStopwatch=b;
 	haveAlarmClock=b;
@@ -555,29 +572,38 @@ void emClockPanel::UpdateColors()
 void emClockPanel::UpdateTime()
 {
 	int year,month,day,dayOfWeek,hour,minute,second;
-	bool okay;
 
-	if (IsVFSGood() && (DatePanel || HandsPanel)) {
-		okay=TimeZonesModel->GetZoneTime(
-			Zone,
-			&year,
-			&month,
-			&day,
-			&dayOfWeek,
-			&hour,
-			&minute,
-			&second
-		);
-		if (!okay) {
-			SetCustomError("Time not available");
+	if (IsVFSGood() && (DatePanel || HandsPanel || !TimeError.IsEmpty())) {
+		try {
+			TimeZonesModel->TryGetZoneTime(
+				Zone,
+				&year,
+				&month,
+				&day,
+				&dayOfWeek,
+				&hour,
+				&minute,
+				&second
+			);
+			if (!TimeError.IsEmpty()) {
+				TimeError.Empty();
+				CreateOrDestroyChildren();
+				InvalidatePainting();
+			}
 		}
-		else {
-			if (DatePanel) {
-				DatePanel->SetDate(year,month,day,dayOfWeek,hour,minute,second);
+		catch (emString errorMessage) {
+			if (TimeError!=errorMessage) {
+				TimeError=errorMessage;
+				CreateOrDestroyChildren();
+				InvalidatePainting();
 			}
-			if (HandsPanel) {
-				HandsPanel->SetTime(hour,minute,second);
-			}
+			year=month=day=dayOfWeek=hour=minute=second=0;
+		}
+		if (DatePanel) {
+			DatePanel->SetDate(year,month,day,dayOfWeek,hour,minute,second);
+		}
+		if (HandsPanel) {
+			HandsPanel->SetTime(hour,minute,second);
 		}
 	}
 }

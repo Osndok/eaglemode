@@ -3,33 +3,28 @@
 	<TITLE>Eagle Mode - System Requirements</TITLE>
 </HEAD>
 <BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
-<CENTER>
-<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
-<FONT SIZE=7><B>System Requirements</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2008 Oliver Hamann.
-Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
-</CENTER>
-<P>&nbsp;<BR>
-This document lists the minimum system requirements for running Eagle Mode. The
-software may even run on a weaker computer, but not so comfortable. If you
-cannot resist to run Eagle Mode with less RAM or swap space, your first job
-after starting should be to navigate to the <I>Preferences</I> (somewhere in the
-upper left area of the control view) and lessen the value for <I>Max Megabytes
-Per View</I>.
+<H1>System Requirements</H1>
+<P>
+This document lists the system requirements for running Eagle Mode. Please read
+carefully.
 <P>
 <TABLE BORDER=0 CELLPADDING=2 CELLSPACING=6>
 	<TR VALIGN="top">
 		<TD><B>CPU:</B></TD>
 		<TD>3.4 GHz rated (per core), 1 MB cache (per core or shared),
-		one core or more</TD>
+		one core or more. Examples: Pentium4 3.4 GHz, Athlon 64 3400 2.2
+		GHz, Athlon X2 4400, Core 2 Duo E4400. This is a recommendation
+		with regard to comfortable, intensive use. Some Eagle Mode users
+		have reported satisfaction with much weaker CPUs. </TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD><B>RAM:</B></TD>
-		<TD>1 GB</TD>
-	</TR>
-	<TR VALIGN="top">
-		<TD><B>Swap&nbsp;space:</B></TD>
-		<TD>1 GB (or more RAM)</TD>
+		<TD><B>Memory:</B></TD>
+		<TD>1 GB RAM and 1 GB swap space (or more RAM). This is also a
+		recommendation. If you run Eagle Mode with less memory, then
+		your first job after starting should be to navigate to the
+		<I>Preferences</I> (somewhere in the upper left area of the
+		control view) and lessen the value for <I>Max Megabytes Per
+		View</I>.</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Disk&nbsp;space:</B></TD>
@@ -45,8 +40,8 @@ Per View</I>.
 		<TD><B>OS:</B></TD>
 		<TD>An up-to-date full-featured Linux is highly recommended.
 		Other UNIX-like systems may also be suitable. Short more or less
-		successful tests have been made with FreeBSD, OpenSolaris and
-		Cygwin.
+		successful tests have been made with FreeBSD, OpenSolaris,
+		Cygwin and Mac OS X 10.5.
 		<P>
 		API and framework of Eagle Mode have also been ported to Windows
 		(the minimum is Windows 2000 SP2), but several plugin
@@ -255,7 +250,7 @@ Per View</I>.
 <B><FONT SIZE=5>Do not have the wrong program to a name</FONT></B>
 <P>
 Eagle Mode runs many standard programs by names like they have on Debian
-GNU/Linux 4.0. Your system must not have another program with one of those
+GNU/Linux 5.0. Your system must not have another program with one of those
 names, otherwise unforeseeable things could happen. For example, Eagle Mode runs
 "gs" when it means Ghostscript, and therefore you should not have another
 program named "gs" which, for example, formats the hard disk. In detail, Eagle

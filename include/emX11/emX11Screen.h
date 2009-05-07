@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,6 +35,10 @@
 
 #ifndef emWindow_h
 #include <emCore/emWindow.h>
+#endif
+
+#ifndef emThread_h
+#include <emCore/emThread.h>
 #endif
 
 class emX11WindowPort;
@@ -126,6 +130,7 @@ private:
 	emX11WindowPort * GrabbingWinPort;
 	emX11Clipboard * Clipboard;
 
+	static emThreadMiniMutex ErrorHandlerMutex;
 	static bool ErrorHandlerCalled;
 };
 

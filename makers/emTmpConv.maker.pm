@@ -55,9 +55,6 @@ sub Build
 
 	system(
 		@{$options{'unicc_call'}},
-		"--math",
-		"--rtti",
-		"--exceptions",
 		"--bin-dir"       , "lib/emTmpConv",
 		"--lib-dir"       , "lib",
 		"--obj-dir"       , "obj",

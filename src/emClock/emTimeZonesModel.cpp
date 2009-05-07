@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emClock/emTimeZonesModel.h>
+#include <emCore/emInstallInfo.h>
 
 
 emRef<emTimeZonesModel> emTimeZonesModel::Acquire(emRootContext & rootContext)
@@ -57,53 +58,53 @@ double emTimeZonesModel::GetCityLongitude(int cityIndex) const
 }
 
 
-bool emTimeZonesModel::GetZoneTime(
+void emTimeZonesModel::TryGetZoneTime(
 	time_t time, ZoneId zoneId, int * pYear, int * pMonth, int * pDay,
 	int * pDayOfWeek, int * pHour, int * pMinute, int * pSecond
-)
+) throw(emString)
 {
+	struct tm tmbuf;
 	struct tm * ptm;
-#if defined(_WIN32)
-#else
-	emString tzFile;
-	char * oldTZ;
-#endif
+	City * city;
 
-	//??? This is not thread-reentrant. We would have to use localtime_r
-	//??? and gmtime_r, but because of playing with the environment
-	//??? variable TZ, this stuff cannot be thread-reentrant and will have
-	//??? to go into a separate child process.
-	//??? Another problem is the heavy use of setenv and unsetenv: Do they
-	//??? never produce memory leaks? On all systems?
-
-	ptm=NULL;
-	if (zoneId==LOCAL_ZONE_ID) {
-		ptm=localtime(&time);
-	}
-	else if (zoneId==UTC_ZONE_ID) {
-		ptm=gmtime(&time);
-	}
-	else if (zoneId>=0 && zoneId<Cities.GetCount()) {
-#if defined(_WIN32)
-		//...???...
-#else
-		if (!Cities[zoneId]->TzFileChecked) {
-			tzFile=emGetChildPath(ZoneInfoDir,Cities[zoneId]->Name);
-			Cities[zoneId]->TzFileExists=emIsRegularFile(tzFile);
-			Cities[zoneId]->TzFileChecked=true;
+	if (zoneId>=0 && zoneId<Cities.GetCount()) {
+		if (ChildProcState==CP_ERRORED) throw ChildProcError;
+		city=Cities[zoneId];
+		if (!city->TzFileChecked) {
+			city->TzFileExists=emIsRegularFile(
+				emGetChildPath(ZoneInfoDir,city->Name)
+			);
+			city->TzFileChecked=true;
 		}
-		if (Cities[zoneId]->TzFileExists) {
-			oldTZ=getenv("TZ");
-			if (setenv("TZ",Cities[zoneId]->Name.Get(),1)==0) {
-				ptm=localtime(&time);
-			}
-			if (oldTZ) setenv("TZ",oldTZ,1);
-			else unsetenv("TZ");
+		if (!city->TzFileExists) {
+			throw emString("TZ file not found.");
 		}
-#endif
+		city->TimeNeeded=3;
+		if (!city->TimeValid) {
+			RequestCityTime(city);
+			throw emString("wait");
+		}
+		if (pYear     ) *pYear     =city->Year     ;
+		if (pMonth    ) *pMonth    =city->Month    ;
+		if (pDay      ) *pDay      =city->Day      ;
+		if (pDayOfWeek) *pDayOfWeek=city->DayOfWeek;
+		if (pHour     ) *pHour     =city->Hour     ;
+		if (pMinute   ) *pMinute   =city->Minute   ;
+		if (pSecond   ) *pSecond   =city->Second   ;
 	}
-
-	if (ptm) {
+	else {
+		if (zoneId==LOCAL_ZONE_ID) {
+			ptm=localtime_r(&time,&tmbuf);
+		}
+		else if (zoneId==UTC_ZONE_ID) {
+			ptm=gmtime_r(&time,&tmbuf);
+		}
+		else {
+			throw emString("Illegal time zone ID.");
+		}
+		if (!ptm) {
+			throw emString("Time not available.");
+		}
 		if (pYear     ) *pYear     =(int)ptm->tm_year+1900;
 		if (pMonth    ) *pMonth    =(int)ptm->tm_mon+1;
 		if (pDay      ) *pDay      =(int)ptm->tm_mday;
@@ -111,17 +112,6 @@ bool emTimeZonesModel::GetZoneTime(
 		if (pHour     ) *pHour     =(int)ptm->tm_hour;
 		if (pMinute   ) *pMinute   =(int)ptm->tm_min;
 		if (pSecond   ) *pSecond   =(int)ptm->tm_sec;
-		return true;
-	}
-	else {
-		if (pYear     ) *pYear     =0;
-		if (pMonth    ) *pMonth    =0;
-		if (pDay      ) *pDay      =0;
-		if (pDayOfWeek) *pDayOfWeek=0;
-		if (pHour     ) *pHour     =0;
-		if (pMinute   ) *pMinute   =0;
-		if (pSecond   ) *pSecond   =0;
-		return false;
 	}
 }
 
@@ -133,7 +123,14 @@ double emTimeZonesModel::GetJulianDate(time_t time)
 	//??? This may not be correct before the beginning
 	//??? of the Gregorian Calender (1582-10-15).
 
-	GetZoneTime(time,UTC_ZONE_ID,&year,&month,&day,NULL,&hour,&minute,&second);
+	try {
+		TryGetZoneTime(
+			time,UTC_ZONE_ID,&year,&month,&day,NULL,&hour,&minute,&second
+		);
+	}
+	catch (emString) {
+		return 0.0;
+	}
 	if(month<=2) {
 		month+=12;
 		year--;
@@ -158,6 +155,14 @@ emTimeZonesModel::emTimeZonesModel(emContext & context, const emString & name)
 {
 	Time=time(NULL);
 	Cities.SetTuningLevel(4);
+	ChildProcState=CP_STOPPED;
+	ChildProcIdleClock=0;
+	ReadBufFill=0;
+	WriteBufFill=0;
+	ReadBufSize=16384;
+	WriteBufSize=16384;
+	ReadBuf=(char*)malloc(ReadBufSize);
+	WriteBuf=(char*)malloc(WriteBufSize);
 	InitCities();
 	WakeUp();
 }
@@ -167,21 +172,69 @@ emTimeZonesModel::~emTimeZonesModel()
 {
 	int i;
 
+	ChildProc.Terminate();
+	Requests.Empty();
 	for (i=0; i<Cities.GetCount(); i++) delete Cities[i];
 	Cities.Empty();
+	free(ReadBuf);
+	free(WriteBuf);
 }
 
 
 bool emTimeZonesModel::Cycle()
 {
 	time_t t;
+	City * city;
+	bool newSecond;
+	int i;
 
 	t=time(NULL);
 	if (Time!=t) {
 		Time=t;
-		Signal(TimeSignal);
+		newSecond=true;
 	}
+	else {
+		newSecond=false;
+	}
+
+	if (newSecond) {
+		for (i=0; i<Cities.GetCount(); i++) {
+			city=Cities[i];
+			if (city->TimeRequested) continue;
+			city->TimeValid=false;
+			if (city->TimeNeeded<=0) continue;
+			city->TimeNeeded--;
+			RequestCityTime(city);
+		}
+	}
+
+	ManageChildProc();
+
+	if (newSecond && Requests.IsEmpty()) Signal(TimeSignal);
+
+	if (ReplyCityTimes()) Signal(TimeSignal);
+
 	return true;
+}
+
+
+emTimeZonesModel::City::City()
+{
+	CountryCode[0]=0;
+	Latitude=0.0;
+	Longitude=0.0;
+	TzFileChecked=0;
+	TzFileExists=0;
+	TimeValid=0;
+	TimeRequested=0;
+	TimeNeeded=0;
+	Year=0;
+	Month=0;
+	Day=0;
+	DayOfWeek=0;
+	Hour=0;
+	Minute=0;
+	Second=0;
 }
 
 
@@ -321,12 +374,165 @@ void emTimeZonesModel::InitCities()
 	return;
 
 L_FileError:
-	emWarning("Failed to read \"%s\": %s",zoneTabPath.Get(),strerror(errno));
+	emWarning(
+		"Failed to read \"%s\": %s",
+		zoneTabPath.Get(),
+		emGetErrorText(errno).Get()
+	);
 	if (city) delete city;
 	if (f) fclose(f);
 	delete [] buf;
 	Cities.Empty(true);
 #endif
+}
+
+
+void emTimeZonesModel::RequestCityTime(City * city)
+{
+	int l;
+
+	if (city->TimeRequested) return;
+
+	l=city->Name.GetLen()+1;
+	if (WriteBufSize-WriteBufFill<l) {
+		WriteBufSize=WriteBufSize*2+l;
+		WriteBuf=(char*)realloc(WriteBuf,WriteBufSize);
+	}
+	strcpy(WriteBuf+WriteBufFill,city->Name.Get());
+	WriteBufFill+=l;
+	WriteBuf[WriteBufFill-1]='\n';
+
+	Requests.Add(city);
+
+	city->TimeRequested=true;
+}
+
+
+bool emTimeZonesModel::ReplyCityTimes()
+{
+	City * const * r;
+	City * city;
+	char * p, * p2, * pEnd;
+	bool gotSome;
+
+	gotSome=false;
+	for (p=ReadBuf, pEnd=ReadBuf+ReadBufFill; p<pEnd; ) {
+		r=Requests.GetFirst();
+		if (!r) break;
+		city=*r;
+		while (p<pEnd && (*p==0x0a || *p==0x0d)) p++;
+		p2=p;
+		while (p2<pEnd && *p2!=0x0a && *p2!=0x0d) p2++;
+		if (p2>=pEnd) break;
+		*p2=0;
+		sscanf(
+			p,
+			"%d-%d-%d %d %d:%d:%d",
+			&city->Year,
+			&city->Month,
+			&city->Day,
+			&city->DayOfWeek,
+			&city->Hour,
+			&city->Minute,
+			&city->Second
+		);
+		city->TimeValid=true;
+		city->TimeRequested=false;
+		Requests.RemoveFirst();
+		p=p2+1;
+		gotSome=true;
+	}
+	if (p>ReadBuf) {
+		ReadBufFill-=(int)(p-ReadBuf);
+		if (ReadBufFill>0) memmove(ReadBuf,p,ReadBufFill);
+	}
+	return gotSome;
+}
+
+
+void emTimeZonesModel::ManageChildProc()
+{
+	City * const * r;
+	City * city;
+	int l;
+	emUInt64 clk;
+
+	if (ChildProcState==CP_STOPPING) {
+		if (!ChildProc.IsRunning()) {
+			ChildProcState=CP_STOPPED;
+		}
+	}
+
+	if (ChildProcState==CP_STOPPED && WriteBufFill>0) {
+		try {
+			ChildProc.TryStart(
+				emArray<emString>(
+					emGetChildPath(
+						emGetInstallPath(EM_IDT_LIB,"emClock","emClock"),
+						"emTimeZonesProc"
+					)
+				),
+				emArray<emString>(),
+				NULL,
+				emProcess::SF_PIPE_STDIN|
+				emProcess::SF_PIPE_STDOUT|
+				emProcess::SF_SHARE_STDERR
+			);
+			ChildProcState=CP_RUNNING;
+		}
+		catch (emString errorMessage) {
+			ChildProc.Terminate();
+			ChildProcState=CP_ERRORED;
+			ChildProcError=errorMessage;
+		}
+	}
+
+	if (ChildProcState==CP_RUNNING) {
+		clk=emGetClockMS();
+		try {
+			l=ChildProc.TryWrite(WriteBuf,WriteBufFill);
+			if (l>0) {
+				ChildProcIdleClock=clk;
+				WriteBufFill-=l;
+				if (WriteBufFill>0) memmove(WriteBuf,WriteBuf+l,WriteBufFill);
+			}
+			if (ReadBufFill<ReadBufSize) {
+				l=ChildProc.TryRead(ReadBuf,ReadBufSize-ReadBufFill);
+				if (l>0) {
+					ChildProcIdleClock=clk;
+					ReadBufFill+=l;
+				}
+			}
+			if (ReadBufFill>=ReadBufSize) {
+				ReadBufSize*=2;
+				ReadBuf=(char*)realloc(ReadBuf,ReadBufSize);
+			}
+		}
+		catch (emString errorMessage) {
+			ChildProc.Terminate();
+			ChildProcState=CP_ERRORED;
+			ChildProcError=errorMessage;
+		}
+
+		if (ChildProcState==CP_RUNNING && clk-ChildProcIdleClock>10000) {
+			ChildProc.CloseWriting();
+			ChildProc.CloseReading();
+			ChildProc.SendTerminationSignal();
+			ChildProcState=CP_STOPPING;
+		}
+	}
+
+	if (ChildProcState!=CP_RUNNING) {
+		ReadBufFill=0;
+		WriteBufFill=0;
+		for (;;) {
+			r=Requests.GetFirst();
+			if (!r) break;
+			city=*r;
+			city->TimeRequested=false;
+			Requests.RemoveFirst();
+		}
+	}
 }
 
 

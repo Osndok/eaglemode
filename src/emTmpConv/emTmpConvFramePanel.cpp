@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFramePanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -122,14 +122,14 @@ void emTmpConvFramePanel::PaintInfo(
 	static const emColor bgColor=emColor(204,204,204);
 	static const emColor frameColor=emColor(238,0,0);
 	static const emColor textColor=emColor(0,0,0);
-	static const char * text1=
+	static const char * const text1=
 		"Caution!"
 	;
-	static const char * text2=
+	static const char * const text2=
 		"Temporary Conversion -\n"
 		"Changes to files herein will get lost!"
 	;
-	static const char * text3=
+	static const char * const text3=
 		"This file viewer temporarily converts the original file to another file type\n"
 		"in order to show it through an inner file viewer. The original file is kept\n"
 		"unchanged.\n"

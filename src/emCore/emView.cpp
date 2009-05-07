@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -2177,7 +2177,9 @@ void emView::DoCheats(emInputEvent & event, emInputState & state)
 			sprintf(scPath,"/tmp/emScreenshot%03d.xwd",scNum);
 			if (!emIsExistingPath(scPath)) break;
 		}
-		system(emString::Format("xwd -root > %s",scPath).Get());
+		if (system(emString::Format("xwd -root > %s",scPath).Get())==-1) {
+			emWarning("Could not run xwd: %s",emGetErrorText(errno).Get());
+		}
 		// Note: Sometimes xwdtopnm produces a black image (seen with
 		// Netpbm 10.18.18). Better convert with gimp.
 	}

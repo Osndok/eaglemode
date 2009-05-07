@@ -138,7 +138,10 @@ else {
 SendSelectKS(@found);
 
 if ($foundAnyHidden) {
-	print("\nWARNING: Hidden entries have been selected!\n");
+	Warning(
+		"Warning: There are hidden files or directories which\n".
+		"match the pattern and which have been selected."
+	);
 }
 
 TermEndByUser(0);

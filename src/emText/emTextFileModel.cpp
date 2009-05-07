@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -120,7 +120,7 @@ void emTextFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	throw emString(strerror(errno));
+	throw emGetErrorText(errno);
 }
 
 

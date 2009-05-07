@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -125,7 +125,7 @@ bool emVirtualCosmosModel::Cycle()
 
 void emVirtualCosmosModel::Reload()
 {
-	static const char * itemExt = ".emVcItem";
+	static const char * const itemExt = ".emVcItem";
 	emArray<emString> fileNames;
 	emString itemsDir,itemFilesDir,itemFilesUserDir,path;
 	time_t mt;

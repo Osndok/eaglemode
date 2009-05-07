@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,9 +37,9 @@
 
 		if (sig==SIGFPE) p="\n--- Arithmetic Exception ---\n";
 		else p="\n--- Segmentation Fault ---\n";
-		write(STDERR_FILENO,p,strlen(p));
+		if (write(STDERR_FILENO,p,strlen(p))<0) _exit(128+sig);
 		p="Stack Trace (first two entries normally by signal handling):\n";
-		write(STDERR_FILENO,p,strlen(p));
+		if (write(STDERR_FILENO,p,strlen(p))<0) _exit(128+sig);
 		backtrace_symbols_fd(
 			bt,
 			backtrace(bt,sizeof(bt)/sizeof(void*)),
@@ -182,6 +182,14 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		else if (strcmp(opt,"-visit")==0 && i<argc) {
 			optVisit=argv[i++];
 		}
+		else if (strcmp(opt,"-setenv")==0 && i+1<argc) {
+#			if defined(_WIN32) && !defined(__CYGWIN__)
+				SetEnvironmentVariable(argv[i],argv[i+1]);
+#			else
+				setenv(argv[i],argv[i+1],1);
+#			endif
+			i+=2;
+		}
 		else {
 			emWarning("emMain::NewWindow: Illegal option: \"%s\".",opt);
 		}
@@ -259,7 +267,7 @@ void emMain::OnReception(int argc, const char * const argv[])
 
 void emMain::CreateFSDialog()
 {
-	static const char * textFormat=
+	static const char * const textFormat=
 		"This seems to be your first start of Eagle Mode. Before continuing,\n"
 		"you really should have read at least these documents on Eagle Mode:\n"
 		"\n"
@@ -363,8 +371,8 @@ MAIN_OR_WINMAIN_HERE
 
 static int wrapped_main(int argc, char * argv[])
 {
-	emArray<const char *> forwardArgs;
-	const char * opt;
+	emArray<const char *> forwardArgs, sendArgs;
+	const char * opt, * id;
 	bool optNoClient,optNoServer;
 	int i;
 
@@ -434,18 +442,23 @@ static int wrapped_main(int argc, char * argv[])
 	}
 
 	if (!optNoClient) {
-		forwardArgs.Insert(0,"NewWindow");
+		sendArgs=forwardArgs;
+		sendArgs.Insert(0,"NewWindow");
+		if ((id=getenv("DESKTOP_STARTUP_ID"))!=NULL) {
+			sendArgs.Add("-setenv");
+			sendArgs.Add("DESKTOP_STARTUP_ID");
+			sendArgs.Add(id);
+		}
 		try {
 			emMiniIpcClient::TrySend(
 				emMain::CalcServerName(),
-				forwardArgs.GetCount(),
-				forwardArgs.Get()
+				sendArgs.GetCount(),
+				sendArgs.Get()
 			);
 			return 0;
 		}
 		catch (emString) {
 		}
-		forwardArgs.Remove(0);
 	}
 
 	emGUIFramework framework;

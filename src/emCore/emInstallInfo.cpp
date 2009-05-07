@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,7 @@
 #endif
 #include <emCore/emInstallInfo.h>
 #include <emCore/emToolkit.h>
+#include <emCore/emThread.h>
 
 
 static void emInitBaseInstallPaths(emString basePaths[EM_NUMBER_OF_IDTS])
@@ -103,13 +104,13 @@ emString emGetInstallPath(
 	emInstallDirType idt, const char * prj, const char * subPath
 )
 {
-	static emString basePaths[EM_NUMBER_OF_IDTS]; //??? not thread-reentrant.
-	static bool basePathsInitialized=false;
+	static emThreadInitMutex initMutex;
+	static emString basePaths[EM_NUMBER_OF_IDTS];
 	emString str;
 
-	if (!basePathsInitialized) {
+	if (initMutex.Begin()) {
 		emInitBaseInstallPaths(basePaths);
-		basePathsInitialized=true;
+		initMutex.End();
 	}
 
 	if (!prj || !*prj) {

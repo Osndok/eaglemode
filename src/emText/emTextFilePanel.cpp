@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@ void emTextFilePanel::SetFileModel(
 
 bool emTextFilePanel::Cycle()
 {
-	static const emString ALT_ERROR("Hex display is not an alternative.");
+	static const char * const ALT_ERROR="Hex display is not an alternative.";
 
 	if (IsSignaled(GetVirFileStateSignal())) {
 		InvalidateControlPanel(); //??? very cheap solution, but okay for now.

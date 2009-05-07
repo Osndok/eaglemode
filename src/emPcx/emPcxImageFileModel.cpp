@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPcxImageFileModel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,7 +104,7 @@ void emPcxImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("PCX format error");
 }
 
@@ -130,7 +130,7 @@ bool emPcxImageFileModel::TryContinueLoading() throw(emString)
 			L->Palette=new unsigned char[3*n];
 			if (n<=16) fseek(L->File,16,SEEK_SET);
 			else fseek(L->File,-3*256,SEEK_END);
-			fread(L->Palette,1,3*n,L->File);
+			if (fread(L->Palette,1,3*n,L->File)!=(size_t)(3*n)) goto Err;
 		}
 		L->RowBuffer=new unsigned char[L->BytesPerLine*L->PlaneCount];
 		fseek(L->File,128,SEEK_SET);
@@ -200,7 +200,7 @@ bool emPcxImageFileModel::TryContinueLoading() throw(emString)
 
 	return true;
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("PCX format error");
 }
 

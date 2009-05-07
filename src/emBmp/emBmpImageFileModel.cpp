@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -180,7 +180,7 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("BMP format error");
 }
 
@@ -202,7 +202,7 @@ bool emBmpImageFileModel::TryContinueLoading() throw(emString)
 			L->Palette=new unsigned char[4<<L->BitsPerPixel];
 			memset(L->Palette,0,4<<L->BitsPerPixel);
 			if (L->ColSize==4) {
-				fread(L->Palette,1,4*L->ColsUsed,L->File);
+				if (fread(L->Palette,1,4*L->ColsUsed,L->File)!=(size_t)(4*L->ColsUsed)) goto Err;
 			}
 			else {
 				for (i=0; i<L->ColsUsed; i++) {
@@ -403,7 +403,7 @@ bool emBmpImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emString(strerror(errno));
+	if (errno) throw emGetErrorText(errno);
 	else throw emString("BMP format error");
 }
 

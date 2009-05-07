@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesFileModel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,7 +53,7 @@ void emMinesFileModel::StartGame(
 	int sizeX, int sizeY, int sizeZ, int mineCount, bool saveFile
 )
 {
-	int i,j,k,x,y,fcnt,clk;
+	int i,j,k,x,y,fcnt;
 
 	ExtraDataValid=false;
 	SizeX=sizeX;
@@ -70,16 +70,8 @@ void emMinesFileModel::StartGame(
 	for (i=0; i<fcnt; i++) Fields[i].Set(0);
 
 	if (mineCount>fcnt) mineCount=fcnt;
-	clk=(int)emGetClockMS();
 	for (i=0; i<mineCount; i++) {
-		j=
-			((rand()^clk)<<16) ^
-			((rand()^clk)<<8) ^
-			(rand()^clk) ^
-			((rand()^clk)>>8) ^
-			((rand()^clk)>>16)
-		;
-		j=((unsigned)j)%(unsigned)(fcnt-i);
+		j=emGetIntRandom(0,fcnt-i-1);
 		for (k=0; ; k++) {
 			if (Fields[k].Get()==0) {
 				j--;
@@ -335,7 +327,7 @@ void emMinesFileModel::CalcExtraData()
 }
 
 
-emMinesFileModel::LevelParamsStruct emMinesFileModel::LevelParams[5]={
+const emMinesFileModel::LevelParamsStruct emMinesFileModel::LevelParams[5]={
 	{  4, 4, 3,   9 }, // 5.33 fields per mine
 	{  6, 4, 4,  19 }, // 5.05 fields per mine
 	{  8, 6, 5,  50 }, // 4.8  fields per mine

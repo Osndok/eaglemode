@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_gnu.pm
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2009 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -32,9 +32,10 @@ my $GccVersion;
 my $IsWin;
 my $IsCygwin;
 my $IsWinOrCygwin;
+my $IsDarwin;
 
 {
-	my $s=`gcc --version`;
+	my $s=`gcc -dumpversion`; # Examples: "4.3", "2.95.3"
 	if ($? != 0) { exit(1); }
 	for (;; $s=substr($s,1)) {
 		if (length($s)==0) { die("Cannot determine GCC version, stopped"); }
@@ -54,6 +55,7 @@ my $IsWinOrCygwin;
 	$IsWin = $Config{'osname'} eq 'MSWin32' ? 1 : 0;
 	$IsCygwin = $Config{'osname'} eq 'cygwin' ? 1 : 0;
 	$IsWinOrCygwin = $IsWin || $IsCygwin;
+	$IsDarwin = $Config{'osname'} eq 'darwin' ? 1 : 0;
 }
 
 
@@ -73,8 +75,10 @@ sub MakeTargetFileName
 
 	return
 		$type eq 'lib' ? "lib$name.a"
-		: $type eq 'dynlib' ? ($IsWinOrCygwin ? "$name.dll" : "lib$name.so")
-		: $IsWinOrCygwin ? "$name.exe" : $name
+		: $type eq 'dynlib' ? (
+			$IsWinOrCygwin ? "$name.dll" :
+				$IsDarwin ? "lib$name.dylib" : "lib$name.so"
+		) : $IsWinOrCygwin ? "$name.exe" : $name
 	;
 }
 
@@ -85,7 +89,8 @@ sub MakePossibleLibFileNames
 
 	return [
 		"lib$name.a",
-		$IsWinOrCygwin ? ("$name.lib", "lib$name.dll.a") : "lib$name.so"
+		$IsWinOrCygwin ? ("$name.lib", "lib$name.dll.a") :
+			$IsDarwin ? "lib$name.dylib" : "lib$name.so"
 	];
 }
 
@@ -160,7 +165,9 @@ sub Link
 	else {
 		push(@args,"gcc");
 		if (HaveDebug) { push(@args,"-g"); }
-		if ($type eq 'dynlib') { push(@args,"-shared"); }
+		if ($type eq 'dynlib') {
+			push(@args,$IsDarwin ? "-dynamiclib" : "-shared");
+		}
 		if ($IsWin and $type eq 'wexe') { push(@args,"-mwindows"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }
 		push(@args,(@{GetObjFiles()}));

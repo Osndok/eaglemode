@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,13 +21,18 @@
 #include <stddef.h>
 #include <tiffio.h>
 #include <emTiff/emTiffImageFileModel.h>
+#include <emCore/emThread.h>
 
 
-static char emTiff_Error[512]; //??? not thread-reentrant
+static emThreadMiniMutex emTiff_ErrorMutex;
+static emThreadId emTiff_ErrorThread;
+static char emTiff_Error[512];
 
 
 static void emTiff_ErrorHandler(const char* module, const char* fmt, va_list ap)
 {
+	emTiff_ErrorMutex.Lock();
+	emTiff_ErrorThread=emThread::GetCurrentThreadId();
 	emTiff_Error[sizeof(emTiff_Error)-1]=0;
 	vsnprintf(
 		emTiff_Error,
@@ -35,6 +40,7 @@ static void emTiff_ErrorHandler(const char* module, const char* fmt, va_list ap)
 		fmt,
 		ap
 	);
+	emTiff_ErrorMutex.Unlock();
 }
 
 
@@ -89,12 +95,16 @@ void emTiffImageFileModel::TryStartLoading() throw(emString)
 	L->CurrentY=0;
 	L->CurrentOp=0;
 
-	strcpy(emTiff_Error,"TIFF error");
+	emTiff_ErrorMutex.Lock();
+	if (emTiff_ErrorThread==emThread::GetCurrentThreadId()) {
+		strcpy(emTiff_Error,"unknown TIFF error");
+	}
 	TIFFSetErrorHandler(emTiff_ErrorHandler);
 	TIFFSetWarningHandler(emTiff_WarningHandler);
+	emTiff_ErrorMutex.Unlock();
 
 	t=TIFFOpen(GetFilePath(),"r");
-	if (!t) throw emString(emTiff_Error);
+	if (!t) ThrowTiffError();
 	L->Tif=t;
 
 	TIFFGetFieldDefaulted(t,TIFFTAG_SAMPLESPERPIXEL,&u16);
@@ -195,7 +205,7 @@ bool emTiffImageFileModel::TryContinueLoading() throw(emString)
 		else {
 			r=TIFFReadRGBAStrip(t,L->CurrentY,(uint32*)L->Buffer);
 		}
-		if (!r) throw emString(emTiff_Error);
+		if (!r) ThrowTiffError();
 		L->CurrentOp=1;
 		return false;
 	}
@@ -324,4 +334,16 @@ double emTiffImageFileModel::CalcFileProgress()
 		progress=0.0;
 	}
 	return progress;
+}
+
+
+void emTiffImageFileModel::ThrowTiffError() throw(emString)
+{
+	emString str;
+
+	emTiff_ErrorMutex.Lock();
+	if (emTiff_ErrorThread==emThread::GetCurrentThreadId()) str=emTiff_Error;
+	else str="unknown TIFF error";
+	emTiff_ErrorMutex.Unlock();
+	throw str;
 }

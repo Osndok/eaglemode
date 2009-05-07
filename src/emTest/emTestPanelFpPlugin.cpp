@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanelFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emFpPlugin.h>
-#include <emTestPanel/emTestPanel.h>
+#include <emTest/emTestPanel.h>
 
 
 extern "C" {

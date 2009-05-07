@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.h
 //
-// Copyright (C) 2001,2003-2008 Oliver Hamann.
+// Copyright (C) 2001,2003-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,12 +21,8 @@
 #ifndef emPainter_h
 #define emPainter_h
 
-#ifndef emModel_h
-#include <emCore/emModel.h>
-#endif
-
-#ifndef emImage_h
-#include <emCore/emImage.h>
+#ifndef emFontCache_h
+#include <emCore/emFontCache.h>
 #endif
 
 
@@ -560,8 +556,6 @@ public:
 
 private:
 
-	void RemoveUnusedPixelFormats();
-
 	struct SharedPixelFormat {
 		SharedPixelFormat * Next;
 		int RefCount;
@@ -576,13 +570,9 @@ private:
 	SharedPixelFormat * PixelFormat;
 	double ClipX1, ClipY1, ClipX2, ClipY2;
 	double OriginX, OriginY, ScaleX, ScaleY;
+	emRef<emFontCache> FontCache;
 
-	emImage FontImage;
-	static const int FontImageWidth;
-	static const int FontImageHeight;
-
-	static SharedPixelFormat * PixelFormatList;
-		//??? not thread-reentrant.
+	static const double CharBoxTallness;
 
 	static const unsigned ImageDownscaleQuality;
 		// Quality of downscaling images. Higher value means more

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -227,9 +227,9 @@ void emProcess::TryStart(
 		CloseReading();
 		CloseReadingErr();
 		throw emString::Format(
-			"Failed to start process \"%s\": 0x%X",
+			"Failed to start process \"%s\": %s",
 			args[0].Get(),
-			d
+			emGetErrorText(d).Get()
 		);
 	}
 
@@ -289,9 +289,9 @@ int emProcess::TryWrite(const char * buf, int len) throw(emString)
 	CloseWriting();
 	if (s==ERROR_HANDLE_EOF || s==ERROR_BROKEN_PIPE) return -1;
 	throw emString::Format(
-		"Failed to write to stdin pipe of child process \"%s\": 0x%X",
+		"Failed to write to stdin pipe of child process \"%s\": %s",
 		P->Arg0.Get(),
-		s
+		emGetErrorText(s).Get()
 	);
 }
 
@@ -321,9 +321,9 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emString)
 	CloseReading();
 	if (s==ERROR_HANDLE_EOF || s==ERROR_BROKEN_PIPE) return -1;
 	throw emString::Format(
-		"Failed to read stdout pipe of child process \"%s\": 0x%X",
+		"Failed to read stdout pipe of child process \"%s\": %s",
 		P->Arg0.Get(),
-		s
+		emGetErrorText(s).Get()
 	);
 }
 
@@ -353,20 +353,20 @@ int emProcess::TryReadErr(char * buf, int maxLen) throw(emString)
 	CloseReadingErr();
 	if (s==ERROR_HANDLE_EOF || s==ERROR_BROKEN_PIPE) return -1;
 	throw emString::Format(
-		"Failed to read stderr pipe of child process \"%s\": 0x%X",
+		"Failed to read stderr pipe of child process \"%s\": %s",
 		P->Arg0.Get(),
-		s
+		emGetErrorText(s).Get()
 	);
 }
 
 
-void emProcess::WaitPipes(int waitFlags, int maxMillisecs)
+void emProcess::WaitPipes(int waitFlags, unsigned timeoutMS)
 {
 	static const int flag[3] = { WF_WAIT_STDIN, WF_WAIT_STDOUT, WF_WAIT_STDERR };
 	HANDLE handles[3];
 	DWORD i,n;
 
-	if (maxMillisecs<=0) return;
+	if (timeoutMS==0) return;
 	n=0;
 	for (i=0; i<3; i++) {
 		if ((waitFlags&flag[i])==0) continue;
@@ -379,10 +379,15 @@ void emProcess::WaitPipes(int waitFlags, int maxMillisecs)
 		handles[n++]=P->Pipe[i].EventHandle;
 	}
 	if (n<=0) return;
-	if (WaitForMultipleObjects(n,handles,FALSE,maxMillisecs)==WAIT_FAILED) {
+	if (WaitForMultipleObjects(
+		n,
+		handles,
+		FALSE,
+		timeoutMS==UINT_MAX ? INFINITE : (DWORD)timeoutMS
+	)==WAIT_FAILED) {
 		emFatalError(
-			"emProcess: WaitForMultipleObjects failed: 0x%X\n",
-			GetLastError()
+			"emProcess: WaitForMultipleObjects failed: %s\n",
+			emGetErrorText(GetLastError()).Get()
 		);
 	}
 }
@@ -418,18 +423,20 @@ void emProcess::SendKillSignal()
 }
 
 
-bool emProcess::WaitForTermination(int maxMillisecs)
+bool emProcess::WaitForTermination(unsigned timeoutMS)
 {
 	DWORD res;
 
 	if (P->HProcess!=INVALID_HANDLE_VALUE) {
-		if (maxMillisecs<0) maxMillisecs=0;
-		res=WaitForSingleObject(P->HProcess,maxMillisecs);
+		res=WaitForSingleObject(
+			P->HProcess,
+			timeoutMS==UINT_MAX ? INFINITE : (DWORD)timeoutMS
+		);
 		if (res!=WAIT_OBJECT_0) {
 			if (res!=WAIT_TIMEOUT) {
 				emFatalError(
-					"emProcess: WaitForSingleObject failed: 0x%X",
-					GetLastError()
+					"emProcess: WaitForSingleObject failed: %s",
+					emGetErrorText(GetLastError()).Get()
 				);
 			}
 			return false;
@@ -455,11 +462,11 @@ bool emProcess::IsRunning()
 }
 
 
-void emProcess::Terminate(int fatalTimeout)
+void emProcess::Terminate(unsigned fatalTimeoutMS)
 {
 	if (IsRunning()) {
 		SendTerminationSignal();
-		if (!WaitForTermination(fatalTimeout)) {
+		if (!WaitForTermination(fatalTimeoutMS)) {
 			emFatalError(
 				"Child process \"%s\" not willing to terminate.",
 				P->Arg0.Get()
@@ -512,8 +519,8 @@ HANDLE emProcessPrivate::PreparePipe(int index)
 		if (h1!=INVALID_HANDLE_VALUE) break;
 		if (i>1000) {
 			emFatalError(
-				"emProcess: CreateNamedPipe failed: 0x%X\n",
-				GetLastError()
+				"emProcess: CreateNamedPipe failed: %s\n",
+				emGetErrorText(GetLastError()).Get()
 			);
 		}
 	}
@@ -534,16 +541,16 @@ HANDLE emProcessPrivate::PreparePipe(int index)
 	);
 	if (h2==INVALID_HANDLE_VALUE) {
 		emFatalError(
-			"emProcess: CreateFile on named pipe failed: 0x%X\n",
-			GetLastError()
+			"emProcess: CreateFile on named pipe failed: %s\n",
+			emGetErrorText(GetLastError()).Get()
 		);
 	}
 
 	he=CreateEvent(NULL,TRUE,FALSE,NULL);
 	if (he==NULL) {
 		emFatalError(
-			"emProcess: CreateEvent failed: 0x%X",
-			GetLastError()
+			"emProcess: CreateEvent failed: %s",
+			emGetErrorText(GetLastError()).Get()
 		);
 	}
 
@@ -656,6 +663,7 @@ void emProcessPrivate::ClosePipe(int index)
 //====================== UNIX implementation of emProcess ======================
 //==============================================================================
 
+#include <emCore/emThread.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -741,7 +749,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emString)
 		"Failed to write to stdin pipe of child process \"%s\" (pid %d): %s",
 		P->Arg0.Get(),
 		(int)P->Pid,
-		strerror(e)
+		emGetErrorText(e).Get()
 	);
 }
 
@@ -766,7 +774,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emString)
 		"Failed to read stdout pipe of child process \"%s\" (pid %d): %s",
 		P->Arg0.Get(),
 		(int)P->Pid,
-		strerror(e)
+		emGetErrorText(e).Get()
 	);
 }
 
@@ -791,19 +799,20 @@ int emProcess::TryReadErr(char * buf, int maxLen) throw(emString)
 		"Failed to read stderr pipe of child process \"%s\" (pid %d): %s",
 		P->Arg0.Get(),
 		(int)P->Pid,
-		strerror(e)
+		emGetErrorText(e).Get()
 	);
 }
 
 
-void emProcess::WaitPipes(int waitFlags, int maxMillisecs)
+void emProcess::WaitPipes(int waitFlags, unsigned timeoutMS)
 {
 	timeval tv;
+	timeval * ptv;
 	fd_set rset;
 	fd_set wset;
 	int fdMax;
 
-	if (maxMillisecs<=0) return;
+	if (timeoutMS==0) return;
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	fdMax=-1;
@@ -820,13 +829,19 @@ void emProcess::WaitPipes(int waitFlags, int maxMillisecs)
 		if (fdMax<P->FdErr) fdMax=P->FdErr;
 	}
 	if (fdMax==-1) return;
-	tv.tv_sec=(time_t)(maxMillisecs/1000);
-	tv.tv_usec=(time_t)((maxMillisecs%1000)*1000);
-	if (select(fdMax+1,&rset,&wset,NULL,&tv)<0) {
+	if (timeoutMS==UINT_MAX) {
+		ptv=NULL;
+	}
+	else {
+		tv.tv_sec=(time_t)(timeoutMS/1000);
+		tv.tv_usec=(time_t)((timeoutMS%1000)*1000);
+		ptv=&tv;
+	}
+	if (select(fdMax+1,&rset,&wset,NULL,ptv)<0) {
 		if (errno!=EINTR) {
 			emFatalError(
 				"emProcess: select failed: %s\n",
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 	}
@@ -874,30 +889,33 @@ void emProcess::SendKillSignal()
 }
 
 
-bool emProcess::WaitForTermination(int maxMillisecs)
+bool emProcess::WaitForTermination(unsigned timeoutMS)
 {
 	pid_t pr;
-	int t;
+	unsigned t, u;
 
 	if (P->Pid==-1) return true;
-	for (;;) {
+	for (t=0;;) {
 		pr=waitpid(P->Pid,&P->ExitStatus,WNOHANG);
 		if (pr) break;
-		if (maxMillisecs<=0) return false;
-		t=10;
-		if (t>maxMillisecs) t=maxMillisecs;
-		emSleepMS(t);
-		maxMillisecs-=t;
+		if (timeoutMS==0) return false;
+		u=t;
+		if (u>timeoutMS) u=timeoutMS;
+		emSleepMS(u);
+		if (timeoutMS!=UINT_MAX) timeoutMS-=u;
+		if (t<10) t++;
 	}
-	if (WIFEXITED(P->ExitStatus)) P->ExitStatus=WEXITSTATUS(P->ExitStatus);
-	else P->ExitStatus=128+WTERMSIG(P->ExitStatus);
 	if (pr!=P->Pid) {
-		emFatalError(
-			"emProcess: waitpid failed (%s)\n",
-			pr<0 ? strerror(errno) : "unexpected return value"
-		);
+		if (pr<0) {
+			emFatalError("emProcess: waitpid failed: %s",emGetErrorText(errno).Get());
+		}
+		else {
+			emFatalError("emProcess: unexpected return value from waitpid.");
+		}
 	}
 	P->Pid=-1;
+	if (WIFEXITED(P->ExitStatus)) P->ExitStatus=WEXITSTATUS(P->ExitStatus);
+	else P->ExitStatus=128+WTERMSIG(P->ExitStatus);
 	CloseWriting();
 	CloseReading();
 	CloseReadingErr();
@@ -911,11 +929,11 @@ bool emProcess::IsRunning()
 }
 
 
-void emProcess::Terminate(int fatalTimeout)
+void emProcess::Terminate(unsigned fatalTimeoutMS)
 {
 	if (IsRunning()) {
 		SendTerminationSignal();
-		if (!WaitForTermination(fatalTimeout)) {
+		if (!WaitForTermination(fatalTimeoutMS)) {
 			emFatalError(
 				"Child process \"%s\" (pid %d) not willing to terminate.",
 				P->Arg0.Get(),
@@ -942,7 +960,7 @@ void emProcessPrivate::TryStart(
 	const char * dirPath, int flags, emProcessPrivate * managed
 ) throw(emString)
 {
-	static bool sigHandlersInstalled=false; //??? not thread-reentrant
+	static emThreadInitMutex sigHandlersInitMutex;
 	struct sigaction sa;
 	char buf[1024];
 	emString msg;
@@ -976,14 +994,14 @@ void emProcessPrivate::TryStart(
 		flags&=~emProcess::SF_SHARE_STDERR;
 	}
 
-	if (!sigHandlersInstalled) {
+	if (sigHandlersInitMutex.Begin()) {
 		memset(&sa,0,sizeof(sa));
 		sa.sa_handler=EmptySigHandler;
 		sa.sa_flags=SA_RESTART;
 		if (sigaction(SIGCHLD,&sa,NULL)) {
 			emFatalError(
 				"emProcess: Failed to install handler for SIGCHLD: %s",
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 		memset(&sa,0,sizeof(sa));
@@ -992,10 +1010,10 @@ void emProcessPrivate::TryStart(
 		if (sigaction(SIGPIPE,&sa,NULL)) {
 			emFatalError(
 				"emProcess: Failed to install handler for SIGPIPE: %s",
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
-		sigHandlersInstalled=true;
+		sigHandlersInitMutex.End();
 	}
 
 	pid=-1;
@@ -1040,7 +1058,7 @@ void emProcessPrivate::TryStart(
 			if (putenv((char*)extraEnv[i].Get())<0) {
 				msg=emString::Format(
 					"Failed to set environment variable: %s",
-					strerror(errno)
+					emGetErrorText(errno).Get()
 				);
 				goto L_ChildErr;
 			}
@@ -1051,7 +1069,7 @@ void emProcessPrivate::TryStart(
 				msg=emString::Format(
 					"Failed to set working directory to \"%s\": %s",
 					dirPath,
-					strerror(errno)
+					emGetErrorText(errno).Get()
 				);
 				goto L_ChildErr;
 			}
@@ -1059,19 +1077,19 @@ void emProcessPrivate::TryStart(
 
 		if (pipeIn[0]!=-1) {
 			if (dup2(pipeIn[0],STDIN_FILENO)!=STDIN_FILENO) {
-				msg=emString::Format("dup2 failed: %s",strerror(errno));
+				msg=emString::Format("dup2 failed: %s",emGetErrorText(errno).Get());
 				goto L_ChildErr;
 			}
 		}
 		if (pipeOut[1]!=-1) {
 			if (dup2(pipeOut[1],STDOUT_FILENO)!=STDOUT_FILENO) {
-				msg=emString::Format("dup2 failed: %s",strerror(errno));
+				msg=emString::Format("dup2 failed: %s",emGetErrorText(errno).Get());
 				goto L_ChildErr;
 			}
 		}
 		if (pipeErr[1]!=-1) {
 			if (dup2(pipeErr[1],STDERR_FILENO)!=STDERR_FILENO) {
-				msg=emString::Format("dup2 failed: %s",strerror(errno));
+				msg=emString::Format("dup2 failed: %s",emGetErrorText(errno).Get());
 				goto L_ChildErr;
 			}
 		}
@@ -1080,7 +1098,7 @@ void emProcessPrivate::TryStart(
 		if (n<=0) {
 			msg=emString::Format(
 				"sysconf(_SC_OPEN_MAX) failed: %s",
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 			goto L_ChildErr;
 		}
@@ -1104,7 +1122,7 @@ void emProcessPrivate::TryStart(
 		if (fcntl(pipeTmp[1],F_SETFD,FD_CLOEXEC)<0) {
 			msg=emString::Format(
 				"fcntl(pipeTmp[1],F_SETFD,FD_CLOEXEC) failed: %s",
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 			goto L_ChildErr;
 		}
@@ -1120,7 +1138,7 @@ void emProcessPrivate::TryStart(
 			if (pid<0) {
 				msg=emString::Format(
 					"fork failed: %s",
-					strerror(errno)
+					emGetErrorText(errno).Get()
 				);
 				goto L_ChildErr;
 			}
@@ -1132,7 +1150,7 @@ void emProcessPrivate::TryStart(
 		}
 
 		execvp(cargs[0],cargs);
-		msg=emString::Format("%s",strerror(errno));
+		msg=emGetErrorText(errno);
 L_ChildErr:
 		i=0;
 		len=msg.GetLen();
@@ -1176,11 +1194,13 @@ L_ChildErr:
 		for (;;) {
 			pr=waitpid(pid,NULL,0);
 			if (pr==pid) break;
-			if (pr<0 && errno==EINTR) continue;
-			emFatalError(
-				"emProcess: waitpid failed (%s)\n",
-				pr<0 ? strerror(errno) : "unexpected return value"
-			);
+			if (pr<0) {
+				if (errno==EINTR) continue;
+				emFatalError("emProcess: waitpid failed: %s",emGetErrorText(errno).Get());
+			}
+			else {
+				emFatalError("emProcess: unexpected return value from waitpid.");
+			}
 		}
 	}
 	return;
@@ -1188,25 +1208,25 @@ L_ChildErr:
 L_PipeErr:
 	msg=emString::Format(
 		"Pipe creation failed: %s",
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 	goto L_Err;
 L_GetFlErr:
 	msg=emString::Format(
 		"fcntl(...,F_GETFL) failed: %s",
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 	goto L_Err;
 L_SetFlErr:
 	msg=emString::Format(
 		"fcntl(...,F_SETFL) failed: %s",
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 	goto L_Err;
 L_ForkErr:
 	msg=emString::Format(
 		"fork() failed: %s",
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 	goto L_Err;
 L_Err:
@@ -1214,11 +1234,13 @@ L_Err:
 		for (;;) {
 			pr=waitpid(pid,NULL,0);
 			if (pr==pid) break;
-			if (pr<0 && errno==EINTR) continue;
-			emFatalError(
-				"emProcess: waitpid failed (%s)\n",
-				pr<0 ? strerror(errno) : "unexpected return value"
-			);
+			if (pr<0) {
+				if (errno==EINTR) continue;
+				emFatalError("emProcess: waitpid failed: %s",emGetErrorText(errno).Get());
+			}
+			else {
+				emFatalError("emProcess: unexpected return value from waitpid.");
+			}
 		}
 	}
 	if (pipeIn[0]!=-1) close(pipeIn[0]);

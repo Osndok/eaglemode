@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -832,6 +832,6 @@ void emPsRenderer::PSAgentClass::GotAccess()
 }
 
 
-const char * emPsRenderer::SyncString=
+const char * const emPsRenderer::SyncString=
 	"SYNC823JVG73LS0GJ7B2TX2M49GZWK2D" // Just random
 ;

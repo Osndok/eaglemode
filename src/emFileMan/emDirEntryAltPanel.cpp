@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,7 +90,7 @@ void emDirEntryAltPanel::Notice(NoticeFlags flags)
 		if (
 			(
 				soughtName &&
-				strcmp(soughtName,ContentName.Get())==0
+				strcmp(soughtName,ContentName)==0
 			) ||
 			(
 				IsViewed() &&
@@ -126,7 +126,7 @@ void emDirEntryAltPanel::Notice(NoticeFlags flags)
 		if (
 			(
 				soughtName &&
-				strcmp(soughtName,AltName.Get())==0
+				strcmp(soughtName,AltName)==0
 			) ||
 			(
 				IsViewed() &&
@@ -238,8 +238,8 @@ void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor)
 }
 
 
-const emString emDirEntryAltPanel::ContentName="";
-const emString emDirEntryAltPanel::AltName="a";
+const char * const emDirEntryAltPanel::ContentName="";
+const char * const emDirEntryAltPanel::AltName="a";
 const double emDirEntryAltPanel::LayoutLabelX=0.0/0.604;
 const double emDirEntryAltPanel::LayoutLabelY=0.0/0.604;
 const double emDirEntryAltPanel::LayoutLabelW=0.575/0.604;

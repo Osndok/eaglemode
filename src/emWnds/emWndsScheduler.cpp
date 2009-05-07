@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScheduler.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,7 @@
 
 emWndsScheduler::emWndsScheduler()
 {
+	NextInstance=NULL;
 	State=NOT_RUNNING;
 	TimerId=0;
 	TerminationInitiated=false;
@@ -37,19 +38,23 @@ emWndsScheduler::~emWndsScheduler()
 
 int emWndsScheduler::Run()
 {
+	emWndsScheduler * * pp;
 	MSG msg;
 	BOOL b;
 
-	if (TheRunningScheduler) {
-		emFatalError("emWndsScheduler: Multiple running instances not yet supported.");
-	}
-	TheRunningScheduler=this;
+	InstanceListMutex.Lock();
+	NextInstance=InstanceList;
+	InstanceList=this;
+	InstanceListMutex.Unlock();
 
 	TerminationInitiated=false;
 
 	TimerId=SetTimer(NULL,0,10,(TIMERPROC)TimerProc);
 	if (TimerId==0) {
-		emFatalError("emWndsScheduler: SetTimer failed (0x%lX)",GetLastError());
+		emFatalError(
+			"emWndsScheduler: SetTimer failed: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
 	}
 
 	State=HANDLING_MESSAGES;
@@ -58,7 +63,10 @@ int emWndsScheduler::Run()
 		b=GetMessage(&msg,NULL,0,0);
 		if (!b) break;
 		if (b==-1) {
-			emFatalError("emWndsScheduler: GetMessage failed (0x%lX)",GetLastError());
+			emFatalError(
+				"emWndsScheduler: GetMessage failed: %s",
+				emGetErrorText(GetLastError()).Get()
+			);
 		}
 		// Please read the comments in emWndsScheduler::TimerProc.
 		if (msg.message==WM_TIMER && msg.wParam==TimerId && msg.hwnd==NULL) {
@@ -75,7 +83,11 @@ int emWndsScheduler::Run()
 	KillTimer(NULL,TimerId);
 	TimerId=0;
 
-	TheRunningScheduler=NULL;
+	InstanceListMutex.Lock();
+	for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
+	*pp=NextInstance;
+	InstanceListMutex.Unlock();
+	NextInstance=NULL;
 
 	return msg.wParam;
 }
@@ -138,8 +150,10 @@ VOID CALLBACK emWndsScheduler::TimerProc(
 	// AddVectoredExceptionHandler.
 
 	try {
-		s=TheRunningScheduler;
-		if (s && s->TimerId==idEvent) s->DoTimeSlice();
+		InstanceListMutex.Lock();
+		for (s=InstanceList; s && s->TimerId!=idEvent; s=s->NextInstance);
+		InstanceListMutex.Unlock();
+		if (s) s->DoTimeSlice();
 	}
 	catch (...) {
 		KillTimer(NULL,s->TimerId);
@@ -148,4 +162,5 @@ VOID CALLBACK emWndsScheduler::TimerProc(
 }
 
 
-emWndsScheduler * emWndsScheduler::TheRunningScheduler=NULL;
+emThreadMiniMutex emWndsScheduler::InstanceListMutex;
+emWndsScheduler * emWndsScheduler::InstanceList=NULL;

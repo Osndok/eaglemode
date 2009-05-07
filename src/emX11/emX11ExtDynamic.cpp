@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.cpp
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emX11/emX11ExtDynamic.h>
+#include <emCore/emThread.h>
 
 
 //==============================================================================
@@ -30,7 +31,9 @@ static const char * emX11_LibXextName=
 		"libXext.dll"
 #	elif defined(__CYGWIN__)
 		"cygXext-6.dll"
-#	elif defined (__sun__)
+#	elif defined(__APPLE__)
+		"/usr/X11/lib/libXext.6.dylib"
+#	elif defined(__sun__)
 		"libXext.so.0"
 #	else
 		"libXext.so.6"
@@ -58,25 +61,33 @@ void * emX11_LibXextFunctions[6]={
 };
 
 
+static emThreadMiniMutex emX11_LibXextLoadMutex;
 static bool emX11_LibXextLoaded=false;
 
 
-void emX11_LoadLibXext() throw(emString)
+void emX11_TryLoadLibXext() throw(emString)
 {
 	emLibHandle h;
 	int i;
 
-	// ??? not thread-save.
+	emX11_LibXextLoadMutex.Lock();
 	if (!emX11_LibXextLoaded) {
-		h=emTryOpenLib(emX11_LibXextName,true);
-		for (i=0; i<(int)(sizeof(emX11_LibXextFunctions)/sizeof(void*)); i++) {
-			emX11_LibXextFunctions[i]=emTryResolveSymbolFromLib(
-				h,
-				emX11_LibXextFuncNames[i]
-			);
+		try {
+			h=emTryOpenLib(emX11_LibXextName,true);
+			for (i=0; i<(int)(sizeof(emX11_LibXextFunctions)/sizeof(void*)); i++) {
+				emX11_LibXextFunctions[i]=emTryResolveSymbolFromLib(
+					h,
+					emX11_LibXextFuncNames[i]
+				);
+			}
+		}
+		catch (emString errorMessage) {
+			emX11_LibXextLoadMutex.Unlock();
+			throw errorMessage;
 		}
 		emX11_LibXextLoaded=true;
 	}
+	emX11_LibXextLoadMutex.Unlock();
 }
 
 
@@ -93,6 +104,8 @@ bool emX11_IsLibXextLoaded()
 static const char * emX11_LibXxf86vmName=
 #	if defined(_WIN32) || defined(__CYGWIN__)
 		"libXxf86vm.dll"
+#	elif defined(__APPLE__)
+		"/usr/X11/lib/libXxf86vm.1.dylib"
 #	else
 		"libXxf86vm.so.1"
 #	endif
@@ -115,25 +128,33 @@ void * emX11_LibXxf86vmFunctions[4]={
 };
 
 
+static emThreadMiniMutex emX11_LibXxf86vmLoadMutex;
 static bool emX11_LibXxf86vmLoaded=false;
 
 
-void emX11_LoadLibXxf86vm() throw(emString)
+void emX11_TryLoadLibXxf86vm() throw(emString)
 {
 	emLibHandle h;
 	int i;
 
-	// ??? not thread-save.
+	emX11_LibXxf86vmLoadMutex.Lock();
 	if (!emX11_LibXxf86vmLoaded) {
-		h=emTryOpenLib(emX11_LibXxf86vmName,true);
-		for (i=0; i<(int)(sizeof(emX11_LibXxf86vmFunctions)/sizeof(void*)); i++) {
-			emX11_LibXxf86vmFunctions[i]=emTryResolveSymbolFromLib(
-				h,
-				emX11_LibXxf86vmFuncNames[i]
-			);
+		try {
+			h=emTryOpenLib(emX11_LibXxf86vmName,true);
+			for (i=0; i<(int)(sizeof(emX11_LibXxf86vmFunctions)/sizeof(void*)); i++) {
+				emX11_LibXxf86vmFunctions[i]=emTryResolveSymbolFromLib(
+					h,
+					emX11_LibXxf86vmFuncNames[i]
+				);
+			}
+		}
+		catch (emString errorMessage) {
+			emX11_LibXxf86vmLoadMutex.Unlock();
+			throw errorMessage;
 		}
 		emX11_LibXxf86vmLoaded=true;
 	}
+	emX11_LibXxf86vmLoadMutex.Unlock();
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -602,7 +602,7 @@ void emFileManSelInfoPanel::WorkOnDetailEntry(DetailsType * details, emDirEntry 
 		details->ErrorMessage=emString::Format(
 			"Failed to lstat \"%s\": %s",
 			dirEntry.GetPath().Get(),
-			strerror(dirEntry.GetLStatErrNo())
+			emGetErrorText(dirEntry.GetLStatErrNo()).Get()
 		);
 	}
 

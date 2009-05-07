@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emList.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -399,6 +399,12 @@ public:
 
 	unsigned int GetDataRefCount() const;
 		// Get number of references to the data behind this list.
+
+	void MakeNonShared();
+		// This must be called before handing the list to another
+		// thread. This method is not recursive. So if the object class
+		// even has such a method, you have to call it on every object
+		// too.
 
 	class Iterator {
 
@@ -1469,6 +1475,11 @@ template <class OBJ> int emList<OBJ>::GetIndexOf(const OBJ * elem) const
 template <class OBJ> unsigned int emList<OBJ>::GetDataRefCount() const
 {
 	return Data->IsStaticEmpty ? UINT_MAX/2 : Data->RefCount;
+}
+
+template <class OBJ> inline void emList<OBJ>::MakeNonShared()
+{
+	MakeWritable();
 }
 
 template <class OBJ> inline emList<OBJ>::Iterator::Iterator()

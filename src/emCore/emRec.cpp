@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -2576,7 +2576,7 @@ Err:
 	throw emString::Format(
 		"Failed to read \"%s\": %s",
 		FilePath.Get(),
-		strerror(errno)
+		emGetErrorText(errno).Get()
 	);
 }
 
@@ -2602,7 +2602,7 @@ int emRecFileReader::TryRead(char * buf, int maxLen) throw(emString)
 			throw emString::Format(
 				"Failed to read \"%s\": %s",
 				FilePath.Get(),
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 		len+=sz;
@@ -2623,7 +2623,7 @@ void emRecFileReader::TryClose() throw(emString)
 		throw emString::Format(
 			"Failed to read \"%s\": %s",
 			FilePath.Get(),
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 }
@@ -2665,7 +2665,7 @@ void emRecFileWriter::TryStartWriting(
 		throw emString::Format(
 			"Failed to open \"%s\" for writing: %s",
 			FilePath.Get(),
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 	emRecWriter::TryStartWriting(root);
@@ -2683,7 +2683,7 @@ void emRecFileWriter::TryWrite(const char * buf, int len) throw(emString)
 			throw emString::Format(
 				"Failed to write \"%s\": %s",
 				FilePath.Get(),
-				strerror(errno)
+				emGetErrorText(errno).Get()
 			);
 		}
 		len-=sz;
@@ -2703,7 +2703,7 @@ void emRecFileWriter::TryClose() throw(emString)
 		throw emString::Format(
 			"Failed to write \"%s\": %s",
 			FilePath.Get(),
-			strerror(errno)
+			emGetErrorText(errno).Get()
 		);
 	}
 }

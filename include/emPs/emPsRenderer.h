@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -180,7 +180,7 @@ private:
 	int RdImgFormat,RdImgW,RdImgH,RdImgMaxVal,RdImgX,RdImgY;
 	bool RdImgDone;
 
-	static const char * SyncString;
+	static const char * const SyncString;
 };
 
 inline void emPsRenderer::SetJobListenEngine(

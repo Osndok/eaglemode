@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emWindow_h
 #include <emCore/emWindow.h>
+#endif
+
+#ifndef emThread_h
+#include <emCore/emThread.h>
 #endif
 
 #ifndef _INC_WINDOWS
@@ -87,7 +91,10 @@ private:
 
 	static emInputKey ConvertKey(unsigned vk, int * pVariant);
 
-	static emWndsScreen * TheScreen;
+	static emThreadMiniMutex InstanceListMutex;
+	static emWndsScreen * InstanceList;
+	emWndsScreen * NextInstance;
+	int WindowProcRecursion;
 	emWndsScheduler * WndsScheduler;
 	emString WinClassName;
 	int Width, Height;

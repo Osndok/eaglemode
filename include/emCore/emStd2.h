@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -60,6 +60,15 @@ emUInt64 emGetCPUTSC();
 	// Get the state of the time stamp counter (TSC) of the CPU.
 	// IMPORTANT: This only works with certain compiler and hardware.
 	// Use for debugging/development only.
+
+
+//==============================================================================
+//================================ Error Texts =================================
+//==============================================================================
+
+emString emGetErrorText(int errorNumber);
+	// This is like the C function strerror, but it is thread-safe, and on
+	// Windows it also supports error codes returned by GetLastError.
 
 
 //==============================================================================

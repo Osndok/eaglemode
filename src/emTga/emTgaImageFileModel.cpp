@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTgaImageFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2009 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -159,7 +159,7 @@ void emTgaImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 ErrFile:
-	throw emString(strerror(errno));
+	throw emGetErrorText(errno);
 ErrFormat:
 	throw emString("TGA format error");
 }
@@ -220,7 +220,7 @@ bool emTgaImageFileModel::TryContinueLoading() throw(emString)
 
 	Signal(ChangeSignal);
 
-	if (ferror(L->File)) throw emString(strerror(errno));
+	if (ferror(L->File)) throw emGetErrorText(errno);
 
 	L->NextY++;
 	if (L->NextY>=L->Height) {
