@@ -1,0 +1,17 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - C++ API Reference</TITLE>
+	<SCRIPT LANGUAGE="JavaScript">
+		function FrameSetLoaded()
+		{
+			c=self.location.href.match("[?&]content[=]([^?&]+)([&]|$)");
+			if (c) frames["contentFrame"].location=c[1];
+		}
+	</SCRIPT>
+</HEAD>
+<FRAMESET COLS="25%,75%" ONLOAD="FrameSetLoaded()">
+	<FRAME NAME="treeFrame" SRC="tree.html">
+	<FRAME NAME="contentFrame" SRC="index-noframes.html">
+	<NOFRAMES>This page requires a browser that can show frames.</NOFRAMES>
+</FRAMESET>
+</HTML>

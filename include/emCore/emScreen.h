@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScreen.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,6 +28,10 @@
 class emWindow;
 class emWindowPort;
 
+
+//==============================================================================
+//================================== emScreen ==================================
+//==============================================================================
 
 class emScreen : public emModel {
 
@@ -81,6 +85,12 @@ public:
 
 	virtual void Beep() = 0;
 		// Give an acoustic warning to the user, if possible.
+
+	virtual void DisableScreensaver() = 0;
+	virtual void EnableScreensaver() = 0;
+		// Disable or re-enable the screensaver. This should implement
+		// an internal counter for calls to DisableScreensaver() which
+		// have not yet been taken back by calls to EnableScreensaver().
 
 	const emArray<emWindow*> & GetWindows();
 		// Get an array of pointers to all windows on the screen, which

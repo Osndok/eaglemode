@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,12 +42,13 @@ const char * emGetVersion()
 		emGV_STR_OF(EM_MAJOR_VERSION) "."
 		emGV_STR_OF(EM_MINOR_VERSION) "."
 		emGV_STR_OF(EM_MICRO_VERSION)
+		EM_VERSION_POSTFIX
 	;
 }
 
 
 emCompatibilityCheckerClass::emCompatibilityCheckerClass(
-	int maj, int min, int mic
+	int maj, int min, int mic, const char * postfix
 )
 {
 	if (maj!=EM_MAJOR_VERSION || min!=EM_MINOR_VERSION) {

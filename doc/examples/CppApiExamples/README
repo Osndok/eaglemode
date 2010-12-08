@@ -1,0 +1,10 @@
+This directory contains the example programs from the C++ API Tutorial. Except
+for the PluginExample, you can run the examples easily with the help of
+run-example.pl. For example:
+
+  perl run-example.pl HelloWorldExample.cpp
+
+If you want to run the PluginExample, then you would have to copy all the files
+from the PluginExample directory tree into the Eagle Mode source directory tree
+(see that they have the same directory structure), and then you could compile,
+install and run Eagle Mode as usual.

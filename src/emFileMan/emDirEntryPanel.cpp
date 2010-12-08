@@ -21,9 +21,6 @@
 #include <sys/stat.h>
 #if defined(_WIN32)
 #	include <io.h>
-#	ifndef R_OK
-#		define R_OK 4
-#	endif
 #	ifndef S_IRUSR
 #		define S_IRUSR _S_IREAD
 #	endif

@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Drive Q"
+
+PosX  = 0.4579
+PosY  = 0.5479
+Width = 0.010
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 2.5
+
+BackgroundColor = "#BBB"
+BorderColor = "#333"
+TitleColor = "#BBB"
+
+FileName = "DriveQ.emFileLink"
+CopyToUser = false

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -86,7 +86,8 @@ public:
 	emModel * LookupInherited(const type_info & modelClass,
 	                          const char * name);
 		// Like Lookup, but if the model is not found in this context,
-		// the parent context searched, then the grad-parent, and so on.
+		// the parent context is searched, then the grad-parent, and so
+		// on.
 
 	emString GetListing() const;
 		// Just for debugging: Get a listing of all common models.

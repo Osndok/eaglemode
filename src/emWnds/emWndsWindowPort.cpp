@@ -22,7 +22,7 @@
 
 #ifndef WM_MOUSEWHEEL
 #	define WM_MOUSEWHEEL 0x020A
-# endif
+#endif
 #ifndef WM_UNICHAR
 #	define WM_UNICHAR 0x0109
 #endif

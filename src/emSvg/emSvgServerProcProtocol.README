@@ -1,0 +1,12 @@
+emSvg Server Process Protocol
+#############################
+
+client: attachshm <shm id>
+client: open <file>
+server: opened: <instance> <width> <height> "<title>" "<desc>"
+or    : error: <message>
+client: render <instance> <src x> <src y> <src width> <src height> \
+               <shm offset> <shm width> <shm height>
+server: rendered
+or    : error: <message>
+client: close <instance>

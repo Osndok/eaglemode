@@ -1,0 +1,473 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emString.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>.h
+//
+// Copyright (C) 2004-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emString_h
+#define emString_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="emString"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a dynamically allocated null-terminated character string
+        // with copy-on-write behavior. This string type is designed to minimize
+        // memory consumption. That means, each change of the length requires
+        // reallocation. If you plan to perform many length-changing operations
+        // on a string, you may decide to do it with an <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;char&gt; for a
+        // better performance.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>();
+                <SPAN CLASS=c>// Construct an empty string.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+                <SPAN CLASS=c>// Construct a copied string.
+                // Arguments:
+                //   s - The string to be copied.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(<SPAN CLASS=t>const char </SPAN>* p);
+                <SPAN CLASS=c>// Construct a copied string.
+                // Arguments:
+                //   p - The null-terminated string to be copied.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>int </SPAN>len);
+                <SPAN CLASS=c>// Construct a copied string.
+                // Arguments:
+                //   p   - The string to be copied.
+                //   len - Number of bytes in p.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>int </SPAN>len, <SPAN CLASS=t>const char </SPAN>* p2, <SPAN CLASS=t>int </SPAN>len2);
+                <SPAN CLASS=c>// Construct a string as a concatenated copy of two strings.
+                // Arguments:
+                //   p    - First source string.
+                //   len  - Number of bytes in p.
+                //   p2   - Second source string.
+                //   len2 - Number of bytes in p2.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(<SPAN CLASS=t>char </SPAN>c, <SPAN CLASS=t>int </SPAN>len=<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// Construct a string by filling it with a byte.
+                // Arguments:
+                //   c   - The byte to be used for filling.
+                //   len - The length of the resulting string.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Format(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// This function creates a formatted string.
+                // Arguments:
+                //   format - The format (like with printf).
+                //   ...    - Arguments to the format (like with printf).
+                // Returns: The formatted string.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const char </SPAN>* p);
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>char </SPAN>c);
+                <SPAN CLASS=c>// Copy a string or a byte to this string.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetLen() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the number of bytes in this string, excluding the
+                // terminating null. This really counts the bytes using strlen.
+
+        </SPAN><SPAN CLASS=t>operator const char </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const char </SPAN>* Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the internal null-terminated string for
+                // reading. At least because of the copy-on-write feature, the
+                // pointer is valid only until calling any non-const method or
+                // operator on this string, or giving this string as a non-const
+                // argument to any call in the world. Hint: Even methods like
+                // Add, Insert, Replace and GetSubString may make shallow
+                // copies, like the copy operator and copy constructor do.
+
+        </SPAN><SPAN CLASS=t>char operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>char </SPAN>Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get one byte from this string.
+                // Arguments:
+                //   index - The index of the desired byte. This must be within
+                //           the range of 0 to GetLen().
+                // Returns: The byte.
+
+        </SPAN><SPAN CLASS=t>char </SPAN>* GetWritable();
+        <SPAN CLASS=t>char </SPAN>&amp; GetWritable(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Like Get() and Get(index), but for modifying the bytes.
+                // There is no non-const version of the operator [], because
+                // compilers would make use of it too often. The rules for the
+                // validity of the pointer or reference are the same as with
+                // Get(), but modification is allowed only until doing something
+                // which could make a shallow copy of this string.
+
+        </SPAN><SPAN CLASS=t>char </SPAN>* SetLenGetWritable(<SPAN CLASS=t>int </SPAN>len);
+                <SPAN CLASS=c>// Like GetWritable(), but even prepare for a new length of the
+                // string.
+                // Arguments:
+                //   len - The length of the string you plan to produce.
+                // Returns:
+                //   A pointer to the internal null-terminated string buffer for
+                //   writing. The buffer contains up to len bytes of the
+                //   original string, then there is a null, then there may be
+                //   garbage (if len&gt;GetLen()+1), and in any case there is a
+                //   null at the end (at index len). You may modify all
+                //   bytes within the index range of 0 to len-1.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const char </SPAN>* p);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>char </SPAN>c, <SPAN CLASS=t>int </SPAN>len=<SPAN CLASS=u>1</SPAN>);
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const char </SPAN>* p);
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>char </SPAN>c);
+                <SPAN CLASS=c>// Add a copy of something to the end of this string. Source and
+                // target memory may overlap.
+                // Arguments:
+                //   s   - A source string.
+                //   p   - A source string, null-terminated if len not given.
+                //   c   - A source byte.
+                //   len - Length of string p, or how often to add byte c.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>char </SPAN>c) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>friend </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>friend </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>char </SPAN>c, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+                <SPAN CLASS=c>// Add strings...
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const char </SPAN>* p);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>char </SPAN>c, <SPAN CLASS=t>int </SPAN>len=<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// Insert a copy of something somewhere in this string. Source
+                // and target memory may overlap.
+                // Arguments:
+                //   index - Position of insertion. This should be within the
+                //           range of 0 to GetLen(), otherwise it is clipped
+                //           accordingly.
+                //   s     - A source string to be copied for insertion.
+                //   p     - A source string to be copied for insertion,
+                //           null-terminated if len not given.
+                //   c     - A source byte to be copied for insertion.
+                //   len   - Length of string p, or how often to insert
+                //           byte c.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>exLen, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>exLen, <SPAN CLASS=t>const char </SPAN>* p);
+        <SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>exLen, <SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>exLen, <SPAN CLASS=t>char </SPAN>c, <SPAN CLASS=t>int </SPAN>len=<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// Replace something in this string by a copy of something.
+                // Source and target memory may overlap.
+                // Arguments:
+                //   index - Position of replacement. This should be within the
+                //           range of 0 to GetLen()-exLen, otherwise index and
+                //           exLen are clipped accordingly.
+                //   exLen - Number of bytes to be removed.
+                //   s     - A source string to be copied for insertion.
+                //   p     - A source string to be copied for insertion,
+                //           null-terminated if len not given.
+                //   c     - A source byte to be copied for insertion.
+                //   len   - Length of string p, or how often to insert
+                //           byte c.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetSubString(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a sub-string.
+                // Arguments:
+                //   index - Index of the first byte of the sub-string.
+                //           This should be within the range of 0 to
+                //           GetLen()-len, otherwise index and len are clipped
+                //           accordingly.
+                //   len   - Length of the sub-string.
+                // Returns: The sub-string.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Extract(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>len);
+                <SPAN CLASS=c>// Like GetSubString, but remove the sub-string from this
+                // string.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>len=<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// Like Extract, but without returning the sub-string.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Empty();
+                <SPAN CLASS=c>// Empty this string.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this string is empty.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&lt;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&gt;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&lt; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&gt; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&lt;= (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&gt;= (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&lt; (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>&gt; (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>friend bool operator </SPAN>== (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>friend bool operator </SPAN>!= (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>friend bool operator </SPAN>&lt;= (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>friend bool operator </SPAN>&gt;= (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>friend bool operator </SPAN>&lt; (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+        <SPAN CLASS=t>friend bool operator </SPAN>&gt; (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s);
+                <SPAN CLASS=c>// Compare null-terminated strings using strcmp.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this string.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the string to another
+                // thread.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>unsigned int </SPAN>RefCount;
+                <SPAN CLASS=t>char </SPAN>Buf[<SPAN CLASS=k>sizeof</SPAN>(<SPAN CLASS=t>unsigned int</SPAN>)];
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(SharedData * d);
+        <SPAN CLASS=t>void </SPAN>FreeData();
+        <SPAN CLASS=t>void </SPAN>MakeWritable();
+        <SPAN CLASS=t>void </SPAN>PrivRep(<SPAN CLASS=t>int </SPAN>oldLen, <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>exLen, <SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>void </SPAN>PrivRep(<SPAN CLASS=t>int </SPAN>oldLen, <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>exLen, <SPAN CLASS=t>char </SPAN>c, <SPAN CLASS=t>int </SPAN>len);
+
+        <SPAN CLASS=t>static </SPAN>SharedData EmptyData;
+        SharedData * Data;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>()
+<SPAN CLASS=b>{
+        </SPAN>Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN>Data=s.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::~<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN>s.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+        Data=s.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strlen(Data-&gt;Buf);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::GetLen() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strlen(Data-&gt;Buf);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator const char </SPAN>* () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Buf;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const char </SPAN>* <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Buf;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline char </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Buf[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline char </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Buf[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline char </SPAN>* <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::GetWritable()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;Buf;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline char </SPAN>&amp; <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::GetWritable(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;Buf[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN>Add(s);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const char </SPAN>* p)
+<SPAN CLASS=b>{
+        </SPAN>Add(p);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>char </SPAN>c)
+<SPAN CLASS=b>{
+        </SPAN>Add(c);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::Empty()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!*Data-&gt;Buf;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,s.Data-&gt;Buf)==<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,s.Data-&gt;Buf)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&lt;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,s.Data-&gt;Buf)&lt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&gt;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,s.Data-&gt;Buf)&gt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&lt; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,s.Data-&gt;Buf)&lt;<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&gt; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,s.Data-&gt;Buf)&gt;<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,p)==<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,p)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&lt;= (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,p)&lt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&gt;= (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,p)&gt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&lt; (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,p)&lt;<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<SPAN CLASS=t>operator </SPAN>&gt; (<SPAN CLASS=t>const char </SPAN>* p) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(Data-&gt;Buf,p)&gt;<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>== (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(p,s.Data-&gt;Buf)==<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>!= (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(p,s.Data-&gt;Buf)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>&lt;= (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(p,s.Data-&gt;Buf)&lt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>&gt;= (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(p,s.Data-&gt;Buf)&gt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>&lt; (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(p,s.Data-&gt;Buf)&lt;<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>&gt; (<SPAN CLASS=t>const char </SPAN>* p, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; s)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>strcmp(p,s.Data-&gt;Buf)&gt;<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(SharedData * d)
+<SPAN CLASS=b>{
+        </SPAN>Data=d;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

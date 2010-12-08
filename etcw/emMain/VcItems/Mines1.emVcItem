@@ -1,0 +1,13 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "emMines"
+
+PosX  = 0.204
+PosY  = 0.696
+Width = 0.057
+ContentTallness = 0.66
+
+BackgroundColor = "#222"
+
+FileName = "Mines1.emMines"
+CopyToUser = true

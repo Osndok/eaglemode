@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make-ps.pl
 #
-# Copyright (C) 2007-2008 Oliver Hamann.
+# Copyright (C) 2007-2008,2010 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -39,14 +39,15 @@ my @ImageDirs = ( 'doc/html/images' );
 # Array of files to be made. Each entry is a pair of a source file (html) and
 # a target file (ps).
 my $BuildList = [
+	[ 'doc/html/index.html', 'doc/ps/index.ps' ],
 	[ 'doc/html/ChangeLog.html', 'doc/ps/ChangeLog.ps' ],
-	[ 'doc/html/GeneralUserGuide.html', 'doc/ps/GeneralUserGuide.ps' ],
-	[ 'doc/html/InstallAndStart.html', 'doc/ps/InstallAndStart.ps' ],
 	[ 'doc/html/License.html', 'doc/ps/License.ps' ],
 	[ 'doc/html/SystemRequirements.html', 'doc/ps/SystemRequirements.ps' ],
-	[ 'doc/html/emFileManCustomization.html', 'doc/ps/emFileManCustomization.ps' ],
+	[ 'doc/html/InstallAndStart.html', 'doc/ps/InstallAndStart.ps' ],
+	[ 'doc/html/GeneralUserGuide.html', 'doc/ps/GeneralUserGuide.ps' ],
 	[ 'doc/html/emFileManUserGuide.html', 'doc/ps/emFileManUserGuide.ps' ],
-	[ 'doc/html/index.html', 'doc/ps/index.ps' ]
+	[ 'doc/html/emFileManCustomization.html', 'doc/ps/emFileManCustomization.ps' ],
+	[ 'doc/html/AdvancedConfiguration.html', 'doc/ps/AdvancedConfiguration.ps' ]
 ];
 
 # Determine latest modification time of images.

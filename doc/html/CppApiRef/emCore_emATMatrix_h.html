@@ -1,0 +1,357 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emATMatrix.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>.h
+//
+// Copyright (C) 2005-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emATMatrix_h
+#define emATMatrix_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="emATMatrix"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for an affine transformation matrix. It is a 3x3 matrix with
+        // constant elements in the last column:
+        //    _                 _
+        //   |   a00  a01  0.0   |
+        //   |   a10  a11  0.0   |
+        //   |_  a20  a21  1.0  _|
+        //
+        // Transforming a source coordinate (sx,sy) to a target coordinate
+        // (tx,ty) is:
+        //
+        //   tx = a00*sx + a10*sy + a20
+        //   ty = a01*sx + a11*sy + a21
+        //
+        // Please see the classes <A CLASS=m HREF="emCore_emATMatrix_h.html#emIdentityATM">emIdentityATM</A>, <A CLASS=m HREF="emCore_emATMatrix_h.html#emInvertATM">emInvertATM</A>, <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>,
+        // <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>, <A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>, <A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A> and <A CLASS=m HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A> more below.
+        // They provide lots of constructors for creating typical matrices. Here
+        // is an example of constructing a matrix which performs rotation first,
+        // then scaling and finally translation:
+        //
+        //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(5.0,7.0,<A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(2.0,3.0,<A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(90.0)))
+        //
+        // The following constructing would result equal, but a bit slower:
+        //
+        //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(90.0) * <A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(2.0,3.0) * <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(5.0,7.0)
+
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>();
+                <SPAN CLASS=c>// Performs no initialization (this is a "primitive" type).
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>(<SPAN CLASS=t>double </SPAN>a00, <SPAN CLASS=t>double </SPAN>a01,
+                   <SPAN CLASS=t>double </SPAN>a10, <SPAN CLASS=t>double </SPAN>a11,
+                   <SPAN CLASS=t>double </SPAN>a20, <SPAN CLASS=t>double </SPAN>a21);
+                <SPAN CLASS=c>// Construct from the given elements.
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Construct a copied matrix.
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Copy a matrix.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>Get(<SPAN CLASS=t>int </SPAN>i, <SPAN CLASS=t>int </SPAN>j) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>int </SPAN>i, <SPAN CLASS=t>int </SPAN>j, <SPAN CLASS=t>double </SPAN>aij);
+                <SPAN CLASS=c>// Get or set an element of this matrix. i is the row index and
+                // must be 0, 1 or 2. j is the column index and must be 0 or 1.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>TransX(<SPAN CLASS=t>double </SPAN>sx, <SPAN CLASS=t>double </SPAN>sy) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>TransY(<SPAN CLASS=t>double </SPAN>sx, <SPAN CLASS=t>double </SPAN>sy) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Transform a point from source coordinates to target
+                // coordinates.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>InverseTransX(<SPAN CLASS=t>double </SPAN>tx, <SPAN CLASS=t>double </SPAN>ty) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>InverseTransY(<SPAN CLASS=t>double </SPAN>tx, <SPAN CLASS=t>double </SPAN>ty) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Transform a point from target coordinates back to source
+                // coordinates. This is quite slower than TransX and TransY. For
+                // inverse-transforming more than about 4 points, it would be
+                // faster to create and use an <A CLASS=m HREF="emCore_emATMatrix_h.html#emInvertATM">emInvertATM</A>.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compare matrices.
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; <SPAN CLASS=t>operator </SPAN>*= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like *this = <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(*this,m).
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=t>operator </SPAN>* (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(*this,m).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emIdentityATM">emIdentityATM</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emInvertATM">emInvertATM</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>;
+        <SPAN CLASS=t>double </SPAN>A[<SPAN CLASS=u>3</SPAN>][<SPAN CLASS=u>2</SPAN>];
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emIdentityATM"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emATMatrix_h.html#emIdentityATM">emIdentityATM</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emIdentityATM">emIdentityATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emIdentityATM">emIdentityATM</A>();
+                <SPAN CLASS=c>// Construct an identity matrix. This means, source coordinates
+                // are equal to target coordinates.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emInvertATM"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emATMatrix_h.html#emInvertATM">emInvertATM</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emInvertATM">emInvertATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emInvertATM">emInvertATM</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Construct an inverse matrix. It performs inverse
+                // transformations in compare to m.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emMultiplyATM"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m2);
+                <SPAN CLASS=c>// Construct a multiplied matrix. Transforming a point with this
+                // matrix gives the same result as transforming the point first
+                // with m1 and then with m2.
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m2,
+                      <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m3);
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(<A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(m1,m2),m3)
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m2,
+                      <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m3, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m4);
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(<A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(m1,m2,m3),m4)
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emTranslateATM"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(<SPAN CLASS=t>double </SPAN>addX, <SPAN CLASS=t>double </SPAN>addY);
+                <SPAN CLASS=c>// Construct a matrix for translating. This matrix transforms
+                // source coordinates (sx,sy) to target coordinates (tx,ty)
+                // with:
+                //   tx = sx + addX
+                //   ty = sy + addY
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(<SPAN CLASS=t>double </SPAN>addX, <SPAN CLASS=t>double </SPAN>addY, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(addX,addY)
+                //   )
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emScaleATM"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(<SPAN CLASS=t>double </SPAN>facX, <SPAN CLASS=t>double </SPAN>facY);
+                <SPAN CLASS=c>// Construct a matrix for scaling. This matrix transforms source
+                // coordinates (sx,sy) to target coordinates (tx,ty) with:
+                //   tx = sx * facX
+                //   ty = sy * facY
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(<SPAN CLASS=t>double </SPAN>facX, <SPAN CLASS=t>double </SPAN>facY, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(facX,facY)
+                //   )
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(<SPAN CLASS=t>double </SPAN>facX, <SPAN CLASS=t>double </SPAN>facY, <SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(-fixX,-fixY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(facX,facY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(fixX,fixY)
+                //   )
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(<SPAN CLASS=t>double </SPAN>facX, <SPAN CLASS=t>double </SPAN>facY, <SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY,
+                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(-fixX,-fixY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emScaleATM">emScaleATM</A>(facX,facY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(fixX,fixY)
+                //   )
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRotateATM"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(<SPAN CLASS=t>double </SPAN>angle);
+                <SPAN CLASS=c>// Construct a matrix for rotating. The angle is in degrees.
+                // This matrix transforms source coordinates (sx,sy) to target
+                // coordinates (tx,ty) with:
+                //   tx = sx*cos(angle/180.0*M_PI) - sy*sin(angle/180.0*M_PI)
+                //   ty = sy*cos(angle/180.0*M_PI) + sx*sin(angle/180.0*M_PI)
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(<SPAN CLASS=t>double </SPAN>angle, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(angle)
+                //   )
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(<SPAN CLASS=t>double </SPAN>angle, <SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(-fixX,-fixY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(angle),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(fixX,fixY)
+                //   )
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(<SPAN CLASS=t>double </SPAN>angle, <SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY,
+                    <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(-fixX,-fixY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emRotateATM">emRotateATM</A>(angle),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(fixX,fixY)
+                //   )
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emShearATM"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(<SPAN CLASS=t>double </SPAN>shX, <SPAN CLASS=t>double </SPAN>shY);
+                <SPAN CLASS=c>// Construct a matrix for shearing. This matrix transforms
+                // source coordinates (sx,sy) to target coordinates (tx,ty)
+                // with:
+                //    tx = sx + sy*shX
+                //    ty = sy + sx*shY
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(<SPAN CLASS=t>double </SPAN>shX, <SPAN CLASS=t>double </SPAN>shY, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(shX,shY)
+                //   )
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(<SPAN CLASS=t>double </SPAN>shX, <SPAN CLASS=t>double </SPAN>shY, <SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(-fixX,-fixY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(shX,shY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(fixX,fixY)
+                //   )
+
+        </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(<SPAN CLASS=t>double </SPAN>shX, <SPAN CLASS=t>double </SPAN>shY, <SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY,
+                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; m);
+                <SPAN CLASS=c>// Like:
+                //   <A CLASS=m HREF="emCore_emATMatrix_h.html#emMultiplyATM">emMultiplyATM</A>(
+                //     m,
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(-fixX,-fixY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emShearATM">emShearATM</A>(shX,shY),
+                //     <A CLASS=m HREF="emCore_emATMatrix_h.html#emTranslateATM">emTranslateATM</A>(fixX,fixY)
+                //   )
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//=========================== Inline implementations ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>::<A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>()
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>::Get(<SPAN CLASS=t>int </SPAN>i, <SPAN CLASS=t>int </SPAN>j) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>A[i][j];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>::Set(<SPAN CLASS=t>int </SPAN>i, <SPAN CLASS=t>int </SPAN>j, <SPAN CLASS=t>double </SPAN>aij)
+<SPAN CLASS=b>{
+        </SPAN>A[i][j]=aij;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>::TransX(<SPAN CLASS=t>double </SPAN>sx, <SPAN CLASS=t>double </SPAN>sy) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>A[<SPAN CLASS=u>0</SPAN>][<SPAN CLASS=u>0</SPAN>]*sx + A[<SPAN CLASS=u>1</SPAN>][<SPAN CLASS=u>0</SPAN>]*sy + A[<SPAN CLASS=u>2</SPAN>][<SPAN CLASS=u>0</SPAN>];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A>::TransY(<SPAN CLASS=t>double </SPAN>sx, <SPAN CLASS=t>double </SPAN>sy) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>A[<SPAN CLASS=u>0</SPAN>][<SPAN CLASS=u>1</SPAN>]*sx + A[<SPAN CLASS=u>1</SPAN>][<SPAN CLASS=u>1</SPAN>]*sy + A[<SPAN CLASS=u>2</SPAN>][<SPAN CLASS=u>1</SPAN>];
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

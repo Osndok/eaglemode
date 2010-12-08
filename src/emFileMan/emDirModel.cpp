@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirModel.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,6 +79,15 @@ void emDirModel::ResetData()
 
 void emDirModel::TryStartLoading() throw(emString)
 {
+#if defined(__APPLE__)
+	char buf[PATH_MAX+1];
+	if (
+		realpath(GetFilePath().Get(),buf)!=NULL &&
+		strcmp(buf,"/net")==0
+	) throw emString(
+		"Loading this directory would probably stall the process."
+	);
+#endif
 	DirHandle=emTryOpenDir(GetFilePath());
 }
 
@@ -114,16 +123,16 @@ bool emDirModel::TryContinueLoading() throw(emString)
 		emSortSingleLinkedList(
 			(void**)(void*)&Names,offsetof(NameNode,Next),CompareName,NULL
 		);
-#		if defined(__CYGWIN__) || defined(_WIN32) //??? or all?
-			// I saw double names in the Cygwin proc fs and also in Windows.
-			for (node=Names; node->Next; ) {
-				if (CompareName(node,node->Next,NULL)==0) {
-					node->Next=node->Next->Next;
-					NameCount--;
-				}
-				else node=node->Next;
+		// I saw double names in Cygwin proc fs, in Linux ISO fs and in
+		// Windows NTFS. Unbelievable, isn't it? We have to remove those
+		// double names here.
+		for (node=Names; node->Next; ) {
+			if (CompareName(node,node->Next,NULL)==0) {
+				node->Next=node->Next->Next;
+				NameCount--;
 			}
-#		endif
+			else node=node->Next;
+		}
 		Entries=new emDirEntry[NameCount];
 		return false;
 	}

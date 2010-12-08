@@ -51,13 +51,17 @@ if (IsFirstPass()) {
 		"  .bz2\n".
 		"  .gz\n".
 		"  .lzh | .lha\n".
+		"  .lzma\n".
 		"  .lzo\n".
 		"  .tar\n".
 		"  .tar.bz2 | .tbz2 | .tgj\n".
 		"  .tar.gz | .tgz\n".
+		"  .tar.lzma | .tlz\n".
 		"  .tar.lzo | .tzo\n".
+		"  .tar.xz | .txz\n".
+		"  .xz\n".
 		"  .zip | .jar\n".
-		"  .zoo\n",
+		"  .zoo",
 		$name
 	);
 

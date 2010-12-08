@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -80,6 +80,7 @@ private:
 	void SortChildren();
 	static int CompareChildren(emPanel * c1, emPanel * c2, void * context);
 	void ClearKeyWalkState();
+	void KeyWalk(emInputEvent & event, const emInputState & state);
 
 	struct KeyWalkStateType {
 		emTimer Timer;

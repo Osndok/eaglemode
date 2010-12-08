@@ -1,0 +1,427 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emFileModel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>.h
+//
+// Copyright (C) 2005-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emFileModel_h
+#define emFileModel_h
+
+#ifndef emPriSchedAgent_h
+#include &lt;<A CLASS=f HREF="emCore_emPriSchedAgent_h.html">emCore/emPriSchedAgent.h</A>&gt;
+#endif
+
+#ifndef emSigModel_h
+#include &lt;<A CLASS=f HREF="emCore_emSigModel_h.html">emCore/emSigModel.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>;
+
+
+<A NAME="emFileModel"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for a shared file model. Such a file model can
+        // represent a file of a certain file format in memory. The most
+        // important features are:
+        //
+        //  - File models can have clients (=&gt; class <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>). The
+        //    clients tell how much memory the model may allocate at most. If
+        //    the model would need more, the file is not loaded. Without any
+        //    client, the file is never loaded. Thus, if you want a file to be
+        //    loaded by a file model, you will have to create and manage at
+        //    least one <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>.
+        //
+        //  - Loading and unloading is performed automatically, depending on the
+        //    the state of the clients.
+        //
+        //  - Saving is not performed automatically, except a derived class
+        //    implements such an automatism.
+        //
+        //  - Loading and saving are performed step by step in the Cycle method,
+        //    so that it does not block the other engines of the program.
+        //
+        //  - Normally, only one file model is loading at a time (just to avoid
+        //    heavy seeking of the hard drive). The order of loading multiple
+        //    file models is determined by a priority which can be set at the
+        //    clients.
+
+        </SPAN><SPAN CLASS=t>virtual const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetFilePath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Path name of the file. Returns the model name by default.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetFileStateSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is sent on any change in the results of
+                // GetFileState(), GetMemoryNeed(), GetFileProgress() and
+                // GetErrorText().
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>FileState <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possibilities for the state of the file model.
+
+                </SPAN>FS_WAITING = <SPAN CLASS=u>0</SPAN>,
+                        <SPAN CLASS=c>// The file model wants to load the file, but it is
+                        // waiting until there are no other file models in a
+                        // loading state.
+
+                </SPAN>FS_LOADING = <SPAN CLASS=u>1</SPAN>,
+                        <SPAN CLASS=c>// The file model is currently reading the file.
+
+                </SPAN>FS_LOADED = <SPAN CLASS=u>2</SPAN>,
+                        <SPAN CLASS=c>// The file model is loaded.
+
+                </SPAN>FS_UNSAVED = <SPAN CLASS=u>3</SPAN>,
+                        <SPAN CLASS=c>// The file model is loaded and there are unsaved
+                        // changes in the model data. This state prevents from
+                        // unloading and reloading.
+
+                </SPAN>FS_SAVING = <SPAN CLASS=u>4</SPAN>,
+                        <SPAN CLASS=c>// The file model is currently writing the file.
+
+                </SPAN>FS_TOO_COSTLY = <SPAN CLASS=u>5</SPAN>,
+                        <SPAN CLASS=c>// The file model is not loaded, because there is no
+                        // file model client which accepts the memory need.
+
+                </SPAN>FS_LOAD_ERROR = <SPAN CLASS=u>6</SPAN>,
+                        <SPAN CLASS=c>// The file model is not loaded, because there was an
+                        // error in reading the file.
+
+                </SPAN>FS_SAVE_ERROR = <SPAN CLASS=u>7</SPAN>,
+                        <SPAN CLASS=c>// Like FS_UNSAVED, but there was an error in writing
+                        // the file.
+
+                </SPAN>FS_MAX_VAL = <SPAN CLASS=u>7
+                        </SPAN><SPAN CLASS=c>// Just the maximum possible integer value for the
+                        // state.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        FileState GetFileState() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get current state of this file model.
+
+        </SPAN>emUInt64 GetMemoryNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get best known number of memory bytes, which are allocated,
+                // or which will be allocated, or which would be allocated, in
+                // loaded state. In addition to the memory need of the file
+                // model itself, this should also include the memory need of one
+                // typical client (e.g. <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>), if not negligible. The
+                // result of GetMemoryNeed() is never zero. In unsaved or
+                // errored state, it could be nonsense.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetFileProgress() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get progress of loading or saving in percent.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetErrorText() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the error description when in state FS_LOAD_ERROR or
+                // FS_SAVE_ERROR.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Update();
+                <SPAN CLASS=c>// Perform an update: If the state is FS_LOAD_ERROR, the error
+                // text is cleared and the loading will be tried again. If the
+                // state is FS_TOO_COSTLY with a last known memory need greater
+                // than one, the loading will be tried again. If the state is
+                // FS_LOADED, and if the model is out-of-date (checks file time
+                // by default), the file is unloaded for loading it again.
+                // Hints:
+                //  - A good place to call this method is when creating a new
+                //    <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>.
+                //  - Do not call this too often, because some file models are
+                //    always reloading.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emSigModel_h.html#emSigModel">emSigModel</A>&gt; AcquireUpdateSignalModel(
+                <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext
+        );
+                <SPAN CLASS=c>// This functions acquires a global signal model. When that
+                // signal is signaled, all file models are updated (see method
+                // Update()), except for those which have
+                // GetIgnoreUpdateSignal()==true. The signal could be used as an
+                // application-wide update signal even for reloading files which
+                // are not interfaced through <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>GetIgnoreUpdateSignal() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetIgnoreUpdateSignal(<SPAN CLASS=t>bool </SPAN>ignore);
+                <SPAN CLASS=c>// If true, this file model does not listen to the global update
+                // signal. Should be set at most for private file models.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Load(<SPAN CLASS=t>bool </SPAN>immediately);
+                <SPAN CLASS=c>// Normally, there is no need to call this method, because
+                // loading is performed automatically. If the state is
+                // FS_WAITING, Load(false) starts the loading right away,
+                // ignoring the priority. If the state is FS_LOADING,
+                // Load(false) performs one more step in loading the file.
+                // Load(true) blocks until the state is not FS_WAITING and not
+                // FS_LOADING. For other states, this method has no effect.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Save(<SPAN CLASS=t>bool </SPAN>immediately);
+                <SPAN CLASS=c>// This is similar to Load, but remember that saving is not
+                // started automatically. If the state is FS_UNSAVED,
+                // Save(false) starts the saving (which continues
+                // automatically). If the state is FS_SAVING, Save(false)
+                // performs one more step in saving the file. Save(true) blocks
+                // until the state is not FS_UNSAVED and not FS_SAVING. For
+                // other states, this method has no effect.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearSaveError();
+                <SPAN CLASS=c>// Resets the state to FS_UNSAVED, if it was FS_SAVE_ERROR.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>HardResetFileState();
+                <SPAN CLASS=c>// Unload the file and restart the loading logics. This works
+                // even in unsaved or errored state, and it is the only way to
+                // take back unsaved changes.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   context - Normally, this should be the root context.
+                //   name - Normally, this is the path name of the file
+                //          (otherwise GetFilePath has to be overloaded).
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::Cycle. This one performs loading and saving.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetUnsavedState();
+                <SPAN CLASS=c>// This must be called before or immediately after modifying the
+                // data (except through ResetData, TryStartLoading and
+                // TryContinueLoading). Hereby, any loading or saving is
+                // aborted, and the file state is set to FS_UNSAVED. The caller
+                // should take care: if the state was FS_SAVING, the file will
+                // be corrupted, and if the state was FS_LOADING, the data may
+                // be corrupted.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>ResetData() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Called for unloading the file. The implementation may free
+                // allocated memory or set the data to a default state.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>QuitLoading() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Called for loading the file. First, TryStartLoading is
+                // called, and then TryContinueLoading is called again and again
+                // until true is returned. For aborting by an error, an
+                // exception with a user-readable error message can be thrown.
+                // Returning true from TryContinueLoading means to have finished
+                // with loading. No call should waist more than about 10
+                // milliseconds (if possible somehow). There's no problem if
+                // each call waists much fewer time, but if multiple calls
+                // cannot really continue because of waiting for a child process
+                // or so, they should do an emSleepMS(10) or something similar,
+                // otherwise we would end up in busy waiting. Before allocating
+                // a worth meaning amount of memory, a call should return and
+                // the amount of memory should be reported through the result of
+                // CalcMemoryNeed(), so that there is a chance to abort the
+                // loading and to enter the state FS_TOO_COSTLY before the
+                // memory would be allocated. Best is to determine the whole
+                // memory need in TryStartLoading (e.g. through reading just a
+                // file header), and to allocate that memory in
+                // TryContinueLoading. It is guaranteed that ResetData is called
+                // before TryStartLoading. And it is guaranteed that QuitLoading
+                // is called at the end, either on success, or for aborting, or
+                // after an error - but remember that it can never be called
+                // through the destructor of <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> (=&gt; prepare the
+                // destructor of the derived class accordingly).
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>QuitSaving() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// This is just like above, but for saving. The memory need is
+                // not relevant here.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>emUInt64 CalcMemoryNeed() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// While loading, this method is called again and again to
+                // calculate the number of memory bytes, which will be allocated
+                // by this file model and by one typical file model client in
+                // loaded state. If it cannot be calculated, it should be a good
+                // approximation (e.g. from file size).
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>CalcFileProgress() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// While loading or saving, this method is called to determine
+                // the progress in percent. It's just an information for the
+                // user.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsOutOfDate();
+                <SPAN CLASS=c>// Check whether the loaded file should be reloaded. The default
+                // implementation checks by file modification time.
+
+</SPAN><SPAN CLASS=t>private</SPAN>: <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>;
+
+        <SPAN CLASS=t>void </SPAN>ClientsChanged();
+        <SPAN CLASS=t>bool </SPAN>StepLoading();
+        <SPAN CLASS=t>bool </SPAN>StepSaving();
+        <SPAN CLASS=t>bool </SPAN>UpdateFileProgress();
+        <SPAN CLASS=t>void </SPAN>StartPSAgent();
+        <SPAN CLASS=t>void </SPAN>EndPSAgent();
+
+        <SPAN CLASS=t>class </SPAN>PSAgentClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPriSchedAgent_h.html#emPriSchedAgent">emPriSchedAgent</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                PSAgentClass(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> &amp; fileModel);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>GotAccess();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> &amp; FileModel;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>friend class </SPAN>PSAgentClass;
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> FileStateSignal;
+        FileState State;
+        emUInt64 MemoryNeed;
+        <SPAN CLASS=t>double </SPAN>FileProgress;
+        emUInt64 FileProgressClock;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ErrorText;
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * ClientList;
+        emUInt64 MemoryLimit;
+        time_t FileTime;
+        PSAgentClass * PSAgent;
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emSigModel_h.html#emSigModel">emSigModel</A>&gt; UpdateSignalModel; <SPAN CLASS=c>// NULL if ignored
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::GetFileStateSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileStateSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FileState <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::GetFileState() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>State;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::GetMemoryNeed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MemoryNeed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::GetFileProgress() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileProgress;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::GetErrorText() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ErrorText;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::GetIgnoreUpdateSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>UpdateSignalModel==<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+
+<A NAME="emFileModelClient"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a client on an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>. Multiple clients can connect to
+        // the same file model. And:
+        //
+        // - Each client tells about the maximum memory which may be allocated
+        //   by the file model and one typical client (e.g. <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>). If no
+        //   client accepts the memory need this way, the file is not loaded or
+        //   it is unloaded.
+        //
+        // - Each client tells about the priority which is used for determining
+        //   the order of loading file models. The maximum priority of all
+        //   clients is taken.
+        //
+        // On each modification of a memory limit or a priority, the logics of
+        // <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> reacts automatically.
+        //
+        // Hint: Even have a look at the class <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>. It's a base class
+        // for panels which want to be file mode clients.
+
+        </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * model=<SPAN CLASS=u>NULL</SPAN>, emUInt64 memoryLimit=<SPAN CLASS=u>0</SPAN>,
+                          <SPAN CLASS=t>double </SPAN>priority=<SPAN CLASS=u>0.0</SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   model        - See SetModel below.
+                //   memoryLimit  - See SetMemoryLimit below.
+                //   priority     - See SetPriority below.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetModel() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetModel();
+        <SPAN CLASS=t>void </SPAN>SetModel(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * model=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// The file model this client is connected to. NULL means to
+                // have disconnected state.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetMemoryLimit(emUInt64 bytes);
+        emUInt64 GetMemoryLimit() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Maximum memory need accepted for loading the file, from sight
+                // of this client. Usually, this should be set from
+                // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetMemoryLimit().
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetPriority() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPriority(<SPAN CLASS=t>double </SPAN>priority);
+                <SPAN CLASS=c>// Priority in loading the file, from sight of this client.
+                // Usually, this should be set from
+                // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetUpdatePriority().
+
+</SPAN><SPAN CLASS=t>private</SPAN>: <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>&gt; Model;
+        emUInt64 MemoryLimit;
+        <SPAN CLASS=t>double </SPAN>Priority;
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * * ThisPtrInList;
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * NextInList;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetModel() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Model;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetModel()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Model;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetMemoryLimit() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MemoryLimit;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetPriority() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Priority;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

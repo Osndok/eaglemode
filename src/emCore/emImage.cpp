@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2009 Oliver Hamann.
+// Copyright (C) 2001,2003-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -298,22 +298,20 @@ void emImage::TryParseTga(
 
 	tgaEnd=tgaData+tgaSize;
 
-	if (tgaData+11>=tgaEnd) goto L_Error;
+	if (tgaData+17>=tgaEnd) goto L_Error;
 	idLen=tgaData[0];
 	palType=tgaData[1];
 	imgType=tgaData[2];
-	tgaData+=2;
-	palSize=tgaData[3];
-	palSize|=((int)tgaData[4])<<8;
-	palBitsPP=tgaData[5];
-	tgaData+=4;
-	w=tgaData[6];
-	w|=((int)tgaData[7])<<8;
-	h=tgaData[8];
-	h|=((int)tgaData[9])<<8;
-	bitsPP=tgaData[10];
-	desc=tgaData[11];
-	tgaData+=12+idLen;
+	palSize=tgaData[5];
+	palSize|=((int)tgaData[6])<<8;
+	palBitsPP=tgaData[7];
+	w=tgaData[12];
+	w|=((int)tgaData[13])<<8;
+	h=tgaData[14];
+	h|=((int)tgaData[15])<<8;
+	bitsPP=tgaData[16];
+	desc=tgaData[17];
+	tgaData+=18+idLen;
 
 	alphaMask = (desc&0x0f)==0 ? 255 : 0;
 

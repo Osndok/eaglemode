@@ -1,0 +1,436 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emStd1.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emStd1.h
+//
+// Copyright (C) 2004-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emStd1_h
+#define emStd1_h
+
+#include &lt;errno.h&gt;
+#include &lt;limits.h&gt;
+#include &lt;stdarg.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;math.h&gt;
+#include &lt;time.h&gt;
+
+
+<A NAME="Version"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== Version ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=p>#define EM_MAJOR_VERSION 0
+#define EM_MINOR_VERSION 80
+#define EM_MICRO_VERSION 0
+#define EM_VERSION_POSTFIX ""
+        </SPAN><SPAN CLASS=c>// Version numbers and postfix. Postfix is a string like ".rc1" or "".
+
+</SPAN><SPAN CLASS=t>const char </SPAN>* emGetVersion();
+        <SPAN CLASS=c>// Version numbers and postfix as a string.
+
+// The following static variable is built into every object file. Its
+// constructor checks whether the object has been compiled with a binary
+// compatible version of emCore. If not, emFatalError is called.
+</SPAN><SPAN CLASS=t>class </SPAN>emCompatibilityCheckerClass <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        emCompatibilityCheckerClass(<SPAN CLASS=t>int </SPAN>maj, <SPAN CLASS=t>int </SPAN>min, <SPAN CLASS=t>int </SPAN>mic, <SPAN CLASS=t>const char </SPAN>* postfix);
+<SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=t>static </SPAN>emCompatibilityCheckerClass emCompatibilityChecker(
+        EM_MAJOR_VERSION,EM_MINOR_VERSION,EM_MICRO_VERSION,EM_VERSION_POSTFIX
+);
+
+
+<A NAME="Adaptations_to_compilers_and_OSes"></A><SPAN CLASS=c>//==============================================================================
+//===================== Adaptations to compilers and OSes ======================
+//==============================================================================
+
+// We do not export variables from Windows DLLs.
+</SPAN><SPAN CLASS=p>#if defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)
+#       ifndef EM_NO_DATA_EXPORT
+#               define EM_NO_DATA_EXPORT
+#       endif
+#endif
+
+</SPAN><SPAN CLASS=c>// Get rid of warnings from GCC 3 about the offsetof macro.
+// GCC 4 has the option -Wno-invalid-offsetof.
+</SPAN><SPAN CLASS=p>#if defined(__GNUC__) &amp;&amp; __GNUC__==3
+#       ifdef offsetof
+#               undef offsetof
+#               define offsetof(TYPE,MEMBER) (((size_t)&amp;((TYPE*)256)-&gt;MEMBER)-256)
+#       endif
+#endif
+
+</SPAN><SPAN CLASS=c>// 'typename' is not supported by every compiler.
+// ??? Watcom/OpenWatcom: __WATCOMC__==1100 does not have it, __WATCOMC__==1270
+// ??? has it. For other versions I don't know it.
+</SPAN><SPAN CLASS=p>#if defined(__WATCOMC__) &amp;&amp; __WATCOMC__&lt;1270
+#       ifndef typename
+#               define typename
+#       endif
+#endif
+
+</SPAN><SPAN CLASS=c>// Imitation of some UNIX functions on Windows
+</SPAN><SPAN CLASS=p>#if defined(_WIN32)
+#       define strcasecmp stricmp
+#       define strncasecmp strnicmp
+#       define snprintf _snprintf
+#       define vsnprintf _vsnprintf
+        </SPAN><SPAN CLASS=t>char </SPAN>* em_asctime_r(<SPAN CLASS=t>const struct </SPAN>tm * ptm, <SPAN CLASS=t>char </SPAN>* buf);
+<SPAN CLASS=p>#       define asctime_r em_asctime_r
+        </SPAN><SPAN CLASS=t>char </SPAN>* em_ctime_r(<SPAN CLASS=t>const </SPAN>time_t * ptime, <SPAN CLASS=t>char </SPAN>* buf);
+<SPAN CLASS=p>#       define ctime_r em_ctime_r
+        </SPAN><SPAN CLASS=t>struct </SPAN>tm * em_gmtime_r(<SPAN CLASS=t>const </SPAN>time_t * ptime, <SPAN CLASS=t>struct </SPAN>tm * buf);
+<SPAN CLASS=p>#       define gmtime_r em_gmtime_r
+        </SPAN><SPAN CLASS=t>struct </SPAN>tm * em_localtime_r(<SPAN CLASS=t>const </SPAN>time_t * ptime, <SPAN CLASS=t>struct </SPAN>tm * buf);
+<SPAN CLASS=p>#       define localtime_r em_localtime_r
+#endif
+
+</SPAN><SPAN CLASS=c>// Have M_PI
+</SPAN><SPAN CLASS=p>#ifndef M_PI
+#       define M_PI 3.14159265358979323846
+#endif
+
+
+<A NAME="About_RTTI_Run_Time_Type_Information_"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=================== About RTTI (Run-Time Type Information) ===================
+//==============================================================================
+
+</SPAN><SPAN CLASS=p>#if defined(_MSC_VER) || defined(__WATCOMC__)
+#       include &lt;typeinfo.h&gt;
+        </SPAN><SPAN CLASS=t>inline const char </SPAN>* emRawNameOfTypeInfo(<SPAN CLASS=t>const </SPAN>type_info &amp; t)
+        <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return </SPAN>t.raw_name();
+        <SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#else
+#       include &lt;typeinfo&gt;
+        </SPAN><SPAN CLASS=k>using </SPAN>std::type_info;
+        <SPAN CLASS=t>inline const char </SPAN>* emRawNameOfTypeInfo(<SPAN CLASS=t>const </SPAN>type_info &amp; t)
+        <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return </SPAN>t.name();
+        <SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+
+<A NAME="About_function_attributes"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//========================= About function attributes ==========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=p>#if defined(__GNUC__)
+#       define EM_FUNC_ATTR_PRINTF(pos) __attribute__((format(__printf__,pos,pos+1)))
+#else
+#       define EM_FUNC_ATTR_PRINTF(pos)
+#endif
+
+
+<A NAME="Byte_order_of_the_machine"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//========================= Byte order of the machine ==========================
+//==============================================================================
+
+// EM_BYTE_ORDER is 1234 (little endian) or 4321 (big endian) or maybe 3412.
+
+</SPAN><SPAN CLASS=p>#if defined(__FreeBSD__)
+#       include &lt;sys/endian.h&gt;
+#endif
+
+#if defined(__BYTE_ORDER) &amp;&amp;\
+    </SPAN>(__BYTE_ORDER==<SPAN CLASS=u>1234 </SPAN>|| __BYTE_ORDER==<SPAN CLASS=u>4321 </SPAN>|| __BYTE_ORDER==<SPAN CLASS=u>3412</SPAN>)
+<SPAN CLASS=p>#       define EM_BYTE_ORDER __BYTE_ORDER
+#elif defined(_BYTE_ORDER) &amp;&amp;\
+      </SPAN>(_BYTE_ORDER==<SPAN CLASS=u>1234 </SPAN>|| _BYTE_ORDER==<SPAN CLASS=u>4321 </SPAN>|| _BYTE_ORDER==<SPAN CLASS=u>3412</SPAN>)
+<SPAN CLASS=p>#       define EM_BYTE_ORDER _BYTE_ORDER
+#elif defined(BYTE_ORDER) &amp;&amp;\
+      </SPAN>(BYTE_ORDER==<SPAN CLASS=u>1234 </SPAN>|| BYTE_ORDER==<SPAN CLASS=u>4321 </SPAN>|| BYTE_ORDER==<SPAN CLASS=u>3412</SPAN>)
+<SPAN CLASS=p>#       define EM_BYTE_ORDER BYTE_ORDER
+#elif defined(_M_IX86) || defined(_M_AMD64) || defined(__i386__)
+#       define EM_BYTE_ORDER 1234
+#else
+#       error "don't know how to define EM_BYTE_ORDER"
+#endif
+
+
+<A NAME="Integer_data_types"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= Integer data types =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>typedef signed   char </SPAN>emInt8;
+<SPAN CLASS=t>typedef unsigned char </SPAN>emUInt8;
+<SPAN CLASS=t>typedef </SPAN>emUInt8       emByte;
+
+<SPAN CLASS=p>#if USHRT_MAX == 0xFFFF
+        </SPAN><SPAN CLASS=t>typedef signed   short </SPAN>emInt16;
+        <SPAN CLASS=t>typedef unsigned short </SPAN>emUInt16;
+<SPAN CLASS=p>#else
+        </SPAN><SPAN CLASS=t>typedef signed   </SPAN>__int16 emInt16;
+        <SPAN CLASS=t>typedef unsigned </SPAN>__int16 emUInt16;
+<SPAN CLASS=p>#endif
+
+#if UINT_MAX == 0xFFFFFFFFL
+        </SPAN><SPAN CLASS=t>typedef signed   int  </SPAN>emInt32;
+        <SPAN CLASS=t>typedef unsigned int  </SPAN>emUInt32;
+<SPAN CLASS=p>#elif ULONG_MAX == 0xFFFFFFFFL
+        </SPAN><SPAN CLASS=t>typedef signed   long </SPAN>emInt32;
+        <SPAN CLASS=t>typedef unsigned long </SPAN>emUInt32;
+<SPAN CLASS=p>#else
+        </SPAN><SPAN CLASS=t>typedef signed   </SPAN>__int32 emInt32;
+        <SPAN CLASS=t>typedef unsigned </SPAN>__int32 emUInt32;
+<SPAN CLASS=p>#endif
+
+#if defined(__GNUC__) || defined(__SUNPRO_CC)
+#       if __WORDSIZE == 64
+                </SPAN><SPAN CLASS=t>typedef signed   long </SPAN>emInt64;
+                <SPAN CLASS=t>typedef unsigned long </SPAN>emUInt64;
+<SPAN CLASS=p>#       else
+                </SPAN><SPAN CLASS=t>typedef signed   long long </SPAN>emInt64;
+                <SPAN CLASS=t>typedef unsigned long long </SPAN>emUInt64;
+<SPAN CLASS=p>#       endif
+#else
+        </SPAN><SPAN CLASS=t>typedef signed   </SPAN>__int64 emInt64;
+        <SPAN CLASS=t>typedef unsigned </SPAN>__int64 emUInt64;
+<SPAN CLASS=p>#endif
+
+
+#define EM_INT8_MIN   ((emInt8)0x80)
+#define EM_INT8_MAX   ((emInt8)0x7f)
+#define EM_UINT8_MAX  ((emUInt8)0xff)
+#define EM_INT16_MIN  ((emInt16)0x8000)
+#define EM_INT16_MAX  ((emInt16)0x7fff)
+#define EM_UINT16_MAX ((emUInt16)0xffff)
+#define EM_INT32_MIN  ((emInt32)0x80000000)
+#define EM_INT32_MAX  ((emInt32)0x7fffffff)
+#define EM_UINT32_MAX ((emUInt32)0xffffffff)
+#define EM_INT64_MIN  ((emInt64)((((emUInt64)0x80000000)&lt;&lt;32)))
+#define EM_INT64_MAX  ((emInt64)(((((emUInt64)0x7fffffff)&lt;&lt;32)|0xffffffff)))
+#define EM_UINT64_MAX ((emUInt64)(((((emUInt64)0xffffffff)&lt;&lt;32)|0xffffffff)))
+
+
+</SPAN><SPAN CLASS=t>int </SPAN>emStrToInt64(<SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen, emInt64 * pVal);
+<SPAN CLASS=t>int </SPAN>emStrToUInt64(<SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen, emUInt64 * pVal);
+        <SPAN CLASS=c>// Parse a decimal 64-bit integer. Returns the number of characters
+        // parsed, or 0 on error.
+
+</SPAN><SPAN CLASS=t>int </SPAN>emInt64ToStr(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufLen, emInt64 val);
+<SPAN CLASS=t>int </SPAN>emUInt64ToStr(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufLen, emUInt64 val);
+        <SPAN CLASS=c>// Convert a 64-integer to a decimal string. Returns the number of
+        // characters produced, or 0 if the buffer is too small.
+
+
+<A NAME="Locale_and_UTF_8_support"></A>//==============================================================================
+//========================== Locale and UTF-8 support ==========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>void </SPAN>emInitLocale();
+        <SPAN CLASS=c>// This must be called once by the main function of the program before
+        // doing anything else.
+
+
+//-------------------------- Low-level UTF-8 support ---------------------------
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emIsUtf8System();
+        <SPAN CLASS=c>// Ask whether it should be expected that filenames, text files,
+        // environment variables and so on are encoded in UTF-8. Otherwise we
+        // assume something like Latin-1. All strings in our program should be
+        // encoded in the same way.
+
+</SPAN><SPAN CLASS=t>int </SPAN>emEncodeUtf8Char(<SPAN CLASS=t>char </SPAN>* utf8, <SPAN CLASS=t>int </SPAN>ucs4);
+        <SPAN CLASS=c>// Encode a UTF-8 string from a single 31-bit Unicode character.
+        // Arguments:
+        //   utf8 - Buffer for returning the UTF-8 encoded string.
+        //          It is _NOT_ terminated by a null. The buffer must
+        //          have space for at least 6 bytes.
+        //   ucs4 - The Unicode character.
+        // Returns: Number of bytes written to the buffer (1 - 6).
+
+</SPAN><SPAN CLASS=t>int </SPAN>emDecodeUtf8Char(<SPAN CLASS=t>int </SPAN>* pUcs4, <SPAN CLASS=t>const char </SPAN>* utf8, <SPAN CLASS=t>int </SPAN>utf8Len=INT_MAX);
+        <SPAN CLASS=c>// Decode one 31-bit Unicode character from a UTF-8 string.
+        // Arguments:
+        //   pUcs4   - Pointer for returning the Unicode character. On error,
+        //             utf8[0] is set here. And if the UTF-8 string is empty,
+        //             zero is set.
+        //   utf8    - The UTF-8 string.
+        //   utf8Len - Maximum number of bytes to be read from the UTF-8
+        //             string, if it is not null-terminated.
+        // Returns:
+        //   On success, the number of bytes read from the UTF-8 string is
+        //   returned (1 - 6). If the UTF-8 string is empty, zero is returned.
+        //   And if the UTF-8 string does not contain a valid and complete code
+        //   sequence, -1 is returned.
+
+//-------------------------- High-level UTF-8 support --------------------------
+
+</SPAN><SPAN CLASS=t>int </SPAN>emEncodeChar(<SPAN CLASS=t>char </SPAN>* str, <SPAN CLASS=t>int </SPAN>ucs4);
+        <SPAN CLASS=c>// Encode a string from a single 31-bit Unicode character. The type of
+        // encoding depends on emIsUtf8System.
+        // Arguments:
+        //   str  - Buffer for returning the encoded string.
+        //          It is _NOT_ terminated by a null. The buffer must
+        //          have space for at least 6 bytes.
+        //   ucs4 - The Unicode character.
+        // Returns: Number of bytes written to the buffer (1 - 6).
+
+</SPAN><SPAN CLASS=t>int </SPAN>emDecodeChar(<SPAN CLASS=t>int </SPAN>* pUcs4, <SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX);
+        <SPAN CLASS=c>// Decode one 31-bit Unicode character from a string. The type of
+        // decoding depends on emIsUtf8System. Error characters in a UTF-8
+        // string are interpreted as Latin-1 here.
+        // Arguments:
+        //   pUcs4  - Pointer for returning the Unicode character. On error,
+        //            str[0] is set here. And if the encoded string is empty,
+        //            zero is set.
+        //   str    - The encoded string.
+        //   strLen - Maximum number of bytes to be read from the encoded
+        //            string, if it is not null-terminated.
+        // Returns: Number of bytes read from the encoded string (0 - 6).
+
+</SPAN><SPAN CLASS=t>int </SPAN>emGetDecodedCharCount(<SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX);
+        <SPAN CLASS=c>// Get the number of 31-bit Unicode characters which could be decoded
+        // from a string. The type of decoding depends on emIsUtf8System. Error
+        // characters in a UTF-8 string are interpreted as Latin-1 here.
+        // Arguments:
+        //   str    - The encoded string.
+        //   strLen - Maximum number of bytes to be read from the encoded
+        //            string, if it is not null-terminated.
+        // Returns: Number of characters which could be decoded from the string.
+
+
+<A NAME="Logs_warnings_and_errors"></A>//==============================================================================
+//========================= Logs, warnings and errors ==========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>void </SPAN>emLog(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=c>// Output a debug or warning message. A line break is appended. The
+        // message is written to stderr, but if under Windows and stderr fails,
+        // the message is written to a log file named "emCoreBasedAppLog.log" in
+        // a temp directory (the directory returned by the Win-API function
+        // GetTempPath).
+
+</SPAN><SPAN CLASS=t>void </SPAN>emEnableDLog(<SPAN CLASS=t>bool </SPAN>devLogEnabled=<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=t>bool </SPAN>emIsDLogEnabled();
+        <SPAN CLASS=c>// Whether messages for development and debugging should be made. This
+        // is to be modified by the main program only, maybe through a command
+        // line option. The default is 'false'.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emDLog(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=c>// Like emLog, but the call is ignored if emIsDLogEnabled()==false.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emWarning(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=c>// Like emLog, but "WARNING: " is prepended.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emFatalError(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=c>// Output an error message and exit this process. The message is written
+        // to stderr (a line break is appended), but if under Windows and stderr
+        // fails, the message is shown in a pop-up window.
+
+
+<A NAME="emUncopyable"></A>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A>
+        <SPAN CLASS=c>// Objects of this class can never be copied.
+</SPAN><SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A>() <SPAN CLASS=b>{}
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> &amp;) <SPAN CLASS=b>{}
+        </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> &amp;) <SPAN CLASS=b>{ </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>; <SPAN CLASS=b>}
+}</SPAN>;
+
+
+<A NAME="emUnconstructable"></A><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A>
+        <SPAN CLASS=c>// Objects of this class can never be constructed.
+</SPAN><SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>static inline void </SPAN>DummyMethod() <SPAN CLASS=b>{}
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A>() <SPAN CLASS=b>{}
+}</SPAN>;
+
+
+<A NAME="emMin_emMax"></A><SPAN CLASS=c>//==============================================================================
+//=============================== emMin &amp; emMax ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ emMin(OBJ a, OBJ b) <SPAN CLASS=b>{ </SPAN><SPAN CLASS=k>return </SPAN>a&lt;b ? a : b; <SPAN CLASS=b>}
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ emMax(OBJ a, OBJ b) <SPAN CLASS=b>{ </SPAN><SPAN CLASS=k>return </SPAN>a&gt;b ? a : b; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=c>// Return the minimum or maximum of two things.
+
+
+<A NAME="emStdComparer"></A>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=c>// The following functions can be used as an argument for certain
+        // functions about sorting and searching (e.g. emSortArray).
+        </SPAN><SPAN CLASS=t>static int </SPAN>Compare(<SPAN CLASS=t>const </SPAN>OBJ * a, <SPAN CLASS=t>const </SPAN>OBJ * b, <SPAN CLASS=t>void </SPAN>* context)
+        <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(*a&lt;*b) <SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(*a&gt;*b) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>1</SPAN>;
+                <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=t>static int </SPAN>ReverseCompare(<SPAN CLASS=t>const </SPAN>OBJ * a, <SPAN CLASS=t>const </SPAN>OBJ * b, <SPAN CLASS=t>void </SPAN>* context)
+        <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(*a&lt;*b) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>1</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(*a&gt;*b) <SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+                <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=b>}
+}</SPAN>;
+
+
+<A NAME="emAlignment"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+        </SPAN>EM_ALIGN_CENTER       = <SPAN CLASS=u>0</SPAN>,
+        EM_ALIGN_TOP          = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>),
+        EM_ALIGN_BOTTOM       = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>),
+        EM_ALIGN_LEFT         = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>),
+        EM_ALIGN_RIGHT        = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>),
+        EM_ALIGN_TOP_LEFT     = EM_ALIGN_TOP    | EM_ALIGN_LEFT,
+        EM_ALIGN_TOP_RIGHT    = EM_ALIGN_TOP    | EM_ALIGN_RIGHT,
+        EM_ALIGN_BOTTOM_LEFT  = EM_ALIGN_BOTTOM | EM_ALIGN_LEFT,
+        EM_ALIGN_BOTTOM_RIGHT = EM_ALIGN_BOTTOM | EM_ALIGN_RIGHT
+<SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=t>typedef </SPAN>emByte <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A>;
+        <SPAN CLASS=c>// Data type for the alignment of something within a rectangle.
+
+</SPAN><SPAN CLASS=t>const char </SPAN>* emAlignmentToString(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> alignment);
+<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> emStringToAlignment(<SPAN CLASS=t>const char </SPAN>* str);
+        <SPAN CLASS=c>// Convert an alignment to and from string representation.
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

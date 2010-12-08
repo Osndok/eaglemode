@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,7 @@ emMainWindow::emMainWindow(emContext & parentContext)
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2009 Oliver Hamann.\n"
+		"Copyright (C) 2001-2010 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"
@@ -48,13 +48,14 @@ emMainWindow::emMainWindow(emContext & parentContext)
 		"You should have received a copy of the GNU General Public License version 3\n"
 		"along with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 	;
-	emTkGroup * grMain, * grCommands, * grAbout;
+	emTkGroup * grMain, * grCommands, * grAbout, * grFullscreenPrefs;
 	emTkTiling * tlLeft, * tlTop, * tlClose;
 	emCoreConfigPanel * coreConfigPanel;
 	emTkLabel * iconLabel, * textLabel;
 	emTkLook look;
 	emBookmarkRec * bmRec;
 
+	MainConfig=emMainConfig::Acquire(GetRootContext());
 	BookmarksModel=emBookmarksModel::Acquire(GetRootContext());
 
 	SetViewFlags(
@@ -119,13 +120,41 @@ emMainWindow::emMainWindow(emContext & parentContext)
 			"\n"
 			"Hotkey: F4"
 		);
-		BtFullscreen=new emTkButton(
+		BtFullscreen=new emTkCheckButton(
 			grCommands,"fullscreen",
-			"Toggle Fullscreen",
+			"Fullscreen",
 			"Switch between fullscreen mode and normal window mode.\n"
 			"\n"
 			"Hotkey: F11"
 		);
+		BtFullscreen->SetChecked((GetWindowFlags()&WF_FULLSCREEN)!=0);
+		BtFullscreen->HaveAux("aux",0.4);
+			grFullscreenPrefs=new emTkGroup(
+				BtFullscreen,"aux",
+				"Preferences For Fullscreen Mode"
+			);
+			grFullscreenPrefs->SetBorderScaling(4.5);
+			grFullscreenPrefs->SetChildTallness(0.11);
+				BtAutoHideControlView=new emTkCheckBox(
+					grFullscreenPrefs,
+					"auto-hide_control_view",
+					"Auto-Hide Control View",
+					"Whether the control view shall automatically\n"
+					"be minimized when in fullscreen mode."
+				);
+				BtAutoHideControlView->SetNoEOI();
+				BtAutoHideControlView->SetChecked(MainConfig->AutoHideControlView);
+				BtAutoHideSlider=new emTkCheckBox(
+					grFullscreenPrefs,
+					"auto-hide_slider",
+					"Auto-Hide Slider",
+					"Whether the control view sizing slider shall get\n"
+					"invisible when in fullscreen mode and when the\n"
+					"control view is minimized and when the mouse has\n"
+					"not been used for some time."
+				);
+				BtAutoHideSlider->SetNoEOI();
+				BtAutoHideSlider->SetChecked(MainConfig->AutoHideSlider);
 		BtReload=new emTkButton(
 			grCommands,"reload",
 			"Reload Files",
@@ -171,8 +200,12 @@ emMainWindow::emMainWindow(emContext & parentContext)
 	AddWakeUpSignal(GetContentView().GetTitleSignal());
 	AddWakeUpSignal(GetContentView().GetControlPanelSignal());
 	AddWakeUpSignal(GetCloseSignal());
+	AddWakeUpSignal(GetWindowFlagsSignal());
+	AddWakeUpSignal(MainConfig->GetChangeSignal());
 	AddWakeUpSignal(BtNewWindow->GetClickSignal());
 	AddWakeUpSignal(BtFullscreen->GetClickSignal());
+	AddWakeUpSignal(BtAutoHideControlView->GetClickSignal());
+	AddWakeUpSignal(BtAutoHideSlider->GetClickSignal());
 	AddWakeUpSignal(BtReload->GetClickSignal());
 	AddWakeUpSignal(BtClose->GetClickSignal());
 	AddWakeUpSignal(BtQuit->GetClickSignal());
@@ -235,11 +268,28 @@ bool emMainWindow::Cycle()
 		);
 	}
 
+	if (IsSignaled(GetWindowFlagsSignal())) {
+		BtFullscreen->SetChecked((GetWindowFlags()&WF_FULLSCREEN)!=0);
+	}
+
+	if (IsSignaled(MainConfig->GetChangeSignal())) {
+		BtAutoHideControlView->SetChecked(MainConfig->AutoHideControlView);
+		BtAutoHideSlider->SetChecked(MainConfig->AutoHideSlider);
+	}
+
 	if (IsSignaled(BtNewWindow->GetClickSignal())) {
 		Duplicate();
 	}
 	if (IsSignaled(BtFullscreen->GetClickSignal())) {
 		SetWindowFlags(GetWindowFlags()^WF_FULLSCREEN);
+	}
+	if (IsSignaled(BtAutoHideControlView->GetClickSignal())) {
+		MainConfig->AutoHideControlView.Invert();
+		MainConfig->Save();
+	}
+	if (IsSignaled(BtAutoHideSlider->GetClickSignal())) {
+		MainConfig->AutoHideSlider.Invert();
+		MainConfig->Save();
 	}
 	if (IsSignaled(BtReload->GetClickSignal())) {
 		Signal(emFileModel::AcquireUpdateSignalModel(GetRootContext())->Sig);

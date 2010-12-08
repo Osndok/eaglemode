@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008-2009 Oliver Hamann.
+// Copyright (C) 2008-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -473,6 +473,9 @@ void emAvServerModel::UpdateShm(Instance * inst)
 
 void emAvServerModel::TryCreateShm(Instance * inst) throw(emString)
 {
+#if defined(__CYGWIN__)
+	throw emString("shmget not tried as cygwin may abort the process.");
+#endif
 	inst->ShmId=shmget(IPC_PRIVATE,inst->ShmSize,IPC_CREAT|0600);
 	if (inst->ShmId==-1) {
 		throw emString::Format(

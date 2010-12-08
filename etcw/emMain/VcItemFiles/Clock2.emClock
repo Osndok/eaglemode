@@ -1,0 +1,24 @@
+#%rec:emClock%#
+
+ClockBorderColor = {221 68 136 255}
+ClockBackgroundColor = {221 221 204 255}
+ClockForegroundColor = {34 34 34 255}
+ClockHandsColor = {0 0 0 255}
+UTCClockBorderColor = {102 102 102 255}
+UTCClockBackgroundColor = {204 204 204 255}
+UTCClockForegroundColor = {68 34 34 255}
+UTCClockHandsColor = {34 34 34 255}
+WorldClockBorderColor = {136 255 136 255}
+WorldClockBackgroundColor = {68 0 0 176}
+WorldClockForegroundColor = {102 221 221 255}
+WorldClockHandsColor = {255 68 68 255}
+WorldClockMinRadius = 0.25
+WorldClockMaxRadius = 1.0
+WorldWaterColor = {68 0 153 255}
+WorldLandColor = {255 221 0 255}
+WorldShadowColor = {0 34 34 176}
+AlarmHour = 6
+AlarmMinute = 0
+AlarmSecond = 0
+StopwatchRunning = no
+StopwatchState = "0"

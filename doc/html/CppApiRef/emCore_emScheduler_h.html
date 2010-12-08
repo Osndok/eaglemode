@@ -1,0 +1,156 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emScheduler.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>.h
+//
+// Copyright (C) 2005-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emScheduler_h
+#define emScheduler_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>;
+
+
+<A NAME="emScheduler"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for a scheduler on <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> objects.
+
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>();
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>();
+
+        <SPAN CLASS=t>virtual int </SPAN>Run() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Do all the time slices until InitiateTermination() is called.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsTimeSliceAtEnd() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::IsTimeSliceAtEnd().
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>InitiateTermination(<SPAN CLASS=t>int </SPAN>returnCode) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Tell the scheduler to terminate round about after the current
+                // time slice.
+
+        </SPAN>emUInt64 GetTimeSliceCounter() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This is incremented by one on each time slice.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>DoTimeSlice();
+                <SPAN CLASS=c>// This has to be called by the derived class on each time
+                // slice. It performs all the scheduling for one time slice, but
+                // it does not wait for IsTimeSliceAtEnd.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A>;
+
+        <SPAN CLASS=t>struct </SPAN>SignalRingNode <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Node for a circular single-linked list of pending signals.
+                </SPAN>SignalRingNode * Next;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>EngineRingNode <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Node for a circular double-linked list of awake engines.
+                </SPAN>EngineRingNode * Prev;
+                EngineRingNode * Next;
+        <SPAN CLASS=b>}</SPAN>;
+
+        SignalRingNode PSList;
+                <SPAN CLASS=c>// Circular single-linked list of pending signals. The order is
+                // reversed before processing.
+
+        </SPAN>EngineRingNode AwakeLists[<SPAN CLASS=u>10</SPAN>];
+                <SPAN CLASS=c>// Circular double-linked lists of awake engines. Index is:
+                // Priority*2+TimeSlice
+
+        </SPAN>EngineRingNode * CurrentAwakeList;
+                <SPAN CLASS=c>// The list currently processed for calling the engines.
+
+        </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> * CurrentEngine;
+                <SPAN CLASS=c>// The engine currently called, or NULL.
+
+        </SPAN>emUInt32 EngineCount;
+                <SPAN CLASS=c>// Total number of engines.
+
+        </SPAN>emInt8 TimeSlice;
+                <SPAN CLASS=c>// Whether the current time slice is even (0) or odd (1).
+
+        </SPAN>emUInt64 Clock;
+                <SPAN CLASS=c>// Incremented on each loop-run of handling pending signals and
+                // calling <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::Cycle.
+
+        </SPAN>emUInt64 TimeSliceCounter;
+                <SPAN CLASS=c>// Incremented on each time slice.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>* TimerStuff;
+                <SPAN CLASS=c>// A little hack for the implementation of <A CLASS=m HREF="emCore_emTimer_h.html#emTimer">emTimer</A>.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::GetTimeSliceCounter() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TimeSliceCounter;
+<SPAN CLASS=b>}
+
+
+<A NAME="emStandardScheduler"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================ <A CLASS=m HREF="emCore_emScheduler_h.html#emStandardScheduler">emStandardScheduler</A> =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emStandardScheduler">emStandardScheduler</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a standard scheduler. It tries to make the time slices 10
+        // millisecs long, but IsTimeSliceAtEnd() allows to have 50 millisecs
+        // per time slice (for reducing the graphics frame rate when busy).
+
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emStandardScheduler">emStandardScheduler</A>();
+
+        <SPAN CLASS=t>virtual int </SPAN>Run();
+        <SPAN CLASS=t>virtual bool </SPAN>IsTimeSliceAtEnd() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>InitiateTermination(<SPAN CLASS=t>int </SPAN>returnCode);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>bool </SPAN>TerminationInitiated;
+        <SPAN CLASS=t>int </SPAN>ReturnCode;
+        emUInt64 SyncTime, DeadlineTime;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,124 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emRecFileModel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emRecFileModel_h
+#define emRecFileModel_h
+
+#ifndef emRec_h
+#include &lt;<A CLASS=f HREF="emCore_emRec_h.html">emCore/emRec.h</A>&gt;
+#endif
+
+#ifndef emFileModel_h
+#include &lt;<A CLASS=f HREF="emCore_emFileModel_h.html">emCore/emFileModel.h</A>&gt;
+#endif
+
+
+<A NAME="emRecFileModel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> where the data is an <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>. This class
+        // solves loading and saving of the record, and it provides a signal for
+        // getting informed about modifications of the record. In addition, the
+        // file state is automatically set to FS_UNSAVED on modifications. A
+        // derived class has to specify the record through calling PostConstruct
+        // from its constructor. Hint: There is a similar class which is not an
+        // <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> and which could be used for configuration files:
+        // <A CLASS=m HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetChangeSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled on every modification of the record.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Do not forget to call PostConstruct from an overloaded
+                // constructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PostConstruct(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; rec);
+                <SPAN CLASS=c>// Must be called by the constructor of the derived class after
+                // the record has been constructed.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; GetRec();
+                <SPAN CLASS=c>// Not valid before PostConstruct has been called.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>ResetData();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitLoading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitSaving();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcMemoryNeed();
+        <SPAN CLASS=t>virtual double </SPAN>CalcFileProgress();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>class </SPAN>RecLink : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                RecLink(<A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A> &amp; model);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A> &amp; Model;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>RecLink;
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ChangeSignal;
+        RecLink Link;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A> * Reader;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A> * Writer;
+        <SPAN CLASS=t>int </SPAN>ProtectFileState;
+        emUInt64 MemoryNeed;
+        <SPAN CLASS=t>int </SPAN>MemoryNeedOutOfDate;
+        <SPAN CLASS=t>int </SPAN>ReadStep, ReadStepOfMemCalc;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>::GetChangeSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ChangeSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>::GetRec()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Link.GetListenedRec();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,170 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emFilePanel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>.h
+//
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emFilePanel_h
+#define emFilePanel_h
+
+#ifndef emPanel_h
+#include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+#endif
+
+#ifndef emFileModel_h
+#include &lt;<A CLASS=f HREF="emCore_emFileModel_h.html">emCore/emFileModel.h</A>&gt;
+#endif
+
+
+<A NAME="emFilePanel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for a panel with which the user can view or edit a file
+        // that is interfaced with an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>. Internally, an object of this
+        // class manages an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>. The memory limit and priority of
+        // that client is set and updated from the panel properties. In
+        // addition, a virtual file state is provided (a more correct name would
+        // be: "virtual file model state"). This is similar to the file state of
+        // the model, but with some extensions (see GetVirFileState()). The
+        // panel shows information about that virtual file state. A derived
+        // class should overload the Paint method for showing the file contents
+        // when the virtual file state is good (loaded or unsaved).
+
+        </SPAN><A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * fileModel=<SPAN CLASS=u>NULL</SPAN>, <SPAN CLASS=t>bool </SPAN>updateFileModel=<SPAN CLASS=k>true
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent    - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name      - The name for this panel.
+                //   fileModel - See SetFileModel.
+                //   updateFileModel - See SetFileModel.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetFileModel() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetFileModel();
+                <SPAN CLASS=c>// Get the file model, NULL if none.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetFileModel(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * fileModel,
+                                  <SPAN CLASS=t>bool </SPAN>updateFileModel=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set the file model, NULL for none. If updateFileModel==true,
+                // fileModel-&gt;Update() is called.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetCustomError(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; message);
+        <SPAN CLASS=t>void </SPAN>ClearCustomError();
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetCustomError();
+                <SPAN CLASS=c>// Set, clear or get a custom error message. If set, the message
+                // is shown by the default implementation of Paint.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetVirFileStateSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled when the virtual file state has changed.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>VirtualFileState <SPAN CLASS=b>{
+                </SPAN>VFS_WAITING       = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_WAITING,
+                VFS_LOADING       = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_LOADING,
+                VFS_LOADED        = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_LOADED,
+                VFS_UNSAVED       = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_UNSAVED,
+                VFS_SAVING        = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_SAVING,
+                VFS_TOO_COSTLY    = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_TOO_COSTLY,
+                VFS_LOAD_ERROR    = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_LOAD_ERROR,
+                VFS_SAVE_ERROR    = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_SAVE_ERROR,
+                VFS_NO_FILE_MODEL = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_MAX_VAL+<SPAN CLASS=u>1</SPAN>,
+                VFS_CUSTOM_ERROR  = <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>::FS_MAX_VAL+<SPAN CLASS=u>2
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+        VirtualFileState GetVirFileState() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the virtual file state. This is like the file state of
+                // the model (GetFileMode()-&gt;GetFileState()), but:
+                // - There is the additional state VFS_CUSTOM_ERROR. It is set
+                //   when a custom error has been reported through
+                //   SetCustomError(...).
+                // - There is the additional state VFS_NO_FILE_MODEL. It is set
+                //   when GetFileModel()==NULL.
+                // - If the memory limit of this panel is smaller than the
+                //   memory need of the model, the virtual file state is forced
+                //   to VFS_TOO_COSTLY even when the model is in loaded state.
+                //   (Otherwise the show state of the panel could depend on the
+                //   show state of another panel - too ugly)
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsVFSGood() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This is a short-cut for:
+                //  (GetVirFileState()==VFS_LOADED ||
+                //   GetVirFileState()==VFS_UNSAVED)
+                // It means that the file model data can safely be shown and
+                // modified.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+        <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                <SPAN CLASS=c>// Paints some info about the virtual file state including any
+                // error messages. Should be overloaded for showing the file
+                // model data when IsVFSGood()==true. InvalidatePainting is
+                // called automatically on each change of the virtual file
+                // state.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking();
+                <SPAN CLASS=c>// Returns true if VFS_WAITING, VFS_LOADING or VFS_SAVING.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> FileModelClient;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * CustomError;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> VirFileStateSignal;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetFileModel() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileModelClient.GetModel();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetFileModel()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileModelClient.GetModel();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetVirFileStateSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>VirFileStateSignal;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

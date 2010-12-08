@@ -25,6 +25,7 @@ BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; }
 if (IsFirstPass()) {
 
 	ErrorIfNotSingleTarget();
+	ErrorIfRootTargets();
 
 	my @tgt=GetTgt();
 	my $oldPath=$tgt[0];

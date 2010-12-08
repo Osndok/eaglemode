@@ -1,0 +1,13 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Plugin Example (PlEx)"
+PosX  = 0.3
+PosY  = 0.28
+Width = 0.05
+ContentTallness = 0.7
+BorderScaling = 2.0
+BackgroundColor = "#fff"
+BorderColor = "#c0a"
+TitleColor = "#ff0"
+FileName = "PlEx1.PlEx"
+CopyToUser = true

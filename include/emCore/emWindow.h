@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,9 +58,12 @@ public:
 		WF_POPUP       = (1<<2),
 			// Like WF_UNDECORATED, but the close signal is
 			// generated as soon as the focus is lost.
-		WF_FULLSCREEN  = (1<<3)
+		WF_FULLSCREEN  = (1<<3),
 			// Like WF_UNDECORATED, but the window covers the whole
 			// screen.
+		WF_AUTO_DELETE = (1<<4)
+			// The window deletes itself automatically three time slices
+			// after the close signal is signaled.
 	};
 
 	emWindow(
@@ -100,6 +103,10 @@ public:
 	WindowFlags GetWindowFlags() const;
 	void SetWindowFlags(WindowFlags windowFlags);
 		// Get or set the features of this window.
+
+	const emSignal & GetWindowFlagsSignal() const;
+		// This signal is signaled when the features of this window have
+		// changed.
 
 	const emString & GetWMResName() const;
 		// Get the resource name of this window.
@@ -166,13 +173,25 @@ private:
 
 	friend class emWindowPort;
 
+	class AutoDeleteEngineClass : public emEngine {
+	public:
+		AutoDeleteEngineClass(emWindow * window);
+	protected:
+		virtual bool Cycle();
+	private:
+		emWindow * Window;
+		int CountDown;
+	};
+
 	emRef<emScreen> Screen;
 	emCrossPtrList CrossPtrList;
 	WindowFlags WFlags;
 	emString WMResName;
 	emImage WindowIcon;
 	emWindowPort * WindowPort;
+	emSignal WindowFlagsSignal;
 	emSignal CloseSignal;
+	AutoDeleteEngineClass AutoDeleteEngine;
 	double PrevVPX,PrevVPY,PrevVPW,PrevVPH;
 	bool PrevVPValid;
 };
@@ -364,6 +383,11 @@ inline emWindow & emWindowPort::GetWindow()
 inline emWindow::WindowFlags emWindowPort::GetWindowFlags() const
 {
 	return Window.GetWindowFlags();
+}
+
+inline const emSignal & emWindow::GetWindowFlagsSignal() const
+{
+	return WindowFlagsSignal;
 }
 
 inline const emString & emWindowPort::GetWMResName() const

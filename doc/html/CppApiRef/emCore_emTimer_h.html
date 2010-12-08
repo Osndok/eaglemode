@@ -1,0 +1,134 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emTimer.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emTimer_h.html#emTimer">emTimer</A>.h
+//
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emTimer_h
+#define emTimer_h
+
+#ifndef emEngine_h
+#include &lt;<A CLASS=f HREF="emCore_emEngine_h.html">emCore/emEngine.h</A>&gt;
+#endif
+
+
+<A NAME="emTimer"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emTimer_h.html#emTimer">emTimer</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a timer which signals an <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> on each timer event.
+
+        </SPAN><A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+                <SPAN CLASS=c>// Construct a timer. The given scheduler is used for signaling
+                // the timer signal (and for an internal engine which serves all
+                // the timers on that scheduler).
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+                <SPAN CLASS=c>// Get the scheduler.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled on each timer event.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Start(emUInt64 millisecs, <SPAN CLASS=t>bool </SPAN>periodic=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Start the timer.
+                // Arguments:
+                //   millisecs - Time in milliseconds after which a timer event
+                //               shall be generated.
+                //   periodic  - If true, additional timer events are generated
+                //               periodically. The given number of milliseconds
+                //               is the period duration. The timer tries to keep
+                //               up that rate on average, even if timer events
+                //               are delayed through blockings of the scheduler,
+                //               but it is limited to the rate of scheduler time
+                //               slices by all means.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsRunning() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the timer is still active.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Stop(<SPAN CLASS=t>bool </SPAN>abortSignal);
+                <SPAN CLASS=c>// Stop the timer.
+                // Arguments:
+                //   abortSignal - Whether to perform an Abort() on the signal,
+                //                 but remember that engines could already have
+                //                 been woken up. Say false for an asynchronous
+                //                 stop, or true for a synchronous stop.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>TimeNode <SPAN CLASS=b>{
+                </SPAN>emUInt64 SigTime;
+                TimeNode * Prev;
+                TimeNode * Next;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>TimerCentral : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                TimerCentral(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+                <SPAN CLASS=t>void </SPAN>Insert(TimeNode * node, emUInt64 sigTime);
+                <SPAN CLASS=t>int </SPAN>RefCount;
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                TimeNode InList;
+                TimeNode OutList;
+                <SPAN CLASS=t>bool </SPAN>Busy;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>friend class </SPAN>TimerCentral;
+
+        TimerCentral * Central;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> TimerSignal;
+        emUInt64 Period;
+        TimeNode Node;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A>::GetScheduler()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Central-&gt;GetScheduler();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A>::GetSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TimerSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A>::IsRunning() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Node.Prev!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

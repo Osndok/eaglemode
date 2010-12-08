@@ -1,0 +1,7 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { "file" }
+Priority = 0.0
+Library = "emText"
+Function = "emTextFpPluginFunc"
+Properties = { { Name="AlternativeView" Value="yes" } }

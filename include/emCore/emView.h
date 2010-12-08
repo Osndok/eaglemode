@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ public:
 	// Even, emView does not create any panels. This should also be done by
 	// the caller.
 	//
-	// emView has been derived from emContext so that it is easy to defined
+	// emView has been derived from emContext so that it is easy to define
 	// custom view settings as models of that context.
 
 	typedef int ViewFlags;
@@ -128,6 +128,10 @@ public:
 	ViewFlags GetViewFlags() const;
 	void SetViewFlags(ViewFlags viewFlags);
 		// Get or set the features of this view.
+
+	const emSignal & GetViewFlagsSignal() const;
+		// This signal is signaled when the features of this view have
+		// changed.
 
 	emColor GetBackgroundColor() const;
 	void SetBackgroundColor(emColor c);
@@ -466,6 +470,8 @@ private:
 	void NavigateByUser(emInputEvent & event, emInputState & state);
 	void NavigateByProgram(emInputEvent & event, emInputState & state);
 
+	void EmulateMiddleButton(emInputEvent & event, emInputState & state);
+
 	void DoCheats(emInputEvent & event, emInputState & state);
 
 	void RecurseInput(emInputEvent & event,
@@ -598,6 +604,7 @@ private:
 	emPanel * ActivePanel;
 	emPanel * ActivationCandidate;
 	emPanel * VisitedPanel;
+	emSignal ViewFlagsSignal;
 	emSignal TitleSignal;
 	emSignal ControlPanelSignal;
 	emSignal FocusSignal;
@@ -637,6 +644,8 @@ private:
 	emString SeekPosChildName;
 	StressTestClass * StressTest;
 	int NavByProgState;
+	emUInt64 EmuMidButtonTime;
+	int EmuMidButtonRepeat;
 	char CheatBuffer[64];
 
 	static const double MaxSVPSize;
@@ -722,6 +731,11 @@ inline void emView::LinkCrossPtr(emCrossPtrPrivate & crossPtr)
 inline emView::ViewFlags emView::GetViewFlags() const
 {
 	return VFlags;
+}
+
+inline const emSignal & emView::GetViewFlagsSignal() const
+{
+	return ViewFlagsSignal;
 }
 
 inline emColor emView::GetBackgroundColor() const

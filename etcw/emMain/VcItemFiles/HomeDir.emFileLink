@@ -1,0 +1,6 @@
+#%rec:emFileLink%#
+
+BasePathType=Home
+BasePathProject="emCore"
+Path="."
+HaveDirEntry=yes

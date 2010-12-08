@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRes.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,7 +31,7 @@
 
 
 //==============================================================================
-//============================== Resource Images ===============================
+//========================= Resource image acquisition =========================
 //==============================================================================
 
 emImage emGetResImage(emRootContext & rootContext, const emString & filePath,
@@ -68,7 +68,7 @@ emImage emTryGetInsResImage(emRootContext & rootContext, const char * prj,
 
 
 //==============================================================================
-//======================== Low-level stuff: emResModel =========================
+//======================== Resource acquisition basics =========================
 //==============================================================================
 
 class emResModelBase : public emModel {

@@ -1,0 +1,202 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emRes.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emRes.h
+//
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emRes_h
+#define emRes_h
+
+#ifndef emImage_h
+#include &lt;<A CLASS=f HREF="emCore_emImage_h.html">emCore/emImage.h</A>&gt;
+#endif
+
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+
+<A NAME="Resource_image_acquisition"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//========================= Resource image acquisition =========================
+//==============================================================================
+
+</SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emGetResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath,
+                      <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>);
+<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emTryGetResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath,
+                         <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Get a resource image. An image file is loaded and cached in the root
+        // context for quick shared re-use. This means, if the image is already
+        // cached, it is not loaded again and a shallow copy of that image is
+        // returned. The image is removed from the cache some time after there
+        // are no remaining shallow copies. The first version of the function
+        // calls emFatalError if the loading fails. The second version throws an
+        // exception instead. The image file format must be Targa (tga).
+        // ??? A future version should even support other file formats by making
+        // ??? use of the file model interfaces.
+        // Arguments:
+        //   rootContext    - The root context.
+        //   filePath       - Path to the file. Must be Targa format (tga).
+        //   channelCount   - Number of channels the image and image file must
+        //                    have. -1 means to accept any channel count.
+        // Returns: The image.
+
+</SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emGetInsResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* prj,
+                         <SPAN CLASS=t>const char </SPAN>* subPath, <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>);
+<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emTryGetInsResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* prj,
+                            <SPAN CLASS=t>const char </SPAN>* subPath,
+                            <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Get an installed resource image. This is like
+        // em[Try]GetResImage(
+        //   rootContext,
+        //   emGetInstallPath(EM_IDT_RES,prj,subPath),
+        //   channelCount
+        // );
+
+
+<A NAME="Resource_acquisition_basics"></A>//==============================================================================
+//======================== Resource acquisition basics =========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>emResModelBase : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+        emResModelBase(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>void </SPAN>Touch();
+        <SPAN CLASS=t>virtual unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>class </SPAN>PollTimer : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;PollTimer&gt; Acquire(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
+                <A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A> Timer;
+        <SPAN CLASS=t>protected</SPAN>:
+                PollTimer(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=t>virtual </SPAN>~PollTimer();
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>class </SPAN>emResModel : <SPAN CLASS=t>public </SPAN>emResModelBase <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This template class can be used when implementing functions like
+        // emGetResImage. The class CLS must be like <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A>, <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>, <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>
+        // and <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>. That means, it must have a copy operator and a copy
+        // constructor which perform shallow copies, and it must have the method
+        // GetDataRefCount. The latter is polled from time to time by the
+        // internal clean-up mechanism. The context can be non-root here, this
+        // may be restricted at higher level. Note that several problems of
+        // caching can be solved easily by the <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A> concept (even see
+        // <A CLASS=m HREF="emCore_emVarModel_h.html#emVarModel">emVarModel</A>). This resource concept is meant only for situation where
+        // holding a model reference would not be practicable.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&lt;CLS&gt; &gt; Acquire(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context,
+                                               <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&lt;CLS&gt; &gt; Lookup(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context,
+                                              <SPAN CLASS=t>const char </SPAN>* name);
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&lt;CLS&gt; &gt; LookupInherited(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context,
+                                                       <SPAN CLASS=t>const char </SPAN>* name);
+
+        <SPAN CLASS=t>const </SPAN>CLS &amp; Get();
+        <SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN>CLS &amp; res);
+                <SPAN CLASS=c>// Both methods are reseting the auto-delete mechanism.
+                // (Therefore the Get method is non-const)
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        emResModel(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+
+        <SPAN CLASS=t>virtual unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+        CLS Res;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline void </SPAN>emResModelBase::Touch()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(GetMinCommonLifetime()!=UINT_MAX) SetMinCommonLifetime(UINT_MAX);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&lt;CLS&gt; &gt; emResModel&lt;CLS&gt;::Acquire(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_IMPL_ACQUIRE_COMMON(emResModel,context,name)
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt;
+<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&lt;CLS&gt; &gt; emResModel&lt;CLS&gt;::Lookup(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&gt;(
+                (emResModel*)context.Lookup(<SPAN CLASS=t>typeid</SPAN>(emResModel),name)
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt;
+<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&lt;CLS&gt; &gt; emResModel&lt;CLS&gt;::LookupInherited(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emResModel&gt;(
+                (emResModel*)context.LookupInherited(<SPAN CLASS=t>typeid</SPAN>(emResModel),name)
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline const </SPAN>CLS &amp; emResModel&lt;CLS&gt;::Get()
+<SPAN CLASS=b>{
+        </SPAN>Touch();
+        <SPAN CLASS=k>return </SPAN>Res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>void </SPAN>emResModel&lt;CLS&gt;::Set(<SPAN CLASS=t>const </SPAN>CLS &amp; res)
+<SPAN CLASS=b>{
+        </SPAN>Touch();
+        Res=res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; emResModel&lt;CLS&gt;::emResModel(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name
+)
+        : emResModelBase(context,name)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>unsigned int </SPAN>emResModel&lt;CLS&gt;::GetDataRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Res.GetDataRefCount();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

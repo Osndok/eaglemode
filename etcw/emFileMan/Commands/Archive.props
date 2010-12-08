@@ -1,0 +1,11 @@
+#[[BEGIN PROPERTIES]]
+# Type = Group
+# Order = 11.0
+# Directory = Archive
+# Caption = Archive
+# Descr =Commands for packing and unpacking of archive files
+# BgColor = #432
+# FgColor = #CBA
+# ButtonBgColor = #222
+# ButtonFgColor = #EA9
+#[[END PROPERTIES]]

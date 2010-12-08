@@ -1,0 +1,13 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Julia Fractal (#7)"
+
+PosX  = 0.831
+PosY  = 0.124
+Width = 0.011
+ContentTallness = 0.9
+
+BackgroundColor = "#333"
+
+FileName = "Julia7.emFractal"
+CopyToUser = false

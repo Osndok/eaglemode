@@ -3,7 +3,7 @@
 # Type = Command
 # Order = 51.0
 # Interpreter = perl
-# DefaultFor = .7z:.ar:.a:.deb:.arc:.arj:.bz2:.bz:.gz:.z:.lzh:.lha:.lzo:.rar:.tar:.tar.bz2:.tbz2:.tgj:.tar.bz:.tbz:.tar.gz:.tgz:.tar.z:.taz:.tar.lzo:.tzo:.zip:.jar:.zoo
+# DefaultFor = .7z:.a:.ar:.arc:.arj:.bz:.bz2:.deb:.gz:.jar:.lha:.lzh:.lzma:.lzo:.rar:.tar:.tar.bz:.tar.bz2:.tar.gz:.tar.lzma:.tar.lzo:.tar.xz:.tar.z:.taz:.tbz:.tbz2:.tgj:.tgz:.tlz:.txz:.tzo:.xz:.z:.zip:.zoo
 # Caption = Unpack Here
 # Descr =Unpack an archive file into the directory where the archive file
 # Descr =is in.
@@ -16,8 +16,9 @@
 # Descr =
 # Descr =Following archive file formats are supported, provided that the
 # Descr =corresponding system tools are installed: 7z, a, ar, arc, arj, bz,
-# Descr =bz2, deb, gz, jar, lha, lzh, lzo, rar, tar, tar.bz, tar.bz2,
-# Descr =tar.gz, tar.lzo, tar.Z, taz, tbz, tbz2, tgj, tgz, tzo, Z, zip, zoo
+# Descr =bz2, deb, gz, jar, lha, lzh, lzma, lzo, rar, tar, tar.bz, tar.bz2,
+# Descr =tar.gz, tar.lzma, tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2, tgj,
+# Descr =tgz, tlz, txz, tzo, xz, Z, zip, zoo
 # ButtonFgColor = #AAD
 # Hotkey = Shift+Ctrl+U
 #[[END PROPERTIES]]

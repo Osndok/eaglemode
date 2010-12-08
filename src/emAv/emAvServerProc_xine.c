@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1184,7 +1184,7 @@ static const char * emAvAttachShm(int instIndex, int shmId, int shmSize)
 	if (shmId<0 || shmSize<=0) return "Illegal shm parameters.";
 
 	shmPtr=shmat(shmId,NULL,0);
-	if (!shmPtr) return "Failed to attach shm.";
+	if (shmPtr==(void*)-1) return "Failed to attach shm.";
 
 	pthread_mutex_lock(&inst->MyVoDrv->mutex);
 	if (inst->MyVoDrv->shm_ptr) shmdt((const void*)inst->MyVoDrv->shm_ptr);

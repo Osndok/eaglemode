@@ -1,0 +1,224 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emContext.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emContext_h
+#define emContext_h
+
+#ifndef emAvlTree_h
+#include &lt;<A CLASS=f HREF="emCore_emAvlTree_h.html">emCore/emAvlTree.h</A>&gt;
+#endif
+
+#ifndef emCrossPtr_h
+#include &lt;<A CLASS=f HREF="emCore_emCrossPtr_h.html">emCore/emCrossPtr.h</A>&gt;
+#endif
+
+#ifndef emTimer_h
+#include &lt;<A CLASS=f HREF="emCore_emTimer_h.html">emCore/emTimer.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>;
+
+
+<A NAME="emContext"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a context of models (read comments on <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>). It manages
+        // an AVL tree for quickly refinding common models.
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext);
+                <SPAN CLASS=c>// Construct a child context. For constructing a root context
+                // please see <A CLASS=m HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>();
+                <SPAN CLASS=c>// Destructor. This even deletes all common models in this
+                // context, in an order respecting references between the
+                // models. Child contexts and private models are not deleted by
+                // this. They must have been destructed before or they must be
+                // managed by common models.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
+                <SPAN CLASS=c>// This means <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>&gt; is possible.
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+                <SPAN CLASS=c>// Get the root context.
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetParentContext();
+                <SPAN CLASS=c>// Get the parent context. Returns NULL if this is the root
+                // context.
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetFirstChildContext();
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetLastChildContext();
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetPrevContext();
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetNextContext();
+                <SPAN CLASS=c>// Get the first or last child context, or the previous or next
+                // brother context, NULL if none.
+
+        </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * Lookup(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass, <SPAN CLASS=t>const char </SPAN>* name);
+                <SPAN CLASS=c>// Search for a common model within this context.
+                // Arguments:
+                //   modelClass - Final class of the model.
+                //   name       - Name of the model.
+                // Returns: The model, or NULL if not found.
+
+        </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * LookupInherited(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass,
+                                  <SPAN CLASS=t>const char </SPAN>* name);
+                <SPAN CLASS=c>// Like Lookup, but if the model is not found in this context,
+                // the parent context is searched, then the grad-parent, and so
+                // on.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetListing() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Just for debugging: Get a listing of all common models.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>GetModelInfo(<SPAN CLASS=t>int </SPAN>* pCommonCount, <SPAN CLASS=t>int </SPAN>* pPrivateCount=<SPAN CLASS=u>NULL</SPAN>,
+                          <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * * * pArrayOfCommon=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Just for debugging: Get the number of common and private
+                // models, and create an array of pointers to all common models.
+                // The array must be deleted by the caller.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=c>// <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A> has been derived from <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> for convenience.
+                // This default implementation does nothing and returns false.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>;
+
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+
+        <SPAN CLASS=t>void </SPAN>RegisterModel(<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * model);
+        <SPAN CLASS=t>void </SPAN>UnregisterModel(<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * model);
+        <SPAN CLASS=t>static int </SPAN>CalcHashCode(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass,
+                                <SPAN CLASS=t>const char </SPAN>* name);
+        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchUnused();
+        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchUnused(<SPAN CLASS=t>int </SPAN>minHash);
+        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchGarbage();
+        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchGarbage(<SPAN CLASS=t>int </SPAN>minHash);
+        <SPAN CLASS=t>void </SPAN>CollectGarbage();
+
+        <SPAN CLASS=t>class </SPAN>SharedTimingEngine : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                SharedTimingEngine(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext,
+                                   <SPAN CLASS=t>unsigned int </SPAN>gcPeriod);
+                <SPAN CLASS=t>virtual </SPAN>~SharedTimingEngine();
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; RootContext;
+                <A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A> SecsTimer;
+                <SPAN CLASS=t>unsigned int </SPAN>GCPeriod;
+                <SPAN CLASS=t>unsigned int </SPAN>SecsCounter;
+                <SPAN CLASS=t>unsigned int </SPAN>TimeOfGC;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>friend class </SPAN>SharedTimingEngine;
+
+        <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; RootContext;
+        <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> CrossPtrList;
+        SharedTimingEngine * SharedTiming;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * ParentContext;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * FirstChildContext;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * LastChildContext;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * PrevContext;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * NextContext;
+        emAvlTree AvlTree;
+        <SPAN CLASS=t>unsigned int </SPAN>ModelCount;
+        <SPAN CLASS=t>bool </SPAN>DoGCOnModels;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRootContext"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+                <SPAN CLASS=c>// Construct a root context.
+
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr)
+<SPAN CLASS=b>{
+        </SPAN>CrossPtrList.LinkCrossPtr(crossPtr);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetRootContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>RootContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetParentContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ParentContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetFirstChildContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstChildContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetLastChildContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LastChildContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetPrevContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PrevContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetNextContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>NextContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>::<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler)
+        : <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>(scheduler)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

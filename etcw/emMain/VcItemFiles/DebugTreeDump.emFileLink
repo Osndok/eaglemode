@@ -1,0 +1,5 @@
+#%rec:emFileLink%#
+
+BasePathType=Tmp
+BasePathProject="emCore"
+Path="debug.emTreeDump"

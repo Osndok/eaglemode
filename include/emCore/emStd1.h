@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,30 +37,31 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 75
-#define EM_MICRO_VERSION 1
-	// Version numbers.
+#define EM_MINOR_VERSION 80
+#define EM_MICRO_VERSION 0
+#define EM_VERSION_POSTFIX ""
+	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
 const char * emGetVersion();
-	// Version numbers as a string.
+	// Version numbers and postfix as a string.
 
 // The following static variable is built into every object file. Its
 // constructor checks whether the object has been compiled with a binary
 // compatible version of emCore. If not, emFatalError is called.
 class emCompatibilityCheckerClass {
 public:
-	emCompatibilityCheckerClass(int maj, int min, int mic);
+	emCompatibilityCheckerClass(int maj, int min, int mic, const char * postfix);
 };
 static emCompatibilityCheckerClass emCompatibilityChecker(
-	EM_MAJOR_VERSION,EM_MINOR_VERSION,EM_MICRO_VERSION
+	EM_MAJOR_VERSION,EM_MINOR_VERSION,EM_MICRO_VERSION,EM_VERSION_POSTFIX
 );
 
 
 //==============================================================================
-//============ Some adaptations to compilers and operating systems =============
+//===================== Adaptations to compilers and OSes ======================
 //==============================================================================
 
-// We do not export variables from Windows DLL's.
+// We do not export variables from Windows DLLs.
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #	ifndef EM_NO_DATA_EXPORT
 #		define EM_NO_DATA_EXPORT
@@ -99,6 +100,11 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 #	define gmtime_r em_gmtime_r
 	struct tm * em_localtime_r(const time_t * ptime, struct tm * buf);
 #	define localtime_r em_localtime_r
+#endif
+
+// Have M_PI
+#ifndef M_PI
+#	define M_PI 3.14159265358979323846
 #endif
 
 
@@ -303,7 +309,7 @@ int emGetDecodedCharCount(const char * str, int strLen=INT_MAX);
 
 
 //==============================================================================
-//========================= Logs, Warnings and Errors ==========================
+//========================= Logs, warnings and errors ==========================
 //==============================================================================
 
 void emLog(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
@@ -332,7 +338,7 @@ void emFatalError(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
 
 
 //==============================================================================
-//========================== Some simple base classes ==========================
+//================================ emUncopyable ================================
 //==============================================================================
 
 class emUncopyable
@@ -346,6 +352,10 @@ private:
 };
 
 
+//==============================================================================
+//============================= emUnconstructable ==============================
+//==============================================================================
+
 class emUnconstructable
 	// Objects of this class can never be constructed.
 {
@@ -357,18 +367,17 @@ private:
 
 
 //==============================================================================
-//================================ Mathematics =================================
+//=============================== emMin & emMax ================================
 //==============================================================================
-
-#ifndef M_PI
-#	define M_PI 3.14159265358979323846
-#endif
-
 
 template <class OBJ> inline OBJ emMin(OBJ a, OBJ b) { return a<b ? a : b; }
 template <class OBJ> inline OBJ emMax(OBJ a, OBJ b) { return a>b ? a : b; }
 	// Return the minimum or maximum of two things.
 
+
+//==============================================================================
+//=============================== emStdComparer ================================
+//==============================================================================
 
 template <class OBJ> class emStdComparer : public emUnconstructable {
 public:

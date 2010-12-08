@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Drive G"
+
+PosX  = 0.4245
+PosY  = 0.54
+Width = 0.018
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 2.5
+
+BackgroundColor = "#BBB"
+BorderColor = "#333"
+TitleColor = "#BBB"
+
+FileName = "DriveG.emFileLink"
+CopyToUser = false

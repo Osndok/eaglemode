@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emAvFilePanel_h
 #define emAvFilePanel_h
+
+#ifndef emTimer_h
+#include <emCore/emTimer.h>
+#endif
 
 #ifndef emFilePanel_h
 #include <emCore/emFilePanel.h>
@@ -55,6 +59,8 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
+	virtual emCursor GetCursor();
+
 	virtual bool IsOpaque();
 
 	virtual void Paint(const emPainter & painter, emColor canvasColor);
@@ -66,11 +72,19 @@ private:
 
 	void UpdateEssenceRect();
 
+	void UpdateCursorHiding(bool restart);
+
+	void UpdateScreensaverDisabling();
+
 	emImage BgImage;
+	emTimer CursorTimer;
+	bool CursorHidden;
+	bool ScreensaverDisabled;
 	bool HaveControlPanel;
 	emString WarningText;
 	emUInt64 WarningStartTime;
 	emByte WarningAlpha;
+	double OldMouseX,OldMouseY;
 	double EX,EY,EW,EH;
 };
 

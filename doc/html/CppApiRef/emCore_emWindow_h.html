@@ -1,0 +1,426 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emWindow.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>.h
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emWindow_h
+#define emWindow_h
+
+#ifndef emScreen_h
+#include &lt;<A CLASS=f HREF="emCore_emScreen_h.html">emCore/emScreen.h</A>&gt;
+#endif
+
+#ifndef emView_h
+#include &lt;<A CLASS=f HREF="emCore_emView_h.html">emCore/emView.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>;
+
+
+<A NAME="emWindow"></A><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// An <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> is an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> which is shown as a window on a screen. See
+        // also class <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>. Such a screen interface has to be installed in a
+        // context before windows can be constructed. This should be done at
+        // program start, maybe with the help of an <A CLASS=m HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>.
+
+        </SPAN><SPAN CLASS=t>typedef int </SPAN>WindowFlags;
+                <SPAN CLASS=c>// Data type for the feature flags of a window. Possible flags
+                // are:
+        </SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN>WF_MODAL       = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>),
+                        <SPAN CLASS=c>// Ancestor windows of same screen cannot get input
+                        // events or close signal. This flag has no effect if
+                        // the are no such ancestors.
+                </SPAN>WF_UNDECORATED = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>),
+                        <SPAN CLASS=c>// The window has no border and not title bar.
+                </SPAN>WF_POPUP       = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>),
+                        <SPAN CLASS=c>// Like WF_UNDECORATED, but the close signal is
+                        // generated as soon as the focus is lost.
+                </SPAN>WF_FULLSCREEN  = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>),
+                        <SPAN CLASS=c>// Like WF_UNDECORATED, but the window covers the whole
+                        // screen.
+                </SPAN>WF_AUTO_DELETE = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>)
+                        <SPAN CLASS=c>// The window deletes itself automatically three time slices
+                        // after the close signal is signaled.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext,
+                ViewFlags viewFlags=<SPAN CLASS=u>0</SPAN>,
+                WindowFlags windowFlags=<SPAN CLASS=u>0</SPAN>,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; wmResName=<SPAN CLASS=v>"emWindow"
+        </SPAN>);
+                <SPAN CLASS=c>// Construct a window. If the parent context or a higher
+                // ancestor context is a window (without another <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A> in
+                // between), this new window will be a slave of that ancestor
+                // window ("Transient Window" in X11 speaking, "Owned Window" in
+                // Windows speaking). The new window is not shown before the end
+                // of the current time slice (by typical <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>
+                // derivatives). This gives a chance to prepare things like the
+                // size and position of the window without any flicker on the
+                // screen. If the position or size is not set before the window
+                // is shown, a default is invented at the moment of showing the
+                // window (the default depends on the <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> derivative,
+                // which may even forward the job to the window manager).
+                // Arguments:
+                //   parentContext - Parent context for this new context.
+                //   viewFlags     - Initial view features.
+                //   windowFlags   - Initial window features.
+                //   wmResName     - A resource name for the window. This is
+                //                   reported to the window manager.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
+                <SPAN CLASS=c>// This means <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>&gt; is possible.
+
+        </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> &amp; GetScreen();
+                <SPAN CLASS=c>// Get the screen where this window is shown.
+
+        </SPAN>WindowFlags GetWindowFlags() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetWindowFlags(WindowFlags windowFlags);
+                <SPAN CLASS=c>// Get or set the features of this window.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetWindowFlagsSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the features of this window have
+                // changed.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetWMResName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the resource name of this window.
+
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; GetWindowPort();
+                <SPAN CLASS=c>// Get the window port of this window.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCloseSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the close signal. It is signaled when the window should
+                // be deleted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SignalClosing();
+                <SPAN CLASS=c>// Signal the close signal.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetViewPos(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+        <SPAN CLASS=t>void </SPAN>SetViewSize(<SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+        <SPAN CLASS=t>void </SPAN>SetViewPosSize(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+                <SPAN CLASS=c>// Set position and size of this window by the coordinates of
+                // the view port. This sets the coordinates you can get with
+                // GetHomeX, GetHomeY, GetHomeWidth and GetHomeHeight from the
+                // base class. On X11, the position may not be exact.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetWinPos(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+        <SPAN CLASS=t>void </SPAN>SetWinSize(<SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+        <SPAN CLASS=t>void </SPAN>SetWinPosSize(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+                <SPAN CLASS=c>// Set position and size of this window by the coordinates of
+                // the whole window rectangle including the borders. On X11, the
+                // size may not be exact.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetWinPosViewSize(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+                <SPAN CLASS=c>// Like SetWinPos and SetViewSize.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>SetWinPosViewSize(<SPAN CLASS=t>const char </SPAN>* geometry);
+                <SPAN CLASS=c>// Like SetWinPosViewSize, but parse a typical X11 geometry
+                // option string (e.g. "800x600+100-100"). As expected, the
+                // position or size is not set if it is not specified (e.g.
+                // "320x200" sets the size only). On parse error, false is
+                // returned.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>GetBorderSizes(<SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR,
+                            <SPAN CLASS=t>double </SPAN>* pB);
+                <SPAN CLASS=c>// Get the best known size (thickness) of the left, top, right
+                // and bottom edges of the window border.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetWindowIcon() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetWindowIcon(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; windowIcon);
+                <SPAN CLASS=c>// Get or set the icon to be shown for this window. The default
+                // is to inherit the icon from an ancestor window at
+                // construction. But if there is no ancestor window, the default
+                // is an empty image which means to have no specific icon.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Raise();
+                <SPAN CLASS=c>// Bring this window to the top of the stacking order. The
+                // window is even restored from any iconified state.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>InvalidateTitle();
+                <SPAN CLASS=c>// The title of the view is taken for the title of the window.
+                // This method has been overloaded just to update the window
+                // title.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>;
+
+        <SPAN CLASS=t>class </SPAN>AutoDeleteEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                AutoDeleteEngineClass(<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * window);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * Window;
+                <SPAN CLASS=t>int </SPAN>CountDown;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>&gt; Screen;
+        <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> CrossPtrList;
+        WindowFlags WFlags;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> WMResName;
+        <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> WindowIcon;
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> * WindowPort;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> WindowFlagsSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CloseSignal;
+        AutoDeleteEngineClass AutoDeleteEngine;
+        <SPAN CLASS=t>double </SPAN>PrevVPX,PrevVPY,PrevVPW,PrevVPH;
+        <SPAN CLASS=t>bool </SPAN>PrevVPValid;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emWindowPort"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for the connection between an <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> and the
+        // operating system or the hardware or whatever. When an <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> is
+        // constructed, its constructor creates an <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> by calling
+        // CreateWindowPort on the <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>(<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; window);
+                <SPAN CLASS=c>// Only to be called through overloaded versions of
+                // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::CreateWindowPort.
+
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; GetWindow();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::WindowFlags GetWindowFlags() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetWMResName() <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetWindowTitle();
+
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetWindowIcon() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>virtual void </SPAN>WindowFlagsChanged() = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>PosSizeArgSpec <SPAN CLASS=b>{
+                </SPAN>PSAS_IGNORE,
+                PSAS_VIEW,
+                PSAS_WINDOW
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>SetPosSize(
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, PosSizeArgSpec posSpec,
+                <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, PosSizeArgSpec sizeSpec
+        ) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Should call GetWindow().SetViewGeometry(...) immediately with
+                // appropriate values.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetBorderSizes(
+                <SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR, <SPAN CLASS=t>double </SPAN>* pB
+        ) = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>virtual void </SPAN>Raise() = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>virtual void </SPAN>InvalidateTitle() = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>virtual void </SPAN>InvalidateIcon() = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>SignalWindowClosing();
+
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>;
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; Window;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+//---------------------------------- <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> ----------------------------------
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr)
+<SPAN CLASS=b>{
+        </SPAN>CrossPtrList.LinkCrossPtr(crossPtr);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetScreen()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*(Screen.Get());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::WindowFlags <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowFlags() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WFlags;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWMResName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WMResName;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowPort()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*WindowPort;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetCloseSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CloseSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SignalClosing()
+<SPAN CLASS=b>{
+        </SPAN>Signal(CloseSignal);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetViewPos(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                x,y,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_VIEW,
+                <SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_IGNORE
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetViewSize(<SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                <SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_IGNORE,
+                w,h,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_VIEW
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetViewPosSize(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                x,y,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_VIEW,
+                w,h,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_VIEW
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetWinPos(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                x,y,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_WINDOW,
+                <SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_IGNORE
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetWinSize(<SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                <SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_IGNORE,
+                w,h,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_WINDOW
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetWinPosSize(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                x,y,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_WINDOW,
+                w,h,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_WINDOW
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::SetWinPosViewSize(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;SetPosSize(
+                x,y,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_WINDOW,
+                w,h,<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::PSAS_VIEW
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetBorderSizes(
+        <SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR, <SPAN CLASS=t>double </SPAN>* pB
+)
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;GetBorderSizes(pL,pT,pR,pB);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowIcon() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WindowIcon;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::Raise()
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;Raise();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//-------------------------------- <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> --------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindow()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Window;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::WindowFlags <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindowFlags() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Window.GetWindowFlags();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowFlagsSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WindowFlagsSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWMResName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Window.GetWMResName();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindowTitle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Window.GetTitle();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindowIcon() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Window.GetWindowIcon();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::SignalWindowClosing()
+<SPAN CLASS=b>{
+        </SPAN>Window.SignalClosing();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

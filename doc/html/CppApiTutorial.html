@@ -1,0 +1,2064 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - C++ API Tutorial</TITLE>
+	<STYLE TYPE="text/css">
+		A.c {
+			font-weight:bold;
+			color:#0000C0;
+			text-decoration:none;
+		}
+		A.c:hover {
+			text-decoration:underline;
+		}
+		TT.c {
+			font-weight:bold;
+			color:#303030;
+			text-decoration:none;
+		}
+		SPAN.d { /* default source code (operators, symbols and some more)*/
+			color:#000000;
+		}
+		SPAN.p { /* preprocessor */
+			color:#004070;
+		}
+		SPAN.c { /* comment */
+			font-style:italic;
+			color:#207040;
+		}
+		SPAN.t { /* type keyword */
+			font-weight:bold;
+			color:#902020;
+		}
+		SPAN.k { /* non-type keyword */
+			font-weight:bold;
+			color:#000000;
+		}
+		SPAN.b { /* braces */
+			font-weight:bold;
+			color:#000000;
+		}
+		SPAN.u { /* numeric constant */
+			color:#209000;
+		}
+		SPAN.v { /* string constant  */
+			color:#209000;
+		}
+		SPAN.w { /* char constant */
+			color:#209000;
+		}
+		A.f { /* file link */
+			font-weight:bold;
+			color:#003080;
+			text-decoration:none;
+		}
+		A.f:hover {
+			text-decoration:underline;
+		}
+		A.l { /* symbol link */
+			font-weight:bold;
+			color:#0000C0;
+			text-decoration:none;
+		}
+		A.l:hover {
+			text-decoration:underline;
+		}
+		A.m { /* symbol link in a comment*/
+			font-style:italic;
+			font-weight:bold;
+			color:#006070;
+			text-decoration:none;
+		}
+		A.m:hover {
+			text-decoration:underline;
+		}
+	</STYLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
+<CENTER>
+<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
+<FONT SIZE=7><B>C++ API Tutorial</B></FONT><P>
+<FONT SIZE=2>Copyright &copy; 2010 Oliver Hamann.
+Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
+</CENTER>
+
+
+
+
+
+
+
+<H1>Contents</H1>
+<A HREF="#1">1 Introduction</A><BR>
+<A HREF="#2">2 Standalone Hello World example</A><BR>
+<A HREF="#3">3 Exceptions, error handling and logging</A><BR>
+<A HREF="#4">4 Painting graphics and text</A><BR>
+<A HREF="#5">5 Keyboard and mouse input</A><BR>
+<A HREF="#6">6 Simple animation through an engine</A><BR>
+<A HREF="#7">7 Signals and timers</A><BR>
+<A HREF="#8">8 Panel tree expansion</A><BR>
+<A HREF="#9">9 The toolkit panels</A><BR>
+<A HREF="#10">10 Models and contexts</A><BR>
+<A HREF="#11">11 Plugin interface</A><BR>
+
+
+
+
+
+
+
+<H1><A NAME="1"></A>1 Introduction</H1>
+The Eagle Mode C++ API can be used to create both, plugin applications and
+standalone applications. A plugin application could show in the virtual cosmos
+and/or in the file manager, while a standalone application shows as an own window
+on the desktop.
+<P>
+This tutorial mainly consists of programming examples which can also be seen as
+design patterns for the respective topics. Originally, most of the examples are
+standalone applications because this makes it easier to compile and run them.
+Only the very last chapter brings a complete plugin example in order to explain
+the plugin interface. The examples can be found in the directory
+<TT>$EM_DIR/doc/examples/CppApiExamples</TT> (replace <TT>$EM_DIR</TT> by the
+Eagle Mode directory). There is also a Perl script that makes it very easy to
+run the standalone examples. It compiles automatically and executes a temporary
+binary. Here are the commands to run the Hello World example:
+<P>
+<BLOCKQUOTE>
+<TT>cd $EM_DIR/doc/examples/CppApiExamples</TT><BR>
+<TT>perl run-example.pl HelloWorldExample.cpp</TT>
+</BLOCKQUOTE>
+<P>
+The examples can also be found inline in this document. But except for the first
+and the last example, the beginnings and ends of the example sources are left
+out, because those fragments are almost always the same.
+<P>
+In order to make first programming experiments as easy as possible, this
+tutorial only covers the most important topics without explaining all the API
+classes and functions in detail. The examples should give you a good intuition of
+how the API works. For more details, you may have a look to the
+<A HREF="CppApiRef/index.html">Reference Guide</A>. That is an index to
+HTML-converted header files which are containing extensive comments as the
+reference documentation, sometimes also with tiny examples and short tutorials.
+If you find something is not described well enough, please do not hesitate to
+write to the
+<A HREF="http://sourceforge.net/projects/eaglemode/forums/forum/1119204">
+API Support Forum</A>.
+<P>
+The real header files are in <TT>$EM_DIR/include/emCore</TT> and the library to
+be linked is <TT>$EM_DIR/lib/libemCore.so</TT> or on Windows
+<TT>$EM_DIR/lib/emCore.lib</TT>. Thus, the API is made of a sub-project named
+<B>emCore</B>.
+<P>
+The writing of "makefiles" is described in another document:
+<A HREF="MakeSystem.html">Make System</A>.
+<P>
+Before continuing, you should have read the
+<A HREF="GeneralUserGuide.html#elements">Elements of the user interface</A>
+chapter in the <A HREF="GeneralUserGuide.html">General User Guide</A> in order
+to know what is meant with the terms <I><B>Window</B></I>, <I><B>View</B></I>,
+<I><B>Panel</B></I>, <I><B>Focus</B></I> and so on.
+<P>
+
+
+
+
+
+
+
+<H1><A NAME="2"></A>2 Standalone Hello World example</H1>
+Let us start with a Hello World example. Below is the source code of a small
+standalone application which shows a window. Therein, the user can zoom and
+scroll a single black panel with a "Hello World" inscription. <I>Panels</I> are
+in the Eagle Mode API what <I>widgets</I> are in classic APIs. It is just that
+they are zoomable.
+<P>
+The base class for panels is
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+In the example source below, you can find the class <TT CLASS=c>MyPanel</TT>
+derived from
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+It overloads the constructor and two methods: <TT CLASS=c>GetTitle</TT> and
+<TT CLASS=c>Paint</TT>. The result of <TT CLASS=c>GetTitle</TT> is a character
+string which is shown in the title bar of the window when the panel is active or
+focussed. The example has only one panel and therefore that panel is always the
+active one. The <TT CLASS=c>Paint</TT> method is overloaded in order to fill the
+background of the panel with black and to write "Hello World!" in red letters on
+it. More about painting is described in a later chapter.
+<P>
+The example source also defines the main function of the program. It
+does this through the macro
+<TT><A CLASS=c HREF="CppApiRef/emCore_emGUIFramework_h.html#MAIN_OR_WINMAIN_HERE">MAIN_OR_WINMAIN_HERE</A></TT>.
+That macro expands to an operating system dependent main function
+(<TT CLASS=c>WinMain</TT> on Windows, <TT CLASS=c>main</TT> elsewhere), which
+simply forwards to <TT CLASS=c>wrapped_main</TT>. Therein, the example first calls
+<TT CLASS=c>emInitLocale()</TT> in order to enable UTF-8 encoding if possible
+(the declaration of that function is
+<A HREF="CppApiRef/emCore_emStd1_h.html#Locale_and_UTF_8_support">here</A>).
+Then the example creates an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A></TT>
+and prepares it to terminate the program automatically when it has no more
+windows. Afterwards the example creates an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A></TT>
+and prepares it to delete itself when the close button is clicked. Finally an
+instance of the example panel class <TT CLASS=c>MyPanel</TT> is created
+in that window. The <TT CLASS=c>Layout</TT> call just has effect on the height/width
+ratio of the panel, because it is a root panel (more about <TT CLASS=c>Layout</TT>
+in a later chapter). At the end, the main function calls the <TT CLASS=c>Run</TT>
+method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A></TT>
+in order to serve the user interface until termination.
+<P>
+What you should learn from the example is how to bring up a panel in a
+standalone application, because many further examples just show how to program
+panels.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>HelloWorldExample.cpp</B></TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d><SPAN CLASS=p>#include &lt;<A CLASS=f HREF="CppApiRef/emCore_emGUIFramework_h.html">emCore/emGUIFramework.h</A>&gt;
+#include &lt;<A CLASS=f HREF="CppApiRef/emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+
+
+</SPAN><SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> GetTitle();
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
+<SPAN CLASS=b>{
+}
+
+</SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> MyPanel::GetTitle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><SPAN CLASS=v>"Hello World Example"</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN>painter.Clear(<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::BLACK);
+        painter.PaintTextBoxed(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>1</SPAN>,GetHeight(),<SPAN CLASS=v>"Hello World!"</SPAN>,<SPAN CLASS=u>.01</SPAN>,<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::RED);
+<SPAN CLASS=b>}
+
+
+</SPAN><A CLASS=l HREF="CppApiRef/emCore_emGUIFramework_h.html#MAIN_OR_WINMAIN_HERE">MAIN_OR_WINMAIN_HERE</A>
+
+<SPAN CLASS=t>static int </SPAN>wrapped_main(<SPAN CLASS=t>int </SPAN>argc, <SPAN CLASS=t>char </SPAN>* argv[])
+<SPAN CLASS=b>{
+        </SPAN>emInitLocale();
+
+        <A CLASS=l HREF="CppApiRef/emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A> framework;
+        framework.EnableAutoTermination();
+
+        <A CLASS=l HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A> * window=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A>(framework.GetRootContext());
+        window-&gt;SetWindowFlags(<A CLASS=l HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A>::WF_AUTO_DELETE);
+
+        <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> * panel=<SPAN CLASS=k>new </SPAN>MyPanel(window,<SPAN CLASS=v>"root"</SPAN>);
+        panel-&gt;Layout(<SPAN CLASS=u>0.0</SPAN>,<SPAN CLASS=u>0.0</SPAN>,<SPAN CLASS=u>4.0</SPAN>,<SPAN CLASS=u>3.0</SPAN>);
+
+        <SPAN CLASS=k>return </SPAN>framework.Run();
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="3"></A>3 Exceptions, error handling and logging</H1>
+Before continuing with more fun, some words about error handling:
+<P>
+Every method and function of the API which could fail, fails by throwing an
+exception. The exception is always an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emString_h.html#emString">emString</A></TT>
+which contains a human-readable error message. In addition, the name of the
+method or function contains the word "Try" at the beginning, in order to make
+clear that it could fail and throw an exception. Examples are:
+<TT CLASS=c>emTryOpenLib</TT>, <TT CLASS=c>emColor::TryParse</TT>.
+<P>
+If you can't continue the program after a failure, then you may call
+<TT CLASS=c>emFatalError(format, ...)</TT> in order to report the error and exit the program. Its
+arguments are like with <TT CLASS=c>printf</TT>. For more about this function and about
+logging, please read
+<A HREF="CppApiRef/emCore_emStd1_h.html#Logs_warnings_and_errors">this section</A>.
+
+
+
+
+
+
+
+<H1><A NAME="4"></A>4 Painting graphics and text</H1>
+The Hello World example already did a little bit of painting. This chapter
+brings a more complex paint example, but first some explanations:
+<P>
+In order to paint a panel, you have to overload the <TT CLASS=c>Paint</TT>
+method of <TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+It is called automatically whenever the panel has to be painted again, for
+example after a change of the visual transformation. In addition, you can call
+the <TT CLASS=c>InvalidatePainting()</TT> method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>,
+if you want <TT CLASS=c>Paint</TT> to be called again for whatever reason.
+<P>
+The <TT CLASS=c>Paint</TT> method has two arguments: a painter and a canvas
+color. The painter (class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A></TT>)
+has lots of methods for painting with transformation and clipping. It is
+prepared for painting in the coordinate system of the panel. This means, the
+origin is in the upper-left corner of the panel, the X-axis points right, and
+the Y-axis points down. The unit is panel widths, which means that a panel has
+always a width of 1.0 in its own coordinate system.
+<P>
+The canvas color (class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A></TT>) is the
+color of the background, or it is any non-opaque color if the background is
+unknown or not plain. The idea is to give the canvas color to the paint method
+calls in
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A></TT>
+(as the equal-named argument). In many cases, the paint methods are faster
+and more exact if they get a known (opaque) canvas color. In the example below
+you can see that the first paint operations fills the background with white
+color by calling the <TT CLASS=c>Clear</TT> method. Therefore the canvas color
+is changed to white one line after in order to use it in the other calls. The
+last two paint operations do not get the canvas color, because they overlap with
+other objects.
+<P>
+Whenever you overload the <TT CLASS=c>Paint</TT> method, you should also
+consider to overload the <TT CLASS=c>IsOpaque</TT> method. It tells whether
+the panel altogether paints opaque or not. If yes, the parent panel is
+automatically not painted in certain situations.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>PaintExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+<SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="CppApiRef/emCore_emImage_h.html#emImage">emImage</A> EagleIcon;
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
+<SPAN CLASS=b>{
+        </SPAN>EagleIcon=emGetInsResImage(GetRootContext(),<SPAN CLASS=v>"icons"</SPAN>,<SPAN CLASS=v>"eaglemode.tga"</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::IsOpaque()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return true</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN>painter.Clear(<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::WHITE,canvasColor);
+        canvasColor=<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::WHITE;
+
+        painter.PaintImage(<SPAN CLASS=u>0.05</SPAN>,<SPAN CLASS=u>0.05</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0.3</SPAN>,EagleIcon,<SPAN CLASS=u>255</SPAN>,canvasColor);
+
+        painter.PaintRect(<SPAN CLASS=u>0.4</SPAN>,<SPAN CLASS=u>0.1</SPAN>,<SPAN CLASS=u>0.2</SPAN>,<SPAN CLASS=u>0.2</SPAN>,<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::GREEN,canvasColor);
+
+        painter.PaintRectOutline(<SPAN CLASS=u>0.69</SPAN>,<SPAN CLASS=u>0.09</SPAN>,<SPAN CLASS=u>0.22</SPAN>,<SPAN CLASS=u>0.22</SPAN>,<SPAN CLASS=u>0.01</SPAN>,<SPAN CLASS=u>0x0080C0FF</SPAN>,canvasColor);
+        painter.PaintTextBoxed(
+                <SPAN CLASS=u>0.7</SPAN>,<SPAN CLASS=u>0.1</SPAN>,<SPAN CLASS=u>0.2</SPAN>,<SPAN CLASS=u>0.2</SPAN>,
+                <SPAN CLASS=v>"Centered text\nin\nthe bottom-right\nof a box"</SPAN>,
+                <SPAN CLASS=u>0.017</SPAN>,<SPAN CLASS=u>0x0080C0FF</SPAN>,canvasColor,
+                EM_ALIGN_BOTTOM_RIGHT,EM_ALIGN_CENTER
+        );
+
+        <SPAN CLASS=t>static const double </SPAN>poly1[]=<SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=u>0.1</SPAN>, <SPAN CLASS=u>0.4</SPAN>,
+                <SPAN CLASS=u>0.05</SPAN>, <SPAN CLASS=u>0.7</SPAN>,
+                <SPAN CLASS=u>0.3</SPAN>, <SPAN CLASS=u>0.5
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+        painter.PaintPolygon(poly1,<SPAN CLASS=u>3</SPAN>,<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=u>255</SPAN>,<SPAN CLASS=u>128</SPAN>,<SPAN CLASS=u>0</SPAN>),canvasColor);
+
+        painter.PaintLine(
+                <SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0.4</SPAN>,<SPAN CLASS=u>0.5</SPAN>,<SPAN CLASS=u>0.7</SPAN>,<SPAN CLASS=u>0.05</SPAN>,
+                <A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A>::LC_ROUND,<A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A>::LC_ROUND,
+                <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=u>255</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>128</SPAN>),canvasColor
+        );
+
+        painter.PaintEllipse(<SPAN CLASS=u>0.5</SPAN>,<SPAN CLASS=u>0.4</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0x33CC88FF</SPAN>,canvasColor);
+        painter.PaintEllipse(<SPAN CLASS=u>0.6</SPAN>,<SPAN CLASS=u>0.4</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0xFF55AAFF</SPAN>);
+        painter.PaintEllipse(<SPAN CLASS=u>0.55</SPAN>,<SPAN CLASS=u>0.35</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>0xFFFF3388</SPAN>);
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="5"></A>5 Keyboard and mouse input</H1>
+If you want to process keyboard and mouse input, then you have to overload the
+<TT CLASS=c>Input</TT> method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>. It is
+called whenever there is a keyboard or mouse event like a button press, or when
+there is a change of any key or button state, or when the mouse is moved.
+Therefore the Input method has two major arguments: an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A></TT>
+and an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A></TT>.
+Besides, it also gets the current mouse
+position (mx, my) in the coordinate system of the panel, because
+<TT><A CLASS=c HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A></TT>
+provides the mouse position only in pixel coordinates.
+<P>
+Keyboard events are given to the panel which has the keyboard focus, and mouse
+events are given to the panel in which the mouse pointer is. In addition, the
+events may also be given to ancestors of those panels (e.g. a parent panel or
+the window). To avoid that, a panel can eat an event by calling the
+<TT CLASS=c>Eat</TT> method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A></TT>.
+That is the reason why the event argument is non-const.
+<P>
+When you overload the <TT CLASS=c>Input</TT> method, you should not forget
+to call the base class implementation.
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT> itself
+eats certain keyboard and mouse events in order to change the focus. Therefore
+you should not eat those events before calling the base class, but you may use
+them to do additional things.
+<P>
+The example below demonstrates how to process various input events by
+overloading the <TT CLASS=c>Input</TT> method. Note that there are no events
+for the release of a button or key. So if you want to get noticed about a
+release, you have to track the input state. This is also demonstrated in the
+example.
+<P>
+In addition, you should notice that
+<TT><A CLASS=c HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A></TT>
+describes the event in two ways: the key (which could also be a mouse button),
+and a character string that the key produces. Normally you should ask for the
+key, but sometimes you may want to ask for a character which has no key on the
+keyboard. An example would be the dollar sign which is produced by Shift+4 on
+English keyboards.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>InputExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>bool </SPAN>XKeyDown;
+        <SPAN CLASS=t>bool </SPAN>ButtonDown;
+        <SPAN CLASS=t>double </SPAN>LastMX, LastMY;
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
+<SPAN CLASS=b>{
+        </SPAN>XKeyDown=<SPAN CLASS=k>false</SPAN>;
+        ButtonDown=<SPAN CLASS=k>false</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::Input(
+        <A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A> &amp; state, <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(event.IsKey(EM_KEY_E) &amp;&amp; state.IsNoMod()) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The E key was pressed without any modifier keys."</SPAN>);
+                event.Eat();
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(event.IsKey(EM_KEY_G) &amp;&amp; state.IsShiftAltMod()) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The Shift+Alt+G key combination was pressed."</SPAN>);
+                event.Eat();
+        <SPAN CLASS=b>}
+
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> hotkey(EM_KEY_CTRL, EM_KEY_V);
+        <SPAN CLASS=k>if </SPAN>(hotkey.Match(event,state)) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The %s key combination was pressed."</SPAN>, hotkey.GetString().Get());
+                event.Eat();
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(event.GetChars()==<SPAN CLASS=v>"$"</SPAN>) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"A key combination that prints the dollar sign was pressed."</SPAN>);
+                event.Eat();
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(event.IsKey(EM_KEY_X)) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The X key was pressed."</SPAN>);
+                XKeyDown=<SPAN CLASS=k>true</SPAN>;
+                event.Eat();
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(XKeyDown &amp;&amp; !state.Get(EM_KEY_X)) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The X key was released."</SPAN>);
+                XKeyDown=<SPAN CLASS=k>false</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(event.IsKey(EM_KEY_LEFT_BUTTON)) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The left mouse button was pressed at (%g, %g)."</SPAN>, mx, my);
+                ButtonDown=<SPAN CLASS=k>true</SPAN>;
+                LastMX=mx;
+                LastMY=my;
+                <SPAN CLASS=c>// We do not eat the event here so that <A CLASS=m HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>::Input still
+                // sets the focus on this panel by the button event. Otherwise
+                // we should call Focus().
+        </SPAN><SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(ButtonDown &amp;&amp; (LastMX!=mx || LastMY!=mx)) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The mouse was dragged to (%g, %g)."</SPAN>, mx, my);
+                LastMX=mx;
+                LastMY=my;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(ButtonDown &amp;&amp; !state.Get(EM_KEY_LEFT_BUTTON)) <SPAN CLASS=b>{
+                </SPAN>emLog(<SPAN CLASS=v>"The left mouse button was released."</SPAN>);
+                ButtonDown=<SPAN CLASS=k>false</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=c>// Call the base class. It changes the focus by certain input events.
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>::Input(event,state,mx,my);
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="6"></A>6 Simple animation through an engine</H1>
+The API provides three concepts or classes which solve the problem of sharing
+the CPU:
+<TT><A CLASS=c HREF="CppApiRef/emCore_emThread_h.html#emThread">emThread</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emProcess_h.html#emProcess">emProcess</A></TT> and
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT>.
+As you might expect from the names,
+the first two are just about classic threads and processes. But the third one is
+somehow usual, and it is used very widely in Eagle Mode, as it is the super
+class of all high-level classes. Therefore, this and the next chapter are about
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT>.
+<P>
+<CENTER>
+<IMG SRC="images/EngineClasses.png" BORDER=0 WIDTH=300 HEIGHT=160 USEMAP="#ecmap">
+<MAP NAME="ecmap">
+<AREA COORDS="117,2,194,28" HREF="CppApiRef/emCore_emEngine_h.html#emEngine">
+<AREA COORDS="2,91,85,116" HREF="CppApiRef/emCore_emContext_h.html#emContext">
+<AREA COORDS="120,91,192,116" HREF="CppApiRef/emCore_emModel_h.html#emModel">
+<AREA COORDS="228,90,295,116" HREF="CppApiRef/emCore_emPanel_h.html#emPanel">
+</MAP>
+<P>
+<I>All high-level classes are subclasses of emEngine.</I>
+</CENTER>
+<P>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT> has
+two possible uses: polling and signal exchange. Of course, polling
+is quite despised because it wastes CPU cycles, but signal exchange requires a
+little bit more programming effort. With
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT>, it is
+possible to quickly program a first solution with polling, and to improve that
+solution later by conversion into signal exchange, without any expensive
+restructuring.
+<P>
+In order to perform polling, you just need to do three things:
+<UL>
+<LI>Overload the method <TT CLASS=c>Cycle()</TT> of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT> and
+implement the polling code in it. Do not forget to call the base class
+implementation too, if you do not know it is empty.</LI>
+<LI>Wake up the engine once at the beginning by calling
+<TT CLASS=c>WakeUp()</TT>, e.g. in the constructor.</LI>
+<LI>Always return <TT CLASS=c>true</TT> form <TT CLASS=c>Cycle</TT>.</LI>
+</UL>
+This way, <TT CLASS=c>Cycle</TT> is called up to about one hundred times per
+second, depending on the CPU load.
+<P>
+The following example code demonstrates the overloading of
+<TT CLASS=c>Cycle</TT> in an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>, in order
+to show a simple animation in form of a decimal counter which increases on every
+cycle.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>SimpleAnimationExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>unsigned </SPAN>Counter;
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
+<SPAN CLASS=b>{
+        </SPAN>Counter=<SPAN CLASS=u>0</SPAN>;
+        WakeUp();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::Cycle()
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>::Cycle();
+        Counter++;
+        InvalidatePainting();
+        <SPAN CLASS=k>return true</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> str=<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(<SPAN CLASS=v>"%u"</SPAN>,Counter);
+        painter.PaintTextBoxed(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>1</SPAN>,GetHeight(),str,<SPAN CLASS=u>.41</SPAN>,<SPAN CLASS=u>0xFFFF80FF</SPAN>);
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="7"></A>7 Signals and timers</H1>
+As already said, the better use of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT> is to
+exchange signals. The idea is to wake up an engine by a signal whenever there is
+something useful to do for it. Moreover, it is possible to find out which signal
+has woken up an engine, and thereby an engine can receive any number of
+different signals in order to do different things. A signal can be received by
+multiple engines, and the sender does not need to know anything about the
+receivers.
+<P>
+Here is how you can send a signal:
+<UL>
+<LI>Create an object of class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A></TT> at the
+beginning and make sure receivers can get a const-reference or -pointer to
+it.</LI>
+<LI>Call the method <TT CLASS=c>Signal(signal)</TT> in any engine, with your
+signal object as the argument, whenever you actually want to send the
+signal.</LI>
+</UL>
+And here is how you can receive a signal in an engine:
+<UL>
+<LI>Make sure the engine is woken up whenever the signal is sent. This can be
+done by calling <TT CLASS=c>AddWakeUpSignal(signal)</TT> on the engine, e.g.
+in the constructor.</LI>
+<LI>Overload the <TT CLASS=c>Cycle</TT> method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emEngine_h.html#emEngine">emEngine</A></TT>, in
+order to ask for the signal by calling <TT CLASS=c>IsSignaled(signal)</TT>.
+Also, do not forget to call the base class implementation of
+<TT CLASS=c>Cycle</TT> too, if you do not know it is empty.</LI>
+<LI>Return <TT CLASS=c>false</TT> form <TT CLASS=c>Cycle</TT>, except
+the base class implementation returned <TT CLASS=c>true</TT>.
+(<TT CLASS=c>false</TT> means that the engine is not woken up regularly on next
+time slice, i.e. that you don't want polling.)</LI>
+</UL>
+The following programming example demonstrates all that. It has the class
+<TT CLASS=c>MyButton</TT>, which is a panel that sends a signal whenever the
+user clicks with the mouse on it. And it has the class
+<TT CLASS=c>MyPanel</TT> which receives that signal in order to increase a
+shown counter on every button click. In addition,
+<TT CLASS=c>MyPanel</TT> also demonstrates the use of the class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emTimer_h.html#emTimer">emTimer</A></TT> with
+another counter.
+<TT><A CLASS=c HREF="CppApiRef/emCore_emTimer_h.html#emTimer">emTimer</A></TT> can
+generate periodic and non-periodic timer signals.
+<P>
+Besides, this is the first example with more than one panel:
+<TT CLASS=c>MyPanel</TT> creates and lays out a
+<TT CLASS=c>MyButton</TT> as its child panel.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>SignalExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=c>//================================== MyButton ==================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>MyButton : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyButton(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetClickSignal() <SPAN CLASS=t>const</SPAN>;
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+<SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A> ClickSignal;
+<SPAN CLASS=b>}</SPAN>;
+
+MyButton::MyButton(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A> &amp; MyButton::GetClickSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClickSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyButton::Input(
+        <A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A> &amp; state, <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(event.IsLeftButton()) Signal(ClickSignal);
+        <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>::Input(event,state,mx,my);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyButton::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN>painter.Clear(<SPAN CLASS=u>0xC0C0C0FF</SPAN>,canvasColor);
+        painter.PaintTextBoxed(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>1</SPAN>,GetHeight(),<SPAN CLASS=v>"Click Me"</SPAN>,<SPAN CLASS=u>1</SPAN>,<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::GREEN);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//================================== MyPanel ===================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>unsigned </SPAN>Counter1, Counter2;
+        MyButton * Button;
+        <A CLASS=l HREF="CppApiRef/emCore_emTimer_h.html#emTimer">emTimer</A> Timer;
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name),
+        Timer(GetScheduler())
+<SPAN CLASS=b>{
+        </SPAN>Counter1=<SPAN CLASS=u>0</SPAN>;
+        Counter2=<SPAN CLASS=u>0</SPAN>;
+        Button=<SPAN CLASS=k>new </SPAN>MyButton(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"button"</SPAN>);
+        Button-&gt;Layout(<SPAN CLASS=u>0.1</SPAN>,<SPAN CLASS=u>0.1</SPAN>,<SPAN CLASS=u>0.8</SPAN>,<SPAN CLASS=u>0.1</SPAN>);
+        Timer.Start(<SPAN CLASS=u>1000</SPAN>,<SPAN CLASS=k>true</SPAN>);
+        AddWakeUpSignal(Button-&gt;GetClickSignal());
+        AddWakeUpSignal(Timer.GetSignal());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::Cycle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Button-&gt;GetClickSignal())) <SPAN CLASS=b>{
+                </SPAN>Counter1++;
+                InvalidatePainting();
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Timer.GetSignal())) <SPAN CLASS=b>{
+                </SPAN>Counter2++;
+                InvalidatePainting();
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>::Cycle();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> str=<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(
+                <SPAN CLASS=v>"Button Signals: %u\nTimer Signals: %u"</SPAN>,Counter1,Counter2
+        );
+        painter.PaintTextBoxed(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0.3</SPAN>,<SPAN CLASS=u>1</SPAN>,GetHeight()-<SPAN CLASS=u>0.3</SPAN>,str,<SPAN CLASS=u>.1</SPAN>,<SPAN CLASS=u>0xFFFF80FF</SPAN>);
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="8"></A>8 Panel tree expansion</H1>
+A real application may have much more than one or two panels. A panel can have
+child panels, which also can have child panels and so on. After all, you could
+have a large tree of panels with extreme depth, or even with infinite depth -
+virtually.
+<P>
+In order to identify the children of a panel, each panel has a name which must
+be unique across its sisters. The name can be any character string and is
+usually given as the second argument to the constructor (first argument is the
+parent). The names of the panels on a path in the tree are making up the panel
+identification within the window or view. Mainly, these identifications are used
+by the bookmarks implementation of Eagle Mode.
+<P>
+Panels should usually be created with the <TT CLASS=c>new</TT> operator, but
+you do not need to care about the deletion, because the parent destructor does
+that for you.
+<P>
+An important point is that the panels of a large tree should be created only
+when they are needed. Otherwise your application may waste to much memory and
+CPU time if it shows thousands or even millions of panels. Goal is to create and
+destroy the panels dynamically so that there are not much more than those panels
+which are actually visible or which have visible descendants, and which are not
+too small on screen. There are two ways to solve that: manually and
+automatically.
+<P>
+The manual way would mean that you have to program all the dynamics yourself,
+but it gives you a little bit more freedom. If you ever want to go that way, you
+could start by reading the comments on the methods <TT CLASS=c>GetViewCondition</TT> and
+<TT CLASS=c>Notice</TT> of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+But for now, lets continue with the easier way:
+<P>
+The automatic way of panel tree expansion and -shrinking is really easy. All you
+have to do is to call <TT CLASS=c>EnableAutoExpansion()</TT> in the constructor,
+and to overload the method <TT CLASS=c>AutoExpand</TT> of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT> in
+order to create all your child panels in it with the <TT CLASS=c>new</TT>
+operator. There is also the counterpart method <TT CLASS=c>AutoShrink</TT>, but
+it is seldom to be overloaded, because its default implementation deletes
+exactly all the child panels which are created in <TT CLASS=c>AutoExpand</TT>.
+You suspect it: <TT CLASS=c>AutoExpand</TT> and <TT CLASS=c>AutoShrink</TT> are
+called automatically when it is a good idea to create or destroy the child
+panels depending on the zoom and scroll state of the view (but only if you did
+not forget to call <TT CLASS=c>EnableAutoExpansion()</TT> - pitfall warning!).
+<P>
+Another important point is to layout your child panels, which means to position
+and size them within the coordinate system of the parent panel. You can do this
+by calling <TT CLASS=c>Layout(x,y,w,h,canvasColor)</TT> on the child panel.
+In addition to the position and size, that method also gets the canvas color for
+the whole child panel. You should know about the canvas color since reading the
+paint chapter, as well as about the own coordinate system of a panel.
+<P>
+After a panel has been constructed, it is laid out outside the parent panel by
+default. This means the child panel is not shown by default, because child
+panels are always clipped by the rectangle of the parent. So you really have to
+call the <TT CLASS=c>Layout</TT> method if you want your child panel to be
+shown. One possibility is to do that directly after creating the panel, maybe in
+you implementation of <TT CLASS=c>AutoExpand</TT>. This is absolutely okay.
+But sometimes you may want to program a more dynamic layout which depends on
+the layout of the parent, say its height/width-ratio. Then it is a good idea to
+implement your <TT CLASS=c>Layout</TT> calls in an overloaded version of the
+method <TT CLASS=c>LayoutChildren</TT> of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>. That
+method is called automatically after new child panels have been created, and
+after the parent layout has changed.
+<P>
+One last word on the <TT CLASS=c>Layout</TT> method: The root panel only
+needs the height/width-ratio, and therefore it ignores everything else from the
+<TT CLASS=c>Layout</TT> call.
+<P>
+The following programming example demonstrates the overloading of
+<TT CLASS=c>AutoExpand</TT> and <TT CLASS=c>LayoutChildren</TT>. It
+simply shows a (virtually) infinite tree of black and white panels, where each
+panel has four children. Remember that the children are deleted automatically by
+the default implementation of <TT CLASS=c>AutoShrink</TT>. Therefore, the
+example uses the smart pointer class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A></TT>
+to refer to the child panels. Such a pointer sets itself automatically to
+<TT CLASS=c>NULL</TT> when the object is deleted. And so we can safely test
+for existence of the child panels in the implementation of
+<TT CLASS=c>LayoutChildren</TT>. Another way would be to keep no pointers
+at all and to ask for the child panels by name whenever needed, using the
+<TT CLASS=c>GetChild</TT> method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>. But that
+would be a little bit slower.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>TreeExpansionExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> bgcolor=<SPAN CLASS=u>0xFFFFFFFF</SPAN>);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+<SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> BackgroundColor;
+        <A CLASS=l HREF="CppApiRef/emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;MyPanel&gt; Child[<SPAN CLASS=u>4</SPAN>];
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> bgcolor)
+        : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
+<SPAN CLASS=b>{
+        </SPAN>BackgroundColor=bgcolor;
+        EnableAutoExpansion(); <SPAN CLASS=c>// Don't forget this one!!!
+</SPAN><SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::IsOpaque()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>BackgroundColor.IsOpaque();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN>painter.Clear(BackgroundColor,canvasColor);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::AutoExpand()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>for </SPAN>(<SPAN CLASS=t>int </SPAN>i=<SPAN CLASS=u>0</SPAN>; i&lt;<SPAN CLASS=u>4</SPAN>; i++) <SPAN CLASS=b>{
+                </SPAN>Child[i]=<SPAN CLASS=k>new </SPAN>MyPanel(
+                        <SPAN CLASS=k>this</SPAN>,
+                        <A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(<SPAN CLASS=v>"%d"</SPAN>,i),
+                        BackgroundColor.Get()^<SPAN CLASS=u>0xFFFFFF00
+                </SPAN>);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::LayoutChildren()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>for </SPAN>(<SPAN CLASS=t>int </SPAN>i=<SPAN CLASS=u>0</SPAN>; i&lt;<SPAN CLASS=u>4</SPAN>; i++) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Child[i]) <SPAN CLASS=b>{
+                        </SPAN>Child[i]-&gt;Layout(
+                                <SPAN CLASS=u>0.1</SPAN>+(i&amp;<SPAN CLASS=u>1</SPAN>)*<SPAN CLASS=u>0.5</SPAN>,
+                                (<SPAN CLASS=u>0.1</SPAN>+(i&amp;<SPAN CLASS=u>2</SPAN>)*<SPAN CLASS=u>0.25</SPAN>)*GetHeight(),
+                                <SPAN CLASS=u>0.3</SPAN>,
+                                <SPAN CLASS=u>0.3</SPAN>*GetHeight(),
+                                BackgroundColor
+                        );
+                <SPAN CLASS=b>}
+        }
+}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="9"></A>9 The toolkit panels</H1>
+There is a set of toolkit classes ("emTk" classes) for frequently needed user
+interface components like buttons, text fields and so on. Most of them are panel
+classes, but not all. Here is a class hierarchy diagram of all the toolkit
+classes:
+<P>
+<CENTER>
+<IMG SRC="images/ToolkitClasses.png" BORDER=0 WIDTH=637 HEIGHT=390 USEMAP="#tkcmap">
+<MAP NAME="tkcmap">
+<AREA COORDS="63,3,147,28" HREF="CppApiRef/emCore_emWindow_h.html#emWindow">
+<AREA COORDS="287,2,354,28" HREF="CppApiRef/emCore_emPanel_h.html#emPanel">
+<AREA COORDS="372,42,453,67" HREF="CppApiRef/emCore_emToolkit_h.html#emTkLook">
+<AREA COORDS="274,84,367,110" HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">
+<AREA COORDS="8,132,92,158" HREF="CppApiRef/emCore_emToolkit_h.html#emTkLabel">
+<AREA COORDS="63,172,147,197" HREF="CppApiRef/emCore_emToolkit_h.html#emTkTiling">
+<AREA COORDS="4,250,93,276" HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">
+<AREA COORDS="129,210,222,236" HREF="CppApiRef/emCore_emToolkit_h.html#emTkTunnel">
+<AREA COORDS="206,248,297,272" HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">
+<AREA COORDS="199,316,335,341" HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">
+<AREA COORDS="203,362,335,387" HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">
+<AREA COORDS="360,317,477,342" HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckBox">
+<AREA COORDS="360,361,474,387" HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">
+<AREA COORDS="313,254,422,280" HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">
+<AREA COORDS="407,217,530,243" HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">
+<AREA COORDS="497,180,615,207" HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">
+<AREA COORDS="538,142,634,168" HREF="CppApiRef/emCore_emToolkit_h.html#emTkSplitter">
+<AREA COORDS="60,59,150,84" HREF="CppApiRef/emCore_emToolkit_h.html#emTkDialog">
+</MAP>
+<P>
+<I>Class chart of the toolkit classes.</I>
+</CENTER>
+<P>
+As you see, the class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">emTkBorder</A></TT>
+is the super class of all the other toolkit
+panels. It has lots of common properties: the look, the border, the label
+(caption + description + icon), the how-to text, and the auxiliary area. The
+look is expressed as an instance of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkLook">emTkLook</A></TT>,
+which allows to configure the colors.
+There is a simple derivative of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">emTkBorder</A></TT>
+which shows the label as the content instead of in the border:
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkLabel">emTkLabel</A></TT>.
+<P>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkTiling">emTkTiling</A></TT>
+acts as a container and is able to layout its child panels automatically. It is
+borderless and unfocusable by default and so is meant for solving layout
+problems only. But its derivative
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A></TT>
+is focusable and shows a group border by default, so that it can easily be
+used for grouping things visually together. A complete different container is
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A></TT>
+which just shows a "tunnel" with one custom child panel at the end.
+And another one is
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A></TT>
+which allows to have two custom child panels separated by a draggable bar, either
+horizontally or vertically.
+<P>
+The classes
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A></TT>,
+and
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A></TT>
+may not need much explanation. A button receives mouse clicks to trigger
+something, a check button receives mouse clicks to switch something on or off,
+and a radio button is similar but the idea is to have always exactly one radio
+button on in a group. Boxes are like buttons, but they look different.
+<P>
+Finally there are panel classes for data fields. An
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A></TT>
+can be used for viewing or editing a plain text, either single- or multi-line. An
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A></TT>
+can be used for viewing or editing a scalar value or number, or a one-of-many
+choice with individual texts.
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">emTkColorField</A></TT>
+is for viewing or editing colors.
+<P>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkDialog">emTkDialog</A></TT>
+is not a panel but an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A></TT>.
+You can use it to create a typical popup dialog with OK and Cancel buttons, or
+with custom buttons. It also provides a function for creating a simple popup
+dialog which just shows a message. Example:
+<BLOCKQUOTE>
+<TT>emTkDialog::ShowMessage(GetViewContext(),"Message","Hello World!");</TT>
+</BLOCKQUOTE>
+Note that each window requires a parent context (contexts are explained in a later
+chapter). That could also be a window, or a view of a window, or the root
+context. In the example above we set the parent context from
+<TT CLASS=c>GetViewContext()</TT>, which is a method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+<P>
+The following programming example demonstrates the use of some toolkit panels.
+Best is to have it running while trying to understand the code. (Please refer to
+the first chapter if you do not yet know how to run the examples.)
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>ToolkitExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>static void </SPAN>ScalarField2_TextOfValue(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> * Message;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A> * Button;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A> * CheckButton;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Group * RadioGroup;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> * TextField;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * ScalarField1;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * ScalarField2;
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(parent,name,<SPAN CLASS=v>"Toolkit Example"</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN>Message=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"msg"</SPAN>,<SPAN CLASS=v>"Message"</SPAN>);
+        Message-&gt;SetDescription(<SPAN CLASS=v>"This text field shows messages about your input."</SPAN>);
+
+        Button=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"b"</SPAN>,<SPAN CLASS=v>"Button"</SPAN>);
+        AddWakeUpSignal(Button-&gt;GetClickSignal());
+
+        CheckButton=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"cb"</SPAN>,<SPAN CLASS=v>"Check Button"</SPAN>);
+        AddWakeUpSignal(CheckButton-&gt;GetCheckSignal());
+
+        RadioGroup=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Group(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"rg"</SPAN>,<SPAN CLASS=v>"Radio Group"</SPAN>);
+        RadioGroup-&gt;SetBorderScaling(<SPAN CLASS=u>4.0</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb1"</SPAN>,<SPAN CLASS=v>"Radio Box 1"</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb2"</SPAN>,<SPAN CLASS=v>"Radio Box 2"</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb3"</SPAN>,<SPAN CLASS=v>"Radio Box 3"</SPAN>);
+        AddWakeUpSignal(RadioGroup-&gt;GetCheckSignal());
+
+        TextField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"tf"</SPAN>,<SPAN CLASS=v>"Text Field"</SPAN>);
+        TextField-&gt;SetEditable();
+        TextField-&gt;SetMultiLineMode();
+        AddWakeUpSignal(TextField-&gt;GetTextSignal());
+
+        ScalarField1=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf1"</SPAN>,<SPAN CLASS=v>"Scalar Field 1"</SPAN>);
+        ScalarField1-&gt;SetEditable();
+        ScalarField1-&gt;SetMinMaxValues(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>100</SPAN>);
+        ScalarField1-&gt;SetScaleMarkIntervals(<SPAN CLASS=u>50</SPAN>,<SPAN CLASS=u>10</SPAN>,<SPAN CLASS=u>5</SPAN>,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>0</SPAN>);
+        AddWakeUpSignal(ScalarField1-&gt;GetValueSignal());
+
+        ScalarField2=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf2"</SPAN>,<SPAN CLASS=v>"Scalar Field 2"</SPAN>);
+        ScalarField2-&gt;SetEditable();
+        ScalarField2-&gt;SetMinMaxValues(-<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>1</SPAN>);
+        ScalarField2-&gt;SetTextOfValueFunc(ScalarField2_TextOfValue);
+        AddWakeUpSignal(ScalarField2-&gt;GetValueSignal());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::Cycle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Button-&gt;GetClickSignal())) <SPAN CLASS=b>{
+                </SPAN>Message-&gt;SetText(<SPAN CLASS=v>"Button clicked"</SPAN>);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(CheckButton-&gt;GetCheckSignal())) <SPAN CLASS=b>{
+                </SPAN>Message-&gt;SetText(<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(
+                        <SPAN CLASS=v>"Check Button switched %s"</SPAN>,
+                        CheckButton-&gt;IsChecked() ? <SPAN CLASS=v>"on" </SPAN>: <SPAN CLASS=v>"off"
+                </SPAN>));
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(RadioGroup-&gt;GetCheckSignal())) <SPAN CLASS=b>{
+                </SPAN>Message-&gt;SetText(<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(
+                        <SPAN CLASS=v>"Radio Box %d set"</SPAN>,
+                        RadioGroup-&gt;GetCheckIndex() + <SPAN CLASS=u>1
+                </SPAN>));
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(TextField-&gt;GetTextSignal())) <SPAN CLASS=b>{
+                </SPAN>Message-&gt;SetText(<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(
+                        <SPAN CLASS=v>"Text Field changed to \"%s\""</SPAN>,
+                        TextField-&gt;GetText().Get()
+                ));
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(ScalarField1-&gt;GetValueSignal())) <SPAN CLASS=b>{
+                </SPAN>Message-&gt;SetText(<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(
+                        <SPAN CLASS=v>"Scalar Field 1 changed to %d"</SPAN>,
+                        (<SPAN CLASS=t>int</SPAN>)ScalarField1-&gt;GetValue()
+                ));
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(ScalarField2-&gt;GetValueSignal())) <SPAN CLASS=b>{
+                </SPAN>Message-&gt;SetText(<A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A>::Format(
+                        <SPAN CLASS=v>"Scalar Field 2 changed to %d"</SPAN>,
+                        (<SPAN CLASS=t>int</SPAN>)ScalarField2-&gt;GetValue()
+                ));
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>::Cycle();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyPanel::ScalarField2_TextOfValue(
+        <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval, <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(value&lt;<SPAN CLASS=u>0</SPAN>) strcpy(buf,<SPAN CLASS=v>"left"</SPAN>);
+        <SPAN CLASS=k>else if </SPAN>(value==<SPAN CLASS=u>0</SPAN>) strcpy(buf,<SPAN CLASS=v>"middle"</SPAN>);
+        <SPAN CLASS=k>else </SPAN>strcpy(buf,<SPAN CLASS=v>"right"</SPAN>);
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="10"></A>10 Models and contexts</H1>
+Now after telling you so much about programming the front end of an application
+with
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>
+and its derivatives, it is time to introduce the concepts for programming the
+things that work behind the scenes.
+<P>
+Usually, an application manages some data which is shown or edited through the
+panels. There are some reasons why it could be a bad idea to hold the data
+directly in the panels. The most important reason is that there could be
+multiple panels which show the same data. Remember that Eagle Mode supports to
+work with multiple windows, where every window shows the same virtual cosmos.
+This way, every panel of the virtual cosmos can exist multiple times, but they
+should not duplicate the data. Though, sometimes you may have some kind of data
+which shall be duplicated for every window, but which shall still be shared by
+multiple panels within a window (example: view settings like the directory
+sorting in the file manager).
+<P>
+Another reason to program the data outside the panels could be caching, because
+panels can be created and destroyed quite often through zooming and scrolling by
+the user. In addition, the data could lie outside the application, maybe in a
+database or on a remote computer. Then it is required to have an internal data
+interface which can be used by multiple panels. Finally, we need a good concept
+for binding the panels with their data at run-time, in order to keep the
+framework/plugin structure as simple as possible.
+<P>
+All those problems of sharing, caching, interfacing and late binding can be
+solved quite easily with the data class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>,
+its container class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A></TT>,
+and its referrer class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A></TT>.
+That is what this chapter is about.
+<P>
+The idea is to program the data or data interface in a derivative of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>.
+Either you could fill it with public member variables which make up the data,
+or you could define nice methods in order to create an abstract data type. You
+have all freedom there. But there is one important peculiarity of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>:
+Constructors and destructors should always be kept protected. Instead of public
+constructors and destructors, a model class always has a public static method
+named <TT CLASS=c>Acquire</TT>, which is called if one wants to get a reference
+to a model. <TT CLASS=c>Acquire</TT> searches for an already existing model by
+an identification, and if does not find one, it creates and registers a new
+model.
+<P>
+The identification of a model consists of three things:
+<UL>
+<LI>The final class of the model (not any base class!).</LI>
+<LI>The context of the model (instance of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A></TT>).
+</LI>
+<LI>The name of the model (any character string).</LI>
+</UL>
+In order to hand the whole identification to the <TT CLASS=c>Acquire</TT> call,
+the declaration of <TT CLASS=c>Acquire</TT> typically looks like in the
+following example:
+<P>
+<PRE><TT>  class MyModel : public emModel {
+  public:
+      static emRef&lt;MyModel&gt; Acquire(
+          emContext & context, const emString & name, bool common=true
+      );
+      ...
+</TT></PRE>
+<P>
+The additional argument <TT CLASS=c>common</TT> allows to create a non-common
+model which is not shared. But that is needed very seldom, and therefore many
+derivatives do not have that argument. Some derivatives also suppress the
+<TT CLASS=c>name</TT> argument, and they may requires a certain context class.
+<P>
+Because the implementations of <TT CLASS=c>Acquire</TT> are so similar, there
+are two macros in
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>
+which can help there: <TT CLASS=c>EM_IMPL_ACQUIRE</TT> and
+<TT CLASS=c>EM_IMPL_ACQUIRE_COMMON</TT>. Therewith a typical implementation
+looks like this:
+<P>
+<PRE><TT>  static emRef&lt;MyModel&gt; MyModel::Acquire(
+      emContext & context, const emString & name, bool common
+  )
+  {
+      EM_IMPL_ACQUIRE(MyModel,context,name,common)
+  }
+</TT></PRE>
+<P>
+After you have programmed your data in a model and defined an
+<TT CLASS=c>Acquire</TT> method, you must decide in which
+<TT><A CLASS=c HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A></TT>
+your model should live. If you want the model to be shared by all panels, it
+would have to be the instance of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emContext_h.html#emRootContext">emRootContext</A></TT>.
+This is the context for things that could also be seen as "global variables",
+and it can be get by calling <TT CLASS=c>GetRootContext()</TT> in all high-level
+classes. Another possible context would be the view or the window in which your
+panel lives
+(<TT><A CLASS=c HREF="CppApiRef/emCore_emView_h.html#emView">emView</A></TT>
+and
+<TT><A CLASS=c HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A></TT>
+are derivatives of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A></TT>).
+You can get them by calling <TT CLASS=c>GetView()</TT> or
+<TT CLASS=c>GetWindow()</TT> in
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+<P>
+Finally you may want your model to have a cache effect. Therefore you can simply
+call the method <TT CLASS=c>SetMinCommonLifetime(seconds)</TT> of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>.
+It tells how long the model shall be hold by the context when there are no
+referrers. Normally a model is deleted as soon as the last reference (of class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A></TT>) is
+destructed.
+<P>
+That is also the reason why you should normally not use any other pointer or
+reference type than
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A></TT>
+for models. But if you want a weak reference, you can use
+<TT><A CLASS=c HREF="CppApiRef/emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A></TT>.
+<P>
+The API also provides some useful derivatives of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>.
+One is
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFileModel_h.html#emFileModel">emFileModel</A></TT>,
+which is a powerful base class for file interfaces. Another is the template
+class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emVarModel_h.html#emVarModel">emVarModel</A></TT>,
+which allows to acquire and use a one-variable model without programming a model
+class. Below is a diagram that shows the class hierarchies of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A></TT>
+and
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>,
+and it completes the hierarchy of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>
+(when seeing it together with the chart from the toolkit chapter).
+<P>
+<CENTER>
+<IMG SRC="images/ModelClassesAndMore.png" BORDER=0 WIDTH=701 HEIGHT=375 USEMAP="#mcmap">
+<MAP NAME="mcmap">
+<AREA COORDS="276,2,341,24" HREF="CppApiRef/emCore_emEngine_h.html#emEngine">
+<AREA COORDS="71,53,141,74" HREF="CppApiRef/emCore_emContext_h.html#emContext">
+<AREA COORDS="9,110,107,132" HREF="CppApiRef/emCore_emContext_h.html#emRootContext">
+<AREA COORDS="124,110,176,132" HREF="CppApiRef/emCore_emView_h.html#emView">
+<AREA COORDS="115,169,186,191" HREF="CppApiRef/emCore_emWindow_h.html#emWindow">
+<AREA COORDS="278,101,338,123" HREF="CppApiRef/emCore_emModel_h.html#emModel">
+<AREA COORDS="435,168,514,190" HREF="CppApiRef/emCore_emVarModel_h.html#emVarModel">
+<AREA COORDS="407,197,486,219" HREF="CppApiRef/emCore_emSigModel_h.html#emSigModel">
+<AREA COORDS="356,227,455,249" HREF="CppApiRef/emCore_emVarSigModel_h.html#emVarSigModel">
+<AREA COORDS="48,351,147,372" HREF="CppApiRef/emCore_emConfigModel_h.html#emConfigModel">
+<AREA COORDS="267,270,349,291" HREF="CppApiRef/emCore_emFileModel_h.html#emFileModel">
+<AREA COORDS="179,351,282,372" HREF="CppApiRef/emCore_emRecFileModel_h.html#emRecFileModel">
+<AREA COORDS="311,351,428,372" HREF="CppApiRef/emCore_emImageFile_h.html#emImageFileModel">
+<AREA COORDS="8,238,55,260" HREF="CppApiRef/emCore_emRec_h.html#emRec">
+<AREA COORDS="525,53,583,75" HREF="CppApiRef/emCore_emPanel_h.html#emPanel">
+<AREA COORDS="432,110,540,132" HREF="CppApiRef/emCore_emSubViewPanel_h.html#emSubViewPanel">
+<AREA COORDS="502,270,580,291" HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">
+<AREA COORDS="480,350,595,372" HREF="CppApiRef/emCore_emImageFile_h.html#emImageFilePanel">
+<AREA COORDS="609,207,688,229" HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">
+<AREA COORDS="610,115,698,137" HREF="CppApiRef/emCore_emErrorPanel_h.html#emErrorPanel">
+</MAP>
+<P>
+<I>Class chart of contexts, models and panels.</I>
+</CENTER>
+<P>
+Now to the programming example at the end of this chapter. When it is running,
+it shows a window with a group panel which has a button and a scalar field. The
+scalar field allows to view and edit an integer variable, which lies in a model
+in the root context. The button allows to create additional windows which show
+the same things. The important effect is that if the user sets the scalar field
+of one window to another value, the scalar fields of the other windows follow
+that change automatically so that all scalar field always show the same value.
+<P>
+The code of the example consists of two classes: a model class
+(<TT CLASS=c>MyModel</TT>) and a panel class (<TT CLASS=c>MyPanel</TT>).
+The model class simply contains an integer as the data. It defines a nice
+interface with a getter and setter, and with a signal for tracking changes.
+The panel refers to that model through an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A></TT><TT CLASS=c>&lt;MyModel&gt;</TT>,
+and it creates or finds the model in the root context by calling
+<TT CLASS=c>MyModel::Acquire(GetRootContext(),"test")</TT>. Quiz: What happens
+if you replace <TT CLASS=c>GetRootContext()</TT> by <TT CLASS=c>GetView()</TT>
+in that call? (Answer: each window gets its own <TT CLASS=c>MyModel</TT> and so
+the scalar field values are no longer the same).
+<P>
+Note that the example could be shortened by sparing the definition of
+<TT CLASS=c>MyModel</TT> and using
+<TT><A CLASS=c HREF="CppApiRef/emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A></TT>
+instead, but only as long as the data is just a single variable.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>ModelExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d>
+<SPAN CLASS=c>//================================== MyModel ===================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>MyModel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;MyModel&gt; Acquire(
+                <A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common=<SPAN CLASS=k>true
+        </SPAN>);
+        <SPAN CLASS=t>int </SPAN>GetData() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetData(<SPAN CLASS=t>int </SPAN>data);
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetChangeSignal() <SPAN CLASS=t>const</SPAN>;
+<SPAN CLASS=t>protected</SPAN>:
+        MyModel(<A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>int </SPAN>Data;
+        <A CLASS=l HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A> ChangeSignal;
+<SPAN CLASS=b>}</SPAN>;
+
+<A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;MyModel&gt; MyModel::Acquire(
+        <A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_IMPL_ACQUIRE(MyModel,context,name,common)
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>int </SPAN>MyModel::GetData() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>MyModel::SetData(<SPAN CLASS=t>int </SPAN>data)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data!=data) <SPAN CLASS=b>{
+                </SPAN>Data=data;
+                Signal(ChangeSignal);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emSignal_h.html#emSignal">emSignal</A> &amp; MyModel::GetChangeSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ChangeSignal;
+<SPAN CLASS=b>}
+
+</SPAN>MyModel::MyModel(<A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A>(context,name)
+<SPAN CLASS=b>{
+        </SPAN>Data=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//================================== MyPanel ===================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+<SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;MyModel&gt; Model;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A> * BtNewWin;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SField;
+<SPAN CLASS=b>}</SPAN>;
+
+MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(parent,name,<SPAN CLASS=v>"Model Example"</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN>Model=MyModel::Acquire(GetRootContext(),<SPAN CLASS=v>"test"</SPAN>);
+        AddWakeUpSignal(Model-&gt;GetChangeSignal());
+
+        BtNewWin=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"bnw"</SPAN>,<SPAN CLASS=v>"New Window"</SPAN>);
+        AddWakeUpSignal(BtNewWin-&gt;GetClickSignal());
+
+        SField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf"</SPAN>,<SPAN CLASS=v>"Data"</SPAN>);
+        SField-&gt;SetEditable();
+        SField-&gt;SetValue(Model-&gt;GetData());
+        AddWakeUpSignal(SField-&gt;GetValueSignal());
+
+        SetSpace(<SPAN CLASS=u>0.2</SPAN>,<SPAN CLASS=u>0.8</SPAN>,<SPAN CLASS=u>0.2</SPAN>,<SPAN CLASS=u>0.8</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::Cycle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(BtNewWin-&gt;GetClickSignal())) <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A> * window=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A>(GetRootContext());
+                window-&gt;SetWindowFlags(<A CLASS=l HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A>::WF_AUTO_DELETE);
+                window-&gt;SetViewFlags(<A CLASS=l HREF="CppApiRef/emCore_emView_h.html#emView">emView</A>::VF_ROOT_SAME_TALLNESS);
+                <SPAN CLASS=k>new </SPAN>MyPanel(window,<SPAN CLASS=v>"root"</SPAN>);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Model-&gt;GetChangeSignal())) <SPAN CLASS=b>{
+                </SPAN>SField-&gt;SetValue(Model-&gt;GetData());
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(SField-&gt;GetValueSignal())) <SPAN CLASS=b>{
+                </SPAN>Model-&gt;SetData((<SPAN CLASS=t>int</SPAN>)SField-&gt;GetValue());
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>::Cycle();
+<SPAN CLASS=b>}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+
+<H1><A NAME="11"></A>11 Plugin interface</H1>
+This chapter finally explains the plugin interface and brings a complete example
+for that. The name of the interface is <TT CLASS=c>emFpPlugin</TT>. That is a
+shortcut for "Eagle Mode File Panel Plugin", and it shall say that a plugin of
+this type creates a panel which acts as a user interface for viewing or editing
+a file. Each plugin is assigned to a file name ending, and so Eagle Mode knows
+which plugin to take for which file.
+<P>
+Thus, before programming an <TT CLASS=c>emFpPlugin</TT>, you have to thing about
+what type of file you want to interface. A picture viewer would interface
+picture files, and a video player would interface video files - that is easy.
+But often you may have to invent an individual file type for the plugin. For
+example, a game could interface a special save game file in order to make the
+game state persistent. However, if you do not need any file to be interfaced by
+the plugin, you would have to invent at least a unique file name ending and
+create an empty file with it.
+<P>
+The next step would be to program the plugin itself. It must be a shared link
+library in the <TT CLASS=c>$EM_DIR/lib</TT> directory, and it must provide a
+function of type
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A></TT>.
+That function is called by Eagle Mode when a new panel shall be created by the
+plugin. The function must have C linkage, not C++. Therefore the function has to
+be defined in an <TT CLASS=c>extern "C" </TT>block. The function must have a
+unique name and it must have exactly the arguments described in
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A></TT>.
+Please check that carefully, because the interface is not type-safe there.
+<P>
+Furthermore, a small configuration file must be written. It tells at least about
+the library and the file name ending of interfaced files. The configuration
+file format is described in the
+<A HREF="AdvancedConfiguration.html#emFpPlugin">emFpPlugin chapter</A> of the
+<A HREF="AdvancedConfiguration.html">Advanced Configuration document</A>.
+Please read there. Within the program, such a configuration is represented by an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A></TT>.
+<P>
+Finally, if the plugin shall be shown in the virtual cosmos, a cosmos item must
+be written. This is described in the
+<A HREF="AdvancedConfiguration.html#vcconfig">chapter about virtual cosmos configuration</A> in the
+<A HREF="AdvancedConfiguration.html">Advanced Configuration document</A>.
+<P>
+<I><B>Now to the plugin example:</B></I>
+<P>
+The plugin example is a small vector drawing program, in which the user can draw
+just lines. The drawing is shown in the virtual cosmos, and the lines are drawn
+by dragging with the left mouse button. There is also a control panel with a
+little help text, a color field for setting the color of the next line to be
+drawn, and a button in a tunnel for clearing the drawing. The drawing is
+automatically stored in a file in order to keep all changes persistent. The
+plugin and the file format is given the name <TT CLASS=c>PlEx</TT> (shortcut for
+<B>Pl</B>ugin <B>Ex</B>ample).
+<P>
+The source files of the plugin can be found in
+<TT>$EM_DIR/doc/examples/CppApiExamples/PluginExample</TT>, but they are also
+shown more below in this document. First, here comes an overview of all the
+files:
+<BLOCKQUOTE><TABLE BORDER=1 CELLPADDING=3 CELLSPACING=1>
+<TR>
+  <TD><I><B>File</B></I></TD>
+  <TD><I><B>Description</B></I></TD>
+</TR>
+<TR>
+  <TD VALIGN=TOP NOWRAP><TT>src/PlEx/PlEx.cpp</TT></TD>
+  <TD>C++ source file.</TD>
+</TR>
+<TR>
+  <TD VALIGN=TOP NOWRAP><TT>makers/PlEx.maker.pm</TT></TD>
+  <TD>Maker script that compiles and links the source.</TD>
+</TR>
+<TR>
+  <TD VALIGN=TOP NOWRAP><TT>etc/emCore/FpPlugins/PlEx.emFpPlugin</TT></TD>
+  <TD>Plugin configuration file.</TD>
+</TR>
+<TR>
+  <TD VALIGN=TOP NOWRAP><TT>etc/emMain/VcItems/PlEx1.emVcItem</TT></TD>
+  <TD>Virtual cosmos item configuration.</TD>
+</TR>
+<TR>
+  <TD VALIGN=TOP NOWRAP><TT>etc/emMain/VcItemFiles/PlEx1.PlEx</TT></TD>
+  <TD>Virtual cosmos item file.</TD>
+</TR>
+<TR>
+  <TD VALIGN=TOP NOWRAP><TT>
+  etcw/emCore/FpPlugins/PlEx.emFpPlugin<BR>
+  etcw/emMain/VcItems/PlEx1.emVcItem<BR>
+  etcw/emMain/VcItemFiles/PlEx1.PlEx
+  </TT></TD>
+  <TD>These files are identical with the above in <TT>etc</TT>, because our
+	example is 100% portable (<TT>etc</TT> is for UNIX/Linux, <TT>etcw</TT> is for
+  Windows).</TD>
+</TR>
+</TABLE></BLOCKQUOTE>
+<P>
+The Eagle Mode project is made so that plugin installation does not need to
+modify any existing files. It just requires to add files. So if you want to
+install the plugin example and play with it, simply copy the plugin source files
+with their relative paths into the directory tree of the Eagle Mode source
+package, and build, install, and run Eagle Mode as usual. You should find the
+drawing in the virtual cosmos then.
+<P>
+The rest of this chapter describes and shows all the plugin source files in
+detail. The description always comes before the file. First, we have the C++
+source file. It has four sections and it uses some API elements not yet
+described. Therefore it requires some more words:
+<P>
+
+<I><B>PlExFileModel</B></I>
+<P>
+The first class in the C++ source file is <TT CLASS=c>PlExFileModel</TT>.
+It defines a file format for the drawing and provides an interface for
+loading, holding and saving the file. It is derived from the classes
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A></TT>
+and
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A></TT>
+by multiple inheritance. This requires a few explanations:
+<P>
+"Rec" is a shortcut for "recordable data type" or just "record". The header file
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html">emRec.h</A></TT>
+contains lots of classes which can be used to define data structures that
+can easily be saved and loaded to and from files (it could be seen as
+a replacement for XML). For details, please read the comments of the base class
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emRec">emRec</A></TT> first.
+<P>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A></TT>
+is an <TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emRec">emRec</A></TT>
+that stands for a structured data type (like a C <TT CLASS=c>struct</TT>).
+<TT CLASS=c>PlExFileModel</TT> is derived from it in order to give it two
+members: an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emColorRec">emColorRec</A></TT>
+for the current color, and an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emTArrayRec">emTArrayRec</A></TT>
+for the array of lines. And for the elements of that array,
+<TT CLASS=c>PlExFileModel</TT> defines the member class
+<TT CLASS=c>LineRec</TT> as another
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A></TT>.
+<P>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFileModel_h.html#emFileModel">emFileModel</A></TT>
+is an abstract
+<TT><A CLASS=c HREF="CppApiRef/emCore_emModel_h.html#emModel">emModel</A></TT>
+that can be used to interface files. It does not define the file format, but
+it provides everything else: loading states, automatic loading, parallelism,
+priorities, memory limits.
+<P>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A></TT>
+is simply an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFileModel_h.html#emFileModel">emFileModel</A></TT>
+that uses an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emRec">emRec</A></TT>
+as the file format definition. One just has to give it the
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emRec">emRec</A></TT>
+by calling its method <TT CLASS=c>PostConstruct(rec)</TT>, and the file model
+is complete. <TT CLASS=c>PlExFileModel</TT> gives itself by
+calling <TT CLASS=c>PostConstruct(*this)</TT> because - you remember - it is
+also a derivative of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A></TT>.
+<P>
+
+<I><B>PlExControlPanel</B></I>
+<P>
+The class <TT CLASS=c>PlExControlPanel</TT> is for the control panel. It uses
+the toolkit classes to show a help text, a color field, and a clear button. It
+connects the color field and the clear button to an
+<TT CLASS=c>PlExFileModel</TT> through listening to signals of both ends and
+reacting accordingly.
+<P>
+
+<I><B>PlExFilePanel</B></I>
+<P>
+A drawing itself is shown and edited through an instance of
+<TT CLASS=c>PlExFilePanel</TT>. That class uses many concepts already explained
+in this tutorial, but there is also something new:
+<P>
+<TT CLASS=c>PlExFilePanel</TT> is derived from
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A></TT>,
+because the counterpart, <TT CLASS=c>PlExFileModel</TT>, is indirectly derived from
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFileModel_h.html#emFileModel">emFileModel</A></TT>.
+An
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A></TT>
+solves all the problems of managing an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A></TT>,
+showing the progress of loading the file, displaying error messages, and so on.
+Therefore the implementation of <TT CLASS=c>PlExFilePanel</TT> only has to care
+about situations where the file model is in a fine loaded state.
+This can be asked with the <TT CLASS=c>IsVFSGood()</TT> method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A></TT>.
+A signal for that state can be get with the <TT CLASS=c>GetVirFileStateSignal()</TT>
+method of the same class. See that the implementation of
+<TT CLASS=c>PlExFilePanel</TT> calls
+<TT CLASS=c>IsVFSGood()</TT> at the beginnings of <TT CLASS=c>Input</TT>,
+<TT CLASS=c>IsOpaque</TT>, <TT CLASS=c>Paint</TT> and
+<TT CLASS=c>CreateControlPanel</TT>. If the result is false,
+it simply forwards the calls to the original implementation of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A></TT>
+without doing anything else.
+<P>
+Another new point is the overloading of the <TT CLASS=c>CreateControlPanel</TT>
+method of
+<TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT>.
+It is called by Eagle Mode when the panel gets active in order to create and
+return a control panel for it. Returning <TT CLASS=c>NULL</TT> means to have
+no control panel. A change of the results can be indicated by calling
+<TT CLASS=c>InvalidateControlPanel()</TT> so that the old control panel is
+deleted and that <TT CLASS=c>CreateControlPanel</TT> is called again.
+Therefore <TT CLASS=c>PlExFilePanel</TT> calls
+<TT CLASS=c>InvalidateControlPanel()</TT> on every change of
+<TT CLASS=c>IsVFSGood()</TT>. It does that in the implementation of
+<TT CLASS=c>Cycle()</TT>.
+<P>
+
+<I><B>emPlExFpPluginFunc</B></I>
+<P>
+The last section of the C++ source file defines the function
+<TT CLASS=c>emPlExFpPluginFunc</TT> which matches the
+<TT><A CLASS=c HREF="CppApiRef/emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A></TT>
+function type. It simply acquires a <TT CLASS=c>PlExFileModel</TT> in the root
+context for a given file path and creates an <TT CLASS=c>PlExFilePanel</TT> on
+that model.
+<P>
+
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>src/PlEx/PlEx.cpp</B></TT></SMALL></TD></TR>
+<TR><TD><PRE><TT><SPAN CLASS=d><SPAN CLASS=p>#include &lt;<A CLASS=f HREF="CppApiRef/emCore_emRecFileModel_h.html">emCore/emRecFileModel.h</A>&gt;
+#include &lt;<A CLASS=f HREF="CppApiRef/emCore_emFilePanel_h.html">emCore/emFilePanel.h</A>&gt;
+#include &lt;<A CLASS=f HREF="CppApiRef/emCore_emToolkit_h.html">emCore/emToolkit.h</A>&gt;
+#include &lt;<A CLASS=f HREF="CppApiRef/emCore_emFpPlugin_h.html">emCore/emFpPlugin.h</A>&gt;
+
+
+</SPAN><SPAN CLASS=c>//=============================== PlExFileModel ================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>PlExFileModel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>, <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A>
+<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; Acquire(
+                <A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common=<SPAN CLASS=k>true
+        </SPAN>);
+
+        <SPAN CLASS=t>virtual const char </SPAN>* GetFormatName() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>LineRec : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                LineRec();
+                <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> X1,Y1,X2,Y2;
+                <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> Thickness;
+                <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emColorRec">emColorRec</A> Color;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emColorRec">emColorRec</A> CurrentColor;
+        <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;LineRec&gt; Lines;
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        PlExFileModel(<A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; PlExFileModel::Acquire(
+        <A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_IMPL_ACQUIRE(PlExFileModel,context,name,common)
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>const char </SPAN>* PlExFileModel::GetFormatName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><SPAN CLASS=v>"PlEx"</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN>PlExFileModel::LineRec::LineRec()
+        : <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A>(),
+        X1(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"X1"</SPAN>),
+        Y1(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"Y1"</SPAN>),
+        X2(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"X2"</SPAN>),
+        Y2(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"Y2"</SPAN>),
+        Thickness(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"Thickness"</SPAN>),
+        Color(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"Color"</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN>PlExFileModel::PlExFileModel(<A CLASS=l HREF="CppApiRef/emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
+        : <A CLASS=l HREF="CppApiRef/emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>(context,name), <A CLASS=l HREF="CppApiRef/emCore_emRec_h.html#emStructRec">emStructRec</A>(),
+        CurrentColor(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"CurrentColor"</SPAN>),
+        Lines(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"Lines"</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN>PostConstruct(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//============================== PlExControlPanel ==============================
+
+</SPAN><SPAN CLASS=t>class </SPAN>PlExControlPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        PlExControlPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name,
+                         <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; model);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+<SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; Model;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">emTkColorField</A> * ColorField;
+        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A> * ClearButton;
+<SPAN CLASS=b>}</SPAN>;
+
+PlExControlPanel::PlExControlPanel(
+        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; model
+)
+        : <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(parent,name,<SPAN CLASS=v>"PlEx"</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN>Model=model;
+        SetPrefChildTallness(<SPAN CLASS=u>0.2</SPAN>);
+        SetPrefChildTallness(<SPAN CLASS=u>0.4</SPAN>,<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkLabel">emTkLabel</A>(
+                <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"about"</SPAN>,<SPAN CLASS=v>"About"</SPAN>),
+                <SPAN CLASS=v>"about"</SPAN>,
+                <SPAN CLASS=v>"This is PlEx - a plugin example.\n"
+                "It allows to draw lines with the\n"
+                "left mouse button.\n"
+        </SPAN>);
+        ColorField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"color"</SPAN>,<SPAN CLASS=v>"Color"</SPAN>);
+        ColorField-&gt;SetColor(Model-&gt;CurrentColor);
+        ColorField-&gt;SetEditable();
+        ClearButton=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A>(
+                <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"tunnel"</SPAN>,<SPAN CLASS=v>"Clear"</SPAN>),
+                <SPAN CLASS=v>"clear"</SPAN>,<SPAN CLASS=v>"Clear"
+        </SPAN>);
+        AddWakeUpSignal(ColorField-&gt;GetColorSignal());
+        AddWakeUpSignal(ClearButton-&gt;GetClickSignal());
+        AddWakeUpSignal(Model-&gt;GetChangeSignal());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>PlExControlPanel::Cycle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(ColorField-&gt;GetColorSignal())) <SPAN CLASS=b>{
+                </SPAN>Model-&gt;CurrentColor.Set(ColorField-&gt;GetColor());
+                Model-&gt;Save(<SPAN CLASS=k>true</SPAN>);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(ClearButton-&gt;GetClickSignal())) <SPAN CLASS=b>{
+                </SPAN>Model-&gt;Lines.SetCount(<SPAN CLASS=u>0</SPAN>);
+                Model-&gt;Save(<SPAN CLASS=k>true</SPAN>);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Model-&gt;GetChangeSignal())) <SPAN CLASS=b>{
+                </SPAN>ColorField-&gt;SetColor(Model-&gt;CurrentColor);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>::Cycle();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//=============================== PlExFilePanel ================================
+
+</SPAN><SPAN CLASS=t>class </SPAN>PlExFilePanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        PlExFilePanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name,
+                      <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; model);
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> * CreateControlPanel(ParentArg parent,
+                                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; Model;
+        <SPAN CLASS=t>bool </SPAN>Drawing;
+        <SPAN CLASS=t>double </SPAN>X1,Y1,X2,Y2;
+        <SPAN CLASS=t>double </SPAN>Thickness;
+        <SPAN CLASS=t>bool </SPAN>ControlPanelShown;
+<SPAN CLASS=b>}</SPAN>;
+
+PlExFilePanel::PlExFilePanel(
+        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name,
+        <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; model
+)
+        : <A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>(parent,name,model)
+<SPAN CLASS=b>{
+        </SPAN>Model=model;
+        Drawing=<SPAN CLASS=k>false</SPAN>;
+        ControlPanelShown=<SPAN CLASS=k>false</SPAN>;
+        AddWakeUpSignal(GetVirFileStateSignal());
+        AddWakeUpSignal(Model-&gt;GetChangeSignal());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>PlExFilePanel::Cycle()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(GetVirFileStateSignal())) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(ControlPanelShown!=IsVFSGood()) <SPAN CLASS=b>{
+                        </SPAN>ControlPanelShown=IsVFSGood();
+                        InvalidateControlPanel();
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Model-&gt;GetChangeSignal())) <SPAN CLASS=b>{
+                </SPAN>InvalidatePainting();
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::Cycle();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>PlExFilePanel::Input(
+        <A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emInput_h.html#emInputState">emInputState</A> &amp; state, <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsVFSGood()) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(event.IsKey(EM_KEY_LEFT_BUTTON)) <SPAN CLASS=b>{
+                        </SPAN>Drawing=<SPAN CLASS=k>true</SPAN>;
+                        X1=X2=mx;
+                        Y1=Y2=my;
+                        Thickness=<SPAN CLASS=u>5.0</SPAN>/(GetViewedWidth()+GetViewedHeight());
+                        InvalidatePainting();
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(Drawing &amp;&amp; (X2!=mx || Y2!=mx)) <SPAN CLASS=b>{
+                        </SPAN>X2=mx;
+                        Y2=my;
+                        InvalidatePainting();
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(Drawing &amp;&amp; !state.Get(EM_KEY_LEFT_BUTTON)) <SPAN CLASS=b>{
+                        </SPAN>Drawing=<SPAN CLASS=k>false</SPAN>;
+                        <SPAN CLASS=t>int </SPAN>i=Model-&gt;Lines.GetCount();
+                        Model-&gt;Lines.SetCount(i+<SPAN CLASS=u>1</SPAN>);
+                        Model-&gt;Lines[i].X1=X1;
+                        Model-&gt;Lines[i].Y1=Y1;
+                        Model-&gt;Lines[i].X2=X2;
+                        Model-&gt;Lines[i].Y2=Y2;
+                        Model-&gt;Lines[i].Thickness=Thickness;
+                        Model-&gt;Lines[i].Color=Model-&gt;CurrentColor.Get();
+                        Model-&gt;Save(<SPAN CLASS=k>true</SPAN>);
+                        InvalidatePainting();
+                <SPAN CLASS=b>}
+        }
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::Input(event,state,mx,my);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>bool </SPAN>PlExFilePanel::IsOpaque()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsVFSGood()) <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=k>else return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::IsOpaque();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>void </SPAN>PlExFilePanel::Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A> canvasColor)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsVFSGood()) <SPAN CLASS=b>{
+                </SPAN>painter.Clear(<A CLASS=l HREF="CppApiRef/emCore_emColor_h.html#emColor">emColor</A>::WHITE,canvasColor);
+                <SPAN CLASS=k>for </SPAN>(<SPAN CLASS=t>int </SPAN>i=<SPAN CLASS=u>0</SPAN>; i&lt;Model-&gt;Lines.GetCount(); i++) <SPAN CLASS=b>{
+                        </SPAN>painter.PaintLine(
+                                Model-&gt;Lines[i].X1,
+                                Model-&gt;Lines[i].Y1,
+                                Model-&gt;Lines[i].X2,
+                                Model-&gt;Lines[i].Y2,
+                                Model-&gt;Lines[i].Thickness,
+                                <A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A>::LC_ROUND,<A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A>::LC_ROUND,
+                                Model-&gt;Lines[i].Color
+                        );
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(Drawing) <SPAN CLASS=b>{
+                        </SPAN>painter.PaintLine(
+                                X1,Y1,X2,Y2,Thickness,
+                                <A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A>::LC_ROUND,<A CLASS=l HREF="CppApiRef/emCore_emPainter_h.html#emPainter">emPainter</A>::LC_ROUND,
+                                Model-&gt;CurrentColor
+                        );
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::Paint(painter,canvasColor);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> * PlExFilePanel::CreateControlPanel(
+        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(IsVFSGood()) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return new </SPAN>PlExControlPanel(parent,name,Model);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::CreateControlPanel(parent,name);
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=c>//============================== PlExFpPluginFunc ==============================
+
+</SPAN><SPAN CLASS=t>extern </SPAN><SPAN CLASS=v>"C" </SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A> * PlExFpPluginFunc(
+                <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; path, <A CLASS=l HREF="CppApiRef/emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * plugin,
+                <A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> * errorBuf
+        )
+        <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return new </SPAN>PlExFilePanel(
+                        parent,
+                        name,
+                        PlExFileModel::Acquire(parent.GetRootContext(),path)
+                );
+        <SPAN CLASS=b>}
+}
+</SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+<P>
+The next file we need, is the maker script. It is called by the make system to
+compile and link the source in order to create the shared library. For details
+about this, please read the <A HREF="MakeSystem.html">Make System document</A>.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>makers/PlEx.maker.pm</B></TT></SMALL></TD></TR>
+<TR><TD><PRE><TT>package PlEx;
+
+use strict;
+use warnings;
+
+sub GetDepedencies
+{
+	return ('emCore');
+}
+
+sub IsEssential
+{
+	return 0;
+}
+
+sub GetFileHandlingRules
+{
+	return ();
+}
+
+sub GetExtraBuildOptions
+{
+	return ();
+}
+
+sub Build
+{
+	shift;
+	my %options=@_;
+
+	system(
+		@{$options{'unicc_call'}},
+		"--math",
+		"--rtti",
+		"--exceptions",
+		"--bin-dir"       , "bin",
+		"--lib-dir"       , "lib",
+		"--obj-dir"       , "obj",
+		"--inc-search-dir", "include",
+		"--link"          , "emCore",
+		"--type"          , "dynlib",
+		"--name"          , "PlEx",
+		"src/PlEx/PlEx.cpp"
+	)==0 or return 0;
+
+	return 1;
+}
+</TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+<P>
+Furthermore, here comes the plugin configuration file. It assigns the plugin to
+the file name ending <TT CLASS=c>.PlEx</TT>. The plugin configuration file
+format is described in the
+<A HREF="AdvancedConfiguration.html#emFpPlugin">emFpPlugin chapter</A> of the
+<A HREF="AdvancedConfiguration.html">Advanced Configuration document</A>.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>etc</B>[<B>w</B>]<B>/emCore/FpPlugins/PlEx.emFpPlugin</B></TT></SMALL></TD></TR>
+<TR><TD><PRE><TT>#%rec:emFpPlugin%#
+
+FileTypes = { ".PlEx" }
+Priority = 1.0
+Library = "PlEx"
+Function = "PlExFpPluginFunc"
+</TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+<P>
+Next is the cosmos item configuration file. It tells where and how the plugin
+shall appear in the virtual cosmos, and which file to interface. Note the
+last line: <TT CLASS=c>CopyToUser = true</TT>. It says that the file shall
+be copied into a configuration directory owned by the user, because in the
+original place, the user, and thus the plugin, may not have permission to
+modify it. For details of the cosmos item file format see the
+<A HREF="AdvancedConfiguration.html#vcconfig">chapter about virtual cosmos configuration</A> in the
+<A HREF="AdvancedConfiguration.html">Advanced Configuration document</A>.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>etc</B>[<B>w</B>]<B>/emMain/VcItems/PlEx1.emVcItem</B></TT></SMALL></TD></TR>
+<TR><TD><PRE><TT>#%rec:emVirtualCosmosItem%#
+
+Title = "Plugin Example (PlEx)"
+PosX  = 0.3
+PosY  = 0.28
+Width = 0.05
+ContentTallness = 0.7
+BorderScaling = 2.0
+BackgroundColor = "#fff"
+BorderColor = "#c0a"
+TitleColor = "#ff0"
+FileName = "PlEx1.PlEx"
+CopyToUser = true
+</TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+<P>
+Last but not least, here comes the file which contains the initial drawing (a
+single blue line). On first start, it is copied automatically into a user
+directory, where it is read and modified by the plugin. The file has an
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRec_h.html#emRec">emRec</A></TT> format
+as defined by the <TT CLASS=c>PlExFileModel</TT> class. Only the first line is
+required (i.e. <TT CLASS=c>#%rec:PlEx%#</TT>), which tells about the file format.
+Everything else is optional and has defaults.
+<P>
+<CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
+<TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>etc</B>[<B>w</B>]<B>/emMain/VcItemFiles/PlEx1.PlEx</B></TT></SMALL></TD></TR>
+<TR><TD><PRE><TT>#%rec:PlEx%#
+
+CurrentColor = {0 0 0}
+Lines = {
+	{
+		X1 = 0.1
+		Y1 = 0.6
+		X2 = 0.9
+		Y2 = 0.1
+		Thickness = 0.02
+		Color = {0 0 255}
+	}
+}
+</TT></PRE></TD></TR></TABLE></CENTER>
+
+
+
+
+
+
+</BODY>
+</HTML>

@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".ras" }
+Priority = 1.0
+Library = "emRas"
+Function = "emRasFpPluginFunc"

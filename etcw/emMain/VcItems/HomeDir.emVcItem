@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Home Directory"
+
+PosX  = 0.41
+PosY  = 0.45
+Width = 0.18
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 2.5
+
+BackgroundColor = "#BBB"
+BorderColor = "#333"
+TitleColor = "#BBB"
+
+FileName = "HomeDir.emFileLink"
+CopyToUser = false

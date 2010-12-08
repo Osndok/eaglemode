@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emShowStdDlg.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -126,6 +126,10 @@ void emStdDlg::PrintHelp()
 
 
 MAIN_OR_WINMAIN_HERE
+
+#if defined(__GNUC__) && defined(_WIN32)
+	int _CRT_glob=0;
+#endif
 
 static int wrapped_main(int argc, char * argv[])
 {

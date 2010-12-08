@@ -2,6 +2,7 @@ package emFileMan;
 
 use strict;
 use warnings;
+use Config;
 
 sub GetDepedencies
 {
@@ -15,7 +16,12 @@ sub IsEssential
 
 sub GetFileHandlingRules
 {
-	return ();
+	if ($Config{'osname'} eq "MSWin32") {
+		return ('-install:^res/emFileMan/scripts/(cmd-util\.pl|emArch\.sh)$');
+	}
+	else {
+		return ('-install:^res/emFileMan/scripts/(cmd-util\.js|msleep\.js)$');
+	}
 }
 
 sub GetExtraBuildOptions

@@ -1,0 +1,1028 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emPanel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>.h
+//
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emPanel_h
+#define emPanel_h
+
+#ifndef emWindow_h
+#include &lt;<A CLASS=f HREF="emCore_emWindow_h.html">emCore/emWindow.h</A>&gt;
+#endif
+
+
+<A NAME="emPanel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> is the base class for all our panels. An <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> is a
+        // rectangular piece of a user interface which can be zoomed and
+        // scrolled in an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>. Each panel can have child panels that are
+        // making up more details. Child panels are always clipped by their
+        // ancestors. That means, a panel can never be seen outside its parent.
+        //
+        // You should also read the comments on the class <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>. A panel is
+        // always a member of a tree of panels that is owned by a view. There is
+        // no possibility to show a panel in multiple views. In addition, panels
+        // could be created and destroyed very dynamically while the user
+        // navigates around. Therefore, when talking about the classic
+        // model-view concept, an <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> should not be classified like a model.
+        // It belongs the view. Practically this means that a panel object
+        // should not contain any extensive model data. See class <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A> for a
+        // better place.
+        //
+        // Each panel has its own coordinate system. The origin is in the
+        // upper-left corner of the panel, the X axis points to the right and
+        // the Y-axis points to the bottom. The width of the panel is always 1.0
+        // and the height depends on the layout.
+        //
+        // Note that an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> can have such a deep tree of panels, that the
+        // precision of the data type "double" is not sufficient for converting
+        // coordinates to a far ancestor or descendant panel. It is even not
+        // always possible to calculate the view coordinates of a panel.
+        // Therefore the view coordinates got with GetViewedX() and so on are
+        // valid only if the panel is actually viewed (IsViewed()==true).
+        //
+        // There are many more topics around <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>. Just sit back and read the
+        // comments on all the methods.
+        //
+        // *********************************************************************
+        // IMPORTANT HINT FOR THE ADVANCED PROGRAMMER: You should never create a
+        // path of many panels where every panel has IsOpaque()==false and
+        // GetCanvasColor().IsOpaque()==false simultaneously, because it would
+        // mean that the view must paint all the panels on that path when the
+        // last is viewed, and this could make the overall painting too slow.
+        // *********************************************************************
+
+        </SPAN><SPAN CLASS=t>class </SPAN>ParentArgClass <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                <SPAN CLASS=c>// This is just a small helper class for the first argument of
+                // the constructor of <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>. It helps to avoid having multiple
+                // versions of the panel constructor.
+                </SPAN>ParentArgClass(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> &amp; panel);
+                ParentArgClass(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel);
+                ParentArgClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+                ParentArgClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> * view);
+                <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext() <SPAN CLASS=t>const</SPAN>;
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView() <SPAN CLASS=t>const</SPAN>;
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPanel() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * Panel;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>typedef const </SPAN>ParentArgClass &amp; ParentArg;
+                <SPAN CLASS=c>// Type of the first argument of the constructor of <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Construct a panel. Note that if this is not a root panel, the
+                // panel will be initially hidden by being placed outside its
+                // parent panel (call Layout to make visible).
+                // Arguments:
+                //   parent - The parent for this panel. This can be a parent
+                //            panel or a view. If it is a view, this panel will
+                //            be the root panel of that view. Otherwise it will
+                //            be the last child of the parent panel. Note that
+                //            the type ParentArg can be casted implicitly from:
+                //            <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>&amp;, <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>*, <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>&amp; and <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>*. But the
+                //            pointer must never be NULL.
+                //   name   - The name for this panel. There must not be any
+                //            sister panel with the same name.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>();
+                <SPAN CLASS=c>// Destruct this panel. Any child panels are deleted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
+                <SPAN CLASS=c>// This means <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>&gt; is possible.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the name of this panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIdentity() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> EncodeIdentity(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; names);
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; DecodeIdentity(<SPAN CLASS=t>const char </SPAN>* identity);
+                <SPAN CLASS=c>// The identity of a panel consists of all the panel names on
+                // the path from the root panel down to the identified panel.
+                // They are delimited by colons, while colons and backslashes in
+                // the names are quoted by backslashes.
+
+        </SPAN>emUInt64 GetCreationNumber() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This is a generic consecutive identification number for this
+                // panel. It is unique within the view. Whenever a panel is
+                // created, a private counter in the view is incremented by one,
+                // and the panel gets that number as its creation number.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+                <SPAN CLASS=c>// Get the title of this panel. Normally, the title of the
+                // active panel is shown as the title of the view. The default
+                // implementation of this method asks the parent panel. See
+                // also: InvalidateTitle()
+
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView();
+                <SPAN CLASS=c>// Get the view.
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; GetViewContext();
+                <SPAN CLASS=c>// Get the context of the view, this is just like GetView()
+                // because <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> is an <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>. (Yes, this method is
+                // unnecessary)
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+                <SPAN CLASS=c>// Get the root context (don't confuse with root panel).
+
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * GetWindow();
+        <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * GetScreen();
+                <SPAN CLASS=c>// These are short cuts for GetView().GetWindow() and
+                // GetView().GetScreen().
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetParent();
+                <SPAN CLASS=c>// Get the parent panel. Returns NULL if this is the root panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetChild(<SPAN CLASS=t>const char </SPAN>* name);
+                <SPAN CLASS=c>// Search a child panel by name. Returns NULL if there is no
+                // such panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFirstChild();
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetLastChild();
+                <SPAN CLASS=c>// Get the first or last child panel. The first child panel is
+                // painted at first, and the last one is painted at last (first
+                // means bottom, last means top). Returns NULL if this panel has
+                // no children.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPrev();
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetNext();
+                <SPAN CLASS=c>// Get the previous or next panel within the list of the
+                // parent's list of children. It is painted before or after this
+                // panel, respectively. Returns NULL if this is the first or
+                // last child panel, respectively.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>BeFirst();
+        <SPAN CLASS=t>void </SPAN>BeLast();
+        <SPAN CLASS=t>void </SPAN>BePrevOf(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * sister);
+        <SPAN CLASS=t>void </SPAN>BeNextOf(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * sister);
+                <SPAN CLASS=c>// Move this panel within the stacking order.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SortChildren(
+                <SPAN CLASS=t>int</SPAN>(*compare)(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * c1, <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * c2, <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Sort all child panels.
+                // Arguments:
+                //   compare - A function for comparing two child panels. The
+                //             result is:
+                //               &lt; 0   -  c1 is "less" than c2
+                //               &gt; 0   -  c1 is "greater" than c2
+                //               == 0  -  c1 is "equal" to c2 (no change in
+                //                        the order)
+                //   context - Any pointer to be forwarded to the compare
+                //             function.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>DeleteAllChildren();
+                <SPAN CLASS=c>// Delete all child panels.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Layout(<SPAN CLASS=t>double </SPAN>layoutX, <SPAN CLASS=t>double </SPAN>layoutY,
+                            <SPAN CLASS=t>double </SPAN>layoutWidth, <SPAN CLASS=t>double </SPAN>layoutHeight,
+                            <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=c>// Move and/or resize this panel, and set the canvas color.
+                // IMPORTANT: For best performance, please set the canvas color
+                // whenever possible. It accelerates the paint algorithms, and
+                // it helps the view to choose a better supreme viewed panel.
+                // Arguments:
+                //   layoutX, layoutX          - Position of this panel (upper-
+                //                               left corner) in the coordinate
+                //                               system of the parent panel. But
+                //                               for the root panel, this is
+                //                               ignored.
+                //   layoutWidth, layoutHeight - Size of this panel in the
+                //                               coordinate system of the parent
+                //                               panel. But for the root panel,
+                //                               only the quotient is of
+                //                               interest.
+                //   canvasColor               - Color of the canvas when this
+                //                               panel is painted. Please study
+                //                               the class <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A> for
+                //                               understanding this argument.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetLayoutX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetLayoutY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetLayoutWidth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetLayoutHeight() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the upper-left corner and size of this panel, in the
+                // coordinate system of the parent panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetCanvasColor() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the canvas color, non-opaque if unspecified.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetWidth() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// Always 1.0
+        </SPAN><SPAN CLASS=t>double </SPAN>GetHeight() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the size of this panel in its own coordinate system. The
+                // width is always 1.0, and therefore the height is equal to
+                // LayoutHeight/LayoutWidth.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetTallness() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the height/width ratio of this panel. This is equal to
+                // GetHeight() here. In classic computer graphics, the
+                // reciprocal value is called "aspect ratio". But with <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>
+                // and <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> it seems to be more practical working with
+                // height/width ratios instead of width/height ratios. Let's
+                // call it "tallness".
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetEssenceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH);
+                <SPAN CLASS=c>// Get the essence rectangle of this panel. When the panel is to
+                // be shown full-sized in the view, this rectangular part of the
+                // panel is actually shown full-sized. The returned rectangle is
+                // in the coordinate system of this panel. The default
+                // implementation returns the whole panel rectangle.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsViewed() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsInViewedPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// A panel is viewed if it is painted to the view. And a panel
+                // is in viewed path if itself or a descendant is viewed. There
+                // is always exactly one viewed panel within the whole tree of
+                // panels, whose parent is not viewed. It is called the supreme
+                // viewed panel. Thus, the viewed panels are making up a tree.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetViewedPixelTallness() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Same as GetView().GetCurrentPixelTallness()
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetViewedX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewedY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewedWidth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewedHeight() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the upper-left corner and size of this panel, in the
+                // coordinate system of the view (which should be the coordinate
+                // system of the screen, measured in pixels). Note the equation:
+                // ViewedHeight / ViewedWidth * ViewedPixelTallness == Height
+                // CAUTION: These methods are valid only if IsViewed()==true.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetClipX1() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetClipY1() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetClipX2() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetClipY2() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the upper-left and lower-right corners of the clipping
+                // rectangle, in the coordinate system of the view. This
+                // clipping respects the ancestor panels and the view, bot not
+                // any overlapping panels like descendants, sisters and aunts.
+                // CAUTION: These methods are valid only if IsViewed()==true.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>PanelToViewX(<SPAN CLASS=t>double </SPAN>panelX) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>PanelToViewY(<SPAN CLASS=t>double </SPAN>panelY) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>ViewToPanelX(<SPAN CLASS=t>double </SPAN>viewX) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>ViewToPanelY(<SPAN CLASS=t>double </SPAN>viewY) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Transform panel coordinates to view coordinates and vice
+                // versa.
+                // CAUTION: These methods are valid only if IsViewed()==true.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>PanelToViewDeltaX(<SPAN CLASS=t>double </SPAN>panelDeltaX) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>PanelToViewDeltaY(<SPAN CLASS=t>double </SPAN>panelDeltaY) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>ViewToPanelDeltaX(<SPAN CLASS=t>double </SPAN>viewDeltaX) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>ViewToPanelDeltaY(<SPAN CLASS=t>double </SPAN>viewDeltaY) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Transform panel deltas (widths and heights) to view deltas
+                // and vice versa.
+                // CAUTION: These methods are valid only if IsViewed()==true.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>ViewConditionType <SPAN CLASS=b>{
+                </SPAN>VCT_AREA,
+                VCT_WIDTH,
+                VCT_HEIGHT,
+                VCT_MIN_EXT,
+                VCT_MAX_EXT
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewCondition(ViewConditionType vcType=VCT_AREA) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This can be used to decide whether the panel should show a
+                // detail or not (through painting or through existence of a
+                // child panel). The larger the panel is shown, the larger is
+                // the result of the method. The result should be compared
+                // against a threshold value, and if the threshold is less or
+                // equal, the detail should be shown. In particular, this method
+                // works as follows: If IsInViewedPath()==false, the result is
+                // always zero (=&gt; don't show any details). Otherwise, if
+                // IsViewed()==false, the view has zoomed into a child panel and
+                // therefore the result is very very large (=&gt; keep details,
+                // don't destroy child panels). Otherwise, the panel is a viewed
+                // one and the result is calculated from the viewed size
+                // depending on the argument vcType:
+                //   VCT_AREA:    GetViewedWidth() * GetViewedHeight()
+                //   VCT_WIDTH:   GetViewedWidth()
+                //   VCT_HEIGHT:  GetViewedHeight()
+                //   VCT_MIN_EXT: emMin(GetViewedWidth(), GetViewedHeight())
+                //   VCT_MAX_EXT: emMax(GetViewedWidth(), GetViewedHeight())
+                // vcType should be chosen so that the threshold value can be
+                // independent from the height/width ratio of this panel.
+                // Therefore, please consider, in the coordinate system of this
+                // panel, how the size of the detail is depending on the height
+                // (GetHeight()) of this panel. For example, if the detail has a
+                // fixed layout without any dependency on GetHeight(), say
+                // VCT_WIDTH. The default of VCT_AREA assumes that the layout
+                // scales the detail in one extend by GetHeight(), which is
+                // often the case.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetAutoExpansionThresholdValue() <SPAN CLASS=t>const</SPAN>;
+        ViewConditionType GetAutoExpansionThresholdType() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>SetAutoExpansionThreshold(
+                <SPAN CLASS=t>double </SPAN>thresholdValue, ViewConditionType vcType=VCT_AREA
+        );
+                <SPAN CLASS=c>// Threshold value and type for the auto-expansion mechanism
+                // (see AutoExpand()). The default should be okay for normal
+                // cases.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetEnableSwitch(<SPAN CLASS=t>bool </SPAN>enableSwitch);
+        <SPAN CLASS=t>bool </SPAN>GetEnableSwitch() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsEnabled() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Set/get the enable switch and get the enable state. A panel
+                // is enabled if itself and all its ancestor panels have the
+                // enable switch set to true. Thereby it is possible to disable
+                // a whole sub-tree by setting the enable switch of its root to
+                // false. The enable state has no influence on the arguments to
+                // the Input method. Programmers of derived panel classes should
+                // care about the enable state in methods like Input and Paint
+                // when it is appropriate.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetFocusable(<SPAN CLASS=t>bool </SPAN>focusable);
+        <SPAN CLASS=t>bool </SPAN>IsFocusable() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this panel can be focused. The default is true. The
+                // root panel must always be focusable. Thus, it has no effect
+                // to call SetFocusable(false) on the root panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableParent();
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableFirstChild();
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableLastChild();
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusablePrev();
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableNext();
+                <SPAN CLASS=c>// Like GetParent, GetFirstChild and so on, but these methods
+                // behave like if all non-focusable panels would have been
+                // removed from the panel tree. At such a thought removal, the
+                // children of a removed panel are given to the parent of the
+                // removed panel. It is allowed to call the methods on
+                // non-focusable panels. They are just additional possible start
+                // points for the search.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsVisited() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsInVisitedPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// There is always exactly one viewed panel which is called the
+                // visited panel. It is the anchor for the view within the panel
+                // tree. That means, if the layout of any panel is modified, the
+                // visited panel keeps its position and size within the view. A
+                // panel is in visited path if itself or any descendant is
+                // visited.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsActive() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsInActivePath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// There is always exactly one panel, which is called the active
+                // panel. The application behind the view usually shows the
+                // title and the control panel for the active panel, and the
+                // view normally paints a highlight around it. And it can be the
+                // focused panel (see IsFocused()). A panel cannot be active if
+                // it is not focusable (see SetFocusable()). A panel is in
+                // active path if itself or any descendant is the active panel.
+                //
+                // Why is there a difference between visited and active? Indeed,
+                // normally the active panel is even the visited panel. But the
+                // visited panel must be a viewed panel, and the active panel
+                // must be focusable. On the other hand, the supreme viewed
+                // panel is chosen for optimum performance and for avoiding
+                // over/under-flows of floating point numbers. So there can be
+                // one special case where the visited panel and the active panel
+                // are not the same: The visited panel is the supreme viewed
+                // panel, and it is not focusable, and the active panel is the
+                // nearest focusable ancestor of the visited panel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Activate();
+                <SPAN CLASS=c>// Make this the active panel, or if this panel is not
+                // focusable, make the nearest focusable ancestor active. This
+                // method is a short cut for: GetView().VisitLazy(this,true)
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ActivateLater();
+                <SPAN CLASS=c>// Mark this panel for being activated at the end of the current
+                // time slice. This gives time for other things to come first,
+                // especially layout updates which may unhide this panel. If
+                // this is called on multiple panels of the same view within the
+                // same time slice, the last call counts.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsFocused() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsInFocusedPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// When the view is focused, the active panel is even the
+                // focused panel. Otherwise there is no focused panel. A panel
+                // is in focused path if itself or any descendant is the focused
+                // panel.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsViewFocused() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the view has the input focus.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Focus();
+                <SPAN CLASS=c>// Make this the focused panel, or if this panel is not
+                // focusable, make the nearest focusable ancestor focused. This
+                // is like calling Activate() and GetView().Focus().
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetUpdatePriority() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the priority for updating this panel. For example, this
+                // could be used when working with <A CLASS=m HREF="emCore_emPriSchedAgent_h.html#emPriSchedAgent">emPriSchedAgent</A>. The result
+                // is in the range of 0.0 (minimum priority) to 1.0 (maximum
+                // priority).
+
+        </SPAN>emUInt64 GetMemoryLimit() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the maximum number of memory bytes this panel is allowed
+                // to allocate, including all descendant panels and all mostly
+                // non-shared referred models, but not including any descendant
+                // panels which are also supporting this blurred concept.
+                // Mainly, this method has been invented for panels which are
+                // showing file contents, because files or their models often
+                // can have any size, and we have to make sure that the overall
+                // process does not consume too much memory.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=c>// <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> has been derived from <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> for convenience. This
+                // default implementation does nothing and returns false.
+
+        </SPAN><SPAN CLASS=t>typedef </SPAN>emUInt16 NoticeFlags;
+        <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN>NF_CHILD_LIST_CHANGED       = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>0</SPAN>),
+                NF_LAYOUT_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>1</SPAN>),
+                NF_VIEWING_CHANGED          = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>2</SPAN>),
+                NF_ENABLE_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>3</SPAN>),
+                NF_VISIT_CHANGED            = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>4</SPAN>),
+                NF_ACTIVE_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>5</SPAN>),
+                NF_FOCUS_CHANGED            = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>6</SPAN>),
+                NF_VIEW_FOCUS_CHANGED       = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>7</SPAN>),
+                NF_UPDATE_PRIORITY_CHANGED  = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>8</SPAN>),
+                NF_MEMORY_LIMIT_CHANGED     = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>9</SPAN>),
+                NF_SOUGHT_NAME_CHANGED      = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>10</SPAN>)
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+                <SPAN CLASS=c>// Called some time after this panel has possibly changed in
+                // some states. Each flag in the argument indicates a certain
+                // state which may have changed:
+                //   NF_CHILD_LIST_CHANGED      - List of children
+                //   NF_LAYOUT_CHANGED          - GetLayout...(), GetHeight(),
+                //                                GetCanvasColor()
+                //   NF_VIEWING_CHANGED         - IsViewed(), IsInViewedPath(),
+                //                                GetViewed...(), GetClip...(),
+                //                                GetViewCondition(...)
+                //   NF_ENABLE_CHANGED          - IsEnabled()
+                //   NF_VISIT_CHANGED           - IsVisited(), IsInVisitedPath()
+                //   NF_ACTIVE_CHANGED          - IsActive(), IsInActivePath()
+                //   NF_FOCUS_CHANGED           - IsFocused(), IsInFocusedPath()
+                //   NF_VIEW_FOCUS_CHANGED      - IsViewFocused()
+                //   NF_UPDATE_PRIORITY_CHANGED - GetUpdatePriority()
+                //   NF_MEMORY_LIMIT_CHANGED    - GetMemoryLimit()
+                //   NF_SOUGHT_NAME_CHANGED     - GetSoughtName()
+                // The default implementation does nothing.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+                <SPAN CLASS=c>// Process input form keyboard and mouse. This method is called
+                // on every panel which has IsInViewedPath()==true whenever
+                // there is a change in the input state or when there is an
+                // input event. The order of callings is from children to
+                // parents and from top to bottom (=last to first). The default
+                // implementation does this: First, if it is a mouse event and
+                // if this panel is focusable, the focus is set to this panel
+                // and the mouse event is eaten. And secondly, if this is the
+                // active panel, certain keyboard events are processed and eaten
+                // for switching the focus to another panel.
+                // Arguments:
+                //   event  - An input event. This is non-empty only if:
+                //            * It is a mouse button event, and the mouse
+                //              position lies within the panel and all its
+                //              ancestors, and the event has not been eaten by a
+                //              descendant panel or by an overlapping panel in
+                //              front.
+                //            * It is a keyboard key event, and this panel is in
+                //              focused path, and the event has not been eaten
+                //              by a descendant panel.
+                //            The event can be eaten by calling event.Eat(). The
+                //            event reference is non-const only for that. Please
+                //            do not modify the event in any other way.
+                //   state  - The current input state. The values of
+                //            state.GetMouseX/Y are from the coordinate system
+                //            of the view (thus, they are in pixels).
+                //   mx, my - Position of the mouse in the coordinate system of
+                //            this panel.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+                <SPAN CLASS=c>// Get the mouse cursor to be shown for this panel. The default
+                // implementation asks the parent panel. See also:
+                // InvalidateCursor()
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+                <SPAN CLASS=c>// Whether this panel is completely opaque by its painting or by
+                // its child panels. If true, the background may not be
+                // initialized when the panel is painted. It even helps the view
+                // to choose a better supreme viewed panel. The default
+                // implementation returns false. See also: InvalidatePainting()
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                <SPAN CLASS=c>// Paint this panel. The default implementation does nothing.
+                // Note that for a single painting of the whole panel, this
+                // method may be called multiple times with different clipping
+                // rectangles in order to optimize cache usage.
+                // Arguments:
+                //   painter     - A painter for painting the panel to the
+                //                 screen. Origin and scaling of this painter
+                //                 are prepared for having the coordinate system
+                //                 of the panel.
+                //   canvasColor - Please study <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A> for understanding this
+                //                 parameter. Normally this is equal to
+                //                 GetCanvasColor(), but if this panel is the
+                //                 supreme viewed panel, it could be a different
+                //                 color.
+                // See also: InvalidatePainting()
+
+        </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoExpansion();
+                <SPAN CLASS=c>// Enable the auto-expansion mechanism. This must be called in
+                // the constructors of panel classes which overload the method
+                // AutoExpand().
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+                <SPAN CLASS=c>// Create child panels by auto-expansion. Often it is a good
+                // idea to dynamically create and delete the children of a panel
+                // depending on the view condition, instead of wasting resources
+                // by having the child panels always existent. For solving
+                // dynamic creation and deletion, AutoExpand could be overloaded
+                // to create the child panels in it. The default implementation
+                // does nothing. AutoExpand is called when the view condition
+                // reaches a threshold value. As soon as the view condition
+                // falls below again, the child panels are deleted through
+                // calling AutoShrink(). See also: EnableAutoExpansion(),
+                // SetAutoExpansionThreshold(...), AutoShrink(),
+                // InvalidateAutoExpansion().
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+                <SPAN CLASS=c>// Delete child panels by auto-shrinking. The default
+                // implementation deletes exactly those child panels that have
+                // been created within a call to AutoExpand (yes, there is some
+                // internal magic for knowing whether a panel has bee created
+                // inside or outside AutoExpand). So there is no need to
+                // overload this method except if you want to do something like
+                // setting panel pointer variables to NULL.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=c>// Lay out the child panels of this panel. The default
+                // implementation does nothing. It is not a must to do the
+                // layout herein, but it is a good idea. The method is called
+                // after there was a change in the list of child panels (like
+                // NF_CHILD_LIST_CHANGED) or in the layout of this panel (like
+                // NF_LAYOUT_CHANGED), but only if there is at least one child
+                // panel. See also: InvalidateChildrenLayout()
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * CreateControlPanel(ParentArg parent,
+                                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Create a control panel for this content panel. If this panel
+                // is in a content view, and if it is the active panel, then
+                // this method may be called by the view to create a control
+                // panel. The default implementation asks the parent of this
+                // panel. A result of NULL means to have no control panel.
+                // Remember that the control panel is normally created in
+                // another view and therefore in another view context than this
+                // content panel. But it is okay to have links (pointers,
+                // references) from a control panel to the content view context
+                // or to its models. That means, per definition, the content
+                // view context always has to live longer than the panels of the
+                // control view. Hint: If a panel does not want to leave its
+                // control panel to its descendants, it could check IsActive()
+                // to see whether the control panel would be for itself or for a
+                // descendant. See also: InvalidateControlPanel()
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetSoughtName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// While the view is seeking for a child of this panel, this
+                // method returns the name of the sought child panel. Otherwise
+                // it returns NULL.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking();
+                <SPAN CLASS=c>// While the view is seeking for a still non-existent child of
+                // this panel, this method is called by the view on every time
+                // slice for asking whether there is any hope that the desired
+                // child panel will ever be created. If this returns false
+                // continuously for at least 10 time slices, the seeking is
+                // given up. Thus, the implementation can temporarily say false
+                // even if there is hope. This often simplifies the
+                // implementation regarding pending notices and signals. The
+                // default implementation always returns false. Hint: While the
+                // view is seeking for a child panel, the parent panel is shown
+                // full-sized and its memory limit is set to a maximum. Thereby
+                // it is often not needed to care about the seek problem when
+                // programming a panel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateTitle();
+                <SPAN CLASS=c>// Indicate a change in the results of GetTitle(). After calling
+                // this, showings of the title will be updated.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateCursor();
+                <SPAN CLASS=c>// Indicate a change in the results of GetCursor(). After
+                // calling this, showings of the cursor will be updated.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidatePainting();
+        <SPAN CLASS=t>void </SPAN>InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+                <SPAN CLASS=c>// Indicate a change in the results of IsOpaque() and Paint().
+                // After calling this, the panel will be re-painted if it is
+                // shown. The second version of the method allows to invalidate
+                // just a rectangular area instead of the whole panel.
+                // Arguments:
+                //   x,y,w,h - Upper-left corner and size of the rectangle, in
+                //             the coordinate system of this panel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateAutoExpansion();
+                <SPAN CLASS=c>// Indicate a change in the results of AutoExpand(). After
+                // calling this, and if in expanded state, AutoShrink() and
+                // AutoExpand() will be called again.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateChildrenLayout();
+                <SPAN CLASS=c>// Indicate a change in the results of LayoutChildren(). After
+                // calling this, LayoutChildren() will be called again, but only
+                // if there is at least one child.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateControlPanel();
+                <SPAN CLASS=c>// Indicate a change in the results of CreateControlPanel().
+                // After calling this, the control panel will be re-created, but
+                // only if it is shown.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>;
+        <SPAN CLASS=t>friend class </SPAN>ParentArgClass;
+
+        <SPAN CLASS=t>void </SPAN>AddPendingNotice(NoticeFlags flags);
+        <SPAN CLASS=t>void </SPAN>HandleNotice();
+        <SPAN CLASS=t>void </SPAN>UpdateChildrenViewing();
+        <SPAN CLASS=t>void </SPAN>AvlInsertChild(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * child);
+        <SPAN CLASS=t>void </SPAN>AvlRemoveChild(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * child);
+
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+        <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> CrossPtrList;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Name;
+        emAvlNode AvlNode;
+        emAvlTree AvlTree;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * Parent;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * FirstChild;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * LastChild;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * Prev;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * Next;
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::PanelRingNode NoticeNode;
+        <SPAN CLASS=t>double </SPAN>LayoutX, LayoutY, LayoutWidth, LayoutHeight;
+        <SPAN CLASS=t>double </SPAN>ViewedX, ViewedY, ViewedWidth, ViewedHeight;
+        <SPAN CLASS=t>double </SPAN>ClipX1, ClipY1, ClipX2, ClipY2;
+        <SPAN CLASS=t>double </SPAN>AEThresholdValue;
+        emUInt64 CreationNumber;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> CanvasColor;
+        NoticeFlags PendingNoticeFlags;
+        <SPAN CLASS=t>unsigned </SPAN>Viewed : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>InViewedPath : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>EnableSwitch : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>Enabled : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>Focusable : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>Visited : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>InVisitedPath : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>Active : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>InActivePath : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>PendingInput : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ChildrenLayoutInvalid : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>AEEnabled : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>AEDecisionInvalid : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>AECalling : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>AEExpanded : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>CreatedByAE : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>AEThresholdType : <SPAN CLASS=u>3</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> &amp; panel)
+        : View(panel.View),Panel(&amp;panel)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel)
+        : View(panel-&gt;View),Panel(panel)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view)
+        : View(view),Panel(<SPAN CLASS=u>NULL</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> * view)
+        : View(*view),Panel(<SPAN CLASS=u>NULL</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::GetRootContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.GetRootContext();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::GetView() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::GetPanel() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Panel;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr)
+<SPAN CLASS=b>{
+        </SPAN>CrossPtrList.LinkCrossPtr(crossPtr);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Name;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetCreationNumber() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CreationNumber;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetView()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetRootContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.GetRootContext();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetWindow()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.GetWindow();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetScreen()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.GetScreen();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetParent()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Parent;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetFirstChild()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstChild;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLastChild()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LastChild;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetPrev()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Prev;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetNext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Next;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLayoutX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LayoutX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLayoutY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LayoutY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLayoutWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LayoutWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLayoutHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LayoutHeight;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetCanvasColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CanvasColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><SPAN CLASS=u>1.0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LayoutHeight/LayoutWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LayoutHeight/LayoutWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsViewed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Viewed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsInViewedPath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>InViewedPath;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewedPixelTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.CurrentPixelTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewedX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ViewedX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewedY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ViewedY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewedWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ViewedWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewedHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ViewedHeight;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetClipX1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClipX1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetClipY1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClipY1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetClipX2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClipX2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetClipY2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClipY2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::PanelToViewX(<SPAN CLASS=t>double </SPAN>panelX) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>panelX*ViewedWidth+ViewedX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::PanelToViewY(<SPAN CLASS=t>double </SPAN>panelY) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>panelY*ViewedWidth/View.CurrentPixelTallness+ViewedY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ViewToPanelX(<SPAN CLASS=t>double </SPAN>viewX) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(viewX-ViewedX)/ViewedWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ViewToPanelY(<SPAN CLASS=t>double </SPAN>viewY) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(viewY-ViewedY)*View.CurrentPixelTallness/ViewedWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::PanelToViewDeltaX(<SPAN CLASS=t>double </SPAN>panelDeltaX) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>panelDeltaX*ViewedWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::PanelToViewDeltaY(<SPAN CLASS=t>double </SPAN>panelDeltaY) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>panelDeltaY*ViewedWidth/View.CurrentPixelTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ViewToPanelDeltaX(<SPAN CLASS=t>double </SPAN>viewDeltaX) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>viewDeltaX/ViewedWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ViewToPanelDeltaY(<SPAN CLASS=t>double </SPAN>viewDeltaY) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>viewDeltaY*View.CurrentPixelTallness/ViewedWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetAutoExpansionThresholdValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>AEThresholdValue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ViewConditionType <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetAutoExpansionThresholdType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(ViewConditionType)AEThresholdType;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetEnableSwitch() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>EnableSwitch;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsEnabled() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Enabled;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsFocusable() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Focusable;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsVisited() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Visited;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsInVisitedPath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>InVisitedPath;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsActive() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Active;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsInActivePath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>InActivePath;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsFocused() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Active &amp;&amp; View.IsFocused();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsInFocusedPath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>InActivePath &amp;&amp; View.IsFocused();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsViewFocused() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.IsFocused();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::InvalidateChildrenLayout()
+<SPAN CLASS=b>{
+        </SPAN>ChildrenLayoutInvalid=<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!NoticeNode.Next) View.AddToNoticeList(&amp;NoticeNode);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::AddPendingNotice(NoticeFlags flags)
+<SPAN CLASS=b>{
+        </SPAN>PendingNoticeFlags|=flags;
+        <SPAN CLASS=k>if </SPAN>(!NoticeNode.Next) View.AddToNoticeList(&amp;NoticeNode);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

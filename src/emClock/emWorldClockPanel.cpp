@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWorldClockPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -130,11 +130,15 @@ void emWorldClockPanel::Paint(const emPainter & painter, emColor canvasColor)
 
 	if (TimeZonesModel->GetCityCount()<=0) {
 		painter.PaintTextBoxed(
-			0.0,
-			0.0,
-			1.0,
-			GetHeight(),
+			0.25,
+			GetHeight()/4,
+			0.5,
+			GetHeight()/2,
+#if defined(_WIN32)
+			"Error:\n\nTime zones not implemented\nfor this operating system.",
+#else
 			"Error:\n\nNo time zones found.",
+#endif
 			0.08,
 			emColor(255,0,0),
 			0,

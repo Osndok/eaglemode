@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -309,6 +309,13 @@ void emBoolRec::Set(bool value)
 		Value=value;
 		Changed();
 	}
+}
+
+
+void emBoolRec::Invert()
+{
+	Value=!Value;
+	Changed();
 }
 
 

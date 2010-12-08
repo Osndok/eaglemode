@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCursor.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,27 +26,30 @@
 #endif
 
 
+//==============================================================================
+//================================== emCursor ==================================
+//==============================================================================
+
 class emCursor {
 
 public:
 
 	// Class for a mouse cursor.
 
-	//??? Future plans:
-	//??? - Extend the set of standard cursors.
-	//??? - Allow custom cursors (e.g. construct from an image and
-	//???   hot spot coordinates, or from a file).
-	//??? - Add comparison operators.
+	//??? Allow custom cursors (e.g. construct from an image and
+	//??? hot spot coordinates, or from a file).
 
 	enum {
 		// Possible values for the cursor id.
 		NORMAL                   = 0,
-		WAIT                     = 1,
-		CROSSHAIR                = 2,
-		TEXT                     = 3,
-		LEFT_RIGHT_ARROW         = 4,
-		UP_DOWN_ARROW            = 5,
-		LEFT_RIGHT_UP_DOWN_ARROW = 6
+		INVISIBLE                = 1,
+		WAIT                     = 2,
+		CROSSHAIR                = 3,
+		TEXT                     = 4,
+		HAND                     = 5,
+		LEFT_RIGHT_ARROW         = 6,
+		UP_DOWN_ARROW            = 7,
+		LEFT_RIGHT_UP_DOWN_ARROW = 8
 	};
 
 	emCursor();

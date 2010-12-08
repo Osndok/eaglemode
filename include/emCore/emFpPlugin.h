@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -140,7 +140,7 @@ class emFpPluginList : public emModel {
 public:
 
 	// Class for a model containing a list of all the configured file panel
-	// plugins. The plugins configurations are loaded from a certain
+	// plugins. The plugin configurations are loaded from a certain
 	// directory.
 
 	static emRef<emFpPluginList> Acquire(emRootContext & rootContext);

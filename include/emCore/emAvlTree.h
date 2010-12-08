@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTree.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,11 +27,12 @@
 
 
 //==============================================================================
-//================= Low-level stuff for programming AVL trees ==================
+//============================== AVL-tree macros ===============================
 //==============================================================================
 
-// For an example of how to use these things, please see the implementation of
-// the template class emAvlTreeExample, which can be found more below.
+// Here you can find data types and macro definitions for a highly optimized AVL
+// tree implementation. For an example of how to use it, see the implementation
+// of the template class emAvlTreeExample more below.
 
 //----------------------------------- Types ------------------------------------
 

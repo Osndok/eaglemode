@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".bmp" ".cur" ".dib" ".ico" }
+Priority = 1.0
+Library = "emBmp"
+Function = "emBmpFpPluginFunc"

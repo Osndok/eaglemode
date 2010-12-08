@@ -1,0 +1,159 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emConfigModel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>.h
+//
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emConfigModel_h
+#define emConfigModel_h
+
+#ifndef emRec_h
+#include &lt;<A CLASS=f HREF="emCore_emRec_h.html">emCore/emRec.h</A>&gt;
+#endif
+
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+
+<A NAME="emConfigModel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for a configuration model where the data is stored in an
+        // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>. This class is a little bit similar to <A CLASS=m HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>, but it
+        // is not an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>. The idea here is to have a loaded state
+        // always.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetInstallPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the installation path/name of the configuration file.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsUnsaved() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the record data is currently not saved to the
+                // file.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetChangeSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled on every modification of the record and even on
+                // change of IsUnsaved.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TrySave() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>Save();
+                <SPAN CLASS=c>// Save the record to the install path. On error, the first
+                // version throws the error message, and the second version
+                // calls emFatalError.
+
+        //??? An auto-save mechanism should be implemented, so that saving is
+        //??? performed automatically after each change, best with a small time
+        //??? delay (a second or so). Maybe that auto-save mechanism should be
+        //??? enabled by default.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Do not forget to call PostConstruct from an overloaded
+                // constructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PostConstruct(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; rec, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; installPath);
+                <SPAN CLASS=c>// Must be called by the constructor of the derived class after
+                // the record has been constructed.
+                // Arguments:
+                //   rec         - The record making up the configuration.
+                //   installPath - Path/name of the configuration file, usually
+                //                 a result of calling the global function
+                //                 emGetInstallPath.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoad() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>Load();
+                <SPAN CLASS=c>// Load the record from the install path. On error, the first
+                // version throws the error message, the second version calls
+                // emFatalError. This is typically called by the constructor of
+                // the derived class or by a TryAcquire function. Hint:
+                // Derivatives of <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> may easily report an error with
+                // its SetCustomError method, this is better than calling
+                // emFatalError.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoadOrInstall(<SPAN CLASS=t>const char </SPAN>* insSrcPath=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>LoadOrInstall(<SPAN CLASS=t>const char </SPAN>* insSrcPath=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Like above, but if the file does not yet exist, an
+                // installation is performed: If insSrcPath is not NULL, that
+                // file is copied to the install path and loaded. Otherwise the
+                // record is set to its default state and saved to the install
+                // path. Any non existing parent directories of the install path
+                // are created automatically.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; GetRec();
+                <SPAN CLASS=c>// Not valid before PostConstruct has been called.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>class </SPAN>RecLink : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                RecLink(<A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A> &amp; model);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A> &amp; Model;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>RecLink;
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ChangeSignal;
+        RecLink Link;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> InstallPath;
+        <SPAN CLASS=t>bool </SPAN>Unsaved;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetInstallPath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>InstallPath;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::IsUnsaved() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Unsaved;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetChangeSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ChangeSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetRec()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Link.GetListenedRec();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

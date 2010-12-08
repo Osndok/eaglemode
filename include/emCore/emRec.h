@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -331,6 +331,9 @@ public:
 	void Set(bool value);
 	emBoolRec & operator = (bool value);
 		// Set the boolean value.
+
+	void Invert();
+		// Invert the boolean value.
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;

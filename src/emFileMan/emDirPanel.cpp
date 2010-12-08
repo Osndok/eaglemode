@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,6 +18,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <ctype.h>
 #include <emFileMan/emDirPanel.h>
 #include <emFileMan/emDirEntryPanel.h>
 #include <emFileMan/emFileManControlPanel.h>
@@ -107,11 +108,7 @@ void emDirPanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	emPanel * c;
 	emScreen * screen;
-	emDirEntryPanel * dep;
-	emString str;
-	int len;
 
 	emFilePanel::Input(event,state,mx,my);
 
@@ -134,45 +131,7 @@ void emDirPanel::Input(
 
 	if (event.IsKeyboardEvent()) FileMan->HotkeyInput(GetView(),event,state);
 
-	if (
-		!event.GetChars().IsEmpty() &&
-		!state.GetCtrl() &&
-		!state.GetAlt() &&
-		!state.GetMeta()
-	) {
-		if (IsContentComplete()) {
-			if (KeyWalkState) str=KeyWalkState->String+event.GetChars();
-			else str=event.GetChars();
-			len=str.GetLen();
-			for (c=GetFirstChild(); c; c=c->GetNext()) {
-				if ((dep=dynamic_cast<emDirEntryPanel*>(c))!=NULL) {
-					if (strncasecmp(str,dep->GetDirEntry().GetName(),len)==0) break;
-				}
-			}
-			if (c!=NULL) {
-				GetView().Visit(c,true);
-				if (!KeyWalkState) {
-					KeyWalkState=new KeyWalkStateType(GetScheduler());
-					AddWakeUpSignal(KeyWalkState->Timer.GetSignal());
-				}
-				else {
-					KeyWalkState->Timer.Stop(true);
-				}
-				KeyWalkState->Timer.Start(1000);
-				KeyWalkState->String=str;
-			}
-			else {
-				ClearKeyWalkState();
-				screen=GetScreen();
-				if (screen) screen->Beep();
-			}
-		}
-		else {
-			screen=GetScreen();
-			if (screen) screen->Beep();
-		}
-		event.Eat();
-	}
+	KeyWalk(event,state);
 }
 
 
@@ -329,4 +288,92 @@ void emDirPanel::ClearKeyWalkState()
 		delete KeyWalkState;
 		KeyWalkState=NULL;
 	}
+}
+
+
+void emDirPanel::KeyWalk(emInputEvent & event, const emInputState & state)
+{
+	const char * s1, * s2;
+	emPanel * p;
+	emScreen * screen;
+	emDirEntryPanel * dep;
+	emString str;
+	int len, c1, c2, i;
+
+	if (event.GetChars().IsEmpty()) return;
+	if (state.GetCtrl() || state.GetAlt() || state.GetMeta()) return;
+	if (event.GetChars()==" ") return;
+
+	if (!IsContentComplete()) {
+		screen=GetScreen();
+		if (screen) screen->Beep();
+		event.Eat();
+		return;
+	}
+
+	if (KeyWalkState) str=KeyWalkState->String+event.GetChars();
+	else str=event.GetChars();
+	len=str.GetLen();
+
+	if (str[0]=='*') {
+		// ??? undocumented feature: e.g. type "*bar" to find "FooBar".
+		for (p=GetFirstChild(); p; p=p->GetNext()) {
+			dep=dynamic_cast<emDirEntryPanel*>(p);
+			if (!dep) continue;
+			s1=str.Get()+1;
+			s2=dep->GetDirEntry().GetName();
+			for (i=0;;) {
+				c1=s1[i];
+				c2=s2[i];
+				if (!c1 || !c2) break;
+				if (tolower(c1)==tolower(c2)) i++;
+				else { i=0; s2++; }
+			}
+			if (!c1) break;
+		}
+	}
+	else {
+		for (p=GetFirstChild(); p; p=p->GetNext()) {
+			dep=dynamic_cast<emDirEntryPanel*>(p);
+			if (!dep) continue;
+			if (strncasecmp(str,dep->GetDirEntry().GetName(),len)==0) break;
+		}
+		if (!p) {
+			for (p=GetFirstChild(); p; p=p->GetNext()) {
+				dep=dynamic_cast<emDirEntryPanel*>(p);
+				if (!dep) continue;
+				s1=str;
+				s2=dep->GetDirEntry().GetName();
+				for (;;) {
+					c1=tolower(*s1++);
+					if (!c1) break;
+					do {
+						c2=tolower(*s2++);
+					} while (c2 && c2!=c1 && (c2==' ' || c2=='-' || c2=='_'));
+					if (c2!=c1) break;
+				}
+				if (!c1) break;
+			}
+		}
+	}
+
+	if (p) {
+		GetView().Visit(p,true);
+		if (!KeyWalkState) {
+			KeyWalkState=new KeyWalkStateType(GetScheduler());
+			AddWakeUpSignal(KeyWalkState->Timer.GetSignal());
+		}
+		else {
+			KeyWalkState->Timer.Stop(true);
+		}
+		KeyWalkState->Timer.Start(1000);
+		KeyWalkState->String=str;
+	}
+	else {
+		ClearKeyWalkState();
+		screen=GetScreen();
+		if (screen) screen->Beep();
+	}
+
+	event.Eat();
 }

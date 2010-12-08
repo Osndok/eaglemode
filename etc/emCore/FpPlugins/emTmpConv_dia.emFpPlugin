@@ -1,0 +1,16 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".dia" }
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".svg"
+ }
+ {
+  Name="Command"
+  Value="dia \"--export=$OUTFILE\" --filter=svg \"$INFILE\" < /dev/null > /dev/null"
+ }
+}

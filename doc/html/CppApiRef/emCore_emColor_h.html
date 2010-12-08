@@ -1,0 +1,390 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emColor.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emColor_h.html#emColor">emColor</A>.h
+//
+// Copyright (C) 2001,2003-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emColor_h
+#define emColor_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+
+<A NAME="emColor"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emColor_h.html#emColor">emColor</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a 32-bit color value. A color has four components, each of
+        // eight bits: red, green, blue and alpha. An alpha value of 255 means
+        // opaque, 0 means totally transparent. A here so called "packed color"
+        // is a 32-bit unsigned integer with:
+        //   Bits 0-7  : Alpha component
+        //   Bits 8-15 : Blue component
+        //   Bits 16-23: Green component
+        //   Bits 24-31: Red component
+
+        </SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Some predefined packed colors.
+                </SPAN>BLACK  =<SPAN CLASS=u>0x000000ff</SPAN>,
+                WHITE  =<SPAN CLASS=u>0xffffffff</SPAN>,
+                RED    =<SPAN CLASS=u>0xff0000ff</SPAN>,
+                GREEN  =<SPAN CLASS=u>0x00ff00ff</SPAN>,
+                BLUE   =<SPAN CLASS=u>0x0000ffff</SPAN>,
+                YELLOW =<SPAN CLASS=u>0xffff00ff</SPAN>,
+                CYAN   =<SPAN CLASS=u>0x00ffffff</SPAN>,
+                MAGENTA=<SPAN CLASS=u>0xff00ffff
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>();
+                <SPAN CLASS=c>// Performs no initialization! (<A CLASS=m HREF="emCore_emColor_h.html#emColor">emColor</A> is a primitive type)
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(emUInt32 packed);
+                <SPAN CLASS=c>// Construct from a packed color.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(emByte red, emByte green, emByte blue, emByte alpha=<SPAN CLASS=u>255</SPAN>);
+                <SPAN CLASS=c>// Construct from color components.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color);
+                <SPAN CLASS=c>// Construct by copying a color.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; rgb, emByte alpha);
+                <SPAN CLASS=c>// Construct by copying a color, but override the alpha
+                // component.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryParse(<SPAN CLASS=t>const char </SPAN>* str) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Try to set this color by interpreting the given string as a
+                // color. Throw an error message on failure. Currently, this
+                // tries to interpret only X11 color strings like "#f8a91c" or
+                // "Powder Blue". Future extension may even accept additional
+                // formats.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color);
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; <SPAN CLASS=t>operator </SPAN>= (emUInt32 packed);
+                <SPAN CLASS=c>// Copy a color or a packed color.
+
+        </SPAN><SPAN CLASS=t>operator </SPAN>emUInt32 () <SPAN CLASS=t>const</SPAN>;
+        emUInt32 Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Convert this color to a packed color.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(emUInt32 packed);
+        <SPAN CLASS=t>void </SPAN>Set(emByte red, emByte green, emByte blue, emByte alpha=<SPAN CLASS=u>255</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color);
+        <SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; rgb, emByte alpha);
+                <SPAN CLASS=c>// Like the constructors.
+
+        </SPAN>emByte GetRed() <SPAN CLASS=t>const</SPAN>;
+        emByte GetGreen() <SPAN CLASS=t>const</SPAN>;
+        emByte GetBlue() <SPAN CLASS=t>const</SPAN>;
+        emByte GetAlpha() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetRed(emByte red);
+        <SPAN CLASS=t>void </SPAN>SetGreen(emByte green);
+        <SPAN CLASS=t>void </SPAN>SetBlue(emByte blue);
+        <SPAN CLASS=t>void </SPAN>SetAlpha(emByte alpha);
+                <SPAN CLASS=c>// Get or set individual components.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsTotallyTransparent() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the alpha component is 0.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the alpha component is 255.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsGrey() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the red, green and blue components are equal.
+
+        </SPAN>emByte GetGrey() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetGrey(emByte grey, emByte alpha=<SPAN CLASS=u>255</SPAN>);
+                <SPAN CLASS=c>// Get or set in grey format.
+
+        </SPAN><SPAN CLASS=t>float </SPAN>GetHue() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>float </SPAN>GetSat() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>float </SPAN>GetVal() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetHue(<SPAN CLASS=t>float </SPAN>hue);
+        <SPAN CLASS=t>void </SPAN>SetSat(<SPAN CLASS=t>float </SPAN>sat);
+        <SPAN CLASS=t>void </SPAN>SetVal(<SPAN CLASS=t>float </SPAN>val);
+        <SPAN CLASS=t>void </SPAN>SetHSVA(<SPAN CLASS=t>float </SPAN>hue, <SPAN CLASS=t>float </SPAN>sat, <SPAN CLASS=t>float </SPAN>val, emByte alpha=<SPAN CLASS=u>255</SPAN>);
+                <SPAN CLASS=c>// Get or set in Hue-Saturation-Value format. Hue is in degrees
+                // (0.0-360.0). Sat and val are in percent (0.0-100.0).
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBlended(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color, <SPAN CLASS=t>float </SPAN>weight) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Return a blending of this color and a given color. The given
+                // weight of the given color is in percent.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetLighted(<SPAN CLASS=t>float </SPAN>light) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a shaded or lighted version of this color. The light
+                // parameter ranges from -100.0 to 100.0. -100.0 means black
+                // (fully shaded), 0.0 means no change, 100.0 means white (fully
+                // highlighted).
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetTransparented(<SPAN CLASS=t>float </SPAN>tp) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a more opaque or transparent version of this color. The
+                // argument tp ranges from -100.0 to 100.0. -100.0 means fully
+                // opaque, 0.0 means no change, 100.0 means fully transparent.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>== (emUInt32 packed) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (emUInt32 packed) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>friend bool operator </SPAN>== (emUInt32 packed, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color);
+        <SPAN CLASS=t>friend bool operator </SPAN>!= (emUInt32 packed, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color);
+                <SPAN CLASS=c>// Compare colors.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{
+                </SPAN>emUInt32 Packed;
+                <SPAN CLASS=t>struct </SPAN><SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#                       if EM_BYTE_ORDER==4321
+                                </SPAN>emByte Red, Green, Blue, Alpha;
+<SPAN CLASS=p>#                       elif EM_BYTE_ORDER==1234
+                                </SPAN>emByte Alpha, Blue, Green, Red;
+<SPAN CLASS=p>#                       elif EM_BYTE_ORDER==3412
+                                </SPAN>emByte Green, Red, Alpha, Blue;
+<SPAN CLASS=p>#                       else
+#                               error unexpected value for EM_BYTE_ORDER
+#                       endif
+                </SPAN><SPAN CLASS=b>} </SPAN>Components;
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>()
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(emUInt32 packed)
+<SPAN CLASS=b>{
+        </SPAN>Packed=packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(emByte red, emByte green, emByte blue, emByte alpha)
+<SPAN CLASS=b>{
+        </SPAN>Components.Red=red;
+        Components.Green=green;
+        Components.Blue=blue;
+        Components.Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color)
+<SPAN CLASS=b>{
+        </SPAN>Packed=color.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; rgb, emByte alpha)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=c>// Did not work error-free with every compiler:
+        //  Packed=rgb.Packed;
+        //  Components.Alpha=alpha;
+        // Therefore:
+        </SPAN>Components.Red=rgb.Components.Red;
+        Components.Green=rgb.Components.Green;
+        Components.Blue=rgb.Components.Blue;
+        Components.Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color)
+<SPAN CLASS=b>{
+        </SPAN>Packed=color.Packed;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>= (emUInt32 packed)
+<SPAN CLASS=b>{
+        </SPAN>Packed=packed;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>emUInt32 () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt32 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::Set(emUInt32 packed)
+<SPAN CLASS=b>{
+        </SPAN>Packed=packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::Set(emByte red, emByte green, emByte blue, emByte alpha)
+<SPAN CLASS=b>{
+        </SPAN>Components.Red=red;
+        Components.Green=green;
+        Components.Blue=blue;
+        Components.Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color)
+<SPAN CLASS=b>{
+        </SPAN>Packed=color.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; rgb, emByte alpha)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=c>// Did not work error-free with every compiler:
+        //  Packed=rgb.Packed;
+        //  Components.Alpha=alpha;
+        // Therefore:
+        </SPAN>Components.Red=rgb.Components.Red;
+        Components.Green=rgb.Components.Green;
+        Components.Blue=rgb.Components.Blue;
+        Components.Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::GetRed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Components.Red;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::GetGreen() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Components.Green;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::GetBlue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Components.Blue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::GetAlpha() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Components.Alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetRed(emByte red)
+<SPAN CLASS=b>{
+        </SPAN>Components.Red=red;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetGreen(emByte green)
+<SPAN CLASS=b>{
+        </SPAN>Components.Green=green;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetBlue(emByte blue)
+<SPAN CLASS=b>{
+        </SPAN>Components.Blue=blue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetAlpha(emByte alpha)
+<SPAN CLASS=b>{
+        </SPAN>Components.Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::IsTotallyTransparent() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Components.Alpha==<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::IsOpaque() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Components.Alpha==<SPAN CLASS=u>255</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::IsGrey() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return
+                </SPAN>Components.Red==Components.Green &amp;&amp;
+                Components.Red==Components.Blue
+        ;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::GetGrey() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(emByte)(
+                (
+                        ((<SPAN CLASS=t>int</SPAN>)Components.Red)+
+                        ((<SPAN CLASS=t>int</SPAN>)Components.Green)+
+                        ((<SPAN CLASS=t>int</SPAN>)Components.Blue)+
+                        <SPAN CLASS=u>1
+                </SPAN>)/<SPAN CLASS=u>3
+        </SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetGrey(emByte grey, emByte alpha)
+<SPAN CLASS=b>{
+        </SPAN>Components.Red=grey;
+        Components.Green=grey;
+        Components.Blue=grey;
+        Components.Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetHue(<SPAN CLASS=t>float </SPAN>hue)
+<SPAN CLASS=b>{
+        </SPAN>SetHSVA(hue,GetSat(),GetVal(),GetAlpha());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetSat(<SPAN CLASS=t>float </SPAN>sat)
+<SPAN CLASS=b>{
+        </SPAN>SetHSVA(GetHue(),sat,GetVal(),GetAlpha());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::SetVal(<SPAN CLASS=t>float </SPAN>val)
+<SPAN CLASS=b>{
+        </SPAN>SetHSVA(GetHue(),GetSat(),val,GetAlpha());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed==color.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed!=color.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>== (emUInt32 packed) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed==packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::<SPAN CLASS=t>operator </SPAN>!= (emUInt32 packed) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed!=packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>== (emUInt32 packed, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>packed==color.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool operator </SPAN>!= (emUInt32 packed, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> &amp; color)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>packed!=color.Packed;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

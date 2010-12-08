@@ -2,7 +2,7 @@
 %%BoundingBox: 0 0 595 792
 %%LanguageLevel: 2
 %%Creator: htmldoc 1.8.27 Copyright 1997-2006 Easy Software Products, All Rights Reserved.
-%%CreationDate: D:20090507081242-0200
+%%CreationDate: D:20101104192756-0100
 %%Title: Eagle Mode - emFileMan Customization
 %%Pages: 5
 %%DocumentProvidedResources:
@@ -10965,7 +10965,7 @@ GS
 72 36 T
 0.00 0.00 0.00 C 14 FS/F5 SF 203.838 706 M(Eagle Mode -)S
 24 FS/F5 SF 107.18 679.2 M(emFileMan Customization)S
-9 FS/F4 SF 96.976 652.2 M(Copyright \251 2008 Oliver Hamann. Homepage: http://eaglemode.sourceforge.net/)S
+9 FS/F4 SF 86.477 652.2 M(Copyright \251 2008-2010 Oliver Hamann. Homepage: http://eaglemode.sourceforge.net/)S
 20 FS/F9 SF 0 617.2 M(Contents)S
 11 FS/F4 SF 0 589 M(1 Introduction)S
 0 575.8 M(2 Simple modifications)S
@@ -10986,119 +10986,115 @@ GS
 /F0 SF ($EM_DIR/etc/emFileMan/Commands)S
 /F4 SF ( \(replace )S
 /F0 SF ($EM_DIR)S
-/F4 SF 0 327.4 M(by the installation directory of Eagle Mode\). Commands of subgroups are located in corresponding)S
-0 314.2 M(subdirectories. You could modify the commands directly there, but this may require administrator privileges.)S
-0 301 M(Alternatively, you could create a copy of the whole directory tree, so that it is possible to modify the files with)S
-0 287.8 M(user privileges. The required path for that copy is )S
-/F0 SF ($HOME/.eaglemode/emFileMan/Commands)S
-/F4 SF ( \(or on)S
-0 274.6 M(Windows: )S
-/F0 SF (%APPDATA%\\eaglemode\\emFileMan\\Commands)S
-/F4 SF (\). If that directory exists and seems okay,)S
-0 261.4 M(the script files are loaded from there, and the other is ignored.)S
-0 235 M(Adding a new command simply consists of adding a new script file. To make a change visible to Eagle Mode,)S
-0 221.8 M(trigger the button)S
+/F4 SF 0 327.4 M(by the installation directory of Eagle Mode, and replace etc by etcw if on Windows\). Commands of subgroups)S
+0 314.2 M(are located in corresponding subdirectories. You could modify the commands directly there, but this may)S
+0 301 M(require administrator privileges. Alternatively, you could create a copy of the whole directory tree, so that it is)S
+0 287.8 M(possible to modify the files with user privileges. The required path for that copy is)S
+/F0 SF 0 274.6 M($HOME/.eaglemode/emFileMan/Commands)S
+/F4 SF ( \(or on Windows:)S
+/F0 SF 0 261.4 M(%APPDATA%\\eaglemode\\emFileMan\\Commands)S
+/F4 SF (\). If that directory exists and seems okay, the script)S
+0 248.2 M(files are loaded from there, and the other is ignored.)S
+0 221.8 M(Adding a new command simply consists of adding a new script file. To make a change visible to Eagle Mode,)S
+0 208.6 M(trigger the button)S
 /F6 SF ( Reload Files)S
 /F4 SF (. Error messages for bad script files are printed to STDERR, and therefore it is)S
-0 208.6 M(a good idea to run Eagle Mode from a terminal while working on the commands \(exception: on Windows the)S
-0 195.4 M(messages are written to )S
+0 195.4 M(a good idea to run Eagle Mode from a terminal while working on the commands \(exception: on Windows the)S
+0 182.2 M(messages are written to )S
 /F0 SF (%TMP%\\emCoreBasedAppLog.log)S
 /F4 SF (\).)S
-0 169 M(Remember to make backups of your modifications, because they could be removed when reinstalling Eagle)S
-0 155.8 M(Mode.)S
-20 FS/F9 SF 0 120.4 M(2 Simple modifications)S
-17 FS/F9 SF 0 86.2 M(2.1 Setting the preferred application for a file type)S
-11 FS/F4 SF 0 58.6 M(For example, if you want to make Kate the default text editor, edit the file )S
-/F0 SF (PlainText/Kate.pl)S
-/F4 SF ( \(below)S
-0 45.4 M(the)S
-/F6 SF ( Commands)S
-/F4 SF ( directory described above\) and find the following line in it:)S
-/F8 SF 480.884 0 M(1)S
+0 155.8 M(Remember to make backups of your modifications, because they could be removed when reinstalling Eagle)S
+0 142.6 M(Mode.)S
+0 116.2 M(Note: This document describes the UNIX version where the scripts are written in Perl. On Windows,)S
+0 103 M(everything is very similar, but the scripts are in Javascript.)S
+20 FS/F9 SF 0 67.6 M(2 Simple modifications)S
+11 FS/F8 SF 480.884 0 M(1)S
 GR
 SP
 %%Page: (2) 2
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.82 0.82 0.82 C 0 327.135 M 469.9 187.7 F
-0.00 0.00 0.00 C 0 287.535 M 45.1 0.7 F
-0 243.638 M 0.7 44.6 F
-44.413 243.638 M 0.7 44.6 F
-0 243.638 M 45.1 0.7 F
-45.129 287.535 M 442.6 0.7 F
-45.129 243.638 M 0.7 44.6 F
-487 243.638 M 0.7 44.6 F
-45.129 243.638 M 442.6 0.7 F
-0 242.922 M 45.1 0.7 F
-0 225.425 M 0.7 18.2 F
-44.413 225.425 M 0.7 18.2 F
-0 225.425 M 45.1 0.7 F
-45.129 242.922 M 442.6 0.7 F
-45.129 225.425 M 0.7 18.2 F
-487 225.425 M 0.7 18.2 F
-45.129 225.425 M 442.6 0.7 F
-0 224.708 M 45.1 0.7 F
-0 194.011 M 0.7 31.4 F
-44.413 194.011 M 0.7 31.4 F
-0 194.011 M 45.1 0.7 F
-45.129 224.708 M 442.6 0.7 F
-45.129 194.011 M 0.7 31.4 F
-487 194.011 M 0.7 31.4 F
-45.129 194.011 M 442.6 0.7 F
-11 FS/F0 SF 0 709 M(   # Order = 3.0)S
-/F4 SF 0 682.6 M(Simply set the order number to zero:)S
-/F0 SF 0 656.2 M(   # Order = 0.0)S
-/F4 SF 0 629.8 M(Thereby, Kate gets precedence over all the other text editors. And besides, the button moves to the beginning)S
-0 616.6 M(of the group.)S
-17 FS/F9 SF 0 584.2 M(2.2 Adding a new application for a file type)S
-11 FS/F4 SF 0 556.6 M(Assumed you have an application that can edit or show files of a certain file type, and you want to be able to)S
-0 543.4 M(run it out of the file manager. Then you have to create a new file in the desired group directory. Give it a name)S
-0 530.2 M(that ends with )S
+0.82 0.82 0.82 C 0 253.935 M 469.9 187.7 F
+0.00 0.00 0.00 C 0 214.335 M 45.1 0.7 F
+0 170.438 M 0.7 44.6 F
+44.413 170.438 M 0.7 44.6 F
+0 170.438 M 45.1 0.7 F
+45.129 214.335 M 442.6 0.7 F
+45.129 170.438 M 0.7 44.6 F
+487 170.438 M 0.7 44.6 F
+45.129 170.438 M 442.6 0.7 F
+0 169.722 M 45.1 0.7 F
+0 152.225 M 0.7 18.2 F
+44.413 152.225 M 0.7 18.2 F
+0 152.225 M 45.1 0.7 F
+45.129 169.722 M 442.6 0.7 F
+45.129 152.225 M 0.7 18.2 F
+487 152.225 M 0.7 18.2 F
+45.129 152.225 M 442.6 0.7 F
+0 151.508 M 45.1 0.7 F
+0 120.811 M 0.7 31.4 F
+44.413 120.811 M 0.7 31.4 F
+0 120.811 M 45.1 0.7 F
+45.129 151.508 M 442.6 0.7 F
+45.129 120.811 M 0.7 31.4 F
+487 120.811 M 0.7 31.4 F
+45.129 120.811 M 442.6 0.7 F
+17 FS/F9 SF 0 703 M(2.1 Setting the preferred application for a file type)S
+11 FS/F4 SF 0 675.4 M(For example, if you want to make Kate the default text editor, edit the file )S
+/F0 SF (PlainText/Kate.pl)S
+/F4 SF ( \(below)S
+0 662.2 M(the)S
+/F6 SF ( Commands)S
+/F4 SF ( directory described above\) and find the following line in it:)S
+/F0 SF 0 635.8 M(   # Order = 3.0)S
+/F4 SF 0 609.4 M(Simply set the order number to zero:)S
+/F0 SF 0 583 M(   # Order = 0.0)S
+/F4 SF 0 556.6 M(Thereby, Kate gets precedence over all the other text editors. And besides, the button moves to the beginning)S
+0 543.4 M(of the group.)S
+17 FS/F9 SF 0 511 M(2.2 Adding a new application for a file type)S
+11 FS/F4 SF 0 483.4 M(Assumed you have an application that can edit or show files of a certain file type, and you want to be able to)S
+0 470.2 M(run it out of the file manager. Then you have to create a new file in the desired group directory. Give it a name)S
+0 457 M(that ends with )S
 /F0 SF (.pl)S
 /F4 SF ( and fill it with this template:)S
-/F0 SF 1.432 502.367 M(#!/usr/bin/perl)S
-1.432 489.167 M(#[[BEGIN PROPERTIES]])S
-1.432 475.967 M(# Type = Command)S
-1.432 462.767 M(# Order = 0.0)S
-1.432 449.567 M(# Interpreter = perl)S
-1.432 436.367 M(# DefaultFor =)S
+/F0 SF 1.432 429.167 M(#!/usr/bin/perl)S
+1.432 415.967 M(#[[BEGIN PROPERTIES]])S
+1.432 402.767 M(# Type = Command)S
+1.432 389.567 M(# Order = 0.0)S
+1.432 376.367 M(# Interpreter = perl)S
+1.432 363.167 M(# DefaultFor =)S
 /F7 SF ( type)S
-/F0 SF 1.432 423.167 M(# Caption =)S
+/F0 SF 1.432 349.967 M(# Caption =)S
 /F7 SF ( name)S
-/F0 SF 1.432 409.967 M(#[[END PROPERTIES]])S
-1.432 383.567 M(use strict;)S
-1.432 370.367 M(use warnings;)S
-1.432 357.167 M(BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; })S
-1.432 330.767 M(OpenSingleTargetFileWith\(')S
+/F0 SF 1.432 336.767 M(#[[END PROPERTIES]])S
+1.432 310.367 M(use strict;)S
+1.432 297.167 M(use warnings;)S
+1.432 283.967 M(BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; })S
+1.432 257.567 M(OpenSingleTargetFileWith\(')S
 /F7 SF (program)S
 /F0 SF ('\);)S
-/F4 SF 0 302.935 M(And then replace three things in the template:)S
-/F7 SF 2.149 274.386 M(type)S
-/F4 SF 47.278 274.386 M(Replace this by the file type the application is able to handle. It must be a file name ending)S
-47.278 261.186 M(including the leading dot \(something like )S
+/F4 SF 0 229.735 M(And then replace three things in the template:)S
+/F7 SF 2.149 201.186 M(type)S
+/F4 SF 47.278 201.186 M(Replace this by the file type the application is able to handle. It must be a file name ending)S
+47.278 187.986 M(including the leading dot \(something like )S
 /F0 SF (.avi)S
 /F4 SF (\), or a colon-separated list of such \(e.g.)S
-/F0 SF 47.278 247.986 M(.avi:.mpg)S
+/F0 SF 47.278 174.786 M(.avi:.mpg)S
 /F4 SF (\), or the special keyword )S
 /F0 SF (file)S
 /F4 SF ( for the case the application is a plain text editor.)S
-/F7 SF 2.149 229.773 M(name)S
-/F4 SF 47.278 229.773 M(Replace this by the application name. It is shown in the button.)S
-/F7 SF 2.149 211.56 M(program)S
-/F4 SF 47.278 211.56 M(Replace this by the executable file name of the application, like it is called in a shell, with or)S
-47.278 198.36 M(without path.)S
-0 169.811 M(If you want to be able to open multiple files at once, and if supported by the application, you could replace, in)S
-0 156.611 M(the last line of the script, the word )S
+/F7 SF 2.149 156.573 M(name)S
+/F4 SF 47.278 156.573 M(Replace this by the application name. It is shown in the button.)S
+/F7 SF 2.149 138.36 M(program)S
+/F4 SF 47.278 138.36 M(Replace this by the executable file name of the application, like it is called in a shell, with or)S
+47.278 125.16 M(without path.)S
+0 96.611 M(If you want to be able to open multiple files at once, and if supported by the application, you could replace, in)S
+0 83.411 M(the last line of the script, the word )S
 /F0 SF (OpenSingleTargetFileWith)S
 /F4 SF ( by )S
 /F0 SF (OpenTargetFilesWith)S
 /F4 SF (.)S
-20 FS/F9 SF 0 121.211 M(3 Reference)S
-17 FS/F9 SF 0 87.011 M(3.1 Properties)S
-11 FS/F4 SF 0 59.411 M(Each command script file has a special section containing properties. And for each command group directory,)S
-0 46.211 M(there is a file which even has such a section. The properties are configuration parameters read and used by the)S
-0 33.011 M(file manager.)S
 /F8 SF 480.884 0 M(2)S
 GR
 SP
@@ -11106,204 +11102,182 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 0 574.8 M 118.2 0.7 F
-0 557.303 M 0.7 18.2 F
-117.497 557.303 M 0.7 18.2 F
-0 557.303 M 118.2 0.7 F
-118.213 574.8 M 369.5 0.7 F
-118.213 557.303 M 0.7 18.2 F
-487 557.303 M 0.7 18.2 F
-118.213 557.303 M 369.5 0.7 F
-0 556.587 M 118.2 0.7 F
-0 499.489 M 0.7 57.8 F
-117.497 499.489 M 0.7 57.8 F
-0 499.489 M 118.2 0.7 F
-118.213 556.587 M 369.5 0.7 F
-118.213 499.489 M 0.7 57.8 F
-487 499.489 M 0.7 57.8 F
-118.213 499.489 M 369.5 0.7 F
-0 498.773 M 118.2 0.7 F
-0 468.076 M 0.7 31.4 F
-117.497 468.076 M 0.7 31.4 F
-0 468.076 M 118.2 0.7 F
-118.213 498.773 M 369.5 0.7 F
-118.213 468.076 M 0.7 31.4 F
-487 468.076 M 0.7 31.4 F
-118.213 468.076 M 369.5 0.7 F
-0 467.36 M 118.2 0.7 F
-0 436.663 M 0.7 31.4 F
-117.497 436.663 M 0.7 31.4 F
-0 436.663 M 118.2 0.7 F
-118.213 467.36 M 369.5 0.7 F
-118.213 436.663 M 0.7 31.4 F
-487 436.663 M 0.7 31.4 F
-118.213 436.663 M 369.5 0.7 F
-0 435.947 M 118.2 0.7 F
-0 405.25 M 0.7 31.4 F
-117.497 405.25 M 0.7 31.4 F
-0 405.25 M 118.2 0.7 F
-118.213 435.947 M 369.5 0.7 F
-118.213 405.25 M 0.7 31.4 F
-487 405.25 M 0.7 31.4 F
-118.213 405.25 M 369.5 0.7 F
-0 404.533 M 118.2 0.7 F
-0 328.507 M 0.7 76.7 F
-117.497 328.507 M 0.7 76.7 F
-0 328.507 M 118.2 0.7 F
-118.213 404.533 M 369.5 0.7 F
-118.213 328.507 M 0.7 76.7 F
-487 328.507 M 0.7 76.7 F
-118.213 328.507 M 369.5 0.7 F
-0 327.791 M 118.2 0.7 F
-0 310.294 M 0.7 18.2 F
-117.497 310.294 M 0.7 18.2 F
-0 310.294 M 118.2 0.7 F
-118.213 327.791 M 369.5 0.7 F
-118.213 310.294 M 0.7 18.2 F
-487 310.294 M 0.7 18.2 F
-118.213 310.294 M 369.5 0.7 F
-0 309.577 M 118.2 0.7 F
-0 278.88 M 0.7 31.4 F
-117.497 278.88 M 0.7 31.4 F
-0 278.88 M 118.2 0.7 F
-118.213 309.577 M 369.5 0.7 F
-118.213 278.88 M 0.7 31.4 F
-487 278.88 M 0.7 31.4 F
-118.213 278.88 M 369.5 0.7 F
-0 278.164 M 118.2 0.7 F
-0 247.467 M 0.7 31.4 F
-117.497 247.467 M 0.7 31.4 F
-0 247.467 M 118.2 0.7 F
-118.213 278.164 M 369.5 0.7 F
-118.213 247.467 M 0.7 31.4 F
-487 247.467 M 0.7 31.4 F
-118.213 247.467 M 369.5 0.7 F
-0 246.751 M 118.2 0.7 F
-0 189.654 M 0.7 57.8 F
-117.497 189.654 M 0.7 57.8 F
-0 189.654 M 118.2 0.7 F
-118.213 246.751 M 369.5 0.7 F
-118.213 189.654 M 0.7 57.8 F
-487 189.654 M 0.7 57.8 F
-118.213 189.654 M 369.5 0.7 F
-0 188.938 M 118.2 0.7 F
-0 158.241 M 0.7 31.4 F
-117.497 158.241 M 0.7 31.4 F
-0 158.241 M 118.2 0.7 F
-118.213 188.938 M 369.5 0.7 F
-118.213 158.241 M 0.7 31.4 F
-487 158.241 M 0.7 31.4 F
-118.213 158.241 M 369.5 0.7 F
-0 157.524 M 118.2 0.7 F
-0 126.827 M 0.7 31.4 F
-117.497 126.827 M 0.7 31.4 F
-0 126.827 M 118.2 0.7 F
-118.213 157.524 M 369.5 0.7 F
-118.213 126.827 M 0.7 31.4 F
-487 126.827 M 0.7 31.4 F
-118.213 126.827 M 369.5 0.7 F
-0 126.111 M 118.2 0.7 F
-0 108.614 M 0.7 18.2 F
-117.497 108.614 M 0.7 18.2 F
-0 108.614 M 118.2 0.7 F
-118.213 126.111 M 369.5 0.7 F
-118.213 108.614 M 0.7 18.2 F
-487 108.614 M 0.7 18.2 F
-118.213 108.614 M 369.5 0.7 F
-11 FS/F4 SF 0 709 M(The format of the properties section is:)S
-/F0 SF 0 682.6 M(#[[BEGIN PROPERTIES]])S
-0 669.4 M(# )S
+0.00 0.00 0.00 C 0 451.2 M 118.2 0.7 F
+0 433.703 M 0.7 18.2 F
+117.497 433.703 M 0.7 18.2 F
+0 433.703 M 118.2 0.7 F
+118.213 451.2 M 369.5 0.7 F
+118.213 433.703 M 0.7 18.2 F
+487 433.703 M 0.7 18.2 F
+118.213 433.703 M 369.5 0.7 F
+0 432.987 M 118.2 0.7 F
+0 375.889 M 0.7 57.8 F
+117.497 375.889 M 0.7 57.8 F
+0 375.889 M 118.2 0.7 F
+118.213 432.987 M 369.5 0.7 F
+118.213 375.889 M 0.7 57.8 F
+487 375.889 M 0.7 57.8 F
+118.213 375.889 M 369.5 0.7 F
+0 375.173 M 118.2 0.7 F
+0 344.476 M 0.7 31.4 F
+117.497 344.476 M 0.7 31.4 F
+0 344.476 M 118.2 0.7 F
+118.213 375.173 M 369.5 0.7 F
+118.213 344.476 M 0.7 31.4 F
+487 344.476 M 0.7 31.4 F
+118.213 344.476 M 369.5 0.7 F
+0 343.76 M 118.2 0.7 F
+0 313.063 M 0.7 31.4 F
+117.497 313.063 M 0.7 31.4 F
+0 313.063 M 118.2 0.7 F
+118.213 343.76 M 369.5 0.7 F
+118.213 313.063 M 0.7 31.4 F
+487 313.063 M 0.7 31.4 F
+118.213 313.063 M 369.5 0.7 F
+0 312.347 M 118.2 0.7 F
+0 281.65 M 0.7 31.4 F
+117.497 281.65 M 0.7 31.4 F
+0 281.65 M 118.2 0.7 F
+118.213 312.347 M 369.5 0.7 F
+118.213 281.65 M 0.7 31.4 F
+487 281.65 M 0.7 31.4 F
+118.213 281.65 M 369.5 0.7 F
+0 280.933 M 118.2 0.7 F
+0 204.907 M 0.7 76.7 F
+117.497 204.907 M 0.7 76.7 F
+0 204.907 M 118.2 0.7 F
+118.213 280.933 M 369.5 0.7 F
+118.213 204.907 M 0.7 76.7 F
+487 204.907 M 0.7 76.7 F
+118.213 204.907 M 369.5 0.7 F
+0 204.191 M 118.2 0.7 F
+0 186.694 M 0.7 18.2 F
+117.497 186.694 M 0.7 18.2 F
+0 186.694 M 118.2 0.7 F
+118.213 204.191 M 369.5 0.7 F
+118.213 186.694 M 0.7 18.2 F
+487 186.694 M 0.7 18.2 F
+118.213 186.694 M 369.5 0.7 F
+0 185.978 M 118.2 0.7 F
+0 155.281 M 0.7 31.4 F
+117.497 155.281 M 0.7 31.4 F
+0 155.281 M 118.2 0.7 F
+118.213 185.978 M 369.5 0.7 F
+118.213 155.281 M 0.7 31.4 F
+487 155.281 M 0.7 31.4 F
+118.213 155.281 M 369.5 0.7 F
+0 154.564 M 118.2 0.7 F
+0 123.867 M 0.7 31.4 F
+117.497 123.867 M 0.7 31.4 F
+0 123.867 M 118.2 0.7 F
+118.213 154.564 M 369.5 0.7 F
+118.213 123.867 M 0.7 31.4 F
+487 123.867 M 0.7 31.4 F
+118.213 123.867 M 369.5 0.7 F
+0 123.151 M 118.2 0.7 F
+0 66.054 M 0.7 57.8 F
+117.497 66.054 M 0.7 57.8 F
+0 66.054 M 118.2 0.7 F
+118.213 123.151 M 369.5 0.7 F
+118.213 66.054 M 0.7 57.8 F
+487 66.054 M 0.7 57.8 F
+118.213 66.054 M 369.5 0.7 F
+0 65.338 M 118.2 0.7 F
+0 34.641 M 0.7 31.4 F
+117.497 34.641 M 0.7 31.4 F
+0 34.641 M 118.2 0.7 F
+118.213 65.338 M 369.5 0.7 F
+118.213 34.641 M 0.7 31.4 F
+487 34.641 M 0.7 31.4 F
+118.213 34.641 M 369.5 0.7 F
+20 FS/F9 SF 0 700 M(3 Reference)S
+17 FS/F9 SF 0 665.8 M(3.1 Properties)S
+11 FS/F4 SF 0 638.2 M(Each command script file has a special section containing properties. And for each command group directory,)S
+0 625 M(there is a file which even has such a section. The properties are configuration parameters read and used by the)S
+0 611.8 M(file manager.)S
+0 585.4 M(The format of the properties section is:)S
+/F0 SF 0 559 M(#[[BEGIN PROPERTIES]])S
+0 545.8 M(# )S
 /F6 SF (name)S
 /F0 SF ( = )S
 /F6 SF (value)S
-/F0 SF 0 656.2 M(# )S
+/F0 SF 0 532.6 M(# )S
 /F6 SF (name)S
 /F0 SF ( = )S
 /F6 SF (value)S
-/F0 SF 0 643 M(# )S
+/F0 SF 0 519.4 M(# )S
 /F6 SF (name)S
 /F0 SF ( = )S
 /F6 SF (value)S
-0 629.8 M(...)S
-/F0 SF 0 616.6 M(#[[END PROPERTIES]])S
-/F4 SF 0 590.2 M(Possible properties are:)S
-/F5 SF 2.149 561.651 M(Name)S
-120.362 561.651 M(Description)S
-/F0 SF 2.149 543.438 M(Type)S
-/F4 SF 120.362 543.438 M(Type of the element. Possible values are:)S
-/F0 SF 120.362 530.238 M( Command )S
+0 506.2 M(...)S
+/F0 SF 0 493 M(#[[END PROPERTIES]])S
+/F4 SF 0 466.6 M(Possible properties are:)S
+/F5 SF 2.149 438.051 M(Name)S
+120.362 438.051 M(Description)S
+/F0 SF 2.149 419.838 M(Type)S
+/F4 SF 120.362 419.838 M(Type of the element. Possible values are:)S
+/F0 SF 120.362 406.638 M( Command )S
 /F4 SF (- The file is a command script.)S
-/F0 SF 120.362 517.038 M( Group   )S
+/F0 SF 120.362 393.438 M( Group   )S
 /F4 SF (- The file describes a command group.)S
-120.362 503.838 M(This property must always be there.)S
-/F0 SF 2.149 485.625 M(Order)S
-/F4 SF 120.362 485.625 M(Order of the element. This can be any number. Within a group, the elements are)S
-120.362 472.425 M(sorted by these numbers. The element with the lowest number is at the beginning.)S
-/F0 SF 2.149 454.211 M(Interpreter)S
-/F4 SF 120.362 454.211 M(This property is only for commands. It specifies the program to be called as the)S
-120.362 441.011 M(interpreter for the script. For Perl scripts, say )S
+120.362 380.238 M(This property must always be there.)S
+/F0 SF 2.149 362.025 M(Order)S
+/F4 SF 120.362 362.025 M(Order of the element. This can be any number. Within a group, the elements are)S
+120.362 348.825 M(sorted by these numbers. The element with the lowest number is at the beginning.)S
+/F0 SF 2.149 330.611 M(Interpreter)S
+/F4 SF 120.362 330.611 M(This property is only for commands. It specifies the program to be called as the)S
+120.362 317.411 M(interpreter for the script. For Perl scripts, say )S
 /F0 SF (perl)S
 /F4 SF (.)S
-/F0 SF 2.149 422.798 M(Directory)S
-/F4 SF 120.362 422.798 M(This property is only for groups, and there it is always required. It specifies the)S
-120.362 409.598 M(name \(without path\) of a subdirectory containing the elements of the group.)S
-/F0 SF 2.149 391.385 M(DefaultFor)S
-/F4 SF 120.362 391.385 M(This property is only for commands. It specifies the file types for which the)S
-120.362 378.185 M(command is a default command. The value for this property must be one of:)S
-120.362 364.985 M( *)S
-132.477 364.985 M(A colon-separated list of file name endings, each including the leading dot.)S
-120.362 348.92 M( *)S
-132.476 348.92 M(The keyword )S
+/F0 SF 2.149 299.198 M(Directory)S
+/F4 SF 120.362 299.198 M(This property is only for groups, and there it is always required. It specifies the)S
+120.362 285.998 M(name \(without path\) of a subdirectory containing the elements of the group.)S
+/F0 SF 2.149 267.785 M(DefaultFor)S
+/F4 SF 120.362 267.785 M(This property is only for commands. It specifies the file types for which the)S
+120.362 254.585 M(command is a default command. The value for this property must be one of:)S
+120.362 241.385 M( *)S
+132.477 241.385 M(A colon-separated list of file name endings, each including the leading dot.)S
+120.362 225.32 M( *)S
+132.476 225.32 M(The keyword )S
 /F0 SF (file)S
 /F4 SF (. This means to match all regular files.)S
-120.362 332.855 M( *)S
-132.476 332.855 M(The keyword )S
+120.362 209.255 M( *)S
+132.476 209.255 M(The keyword )S
 /F0 SF (directory)S
 /F4 SF (. This means to match directories.)S
-/F0 SF 2.149 314.642 M(Caption)S
-/F4 SF 120.362 314.642 M(A caption to be shown in the label of the button or group.)S
-/F0 SF 2.149 296.429 M(Description)S
-/F4 SF 2.149 283.229 M(or )S
+/F0 SF 2.149 191.042 M(Caption)S
+/F4 SF 120.362 191.042 M(A caption to be shown in the label of the button or group.)S
+/F0 SF 2.149 172.829 M(Description)S
+/F4 SF 2.149 159.629 M(or )S
 /F0 SF (Descr)S
-/F4 SF 120.362 296.429 M(A description to be shown in the label of the button or group. This property can be)S
-120.362 283.229 M(given multiple times for creating a multi-line description.)S
-/F0 SF 2.149 265.016 M(Icon)S
-/F4 SF 120.362 265.016 M(An icon to be shown in the label of the button or group. It can be specified by a)S
-120.362 251.816 M(file name \(without path\) of a TGA file in the directory )S
+/F4 SF 120.362 172.829 M(A description to be shown in the label of the button or group. This property can be)S
+120.362 159.629 M(given multiple times for creating a multi-line description.)S
+/F0 SF 2.149 141.416 M(Icon)S
+/F4 SF 120.362 141.416 M(An icon to be shown in the label of the button or group. It can be specified by a)S
+120.362 128.216 M(file name \(without path\) of a TGA file in the directory )S
 /F0 SF ($EM_DIR/res/icons)S
 /F4 SF (.)S
-/F0 SF 2.149 233.602 M(BgColor)S
-2.149 220.402 M(FgColor)S
-2.149 207.202 M(ButtonBgColor)S
-2.149 194.002 M(ButtonFgColor)S
-/F4 SF 120.362 233.602 M(Background and foreground colors of the borders and buttons. The colors of a)S
-120.362 220.402 M(group are used as the default for the elements of the group. A color can be)S
-120.362 207.202 M(specified as a color name like )S
+/F0 SF 2.149 110.003 M(BgColor)S
+2.149 96.803 M(FgColor)S
+2.149 83.603 M(ButtonBgColor)S
+2.149 70.403 M(ButtonFgColor)S
+/F4 SF 120.362 110.003 M(Background and foreground colors of the borders and buttons. The colors of a)S
+120.362 96.803 M(group are used as the default for the elements of the group. A color can be)S
+120.362 83.603 M(specified as a color name like )S
 /F0 SF (Powder Blue)S
 /F4 SF (, or as a hexadecimal RGB value)S
-120.362 194.002 M(like )S
+120.362 70.403 M(like )S
 /F0 SF (#B0E0E6)S
 /F4 SF ( or )S
 /F0 SF (#BEE)S
 /F4 SF (.)S
-/F0 SF 2.149 175.789 M(Hotkey)S
-/F4 SF 120.362 175.789 M(This property specifies a hotkey for the command. Sample values are: )S
+/F0 SF 2.149 52.189 M(Hotkey)S
+/F4 SF 120.362 52.189 M(This property specifies a hotkey for the command. Sample values are: )S
 /F0 SF (Ctrl+C)S
 /F4 SF (,)S
-/F0 SF 120.362 162.589 M(Shift+Alt+D)S
+/F0 SF 120.362 38.989 M(Shift+Alt+D)S
 /F4 SF (, )S
 /F0 SF (Meta+F10)S
-2.149 144.376 M(BorderScaling)S
-/F4 SF 120.362 144.376 M(Scale factor for the size of the border. The default is 1.0. Zero means to make a)S
-120.362 131.176 M(group panel unfocusable.)S
-/F0 SF 2.149 112.963 M(PrefChildTallness)S
-/F4 SF 120.362 112.963 M(Preferred height/width ratio of the elements of the group. The default is 0.2.)S
-17 FS/F9 SF 0 78.414 M(3.2 Precedence of default commands)S
-11 FS/F4 SF 0 50.814 M(By setting the )S
-/F0 SF (DefaultFor)S
-/F4 SF ( property, you can make a command the default command for a file type. But if)S
-0 37.614 M(multiple commands are the default for the same file, there is a conflict. In that case, the file manager chooses a)S
-0 24.414 M(command by the following rules \(strongest-first\):)S
 /F8 SF 480.884 0 M(3)S
 GR
 SP
@@ -11311,108 +11285,71 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 0 181.2 M 118.2 0.7 F
-0 163.703 M 0.7 18.2 F
-117.497 163.703 M 0.7 18.2 F
-0 163.703 M 118.2 0.7 F
-118.213 181.2 M 369.5 0.7 F
-118.213 163.703 M 0.7 18.2 F
-487 163.703 M 0.7 18.2 F
-118.213 163.703 M 369.5 0.7 F
-0 162.986 M 118.2 0.7 F
-0 145.489 M 0.7 18.2 F
-117.497 145.489 M 0.7 18.2 F
-0 145.489 M 118.2 0.7 F
-118.213 162.986 M 369.5 0.7 F
-118.213 145.489 M 0.7 18.2 F
-487 145.489 M 0.7 18.2 F
-118.213 145.489 M 369.5 0.7 F
-0 144.773 M 118.2 0.7 F
-0 127.276 M 0.7 18.2 F
-117.497 127.276 M 0.7 18.2 F
-0 127.276 M 118.2 0.7 F
-118.213 144.773 M 369.5 0.7 F
-118.213 127.276 M 0.7 18.2 F
-487 127.276 M 0.7 18.2 F
-118.213 127.276 M 369.5 0.7 F
-0 126.56 M 118.2 0.7 F
-0 109.063 M 0.7 18.2 F
-117.497 109.063 M 0.7 18.2 F
-0 109.063 M 118.2 0.7 F
-118.213 126.56 M 369.5 0.7 F
-118.213 109.063 M 0.7 18.2 F
-487 109.063 M 0.7 18.2 F
-118.213 109.063 M 369.5 0.7 F
-0 108.347 M 118.2 0.7 F
-0 90.85 M 0.7 18.2 F
-117.497 90.85 M 0.7 18.2 F
-0 90.85 M 118.2 0.7 F
-118.213 108.347 M 369.5 0.7 F
-118.213 90.85 M 0.7 18.2 F
-487 90.85 M 0.7 18.2 F
-118.213 90.85 M 369.5 0.7 F
-0 90.133 M 118.2 0.7 F
-0 33.036 M 0.7 57.8 F
-117.497 33.036 M 0.7 57.8 F
-0 33.036 M 118.2 0.7 F
-118.213 90.133 M 369.5 0.7 F
-118.213 33.036 M 0.7 57.8 F
-487 33.036 M 0.7 57.8 F
-118.213 33.036 M 369.5 0.7 F
-11 FS/F4 SF 36 709 M(If a command A matches the file by file name ending and a command B matches just by matching)S
-36 695.8 M(every file \(keyword )S
+0.00 0.00 0.00 C 0 720 M 118.2 0.7 F
+0 689.303 M 0.7 31.4 F
+117.497 689.303 M 0.7 31.4 F
+0 689.303 M 118.2 0.7 F
+118.213 720 M 369.5 0.7 F
+118.213 689.303 M 0.7 31.4 F
+487 689.303 M 0.7 31.4 F
+118.213 689.303 M 369.5 0.7 F
+0 688.587 M 118.2 0.7 F
+0 671.09 M 0.7 18.2 F
+117.497 671.09 M 0.7 18.2 F
+0 671.09 M 118.2 0.7 F
+118.213 688.587 M 369.5 0.7 F
+118.213 671.09 M 0.7 18.2 F
+487 671.09 M 0.7 18.2 F
+118.213 671.09 M 369.5 0.7 F
+11 FS/F0 SF 2.149 706.851 M(BorderScaling)S
+/F4 SF 120.362 706.851 M(Scale factor for the size of the border. The default is 1.0. Zero means to make a)S
+120.362 693.651 M(group panel unfocusable.)S
+/F0 SF 2.149 675.438 M(PrefChildTallness)S
+/F4 SF 120.362 675.438 M(Preferred height/width ratio of the elements of the group. The default is 0.2.)S
+17 FS/F9 SF 0 640.89 M(3.2 Precedence of default commands)S
+11 FS/F4 SF 0 613.289 M(By setting the )S
+/F0 SF (DefaultFor)S
+/F4 SF ( property, you can make a command the default command for a file type. But if)S
+0 600.089 M(multiple commands are the default for the same file, there is a conflict. In that case, the file manager chooses a)S
+0 586.889 M(command by the following rules \(strongest-first\):)S
+36 560.489 M(If a command A matches the file by file name ending and a command B matches just by matching)S
+36 547.289 M(every file \(keyword )S
 /F0 SF (file)S
 /F4 SF (\), then A has precedence over B.)S
-/F18 SF 28.19 709 M(\267 )S
-/F4 SF 36 669.4 M(If a command A matches the file by a longer file name ending than a command B \(e.g. )S
+/F18 SF 28.19 560.489 M(\267 )S
+/F4 SF 36 520.889 M(If a command A matches the file by a longer file name ending than a command B \(e.g. )S
 /F0 SF (.tar.gz)S
 /F4 SF ( vs.)S
-/F0 SF 36 656.2 M(.gz)S
+/F0 SF 36 507.689 M(.gz)S
 /F4 SF (\), then A has precedence over B.)S
-/F18 SF 28.19 669.4 M(\267 )S
-/F4 SF 36 629.8 M(If a command A lies in a parent group \(or ancestor group\) of the group of a command B, then A has)S
-36 616.6 M(precedence over B.)S
-/F18 SF 28.19 629.8 M(\267 )S
-/F4 SF 36 590.2 M(If a command A has a lower )S
+/F18 SF 28.19 520.889 M(\267 )S
+/F4 SF 36 481.289 M(If a command A lies in a parent group \(or ancestor group\) of the group of a command B, then A has)S
+36 468.089 M(precedence over B.)S
+/F18 SF 28.19 481.289 M(\267 )S
+/F4 SF 36 441.689 M(If a command A has a lower )S
 /F0 SF (Order)S
 /F4 SF ( number than a command B, then A has precedence over B.)S
-/F18 SF 28.19 590.2 M(\267 )S
-/F4 SF 0 563.8 M(The rest is tree sorting by captions, case-sensitive.)S
-17 FS/F9 SF 0 531.4 M(3.3 The Perl utility functions)S
-11 FS/F4 SF 0 503.8 M(The original command scripts are implemented in Perl, and the first lines are always:)S
-8 FS/F0 SF 0 480.4 M(  use strict;)S
-0 470.8 M(  use warnings;)S
-0 461.2 M(  BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; })S
-11 FS/F4 SF 0 435.4 M(This loads and executes a framework which performs some initializations and defines a lot of of utility)S
-0 422.2 M(functions. For information about those functions, please have a look into the file)S
-/F0 SF 0 409 M($EM_DIR/res/emFileMan/scripts/cmd-util.pl)S
+/F18 SF 28.19 441.689 M(\267 )S
+/F4 SF 0 415.289 M(The rest is tree sorting by captions, case-sensitive.)S
+17 FS/F9 SF 0 382.889 M(3.3 The Perl utility functions)S
+11 FS/F4 SF 0 355.289 M(The original command scripts are implemented in Perl, and the first lines are always:)S
+8 FS/F0 SF 0 331.889 M(  use strict;)S
+0 322.289 M(  use warnings;)S
+0 312.689 M(  BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; })S
+11 FS/F4 SF 0 286.889 M(This loads and executes a framework which performs some initializations and defines a lot of of utility)S
+0 273.689 M(functions. For information about those functions, please have a look into the file)S
+/F0 SF 0 260.489 M($EM_DIR/res/emFileMan/scripts/cmd-util.pl)S
 /F4 SF (, and take all the existing command scripts as)S
-0 395.8 M(usage examples.)S
-0 369.4 M(The rest of this document may be of interest only for understanding the implementation of the framework, or)S
-0 356.2 M(for writing a new framework in another scripting language.)S
-17 FS/F9 SF 0 323.8 M(3.4 Arguments)S
-11 FS/F4 SF 0 296.2 M(The file manager calls the command scripts with certain arguments: The first argument is the number of)S
-0 283 M(source-selected files and the second argument is the number of target-selected files. Then there are the)S
-0 269.8 M(absolute paths of the selected files, with one argument per file, and with the source-selected files first.)S
-17 FS/F9 SF 0 237.4 M(3.5 Environment variables)S
-11 FS/F4 SF 0 209.8 M(When the file manager calls a command script, following environment variables are set in addition to normal)S
-0 196.6 M(variables:)S
-/F5 SF 2.149 168.051 M(Name)S
-120.362 168.051 M(Description)S
-/F0 SF 2.149 149.838 M(EM_DIR)S
-/F4 SF 120.362 149.838 M(Directory where Eagle Mode has been installed.)S
-/F0 SF 2.149 131.625 M(LD_LIBRARY_PATH)S
-/F4 SF 120.362 131.625 M(Contains $EM_DIR/lib, for that the libraries can be found.)S
-/F0 SF 2.149 113.411 M(EM_FM_SERVER_NAME)S
-/F4 SF 120.362 113.411 M(Name of the file manager's emMiniIpc server.)S
-/F0 SF 2.149 95.198 M(EM_COMMAND_RUN_ID)S
-/F4 SF 120.362 95.198 M(An identification for this run of a command.)S
-/F0 SF 2.149 76.985 M(EM_X)S
-2.149 63.785 M(EM_Y)S
-2.149 50.585 M(EM_WIDTH)S
-2.149 37.385 M(EM_HEIGHT)S
-/F4 SF 120.362 76.985 M(Position and size of the application window. This can be used to calculate a good)S
-120.362 63.785 M(position for popup dialogs.)S
+0 247.289 M(usage examples.)S
+0 220.889 M(The rest of this document may be of interest only for understanding the implementation of the framework, or)S
+0 207.689 M(for writing a new framework in another scripting language.)S
+17 FS/F9 SF 0 175.289 M(3.4 Arguments)S
+11 FS/F4 SF 0 147.689 M(The file manager calls the command scripts with certain arguments: The first argument is the number of)S
+0 134.489 M(source-selected files and the second argument is the number of target-selected files. Then there are the)S
+0 121.289 M(absolute paths of the selected files, with one argument per file, and with the source-selected files first.)S
+17 FS/F9 SF 0 88.889 M(3.5 Environment variables)S
+11 FS/F4 SF 0 61.289 M(When the file manager calls a command script, following environment variables are set in addition to normal)S
+0 48.089 M(variables:)S
 /F8 SF 480.884 0 M(4)S
 GR
 SP
@@ -11420,50 +11357,114 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 17 FS/F9 SF 0 703 M(3.6 The file manager's emMiniIpc server)S
-11 FS/F4 SF 0 675.4 M(A command script can send certain requests to the file manager. For doing that, the script can use the program)S
-/F0 SF 0 662.2 M(emSendMiniIpc)S
+0.00 0.00 0.00 C 0 720 M 118.2 0.7 F
+0 702.503 M 0.7 18.2 F
+117.497 702.503 M 0.7 18.2 F
+0 702.503 M 118.2 0.7 F
+118.213 720 M 369.5 0.7 F
+118.213 702.503 M 0.7 18.2 F
+487 702.503 M 0.7 18.2 F
+118.213 702.503 M 369.5 0.7 F
+0 701.787 M 118.2 0.7 F
+0 684.29 M 0.7 18.2 F
+117.497 684.29 M 0.7 18.2 F
+0 684.29 M 118.2 0.7 F
+118.213 701.787 M 369.5 0.7 F
+118.213 684.29 M 0.7 18.2 F
+487 684.29 M 0.7 18.2 F
+118.213 684.29 M 369.5 0.7 F
+0 683.573 M 118.2 0.7 F
+0 666.076 M 0.7 18.2 F
+117.497 666.076 M 0.7 18.2 F
+0 666.076 M 118.2 0.7 F
+118.213 683.573 M 369.5 0.7 F
+118.213 666.076 M 0.7 18.2 F
+487 666.076 M 0.7 18.2 F
+118.213 666.076 M 369.5 0.7 F
+0 665.36 M 118.2 0.7 F
+0 647.863 M 0.7 18.2 F
+117.497 647.863 M 0.7 18.2 F
+0 647.863 M 118.2 0.7 F
+118.213 665.36 M 369.5 0.7 F
+118.213 647.863 M 0.7 18.2 F
+487 647.863 M 0.7 18.2 F
+118.213 647.863 M 369.5 0.7 F
+0 647.147 M 118.2 0.7 F
+0 629.65 M 0.7 18.2 F
+117.497 629.65 M 0.7 18.2 F
+0 629.65 M 118.2 0.7 F
+118.213 647.147 M 369.5 0.7 F
+118.213 629.65 M 0.7 18.2 F
+487 629.65 M 0.7 18.2 F
+118.213 629.65 M 369.5 0.7 F
+0 628.933 M 118.2 0.7 F
+0 571.836 M 0.7 57.8 F
+117.497 571.836 M 0.7 57.8 F
+0 571.836 M 118.2 0.7 F
+118.213 628.933 M 369.5 0.7 F
+118.213 571.836 M 0.7 57.8 F
+487 571.836 M 0.7 57.8 F
+118.213 571.836 M 369.5 0.7 F
+11 FS/F5 SF 2.149 706.851 M(Name)S
+120.362 706.851 M(Description)S
+/F0 SF 2.149 688.638 M(EM_DIR)S
+/F4 SF 120.362 688.638 M(Directory where Eagle Mode has been installed.)S
+/F0 SF 2.149 670.425 M(LD_LIBRARY_PATH)S
+/F4 SF 120.362 670.425 M(Contains $EM_DIR/lib, for that the libraries can be found.)S
+/F0 SF 2.149 652.211 M(EM_FM_SERVER_NAME)S
+/F4 SF 120.362 652.211 M(Name of the file manager's emMiniIpc server.)S
+/F0 SF 2.149 633.998 M(EM_COMMAND_RUN_ID)S
+/F4 SF 120.362 633.998 M(An identification for this run of a command.)S
+/F0 SF 2.149 615.785 M(EM_X)S
+2.149 602.585 M(EM_Y)S
+2.149 589.385 M(EM_WIDTH)S
+2.149 576.185 M(EM_HEIGHT)S
+/F4 SF 120.362 615.785 M(Position and size of the application window. This can be used to calculate a good)S
+120.362 602.585 M(position for popup dialogs.)S
+17 FS/F9 SF 0 541.636 M(3.6 The file manager's emMiniIpc server)S
+11 FS/F4 SF 0 514.036 M(A command script can send certain requests to the file manager. For doing that, the script can use the program)S
+/F0 SF 0 500.836 M(emSendMiniIpc)S
 /F4 SF ( in the directory )S
 /F0 SF ($EM_DIR/bin)S
 /F4 SF (. The first argument must be the server name \(say)S
-/F0 SF 0 649 M($EM_FM_SERVER_NAME)S
+/F0 SF 0 487.636 M($EM_FM_SERVER_NAME)S
 /F4 SF (\), and all further arguments are making up the request, which can be one of these:)S
-/F0 SF 0 622.6 M(update)S
-/F4 SF 36 609.4 M(Require the file manager to reload all the shown files and directories \(mostly only if the file)S
-36 596.2 M(modification time has really changed\).)S
-/F0 SF 0 569.8 M(select)S
+/F0 SF 0 461.236 M(update)S
+/F4 SF 36 448.036 M(Require the file manager to reload all the shown files and directories \(mostly only if the file)S
+36 434.836 M(modification time has really changed\).)S
+/F0 SF 0 408.436 M(select)S
 /F6 SF ( <command-run-id>)S
 /F4 SF ( [)S
 /F6 SF (<file>)S
 /F4 SF ( [)S
 /F6 SF (<file>)S
 /F4 SF ( ...]])S
-36 556.6 M(Like )S
+36 395.236 M(Like )S
 /F0 SF (update)S
 /F4 SF (, but also require the file manager to target-select the given files, or to clear the target)S
-36 543.4 M(selection if no files are given. As usual, the source selection is set to the old target selection. The)S
-/F6 SF 36 530.2 M(<command-run-id>)S
+36 382.036 M(selection if no files are given. As usual, the source selection is set to the old target selection. The)S
+/F6 SF 36 368.836 M(<command-run-id>)S
 /F4 SF ( must be set to the value given with the environment variable)S
-/F0 SF 36 517 M(EM_COMMAND_RUN_ID)S
+/F0 SF 36 355.636 M(EM_COMMAND_RUN_ID)S
 /F4 SF (. The sense of that id is: If the user has modified the selection since the file)S
-36 503.8 M(manager command has been started, or if another command has been started afterwards, the selection)S
-36 490.6 M(request is ignored automatically.)S
-/F0 SF 0 464.2 M(selectks)S
+36 342.436 M(manager command has been started, or if another command has been started afterwards, the selection)S
+36 329.236 M(request is ignored automatically.)S
+/F0 SF 0 302.836 M(selectks)S
 /F6 SF ( <command-run-id>)S
 /F4 SF ( [)S
 /F6 SF (<file>)S
 /F4 SF ( [)S
 /F6 SF (<file>)S
 /F4 SF ( ...]])S
-36 451 M(Like above, but the source selection is not changed \(ks = keep source\).)S
-/F0 SF 0 424.6 M(selectcs)S
+36 289.636 M(Like above, but the source selection is not changed \(ks = keep source\).)S
+/F0 SF 0 263.236 M(selectcs)S
 /F6 SF ( <command-run-id>)S
 /F4 SF ( [)S
 /F6 SF (<file>)S
 /F4 SF ( [)S
 /F6 SF (<file>)S
 /F4 SF ( ...]])S
-36 411.4 M(Like above, but the source selection is cleared \(cs = clear source\).)S
+36 250.036 M(Like above, but the source selection is cleared \(cs = clear source\).)S
 /F8 SF 480.884 0 M(5)S
 GR
 SP

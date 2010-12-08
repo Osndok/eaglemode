@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -218,89 +218,99 @@ void emCoreConfigPanel::SpeedFacGroup::AutoExpand()
 }
 
 
-emCoreConfigPanel::MouseStickGroup::MouseStickGroup(
+emCoreConfigPanel::MouseMiscGroup::MouseMiscGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emTkGroup(parent,name,"Stick Mouse When Navigating"),
-	emRecListener(&config->StickMouseWhenNavigating),
+	: emTkGroup(parent,name,"Miscellaneous Mouse Settings"),
+	emRecListener(config),
 	Config(config)
 {
-	OnBox=NULL;
-	OffBox=NULL;
+	StickBox=NULL;
+	EmuBox=NULL;
+	PanBox=NULL;
 	EnableAutoExpansion();
 	SetBorderScaling(4);
+	SetPrefChildTallness(0.1);
 }
 
 
-emCoreConfigPanel::MouseStickGroup::~MouseStickGroup()
+emCoreConfigPanel::MouseMiscGroup::~MouseMiscGroup()
 {
 }
 
 
-void emCoreConfigPanel::MouseStickGroup::OnRecChanged()
+void emCoreConfigPanel::MouseMiscGroup::OnRecChanged()
 {
 	UpdateOutput();
 }
 
 
-bool emCoreConfigPanel::MouseStickGroup::Cycle()
+bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 {
-	bool busy,b1,b2;
+	bool busy;
 
 	busy=emTkGroup::Cycle();
-	b1=b2=Config->StickMouseWhenNavigating.Get();
-	if (OnBox && IsSignaled(OnBox->GetClickSignal())) {
-		b2=true;
-	}
-	if (OffBox && IsSignaled(OffBox->GetClickSignal())) {
-		b2=false;
-	}
-	if (b1!=b2) {
-		Config->StickMouseWhenNavigating.Set(b2);
+
+	if (StickBox && IsSignaled(StickBox->GetClickSignal())) {
+		Config->StickMouseWhenNavigating.Invert();
 		Config->Save();
 	}
+
+	if (EmuBox && IsSignaled(EmuBox->GetClickSignal())) {
+		Config->EmulateMiddleButton.Invert();
+		Config->Save();
+	}
+
+	if (PanBox && IsSignaled(PanBox->GetClickSignal())) {
+		Config->PanFunction.Invert();
+		Config->Save();
+	}
+
 	return busy;
 }
 
 
-void emCoreConfigPanel::MouseStickGroup::AutoExpand()
+void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 {
-	emTkTiling * t;
-
 	emTkGroup::AutoExpand();
-	new emTkLabel(
-		this,"label",
-		"Whether to keep the mouse pointer at its place\n"
-		"while zooming or scrolling with the mouse. The\n"
-		"default is \"No\", at least because the \"Yes\" case\n"
-		"does not work properly on some systems."
+	StickBox=new emTkCheckBox(
+		this,"stick","Stick Mouse When Navigating",
+		"Whether to keep the mouse pointer at its place while zooming\n"
+		"or scrolling with the mouse (except for pan function)."
 	);
-	t=new emTkTiling(this,"answer");
-	OnBox=new emTkRadioBox(t,"yes","Yes");
-	OffBox=new emTkRadioBox(t,"no","No");
-	OnBox->SetNoEOI();
-	OffBox->SetNoEOI();
-	AddWakeUpSignal(OnBox->GetClickSignal());
-	AddWakeUpSignal(OffBox->GetClickSignal());
+	EmuBox=new emTkCheckBox(
+		this,"emu","Alt Key As Middle Button",
+		"Whether to emulate the middle button by the ALT key."
+	);
+	PanBox=new emTkCheckBox(
+		this,"pan","Reverse Scrolling (Pan)",
+		"Whether to reverse the direction of scrolling with the\n"
+		"mouse. It's the pan function: drag and drop the canvas."
+	);
+	StickBox->SetNoEOI();
+	EmuBox->SetNoEOI();
+	PanBox->SetNoEOI();
+	AddWakeUpSignal(StickBox->GetClickSignal());
+	AddWakeUpSignal(EmuBox->GetClickSignal());
+	AddWakeUpSignal(PanBox->GetClickSignal());
 	UpdateOutput();
 }
 
 
-void emCoreConfigPanel::MouseStickGroup::AutoShrink()
+void emCoreConfigPanel::MouseMiscGroup::AutoShrink()
 {
 	emTkGroup::AutoShrink();
-	OnBox=NULL;
-	OffBox=NULL;
+	StickBox=NULL;
+	EmuBox=NULL;
+	PanBox=NULL;
 }
 
 
-void emCoreConfigPanel::MouseStickGroup::UpdateOutput()
+void emCoreConfigPanel::MouseMiscGroup::UpdateOutput()
 {
-	bool b;
-
-	b=Config->StickMouseWhenNavigating.Get();
-	if (OnBox) OnBox->SetChecked(b);
-	if (OffBox) OffBox->SetChecked(!b);
+	if (StickBox) StickBox->SetChecked(Config->StickMouseWhenNavigating);
+	if (EmuBox) EmuBox->SetChecked(Config->EmulateMiddleButton);
+	if (PanBox) PanBox->SetChecked(Config->PanFunction);
 }
 
 
@@ -349,7 +359,7 @@ void emCoreConfigPanel::MouseGroup::AutoExpand()
 		&Config->MouseFineScrollSpeedFactor,
 		"Speed factor for fine scrolling by mouse"
 	);
-	new MouseStickGroup(this,"stick",Config);
+	new MouseMiscGroup(this,"misc",Config);
 }
 
 
@@ -449,7 +459,7 @@ void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 		this,"label",
 		"Here you can set the maximum allowed memory consumption per view (or window) in\n"
 		"megabytes. This mainly plays a role when viewing extravagant files like\n"
-		"high-resolution images files. The higher the maximum allowed memory consumtion,\n"
+		"high-resolution images files. The higher the maximum allowed memory consumption,\n"
 		"the earlier the files are shown and the more extravagant files are shown at all.\n"
 		"\n"
 		"IMPORTANT: This is just a guideline for the program. The internal algorithms\n"

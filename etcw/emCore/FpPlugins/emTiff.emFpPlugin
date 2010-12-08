@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".tiff" ".tif" }
+Priority = 1.0
+Library = "emTiff"
+Function = "emTiffFpPluginFunc"

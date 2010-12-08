@@ -1,0 +1,166 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emSubViewPanel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>.h
+//
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emSubViewPanel_h
+#define emSubViewPanel_h
+
+#ifndef emPanel_h
+#include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+#endif
+
+
+<A NAME="emSubViewPanel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a panel which shows an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> as a sub-view. This is good
+        // for splitting a view or window into multiple views. All input and
+        // output of the panel is connected to the sub-view via an internal
+        // <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A>. The outer view(s) must not be zoomable.
+
+        </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Constructor. This creates the sub-view with default features
+                // and without any panel. The caller may change the features of
+                // the sub-view and create a root panel in it.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>();
+                <SPAN CLASS=c>// Destructor. Deletes the sub-view and its panels.
+
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetSubView();
+                <SPAN CLASS=c>// Get the sub-view.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>InvalidatePaintingOnView(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+
+        <SPAN CLASS=t>class </SPAN>SubViewClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                SubViewClass(<A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A> &amp; superPanel);
+                <SPAN CLASS=t>virtual </SPAN>~SubViewClass();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>InvalidateTitle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A> &amp; SuperPanel;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>SubViewPortClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                SubViewPortClass(<A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A> &amp; superPanel);
+                <SPAN CLASS=t>void </SPAN>SetViewGeometry(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                                     <SPAN CLASS=t>double </SPAN>pixelTallness);
+                <SPAN CLASS=t>void </SPAN>SetViewFocused(<SPAN CLASS=t>bool </SPAN>focused);
+                <SPAN CLASS=t>void </SPAN>InputToView(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+                                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+                <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetViewCursor();
+                <SPAN CLASS=t>void </SPAN>PaintView(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>RequestFocus();
+                <SPAN CLASS=t>virtual void </SPAN>InvalidateCursor();
+                <SPAN CLASS=t>virtual void </SPAN>InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                                                <SPAN CLASS=t>double </SPAN>h);
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A> &amp; SuperPanel;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>friend class </SPAN>SubViewClass;
+        <SPAN CLASS=t>friend class </SPAN>SubViewPortClass;
+
+        SubViewClass * SubView;
+        SubViewPortClass * SubViewPort;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::GetSubView()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*SubView;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::InvalidatePaintingOnView(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h
+)
+<SPAN CLASS=b>{
+        </SPAN>GetView().InvalidatePainting(x,y,w,h);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::SetViewGeometry(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>pixelTallness
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::SetViewGeometry(x,y,w,h,pixelTallness);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::SetViewFocused(
+        <SPAN CLASS=t>bool </SPAN>focused
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::SetViewFocused(focused);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::InputToView(
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::InputToView(event,state);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::GetViewCursor()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewCursor();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::PaintView(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::PaintView(painter,canvasColor);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

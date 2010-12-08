@@ -1,0 +1,201 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emVarSigModel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>.h
+//
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emVarSigModel_h
+#define emVarSigModel_h
+
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+
+<A NAME="emVarSigModel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is a combination of <A CLASS=m HREF="emCore_emVarModel_h.html#emVarModel">emVarModel</A> and <A CLASS=m HREF="emCore_emSigModel_h.html#emSigModel">emSigModel</A> (read them first).
+        // The idea is to signal the signal whenever the variable is changed.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt; &gt; Acquire(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common=<SPAN CLASS=k>true
+        </SPAN>);
+                <SPAN CLASS=c>// Acquire an <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt; &gt; Lookup(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+        );
+                <SPAN CLASS=c>// Search a common <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt; &gt; LookupInherited(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+        );
+                <SPAN CLASS=c>// Search a common <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A> even in ancestor contexts.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>Set(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN>VAR &amp; value, <SPAN CLASS=t>unsigned </SPAN>minLifetime);
+                <SPAN CLASS=c>// Acquire a common <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>, set its variable to the given
+                // value, signal the signal and call SetMinCommonLifetime with
+                // the given minLifeTime.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>Remove(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name);
+                <SPAN CLASS=c>// Remove a common <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A> if it exits. Removing means to
+                // make it a private model, for that it will be deleted as soon
+                // as there are no references.
+
+        </SPAN><SPAN CLASS=t>static </SPAN>VAR Get(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name,
+                       <SPAN CLASS=t>const </SPAN>VAR &amp; defaultValue);
+                <SPAN CLASS=c>// Get the value of the variable of a common <A CLASS=m HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>. If
+                // the model does not exist, the given defaultValue is returned.
+
+        </SPAN><SPAN CLASS=t>static </SPAN>VAR GetAndRemove(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name,
+                                <SPAN CLASS=t>const </SPAN>VAR &amp; defaultValue);
+                <SPAN CLASS=c>// Like Get plus Remove.
+
+        </SPAN><SPAN CLASS=t>static </SPAN>VAR GetInherited(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name,
+                                <SPAN CLASS=t>const </SPAN>VAR &amp; defaultValue);
+                <SPAN CLASS=c>// Like Get, but the model is even searched in ancestor
+                // contexts.
+
+        </SPAN>VAR Var;
+                <SPAN CLASS=c>// The variable. Remember to signal the signal on every change.
+
+        </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> Sig;
+                <SPAN CLASS=c>// The signal.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+        <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt; &gt; <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::Acquire(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_IMPL_ACQUIRE(<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>,context,name,common)
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt; &gt; <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::Lookup(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt;(
+                (<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>*)context.Lookup(<SPAN CLASS=t>typeid</SPAN>(<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>),name)
+        );
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt; &gt; <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::LookupInherited(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt;(
+                (<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>*)context.LookupInherited(<SPAN CLASS=t>typeid</SPAN>(<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>),name)
+        );
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::Set(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>const </SPAN>VAR &amp; value,
+        <SPAN CLASS=t>unsigned </SPAN>minLifetime
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt; m;
+
+        m=Acquire(context,name);
+        m-&gt;Var=value;
+        m-&gt;Signal(m-&gt;Sig);
+        m-&gt;SetMinCommonLifetime(minLifetime);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::Remove(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt; m;
+
+        m=Lookup(context,name);
+        <SPAN CLASS=k>if </SPAN>(m) m-&gt;Unregister();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; VAR <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::Get(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name, <SPAN CLASS=t>const </SPAN>VAR &amp; defaultValue
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt; m;
+
+        m=Lookup(context,name);
+        <SPAN CLASS=k>if </SPAN>(!m) <SPAN CLASS=k>return </SPAN>defaultValue;
+        <SPAN CLASS=k>return </SPAN>m-&gt;Var;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; VAR <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::GetAndRemove(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name, <SPAN CLASS=t>const </SPAN>VAR &amp; defaultValue
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt; m;
+
+        m=Lookup(context,name);
+        <SPAN CLASS=k>if </SPAN>(!m) <SPAN CLASS=k>return </SPAN>defaultValue;
+        m-&gt;Unregister();
+        <SPAN CLASS=k>return </SPAN>m-&gt;Var;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; VAR <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::GetInherited(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* name, <SPAN CLASS=t>const </SPAN>VAR &amp; defaultValue
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&gt; m;
+
+        m=LookupInherited(context,name);
+        <SPAN CLASS=k>if </SPAN>(!m) <SPAN CLASS=k>return </SPAN>defaultValue;
+        <SPAN CLASS=k>return </SPAN>m-&gt;Var;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VAR&gt; <A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>&lt;VAR&gt;::<A CLASS=l HREF="emCore_emVarSigModel_h.html#emVarSigModel">emVarSigModel</A>(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name
+)
+        : <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>(context,name)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

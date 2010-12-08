@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".emNetwalk" }
+Priority = 1.0
+Library = "emNetwalk"
+Function = "emNetwalkFpPluginFunc"

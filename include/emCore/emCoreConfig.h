@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,6 +26,10 @@
 #endif
 
 
+//==============================================================================
+//================================ emCoreConfig ================================
+//==============================================================================
+
 class emCoreConfig : public emConfigModel, public emStructRec {
 
 public:
@@ -33,6 +37,8 @@ public:
 	static emRef<emCoreConfig> Acquire(emRootContext & rootContext);
 
 	emBoolRec StickMouseWhenNavigating;
+	emBoolRec EmulateMiddleButton;
+	emBoolRec PanFunction;
 	emDoubleRec MouseZoomSpeedFactor;
 	emDoubleRec MouseFineZoomSpeedFactor;
 	emDoubleRec MouseScrollSpeedFactor;

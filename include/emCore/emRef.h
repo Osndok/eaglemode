@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRef.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,12 +26,16 @@
 #endif
 
 
+//==============================================================================
+//=================================== emRef ====================================
+//==============================================================================
+
 template <class CLS> class emRef {
 
 public:
 
 	// Template class for a reference to an emModel, or to a similar class
-	// which even has the methods Alloc and Free. The template parameter CLS
+	// which also has the methods Alloc and Free. The template parameter CLS
 	// must be the model class. On each construction of a non-NULL
 	// reference, Alloc is called on the model. And on each destruction of a
 	// non-NULL reference, Free is called on the model. Reference assignment

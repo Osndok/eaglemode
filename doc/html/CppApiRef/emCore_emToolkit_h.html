@@ -1,0 +1,2287 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emToolkit.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emToolkit.h
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emToolkit_h
+#define emToolkit_h
+
+#ifndef emVarModel_h
+#include &lt;<A CLASS=f HREF="emCore_emVarModel_h.html">emCore/emVarModel.h</A>&gt;
+#endif
+
+#ifndef emClipboard_h
+#include &lt;<A CLASS=f HREF="emCore_emClipboard_h.html">emCore/emClipboard.h</A>&gt;
+#endif
+
+#ifndef emPanel_h
+#include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+#endif
+
+
+<A NAME="emTkLook"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for the look of toolkit panels. Currently, the look consists of
+        // a set of colors only. Objects of this class have copy-on-write
+        // behavior.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>();
+                <SPAN CLASS=c>// Construct a default look.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look);
+                <SPAN CLASS=c>// Construct a copied look.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look);
+                <SPAN CLASS=c>// Copy a look.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compare two looks.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Apply(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>recursively) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Apply this look to a panel or to all panels in a sub-tree.
+                // Applying actually works for panels of class <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> and
+                // its derivatives only, but the recursion is not stopped by
+                // other panel classes. However, the recursion can be stopped by
+                // an overloaded implementation of <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::SetLook.
+                // Arguments:
+                //   panel       - The panel.
+                //   recursively - Whether to recurse ancestor panels.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetFgColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> bgColor);
+        <SPAN CLASS=t>void </SPAN>SetFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> fgColor);
+                <SPAN CLASS=c>// Get/set back- and foreground colors of borders, labels,
+                // groups and similar things.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetButtonBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetButtonFgColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetButtonBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> buttonBgColor);
+        <SPAN CLASS=t>void </SPAN>SetButtonFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> buttonFgColor);
+                <SPAN CLASS=c>// Get/set back- and foreground colors of button faces.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInputBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInputFgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInputHlColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetInputBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> inputBgColor);
+        <SPAN CLASS=t>void </SPAN>SetInputFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> inputFgColor);
+        <SPAN CLASS=t>void </SPAN>SetInputHlColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> inputHlColor);
+                <SPAN CLASS=c>// Get/set background, foreground and highlight (=selection)
+                // colors of editable data fields.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetOutputBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetOutputFgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetOutputHlColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetOutputBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> outputBgColor);
+        <SPAN CLASS=t>void </SPAN>SetOutputFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> outputFgColor);
+        <SPAN CLASS=t>void </SPAN>SetOutputHlColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> outputHlColor);
+                <SPAN CLASS=c>// Get/set background, foreground and highlight (=selection)
+                // colors of read-only data fields.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the internal data of this object.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the look to another
+                // thread.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>DeleteData();
+        <SPAN CLASS=t>void </SPAN>MakeWritable();
+
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN>SharedData();
+                SharedData(<SPAN CLASS=t>const </SPAN>SharedData &amp; sd);
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> BgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> FgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> ButtonBgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> ButtonFgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InputBgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InputFgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InputHlColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> OutputBgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> OutputFgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> OutputHlColor;
+        <SPAN CLASS=b>}</SPAN>;
+
+        SharedData * Data;
+
+        <SPAN CLASS=t>static </SPAN>SharedData DefaultData;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::<A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>()
+<SPAN CLASS=b>{
+        </SPAN>Data=&amp;DefaultData;
+<SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::<A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look)
+<SPAN CLASS=b>{
+        </SPAN>Data=look.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look)
+<SPAN CLASS=b>{
+        </SPAN>look.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=look.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!(*<SPAN CLASS=k>this</SPAN>==look);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;BgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;FgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetButtonBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;ButtonBgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetButtonFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;ButtonFgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetInputBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;InputBgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetInputFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;InputFgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetInputHlColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;InputHlColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetOutputBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;OutputBgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetOutputFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;OutputFgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::GetOutputHlColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;OutputHlColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkBorder"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is the base class of all toolkit panels. A panel of this class
+        // can have a border, a label, a how-to text and an auxiliary area. And
+        // it has a content area. The label can consist of a caption, a
+        // description and an icon. The how-to text describes how to use the
+        // type of panel in general, and maybe something about its state. The
+        // auxiliary area is for showing a custom panel with additional things
+        // like a configuration or an extended help text. The label, the how-to
+        // text and the auxiliary area are shown in the border. Alternatively, a
+        // derived class can manage to move the label into the content area.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetCaption() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetCaption(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption);
+                <SPAN CLASS=c>// The caption to be shown in the label.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetDescription() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDescription(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description);
+                <SPAN CLASS=c>// The description to be shown in the label.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetIcon() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetIcon(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon);
+                <SPAN CLASS=c>// The icon to be shown in the label.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetLabel(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Set all three things which are making up the label.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetLabelAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetLabelAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> labelAlignment);
+                <SPAN CLASS=c>// Alignment of the label as a whole within its available space.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetCaptionAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetCaptionAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> captionAlignment);
+                <SPAN CLASS=c>// Horizontal alignment of lines within the caption text of the
+                // label. The top and bottom flags are ignored.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetDescriptionAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDescriptionAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> descriptionAlignment);
+                <SPAN CLASS=c>// Horizontal alignment of lines within the description text of
+                // the label. The top and bottom flags are ignored.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>OuterBorderType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possibles types for the outer border line. This even
+                // specifies whether the background of the panel should be
+                // filled or not.
+                </SPAN>OBT_NONE,
+                        <SPAN CLASS=c>// Do not have an outer border line, do not have a
+                        // margin and do not fill the background.
+                </SPAN>OBT_FILLED,
+                        <SPAN CLASS=c>// Like OBT_NONE, but fill the whole background with
+                        // background color.
+                </SPAN>OBT_MARGIN,
+                        <SPAN CLASS=c>// Like OBT_NONE, but have a small margin (for example,
+                        // this is used by <A CLASS=m HREF="emCore_emToolkit_h.html#emTkLabel">emTkLabel</A> and <A CLASS=m HREF="emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A>). Larger
+                        // margins should be solved through the parent panel,
+                        // e.g. see <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::SetSpace.
+                </SPAN>OBT_MARGIN_FILLED,
+                        <SPAN CLASS=c>// Like OBT_MARGIN, but fill the whole background.
+                </SPAN>OBT_RECT,
+                        <SPAN CLASS=c>// Have a rectangular outer border line and fill the
+                        // rectangle with background color. Have a small margin.
+                </SPAN>OBT_ROUND_RECT,
+                        <SPAN CLASS=c>// Like OBT_RECT but with round corners.
+                </SPAN>OBT_GROUP,
+                        <SPAN CLASS=c>// Have a small special outer border for groups (used by
+                        // <A CLASS=m HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>).
+                </SPAN>OBT_INSTRUMENT,
+                        <SPAN CLASS=c>// Like OBT_GROUP, but the border line is thicker (for
+                        // example, this is used by <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>).
+                </SPAN>OBT_INSTRUMENT_MORE_ROUND,
+                        <SPAN CLASS=c>// Like OBT_INSTRUMENT, but with a larger corner radius
+                        // (this is used by <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>).
+                </SPAN>OBT_POPUP_ROOT
+                        <SPAN CLASS=c>// Have a special border for root panels of views which
+                        // have the VF_POPUP_ZOOM flag set (should not be used
+                        // for something else).
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>InnerBorderType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possibles types for the inner border line.
+                </SPAN>IBT_NONE,
+                        <SPAN CLASS=c>// Do not have an inner border line.
+                </SPAN>IBT_GROUP,
+                        <SPAN CLASS=c>// Have a special round inner border line for groups.
+                </SPAN>IBT_INPUT_FIELD,
+                        <SPAN CLASS=c>// Have a special round inner border and background for
+                        // editable fields.
+                </SPAN>IBT_OUTPUT_FIELD,
+                        <SPAN CLASS=c>// Have a special round inner border and background for
+                        // non-editable fields.
+                </SPAN>IBT_CUSTOM_RECT
+                        <SPAN CLASS=c>// Have a special rectangular inner border for custom
+                        // stuff. Herewith, the content rectangle never has
+                        // round corners.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        OuterBorderType GetOuterBorderType() <SPAN CLASS=t>const</SPAN>;
+        InnerBorderType GetInnerBorderType() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetOuterBorderType(OuterBorderType obt);
+        <SPAN CLASS=t>void </SPAN>SetInnerBorderType(InnerBorderType ibt);
+        <SPAN CLASS=t>void </SPAN>SetBorderType(OuterBorderType obt, InnerBorderType ibt);
+                <SPAN CLASS=c>// Outer and inner border types. The default is OBT_NONE and
+                // IBT_NONE.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetBorderScaling() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetBorderScaling(<SPAN CLASS=t>double </SPAN>borderScaling);
+                <SPAN CLASS=c>// Scale factor for the size of the border. The default is 1.0.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; GetLook() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>SetLook(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; look, <SPAN CLASS=t>bool </SPAN>recursively=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Look of this toolkit panel. At construction of a panel, the
+                // look is copied from the parent panel (if the parent is not
+                // <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>, the grand parent is asked, and so on). When
+                // setting the look with the argument recursively=true, all
+                // descendant panels of class <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> are even set through
+                // calling <A CLASS=m HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A>::Apply for every child panel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>HaveAux(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; panelName, <SPAN CLASS=t>double </SPAN>tallness);
+                <SPAN CLASS=c>// Make this border having a rectangular area for auxiliary
+                // stuff. It could be a user interface for configuring this
+                // panel, or an extended function, or some additional help or
+                // what ever you want. Either you could show the things through
+                // a child panel or through custom painting, but doing it with a
+                // child panel is easier. Whenever you create that panel. It is
+                // laid out automatically into the auxiliary area.
+                // Arguments:
+                //   panelName - Name of the child panel to be laid out in the
+                //               auxiliary area.
+                //   tallness  - Height/width ratio of the auxiliary area.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveAux();
+                <SPAN CLASS=c>// Inversion of HaveAux (does not delete the auxiliary panel).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>HasAux() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this border has an area for auxiliary stuff.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetAuxPanelName() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetAuxTallness() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Properties of the auxiliary area set with HaveAux. Valid only
+                // if HasAux()==true.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetAuxPanel();
+                <SPAN CLASS=c>// Returns the auxiliary child panel, or NULL if not present.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>GetAuxRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get the coordinates and canvas color of the auxiliary area.
+                // Valid only if HasAux()==true.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get the coordinates and canvas color of the content area as a
+                // rectangle. If the inner border has round corners, the
+                // rectangle returned here is smaller than with
+                // GetContentRoundRect, so that it fits completely into the
+                // content area.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRoundRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get the coordinates and canvas color of the content area as a
+                // round rectangle (argument pR is for returning the radius of
+                // the corners).
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>. Hint: For painting the content area, please
+                // overload PaintContent instead of Paint, because with certain
+                // border types, a shadow is painted over the content area.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+                <SPAN CLASS=c>// This is about a text describing how to use this panel. If
+                // HasHowTo()==true, the text returned by GetHowTo() is shown
+                // very small in the center of the left edge of the border. When
+                // overloading GetHowTo(), please do not forget to call the
+                // original version and to include that text at the beginning.
+                // The default implementation of GetHowTo() returns a preface,
+                // and optionally a description of the disable state (if
+                // disabled) and optionally a description of the keyboard focus
+                // (if focusable). The default implementation of HasHowTo()
+                // return false, because the default text alone is not so
+                // helpful, and because the text would disturb some panel types.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+                <SPAN CLASS=c>// This can be overloaded for painting the content area. The
+                // default implementation does nothing. The coordinates x,y,w,h
+                // are like from GetContentRect, but you could even use the
+                // coordinates returned by GetContentRoundRect.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasLabel();
+                <SPAN CLASS=c>// Whether this panel has a label. The default implementation
+                // checks whether at least one of caption, description and icon
+                // is not empty.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetBestLabelTallness();
+                <SPAN CLASS=c>// Get the ideal tallness for the label area. The default
+                // implementation calculates this for the default implementation
+                // of PaintLabel.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>PaintLabel(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+                <SPAN CLASS=c>// Paint the label. The default implementation paints the
+                // caption, description and icon. This could be overloaded to
+                // paint something else for the label.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsLabelInBorder() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetLabelInBorder(<SPAN CLASS=t>bool </SPAN>labelInBorder);
+                <SPAN CLASS=c>// Whether to show the label as part of the border. The default
+                // is true. If a derived class wants to have the label as part
+                // of the content, it should set false here and call PaintLabel
+                // itself.
+
+        </SPAN><SPAN CLASS=t>struct </SPAN>TkResources <SPAN CLASS=b>{
+                </SPAN>TkResources();
+                ~TkResources();
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButton;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButtonBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButtonChecked;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButtonPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgCheckBox;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgCheckBoxPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgCustomRectBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgGroupBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgGroupInnerBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgIOField;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgPopupBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgRadioBox;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgRadioBoxPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgSplitter;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgSplitterPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgTunnel;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>const </SPAN>TkResources &amp; GetTkResources() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Shared resources used by the toolkit panel implementations.
+                // This is more or less private stuff - do not use in custom
+                // classes.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoBorderFunc <SPAN CLASS=b>{
+                </SPAN>BORDER_FUNC_PAINT,
+                BORDER_FUNC_CONTENT_RECT,
+                BORDER_FUNC_CONTENT_ROUND_RECT,
+                BORDER_FUNC_AUX_RECT
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoBorder(
+                DoBorderFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
+                <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor
+        );
+
+        <SPAN CLASS=t>enum </SPAN>DoLabelFunc <SPAN CLASS=b>{
+                </SPAN>LABEL_FUNC_PAINT,
+                LABEL_FUNC_GET_BEST_TALLNESS
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoLabel(
+                DoLabelFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y,
+                <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>* pBestTallness
+        );
+
+        <SPAN CLASS=t>struct </SPAN>AuxData <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> PanelName;
+                <SPAN CLASS=t>double </SPAN>Tallness;
+                <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>&gt; PanelPointerCache;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarModel_h.html#emVarModel">emVarModel</A>&lt;TkResources&gt; &gt; TkResVarModel;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Caption;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Description;
+        <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> Icon;
+        AuxData * Aux;
+        <A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> Look;
+        <SPAN CLASS=t>double </SPAN>BorderScaling;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> LabelAlignment;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> CaptionAlignment;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> DescriptionAlignment;
+        emByte OuterBorder;
+        emByte InnerBorder;
+        <SPAN CLASS=t>bool </SPAN>LabelInBorder;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToPreface;
+        <SPAN CLASS=t>static const char </SPAN>* HowToDisabled;
+        <SPAN CLASS=t>static const char </SPAN>* HowToFocus;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetCaption() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Caption;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetDescription() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Description;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetIcon() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Icon;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetLabelAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LabelAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetCaptionAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CaptionAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetDescriptionAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DescriptionAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::OuterBorderType <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetOuterBorderType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(OuterBorderType)OuterBorder;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::InnerBorderType <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetInnerBorderType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(InnerBorderType)InnerBorder;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetBorderScaling() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>BorderScaling;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetLook() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Look;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::HasAux() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Aux!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::IsLabelInBorder() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LabelInBorder;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::TkResources &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::GetTkResources() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TkResVarModel-&gt;Var;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkLabel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkLabel">emTkLabel</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLabel">emTkLabel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// A panel of this class simply shows the label as the content, and it
+        // is not focusable by default.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkLabel">emTkLabel</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>, but it performs:
+                //  SetOuterBorderType(OBT_MARGIN);
+                //  SetLabelInBorder(false);
+                //  SetFocusable(false);
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+                <SPAN CLASS=c>// Paints the label.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emTkTiling"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// A panel of this class automatically lays out any child panels within
+        // the content area, just like in a rectangular tiling. By default, the
+        // panel itself is not focusable and has no border, because it is meant
+        // as a pure layout programming tool. For other use, see the derived
+        // class <A CLASS=m HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>, but sets non-focusable.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsRowByRow() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetRowByRow(<SPAN CLASS=t>bool </SPAN>rowByRow=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether to layout the child panels column-by-column (false,
+                // the default) or row-by-row (true). Here is an example for the
+                // order of 10 panels in a 4x3 grid:
+                //   column-by-column      row-by-row
+                //      1  4  7 10         1  2  3  4
+                //      2  5  8            5  6  7  8
+                //      3  6  9            9 10
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetFixedColumnCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetFixedRowCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetFixedColumnCount(<SPAN CLASS=t>int </SPAN>fixedColumnCount);
+        <SPAN CLASS=t>void </SPAN>SetFixedRowCount(<SPAN CLASS=t>int </SPAN>fixedRowCount);
+                <SPAN CLASS=c>// Whether to have a fixed number of columns or rows, and how
+                // many. A value less or equal zero means to have no fixed
+                // number of columns or rows and to let the layout algorithm
+                // decide it. If both are fixed and if there are more child
+                // panels than cells, the row count is increased accordingly.
+                // The default is zero for both.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMinCellCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinCellCount(<SPAN CLASS=t>int </SPAN>minCellCount);
+                <SPAN CLASS=c>// Minimum number of cells to be generated. The layout algorithm
+                // behaves like if there were at least this number of child
+                // panels. The additional cells are simply making up unused
+                // space. The default is zero.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>ct);
+                <SPAN CLASS=c>// Set the demanded tallness of child panels (height/width
+                // ratio). This method is a short cut for:
+                //   SetPrefChildTallness(ct);
+                //   SetChildTallnessForced();
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>double </SPAN>pct);
+                <SPAN CLASS=c>// Set the preferred tallness of child panels (height/width
+                // ratio). The child panels may get another tallness, for
+                // filling the available space best possible. This method is a
+                // short cut for: SetPrefChildTallness(pct,0,true);
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetPrefChildTallness(<SPAN CLASS=t>int </SPAN>idx) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>double </SPAN>pct, <SPAN CLASS=t>int </SPAN>idx, <SPAN CLASS=t>bool </SPAN>allFurther=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Preferred tallness of child panels in the first row and in
+                // the first column. The index idx denotes a cell. It is a cell
+                // in the first row (idx&gt;0) or in the first column (idx&lt;0), or
+                // both (idx==0). Other cells cannot be set, because they are
+                // sized implicitly by the first row and column. Here is a chart
+                // showing the meaning of idx, and the effect of different
+                // tallnesses:
+                //
+                //   +--------+-------+-------------+-----+----
+                //   | idx  0 | idx 1 |    idx 2    |idx 3| ...
+                //   +--------+-------+-------------+-----+----
+                //   |        |       |             |     |
+                //   | idx -1 |       |             |     |
+                //   |        |       |             |     |
+                //   +--------+-------+-------------+-----+----
+                //   | idx -2 |       |             |     |
+                //   +--------+-------+-------------+-----+----
+                //   |        |       |             |     |
+                //   |        |       |             |     |
+                //   | idx -3 |       |             |     |
+                //   |        |       |             |     |
+                //   |        |       |             |     |
+                //   +--------+-------+-------------+-----+----
+                //   | ...    |       |             |     |
+                //
+                // Now to the important trick argument "allFurther": If true
+                // (the default), all further cells in the row and/or column are
+                // even set. For example, SetPrefChildTallness(1.0,3) means to
+                // set the cells 3, 4, 5, ... INT_MAX. And
+                // SetPrefChildTallness(1.0,-2) means to set the cells -2, -3,
+                // -4, ... INT_MIN. And SetPrefChildTallness(1.0,-3,false) means
+                // to set cell -3 only. And SetPrefChildTallness(1.0,0) means to
+                // set all cells at once.
+                //
+                // There is no limit for idx except through the memory required
+                // by internal arrays.
+                //
+                // The default preferred child tallness is: 0.2
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallnessForced(<SPAN CLASS=t>bool </SPAN>forced=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the preferred child tallness has to be applied in any
+                // case, instead of deviating for filling the whole available
+                // space. This method is a short cut for:
+                //   SetForcedChildTallnessColumn(forced ? 0 : -1);
+                //   SetForcedChildTallnessRow(forced ? 0 : -1);
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetForcedChildTallnessColumn() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetForcedChildTallnessRow() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetForcedChildTallnessColumn(<SPAN CLASS=t>int </SPAN>column);
+        <SPAN CLASS=t>void </SPAN>SetForcedChildTallnessRow(<SPAN CLASS=t>int </SPAN>row);
+                <SPAN CLASS=c>// Index of a single column or row, in which the preferred child
+                // tallness has to be applied in any case. -1 means to have no
+                // such column or row (this is the default). Understand that if
+                // both a row and a column are forced, all cells of the whole
+                // grid are forced implicitly.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> alignment);
+                <SPAN CLASS=c>// Alignment of the child panels as a whole within the available
+                // space. This applies only if the available space cannot be
+                // filled completely, with respect to forced child tallness. The
+                // default is EM_ALIGN_CENTER.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetSpaceL() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceT() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceH() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceV() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceR() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceB() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSpaceL(<SPAN CLASS=t>double </SPAN>l);
+        <SPAN CLASS=t>void </SPAN>SetSpaceT(<SPAN CLASS=t>double </SPAN>t);
+        <SPAN CLASS=t>void </SPAN>SetSpaceH(<SPAN CLASS=t>double </SPAN>h);
+        <SPAN CLASS=t>void </SPAN>SetSpaceV(<SPAN CLASS=t>double </SPAN>v);
+        <SPAN CLASS=t>void </SPAN>SetSpaceR(<SPAN CLASS=t>double </SPAN>r);
+        <SPAN CLASS=t>void </SPAN>SetSpaceB(<SPAN CLASS=t>double </SPAN>b);
+        <SPAN CLASS=t>void </SPAN>SetSpace(<SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>v, <SPAN CLASS=t>double </SPAN>r,
+                      <SPAN CLASS=t>double </SPAN>b);
+        <SPAN CLASS=t>void </SPAN>SetSpace(<SPAN CLASS=t>double </SPAN>lr, <SPAN CLASS=t>double </SPAN>tb, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>v);
+        <SPAN CLASS=t>void </SPAN>SetInnerSpace(<SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>v);
+        <SPAN CLASS=t>void </SPAN>SetOuterSpace(<SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b);
+        <SPAN CLASS=t>void </SPAN>SetOuterSpace(<SPAN CLASS=t>double </SPAN>lr, <SPAN CLASS=t>double </SPAN>tb);
+                <SPAN CLASS=c>// Left, top, horizontal, vertical, right and bottom space (l,
+                // t, h, v, r, b). This defines space between child panels, and
+                // between child panels and borders. Here is a chart showing the
+                // meaning of the six parameters:
+                //
+                //   +-------------------- border -------------------+
+                //   |         t             t             t         |
+                //   |     +-------+     +-------+     +-------+     |
+                //   |  l  + panel +  h  + panel +  h  + panel +  r  |
+                //   |     +-------+     +-------+     +-------+     |
+                //   |         v             v             v         |
+                //   |     +-------+     +-------+     +-------+     |
+                //   |  l  + panel +  h  + panel +  h  + panel +  r  |
+                //   |     +-------+     +-------+     +-------+     |
+                //   |         b             b             b         |
+                //   +-----------------------------------------------+
+                //
+                // The method argument lr means to set l and r to the same
+                // value, same with tb for t and b.
+                //
+                // The values are relative to the average size of the child
+                // panels. For example, v=0.5 means that the vertical space
+                // between child panels gets half as tall as an average child
+                // panel. The default is zero for all parameters.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=c>// Tiles all child panels in the content area (except for an
+                // auxiliary panel, which is laid out in the border).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>double </SPAN>SpaceL,SpaceT,SpaceH,SpaceV,SpaceR,SpaceB;
+        <SPAN CLASS=t>double </SPAN>PCT;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; PCTPos, PCTNeg;
+        <SPAN CLASS=t>int </SPAN>FixedColumnCount,FixedRowCount,MinCellCount,FCTColumn,FCTRow;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> Alignment;
+        <SPAN CLASS=t>bool </SPAN>RowByRow;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::IsRowByRow() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>RowByRow;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetFixedColumnCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FixedColumnCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetFixedRowCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FixedRowCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetMinCellCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinCellCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetForcedChildTallnessColumn() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FCTColumn;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetForcedChildTallnessRow() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FCTRow;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Alignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetSpaceL() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceL;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetSpaceT() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceT;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetSpaceH() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceH;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetSpaceV() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceV;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetSpaceR() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceR;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>::GetSpaceB() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceB;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkGroup"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a group of panels. Any user-created child panels are laid
+        // out automatically. This is just like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>, but it has a group
+        // border and it is focusable.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emTkTunnel"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This panel shows a single child panel very small. Around that, a
+        // decoration is painted which looks like a tunnel. Therefore the name
+        // of this class. The single child panel is laid out automatically
+        // whenever it is created by the user of this class.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetChildTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>childTallness);
+                <SPAN CLASS=c>// Tallness for the child panel (end of tunnel). A value &lt;=0.0
+                // means to take the tallness of the content rectangle. That is
+                // the default.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetDepth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDepth(<SPAN CLASS=t>double </SPAN>depth);
+                <SPAN CLASS=c>// Depth of the tunnel. The formula is more or less:
+                //   AreaOfEnd = AreaOfEntrance/((Depth+1)*(Depth+1))
+                // The default is 10.0.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetChildRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get coordinates and canvas color of the end of the tunnel.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoTunnelFunc <SPAN CLASS=b>{
+                </SPAN>TUNNEL_FUNC_PAINT,
+                TUNNEL_FUNC_CHILD_RECT
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoTunnel(
+                DoTunnelFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
+                <SPAN CLASS=t>double </SPAN>* pH, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor
+        );
+
+        <SPAN CLASS=t>double </SPAN>ChildTallness,Depth;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A>::GetChildTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ChildTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A>::GetDepth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Depth;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkButton"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a button. Buttons can be triggered (clicked) by the user to
+        // perform a function. The label is shown in the button face.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsNoEOI() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetNoEOI(<SPAN CLASS=t>bool </SPAN>noEOI=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether clicking this button is not an "End Of Interaction".
+                // If false (the default), GetView().SignalEOIDelayed() is
+                // called on every click.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetClickSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the button has been clicked.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetPressStateSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the press state has changed (see
+                // IsPressed()).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsPressed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the button is currently pressed or not.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Click(<SPAN CLASS=t>bool </SPAN>shift=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Perform a button click programmatically.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Clicked();
+                <SPAN CLASS=c>// Called when the button has been clicked.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>PressStateChanged();
+                <SPAN CLASS=c>// Called when the press state has changed.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintBoxSymbol(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>bool </SPAN>IsShownChecked() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShownBoxed() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShownRadioed() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetShownChecked(<SPAN CLASS=t>bool </SPAN>shownChecked);
+        <SPAN CLASS=t>void </SPAN>SetShownBoxed(<SPAN CLASS=t>bool </SPAN>shownBoxed);
+        <SPAN CLASS=t>void </SPAN>SetShownRadioed(<SPAN CLASS=t>bool </SPAN>shownRadioed);
+                <SPAN CLASS=c>// Yes, this class has the ability to paint all our button
+                // types.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoButtonFunc <SPAN CLASS=b>{
+                </SPAN>BUTTON_FUNC_PAINT,
+                BUTTON_FUNC_CHECK_MOUSE
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoButton(
+                DoButtonFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>bool </SPAN>* pHit
+        );
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ClickSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> PressStateSignal;
+        <SPAN CLASS=t>unsigned </SPAN>Pressed : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>NoEOI : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ShownChecked : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ShownBoxed : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ShownRadioed : <SPAN CLASS=u>1</SPAN>;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToButton;
+        <SPAN CLASS=t>static const char </SPAN>* HowToEOIButton;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::IsNoEOI() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>NoEOI;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::GetClickSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClickSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::GetPressStateSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PressStateSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::IsPressed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pressed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::IsShownChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ShownChecked;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::IsShownBoxed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ShownBoxed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::IsShownRadioed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ShownRadioed;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkCheckButton"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a check button. This is like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>, but a check state
+        // is managed and shown. The check state toggles on every click of the
+        // button, for switching something on and off.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>. The initial check state is false.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCheckSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the check state has changed.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsChecked() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetChecked(<SPAN CLASS=t>bool </SPAN>checked=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Get/set the check state of this button.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Clicked();
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>. This implements the toggling of the check
+                // state.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>CheckChanged();
+                <SPAN CLASS=c>// Called when the check state has changed.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CheckSignal;
+        <SPAN CLASS=t>bool </SPAN>Checked;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToCheckButton;
+        <SPAN CLASS=t>static const char </SPAN>* HowToChecked;
+        <SPAN CLASS=t>static const char </SPAN>* HowToNotChecked;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>::GetCheckSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>::IsChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Checked;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkRadioButton"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a radio button. This is similar to a check button, but in a
+        // set of radio buttons, only one button can have checked state, and the
+        // user can unchecked a button only by checking another. That is the
+        // usual behavior. Actually an <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> does not modify its check
+        // state on any click, as long as it is not a member of an
+        // <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism or <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Group (it's not a must
+        // to use these helper classes).
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>();
+                <SPAN CLASS=c>// Destructor. Removes the button from any Mechanism.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Mechanism : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for the mechanism of a set of radio buttons.
+
+                </SPAN>Mechanism();
+                <SPAN CLASS=t>virtual </SPAN>~Mechanism();
+
+                <SPAN CLASS=t>void </SPAN>Add(<A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * radioButton);
+                        <SPAN CLASS=c>// Add a radio button to this mechanism. If the button
+                        // is already a member of another mechanism, it is
+                        // removed from that mechanism automatically.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>AddAll(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * parent);
+                        <SPAN CLASS=c>// Add all radio buttons which are children of the given
+                        // panel.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Remove(<A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * radioButton);
+                <SPAN CLASS=t>void </SPAN>RemoveByIndex(<SPAN CLASS=t>int </SPAN>index);
+                        <SPAN CLASS=c>// Remove a radio button from this mechanism.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>RemoveAll();
+                        <SPAN CLASS=c>// Remove all radio buttons from this mechanism.
+
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCheckSignal() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// This signal is signaled whenever there was a change
+                        // in the result of GetChecked().
+
+                </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * GetChecked();
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * GetChecked() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>void </SPAN>SetChecked(<A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * radioButton);
+                        <SPAN CLASS=c>// Get/set the member button which is currently checked.
+                        // NULL means to have no member button checked.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetCheckIndex();
+                <SPAN CLASS=t>void </SPAN>SetCheckIndex(<SPAN CLASS=t>int </SPAN>index);
+                        <SPAN CLASS=c>// Get/set the index of the member button which is
+                        // currently checked. -1 means to have no member button
+                        // checked.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetCount();
+                        <SPAN CLASS=c>// Get number of member buttons.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * button) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the index of a member button, or -1 if not found.
+
+        </SPAN><SPAN CLASS=t>protected</SPAN>:
+
+                <SPAN CLASS=t>virtual void </SPAN>CheckChanged();
+                        <SPAN CLASS=c>// Called whenever there was a change in the result of
+                        // GetChecked().
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+
+                <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> *&gt; Array;
+                <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CheckSignal;
+                <SPAN CLASS=t>int </SPAN>CheckIndex;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>Group : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>, <SPAN CLASS=t>public </SPAN>Mechanism <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Combination of <A CLASS=m HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> and Mechanism. Any radio buttons
+                // created as children of such a group are added automatically
+                // to the mechanism (this magic happens in the constructor of
+                // <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>).
+
+                </SPAN>Group(
+                        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+                );
+                        <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>.
+
+                </SPAN><SPAN CLASS=t>virtual </SPAN>~Group();
+                        <SPAN CLASS=c>// Destructor.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Clicked();
+
+        <SPAN CLASS=t>virtual void </SPAN>CheckChanged();
+
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN>Mechanism;
+
+        Mechanism * Mech;
+        <SPAN CLASS=t>int </SPAN>MechIndex;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToRadioButton;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism::GetCheckSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * <A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism::GetChecked()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * <A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism::GetChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism::GetCheckIndex()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism::GetCount()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array.GetCount();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Mechanism::GetIndexOf(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> * button
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>button &amp;&amp; button-&gt;Mech==<SPAN CLASS=k>this </SPAN>? button-&gt;MechIndex : -<SPAN CLASS=u>1</SPAN>;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkCheckBox"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>, but with a different visualization:
+        // Instead of a push button, a small check box is shown with the label
+        // on the right.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emTkRadioBox"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is like <A CLASS=m HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>, but with a different visualization:
+        // Instead of a push button, a small check box is shown with the label
+        // on the right.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emTkTextField"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a data field panel showing a single line of text which can
+        // optionally be edited by the user. An optional multi-line mode is also
+        // provided. Selection and clipboard functions are supported.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+                //   editable    - Whether the text can be edited by the user.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEditable() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetEditable(<SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the text can be edited by the user.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>GetMultiLineMode() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMultiLineMode(<SPAN CLASS=t>bool </SPAN>multiLineMode=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the text may have multiple lines.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>GetPasswordMode() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPasswordMode(<SPAN CLASS=t>bool </SPAN>passwordMode=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the text is a password that should not really be
+                // shown.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>GetOverwriteMode() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetOverwriteMode(<SPAN CLASS=t>bool </SPAN>overwriteMode=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Current mode of overwriting or inserting (can be changed with
+                // the insert key).
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetTextSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled whenever the text has changed.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetText() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetText(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> text);
+                <SPAN CLASS=c>// The text.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetTextLen() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetCursorIndex() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetCursorIndex(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSelectionSignal() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetSelectionStartIndex() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetSelectionEndIndex() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>Select(<SPAN CLASS=t>int </SPAN>startIndex, <SPAN CLASS=t>int </SPAN>endIndex, <SPAN CLASS=t>bool </SPAN>publish);
+        <SPAN CLASS=t>bool </SPAN>IsSelectionEmpty() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>EmptySelection();
+        <SPAN CLASS=t>void </SPAN>SelectAll(<SPAN CLASS=t>bool </SPAN>publish);
+        <SPAN CLASS=t>void </SPAN>PublishSelection();
+        <SPAN CLASS=t>void </SPAN>CutSelectedTextToClipboard();
+        <SPAN CLASS=t>void </SPAN>CopySelectedTextToClipboard();
+        <SPAN CLASS=t>void </SPAN>PasteSelectedTextFromClipboard();
+        <SPAN CLASS=t>void </SPAN>PasteSelectedText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text);
+        <SPAN CLASS=t>void </SPAN>DeleteSelectedText();
+        <SPAN CLASS=t>bool </SPAN>IsCursorBlinkOn() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Advanced stuff - still undocumented.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>TextChanged();
+                <SPAN CLASS=c>// Called when the text has changed.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SelectionChanged();
+                <SPAN CLASS=c>// Called when the selection has changed.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>double </SPAN>* pCol, <SPAN CLASS=t>double </SPAN>* pRow);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoTextFieldFunc <SPAN CLASS=b>{
+                </SPAN>TEXT_FIELD_FUNC_PAINT,
+                TEXT_FIELD_FUNC_XY2CR,
+                TEXT_FIELD_FUNC_CR2XY
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoTextField(
+                DoTextFieldFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>xIn, <SPAN CLASS=t>double </SPAN>yIn, <SPAN CLASS=t>double </SPAN>* pXOut, <SPAN CLASS=t>double </SPAN>* pYOut, <SPAN CLASS=t>bool </SPAN>* pHit
+        );
+
+        <SPAN CLASS=t>enum </SPAN>DragModeType <SPAN CLASS=b>{
+                </SPAN>DM_NONE,
+                DM_SELECT,
+                DM_SELECT_BY_WORDS,
+                DM_SELECT_BY_ROWS,
+                DM_INSERT,
+                DM_MOVE
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>SetDragMode(DragModeType dragMode);
+        <SPAN CLASS=t>void </SPAN>RestartCursorBlinking();
+        <SPAN CLASS=t>void </SPAN>ScrollToCursor();
+        <SPAN CLASS=t>int </SPAN>ColRow2Index(<SPAN CLASS=t>double </SPAN>column, <SPAN CLASS=t>double </SPAN>row, <SPAN CLASS=t>bool </SPAN>forCursor) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>Index2ColRow(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>* pColumn, <SPAN CLASS=t>int </SPAN>* pRow) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>CalcTotalColsRows(<SPAN CLASS=t>int </SPAN>* pCols, <SPAN CLASS=t>int </SPAN>* pRows) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNormalizedIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>ModifySelection(<SPAN CLASS=t>int </SPAN>oldColumn, <SPAN CLASS=t>int </SPAN>newColumn, <SPAN CLASS=t>bool </SPAN>publish);
+        <SPAN CLASS=t>int </SPAN>GetNextIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetPrevIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextWordBoundaryIndex(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>bool </SPAN>* pIsDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetPrevWordBoundaryIndex(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>bool </SPAN>* pIsDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextWordIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetPrevWordIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetRowStartIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetRowEndIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextRowIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetPrevRowIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextParagraphIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetPrevParagraphIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>&gt; Clipboard;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> TextSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> SelectionSignal;
+        <SPAN CLASS=t>bool </SPAN>Editable;
+        <SPAN CLASS=t>bool </SPAN>MultiLineMode;
+        <SPAN CLASS=t>bool </SPAN>PasswordMode;
+        <SPAN CLASS=t>bool </SPAN>OverwriteMode;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Text;
+        <SPAN CLASS=t>int </SPAN>TextLen,CursorIndex,SelectionStartIndex,SelectionEndIndex;
+        <SPAN CLASS=t>int </SPAN>MagicCursorColumn;
+        emInt64 SelectionId;
+        emUInt64 CursorBlinkTime;
+        <SPAN CLASS=t>bool </SPAN>CursorBlinkOn;
+        DragModeType DragMode;
+        <SPAN CLASS=t>double </SPAN>DragPosC,DragPosR;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToTextField;
+        <SPAN CLASS=t>static const char </SPAN>* HowToMultiLineOff;
+        <SPAN CLASS=t>static const char </SPAN>* HowToMultiLineOn;
+        <SPAN CLASS=t>static const char </SPAN>* HowToReadOnly;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::IsEditable() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Editable;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetMultiLineMode() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MultiLineMode;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetPasswordMode() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PasswordMode;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetOverwriteMode() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>OverwriteMode;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetTextSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TextSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetText() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Text;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetTextLen() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TextLen;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetCursorIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CursorIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetSelectionSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectionSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetSelectionStartIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectionStartIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::GetSelectionEndIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectionEndIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::IsSelectionEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectionStartIndex&gt;=SelectionEndIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>::IsCursorBlinkOn() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CursorBlinkOn;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkScalarField"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a data field panel showing a scalar value which can
+        // optionally be edited by the user. The scalar value is a 64-bit signed
+        // integer number, but on the shown scale the values can be translated
+        // to any texts (e.g. rational numbers, names ,...).
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                emInt64 minValue=<SPAN CLASS=u>0</SPAN>, emInt64 maxValue=<SPAN CLASS=u>10</SPAN>, emInt64 value=<SPAN CLASS=u>0</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+                //   minValue    - Minimum allowed value.
+                //   maxValue    - Maximum allowed value.
+                //   value       - Initial value.
+                //   editable    - Whether the value can be edited by the user.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEditable() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetEditable(<SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the value can be edited by the user.
+
+        </SPAN>emInt64 GetMinValue() <SPAN CLASS=t>const</SPAN>;
+        emInt64 GetMaxValue() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinValue(emInt64 minValue);
+        <SPAN CLASS=t>void </SPAN>SetMaxValue(emInt64 maxValue);
+        <SPAN CLASS=t>void </SPAN>SetMinMaxValues(emInt64 minValue, emInt64 maxValue);
+                <SPAN CLASS=c>// Get/set the range of possible values.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetValueSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled after each change of the value.
+
+        </SPAN>emInt64 GetValue() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetValue(emInt64 value);
+                <SPAN CLASS=c>// Get/set the value.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;emUInt64&gt; &amp; GetScaleMarkIntervals() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetScaleMarkIntervals(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;emUInt64&gt; &amp; intervals);
+        <SPAN CLASS=t>void </SPAN>SetScaleMarkIntervals(<SPAN CLASS=t>unsigned </SPAN>interval1, <SPAN CLASS=t>unsigned </SPAN>interval2, ...);
+                <SPAN CLASS=c>// Get/set the layout of scale marks. It is an array of
+                // intervals between the scale marks of different size levels.
+                // The first interval is for the largest scale marks, the second
+                // is for the second-largest scale marks and so on. Thus, the
+                // array must be sorted from large to small. For example, a
+                // classic centimeter rule would have {10,5,1}, with the values
+                // in millimeters. The default is {1}. The arguments to the
+                // ellipse version method must be terminated by a 0. Note that
+                // the ellipse version can take only 32-bit intervals (I am not
+                // sure whether an ellipse on emUInt64 would be portable).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsNeverHidingMarks() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetNeverHideMarks(<SPAN CLASS=t>bool </SPAN>neverHide);
+                <SPAN CLASS=c>// By default, marks with an interval greater than
+                // (MaxValue - MinValue) are automatically not shown, so that
+                // the other marks can be seen better. Setting true here
+                // disables that automatism.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TextOfValue(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value,
+                                 emUInt64 markInterval) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Convert a scale mark value to a null-terminated character
+                // string for display on the scale. The default implementation
+                // uses the callback function set with SetTextOfValueFunc.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetTextOfValueFunc(
+                <SPAN CLASS=t>void</SPAN>(*textOfValueFunc)(
+                        <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value,
+                        emUInt64 markInterval, <SPAN CLASS=t>void </SPAN>* context
+                ),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Set a function for converting a scale mark value to a
+                // null-terminated character string for display on the scale.
+                // The context argument is forwarded to the function for any
+                // use. The default performs simple decimal conversion.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>DefaultTextOfValue(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+                <SPAN CLASS=c>// This is the default text-of-value-function. It performs
+                // decimal conversion.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetTextBoxTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetTextBoxTallness(<SPAN CLASS=t>double </SPAN>textBoxTallness);
+                <SPAN CLASS=c>// Tallness of the text box of a scale mark. The default is 0.5.
+
+        </SPAN>emUInt64 GetKeyboardInterval() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetKeyboardInterval(emUInt64 kbInterval);
+                <SPAN CLASS=c>// How much to add and sub to the value by '+' and '-' keys. The
+                // default is zero which means to choose a good interval
+                // automatically.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>ValueChanged();
+                <SPAN CLASS=c>// Called when the value has changed.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, emInt64 * pValue);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoScalarFieldFunc <SPAN CLASS=b>{
+                </SPAN>SCALAR_FIELD_FUNC_PAINT,
+                SCALAR_FIELD_FUNC_CHECK_MOUSE
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoScalarField(
+                DoScalarFieldFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, emInt64 * pValue, <SPAN CLASS=t>bool </SPAN>* pHit
+        );
+
+        <SPAN CLASS=t>void </SPAN>StepByKeyboard(<SPAN CLASS=t>int </SPAN>dir);
+
+        <SPAN CLASS=t>bool </SPAN>Editable;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ValueSignal;
+        emInt64 MinValue,MaxValue;
+        emInt64 Value;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;emUInt64&gt; ScaleMarkIntervals;
+        <SPAN CLASS=t>bool </SPAN>MarksNeverHidden;
+        <SPAN CLASS=t>void</SPAN>(*TextOfValueFunc)(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+        <SPAN CLASS=t>void </SPAN>* TextOfValueFuncContext;
+        <SPAN CLASS=t>double </SPAN>TextBoxTallness;
+        emUInt64 KBInterval;
+        <SPAN CLASS=t>bool </SPAN>Pressed;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToScalarField;
+        <SPAN CLASS=t>static const char </SPAN>* HowToReadOnly;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::IsEditable() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Editable;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt64 <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetMinValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinValue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt64 <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetMaxValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxValue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetValueSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ValueSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt64 <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;emUInt64&gt; &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetScaleMarkIntervals() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ScaleMarkIntervals;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::IsNeverHidingMarks() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MarksNeverHidden;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetTextBoxTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TextBoxTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>::GetKeyboardInterval() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>KBInterval;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkColorField"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a data field panel showing a color which can optionally be
+        // edited by the user.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<SPAN CLASS=u>0x000000ff</SPAN>, <SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>false</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>alphaEnabled=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent       - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name         - The name for this panel.
+                //   caption      - The label's caption, or empty.
+                //   description  - The label's description, or empty.
+                //   icon         - The label's icon, or empty.
+                //   color        - Initial color.
+                //   editable     - Whether the color can be edited by the user.
+                //   alphaEnabled - Whether the alpha channel of the color is
+                //                  relevant.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEditable() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetEditable(<SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the color can be edited by the user.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsAlphaEnabled() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAlphaEnabled(<SPAN CLASS=t>bool </SPAN>alphaEnabled=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the alpha channel of the color is relevant.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetColorSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled after each change of the color.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> value);
+                <SPAN CLASS=c>// Get/set the color.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>ColorChanged();
+                <SPAN CLASS=c>// Called when the color has changed.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+        <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>UpdateRGBAOutput();
+        <SPAN CLASS=t>void </SPAN>UpdateHSVOutput(<SPAN CLASS=t>bool </SPAN>initial=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>UpdateNameOutput();
+        <SPAN CLASS=t>void </SPAN>UpdateExpAppearance();
+
+        <SPAN CLASS=t>static void </SPAN>TextOfPercentValue(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+        <SPAN CLASS=t>static void </SPAN>TextOfHueValue(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+
+        <SPAN CLASS=t>struct </SPAN>Expansion <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> * Tiling;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfRed;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfGreen;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfBlue;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfAlpha;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfHue;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfSat;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SfVal;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> * TfName;
+                emInt64 RedOut,GreenOut,BlueOut,AlphaOut,HueOut,SatOut,ValOut;
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> NameOut;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ColorSignal;
+        Expansion * Exp;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color;
+        <SPAN CLASS=t>bool </SPAN>Editable;
+        <SPAN CLASS=t>bool </SPAN>AlphaEnabled;
+        <SPAN CLASS=t>bool </SPAN>Pressed;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToColorField;
+        <SPAN CLASS=t>static const char </SPAN>* HowToReadOnly;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>::IsEditable() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Editable;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>::IsAlphaEnabled() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>AlphaEnabled;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>::GetColorSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ColorSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>::GetColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Color;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkSplitter"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a splitter panel. Such a panel can get two child panels
+        // which are laid out automatically, either horizontally or vertically,
+        // filling the whole content area. Between the two child panels is a
+        // grip which can be dragged by the user, for making one of the panels
+        // larger while the other gets smaller.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                <SPAN CLASS=t>bool </SPAN>vertical=<SPAN CLASS=k>false</SPAN>, <SPAN CLASS=t>double </SPAN>minPos=<SPAN CLASS=u>0.0</SPAN>, <SPAN CLASS=t>double </SPAN>maxPos=<SPAN CLASS=u>1.0</SPAN>,
+                <SPAN CLASS=t>double </SPAN>pos=<SPAN CLASS=u>0.5
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+                //   vertical    - See SetVertical.
+                //   minPos      - See SetMinMaxPos.
+                //   maxPos      - See SetMinMaxPos.
+                //   pos         - See SetPos.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsVertical() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetVertical(<SPAN CLASS=t>bool </SPAN>vertical=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the child panels are laid out left-right (false) or
+                // on top of each other (true).
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMinPos() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMaxPos() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetPos() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinMaxPos(<SPAN CLASS=t>double </SPAN>minPos, <SPAN CLASS=t>double </SPAN>maxPos);
+        <SPAN CLASS=t>void </SPAN>SetPos(<SPAN CLASS=t>double </SPAN>pos);
+                <SPAN CLASS=c>// Get/set minimum, maximum and current position of the grip.
+                // The position ranges from 0.0 to 1.0 (0.0 = first child panel
+                // collapsed, 1.0 = second child panel collapsed).
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetPosSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled after each change of the grip
+                // position.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>CalcGripRect(
+                <SPAN CLASS=t>double </SPAN>contentX, <SPAN CLASS=t>double </SPAN>contentY, <SPAN CLASS=t>double </SPAN>contentW,
+                <SPAN CLASS=t>double </SPAN>contentH, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
+                <SPAN CLASS=t>double </SPAN>* pH
+        );
+
+        <SPAN CLASS=t>bool </SPAN>Vertical;
+        <SPAN CLASS=t>double </SPAN>MinPos;
+        <SPAN CLASS=t>double </SPAN>MaxPos;
+        <SPAN CLASS=t>double </SPAN>Pos;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> PosSignal;
+        <SPAN CLASS=t>bool </SPAN>Pressed;
+        <SPAN CLASS=t>double </SPAN>MousePosInGrip;
+        <SPAN CLASS=t>bool </SPAN>MouseInGrip;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>::IsVertical() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Vertical;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>::GetMinPos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinPos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>::GetMaxPos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxPos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>::GetPos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A>::GetPosSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PosSignal;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTkDialog"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a dialog window. Such a dialog has a content area and a
+        // button area. The content area is an <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> which can be given
+        // individual child panels. The button area can have buttons like "OK"
+        // and "Cancel" for finishing the dialog.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A>(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext,
+                ViewFlags viewFlags=VF_POPUP_ZOOM|VF_ROOT_SAME_TALLNESS,
+                WindowFlags windowFlags=WF_MODAL,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; wmResName=<SPAN CLASS=v>"emTkDialog"
+        </SPAN>);
+                <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>, but see that the default
+                // argument values are different (it's a modal dialog with
+                // popup-zoom by default).
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetRootTitle(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title);
+                <SPAN CLASS=c>// Set the title for this dialog. More precise, set the title
+                // for the private root panel of this view. If you create some
+                // content panel with another title, and if it gets focus, that
+                // title is shown. The default title is an empty string.
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> * GetContentTiling();
+                <SPAN CLASS=c>// This panel makes up the content area of the dialog, not
+                // including the buttons. For convenience, it is an <A CLASS=m HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A>
+                // with default properties, except that the inner border is set
+                // to <A CLASS=m HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A>::IBT_CUSTOM_RECT. You may change the properties
+                // as you wish, and you should give it one or more child panels
+                // as the content.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddPositiveButton(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+        <SPAN CLASS=t>void </SPAN>AddNegativeButton(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+        <SPAN CLASS=t>void </SPAN>AddCustomButton(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Add a button to the button area. These buttons are finishing
+                // the dialog. For the meaning of "Positive", "Negative" and
+                // "Custom", please see GetResult().
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddOKButton();
+        <SPAN CLASS=t>void </SPAN>AddCancelButton();
+        <SPAN CLASS=t>void </SPAN>AddOKCancelButtons();
+                <SPAN CLASS=c>// AddOKButton() is like AddPositiveButton("OK").
+                // AddCancelButton() is like AddNegativeButton("Cancel").
+                // AddOKCancelButtons() is like AddOKButton() plus
+                // AddCancelButton().
+
+        </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get a button. The index is: 0 for the first added button, 1
+                // for the second added button, and so on.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetFinishSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled when any of the buttons has been triggered, or by
+                // pressing the Enter key or the Escape key, or by the window
+                // close signal. It is okay not to destruct the dialog and to
+                // wait for another finish signal.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possible results:
+                </SPAN>POSITIVE=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=c>// Positive button triggered or Enter key pressed.
+                </SPAN>NEGATIVE=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=c>// Negative button triggered or Escape key pressed
+                            // or window-closing commanded (see GetCloseSignal).
+                </SPAN>CUSTOM1 =<SPAN CLASS=u>2</SPAN>, <SPAN CLASS=c>// First custom button triggered.
+                </SPAN>CUSTOM2 =<SPAN CLASS=u>3</SPAN>, <SPAN CLASS=c>// Second custom button triggered.
+                </SPAN>CUSTOM3 =<SPAN CLASS=u>4  </SPAN><SPAN CLASS=c>// ...
+                // Continued (customIndex=result+1-CUSTOM1)
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetResult() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// The result should be asked after the finish signal has been
+                // signaled. Before that, the result is not valid.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Finish(<SPAN CLASS=t>int </SPAN>result);
+                <SPAN CLASS=c>// Finish this dialog with the given result programmatically.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoDeletion(<SPAN CLASS=t>bool </SPAN>autoDelete=<SPAN CLASS=k>true</SPAN>);
+        <SPAN CLASS=t>bool </SPAN>IsAutoDeletionEnabled();
+                <SPAN CLASS=c>// Whether to delete this object automatically a few time slices
+                // after the dialog has finished.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>ShowMessage(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; message,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// This function creates a modal dialog with an <A CLASS=m HREF="emCore_emToolkit_h.html#emTkLabel">emTkLabel</A> as the
+                // content, and with an OK button. The dialog deletes itself
+                // when finished. The argument 'message' is the caption of the
+                // label.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Finished(<SPAN CLASS=t>int </SPAN>result);
+                <SPAN CLASS=c>// Like the finish signal. Default implementation does nothing.
+                // It's allowed to delete (destruct) this dialog herein.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>bool </SPAN>PrivateCycle();
+
+        <SPAN CLASS=t>class </SPAN>DlgButton : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                DlgButton(
+                        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon,
+                        <SPAN CLASS=t>int </SPAN>result
+                );
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>Clicked();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>int </SPAN>Result;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>DlgPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                DlgPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=t>virtual </SPAN>~DlgPanel();
+                <SPAN CLASS=t>void </SPAN>SetTitle(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> title);
+                <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Title;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> * ContentTiling;
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> * ButtonTiling;
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>Input(
+                        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                        <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my
+                );
+                <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>PrivateEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                PrivateEngineClass(<A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A> &amp; dlg);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A> &amp; Dlg;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>PrivateEngineClass;
+
+        PrivateEngineClass PrivateEngine;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> FinishSignal;
+        <SPAN CLASS=t>int </SPAN>Result;
+        <SPAN CLASS=t>int </SPAN>ButtonNum,CustomRes;
+        <SPAN CLASS=t>int </SPAN>FinishState;
+        <SPAN CLASS=t>bool </SPAN>ADEnabled;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> * <A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A>::GetContentTiling()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>((DlgPanel*)GetRootPanel())-&gt;ContentTiling;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A>::GetFinishSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FinishSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A>::GetResult() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A>::IsAutoDeletionEnabled()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ADEnabled;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

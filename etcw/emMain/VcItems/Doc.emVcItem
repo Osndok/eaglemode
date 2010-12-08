@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Eagle Mode Documents (Double-Click To Open)"
+
+PosX  = 0.092
+PosY  = 0.100
+Width = 0.09
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 2.5
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "Doc.emFileLink"
+CopyToUser = false

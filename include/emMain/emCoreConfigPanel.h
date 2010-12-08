@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -93,11 +93,11 @@ private:
 		emString NormalCaption, FineCaption;
 	};
 
-	class MouseStickGroup : public emTkGroup, private emRecListener {
+	class MouseMiscGroup : public emTkGroup, private emRecListener {
 	public:
-		MouseStickGroup(ParentArg parent, const emString & name,
+		MouseMiscGroup(ParentArg parent, const emString & name,
 		                emCoreConfig * config);
-		virtual ~MouseStickGroup();
+		virtual ~MouseMiscGroup();
 	protected:
 		virtual void OnRecChanged();
 		virtual bool Cycle();
@@ -106,7 +106,9 @@ private:
 	private:
 		void UpdateOutput();
 		emRef<emCoreConfig> Config;
-		emTkRadioBox * OnBox, * OffBox;
+		emTkCheckBox * StickBox;
+		emTkCheckBox * EmuBox;
+		emTkCheckBox * PanBox;
 	};
 
 	class MouseGroup : public emTkGroup {

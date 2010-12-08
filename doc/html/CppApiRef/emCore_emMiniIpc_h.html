@@ -1,0 +1,166 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emMiniIpc.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emMiniIpc.h - Minimalistic support for interprocess communication
+//
+// Copyright (C) 2004-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emMiniIpc_h
+#define emMiniIpc_h
+
+#ifndef emTimer_h
+#include &lt;<A CLASS=f HREF="emCore_emTimer_h.html">emCore/emTimer.h</A>&gt;
+#endif
+
+
+<A NAME="emMiniIpcClient"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emMiniIpc_h.html#emMiniIpcClient">emMiniIpcClient</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcClient">emMiniIpcClient</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Client side of the minimalistic interprocess communication.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>TrySend(<SPAN CLASS=t>const char </SPAN>* serverName, <SPAN CLASS=t>int </SPAN>argc,
+                            <SPAN CLASS=t>const char </SPAN>* <SPAN CLASS=t>const </SPAN>argv[]) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Send a message to a server which runs on the same host by the
+                // same user. The server must not be run by the same process and
+                // thread, otherwise a deadlock could happen. This is
+                // unidirectional and asynchronous and it does not wait for the
+                // server to handle the message. For bidirectional
+                // communication, you could have servers on both ends and invent
+                // a suitable protocol (e.g. send the own server name with every
+                // message).
+                // Arguments:
+                //   serverName - Name of the server.
+                //   argc       - Number of arguments in the message.
+                //   argv       - The arguments of the message.
+                // Throws: An error message if the server cannot be reached.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emMiniIpcServer"></A><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Server side of the minimalistic interprocess communication.
+
+        </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+                <SPAN CLASS=c>// Construct a server which is not yet serving.
+                // Arguments:
+                //   scheduler - The scheduler serving this object (or its
+                //               internal stuff).
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>();
+                <SPAN CLASS=c>// Destructor: stops any serving.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+                <SPAN CLASS=c>// Get the scheduler.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>StartServing(<SPAN CLASS=t>const char </SPAN>* userDefinedServerName=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Start serving. Serving means to listen to client messages.
+                // The server gets a server name for identification within the
+                // same host and user. If the argument userDefinedServerName is
+                // not NULL, it is taken as the server name. Otherwise a new
+                // generic server name is invented automatically, for which no
+                // server already exists (recommended where possible). If there
+                // is already another server with the same user-defined name
+                // within the same host and user, this server will simply not
+                // get any messages before the other one stops serving.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>StopServing();
+                <SPAN CLASS=c>// Stop serving.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsServing() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this server is serving.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetServerName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the server name (empty string if not serving).
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>OnReception(<SPAN CLASS=t>int </SPAN>argc, <SPAN CLASS=t>const char </SPAN>* <SPAN CLASS=t>const </SPAN>argv[]) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Called on reception of a message from a client.
+                // Arguments:
+                //   argc - Number of arguments in the message.
+                //   argv - The arguments of the message.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Poll();
+
+        <SPAN CLASS=t>class </SPAN>SEClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                SEClass(<A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> &amp; server);
+                <SPAN CLASS=t>virtual </SPAN>~SEClass();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> &amp; Server;
+                <A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A> Timer;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>friend class </SPAN>SEClass;
+
+        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; Scheduler;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ServerName;
+        <SPAN CLASS=t>void </SPAN>* Instance;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; Buffer;
+        SEClass * ServerEngine;
+        <SPAN CLASS=t>bool </SPAN>* PtrStoppedOrDestructed;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::GetScheduler() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Scheduler;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::GetScheduler()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Scheduler;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::IsServing() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ServerEngine!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::GetServerName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ServerName;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

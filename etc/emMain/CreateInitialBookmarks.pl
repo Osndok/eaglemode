@@ -148,6 +148,18 @@ Bookmark: {
 ');
 
 
+#============================== Bookmark: Netwalk ==============================
+
+print($fh '
+Bookmark: {
+	Name = "Netwalk"
+	BgColor = "#479"
+	FgColor = "#ADC"
+	LocationIdentity = "::Netwalk1:"
+}
+');
+
+
 #=============================== Bookmark: Clock ===============================
 
 print($fh '

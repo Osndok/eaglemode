@@ -1,0 +1,11 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "debug.emTreeDump"
+
+PosX  = 0.893
+PosY  = 0.884
+Width = 0.025
+ContentTallness = 0.6666666666666667
+
+FileName = "DebugTreeDump.emFileLink"
+CopyToUser = false

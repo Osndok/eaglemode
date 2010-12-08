@@ -7,7 +7,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Install and Start</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2008 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2008-2010 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -20,19 +20,27 @@ Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourcefor
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 Cygwin</A></SMALL><BR>
 
 <H1><A NAME="1"></A>1 How to install Eagle Mode</H1>
-For installing Eagle Mode, first unpack the source package and cd into the
-unpacked directory. After that, the project has to be compiled (built) and then
-it can be installed. Here are the basic commands for doing that:
+This text describes the installation from source code. You may first check the
+download page if it has another way of installation for you operating system
+(<A HREF="http://eaglemode.sourceforge.net/download.html">http://eaglemode.sourceforge.net/download.html</A>).
+<P>
+For installing Eagle Mode from source code, please first download the source
+package (it is named eaglemode-<I>version</I>.tar.bz2), unpack it, and then cd
+into the unpacked directory.
+<P>
+After that, the project has to be compiled (built) and then it can be installed.
+Here are the basic commands for doing that:
 <P>
 <TT>&nbsp;&nbsp;&nbsp;perl make.pl build</TT><BR>
 <TT>&nbsp;&nbsp;&nbsp;perl make.pl install</TT>
 <P>
 This would build the project using the GNU compiler, and it would install to a
 default directory (on UNIX-like systems it is <TT>/usr/local/eaglemode</TT>).
-There are some options you could give to the commands. For example, if you want
-to install to another directory, say something like:
+There are some options you can give to the commands. For example, if you want
+to install to another directory, and if you want a desktop menu entry, say
+something like:
 <P>
-<TT>&nbsp;&nbsp;&nbsp;perl make.pl install dir=/opt/eaglemode</TT>
+<TT>&nbsp;&nbsp;&nbsp;perl make.pl install dir=/opt/eaglemode menu=yes</TT>
 <P>
 A full description of all the options can be seen with:
 <P>
@@ -40,32 +48,34 @@ A full description of all the options can be seen with:
 <P>
 Hints:
 <UL>
-<LI>You could skip the <TT>install</TT> step and run Eagle Mode directly from
-the source directory after <TT>build</TT>.</LI>
+<LI>It is even possible to skip the <TT>install</TT> step and to run Eagle
+Mode directly from the source directory after <TT>build</TT>.</LI>
 <P>
-<LI><TT>make.pl</TT> installs nothing outside the installation directory.</LI>
-<P>
-<LI>There is no problem in moving the installation directory afterwards. Its
-path and name are not stored in any files.</LI>
+<LI>Another way of installation would be to first create your own binary package
+by running <TT>perl&nbsp;make.pl&nbsp;pack&nbsp;<I>type</I></TT>, where <I>type</I> can be one of
+<TT>deb</TT>, <TT>rpm</TT>, <TT>exe</TT> and some more. Also, please run
+<TT>perl&nbsp;make.pl&nbsp;help</TT> for more details about this.</LI>
 </UL>
 <P>
 
 <H1><A NAME="2"></A>2 How to start Eagle Mode</H1>
-For starting Eagle Mode, go into the directory where Eagle Mode has been
-installed, and run the file <TT>eaglemode.sh</TT>. Exception: Windows users have
-to run <TT>eaglemode.wsf</TT> instead.
+Depending on the installation, you may find a menu entry named "Eagle Mode" in
+the applications menu of your desktop. If not, please search the directory where
+Eagle Mode has been installed, and run the file <TT>eaglemode.sh</TT> from
+there. Exception: Windows users have to run <TT>eaglemode.wsf</TT> instead.
 <P>
-If you wonder about the files in the <TT>bin</TT> directory: These executables
-need some special environment variables and cannot be run directly.
+If you wonder about the files in the <TT>bin</TT> directory: Most of these
+executables require special environment variables and cannot be run directly.
 <P>
 
 <H1><A NAME="3"></A>3 Special cases</H1>
 
 <H2><A NAME="3.1"></A>3.1 Proper installation to /usr</H2>
 Originally, Eagle Mode is designed for being installed in an own directory like
-<TT>/usr/local/eaglemode</TT> or <TT>/opt/eaglemode</TT>. But if you want to
-have it divided in <TT>/usr/bin</TT>, <TT>/usr/lib</TT>, <TT>/usr/share</TT> and
-so on, you could do it like in this example:
+<TT>/usr/local/eaglemode</TT>, <TT>/usr/lib/eaglemode</TT> or
+<TT>/opt/eaglemode</TT>. But if you want to have it divided in
+<TT>/usr/bin</TT>, <TT>/usr/lib</TT>, <TT>/usr/share</TT> and so on, you could
+do it like in this example:
 <P>
 <BLOCKQUOTE><SMALL>
 <TT>perl make.pl build</TT><BR>
@@ -101,10 +111,10 @@ commands, otherwise certain plugins may fail to build.
 </BLOCKQUOTE>
 
 <H2><A NAME="3.3"></A>3.3 Cygwin</H2>
-<U>Rebase DLL's!</U>
+<U>Rebase DLLs!</U>
 <P>
 After installing Eagle Mode on Cygwin, and before starting it for the first
-time, you must rebase all Cygwin DLL's including those of Eagle Mode. Please get
+time, you must rebase all Cygwin DLLs including those of Eagle Mode. Please get
 familiar with the <I>rebaseall</I> program. The basic steps are as follows
 (remember to replace the paths according to your installation):
 <P>
@@ -115,9 +125,9 @@ Windows Command box and type these commands:<BR>
 <TT># ash</TT><BR>
 <TT># bash</TT><BR>
 <TT># ls -1 --indicator-style=none /usr/local/eaglemode/lib/*.dll &gt; /tmp/extra.lst</TT><BR>
-<I>(At this point you could add further non-standard DLL's to /tmp/extra.lst)</I><BR>
+<I>(At this point you could add further non-standard DLLs to /tmp/extra.lst)</I><BR>
 <TT># cat /tmp/extra.lst</TT><BR>
-<I>(Check that the Eagle Mode DLL's are shown by the above command)</I><BR>
+<I>(Check that the Eagle Mode DLLs are shown by the above command)</I><BR>
 <TT># exit</TT><BR>
 <I>(Back in ash, never do the following in bash or while any other Cygwin program is running)</I><BR>
 <TT># rebaseall -T /tmp/extra.lst -v</TT><BR>

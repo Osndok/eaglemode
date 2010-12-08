@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".xbm" }
+Priority = 1.0
+Library = "emXbm"
+Function = "emXbmFpPluginFunc"

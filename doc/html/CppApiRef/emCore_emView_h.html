@@ -1,0 +1,950 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emView.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>.h
+//
+// Copyright (C) 2004-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emView_h
+#define emView_h
+
+#ifndef emCursor_h
+#include &lt;<A CLASS=f HREF="emCore_emCursor_h.html">emCore/emCursor.h</A>&gt;
+#endif
+
+#ifndef emInput_h
+#include &lt;<A CLASS=f HREF="emCore_emInput_h.html">emCore/emInput.h</A>&gt;
+#endif
+
+#ifndef emPainter_h
+#include &lt;<A CLASS=f HREF="emCore_emPainter_h.html">emCore/emPainter.h</A>&gt;
+#endif
+
+#ifndef emCoreConfig_h
+#include &lt;<A CLASS=f HREF="emCore_emCoreConfig_h.html">emCore/emCoreConfig.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>;
+
+
+<A NAME="emView"></A><SPAN CLASS=c>//==============================================================================
+//=================================== <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// An <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> is a rectangle on the screen in which the user can see a
+        // tree of panels (see class <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>). If not disabled by a feature
+        // flag, the user can navigate through the panels by zooming, scrolling
+        // and moving the focus.
+        //
+        // After constructing an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>, an appropriate <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A> should be
+        // created on it. Otherwise the view is not connected to any screen or
+        // input device (it uses an internal dummy <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A> then). See the
+        // derived class <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> - it solves the problem of connecting the
+        // view. Another solution is the class <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>.
+        //
+        // Even, <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> does not create any panels. This should also be done by
+        // the caller.
+        //
+        // <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> has been derived from <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A> so that it is easy to define
+        // custom view settings as models of that context.
+
+        </SPAN><SPAN CLASS=t>typedef int </SPAN>ViewFlags;
+                <SPAN CLASS=c>// Data type for the feature flags of a view. Possible flags
+                // are:
+        </SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN>VF_POPUP_ZOOM         =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>),
+                        <SPAN CLASS=c>// The view pops up whenever the view is zoomed. For
+                        // this feature to work, an <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A> must be in the path
+                        // of contexts, so that the view is able to create a
+                        // private <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> as the popup.
+                </SPAN>VF_ROOT_SAME_TALLNESS =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>),
+                        <SPAN CLASS=c>// The root panel always has the same tallness as the
+                        // view. This is highly recommended when using
+                        // VF_POPUP_ZOOM.
+                </SPAN>VF_NO_ZOOM            =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>),
+                        <SPAN CLASS=c>// The view is always zoomed out. This implies having
+                        // VF_NO_USER_NAVIGATION and not having VF_POPUP_ZOOM
+                        // and not having VF_EGO_MODE.
+                </SPAN>VF_NO_USER_NAVIGATION =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>),
+                        <SPAN CLASS=c>// The user cannot navigate in the view.
+                </SPAN>VF_NO_FOCUS_HIGHLIGHT =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>),
+                        <SPAN CLASS=c>// The view does not show any focus highlight.
+                </SPAN>VF_NO_ACTIVE_HIGHLIGHT=(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5</SPAN>),
+                        <SPAN CLASS=c>// The view does not show any active highlight.
+                </SPAN>VF_EGO_MODE           =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>6</SPAN>),
+                        <SPAN CLASS=c>// This is a special mode of user interaction. The mouse
+                        // pointer is degenerated to a cross-hair in the center
+                        // of the view, and each mouse movement scrolls the
+                        // view. This mode should not be used when there are
+                        // multiple windows or views on the screen, because the
+                        // mouse pointer cannot be moved. The name "ego mode"
+                        // has been chosen because it is somehow similar to the
+                        // mouse control in ego shooter games.
+                </SPAN>VF_STRESS_TEST        =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>7</SPAN>)
+                        <SPAN CLASS=c>// This repaints the view on every time slice and shows
+                        // the frame rate in the upper-left corner. This feature
+                        // exists for use by developers.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext, ViewFlags viewFlags=<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parentContext - Parent context for this new context.
+                //   viewFlags     - Initial feature flags.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>();
+                <SPAN CLASS=c>// Destructor. If a real view port has been created for this
+                // view, it must be deleted before destructing the view. In
+                // addition, it is always a good idea to delete the root panel
+                // by destructors of derived classes, just because a panel could
+                // depend on the properties of the derivative. For example,
+                // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetWindow() must not be used after destructing the
+                // <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>, and therefore the destructor of <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> deletes
+                // the panels itself.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
+                <SPAN CLASS=c>// This means <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>&gt; is possible.
+
+        </SPAN>ViewFlags GetViewFlags() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetViewFlags(ViewFlags viewFlags);
+                <SPAN CLASS=c>// Get or set the features of this view.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetViewFlagsSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the features of this view have
+                // changed.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBackgroundColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetBackgroundColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> c);
+                <SPAN CLASS=c>// Get or set the background color of this view. This color is
+                // used for areas which are not covered by the panels, or where
+                // the panels are transparent. The default is some grey.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+                <SPAN CLASS=c>// Get the title to be shown for this view. The default
+                // implementation returns the title of the active panel (not
+                // directly, but updated through an engine). See also:
+                // InvalidateTitle()
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetTitleSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the title has changed.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * CreateControlPanel(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> &amp; parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// If this is a content view, this method may be called to
+                // create a control panel in a control view. The call is
+                // forwarded to the active panel. The result can be NULL which
+                // means to have no control panel. The caller should delete the
+                // control panel before calling CreateControlPanel again, and
+                // before destructing this view.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetControlPanelSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the control panel should be
+                // recreated.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsFocused() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this view has the focus.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetFocusSignal();
+                <SPAN CLASS=c>// This signal is signaled when the focus of this view has
+                // changed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Focus();
+                <SPAN CLASS=c>// Make that this view has the focus, if possible by the
+                // <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A> implementation. Hint: If this is an <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>, you
+                // may want to call Raise() before.
+
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * GetWindow();
+                <SPAN CLASS=c>// Get the window of this view. It returns the nearest window
+                // within the path of contexts to this view. If this view itself
+                // is a window, that window is returned. If no window can be
+                // found, NULL is returned. The result is cached internally.
+
+        </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * GetScreen();
+                <SPAN CLASS=c>// Get the screen of this view. If GetWindow() returns non-NULL,
+                // the screen of that window is returned. Otherwise the call is
+                // forwarded to <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::LookupInherited(*this). The result is
+                // cached internally.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetHomeX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetHomeY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetHomeWidth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetHomeHeight() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetHomePixelTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetHomeTallness() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the home geometry of this view on the screen. "Home"
+                // means the state where the view is not popped up by the
+                // popup-zoom feature. X, Y, Width and Height are the
+                // coordinates of the view rectangle, measured in pixels on the
+                // screen. PixelTallness is the height/width ratio of the pixels
+                // on the monitor (as far as known by the implementation of
+                // <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A>). And Tallness is the height/width ration of the
+                // view on the monitor. It is equal to
+                // Height/Width*PixelTallness.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetCurrentX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetCurrentY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetCurrentWidth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetCurrentHeight() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetCurrentPixelTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetCurrentTallness() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the current geometry of this view on the screen. This is
+                // like GetHomeX(), GetHomeY() and so on, but if the view is
+                // currently popped up by the popup-zoom feature, the geometry
+                // of the popup is returned (should not make any difference for
+                // PixelTallness).
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetGeometrySignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the home geometry or the current
+                // geometry of this view has changed.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetRootPanel();
+                <SPAN CLASS=c>// Get the root panel of this view. Returns NULL when this view
+                // has no panels.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetSupremeViewedPanel();
+                <SPAN CLASS=c>// Get the supreme viewed panel. It is the upper-most panel in
+                // the panel tree which has IsViewed()==true. Returns NULL when
+                // this view has no panels. The supreme viewed panel is always
+                // chosen automatically by the view, depending on the visit
+                // state.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetActivePanel();
+                <SPAN CLASS=c>// Get the active panel. The active panel is the panel which is
+                // focused when the view is focused. Returns NULL when this view
+                // has no panels.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPanelByIdentity(<SPAN CLASS=t>const char </SPAN>* identity);
+                <SPAN CLASS=c>// Search for a panel by identity (see <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetIdentity()).
+                // Returns NULL if not found.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPanelAt(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+                <SPAN CLASS=c>// Get the uppermost panel at the given point.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusablePanelAt(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+                <SPAN CLASS=c>// Get the uppermost focusable panel at the given point.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetVisitedPanel(<SPAN CLASS=t>double </SPAN>* pRelX=<SPAN CLASS=u>NULL</SPAN>, <SPAN CLASS=t>double </SPAN>* pRelY=<SPAN CLASS=u>NULL</SPAN>,
+                                  <SPAN CLASS=t>double </SPAN>* pRelA=<SPAN CLASS=u>NULL</SPAN>, <SPAN CLASS=t>bool </SPAN>* pAdherent=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Get the visited panel and optionally relative coordinates and
+                // the visit type. The visited panel is the one on which the
+                // view is currently anchored. That means, if any panel layout
+                // is changed, the visited panel keeps its position within the
+                // view.
+                // Arguments:
+                //   pRelX, pRelY - Pointers for returning the distance vector
+                //                  between the center of the view and the
+                //                  center of the panel, measured in view widths
+                //                  and heights.
+                //   pRelA        - Pointer for returning the area size of view
+                //                  relative to the area size of the panel.
+                //   pAdherent    - Pointer for returning IsVisitAdherent().
+                // Returns:
+                //   The visited panel, or NULL if this view has no panels.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsVisitAdherent() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the visit is adherent. It usually means that the
+                // visit has been set by the user.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Visit(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent);
+                <SPAN CLASS=c>// Visit a panel. This makes sure that the given panel is
+                // visible and that is is shown not too large and not too small,
+                // and it makes the panel the visited panel.
+                // Arguments:
+                //   panel    - The panel to be visited.
+                //   adherent - Whether the visit shall be adherent.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Visit(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
+                   <SPAN CLASS=t>bool </SPAN>adherent);
+                <SPAN CLASS=c>// Visit a panel and position the view relative to it. The
+                // arguments are exactly the things which you can get with
+                // GetVisitedPanel(...) (read there). But if relA is less or
+                // equal 0.0, VisitFullsized(panel,adherent) is performed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>VisitBy(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA);
+                <SPAN CLASS=c>// Position the view relative to a panel and give the visit to
+                // any panel which is somehow shown centered and well-sized by
+                // the new position. The arguments are like with the Visit
+                // method above.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>VisitLazy(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent);
+                <SPAN CLASS=c>// Visit a panel while being lazy in positioning the view.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>VisitFullsized(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent);
+                <SPAN CLASS=c>// Visit a panel and position the view so that the panel is
+                // shown full-sized.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>VisitByFullsized(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel);
+                <SPAN CLASS=c>// Position the view so that the given panel is shown full-sized
+                // and give the visit to any panel which is somehow shown
+                // centered and well-sized by the new position.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>VisitNext();
+        <SPAN CLASS=t>void </SPAN>VisitPrev();
+        <SPAN CLASS=t>void </SPAN>VisitFirst();
+        <SPAN CLASS=t>void </SPAN>VisitLast();
+        <SPAN CLASS=t>void </SPAN>VisitLeft();
+        <SPAN CLASS=t>void </SPAN>VisitRight();
+        <SPAN CLASS=t>void </SPAN>VisitUp();
+        <SPAN CLASS=t>void </SPAN>VisitDown();
+        <SPAN CLASS=t>void </SPAN>VisitNeighbour(<SPAN CLASS=t>int </SPAN>direction);
+        <SPAN CLASS=t>void </SPAN>VisitIn();
+        <SPAN CLASS=t>void </SPAN>VisitOut();
+                <SPAN CLASS=c>// Visit a sister, parent or child of the currently visited
+                // panel. This walks the tree of focusable panels only.
+                // VisitNeighbour(0) is like VisitRight(), 1 like Down, 2 like
+                // Left and 3 like Up.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Seek(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
+                  <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Seek(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
+                  <SPAN CLASS=t>bool </SPAN>adherent, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SeekBy(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY,
+                    <SPAN CLASS=t>double </SPAN>relA, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SeekLazy(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
+                      <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SeekFullsized(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
+                           <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SeekByFullsized(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// These methods are like Visit, VisitBy, VisitLazy and so on,
+                // but: The panel is referred by its identity instead of a
+                // pointer. And, if the panel cannot be found immediately, a
+                // seek algorithm is started which runs in a private engine
+                // possibly for long time. The algorithm visits panels on the
+                // path to the desired panel step by step, in the hope they are
+                // expanding the path accordingly. For the whole time, the view
+                // shows an info box and allows the user to abort the seeking by
+                // any input. The additional argument 'subject' can be set to
+                // give a nice name for the sought panel in the info box.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSeeking() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the view is currently seeking for a panel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AbortSeeking();
+                <SPAN CLASS=c>// Abort any seeking.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Zoom(<SPAN CLASS=t>double </SPAN>fixX, <SPAN CLASS=t>double </SPAN>fixY, <SPAN CLASS=t>double </SPAN>factor);
+                <SPAN CLASS=c>// Zoom the view.
+                // Arguments:
+                //   fixX, fixY - Fix point for the zooming.
+                //   factor     - Zoom factor. A value less than 1.0 means to
+                //                zoom out, and a value greater than 1.0 means
+                //                to zoom in.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Scroll(<SPAN CLASS=t>double </SPAN>deltaX, <SPAN CLASS=t>double </SPAN>deltaY);
+                <SPAN CLASS=c>// Scroll the view.
+                // Arguments:
+                //   deltaX - How much to scroll in X direction (positive value
+                //            means to scroll right).
+                //   deltaY - How much to scroll in Y direction (positive value
+                //            means to scroll down).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ZoomOut();
+                <SPAN CLASS=c>// Zoom out the view completely.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsZoomedOut();
+                <SPAN CLASS=c>// Whether the view is currently zoomed out completely.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsPoppedUp() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the view is in popped up state.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SignalEOIDelayed();
+                <SPAN CLASS=c>// After calling this, the End-Of-Interaction signal will be
+                // signaled, but with a delay of some time slices.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetEOISignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the End-Of-Interaction signal. This signal indicates an
+                // end of a temporary user interaction. It has been invented for
+                // <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A> (see <A CLASS=m HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A>::IsNoEOI()). If the view has
+                // VF_POPUP_ZOOM set, the application should call ZoomOut() when
+                // an EOI has been signaled.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+                <SPAN CLASS=c>// Process input form keyboard and mouse. The default
+                // implementation performs user navigation, and it forward to
+                // the panels.
+                // Arguments:
+                //   event  - An input event. It may be eaten by calling
+                //            event.Eat(). The event reference in non-const only
+                //            for that.
+                //   state  - The current input state.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+                <SPAN CLASS=c>// Get the mouse cursor to be shown for this view. The default
+                // implementation returns the cursor of the panel where the
+                // mouse is. See also: InvalidateCursor()
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                <SPAN CLASS=c>// Paint this view. The default implementation paints the
+                // panels, the focus and an info box when seeking.
+                // Arguments:
+                //   painter     - A painter for painting the view to the
+                //                 screen. Origin and scaling of this painter
+                //                 are prepared for having the coordinate system
+                //                 of the screen.
+                //   canvasColor - Color of the canvas.
+                // See also: InvalidatePainting()
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>InvalidateTitle();
+                <SPAN CLASS=c>// Indicate a change in the results of GetTitle(). The default
+                // implementation simply signals the title signal (see
+                // GetTitleSignal()).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateCursor();
+                <SPAN CLASS=c>// Indicate a change in the results of GetCursor(). After
+                // calling this, showings of the cursor will be updated.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidatePainting();
+        <SPAN CLASS=t>void </SPAN>InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+                <SPAN CLASS=c>// Indicate a change in the results of Paint(). After calling
+                // this, the view will be re-painted. The second version of the
+                // method allows to invalidate just a rectangular area instead
+                // of the whole view.
+                // Arguments:
+                //   x,y,w,h - Upper-left corner and size of the rectangle.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>DoCustomCheat(<SPAN CLASS=t>const char </SPAN>* func);
+                <SPAN CLASS=c>// This method could be overloaded for implementing custom cheat
+                // codes. For example, if the user enters "chEat:abc!", this
+                // method is called with func="abc". The default implementation
+                // calls the ancestor view, if there. For the cheat codes
+                // implemented by <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> itself, see the implementation of
+                // <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>::DoCheats.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>;
+
+        <SPAN CLASS=t>struct </SPAN>PanelRingNode <SPAN CLASS=b>{
+                </SPAN>PanelRingNode * Prev;
+                PanelRingNode * Next;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>SetFocused(<SPAN CLASS=t>bool </SPAN>focused);
+        <SPAN CLASS=t>void </SPAN>SetGeometry(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>width, <SPAN CLASS=t>double </SPAN>height,
+                         <SPAN CLASS=t>double </SPAN>pixelTallness);
+
+        <SPAN CLASS=t>void </SPAN>AddToNoticeList(PanelRingNode * node);
+
+        <SPAN CLASS=t>void </SPAN>Update();
+
+        <SPAN CLASS=t>void </SPAN>CalcVisitFullsizedCoords(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>* pRelX,
+                                      <SPAN CLASS=t>double </SPAN>* pRelY, <SPAN CLASS=t>double </SPAN>* pRelA);
+
+        <SPAN CLASS=t>void </SPAN>VisitRelBy(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
+                        <SPAN CLASS=t>bool </SPAN>forceViewingUpdate);
+        <SPAN CLASS=t>void </SPAN>VisitRel(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
+                      <SPAN CLASS=t>bool </SPAN>adherent, <SPAN CLASS=t>bool </SPAN>forceViewingUpdate);
+        <SPAN CLASS=t>void </SPAN>VisitAbs(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>vx, <SPAN CLASS=t>double </SPAN>vy, <SPAN CLASS=t>double </SPAN>vw,
+                      <SPAN CLASS=t>bool </SPAN>adherent, <SPAN CLASS=t>bool </SPAN>forceViewingUpdate);
+        <SPAN CLASS=t>void </SPAN>VisitImmobile(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent);
+
+        <SPAN CLASS=t>void </SPAN>FindBestSVP(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * * pPanel, <SPAN CLASS=t>double </SPAN>* pVx, <SPAN CLASS=t>double </SPAN>* pVy,
+                         <SPAN CLASS=t>double </SPAN>* pVw);
+        <SPAN CLASS=t>bool </SPAN>FindBestSVPInTree(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * * pPanel, <SPAN CLASS=t>double </SPAN>* pVx, <SPAN CLASS=t>double </SPAN>* pVy,
+                               <SPAN CLASS=t>double </SPAN>* pVw, <SPAN CLASS=t>bool </SPAN>covering);
+
+        <SPAN CLASS=t>void </SPAN>SwapViewPorts(<SPAN CLASS=t>bool </SPAN>swapFocus);
+
+        <SPAN CLASS=t>void </SPAN>NavigateByUser(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>void </SPAN>NavigateByProgram(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>void </SPAN>EmulateMiddleButton(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>void </SPAN>DoCheats(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>void </SPAN>RecurseInput(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+                          <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>void </SPAN>RecurseChildrenInput(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * parent, <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my,
+                                  <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+                                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>bool </SPAN>MoveMousePointerBackIntoView(<SPAN CLASS=t>double </SPAN>* pmx, <SPAN CLASS=t>double </SPAN>* pmy);
+        <SPAN CLASS=t>void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy);
+
+        <SPAN CLASS=t>void </SPAN>InvalidateHighlight();
+        <SPAN CLASS=t>void </SPAN>PaintHighlight(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+
+        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetWheelZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetKeyboardZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetKeyboardScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>SetSeekPos(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>const char </SPAN>* childName);
+        <SPAN CLASS=t>bool </SPAN>IsHopeForSeeking();
+
+        <SPAN CLASS=t>void </SPAN>SetActivationCandidate(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel);
+
+        <SPAN CLASS=t>class </SPAN>UpdateEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                UpdateEngineClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>UpdateEngineClass;
+
+        <SPAN CLASS=t>class </SPAN>ActivationEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                ActivationEngineClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>ActivationEngineClass;
+
+        <SPAN CLASS=t>class </SPAN>EOIEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                EOIEngineClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+                <SPAN CLASS=t>int </SPAN>CountDown;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>EOIEngineClass;
+
+        <SPAN CLASS=t>class </SPAN>SmoothKBNaviEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                SmoothKBNaviEngineClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+                <SPAN CLASS=t>void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+                <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                        </SPAN>DIR_LEFT=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>, DIR_RIGHT=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>, DIR_UP=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>,
+                        DIR_DOWN=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>, DIR_IN=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>, DIR_OUT=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5
+                </SPAN><SPAN CLASS=b>}</SPAN>;
+                <SPAN CLASS=t>int </SPAN>Dir;
+                <SPAN CLASS=t>bool </SPAN>Fine;
+                emUInt64 LastClock;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>SmoothKBNaviEngineClass;
+
+        <SPAN CLASS=t>class </SPAN>SeekEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                SeekEngineClass(
+                        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <SPAN CLASS=t>int </SPAN>seekType, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; identity,
+                        <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA, <SPAN CLASS=t>bool </SPAN>adherent,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; subject
+                );
+                <SPAN CLASS=t>virtual </SPAN>~SeekEngineClass();
+                <SPAN CLASS=t>void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+                <SPAN CLASS=t>void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+                <SPAN CLASS=t>int </SPAN>SeekType;
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Identity;
+                <SPAN CLASS=t>double </SPAN>RelX,RelY,RelA;
+                <SPAN CLASS=t>bool </SPAN>Adherent;
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Subject;
+                <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; Names;
+                <SPAN CLASS=t>int </SPAN>TimeSlicesWithoutHope;
+                <SPAN CLASS=t>bool </SPAN>GiveUp;
+                emUInt64 GiveUpClock;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>SeekEngineClass;
+
+        <SPAN CLASS=t>class </SPAN>StressTestClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                StressTestClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+                <SPAN CLASS=t>virtual </SPAN>~StressTestClass();
+                <SPAN CLASS=t>void </SPAN>PaintInfo(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+                <SPAN CLASS=t>int </SPAN>TCnt,TPos,TValid;
+                emUInt64 * T;
+                <SPAN CLASS=t>double </SPAN>FrameRate;
+                emUInt64 FRUpdate;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>StressTestClass;
+
+        <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> CrossPtrList;
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
+        <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * DummyViewPort;
+        <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * HomeViewPort;
+        <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * CurrentViewPort;
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * WindowPtrCache;
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>&gt; ScreenRefCache;
+        <SPAN CLASS=t>bool </SPAN>WindowPtrValid;
+        <SPAN CLASS=t>bool </SPAN>ScreenRefValid;
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * PopupWindow;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * RootPanel;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * SupremeViewedPanel;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * MinSVP, * MaxSVP;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * ActivePanel;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * ActivationCandidate;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * VisitedPanel;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ViewFlagsSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> TitleSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ControlPanelSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> FocusSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> GeometrySignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> EOISignal;
+        emUInt64 PanelCreationNumber;
+        <SPAN CLASS=t>double </SPAN>HomeX,HomeY,HomeWidth,HomeHeight,HomePixelTallness;
+        <SPAN CLASS=t>double </SPAN>CurrentX,CurrentY,CurrentWidth,CurrentHeight,
+               CurrentPixelTallness;
+        <SPAN CLASS=t>double </SPAN>LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Title;
+        <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> Cursor;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> BackgroundColor;
+        ViewFlags VFlags;
+        <SPAN CLASS=t>bool </SPAN>Focused;
+        <SPAN CLASS=t>bool </SPAN>VisitAdherent;
+        <SPAN CLASS=t>bool </SPAN>ZoomScrollInAction;
+        <SPAN CLASS=t>bool </SPAN>TitleInvalid;
+        <SPAN CLASS=t>bool </SPAN>CursorInvalid;
+        <SPAN CLASS=t>bool </SPAN>SVPChoiceInvalid;
+        <SPAN CLASS=t>bool </SPAN>SVPChoiceByOpacityInvalid;
+        <SPAN CLASS=t>bool </SPAN>GotPopupWindowCloseSignal;
+        <SPAN CLASS=t>bool </SPAN>RestartInputRecursion;
+        <SPAN CLASS=t>bool </SPAN>ZoomedOutBeforeSG;
+        <SPAN CLASS=t>int </SPAN>SettingGeometry;
+        <SPAN CLASS=t>int </SPAN>SVPUpdCount;
+        emUInt64 SVPUpdSlice;
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> NoEvent;
+        PanelRingNode NoticeList;
+        UpdateEngineClass * UpdateEngine;
+        ActivationEngineClass * ActivationEngine;
+        EOIEngineClass * EOIEngine;
+        SmoothKBNaviEngineClass * SmoothKBNaviEngine;
+        SeekEngineClass * SeekEngine;
+        <SPAN CLASS=t>int </SPAN>ProtectSeeking;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * SeekPosPanel;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> SeekPosChildName;
+        StressTestClass * StressTest;
+        <SPAN CLASS=t>int </SPAN>NavByProgState;
+        emUInt64 EmuMidButtonTime;
+        <SPAN CLASS=t>int </SPAN>EmuMidButtonRepeat;
+        <SPAN CLASS=t>char </SPAN>CheatBuffer[<SPAN CLASS=u>64</SPAN>];
+
+        <SPAN CLASS=t>static const double </SPAN>MaxSVPSize;
+        <SPAN CLASS=t>static const double </SPAN>MaxSVPSearchSize;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emViewPort"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for the connection between an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> and the operating
+        // system or the hardware or whatever. The default implementation
+        // connects the view to nothing. When a view is constructed, it creates
+        // such a dummy view port just to have a view port at all. A real view
+        // port should be created on the view afterwards. For example, this is
+        // solved in <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> by creating an <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>, which is a derivative
+        // of <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A>.
+        //
+        // Note that <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> implements some tricks for solving the popup-zoom
+        // feature. When popping up, the view creates a private <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A> and
+        // exchanges the view port of that window for its own view port
+        // temporarily. A view port derivative must come clear with such an
+        // exchange (do not store any references to the view in it).
+        //
+        // The title is not interfaced through <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A> (but through
+        // <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>) because it must not be exchanged when the view pops up.
+        //
+        // The popup-zoom feature is even the reason why all views must share
+        // the same coordinate system. It should be the coordinate system of
+        // screen.
+
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; homeView);
+
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>SetViewGeometry(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                             <SPAN CLASS=t>double </SPAN>pixelTallness);
+
+        <SPAN CLASS=t>double </SPAN>GetViewX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewWidth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetViewHeight() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>SetViewFocused(<SPAN CLASS=t>bool </SPAN>focused);
+        <SPAN CLASS=t>virtual void </SPAN>RequestFocus();
+
+        <SPAN CLASS=t>void </SPAN>InputToView(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetViewCursor();
+
+        <SPAN CLASS=t>void </SPAN>PaintView(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+
+        <SPAN CLASS=t>virtual void </SPAN>InvalidateCursor();
+
+        <SPAN CLASS=t>virtual void </SPAN>InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>;
+        <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>();
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> * HomeView;
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> * CurrentView;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+//----------------------------------- <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> -----------------------------------
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr)
+<SPAN CLASS=b>{
+        </SPAN>CrossPtrList.LinkCrossPtr(crossPtr);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::ViewFlags <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetViewFlags() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>VFlags;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetViewFlagsSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ViewFlagsSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetBackgroundColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>BackgroundColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetTitleSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TitleSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetControlPanelSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ControlPanelSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::IsFocused() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Focused;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetFocusSignal()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FocusSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetHomeX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HomeX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetHomeY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HomeY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetHomeWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HomeWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetHomeHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HomeHeight;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetHomePixelTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HomePixelTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetHomeTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HomeHeight/HomeWidth*HomePixelTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetCurrentX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetCurrentY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetCurrentWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentWidth;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetCurrentHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentHeight;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetCurrentPixelTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentPixelTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetCurrentTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentHeight/CurrentWidth*CurrentPixelTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetGeometrySignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GeometrySignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetRootPanel()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>RootPanel;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetSupremeViewedPanel()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SupremeViewedPanel;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetActivePanel()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ActivePanel;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::IsVisitAdherent() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>VisitAdherent;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::IsSeeking() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SeekEngine!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::IsPoppedUp() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PopupWindow!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetEOISignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>EOISignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::InvalidateCursor()
+<SPAN CLASS=b>{
+        </SPAN>CurrentViewPort-&gt;InvalidateCursor();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::InvalidatePainting()
+<SPAN CLASS=b>{
+        </SPAN>CurrentViewPort-&gt;InvalidatePainting(
+                CurrentX,CurrentY,CurrentWidth,CurrentHeight
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>CurrentViewPort-&gt;InvalidatePainting(x,y,w,h);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//--------------------------------- <A CLASS=m HREF="emCore_emView_h.html#emViewPort">emViewPort</A> ---------------------------------
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::SetViewGeometry(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>pixelTallness
+)
+<SPAN CLASS=b>{
+        </SPAN>CurrentView-&gt;SetGeometry(x,y,w,h,pixelTallness);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentView-&gt;GetCurrentX();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentView-&gt;GetCurrentY();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentView-&gt;GetCurrentWidth();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentView-&gt;GetCurrentHeight();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::SetViewFocused(<SPAN CLASS=t>bool </SPAN>focused)
+<SPAN CLASS=b>{
+        </SPAN>CurrentView-&gt;SetFocused(focused);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::InputToView(
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state
+)
+<SPAN CLASS=b>{
+        </SPAN>CurrentView-&gt;Input(event,state);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewCursor()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentView-&gt;GetCursor();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::PaintView(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+)
+<SPAN CLASS=b>{
+        </SPAN>CurrentView-&gt;Paint(painter,canvasColor);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

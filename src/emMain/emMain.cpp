@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,6 +18,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <emCore/emFileModel.h>
 #include <emCore/emInstallInfo.h>
 #include <emCore/emRes.h>
 #include <emCore/emMiniIpc.h>
@@ -257,6 +258,9 @@ void emMain::OnReception(int argc, const char * const argv[])
 	if (argc>=1 && strcmp(argv[0],"NewWindow")==0) {
 		NewWindow(argc-1,argv+1);
 	}
+	else if (argc==1 && strcmp(argv[0],"ReloadFiles")==0) {
+		Signal(emFileModel::AcquireUpdateSignalModel(Context.GetRootContext())->Sig);
+	}
 	else {
 		str.Empty();
 		for (i=0; i<argc; i++) { str+=" "; str+=argv[i]; }
@@ -373,13 +377,18 @@ static int wrapped_main(int argc, char * argv[])
 {
 	emArray<const char *> forwardArgs, sendArgs;
 	const char * opt, * id;
-	bool optNoClient,optNoServer;
+	bool optNoClient,optNoServer,optReload;
 	int i;
+
+#	if defined(_WIN32)
+		SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
+#	endif
 
 	emInitLocale();
 
 	optNoClient=false;
 	optNoServer=false;
+	optReload=false;
 	for (i=1; i<argc; ) {
 		opt=argv[i++];
 		while (opt[0]=='-' && opt[1]=='-') opt++;
@@ -399,7 +408,8 @@ static int wrapped_main(int argc, char * argv[])
 				"  -cecolor <color>        Set color of unused areas beside control view\n"
 				"                          (could be used to indicate root privileges).\n"
 				"  -fullscreen             Show the window in fullscreen mode.\n"
-				"  -visit <panel identity> Panel to be visited initially.\n",
+				"  -visit <panel identity> Panel to be visited initially.\n"
+				"  -reload                 Just tell the server process to reload files.\n",
 				argv[0]
 			);
 			return 0;
@@ -435,10 +445,30 @@ static int wrapped_main(int argc, char * argv[])
 			forwardArgs.Add(opt);
 			forwardArgs.Add(argv[i++]);
 		}
+		else if (strcmp(opt,"-reload")==0) {
+			optReload=true;
+		}
 		else {
 			fprintf(stderr,"Illegal option: %s\n",opt);
 			return 1;
 		}
+	}
+
+	if (optReload) {
+		sendArgs=forwardArgs;
+		sendArgs.Insert(0,"ReloadFiles");
+		try {
+			emMiniIpcClient::TrySend(
+				emMain::CalcServerName(),
+				sendArgs.GetCount(),
+				sendArgs.Get()
+			);
+		}
+		catch (emString errorMessage) {
+			fprintf(stderr,"Failed to find server process.\n");
+			return 1;
+		}
+		return 0;
 	}
 
 	if (!optNoClient) {

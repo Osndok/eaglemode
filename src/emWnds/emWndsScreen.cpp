@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,6 +21,9 @@
 #include <emWnds/emWndsScreen.h>
 #include <emWnds/emWndsWindowPort.h>
 #include <emWnds/emWndsScheduler.h>
+#ifndef IDC_HAND
+#	define IDC_HAND MAKEINTRESOURCE(32649)
+#endif
 
 
 void emWndsScreen::Install(emContext & context)
@@ -70,6 +73,18 @@ void emWndsScreen::MoveMousePointer(double dx, double dy)
 void emWndsScreen::Beep()
 {
 	if (!::Beep(700,80)) ::MessageBeep((UINT)-1);
+}
+
+
+void emWndsScreen::DisableScreensaver()
+{
+	ScreensaverDisableCounter++;
+}
+
+
+void emWndsScreen::EnableScreensaver()
+{
+	ScreensaverDisableCounter--;
 }
 
 
@@ -167,6 +182,8 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	MouseWarpX=0.0;
 	MouseWarpY=0.0;
 
+	ScreensaverDisableCounter=0;
+
 	WinPorts.SetTuningLevel(4);
 
 	CreateSendBufThread();
@@ -231,6 +248,14 @@ LRESULT CALLBACK emWndsScreen::WindowProc(
 
 	InstanceListMutex.Lock();
 	for (s=InstanceList, i=-1; s; s=s->NextInstance) {
+		if (
+			s->ScreensaverDisableCounter>0 &&
+			uMsg==WM_SYSCOMMAND &&
+			(wParam==SC_SCREENSAVE || wParam==SC_MONITORPOWER)
+		) {
+			InstanceListMutex.Unlock();
+			return 0;
+		}
 		for (i=s->WinPorts.GetCount()-1; i>=0; i--) {
 			if (s->WinPorts[i]->HWnd==hWnd) break;
 		}
@@ -317,6 +342,9 @@ HCURSOR emWndsScreen::GetCursorHandle(int cursorId)
 		case emCursor::NORMAL:
 			hcur=LoadCursor(NULL,IDC_ARROW);
 			break;
+		case emCursor::INVISIBLE:
+			hcur=NULL;
+			break;
 		case emCursor::WAIT:
 			hcur=LoadCursor(NULL,IDC_WAIT);
 			break;
@@ -325,6 +353,9 @@ HCURSOR emWndsScreen::GetCursorHandle(int cursorId)
 			break;
 		case emCursor::TEXT:
 			hcur=LoadCursor(NULL,IDC_IBEAM);
+			break;
+		case emCursor::HAND:
+			hcur=LoadCursor(NULL,IDC_HAND);
 			break;
 		case emCursor::LEFT_RIGHT_ARROW:
 			hcur=LoadCursor(NULL,IDC_SIZEWE);
@@ -365,7 +396,7 @@ void emWndsScreen::CreateSendBufThread()
 	SendBufDoneEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
 	if (!SendBufDoneEvent) {
 		emFatalError(
-			"emWndsScreen: CreateEvent failed:",
+			"emWndsScreen: CreateEvent failed: %s",
 			emGetErrorText(GetLastError()).Get()
 		);
 	}
@@ -379,7 +410,7 @@ void emWndsScreen::CreateSendBufThread()
 	);
 	if (!SendBufThread) {
 		emFatalError(
-			"emWndsScreen: CreateThread failed:",
+			"emWndsScreen: CreateThread failed: %s",
 			emGetErrorText(GetLastError()).Get()
 		);
 	}

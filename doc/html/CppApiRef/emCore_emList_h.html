@@ -1,0 +1,1793 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emList.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>.h
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emList_h
+#define emList_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="Linked_list_functions"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== Linked-list functions ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emSortSingleLinkedList(
+        <SPAN CLASS=t>void </SPAN>* * pFirst, <SPAN CLASS=t>int </SPAN>nextOffset,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>void </SPAN>* ptr1, <SPAN CLASS=t>void </SPAN>* ptr2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+</SPAN>);
+        <SPAN CLASS=c>// Sort a single-linked NULL-terminated list. The order of equal
+        // elements is preserved. It is a merge-sort algorithm.
+        // Arguments:
+        //   pFirst     - Pointer to pointer to first element. On return,
+        //                *pFirst will be set to the new first element.
+        //   nextOffset - Offset where the pointer to the next element is stored
+        //                within an element: If e points to an element, then
+        //                *((void**)(((char*)e)+nextOffset)) points to the next
+        //                element.
+        //   compare    - Function for comparing two elements. If you want the
+        //                elements to be compared via the operators '&lt;' and '&gt;',
+        //                say:
+        //                  <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+        //                with OBJ replaced by the real type of the elements.
+        //                The context argument is ignored then.
+        //                Arguments:
+        //                  ptr1    - Pointer to first element.
+        //                  ptr2    - Pointer to second element.
+        //                  context - See below.
+        //                Returns: Zero if the elements are equal, a value
+        //                  greater than zero if the first element is greater
+        //                  than the second one, and a value less than zero if
+        //                  the first element is less than the second one.
+        //   context    - Any pointer to be forwarded to the compare function.
+        // Returns: true if the order has changed, false otherwise.
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emSortDoubleLinkedList(
+        <SPAN CLASS=t>void </SPAN>* * pFirst, <SPAN CLASS=t>void </SPAN>* * pLast, <SPAN CLASS=t>int </SPAN>nextOffset, <SPAN CLASS=t>int </SPAN>prevOffset,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>void </SPAN>* ptr1, <SPAN CLASS=t>void </SPAN>* ptr2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+</SPAN>);
+        <SPAN CLASS=c>// Sort a double-linked NULL-terminated list. The order of equal
+        // elements is preserved. It is a merge-sort algorithm.
+        // Arguments:
+        //   pFirst     - Pointer to pointer to first element. On return,
+        //                *pFirst will be set to the new first element.
+        //   pLast      - Pointer to pointer to last element. On return, *pLast
+        //                will be set to the new last element.
+        //   nextOffset - Offset where the pointer to the next element is stored
+        //                within an element: If e points to an element, then
+        //                *((void**)(((char*)e)+nextOffset)) points to the next
+        //                element.
+        //   prevOffset - Offset where the pointer to the previous element is
+        //                stored within an element: If e points to an element,
+        //                then *((void**)(((char*)e)+prevOffset)) points to
+        //                the previous element.
+        //   compare    - Function for comparing two elements. If you want the
+        //                elements to be compared via the operators '&lt;' and '&gt;',
+        //                say:
+        //                  <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+        //                with OBJ replaced by the real type of the elements.
+        //                The context argument is ignored then.
+        //                Arguments:
+        //                  ptr1    - Pointer to first element.
+        //                  ptr2    - Pointer to second element.
+        //                  context - See below.
+        //                Returns: Zero if the elements are equal, a value
+        //                  greater than zero if the first element is greater
+        //                  than the second one, and a value less than zero if
+        //                  the first element is less than the second one.
+        //   context    - Any pointer to be forwarded to the compare function.
+        // Returns: true if the order has changed, false otherwise.
+
+
+<A NAME="emList"></A>//==============================================================================
+//=================================== <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a double-linked NULL-terminated list with
+        // copy-on-write behavior and with support for stable iterators. The
+        // template parameter OBJ describes the type of the elements.
+        // Internally, <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A> extends the memory allocation for that type by the
+        // next and prev pointers.
+        //
+        // There are two types of iterators. The very unstable one:
+        // const OBJ * (please read the comments on GetFirst()), and the
+        // stable one: the class Iterator, which can be found at the end of this
+        // public declaration.
+        //
+        // If you wonder why a NULL in range arguments (first,last) of methods
+        // means to cancel the operation, instead of taking the first/last
+        // element of the whole list. It is because now one can say for example
+        // l.Remove(l.GetNext(e),l.GetLast()) to remove all elements after the
+        // element e, even when e is the last element.
+        //
+        // Here is a crazy example of printing "hello world\n":
+        //
+        // <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>&lt;<A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>&gt; l;
+        // <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>&lt;<A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>&gt;::Iterator i;
+        // const <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A> * j;
+        // l="word";
+        // l+="helo";
+        // for (i.SetFirst(l); i; ++i) l.GetWritable(i)-&gt;Insert(3,'l');
+        // l.Sort(<A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;<A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>&gt;::Compare);
+        // for (i.SetLast(l); i; --i) l.InsertAfter(i," ");
+        // *l.GetLastWritable()="\n";
+        // // The following loop does not modify the list, so it is safe
+        // // to do it with the unstable iterator j.
+        // for (j=l.GetFirst(); j; j=l.GetNext(j)) printf("%s",j-&gt;Get());
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>();
+                <SPAN CLASS=c>// Construct an empty list.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src);
+                <SPAN CLASS=c>// Construct a copied list.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=c>// Construct a list with one element copied from the given
+                // object.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src2);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src1, <SPAN CLASS=t>const </SPAN>OBJ &amp; src2);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN>OBJ &amp; src1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src2);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+                <SPAN CLASS=c>// These constructors are designed mainly for internal use.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; list);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=c>// Make this list a copy of the given list or object.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * GetFirst() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetLast() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetNext(<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetPrev(<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the first or last element of this list, or
+                // get a pointer to the next or previous element of an element
+                // of this list. At least because of the copy-on-write feature,
+                // the pointer is valid only until calling any non-const method
+                // or operator on this list, or giving this list as a non-const
+                // argument to any call in the world. If you need more stable
+                // pointers, please refer to the class Iterator more below.
+                // Hint: even methods like Add, Insert and GetSubList may make
+                // shallow copies, like the copy operator and copy constructor
+                // do.
+                // Arguments:
+                //   elem - A pointer to an element in this list, must never be
+                //          NULL.
+                // Returns:
+                //   A pointer to the requested element in this list, or NULL if
+                //   there is no such element.
+
+        </SPAN>OBJ * GetWritable(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+                <SPAN CLASS=c>// Get a non-const version of a pointer to an element of this
+                // list. The pointer may be used for modifying the element (but
+                // not for deleting). The rules for validity of the pointer are
+                // the same as with the GetFirst() method, but: The pointer must
+                // not be used for modifying after doing something which could
+                // have made a shallow copy of this list.
+                // Arguments:
+                //   elem - A pointer to an element of this list, or NULL.
+                // Returns: Pointer for modifying, or NULL if elem is NULL.
+
+        </SPAN>OBJ * GetFirstWritable();
+        OBJ * GetLastWritable();
+        OBJ * GetNextWritable(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        OBJ * GetPrevWritable(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+                <SPAN CLASS=c>// Like GetWritable(GetFirst()) and so on.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=c>// Replace an element.
+                // Arguments:
+                //   pos - A pointer to an element of this list.
+                //   obj - An object to be copied to the element.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InsertAtBeg(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>InsertAtBeg(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertAtBeg(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertAtBeg(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src);
+        <SPAN CLASS=t>void </SPAN>InsertAtBeg(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertAtBeg(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+                         <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertAtEnd(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>InsertAtEnd(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertAtEnd(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertAtEnd(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src);
+        <SPAN CLASS=t>void </SPAN>InsertAtEnd(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertAtEnd(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+                         <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>InsertBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src);
+        <SPAN CLASS=t>void </SPAN>InsertBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src,
+                          <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src,
+                          <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>InsertAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>InsertAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src);
+        <SPAN CLASS=t>void </SPAN>InsertAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>InsertAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+                         <SPAN CLASS=t>const </SPAN>OBJ * last);
+                <SPAN CLASS=c>// Insert elements at the beginning or end of this list, or
+                // before or after an element of this list. It is even allowed
+                // to insert a list into itself.
+                // Arguments:
+                //   pos   - An element in this list before which or after which
+                //           the insertion has to take place. NULL is allowed
+                //           here. InsertBefore(NULL,...) means to insert at the
+                //           end, and InsertAfter(NULL,...) means to insert at
+                //           the beginning.
+                //   obj   - An object to be copied for inserting a single
+                //           element.
+                //   src   - A source list containing the element(s) to be
+                //           copied for the insertion. If this argument is not
+                //           given, this list itself is the source list.
+                //   elem  - An element of the source list. The element is
+                //           copied for inserting a single element. If NULL,
+                //           nothing is inserted.
+                //   first - An element of the source list. It is the first one
+                //           of a range of elements to be copied for the
+                //           insertion. If NULL, nothing is inserted.
+                //   last  - An element of the source list, not before 'first'.
+                //           It is the last one of the range of elements to be
+                //           copied for the insertion. If NULL, nothing is
+                //           inserted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+                <SPAN CLASS=c>// Just another name for InsertAtEnd.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; list);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; list) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Similar to the Add methods...
+
+        //friend <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A> operator + (const OBJ &amp; obj, const <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A> &amp; list);
+                // This one even exists and can be used.
+                // (Having the declaration here would not be portable)
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MoveToBeg(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveToBeg(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveToBeg(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src);
+        <SPAN CLASS=t>void </SPAN>MoveToBeg(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveToBeg(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveToEnd(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveToEnd(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveToEnd(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src);
+        <SPAN CLASS=t>void </SPAN>MoveToEnd(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveToEnd(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src);
+        <SPAN CLASS=t>void </SPAN>MoveBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveBefore(<SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+                        <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+        <SPAN CLASS=t>void </SPAN>MoveAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src);
+        <SPAN CLASS=t>void </SPAN>MoveAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>MoveAfter(<SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+                       <SPAN CLASS=t>const </SPAN>OBJ * last);
+                <SPAN CLASS=c>// Move elements from a source list to the beginning or end of
+                // this list, or before or after an element of this list.
+                // Arguments:
+                //   pos   - An element in this list before which or after which
+                //           the elements are to be moved. It must not be a
+                //           member of the moved elements! NULL is allowed here.
+                //           MoveBefore(NULL,...) means to move to the end, and
+                //           MoveAfter(NULL,...) means to move to the beginning.
+                //   src   - Pointer to the source list. If NULL or not given,
+                //           this list itself is the source list.
+                //   elem  - An element of the source list, which shall be
+                //           moved. If NULL, nothing is moved.
+                //   first - An element of the source list. It is the first one
+                //           of a range of elements to be moved. If NULL,
+                //           nothing is moved.
+                //   last  - An element of the source list, not before 'first'.
+                //           It is the last one of the range of elements to be
+                //           moved. If NULL, nothing is moved.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> GetSubListOfFirst() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> GetSubListOfLast() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> GetSubList(<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> GetSubList(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like the Extract methods (see below), but the elements are
+                // copied instead of removing them from this list.
+
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> ExtractFirst();
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> ExtractLast();
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> Extract(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> Extract(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+                <SPAN CLASS=c>// Like the Remove methods (see below), but return a list of the
+                // removed elements, instead of deleting them.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveFirst();
+        <SPAN CLASS=t>void </SPAN>RemoveLast();
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last);
+                <SPAN CLASS=c>// Remove (and delete) the first element, the last element, a
+                // given element or a range of elements from this list.
+                // Arguments:
+                //   elem  - An element of this list, which shall be removed.
+                //           If NULL, nothing is removed.
+                //   first - An element of this list. It is the first one of a
+                //           range of elements to be removed. If NULL, nothing
+                //           is removed.
+                //   last  - An element of this list, not before 'first'. It is
+                //           the last one of the range of elements to be
+                //           removed. If NULL, nothing is removed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Empty(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Remove (and delete) all elements of this list.
+                // Arguments:
+                //   compact - true if you plan to keep this list empty for
+                //             a long time. Otherwise a small block of memory
+                //             may possibly not be freed for quick re-use.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this list has no elements.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Sort(
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Sort this list. The order of equal elements is preserved.
+                // Arguments:
+                //   compare - Function for comparing two elements. If you want
+                //             the elements to be compared via the operators '&lt;'
+                //             and '&gt;', say:
+                //               <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+                //             with OBJ replaced by the real type of the
+                //             elements. The context argument is ignored then.
+                //             Arguments:
+                //               obj1    - Pointer to first element.
+                //               obj2    - Pointer to second element.
+                //               context - See below.
+                //             Returns: Zero if the elements are equal, a value
+                //               greater than zero if the first element is
+                //               greater than the second one, and a value less
+                //               than zero if the first element is less than the
+                //               second one.
+                //   context - Any pointer to be forwarded to the compare
+                //             function.
+                // Returns: Whether there was a change.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compute the number of elements.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * GetAtIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Search the element at the given index. Returns NULL if the
+                // index is out of range. The rules for the validity of the
+                // pointer are the same as with the GetFirst() method.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Search the given element and return its index. Returns -1
+                // if it is not an element of this list.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this list.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the list to another
+                // thread. This method is not recursive. So if the object class
+                // even has such a method, you have to call it on every object
+                // too.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Iterator <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for a stable pointer to an element of a list.
+                // "stable" means:
+                // * If the address of an element changes through the
+                //   copy-on-write mechanism, iterators pointing to that element
+                //   are adapted proper.
+                // * If an element is moved to another list, iterators pointing
+                //   to that element keep pointing to that element (and the list
+                //   pointers of the iterators are adapted).
+                // * If an element is removed or extracted from a list,
+                //   iterators pointing to that element are set to the next
+                //   element, or NULL if it was the last element.
+                // * If the assignment operator '=' is called on a list, all
+                //   iterators which were pointing to elements of the list are
+                //   set to NULL. This is even true if the list is assigned to
+                //   itself.
+                // Note the auto-cast operator to a 'const OBJ *'. Wherever
+                // there is an argument 'const OBJ *' in the methods of <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>,
+                // you can even give an instance of this class as the argument.
+
+                </SPAN>Iterator();
+                        <SPAN CLASS=c>// Construct a "NULL pointer".
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Construct a copied iterator.
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+                        <SPAN CLASS=c>// Construct an iterator pointing to a particular
+                        // element.
+                        // Arguments:
+                        //   list - The list.
+                        //   elem - Pointer to an element of the list, or NULL.
+
+                </SPAN>~Iterator();
+                        <SPAN CLASS=c>// Destructor.
+
+                </SPAN>Iterator &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy an iterator.
+
+                </SPAN><SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * Get() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the element pointer. It is NULL if this iterator
+                        // does not point to any element.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Set(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy the given iterator and return the element
+                        // pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+                        <SPAN CLASS=c>// Set this iterator to the given element of the given
+                        // list and return the element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * SetFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list);
+                <SPAN CLASS=t>const </SPAN>OBJ * SetLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list);
+                        <SPAN CLASS=c>// Set this iterator to the first or last element of the
+                        // given list and return the element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * SetNext();
+                <SPAN CLASS=t>const </SPAN>OBJ * SetPrev();
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>++();
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>--();
+                        <SPAN CLASS=c>// Set this iterator to the next or previous element and
+                        // return the new element pointer. This must be called
+                        // only if the old element pointer is not NULL.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>);
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>);
+                        <SPAN CLASS=c>// Like above, but return the old element pointer.
+
+                </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Ordinary compare operators.
+
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; * GetList() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get a pointer to the list this iterator is currently
+                        // attached to. Returns NULL if not attached to any
+                        // list. (See comments on Detach()).
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Detach();
+                        <SPAN CLASS=c>// Detach this iterator from its list and point to NULL.
+                        // Note: to care about the iterators, each <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A> has a
+                        // single linked list of its iterators. The mechanism is
+                        // lazy, that means, an iterator may stay in the list
+                        // even when not pointing to any element, just for quick
+                        // re-use. On the other hand, such iterators are still
+                        // costing a tiny number of CPU cycles whenever the list
+                        // of elements is modified.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;;
+                <SPAN CLASS=t>const </SPAN>OBJ * Pos;
+                <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; * List;
+                Iterator * NextIter; <SPAN CLASS=c>// Undefined if List==NULL
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN>Iterator;
+
+        <SPAN CLASS=t>struct </SPAN>Element <SPAN CLASS=b>{
+                </SPAN>OBJ Obj;
+                OBJ * Next;
+                OBJ * Prev;
+                <SPAN CLASS=t>inline </SPAN>Element(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) : Obj(obj) <SPAN CLASS=b>{}
+        }</SPAN>;
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN>OBJ * First;
+                OBJ * Last;
+                <SPAN CLASS=t>bool </SPAN>IsStaticEmpty;
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+        <SPAN CLASS=b>}</SPAN>;
+
+        SharedData * Data;
+        Iterator * Iterators;
+        <SPAN CLASS=t>static </SPAN>SharedData EmptyData;
+
+        <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(SharedData * d) <SPAN CLASS=b>{ </SPAN>Data=d; Iterators=<SPAN CLASS=u>NULL</SPAN>; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeWritable();
+        <SPAN CLASS=t>void </SPAN>MakeWritable(<SPAN CLASS=t>const </SPAN>OBJ * * preserve);
+        <SPAN CLASS=t>void </SPAN>MakeWritable(<SPAN CLASS=t>const </SPAN>OBJ * * preserve1, <SPAN CLASS=t>const </SPAN>OBJ * * preserve2);
+        <SPAN CLASS=t>void </SPAN>MakeWritable(<SPAN CLASS=t>const </SPAN>OBJ * * preserve1, <SPAN CLASS=t>const </SPAN>OBJ * * preserve2,
+                          <SPAN CLASS=t>const </SPAN>OBJ * * preserve3);
+        <SPAN CLASS=t>void </SPAN>DeleteData();
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=p>#define EM_LSTIMP_ELEM(objPtr) \
+        </SPAN>((Element*)(((<SPAN CLASS=t>char</SPAN>*)(objPtr))-offsetof(Element,Obj)))
+<SPAN CLASS=p>#define EM_LSTIMP_PREV(objPtr) EM_LSTIMP_ELEM(objPtr)-&gt;Prev
+#define EM_LSTIMP_NEXT(objPtr) EM_LSTIMP_ELEM(objPtr)-&gt;Next
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>()
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=src.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+        InsertBefore(<SPAN CLASS=u>NULL</SPAN>,obj);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src2
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=src1.Data;
+        Data-&gt;RefCount++;
+        InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src2,src2.Data-&gt;First,src2.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src1, <SPAN CLASS=t>const </SPAN>OBJ &amp; src2
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=src1.Data;
+        Data-&gt;RefCount++;
+        InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src2);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; src1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src2
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=src2.Data;
+        Data-&gt;RefCount++;
+        InsertAfter(<SPAN CLASS=u>NULL</SPAN>,src1);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+        InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::~<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{ </SPAN>i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>; i-&gt;List=<SPAN CLASS=u>NULL</SPAN>; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; list
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        list.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=list.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN>Data-&gt;RefCount--;
+                Data=&amp;EmptyData;
+        <SPAN CLASS=b>}
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,obj);
+        <SPAN CLASS=k>if </SPAN>(EM_LSTIMP_PREV(Data-&gt;Last)) <SPAN CLASS=b>{
+                </SPAN>Remove(Data-&gt;First,EM_LSTIMP_PREV(Data-&gt;Last));
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetFirst() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;First;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetLast() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Last;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetNext(
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>EM_LSTIMP_NEXT(elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetPrev(
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>EM_LSTIMP_PREV(elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetWritable(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>(OBJ*)elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetFirstWritable()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;First;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetLastWritable()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;Last;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetNextWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>EM_LSTIMP_NEXT(elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetPrevWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>EM_LSTIMP_NEXT(elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Set(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;pos);
+        *((OBJ*)pos)=obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtBeg(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(<SPAN CLASS=u>NULL</SPAN>,obj);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtBeg(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(<SPAN CLASS=u>NULL</SPAN>,*<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtBeg(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(<SPAN CLASS=u>NULL</SPAN>,*<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtBeg(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(<SPAN CLASS=u>NULL</SPAN>,src,src.Data-&gt;First,src.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtBeg(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(<SPAN CLASS=u>NULL</SPAN>,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtBeg(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(<SPAN CLASS=u>NULL</SPAN>,src,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtEnd(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,obj);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtEnd(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,*<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtEnd(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,*<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtEnd(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,src.Data-&gt;First,src.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtEnd(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAtEnd(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>OBJ * e;
+
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable(&amp;pos);
+        e=&amp;(<SPAN CLASS=k>new </SPAN>Element(obj))-&gt;Obj;
+        <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(e)=(OBJ*)pos)==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e)=Data-&gt;Last)==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;First=e;
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(e))=e;
+                Data-&gt;Last=e;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e)=EM_LSTIMP_PREV(pos))==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;First=e;
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(e))=e;
+                EM_LSTIMP_PREV(pos)=e;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(pos,*<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(pos,*<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(pos,src,src.Data-&gt;First,src.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(pos,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+        <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>OBJ * p, * e;
+
+        <SPAN CLASS=k>if </SPAN>(!first || !last) <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!Data-&gt;First &amp;&amp; first==src.Data-&gt;First &amp;&amp; last==src.Data-&gt;Last) <SPAN CLASS=b>{
+                </SPAN>src.Data-&gt;RefCount++;
+                <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+                Data=src.Data;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable(&amp;pos,&amp;first,&amp;last);
+        p=(OBJ*)pos;
+        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                </SPAN>e=&amp;(<SPAN CLASS=k>new </SPAN>Element(*last))-&gt;Obj;
+                <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(e)=p)==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e)=Data-&gt;Last)==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;First=e;
+                        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(e))=e;
+                        Data-&gt;Last=e;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e)=EM_LSTIMP_PREV(p))==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;First=e;
+                        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(e))=e;
+                        EM_LSTIMP_PREV(p)=e;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(last==first) <SPAN CLASS=k>break</SPAN>;
+                p=e;
+                <SPAN CLASS=k>if </SPAN>(last==pos) last=p;
+                last=EM_LSTIMP_PREV(last);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>OBJ * e;
+
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable(&amp;pos);
+        e=&amp;(<SPAN CLASS=k>new </SPAN>Element(obj))-&gt;Obj;
+        <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e)=(OBJ*)pos)==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(e)=Data-&gt;First)==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;Last=e;
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(e))=e;
+                Data-&gt;First=e;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(e)=EM_LSTIMP_NEXT(pos))==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;Last=e;
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(e))=e;
+                EM_LSTIMP_NEXT(pos)=e;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(pos,*<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(pos,*<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(pos,src,src.Data-&gt;First,src.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertAfter(pos,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::InsertAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first,
+        <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>OBJ * p, * e;
+
+        <SPAN CLASS=k>if </SPAN>(!first || !last) <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!Data-&gt;First &amp;&amp; first==src.Data-&gt;First &amp;&amp; last==src.Data-&gt;Last) <SPAN CLASS=b>{
+                </SPAN>src.Data-&gt;RefCount++;
+                <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+                Data=src.Data;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable(&amp;pos,&amp;first,&amp;last);
+        p=(OBJ*)pos;
+        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                </SPAN>e=&amp;(<SPAN CLASS=k>new </SPAN>Element(*first))-&gt;Obj;
+                <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e)=p)==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(e)=Data-&gt;First)==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;Last=e;
+                        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(e))=e;
+                        Data-&gt;First=e;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(e)=EM_LSTIMP_NEXT(p))==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;Last=e;
+                        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(e))=e;
+                        EM_LSTIMP_NEXT(p)=e;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(first==last) <SPAN CLASS=k>break</SPAN>;
+                p=e;
+                <SPAN CLASS=k>if </SPAN>(first==pos) first=p;
+                first=EM_LSTIMP_NEXT(first);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Add(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,obj);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Add(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,*<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Add(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,*<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Add(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,src.Data-&gt;First,src.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Add(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Add(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,src,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; list
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,list,list.Data-&gt;First,list.Data-&gt;Last);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>InsertBefore(<SPAN CLASS=u>NULL</SPAN>,obj);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> &amp; list
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(*<SPAN CLASS=k>this</SPAN>,list);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(*<SPAN CLASS=k>this</SPAN>,obj);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(obj,list);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToBeg(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToBeg(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToBeg(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(src) MoveAfter(<SPAN CLASS=u>NULL</SPAN>,src,src-&gt;Data-&gt;First,src-&gt;Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToBeg(
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(<SPAN CLASS=u>NULL</SPAN>,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToBeg(
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(<SPAN CLASS=u>NULL</SPAN>,src,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToEnd(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToEnd(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToEnd(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(src) MoveBefore(<SPAN CLASS=u>NULL</SPAN>,src,src-&gt;Data-&gt;First,src-&gt;Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToEnd(
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(<SPAN CLASS=u>NULL</SPAN>,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveToEnd(
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(<SPAN CLASS=u>NULL</SPAN>,src,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(pos,<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(pos,<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(src) MoveBefore(pos,src,src-&gt;Data-&gt;First,src-&gt;Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveBefore(pos,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveBefore(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+        Iterator * i;
+        <SPAN CLASS=t>const </SPAN>OBJ * e;
+
+        <SPAN CLASS=k>if </SPAN>(!first || !last) <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!src) src=<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(src!=<SPAN CLASS=k>this</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable(&amp;pos);
+                <SPAN CLASS=k>if </SPAN>(src-&gt;Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) src-&gt;MakeWritable(&amp;first,&amp;last);
+                <SPAN CLASS=k>for </SPAN>(pi=&amp;src-&gt;Iterators, i=*pi; i; i=*pi) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos!=last) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(!i-&gt;Pos) <SPAN CLASS=b>{ </SPAN>pi=&amp;i-&gt;NextIter; <SPAN CLASS=k>continue</SPAN>; <SPAN CLASS=b>}
+                                </SPAN><SPAN CLASS=k>for </SPAN>(e=first; i-&gt;Pos!=e &amp;&amp; e!=last; e=EM_LSTIMP_NEXT(e));
+                                <SPAN CLASS=k>if </SPAN>(e==last) <SPAN CLASS=b>{ </SPAN>pi=&amp;i-&gt;NextIter; <SPAN CLASS=k>continue</SPAN>; <SPAN CLASS=b>}
+                        }
+                        </SPAN>*pi=i-&gt;NextIter;
+                        i-&gt;List=<SPAN CLASS=k>this</SPAN>;
+                        i-&gt;NextIter=Iterators;
+                        Iterators=i;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>else if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(EM_LSTIMP_NEXT(last)==pos) <SPAN CLASS=k>return</SPAN>;
+                MakeWritable(&amp;pos,&amp;first,&amp;last);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_PREV(first)) src-&gt;Data-&gt;First=EM_LSTIMP_NEXT(last);
+        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(first))=EM_LSTIMP_NEXT(last);
+        <SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_NEXT(last)) src-&gt;Data-&gt;Last=EM_LSTIMP_PREV(first);
+        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(last))=EM_LSTIMP_PREV(first);
+        <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(last)=(OBJ*)pos)==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(first)=Data-&gt;Last)==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;First=(OBJ*)first;
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(first))=(OBJ*)first;
+                Data-&gt;Last=(OBJ*)last;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(first)=EM_LSTIMP_PREV(pos))==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Data-&gt;First=(OBJ*)first;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(first))=(OBJ*)first;
+                EM_LSTIMP_PREV(pos)=(OBJ*)last;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(pos,<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(pos,<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(src) MoveAfter(pos,src,src-&gt;Data-&gt;First,src-&gt;Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>MoveAfter(pos,src,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MoveAfter(
+        <SPAN CLASS=t>const </SPAN>OBJ * pos, <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A> * src, <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+        Iterator * i;
+        <SPAN CLASS=t>const </SPAN>OBJ * e;
+
+        <SPAN CLASS=k>if </SPAN>(!first || !last) <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!src) src=<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(src!=<SPAN CLASS=k>this</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable(&amp;pos);
+                <SPAN CLASS=k>if </SPAN>(src-&gt;Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) src-&gt;MakeWritable(&amp;first,&amp;last);
+                <SPAN CLASS=k>for </SPAN>(pi=&amp;src-&gt;Iterators, i=*pi; i; i=*pi) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos!=last) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(!i-&gt;Pos) <SPAN CLASS=b>{ </SPAN>pi=&amp;i-&gt;NextIter; <SPAN CLASS=k>continue</SPAN>; <SPAN CLASS=b>}
+                                </SPAN><SPAN CLASS=k>for </SPAN>(e=first; i-&gt;Pos!=e &amp;&amp; e!=last; e=EM_LSTIMP_NEXT(e));
+                                <SPAN CLASS=k>if </SPAN>(e==last) <SPAN CLASS=b>{ </SPAN>pi=&amp;i-&gt;NextIter; <SPAN CLASS=k>continue</SPAN>; <SPAN CLASS=b>}
+                        }
+                        </SPAN>*pi=i-&gt;NextIter;
+                        i-&gt;List=<SPAN CLASS=k>this</SPAN>;
+                        i-&gt;NextIter=Iterators;
+                        Iterators=i;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>else if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(EM_LSTIMP_PREV(first)==pos) <SPAN CLASS=k>return</SPAN>;
+                MakeWritable(&amp;pos,&amp;first,&amp;last);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_PREV(first)) src-&gt;Data-&gt;First=EM_LSTIMP_NEXT(last);
+        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(first))=EM_LSTIMP_NEXT(last);
+        <SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_NEXT(last)) src-&gt;Data-&gt;Last=EM_LSTIMP_PREV(first);
+        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(last))=EM_LSTIMP_PREV(first);
+        <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(first)=(OBJ*)pos)==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(last)=Data-&gt;First)==<SPAN CLASS=u>NULL</SPAN>) Data-&gt;Last=(OBJ*)last;
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(last))=(OBJ*)last;
+                Data-&gt;First=(OBJ*)first;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>((EM_LSTIMP_NEXT(last)=EM_LSTIMP_NEXT(pos))==<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Data-&gt;Last=(OBJ*)last;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(last))=(OBJ*)last;
+                EM_LSTIMP_NEXT(pos)=(OBJ*)first;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetSubListOfFirst() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(*<SPAN CLASS=k>this</SPAN>,Data-&gt;First,Data-&gt;First);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetSubListOfLast() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(*<SPAN CLASS=k>this</SPAN>,Data-&gt;Last,Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetSubList(
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(*<SPAN CLASS=k>this</SPAN>,elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetSubList(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(*<SPAN CLASS=k>this</SPAN>,first,last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::ExtractFirst()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Extract(Data-&gt;First,Data-&gt;First);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::ExtractLast()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Extract(Data-&gt;Last,Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Extract(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Extract(elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Extract(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d;
+        <SPAN CLASS=t>const </SPAN>OBJ * e;
+        Iterator * i;
+
+        <SPAN CLASS=k>if </SPAN>(!first || !last) <SPAN CLASS=b>{
+                </SPAN>d=&amp;EmptyData;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else if </SPAN>(first==Data-&gt;First &amp;&amp; last==Data-&gt;Last) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+                d=Data;
+                Data=&amp;EmptyData;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;first,&amp;last);
+                <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos!=last) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(!i-&gt;Pos) <SPAN CLASS=k>continue</SPAN>;
+                                <SPAN CLASS=k>for </SPAN>(e=first; i-&gt;Pos!=e &amp;&amp; e!=last; e=EM_LSTIMP_NEXT(e));
+                                <SPAN CLASS=k>if </SPAN>(e==last) <SPAN CLASS=k>continue</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN>i-&gt;Pos=EM_LSTIMP_NEXT(last);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_PREV(first)) <SPAN CLASS=b>{
+                        </SPAN>Data-&gt;First=EM_LSTIMP_NEXT(last);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(first))=EM_LSTIMP_NEXT(last);
+                        EM_LSTIMP_PREV(first)=<SPAN CLASS=u>NULL</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_NEXT(last)) <SPAN CLASS=b>{
+                        </SPAN>Data-&gt;Last=EM_LSTIMP_PREV(first);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(last))=EM_LSTIMP_PREV(first);
+                        EM_LSTIMP_NEXT(last)=<SPAN CLASS=u>NULL</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN>d=<SPAN CLASS=k>new </SPAN>SharedData;
+                d-&gt;First=(OBJ*)first;
+                d-&gt;Last=(OBJ*)last;
+                d-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+                d-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;(d);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::RemoveFirst()
+<SPAN CLASS=b>{
+        </SPAN>Remove(Data-&gt;First,Data-&gt;First);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::RemoveLast()
+<SPAN CLASS=b>{
+        </SPAN>Remove(Data-&gt;Last,Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Remove(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN>Remove(elem,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Remove(
+        <SPAN CLASS=t>const </SPAN>OBJ * first, <SPAN CLASS=t>const </SPAN>OBJ * last
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * e;
+        OBJ * e2;
+        Iterator * i;
+        SharedData * d;
+
+        <SPAN CLASS=k>if </SPAN>(!first || !last) <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(first==Data-&gt;First &amp;&amp; last==Data-&gt;Last) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Data-&gt;RefCount--;
+                        Data=&amp;EmptyData;
+                        <SPAN CLASS=k>return</SPAN>;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos!=last) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(!i-&gt;Pos) <SPAN CLASS=k>continue</SPAN>;
+                                <SPAN CLASS=k>for </SPAN>(e=first; i-&gt;Pos!=e &amp;&amp; e!=last; e=EM_LSTIMP_NEXT(e));
+                                <SPAN CLASS=k>if </SPAN>(e==last) <SPAN CLASS=k>continue</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN>i-&gt;Pos=EM_LSTIMP_NEXT(last);
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount==<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_PREV(first)) Data-&gt;First=EM_LSTIMP_NEXT(last);
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(first))=EM_LSTIMP_NEXT(last);
+                <SPAN CLASS=k>if </SPAN>(!EM_LSTIMP_NEXT(last)) Data-&gt;Last=EM_LSTIMP_PREV(first);
+                <SPAN CLASS=k>else </SPAN>EM_LSTIMP_PREV(EM_LSTIMP_NEXT(last))=EM_LSTIMP_PREV(first);
+                <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                        </SPAN>e=first;
+                        first=EM_LSTIMP_NEXT(first);
+                        <SPAN CLASS=k>delete </SPAN>EM_LSTIMP_ELEM(e);
+                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(e!=last);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>d=<SPAN CLASS=k>new </SPAN>SharedData;
+                d-&gt;First=<SPAN CLASS=u>NULL</SPAN>;
+                d-&gt;Last=<SPAN CLASS=u>NULL</SPAN>;
+                d-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+                d-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+                <SPAN CLASS=k>for </SPAN>(e=Data-&gt;First; e; e=EM_LSTIMP_NEXT(e)) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(e==first) <SPAN CLASS=b>{
+                                </SPAN>e=EM_LSTIMP_NEXT(last);
+                                <SPAN CLASS=k>if </SPAN>(!e) <SPAN CLASS=k>break</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN>e2=&amp;(<SPAN CLASS=k>new </SPAN>Element(*e))-&gt;Obj;
+                        EM_LSTIMP_NEXT(e2)=<SPAN CLASS=u>NULL</SPAN>;
+                        <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e2)=d-&gt;Last)==<SPAN CLASS=u>NULL</SPAN>) d-&gt;First=e2;
+                        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(e2))=e2;
+                        d-&gt;Last=e2;
+                        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos==e) i-&gt;Pos=e2;
+                        <SPAN CLASS=b>}
+                }
+                </SPAN>Data-&gt;RefCount--;
+                Data=d;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Empty(<SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN>OBJ * e1, * e2;
+        Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| compact) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+                Data=&amp;EmptyData;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(e1=Data-&gt;First; e1; e1=e2) <SPAN CLASS=b>{
+                        </SPAN>e2=EM_LSTIMP_NEXT(e1);
+                        <SPAN CLASS=k>delete </SPAN>EM_LSTIMP_ELEM(e1);
+                <SPAN CLASS=b>}
+                </SPAN>Data-&gt;First=<SPAN CLASS=u>NULL</SPAN>;
+                Data-&gt;Last=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!Data-&gt;First;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Sort(
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;First==Data-&gt;Last) <SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>emSortDoubleLinkedList(
+                (<SPAN CLASS=t>void</SPAN>**)(<SPAN CLASS=t>void</SPAN>*)&amp;Data-&gt;First,
+                (<SPAN CLASS=t>void</SPAN>**)(<SPAN CLASS=t>void</SPAN>*)&amp;Data-&gt;Last,
+                offsetof(Element,Next)-offsetof(Element,Obj),
+                offsetof(Element,Prev)-offsetof(Element,Obj),
+                (<SPAN CLASS=t>int</SPAN>(*)(<SPAN CLASS=t>void</SPAN>*,<SPAN CLASS=t>void</SPAN>*,<SPAN CLASS=t>void</SPAN>*))compare,
+                context
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * e;
+        <SPAN CLASS=t>int </SPAN>cnt;
+
+        <SPAN CLASS=k>for </SPAN>(cnt=<SPAN CLASS=u>0</SPAN>, e=Data-&gt;First; e; cnt++, e=EM_LSTIMP_NEXT(e));
+        <SPAN CLASS=k>return </SPAN>cnt;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetAtIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * e;
+
+        <SPAN CLASS=k>if </SPAN>(index&lt;<SPAN CLASS=u>0</SPAN>) e=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>else for </SPAN>(e=Data-&gt;First; e &amp;&amp; --index&gt;=<SPAN CLASS=u>0</SPAN>; e=EM_LSTIMP_NEXT(e));
+        <SPAN CLASS=k>return </SPAN>e;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetIndexOf(<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * e;
+        <SPAN CLASS=t>int </SPAN>i;
+
+        <SPAN CLASS=k>for </SPAN>(i=<SPAN CLASS=u>0</SPAN>, e=Data-&gt;First; e; i++, e=EM_LSTIMP_NEXT(e)) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(e==elem) <SPAN CLASS=k>return </SPAN>i;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>unsigned int </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::GetDataRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;IsStaticEmpty ? UINT_MAX/<SPAN CLASS=u>2 </SPAN>: Data-&gt;RefCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Iterator()
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        List=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Iterator(
+<SPAN CLASS=p>#       if defined(__WATCOMC__)
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator &amp; iter
+<SPAN CLASS=p>#       else
+                </SPAN><SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+<SPAN CLASS=p>#       endif
+</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN>Pos=iter.Pos;
+        <SPAN CLASS=k>if </SPAN>((List=iter.List)!=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                </SPAN>NextIter=List-&gt;Iterators;
+                List-&gt;Iterators=<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>Pos=elem;
+        <SPAN CLASS=k>if </SPAN>((List=(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;*)&amp;list)!=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                </SPAN>NextIter=List-&gt;Iterators;
+                List-&gt;Iterators=<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::~Iterator()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(List) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;List-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                *pi=NextIter;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline typename </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator &amp;
+        <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter)
+<SPAN CLASS=b>{
+        </SPAN>Set(iter);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(List!=iter.List) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(List) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;List-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                        *pi=NextIter;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>((List=iter.List)!=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>NextIter=List-&gt;Iterators;
+                        List-&gt;Iterators=<SPAN CLASS=k>this</SPAN>;
+                <SPAN CLASS=b>}
+        }
+        </SPAN>Pos=iter.Pos;
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(List!=&amp;list) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(List) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;List-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                        *pi=NextIter;
+                <SPAN CLASS=b>}
+                </SPAN>List=(<A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;*)&amp;list;
+                NextIter=List-&gt;Iterators;
+                List-&gt;Iterators=<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN>Pos=elem;
+        <SPAN CLASS=k>return </SPAN>elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::SetFirst(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Set(list,list.Data-&gt;First);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::SetLast(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; &amp; list
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Set(list,list.Data-&gt;Last);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::SetNext()
+<SPAN CLASS=b>{
+        </SPAN>Pos=EM_LSTIMP_NEXT(Pos);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::SetPrev()
+<SPAN CLASS=b>{
+        </SPAN>Pos=EM_LSTIMP_PREV(Pos);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++()
+<SPAN CLASS=b>{
+        </SPAN>Pos=EM_LSTIMP_NEXT(Pos);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--()
+<SPAN CLASS=b>{
+        </SPAN>Pos=EM_LSTIMP_PREV(Pos);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * res=Pos;
+        Pos=EM_LSTIMP_NEXT(Pos);
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * res=Pos;
+        Pos=EM_LSTIMP_PREV(Pos);
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt; * <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::GetList() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>List;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Detach()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(List) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;List-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                *pi=NextIter;
+                List=<SPAN CLASS=u>NULL</SPAN>;
+                Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>typename </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::SharedData <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::EmptyData=
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>true</SPAN>,UINT_MAX/<SPAN CLASS=u>2
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MakeWritable()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * p1, * p2, * p3;
+
+        p1=<SPAN CLASS=u>NULL</SPAN>; p2=<SPAN CLASS=u>NULL</SPAN>; p3=<SPAN CLASS=u>NULL</SPAN>;
+        MakeWritable(&amp;p1,&amp;p2,&amp;p3);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MakeWritable(<SPAN CLASS=t>const </SPAN>OBJ * * preserve)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * p2, * p3;
+
+        p2=<SPAN CLASS=u>NULL</SPAN>; p3=<SPAN CLASS=u>NULL</SPAN>;
+        MakeWritable(preserve,&amp;p2,&amp;p3);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MakeWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ * * preserve1, <SPAN CLASS=t>const </SPAN>OBJ * * preserve2
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * p3;
+
+        p3=<SPAN CLASS=u>NULL</SPAN>;
+        MakeWritable(preserve1,preserve2,&amp;p3);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::MakeWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ * * preserve1, <SPAN CLASS=t>const </SPAN>OBJ * * preserve2,
+        <SPAN CLASS=t>const </SPAN>OBJ * * preserve3
+)
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d1, * d2;
+        OBJ * e1, * e2;
+        Iterator * i;
+
+        d1=Data;
+        <SPAN CLASS=k>if </SPAN>(d1-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN>d2=<SPAN CLASS=k>new </SPAN>SharedData;
+                d2-&gt;First=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;Last=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+                d2-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+                d1-&gt;RefCount--;
+                Data=d2;
+                <SPAN CLASS=k>for </SPAN>(e1=d1-&gt;First; e1; e1=EM_LSTIMP_NEXT(e1)) <SPAN CLASS=b>{
+                        </SPAN>e2=&amp;(<SPAN CLASS=k>new </SPAN>Element(*e1))-&gt;Obj;
+                        EM_LSTIMP_NEXT(e2)=<SPAN CLASS=u>NULL</SPAN>;
+                        <SPAN CLASS=k>if </SPAN>((EM_LSTIMP_PREV(e2)=d2-&gt;Last)==<SPAN CLASS=u>NULL</SPAN>) d2-&gt;First=e2;
+                        <SPAN CLASS=k>else </SPAN>EM_LSTIMP_NEXT(EM_LSTIMP_PREV(e2))=e2;
+                        d2-&gt;Last=e2;
+                        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos==e1) i-&gt;Pos=e2;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(*preserve1==e1) *preserve1=e2;
+                        <SPAN CLASS=k>if </SPAN>(*preserve2==e1) *preserve2=e2;
+                        <SPAN CLASS=k>if </SPAN>(*preserve3==e1) *preserve3=e2;
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::DeleteData()
+<SPAN CLASS=b>{
+        </SPAN>OBJ * e, * n;
+
+        EmptyData.RefCount=UINT_MAX/<SPAN CLASS=u>2</SPAN>;
+
+        <SPAN CLASS=c>// Never do a
+        //  if (Data!=&amp;EmptyData)...
+        // instead of
+        //  if (!Data-&gt;IsStaticEmpty)...
+        // because static member variables of template classes could exist
+        // multiple times for the same final type (e.g. with Windows DLLs).
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(e=Data-&gt;First; e; e=n) <SPAN CLASS=b>{
+                        </SPAN>n=EM_LSTIMP_NEXT(e);
+                        <SPAN CLASS=k>delete </SPAN>EM_LSTIMP_ELEM(e);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>delete </SPAN>Data;
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,213 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emProcess.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A>.h
+//
+// Copyright (C) 2006-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emProcess_h
+#define emProcess_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>struct </SPAN>emProcessPrivate;
+
+
+<A NAME="emProcess"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emProcess_h.html#emProcess">emProcess</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This class helps in creating and managing system processes.
+
+        </SPAN><A CLASS=l HREF="emCore_emProcess_h.html#emProcess">emProcess</A>();
+                <SPAN CLASS=c>// Construct with no child process running.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emProcess_h.html#emProcess">emProcess</A>();
+                <SPAN CLASS=c>// If a child process is still running, Terminate() is called.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>StartFlags <SPAN CLASS=b>{
+                </SPAN>SF_SHARE_STDIN  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>,
+                SF_PIPE_STDIN   = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>,
+                SF_SHARE_STDOUT = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>,
+                SF_PIPE_STDOUT  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>,
+                SF_SHARE_STDERR = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>,
+                SF_PIPE_STDERR  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>TryStart(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; args,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; extraEnv=<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt;(),
+                <SPAN CLASS=t>const char </SPAN>* dirPath=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>int </SPAN>flags=SF_SHARE_STDIN|SF_SHARE_STDOUT|SF_SHARE_STDERR
+        ) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start a managed child process.
+                // Arguments:
+                //   args     - Program arguments for the child process. The
+                //              first entry is the program name itself, either
+                //              as a file path, or just the name (PATH is
+                //              searched then). The array must not be empty.
+                //   extraEnv - The child process inherits the environment from
+                //              this process, and in addition, it gets the
+                //              environment variables given here. The array can
+                //              have any number of environment variables, each
+                //              of the form &lt;Name&gt;[=&lt;value&gt;]. If it's just the
+                //              name, the variable is removed (on UNIX: only if
+                //              supported by putenv), otherwise the variable is
+                //              set or changed to the given value (which can be
+                //              empty).
+                //   dirPath  - Current working directory for the child process,
+                //              or NULL for inheriting the current directory
+                //              from this process.
+                //   flags    - Combination of start flags from enum StartFlags.
+                //              The flags SF_SHARE_STDIN and SF_PIPE_STDIN
+                //              control the type of the standard input handle
+                //              for the child process. Giving none of these
+                //              flags means to have no standard input (closed
+                //              handle). SF_SHARE_STDIN means to inherit the
+                //              handle from this process. SF_PIPE_STDIN means to
+                //              create a pipe (see methods TryWrite and
+                //              CloseWrite). Setting both flags is not allowed.
+                //              The other flags are for standard output and
+                //              standard error analogously.
+                // Throws: An error message on failure.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>TryStartUnmanaged(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; args,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; extraEnv=<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt;(),
+                <SPAN CLASS=t>const char </SPAN>* dirPath=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>int </SPAN>flags=SF_SHARE_STDIN|SF_SHARE_STDOUT|SF_SHARE_STDERR
+        ) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// This function(!) is like the method TryStart, but the new
+                // process is not managed by an <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A> object. Pipelining is
+                // not possible with this. On UNIX, the new process is detached
+                // from this process, so that it does not become a child
+                // process.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write to standard input of the child process, without
+                // blocking. The child process should have been started with
+                // SF_PIPE_STDIN.
+                // Arguments:
+                //   buf - Array of bytes to be written.
+                //   len - Number of bytes to be written.
+                // Returns:
+                //   &gt;0 - Number of bytes actually written.
+                //    0 - No writing possible at this moment, please try again
+                //        later (or wait by calling WaitPipes).
+                //   -1 - Any end of the pipe has been closed (e.g. child
+                //        process exited).
+                // Throws: An error message on failure.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read from standard output of the child process, without
+                // blocking. The child process should have been started with
+                // SF_PIPE_STDOUT.
+                // Arguments:
+                //   buf - Array for storing the bytes.
+                //   len - Maximum number of bytes to be read.
+                // Returns:
+                //   &gt;0 - Number of bytes actually read.
+                //    0 - No bytes available at this moment, please try again
+                //        later (or wait by calling WaitPipes).
+                //   -1 - Any end of the pipe has been closed (e.g. child
+                //        process exited).
+                // Throws: An error message on failure.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>TryReadErr(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Like TryRead, but for standard error (SF_PIPE_STDERR).
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>WaitFlags <SPAN CLASS=b>{
+                </SPAN>WF_WAIT_STDIN  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>,
+                WF_WAIT_STDOUT = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>,
+                WF_WAIT_STDERR = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>WaitPipes(<SPAN CLASS=t>int </SPAN>waitFlags, <SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+                <SPAN CLASS=c>// Wait until a pipe is ready for writing and/or reading.
+                // Arguments:
+                //   waitFlags - Combination of flags from enum WaitFlags. This
+                //               specifies the pipes to wait for. The method
+                //               returns when at least one of these pipes is
+                //               ready.
+                //   timeoutMS - After this time-out in milliseconds, the
+                //               method returns even if no pipe is ready.
+                //               UINT_MAX means infinite.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CloseWriting();
+        <SPAN CLASS=t>void </SPAN>CloseReading();
+        <SPAN CLASS=t>void </SPAN>CloseReadingErr();
+                <SPAN CLASS=c>// Close this end of a pipe.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SendTerminationSignal();
+                <SPAN CLASS=c>// Send a termination request to the child process. On UNIX, the
+                // signal SIGTERM is sent to the child process. On Windows, the
+                // message WM_QUIT is sent to the primary thread of the child
+                // process.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SendKillSignal();
+                <SPAN CLASS=c>// Hardly kill the child process. Usually this should never be
+                // called. On UNIX, the signal SIGKILL is sent to the child
+                // process. On Windows, the SDK function TerminateProcess is
+                // called.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>WaitForTermination(<SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+                <SPAN CLASS=c>// Wait for the child process to terminate.
+                // Arguments:
+                //   timeoutMS - Time-out in milliseconds. UINT_MAX means
+                //               infinite.
+                // Returns:
+                //   true  - Child process terminated (or never started).
+                //   false - Timed out.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsRunning();
+                <SPAN CLASS=c>// true if a child process has been started and not yet
+                // terminated.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Terminate(<SPAN CLASS=t>unsigned </SPAN>fatalTimeoutMS=<SPAN CLASS=u>20000</SPAN>);
+                <SPAN CLASS=c>// Like SendTerminationSignal plus WaitForTermination. But if
+                // the process does not terminate within the given time-out in
+                // milliseconds, emFatalError is called (because it is assumed
+                // to have a programming error somewhere). The time-out should
+                // be quite large, for the case of a badly overloaded system.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetExitStatus() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the exit status of a terminated child process.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        emProcessPrivate * P;
+
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

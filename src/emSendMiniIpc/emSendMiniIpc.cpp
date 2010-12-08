@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSendMiniIpc.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #include <emCore/emMiniIpc.h>
 
+
+#if defined(__GNUC__) && defined(_WIN32)
+	int _CRT_glob=0;
+#endif
 
 int main(int argc, char * argv[])
 {

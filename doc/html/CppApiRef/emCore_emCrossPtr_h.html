@@ -1,0 +1,205 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emCrossPtr.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>.h
+//
+// Copyright (C) 2007-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emCrossPtr_h
+#define emCrossPtr_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN>emCrossPtrPrivate <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>;
+        <SPAN CLASS=t>void </SPAN>Unlink();
+        <SPAN CLASS=t>void </SPAN>* Obj;
+        emCrossPtrPrivate * * ThisPtr;
+        emCrossPtrPrivate * Next;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emCrossPtr"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> : <SPAN CLASS=t>private </SPAN>emCrossPtrPrivate <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for an object pointer which is automatically set to
+        // NULL when the object is destructed. It is something like a so-called
+        // weak reference (in compare to <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A>). The name "cross pointer" comes
+        // from the fact that these pointers can be safely used to cross the
+        // ownership hierarchy.
+        //
+        // The template parameter CLS is the class of the object to be pointed.
+        // It must be an <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> or a class that has the method
+        // LinkCrossPtr(emCrossPtrPrivate) which forwards the call to a member
+        // <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>. Typical candidates are <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>, <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>, <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>
+        // and their derivatives.
+
+        </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>();
+                <SPAN CLASS=c>// Construct a NULL pointer.
+
+        </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; crossPtr);
+                <SPAN CLASS=c>// Construct a copied pointer.
+
+        </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>(CLS * obj);
+                <SPAN CLASS=c>// Construct from a normal pointer (NULL is allowed).
+
+        </SPAN>~<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; crossPtr);
+        <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; <SPAN CLASS=t>operator </SPAN>= (CLS * obj);
+                <SPAN CLASS=c>// Copy operators (NULL-pointer is allowed).
+
+        </SPAN><SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Cast this to a normal pointer (can be NULL).
+
+        </SPAN>CLS * Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the normal pointer (can be NULL).
+
+        </SPAN>CLS * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This makes this class a so-called "smart pointer". For
+                // example, if p is an <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> to an object which has a
+                // method named Hello(), one could say p-&gt;Hello() instead of
+                // p.Get()-&gt;Hello().
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emCrossPtrList"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a list of cross pointers pointing to an object.
+
+        </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>();
+                <SPAN CLASS=c>// Start with an empty list.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>();
+                <SPAN CLASS=c>// Like BreakCrossPtrs().
+
+        </SPAN><SPAN CLASS=t>void </SPAN>BreakCrossPtrs();
+                <SPAN CLASS=c>// Remove all cross pointers and set them to NULL. This could be
+                // called at the beginning of a destructor of an object for
+                // getting rid of the pointers a little bit earlier than through
+                // the destructor of this list.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
+                <SPAN CLASS=c>// Insert a cross pointer to this list (the field crossPtr.Obj
+                // is not touched by this). This method is only to be called by
+                // <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> or by forwarding from an object class instance to
+                // a member instance of this class.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        emCrossPtrPrivate * First;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>()
+<SPAN CLASS=b>{
+        </SPAN>Obj=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; crossPtr
+)
+<SPAN CLASS=b>{
+        </SPAN>Obj=crossPtr.Obj;
+        <SPAN CLASS=k>if </SPAN>(Obj) ((CLS*)Obj)-&gt;LinkCrossPtr(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>(CLS * obj)
+<SPAN CLASS=b>{
+        </SPAN>Obj=obj;
+        <SPAN CLASS=k>if </SPAN>(obj) obj-&gt;LinkCrossPtr(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::~<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Obj) Unlink();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; crossPtr
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Obj) Unlink();
+        Obj=crossPtr.Obj;
+        <SPAN CLASS=k>if </SPAN>(Obj) ((CLS*)Obj)-&gt;LinkCrossPtr(*<SPAN CLASS=k>this</SPAN>);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (CLS * obj)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Obj) Unlink();
+        Obj=obj;
+        <SPAN CLASS=k>if </SPAN>(obj) obj-&gt;LinkCrossPtr(*<SPAN CLASS=k>this</SPAN>);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(CLS*)Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN>CLS * <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(CLS*)Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN>CLS * <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(CLS*)Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>::<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>()
+<SPAN CLASS=b>{
+        </SPAN>First=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>::~<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A>()
+<SPAN CLASS=b>{
+        </SPAN>BreakCrossPtrs();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

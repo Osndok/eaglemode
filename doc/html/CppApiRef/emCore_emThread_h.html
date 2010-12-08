@@ -1,0 +1,433 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emThread.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emThread_h.html#emThread">emThread</A>.h
+//
+// Copyright (C) 2009 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emThread_h
+#define emThread_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN>emThreadPrivate;
+<SPAN CLASS=t>struct </SPAN>emThreadEventReceivers;
+
+
+<A NAME="emThreadId"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emThread_h.html#emThreadId">emThreadId</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>typedef </SPAN>emUInt64 <A CLASS=l HREF="emCore_emThread_h.html#emThreadId">emThreadId</A>;
+
+
+<A NAME="emThread"></A><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emThread_h.html#emThread">emThread</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThread">emThread</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a thread of program execution.
+        //
+        // Some hints on multi-threading:
+        // - Where not stated otherwise, all classes and functions of emCore are
+        //   thread-reentrant but not thread-safe. This means that the classes
+        //   and functions can be used by multiple threads simultaneously only
+        //   if no shared data is accessed. Yes, even <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A> is not
+        //   thread-safe.
+        // - The objects of container classes like <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>, <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>, <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A> and
+        //   <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A> are sharing data implicitly. You cannot protect that data
+        //   with a mutex. Instead, these classes have a method named
+        //   MakeNonShared which must always be called before giving the object
+        //   to another thread.
+        // - Multi-threading provides many pitfalls, and the correctness of
+        //   multi-threaded programs cannot be proved by testing very well.
+        // - Alternative concepts are: <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>, <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThread">emThread</A>();
+                <SPAN CLASS=c>// Construct a thread object where the thread is not yet
+                // running.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emThread_h.html#emThread">emThread</A>();
+                <SPAN CLASS=c>// If the thread is still running, WaitForTermination() is
+                // called.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Start(<SPAN CLASS=t>void </SPAN>* arg);
+                <SPAN CLASS=c>// This is a short cut for Start(NULL,arg). Should only be used
+                // if Run has been overloaded.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Start(<SPAN CLASS=t>int </SPAN>(* func)(<SPAN CLASS=t>void </SPAN>*), <SPAN CLASS=t>void </SPAN>* arg);
+                <SPAN CLASS=c>// Start this thread. The thread calls the method Run, and the
+                // default Implementation of that method calls the function
+                // func. arg is a custom pointer forwarded to Run and func.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>StartUnmanaged(<SPAN CLASS=t>int </SPAN>(* func)(<SPAN CLASS=t>void </SPAN>*), <SPAN CLASS=t>void </SPAN>* arg);
+                <SPAN CLASS=c>// This function is like the method Start, but the new thread is
+                // not managed by an <A CLASS=m HREF="emCore_emThread_h.html#emThread">emThread</A> object and the function func is
+                // called directly instead of Run. Yes, the return value of func
+                // has no meaning and exists only for compatibility with managed
+                // threads.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>WaitForTermination(<SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+                <SPAN CLASS=c>// Wait for the thread to terminate.
+                // Arguments:
+                //   timeoutMS - Time-out in milliseconds. UINT_MAX means
+                //               infinite.
+                // Returns:
+                //   true if the thread has terminated (or never started), or
+                //   false on time-out.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsRunning();
+                <SPAN CLASS=c>// Whether the thread has been started and not yet exited.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetExitStatus() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the return value of a terminated thread.
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadId">emThreadId</A> GetThreadId() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the identity number of this thread, if running.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadId">emThreadId</A> GetCurrentThreadId();
+                <SPAN CLASS=c>// Get the identity number of the calling thread.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>ExitCurrentThread(<SPAN CLASS=t>int </SPAN>exitStatus);
+                <SPAN CLASS=c>// Exit the calling thread.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual int </SPAN>Run(<SPAN CLASS=t>void </SPAN>* arg);
+                <SPAN CLASS=c>// The default implementation calls the function given with the
+                // Start method.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN>emThreadPrivate;
+        emThreadPrivate * P;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThread">emThread</A>::Start(<SPAN CLASS=t>void </SPAN>* arg)
+<SPAN CLASS=b>{
+        </SPAN>Start(<SPAN CLASS=u>NULL</SPAN>,arg);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThread">emThread</A>::IsRunning()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WaitForTermination(<SPAN CLASS=u>0</SPAN>);
+<SPAN CLASS=b>}
+
+
+<A NAME="emThreadMiniMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a mutual exclusion variable with minimum costs. It could
+        // also be called a "spin lock". This type of mutex may perform some
+        // kind of busy waiting, and it may be unfair. Therefore it should be
+        // used for very short critical sections only, so that it is very
+        // unlikely that a thread really has to wait. This mutex also does not
+        // support recursive locks.
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A>();
+        ~<A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A>();
+
+        <SPAN CLASS=t>void </SPAN>Lock();
+                <SPAN CLASS=c>// Lock this mutex. Only one thread can have the mutex locked at
+                // a time. Therefore this method may block in order to wait for
+                // unlocked state. It may be a kind of busy waiting (yielding to
+                // another thread again and again).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Unlock();
+                <SPAN CLASS=c>// Unlock this mutex.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>volatile </SPAN>emInt64 Val;
+                <SPAN CLASS=t>void </SPAN>* Ptr;
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emThreadEvent"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for an unary event that can be used for thread communication.
+        // It is much like a classic semaphore, but the methods are named "Send"
+        // and "Receive" instead of "Increment" and "Decrement".
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A>();
+                <SPAN CLASS=c>// Construct with no pending events.
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A>(<SPAN CLASS=t>int </SPAN>count);
+                <SPAN CLASS=c>// Construct with an initial number of pending event, or, if
+                // count is negative, with an initial phantom receiver. See
+                // SetCount.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN>emInt64 Send(emInt64 n=<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// Send this event n times. If one or more threads are blocked
+                // in Receive, they are served accordingly. A negative n means
+                // to decrease the internal counter of pending events (which can
+                // be negative) - it acts like a phantom receiver which has
+                // precedence over all the other receivers.
+                // Arguments:
+                //   n         - How many events to send. A negative n acts like
+                //               a phantom receiver.
+                // Returns:
+                //   Same as GetCount.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Receive(emInt64 n=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+                <SPAN CLASS=c>// Receive this event n times. If there are at least n pending
+                // events, this method returns immediately. Otherwise this
+                // thread is added to an internal queue and it sleeps until it
+                // is removed from the queue by Send, or until the time-out
+                // elapses.
+                // Arguments:
+                //   n         - How many events to receive. A negative n acts
+                //               exactly like Send(-n).
+                //   timeoutMS - Time-out in milliseconds. UINT_MAX means
+                //               infinite.
+                // Returns:
+                //   true if the events have been received, or false on
+                //   time-out. On time-out, absolute no event is removed from
+                //   the internal counter.
+
+        </SPAN>emInt64 GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the number of pending sendings of this event. A negative
+                // value indicates waiting receivers.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetCount(emInt64 count);
+                <SPAN CLASS=c>// Same as Send(count-GetCount()), but atomically.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear();
+                <SPAN CLASS=c>// Same as SetCount(0).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>UpdateReceivers();
+
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> Mutex;
+        emInt64 Count;
+        emThreadEventReceivers * Receivers;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A>::Clear()
+<SPAN CLASS=b>{
+        </SPAN>SetCount(<SPAN CLASS=u>0</SPAN>);
+<SPAN CLASS=b>}
+
+
+<A NAME="emThreadMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> : <SPAN CLASS=t>private </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a normal mutual exclusion variable. Its properties are:
+        // - The lock methods support a time-out.
+        // - Waiting is non-busy.
+        // - Waiting is fair (first come, first serve).
+        // - There are methods for solving the readers/writers problem. This
+        //   means, the mutex can be locked by either a single thread for
+        //   read/write access, or by one or more threads for read-only
+        //   access. If you don't need that, simply don't use the *ReadOnly
+        //   methods.
+        // - This mutex does not support recursive locks. A thread would
+        //   dead-lock when trying to lock the mutex more than once (except when
+        //   locking for read-only access).
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>();
+        ~<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>();
+
+        <SPAN CLASS=t>bool </SPAN>Lock(<SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+                <SPAN CLASS=c>// Lock this mutex (for read/write access). Only one thread can
+                // have the mutex locked this way at a time, without any
+                // read-access locks in parallel. Therefore this method may
+                // block in order to wait for unlocked state.
+                // Arguments:
+                //   timeoutMS - Time-out in milliseconds. UINT_MAX means
+                //               infinite.
+                // Returns:
+                //   true if the mutex has been locked, false on time-out.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Unlock();
+                <SPAN CLASS=c>// Unlock this mutex (from read/write access).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsLocked() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this mutex is currently locked (for read/write
+                // access).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>LockReadOnly(<SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+                <SPAN CLASS=c>// Lock this mutex for read-only access. Multiple threads
+                // can have locked the mutex this way simultaneously. If a
+                // thread has locked the mutex for read/write access (with
+                // Lock), this method may block in order to wait for unlocked
+                // state.
+                // Arguments:
+                //   timeoutMS - Time-out in milliseconds. UINT_MAX means
+                //               infinite.
+                // Returns:
+                //   true if the mutex has been locked, false on time-out.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>UnlockReadOnly();
+                <SPAN CLASS=c>// Unlock this mutex from read/write access.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsLockedAnyhow() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this mutex is currently locked for any access.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{ </SPAN>MAX_COUNT = <SPAN CLASS=u>2147483647 </SPAN><SPAN CLASS=b>}</SPAN>;
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A> Event;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::Lock(<SPAN CLASS=t>unsigned </SPAN>timeoutMS)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Event.Receive(MAX_COUNT,timeoutMS);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::IsLocked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Event.GetCount()&lt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::LockReadOnly(<SPAN CLASS=t>unsigned </SPAN>timeoutMS)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Event.Receive(<SPAN CLASS=u>1</SPAN>,timeoutMS);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::IsLockedAnyhow() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Event.GetCount()&lt;MAX_COUNT;
+<SPAN CLASS=b>}
+
+
+<A NAME="emThreadRecursiveMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is just like <A CLASS=m HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>, but it supports recursive locks, and
+        // therefore it lacks the readers/writers solution (having the whole
+        // luxury would be very costly).
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A>();
+        ~<A CLASS=l HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A>();
+
+        <SPAN CLASS=t>bool </SPAN>Lock(<SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
+        <SPAN CLASS=t>void </SPAN>Unlock();
+        <SPAN CLASS=t>bool </SPAN>IsLocked() <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A> Event;
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> Mutex;
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadId">emThreadId</A> ThreadId;
+        <SPAN CLASS=t>int </SPAN>LockCount;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A>::IsLocked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Event.GetCount()&lt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+
+<A NAME="emThreadInitMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a special mutex which helps to execute initialization code
+        // once in a thread-safe way. It is best explained by a typical usage
+        // example:
+        //
+        //   void MyFunc()
+        //   {
+        //     static <A CLASS=m HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A> initMutex;
+        //     static Something something;
+        //
+        //     if (initMutex.Begin()) {
+        //       something.Initialize();
+        //       initMutex.End();
+        //     }
+        //     something.Use();
+        //   }
+        //
+        // Only the first call to MyFunc() executes something.Initialize(). If
+        // further threads are calling MyFunc() simultaneously, they are blocked
+        // in initMutex.Begin() until the first thread calls initMutex.End(),
+        // so that it is guaranteed that something.Initialize() has finished
+        // before something.Use() is called by any thread.
+        //
+        // Note that blocking by Begin() may perform some kind of busy waiting,
+        // similar to <A CLASS=m HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A>();
+        ~<A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A>();
+
+        <SPAN CLASS=t>bool </SPAN>Begin();
+        <SPAN CLASS=t>void </SPAN>End();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>bool </SPAN>BeginImp();
+
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> Mutex;
+        <SPAN CLASS=t>bool </SPAN>Active;
+        <SPAN CLASS=t>volatile bool </SPAN>Done;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A>::Begin()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Done ? <SPAN CLASS=k>false </SPAN>: BeginImp();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

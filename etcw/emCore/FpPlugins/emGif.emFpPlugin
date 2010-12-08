@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".gif" }
+Priority = 1.0
+Library = "emGif"
+Function = "emGifFpPluginFunc"

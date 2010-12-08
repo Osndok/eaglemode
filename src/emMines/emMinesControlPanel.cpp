@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -78,6 +78,7 @@ emMinesControlPanel::emMinesControlPanel(
 	SetLook(look,true);
 
 	AddWakeUpSignal(BtStartGame->GetClickSignal());
+	AddWakeUpSignal(Mdl->GetChangeSignal());
 }
 
 
@@ -95,6 +96,9 @@ bool emMinesControlPanel::Cycle()
 		) {
 			Mdl->StartGame((int)SfLevel->GetValue());
 		}
+	}
+	if (IsSignaled(Mdl->GetChangeSignal())) {
+		SfLevel->SetValue(Mdl->DetectLevel());
 	}
 	return emTkTiling::Cycle();
 }

@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".rgb" }
+Priority = 1.0
+Library = "emRgb"
+Function = "emRgbFpPluginFunc"

@@ -1,0 +1,140 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emGUIFramework.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>.h
+//
+// Copyright (C) 2007-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emGUIFramework_h
+#define emGUIFramework_h
+
+#ifndef emScreen_h
+#include &lt;<A CLASS=f HREF="emCore_emScreen_h.html">emCore/emScreen.h</A>&gt;
+#endif
+
+
+<A NAME="MAIN_OR_WINMAIN_HERE"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================ MAIN_OR_WINMAIN_HERE ============================
+//==============================================================================
+
+// The macro MAIN_OR_WINMAIN_HERE implements the normal main function or the
+// Windows WinMain function. It calls the static function wrapped_main, which
+// has to be defined by the application programmer. Example usage:
+//
+//   MAIN_OR_WINMAIN_HERE
+//
+//   static int wrapped_main(int argc, char * argv[])
+//   {
+//     ...
+//   }
+
+</SPAN><SPAN CLASS=p>#if defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)
+#       ifndef _INC_WINDOWS
+#               include &lt;windows.h&gt;
+#       endif
+#       define MAIN_OR_WINMAIN_HERE \
+                </SPAN><SPAN CLASS=t>static int </SPAN>wrapped_main(<SPAN CLASS=t>int </SPAN>argc, <SPAN CLASS=t>char </SPAN>* argv[]); \
+                <SPAN CLASS=t>int </SPAN>__stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, <SPAN CLASS=t>int</SPAN>) \
+                <SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>return </SPAN>wrapped_main(__argc,__argv); \
+                <SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#else
+#       define MAIN_OR_WINMAIN_HERE \
+                </SPAN><SPAN CLASS=t>static int </SPAN>wrapped_main(<SPAN CLASS=t>int </SPAN>argc, <SPAN CLASS=t>char </SPAN>* argv[]); \
+                <SPAN CLASS=t>int </SPAN>main(<SPAN CLASS=t>int </SPAN>argc, <SPAN CLASS=t>char </SPAN>* argv[]) \
+                <SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>return </SPAN>wrapped_main(argc,argv); \
+                <SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+
+<A NAME="emGUIFramework"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Framework for a program with graphical user interface. An object of
+        // this class has an <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> and an <A CLASS=m HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> with an <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>
+        // and an <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A> installed.
+
+        </SPAN><A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>();
+                <SPAN CLASS=c>// Constructor.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+                <SPAN CLASS=c>// Get the scheduler.
+
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+                <SPAN CLASS=c>// Get the root context. It has an <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A> and an <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoTermination(<SPAN CLASS=t>bool </SPAN>autoTermination=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether to call GetScheduler().InitiateTermination(0)
+                // automatically when the last window has been destructed.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>Run();
+                <SPAN CLASS=c>// Same as GetScheduler().Run()
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>class </SPAN>AutoTerminatorClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                AutoTerminatorClass(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
+                <SPAN CLASS=t>virtual </SPAN>~AutoTerminatorClass();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>&gt; Screen;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> * Scheduler;
+        <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> * RootContext;
+        AutoTerminatorClass * AutoTerminator;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::GetScheduler()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Scheduler;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::GetRootContext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*RootContext;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::Run()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Scheduler-&gt;Run();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

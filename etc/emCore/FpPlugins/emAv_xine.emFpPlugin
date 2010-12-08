@@ -22,12 +22,14 @@ FileTypes = {
  ".flv"
  ".m2t"
  ".m2v"
+ ".mkv"
  ".mov"
  ".mp4"
  ".mpeg"
  ".mpg"
  ".mpv"
  ".rm"
+ ".vob"
  ".wmv"
 }
 Priority = 1.0

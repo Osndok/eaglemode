@@ -2,6 +2,7 @@ package defaults;
 
 use strict;
 use warnings;
+use Config;
 
 sub GetDepedencies
 {
@@ -22,26 +23,27 @@ sub GetFileHandlingRules
 
 		# Set the exec flag for all files ending with '.sh', '.pl',
 		# '.exe' or '.dll' (It's Cygwin which needs exec flags on
-		# DLL's).
+		# DLLs).
 		'+exec:\.(sh|pl|exe|dll)$',
 
-		# Set the clean, install and exec flags for the 'bin' directory
-		# tree.
-		'+clean+install+exec:^bin(/|$)',
+		# Set the exec flag for the 'bin' directory tree.
+		'+exec:^bin(/|$)',
 
-		# Set the clean and install flags for the 'lib' directory tree.
-		'+clean+install:^lib(/|$)',
+		# Set the clean flag for several directory trees.
+		'+clean:^(bin|lib|obj|packages)(/|$)',
 
-		# Set the clean flag for the 'obj' directory tree.
-		'+clean:^obj(/|$)',
-
-		# Set the install flag for further directory trees.
-		'+install:^(doc|etc|include|res)(/|$)',
+		# Set the install flag for several directory trees.
+		'+install:^(bin|doc|'.
+		($Config{'osname'} eq "MSWin32" ? 'etcw' : 'etc').
+		'|lib|include|res)(/|$)',
 
 		# But clear the clean and install flags for all paths containing
 		# the name 'src'. (e.g. res/xxx/src/yyy would not be installed,
 		# but res/xxx/src.old/yyy would!)
-		'-clean-install:(^|/)src(/|$)'
+		'-clean-install:(^|/)src(/|$)',
+
+		# And do not install the postscript documentation on Windows.
+		$Config{'osname'} eq "MSWin32" ? ('-install:^doc/ps(/|$)') : ()
 
 	);
 }

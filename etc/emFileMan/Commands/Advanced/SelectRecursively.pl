@@ -120,6 +120,8 @@ sub SrDoPathName
 	) {
 		$foundAnyHidden=1;
 	}
+
+	return $foundAny;
 }
 
 print("\nFound the following files and directories:\n\n");

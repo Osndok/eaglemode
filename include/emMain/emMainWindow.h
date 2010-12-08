@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,6 +72,7 @@ private:
 		emMainWindow & MainWin;
 	};
 
+	emRef<emMainConfig> MainConfig;
 	emRef<emBookmarksModel> BookmarksModel;
 
 	emMainPanel * MainPanel;
@@ -79,7 +80,9 @@ private:
 	emPanel * ContentPanel;
 
 	emTkButton * BtNewWindow;
-	emTkButton * BtFullscreen;
+	emTkCheckButton * BtFullscreen;
+	emTkCheckButton * BtAutoHideControlView;
+	emTkCheckButton * BtAutoHideSlider;
 	emTkButton * BtReload;
 	emTkButton * BtClose;
 	emTkButton * BtQuit;

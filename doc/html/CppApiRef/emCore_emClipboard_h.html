@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emClipboard.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emClipboard_h
+#define emClipboard_h
+
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+
+<A NAME="emClipboard"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This model class acts as an interface to the common clipboard and the
+        // common selection. It is an abstract base class for an interface
+        // implementation. Such an implementation should also define a public
+        // method like this:
+        //
+        //   static void Install(<A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context);
+        //
+        // That method should find or create an instance of the interface
+        // implementation within the given context, and it should call the
+        // protected method Install for registering it as the interface to be
+        // returned by LookupInherited. The main program or the <A CLASS=m HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>
+        // implementation should call the public Install method on the root
+        // context at program start.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>&gt; LookupInherited(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context);
+                <SPAN CLASS=c>// Get a reference to the clipboard interface.
+                // Arguments:
+                //   context - The context where the clipboard interface has
+                //             been installed, or any descendant context.
+                //             Typically, it should have been installed in the
+                //             root context, so you can give any context here.
+                // Returns:
+                //   The reference to the interface, or a NULL reference if not
+                //   found.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>emInt64 PutText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; str, <SPAN CLASS=t>bool </SPAN>selection=<SPAN CLASS=k>false</SPAN>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Put a text to the clipboard or selection.
+                // Arguments:
+                //   str       - The text.
+                //   selection - Whether to put the text to the clipboard
+                //               (false) or to the selection (true).
+                // Returns:
+                //   An identification number for the new selection (see Clear).
+                //   If the text is put to the clipboard, the return value has
+                //   no meaning.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Clear(<SPAN CLASS=t>bool </SPAN>selection=<SPAN CLASS=k>false</SPAN>, emInt64 selectionId=<SPAN CLASS=u>0</SPAN>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Clear the clipboard or selection.
+                // Arguments:
+                //   selection   - Whether to clear the clipboard (false) or the
+                //                 selection (true).
+                //   selectionId - If the selection is to be cleared:
+                //                 Identification number retrieved with PutText.
+                //                 If anyone else has modified the selection in
+                //                 between, the call is ignored and the
+                //                 selection is not cleared.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetText(<SPAN CLASS=t>bool </SPAN>selection=<SPAN CLASS=k>false</SPAN>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the text from the clipboard or selection.
+                // Arguments:
+                //   selection - Whether to ask the clipboard (false) or the
+                //               selection (true).
+                // Returns:
+                //   The text, or an empty string if cleared.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Install();
+                <SPAN CLASS=c>// Register this interface so that it can be found by
+                // LookupInherited.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,6 +90,8 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	SeekPosPanel=NULL;
 	StressTest=NULL;
 	NavByProgState=0;
+	EmuMidButtonTime=0;
+	EmuMidButtonRepeat=0;
 	memset(CheatBuffer,0,sizeof(CheatBuffer));
 
 	UpdateEngine->WakeUp();
@@ -167,6 +169,7 @@ void emView::SetViewFlags(ViewFlags viewFlags)
 		}
 		ZoomScrollInAction=false;
 		SVPChoiceInvalid=true;
+		Signal(ViewFlagsSignal);
 		UpdateEngine->WakeUp();
 	}
 }
@@ -586,7 +589,7 @@ void emView::VisitDown()
 void emView::VisitNeighbour(int direction)
 {
 	emPanel * p, * n, * current, * parent, * best;
-	double cx1,cy1,cx2,cy2,nx1,ny1,nx2,ny2,dx,dy,d,e,fx,fy,f,bestVal,val;
+	double cx1,cy1,cx2,cy2,nx1,ny1,nx2,ny2,dx,dy,d,e,fx,fy,f,bestVal,val,defdx;
 
 	if (!ProtectSeeking) AbortSeeking();
 	direction&=3;
@@ -607,8 +610,9 @@ void emView::VisitNeighbour(int direction)
 		}
 		best=NULL;
 		bestVal=0.0;
+		defdx=-1.0;
 		for (n=parent->GetFocusableFirstChild(); n; n=n->GetFocusableNext()) {
-			if (n==current) continue;
+			if (n==current) { defdx=-defdx; continue; }
 			nx1=0; ny1=0; nx2=1.0; ny2=n->GetHeight();
 			for (p=n; p!=parent; p=p->GetParent()) {
 				f=p->GetLayoutWidth();
@@ -639,7 +643,7 @@ void emView::VisitNeighbour(int direction)
 			if (f>1E-30) { dx+=fx/f; dy+=fy/f; }
 			f=sqrt(dx*dx+dy*dy);
 			if (f>1E-30) { dx/=f; dy/=f; }
-			else { dx=1.0; dy=0.0; }
+			else { dx=defdx; dy=0.0; }
 			fx=(nx1+nx2-cx1-cx2)*0.5;
 			fy=(ny1+ny2-cy1-cy2)*0.5;
 			d=sqrt(fx*fx+fy*fy);
@@ -659,7 +663,7 @@ void emView::VisitNeighbour(int direction)
 				dx=-dx;
 				dy=-dy;
 			}
-			if (dx<=0.0) continue;
+			if (dx<=1E-12) continue;
 			val=(e*10+d)*(1+2*dy*dy);
 			if (fabs(dy)>0.707) val*=1000*dy*dy*dy*dy;
 			if (!best || val<bestVal) {
@@ -911,6 +915,10 @@ void emView::Input(emInputEvent & event, const emInputState & state)
 	rwstate=state;
 
 	if (SeekEngine) SeekEngine->Input(event,rwstate);
+
+	if (CoreConfig->EmulateMiddleButton) {
+		EmulateMiddleButton(event,rwstate);
+	}
 
 	if ((VFlags&VF_NO_USER_NAVIGATION)==0) {
 		DoCheats(event,rwstate);
@@ -1929,7 +1937,7 @@ void emView::NavigateByUser(emInputEvent & event, emInputState & state)
 			LastMouseY=my;
 		}
 	}
-	else if (ZoomScrollInAction && !state.GetMiddleButton()) {
+	else if (ZoomScrollInAction && (!state.GetMiddleButton() || !Focused)) {
 		ZoomScrollInAction=false;
 	}
 
@@ -1959,7 +1967,7 @@ void emView::NavigateByUser(emInputEvent & event, emInputState & state)
 				Scroll(dmx*f,dmy*f);
 				if (
 					(VFlags&VF_EGO_MODE)!=0 ||
-					CoreConfig->StickMouseWhenNavigating
+					(CoreConfig->StickMouseWhenNavigating && !CoreConfig->PanFunction)
 				) {
 					MoveMousePointer(-dmx,-dmy);
 					mx-=dmx;
@@ -2085,6 +2093,36 @@ void emView::NavigateByProgram(emInputEvent & event, emInputState & state)
 }
 
 
+void emView::EmulateMiddleButton(emInputEvent & event, emInputState & state)
+{
+	emUInt64 d;
+
+	// Remember that we have to make sure that the event is not emulated
+	// multiple times by nested views. Therefore this condition:
+	if (!state.Get(EM_KEY_MIDDLE_BUTTON)) {
+		if (
+			(event.GetKey()==EM_KEY_ALT || event.GetKey()==EM_KEY_ALT_GR) &&
+			event.GetRepeat()==0
+		) {
+			state.Set(EM_KEY_MIDDLE_BUTTON,true);
+			emInputState tmpState(state);
+			tmpState.Set(EM_KEY_ALT,false);
+			tmpState.Set(EM_KEY_ALT_GR,false);
+			d=emGetClockMS()-EmuMidButtonTime;
+			if (d<330) EmuMidButtonRepeat++;
+			else EmuMidButtonRepeat=0;
+			EmuMidButtonTime+=d;
+			emInputEvent tmpEvent;
+			tmpEvent.Setup(EM_KEY_MIDDLE_BUTTON,emString(),EmuMidButtonRepeat,0);
+			emView::Input(tmpEvent,tmpState);
+		}
+		else if (state.Get(EM_KEY_ALT) || state.Get(EM_KEY_ALT_GR)) {
+			state.Set(EM_KEY_MIDDLE_BUTTON,true);
+		}
+	}
+}
+
+
 void emView::DoCheats(emInputEvent & event, emInputState & state)
 {
 	const char * p, * func;
@@ -2133,9 +2171,19 @@ void emView::DoCheats(emInputEvent & event, emInputState & state)
 
 	// StickMouseWhenNavigating on/off: chEat:smwn!
 	else if (strcmp(func,"smwn")==0) {
-		CoreConfig->StickMouseWhenNavigating=
-			!CoreConfig->StickMouseWhenNavigating
-		;
+		CoreConfig->StickMouseWhenNavigating.Invert();
+		CoreConfig->Save();
+	}
+
+	// EmulateMiddleButton on/off: chEat:emb!
+	else if (strcmp(func,"emb")==0) {
+		CoreConfig->EmulateMiddleButton.Invert();
+		CoreConfig->Save();
+	}
+
+	// PanFunction on/off: chEat:pan!
+	else if (strcmp(func,"pan")==0) {
+		CoreConfig->PanFunction.Invert();
 		CoreConfig->Save();
 	}
 
@@ -2500,7 +2548,8 @@ double emView::GetMouseScrollSpeed(bool fine) const
 
 	if (fine) f=CoreConfig->MouseFineScrollSpeedFactor*0.1;
 	else      f=CoreConfig->MouseScrollSpeedFactor;
-	return 6.0*f;
+	if (CoreConfig->PanFunction) f=-f; else f=6.0*f;
+	return f;
 }
 
 

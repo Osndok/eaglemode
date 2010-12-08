@@ -26,6 +26,7 @@ if (IsFirstPass()) {
 
 	ErrorIfNoSources();
 	ErrorIfNotSingleTarget();
+	ErrorIfRootSources();
 
 	ConfirmIfSourcesAccrossDirs();
 

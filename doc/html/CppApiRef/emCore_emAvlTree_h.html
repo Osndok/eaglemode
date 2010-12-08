@@ -1,0 +1,955 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emAvlTree.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emAvlTree.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emAvlTree_h
+#define emAvlTree_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="AVL_tree_macros"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== AVL-tree macros ===============================
+//==============================================================================
+
+// Here you can find data types and macro definitions for a highly optimized AVL
+// tree implementation. For an example of how to use it, see the implementation
+// of the template class <A CLASS=m HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> more below.
+
+//----------------------------------- Types ------------------------------------
+
+</SPAN><SPAN CLASS=t>struct </SPAN>emAvlNode <SPAN CLASS=b>{
+        </SPAN>emAvlNode * Left;
+        emAvlNode * Right;
+        <SPAN CLASS=t>int </SPAN>Balance;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>typedef </SPAN>emAvlNode * emAvlTree;
+
+<SPAN CLASS=t>struct </SPAN>emAvlIterator <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>emAvlNode * nstack[<SPAN CLASS=u>64</SPAN>];
+        <SPAN CLASS=t>int </SPAN>depth;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=c>//--------------------------------- Utilities ----------------------------------
+
+</SPAN><SPAN CLASS=t>int </SPAN>emAvlCheck(<SPAN CLASS=t>const </SPAN>emAvlTree tree);
+        <SPAN CLASS=c>// Check consistency of the tree and return its height. Exits this
+        // process and prints a message on failure.
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,NODE_POINTER) \
+        </SPAN>((ELEMENT_CLASS*)(((<SPAN CLASS=t>char</SPAN>*)(NODE_POINTER)) \
+        -offsetof(ELEMENT_CLASS,NODE_MEMBER)))
+
+<SPAN CLASS=c>//---------------------- Macros for the insert algorithm -----------------------
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_INSERT_VARS(ELEMENT_CLASS) \
+        </SPAN>emAvlTree * tstack[<SPAN CLASS=u>64</SPAN>]; \
+        <SPAN CLASS=t>int </SPAN>depth; \
+        emAvlNode * node1, * node2, * node3; \
+        emAvlTree * tree, * tree2; \
+        ELEMENT_CLASS * element;
+
+<SPAN CLASS=p>#define EM_AVL_INSERT_BEGIN_SEARCH(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+        </SPAN>tree=&amp;TREE; \
+        depth=<SPAN CLASS=u>0</SPAN>; \
+        node1=*tree; \
+        <SPAN CLASS=k>if </SPAN>(!node1) element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=k>else for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node1);
+
+<SPAN CLASS=p>#define EM_AVL_INSERT_GO_LEFT \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        tstack[depth++]=tree; \
+                        tree=&amp;node1-&gt;Left; \
+                        node1=*tree; \
+                        <SPAN CLASS=k>if </SPAN>(node1) <SPAN CLASS=k>continue</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_INSERT_GO_RIGHT \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        tstack[depth++]=tree; \
+                        tree=&amp;node1-&gt;Right; \
+                        node1=*tree; \
+                        <SPAN CLASS=k>if </SPAN>(node1) <SPAN CLASS=k>continue</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_INSERT_END_SEARCH \
+                </SPAN><SPAN CLASS=k>break</SPAN>; \
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_INSERT_NOW(NODE_MEMBER) \
+        </SPAN>node1=&amp;element-&gt;NODE_MEMBER; \
+        node1-&gt;Left=<SPAN CLASS=u>NULL</SPAN>; \
+        node1-&gt;Right=<SPAN CLASS=u>NULL</SPAN>; \
+        node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+        *tree=node1; \
+        <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                tree2=tree; \
+                tree=tstack[--depth]; \
+                node1=*tree; \
+                <SPAN CLASS=k>if </SPAN>(tree2==&amp;node1-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(node1-&gt;Balance==<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                node1-&gt;Balance=-<SPAN CLASS=u>1</SPAN>; \
+                                <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>else if </SPAN>(node1-&gt;Balance&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                node2=node1-&gt;Left; \
+                                <SPAN CLASS=k>if </SPAN>(node2-&gt;Balance&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                        *tree=node2; \
+                                        node1-&gt;Left=node2-&gt;Right; \
+                                        node2-&gt;Right=node1; \
+                                        node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                        node2-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                <SPAN CLASS=b>} </SPAN>\
+                                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                        node3=node2-&gt;Right; \
+                                        *tree=node3; \
+                                        node1-&gt;Left=node3-&gt;Right; \
+                                        node1-&gt;Balance=-(node3-&gt;Balance&gt;&gt;<SPAN CLASS=u>1</SPAN>); \
+                                        node2-&gt;Balance=(-node3-&gt;Balance)&gt;&gt;<SPAN CLASS=u>1</SPAN>; \
+                                        node2-&gt;Right=node3-&gt;Left; \
+                                        node3-&gt;Left=node2; \
+                                        node3-&gt;Right=node1; \
+                                        node3-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(node1-&gt;Balance==<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                node1-&gt;Balance=<SPAN CLASS=u>1</SPAN>; \
+                                <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>else if </SPAN>(node1-&gt;Balance&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                node2=node1-&gt;Right; \
+                                <SPAN CLASS=k>if </SPAN>(node2-&gt;Balance&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                        *tree=node2; \
+                                        node1-&gt;Right=node2-&gt;Left; \
+                                        node2-&gt;Left=node1; \
+                                        node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                        node2-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                <SPAN CLASS=b>} </SPAN>\
+                                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                        node3=node2-&gt;Left; \
+                                        *tree=node3; \
+                                        node1-&gt;Right=node3-&gt;Left; \
+                                        node1-&gt;Balance=(-node3-&gt;Balance)&gt;&gt;<SPAN CLASS=u>1</SPAN>; \
+                                        node2-&gt;Balance=-(node3-&gt;Balance&gt;&gt;<SPAN CLASS=u>1</SPAN>); \
+                                        node2-&gt;Left=node3-&gt;Right; \
+                                        node3-&gt;Right=node2; \
+                                        node3-&gt;Left=node1; \
+                                        node3-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>break</SPAN>; \
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=c>//---------------------- Macros for the remove algorithm -----------------------
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_REMOVE_VARS(ELEMENT_CLASS) \
+        </SPAN>emAvlTree * tstack[<SPAN CLASS=u>64</SPAN>]; \
+        <SPAN CLASS=t>int </SPAN>depth, depth2; \
+        emAvlNode * node1, * node2, * node3; \
+        emAvlTree * tree, * tree2; \
+        ELEMENT_CLASS * element;
+
+<SPAN CLASS=p>#define EM_AVL_REMOVE_BEGIN(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+        </SPAN>tree=&amp;TREE; \
+        depth=<SPAN CLASS=u>0</SPAN>; \
+        node1=*tree; \
+        <SPAN CLASS=k>if </SPAN>(!node1) element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=k>else for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node1);
+
+<SPAN CLASS=p>#define EM_AVL_REMOVE_GO_LEFT \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        tstack[depth++]=tree; \
+                        tree=&amp;node1-&gt;Left; \
+                        node1=*tree; \
+                        <SPAN CLASS=k>if </SPAN>(node1) <SPAN CLASS=k>continue</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_REMOVE_GO_RIGHT \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        tstack[depth++]=tree; \
+                        tree=&amp;node1-&gt;Right; \
+                        node1=*tree; \
+                        <SPAN CLASS=k>if </SPAN>(node1) <SPAN CLASS=k>continue</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_REMOVE_NOW \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(!node1-&gt;Right) <SPAN CLASS=b>{ </SPAN>\
+                                *tree=node1-&gt;Left; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>else if </SPAN>(!node1-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                                *tree=node1-&gt;Right; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                depth2=depth; \
+                                tstack[depth++]=tree; \
+                                tree=&amp;node1-&gt;Left; \
+                                node2=*tree; \
+                                <SPAN CLASS=k>if </SPAN>(node2-&gt;Right) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                        tstack[depth++]=tree; \
+                                        tree=&amp;node2-&gt;Right; \
+                                        node2=*tree; \
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node2-&gt;Right); \
+                                *tree=node2-&gt;Left; \
+                                node2-&gt;Left=node1-&gt;Left; \
+                                node2-&gt;Right=node1-&gt;Right; \
+                                node2-&gt;Balance=node1-&gt;Balance; \
+                                *tstack[depth2]=node2; \
+                                tstack[depth]=tree; \
+                                tstack[depth2+<SPAN CLASS=u>1</SPAN>]=&amp;node2-&gt;Left; \
+                                tree=tstack[depth]; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                                tree2=tree; \
+                                tree=tstack[--depth]; \
+                                node1=*tree; \
+                                <SPAN CLASS=k>if </SPAN>(tree2==&amp;node1-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                                        <SPAN CLASS=k>if </SPAN>(node1-&gt;Balance&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                        <SPAN CLASS=b>} </SPAN>\
+                                        <SPAN CLASS=k>else if </SPAN>(node1-&gt;Balance==<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                node1-&gt;Balance=<SPAN CLASS=u>1</SPAN>; \
+                                        <SPAN CLASS=b>} </SPAN>\
+                                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                                node2=node1-&gt;Right; \
+                                                <SPAN CLASS=k>if </SPAN>(node2-&gt;Balance&gt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                        *tree=node2; \
+                                                        node1-&gt;Right=node2-&gt;Left; \
+                                                        node2-&gt;Left=node1; \
+                                                        <SPAN CLASS=k>if </SPAN>(node2-&gt;Balance!=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                                node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                                node2-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                                <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                                        <SPAN CLASS=b>} </SPAN>\
+                                                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                                                node1-&gt;Balance=<SPAN CLASS=u>1</SPAN>; \
+                                                                node2-&gt;Balance=-<SPAN CLASS=u>1</SPAN>; \
+                                                        <SPAN CLASS=b>} </SPAN>\
+                                                <SPAN CLASS=b>} </SPAN>\
+                                                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                                        node3=node2-&gt;Left; \
+                                                        *tree=node3; \
+                                                        node1-&gt;Right=node3-&gt;Left; \
+                                                        node1-&gt;Balance=(-node3-&gt;Balance)&gt;&gt;<SPAN CLASS=u>1</SPAN>; \
+                                                        node2-&gt;Balance=-(node3-&gt;Balance&gt;&gt;<SPAN CLASS=u>1</SPAN>); \
+                                                        node2-&gt;Left=node3-&gt;Right; \
+                                                        node3-&gt;Left=node1; \
+                                                        node3-&gt;Right=node2; \
+                                                        node3-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                        <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                                <SPAN CLASS=b>} </SPAN>\
+                                        <SPAN CLASS=b>} </SPAN>\
+                                <SPAN CLASS=b>} </SPAN>\
+                                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                        <SPAN CLASS=k>if </SPAN>(node1-&gt;Balance&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                        <SPAN CLASS=b>} </SPAN>\
+                                        <SPAN CLASS=k>else if </SPAN>(node1-&gt;Balance==<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                node1-&gt;Balance=-<SPAN CLASS=u>1</SPAN>; \
+                                        <SPAN CLASS=b>} </SPAN>\
+                                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                                node2=node1-&gt;Left; \
+                                                <SPAN CLASS=k>if </SPAN>(node2-&gt;Balance&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                        *tree=node2; \
+                                                        node1-&gt;Left=node2-&gt;Right; \
+                                                        node2-&gt;Right=node1; \
+                                                        <SPAN CLASS=k>if </SPAN>(node2-&gt;Balance!=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                                                node1-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                                node2-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                                <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                                        <SPAN CLASS=b>} </SPAN>\
+                                                        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                                                node1-&gt;Balance=-<SPAN CLASS=u>1</SPAN>; \
+                                                                node2-&gt;Balance=<SPAN CLASS=u>1</SPAN>; \
+                                                        <SPAN CLASS=b>} </SPAN>\
+                                                <SPAN CLASS=b>} </SPAN>\
+                                                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                                        node3=node2-&gt;Right; \
+                                                        *tree=node3; \
+                                                        node1-&gt;Left=node3-&gt;Right; \
+                                                        node1-&gt;Balance=-(node3-&gt;Balance&gt;&gt;<SPAN CLASS=u>1</SPAN>); \
+                                                        node2-&gt;Balance=(-node3-&gt;Balance)&gt;&gt;<SPAN CLASS=u>1</SPAN>; \
+                                                        node2-&gt;Right=node3-&gt;Left; \
+                                                        node3-&gt;Right=node1; \
+                                                        node3-&gt;Left=node2; \
+                                                        node3-&gt;Balance=<SPAN CLASS=u>0</SPAN>; \
+                                                        <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                                <SPAN CLASS=b>} </SPAN>\
+                                        <SPAN CLASS=b>} </SPAN>\
+                                <SPAN CLASS=b>} </SPAN>\
+                                <SPAN CLASS=k>break</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_REMOVE_END \
+                </SPAN><SPAN CLASS=k>break</SPAN>; \
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=c>//---------------------- Macros for the search algorithm -----------------------
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_SEARCH_VARS(ELEMENT_CLASS) \
+        </SPAN><SPAN CLASS=t>const </SPAN>emAvlNode * node; \
+        ELEMENT_CLASS * element;
+
+<SPAN CLASS=p>#define EM_AVL_SEARCH_BEGIN(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+        </SPAN>node=TREE; \
+        <SPAN CLASS=k>if </SPAN>(!node) element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=k>else for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node);
+
+<SPAN CLASS=p>#define EM_AVL_SEARCH_GO_LEFT \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        node=node-&gt;Left; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=k>continue</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_SEARCH_GO_LEFT_OR_FOUND \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        node=node-&gt;Left; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=k>continue</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_SEARCH_GO_RIGHT \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        node=node-&gt;Right; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=k>continue</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_SEARCH_GO_RIGHT_OR_FOUND \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        node=node-&gt;Right; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=k>continue</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_SEARCH_END \
+                </SPAN><SPAN CLASS=k>break</SPAN>; \
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=c>//----------------------- Macros for the loop algorithm ------------------------
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_LOOP_VARS(ELEMENT_CLASS) \
+        </SPAN><SPAN CLASS=t>const </SPAN>emAvlNode * nstack[<SPAN CLASS=u>64</SPAN>]; \
+        <SPAN CLASS=t>const </SPAN>emAvlNode * node; \
+        <SPAN CLASS=t>int </SPAN>depth; \
+        ELEMENT_CLASS * element;
+
+<SPAN CLASS=c>// - - - loop from first to last - - -
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_LOOP_START(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+        </SPAN>node=TREE; \
+        <SPAN CLASS=k>if </SPAN>(!node) element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                depth=<SPAN CLASS=u>0</SPAN>; \
+                <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        nstack[depth++]=node; \
+                        node=node-&gt;Left; \
+                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Left); \
+                <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                        element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node);
+
+<SPAN CLASS=p>#define EM_AVL_LOOP_END \
+                        </SPAN>node=node-&gt;Right; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=b>{ </SPAN>\
+                                <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                        nstack[depth++]=node; \
+                                        node=node-&gt;Left; \
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Left); \
+                                <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                depth--; \
+                                node=nstack[depth]; \
+                                <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                        <SPAN CLASS=k>break</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=c>// - - - loop from last to first - - -
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_REV_LOOP_START(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+        </SPAN>node=TREE; \
+        <SPAN CLASS=k>if </SPAN>(!node) element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                depth=<SPAN CLASS=u>0</SPAN>; \
+                <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        nstack[depth++]=node; \
+                        node=node-&gt;Right; \
+                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Right); \
+                <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                        element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node);
+
+<SPAN CLASS=p>#define EM_AVL_REV_LOOP_END \
+                        </SPAN>node=node-&gt;Left; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=b>{ </SPAN>\
+                                <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                        nstack[depth++]=node; \
+                                        node=node-&gt;Right; \
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Right); \
+                                <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                                depth--; \
+                                node=nstack[depth]; \
+                                <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                        <SPAN CLASS=k>break</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=c>//---------------------- Macros for the iterate algorithm ----------------------
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_VARS(ELEMENT_CLASS) \
+        </SPAN><SPAN CLASS=t>const </SPAN>emAvlNode * node; \
+        ELEMENT_CLASS * element;
+
+
+<SPAN CLASS=p>#define EM_AVL_ITER_FIRST(ELEMENT_CLASS,NODE_MEMBER,TREE,ITERATOR) \
+        </SPAN><SPAN CLASS=b>{ </SPAN>\
+                node=TREE; \
+                ITERATOR.depth=<SPAN CLASS=u>0</SPAN>; \
+                <SPAN CLASS=k>if </SPAN>(!node) <SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.nstack[<SPAN CLASS=u>0</SPAN>]=<SPAN CLASS=u>NULL</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.nstack[ITERATOR.depth++]=node; \
+                                node=node-&gt;Left; \
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Left); \
+                        ITERATOR.nstack[ITERATOR.depth]=node; \
+                        element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node); \
+                <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_LAST(ELEMENT_CLASS,NODE_MEMBER,TREE,ITERATOR) \
+        </SPAN><SPAN CLASS=b>{ </SPAN>\
+                node=TREE; \
+                ITERATOR.depth=<SPAN CLASS=u>0</SPAN>; \
+                <SPAN CLASS=k>if </SPAN>(!node) <SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.nstack[<SPAN CLASS=u>0</SPAN>]=<SPAN CLASS=u>NULL</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.nstack[ITERATOR.depth++]=node; \
+                                node=node-&gt;Right; \
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Right); \
+                        ITERATOR.nstack[ITERATOR.depth]=node; \
+                        element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node); \
+                <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_NEXT(ELEMENT_CLASS,NODE_MEMBER,ITERATOR) \
+        </SPAN><SPAN CLASS=b>{ </SPAN>\
+                node=ITERATOR.nstack[ITERATOR.depth]; \
+                <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.depth++; \
+                        node=node-&gt;Right; \
+                        <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.nstack[ITERATOR.depth++]=node; \
+                                node=node-&gt;Left; \
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Left); \
+                        ITERATOR.nstack[ITERATOR.depth]=node; \
+                        element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node); \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else if </SPAN>(ITERATOR.depth&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.nstack[ITERATOR.depth]=<SPAN CLASS=u>NULL</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else  </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.depth--; \
+                                <SPAN CLASS=k>if </SPAN>(node==ITERATOR.nstack[ITERATOR.depth]-&gt;Right) <SPAN CLASS=b>{ </SPAN>\
+                                        node=ITERATOR.nstack[ITERATOR.depth]; \
+                                        <SPAN CLASS=k>if </SPAN>(ITERATOR.depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                                        <SPAN CLASS=k>break</SPAN>; \
+                                <SPAN CLASS=b>} </SPAN>\
+                                node=ITERATOR.nstack[ITERATOR.depth]; \
+                                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node); \
+                                <SPAN CLASS=k>break</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_PREV(ELEMENT_CLASS,NODE_MEMBER,ITERATOR) \
+        </SPAN><SPAN CLASS=b>{ </SPAN>\
+                node=ITERATOR.nstack[ITERATOR.depth]; \
+                <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.depth++; \
+                        node=node-&gt;Left; \
+                        <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.nstack[ITERATOR.depth++]=node; \
+                                node=node-&gt;Right; \
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(node-&gt;Right); \
+                        ITERATOR.nstack[ITERATOR.depth]=node; \
+                        element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node); \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else if </SPAN>(ITERATOR.depth&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.nstack[ITERATOR.depth]=<SPAN CLASS=u>NULL</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>else  </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.depth--; \
+                                <SPAN CLASS=k>if </SPAN>(node==ITERATOR.nstack[ITERATOR.depth]-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                                        node=ITERATOR.nstack[ITERATOR.depth]; \
+                                        <SPAN CLASS=k>if </SPAN>(ITERATOR.depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>continue</SPAN>; \
+                                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                                        <SPAN CLASS=k>break</SPAN>; \
+                                <SPAN CLASS=b>} </SPAN>\
+                                node=ITERATOR.nstack[ITERATOR.depth]; \
+                                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node); \
+                                <SPAN CLASS=k>break</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_START_ANY_BEGIN(ELEMENT_CLASS,NODE_MEMBER,TREE,ITERATOR) \
+        </SPAN>node=TREE; \
+        ITERATOR.depth=<SPAN CLASS=u>0</SPAN>; \
+        <SPAN CLASS=k>if </SPAN>(!node) <SPAN CLASS=b>{ </SPAN>\
+                ITERATOR.nstack[<SPAN CLASS=u>0</SPAN>]=<SPAN CLASS=u>NULL</SPAN>; \
+                element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=b>} </SPAN>\
+        <SPAN CLASS=k>else for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                ITERATOR.nstack[ITERATOR.depth]=node; \
+                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node);
+
+<SPAN CLASS=p>#define EM_AVL_ITER_START_ANY_GO_LEFT(ITERATOR) \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.nstack[ITERATOR.depth++]=node; \
+                        node=node-&gt;Left; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=k>continue</SPAN>; \
+                        ITERATOR.nstack[ITERATOR.depth]=<SPAN CLASS=u>NULL</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_START_ANY_GO_LEFT_OR_FOUND(ITERATOR) \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.nstack[ITERATOR.depth++]=node; \
+                                node=node-&gt;Left; \
+                                <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_START_ANY_GO_RIGHT(ITERATOR) \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        ITERATOR.nstack[ITERATOR.depth++]=node; \
+                        node=node-&gt;Right; \
+                        <SPAN CLASS=k>if </SPAN>(node) <SPAN CLASS=k>continue</SPAN>; \
+                        ITERATOR.nstack[ITERATOR.depth]=<SPAN CLASS=u>NULL</SPAN>; \
+                        element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_START_ANY_GO_RIGHT_OR_FOUND(ITERATOR) \
+                </SPAN><SPAN CLASS=b>{ </SPAN>\
+                        <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=b>{ </SPAN>\
+                                ITERATOR.nstack[ITERATOR.depth++]=node; \
+                                node=node-&gt;Right; \
+                                <SPAN CLASS=k>continue</SPAN>; \
+                        <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_ITER_START_ANY_END \
+                </SPAN><SPAN CLASS=k>break</SPAN>; \
+        <SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//------------ Macros for unions of variable sets of the algorithms ------------
+// this is dirty, isn't it?
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_INS_LOOP_VARS(ELEMENT_CLASS) \
+        </SPAN>EM_AVL_INSERT_VARS(ELEMENT_CLASS) \
+        <SPAN CLASS=t>const </SPAN>emAvlNode * nstack[<SPAN CLASS=u>64</SPAN>]; \
+        <SPAN CLASS=t>const </SPAN>emAvlNode * node;
+
+<SPAN CLASS=p>#define EM_AVL_INS_ITER_VARS(ELEMENT_CLASS) \
+        </SPAN>EM_AVL_INSERT_VARS(ELEMENT_CLASS) \
+        <SPAN CLASS=t>const </SPAN>emAvlNode * node;
+
+<SPAN CLASS=c>//...to be continued...
+
+
+<A NAME="emAvlTreeExample"></A>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>class </SPAN>Iterator;
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN>Iterator;
+        <SPAN CLASS=t>struct </SPAN>Element <SPAN CLASS=b>{
+                </SPAN>OBJ Object;
+                emAvlNode Node;
+        <SPAN CLASS=b>}</SPAN>;
+        emAvlTree Tree;
+<SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a sorted set of objects managed in an AVL tree.
+        // The objects are sorted by the normal compare operators.
+        //
+        // This tree class is meant as a programming example and should not be
+        // used - it may be removed one day.
+        //
+        //??? There are plans to define a better tree class which has the
+        //??? following features:
+        //???
+        //???   * User-defined compare function.
+        //???   * Nice interface for creating maps and sets.
+        //???   * Copy-on-write mechanism.
+        //???   * Both: stable iterators and fast unstable iterators.
+        //???
+        //??? The last feature would require to have parent pointers in the tree
+        //??? nodes. But the EM_AVL macros do not support such parent pointers,
+        //??? due to best performance in their original use (e.g. in <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>).
+        //??? Therefore, an additional set of tree macros has to be developed
+        //??? first - with parent pointers. Maybe it should be made with
+        //??? Red/Black trees instead of AVL. Red/Black trees are faster in
+        //??? removing elements for the cost of a possible worse balance.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>();
+        ~<A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>();
+
+        <SPAN CLASS=t>bool </SPAN>Insert(<SPAN CLASS=t>const </SPAN>OBJ &amp; object);
+                <SPAN CLASS=c>// Insert a copy of the given object. If there is already an
+                // object which equals the given object, nothing is changed and
+                // false is returned.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Remove(<SPAN CLASS=t>const </SPAN>OBJ &amp; object);
+                <SPAN CLASS=c>// Remove the object which equals the given object. If there is
+                // no such object, nothing is changed and false is returned.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Empty();
+                <SPAN CLASS=c>// Remove all objects.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Search(<SPAN CLASS=t>const </SPAN>OBJ &amp; object) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Search for the object which equals the given object, and
+                // return a pointer to the found object. If there is no such
+                // object, NULL is returned.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>Count() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Count the number of objects.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>Check() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Check consistency of the tree and return its height. Exits
+                // this process and prints a message on failure.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Iterator <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// IMPORTANT:
+                //  - After construction, one of the Start methods has to be
+                //    called before calling Next, Prev or Get.
+                //  - If the tree changes while iterating (inserting/removing
+                //    objects), the iterators have to be restarted!
+                //  - When Get() returns NULL, the end has been reached. Next
+                //    and Prev must not be called then.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * StartFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet);
+                <SPAN CLASS=t>const </SPAN>OBJ * StartLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet);
+                        <SPAN CLASS=c>// Start with the first or last object of the given
+                        // tree. Return that object or NULL.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * StartEqual(
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+                );
+                <SPAN CLASS=t>const </SPAN>OBJ * StartGreater(
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+                );
+                <SPAN CLASS=t>const </SPAN>OBJ * StartGreaterOrEqual(
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+                );
+                <SPAN CLASS=t>const </SPAN>OBJ * StartLess(
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+                );
+                <SPAN CLASS=t>const </SPAN>OBJ * StartLessOrEqual(
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A> &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+                );
+                        <SPAN CLASS=c>// Start with an object which is equal, greater, not
+                        // less, less, or not greater than the given object.
+                        // Return that object, or NULL if not found.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Get() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the current object, or NULL...
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Next();
+                <SPAN CLASS=t>const </SPAN>OBJ * Prev();
+                        <SPAN CLASS=c>// Go to the next or previous object. Return that object
+                        // or NULL.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>typedef </SPAN>Element TreeElement;
+                <SPAN CLASS=t>const </SPAN>OBJ * Current;
+                emAvlIterator Iter;
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>()
+<SPAN CLASS=b>{
+        </SPAN>Tree=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::~<A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>()
+<SPAN CLASS=b>{
+        </SPAN>Empty();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Insert(<SPAN CLASS=t>const </SPAN>OBJ &amp; object)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_INSERT_VARS(Element)
+
+        EM_AVL_INSERT_BEGIN_SEARCH(Element,Node,Tree)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_INSERT_GO_LEFT
+                <SPAN CLASS=k>else if </SPAN>(object==element-&gt;Object) <SPAN CLASS=k>return false</SPAN>;
+                <SPAN CLASS=k>else </SPAN>EM_AVL_INSERT_GO_RIGHT
+        EM_AVL_INSERT_END_SEARCH
+                element=<SPAN CLASS=k>new </SPAN>Element;
+                element-&gt;Object=object;
+        EM_AVL_INSERT_NOW(Node)
+        <SPAN CLASS=k>return true</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Remove(<SPAN CLASS=t>const </SPAN>OBJ &amp; object)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_REMOVE_VARS(Element)
+
+        EM_AVL_REMOVE_BEGIN(Element,Node,Tree)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) <SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_GO_LEFT
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(object==element-&gt;Object) <SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_NOW
+                        <SPAN CLASS=k>delete </SPAN>element;
+                        <SPAN CLASS=k>return true</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_GO_RIGHT
+                <SPAN CLASS=b>}
+        </SPAN>EM_AVL_REMOVE_END
+        <SPAN CLASS=k>return false</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Empty()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>while </SPAN>(Tree) <SPAN CLASS=b>{
+                </SPAN>Remove(EM_AVL_ELEMENT(Element,Node,Tree)-&gt;Object);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Search(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,Node,Tree)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_SEARCH_GO_LEFT
+                <SPAN CLASS=k>else if </SPAN>(object==element-&gt;Object) <SPAN CLASS=k>return </SPAN>&amp;element-&gt;Object;
+                <SPAN CLASS=k>else </SPAN>EM_AVL_SEARCH_GO_RIGHT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Count() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_LOOP_VARS(Element)
+        <SPAN CLASS=t>int </SPAN>count;
+
+        count=<SPAN CLASS=u>0</SPAN>;
+        EM_AVL_LOOP_START(Element,Node,Tree)
+                count++;
+        EM_AVL_LOOP_END
+        <SPAN CLASS=k>return </SPAN>count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Check() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>emAvlCheck(Tree);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartFirst(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_FIRST(TreeElement,Node,treeSet.Tree,Iter)
+        Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartLast(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_LAST(TreeElement,Node,treeSet.Tree,Iter)
+        Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartEqual(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_START_ANY_BEGIN(TreeElement,Node,treeSet.Tree,Iter)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_LEFT(Iter)
+                <SPAN CLASS=k>else if </SPAN>(object&gt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_RIGHT(Iter)
+        EM_AVL_ITER_START_ANY_END
+        Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartGreater(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_START_ANY_BEGIN(TreeElement,Node,treeSet.Tree,Iter)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_LEFT_OR_FOUND(Iter)
+                <SPAN CLASS=k>else if </SPAN>(object&gt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_RIGHT_OR_FOUND(Iter)
+        EM_AVL_ITER_START_ANY_END
+        <SPAN CLASS=k>if </SPAN>(element &amp;&amp; object&gt;=element-&gt;Object) <SPAN CLASS=b>{
+                </SPAN>EM_AVL_ITER_NEXT(TreeElement,Node,Iter)
+        <SPAN CLASS=b>}
+        </SPAN>Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartGreaterOrEqual(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_START_ANY_BEGIN(TreeElement,Node,treeSet.Tree,Iter)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_LEFT_OR_FOUND(Iter)
+                <SPAN CLASS=k>else if </SPAN>(object&gt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_RIGHT_OR_FOUND(Iter)
+        EM_AVL_ITER_START_ANY_END
+        <SPAN CLASS=k>if </SPAN>(element &amp;&amp; object&gt;element-&gt;Object) <SPAN CLASS=b>{
+                </SPAN>EM_AVL_ITER_NEXT(TreeElement,Node,Iter)
+        <SPAN CLASS=b>}
+        </SPAN>Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartLess(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_START_ANY_BEGIN(TreeElement,Node,treeSet.Tree,Iter)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_LEFT_OR_FOUND(Iter)
+                <SPAN CLASS=k>else if </SPAN>(object&gt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_RIGHT_OR_FOUND(Iter)
+        EM_AVL_ITER_START_ANY_END
+        <SPAN CLASS=k>if </SPAN>(element &amp;&amp; object&lt;=element-&gt;Object) <SPAN CLASS=b>{
+                </SPAN>EM_AVL_ITER_PREV(TreeElement,Node,Iter)
+        <SPAN CLASS=b>}
+        </SPAN>Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::StartLessOrEqual(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt; &amp; treeSet, <SPAN CLASS=t>const </SPAN>OBJ &amp; object
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_START_ANY_BEGIN(TreeElement,Node,treeSet.Tree,Iter)
+                <SPAN CLASS=k>if </SPAN>(object&lt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_LEFT_OR_FOUND(Iter)
+                <SPAN CLASS=k>else if </SPAN>(object&gt;element-&gt;Object) EM_AVL_ITER_START_ANY_GO_RIGHT_OR_FOUND(Iter)
+        EM_AVL_ITER_START_ANY_END
+        <SPAN CLASS=k>if </SPAN>(element &amp;&amp; object&lt;element-&gt;Object) <SPAN CLASS=b>{
+                </SPAN>EM_AVL_ITER_PREV(TreeElement,Node,Iter)
+        <SPAN CLASS=b>}
+        </SPAN>Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::Next()
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_NEXT(TreeElement,Node,Iter)
+        Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A>&lt;OBJ&gt;::Iterator::Prev()
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(TreeElement)
+
+        EM_AVL_ITER_PREV(TreeElement,Node,Iter)
+        Current= element ? &amp;element-&gt;Object : <SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>Current;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

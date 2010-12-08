@@ -1,0 +1,595 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emInput.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emInput.h
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emInput_h
+#define emInput_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+
+<A NAME="emInputKey"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>enum </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=c>// None:
+        </SPAN>EM_KEY_NONE          = <SPAN CLASS=u>0x00</SPAN>,
+
+        <SPAN CLASS=c>// Mouse buttons and wheel:
+        </SPAN>EM_KEY_LEFT_BUTTON   = <SPAN CLASS=u>0xF0</SPAN>,
+        EM_KEY_MIDDLE_BUTTON = <SPAN CLASS=u>0xF1</SPAN>,
+        EM_KEY_RIGHT_BUTTON  = <SPAN CLASS=u>0xF2</SPAN>,
+        EM_KEY_WHEEL_UP      = <SPAN CLASS=u>0xF3</SPAN>,
+        EM_KEY_WHEEL_DOWN    = <SPAN CLASS=u>0xF4</SPAN>,
+
+        <SPAN CLASS=c>// Keyboard keys:
+        </SPAN>EM_KEY_SHIFT         = <SPAN CLASS=u>0x81</SPAN>,
+        EM_KEY_CTRL          = <SPAN CLASS=u>0x82</SPAN>,
+        EM_KEY_ALT           = <SPAN CLASS=u>0x83</SPAN>,
+        EM_KEY_META          = <SPAN CLASS=u>0x84</SPAN>,
+        EM_KEY_ALT_GR        = <SPAN CLASS=u>0x85</SPAN>,
+        EM_KEY_CURSOR_UP     = <SPAN CLASS=u>0x91</SPAN>,
+        EM_KEY_CURSOR_DOWN   = <SPAN CLASS=u>0x92</SPAN>,
+        EM_KEY_CURSOR_LEFT   = <SPAN CLASS=u>0x93</SPAN>,
+        EM_KEY_CURSOR_RIGHT  = <SPAN CLASS=u>0x94</SPAN>,
+        EM_KEY_PAGE_UP       = <SPAN CLASS=u>0x95</SPAN>,
+        EM_KEY_PAGE_DOWN     = <SPAN CLASS=u>0x96</SPAN>,
+        EM_KEY_HOME          = <SPAN CLASS=u>0x97</SPAN>,
+        EM_KEY_END           = <SPAN CLASS=u>0x98</SPAN>,
+        EM_KEY_PRINT         = <SPAN CLASS=u>0x99</SPAN>,
+        EM_KEY_PAUSE         = <SPAN CLASS=u>0x9A</SPAN>,
+        EM_KEY_MENU          = <SPAN CLASS=u>0x9B</SPAN>,
+        EM_KEY_INSERT        = <SPAN CLASS=u>0x9F</SPAN>,
+        EM_KEY_DELETE        = <SPAN CLASS=u>0x7F</SPAN>,
+        EM_KEY_BACKSPACE     = <SPAN CLASS=u>0x08</SPAN>,
+        EM_KEY_TAB           = <SPAN CLASS=u>0x09</SPAN>,
+        EM_KEY_ENTER         = <SPAN CLASS=u>0x0D</SPAN>,
+        EM_KEY_ESCAPE        = <SPAN CLASS=u>0x1B</SPAN>,
+        EM_KEY_SPACE         = <SPAN CLASS=u>0x20</SPAN>,
+        EM_KEY_0             = <SPAN CLASS=u>0x30</SPAN>,
+        EM_KEY_1             = <SPAN CLASS=u>0x31</SPAN>,
+        EM_KEY_2             = <SPAN CLASS=u>0x32</SPAN>,
+        EM_KEY_3             = <SPAN CLASS=u>0x33</SPAN>,
+        EM_KEY_4             = <SPAN CLASS=u>0x34</SPAN>,
+        EM_KEY_5             = <SPAN CLASS=u>0x35</SPAN>,
+        EM_KEY_6             = <SPAN CLASS=u>0x36</SPAN>,
+        EM_KEY_7             = <SPAN CLASS=u>0x37</SPAN>,
+        EM_KEY_8             = <SPAN CLASS=u>0x38</SPAN>,
+        EM_KEY_9             = <SPAN CLASS=u>0x39</SPAN>,
+        EM_KEY_A             = <SPAN CLASS=u>0x41</SPAN>,
+        EM_KEY_B             = <SPAN CLASS=u>0x42</SPAN>,
+        EM_KEY_C             = <SPAN CLASS=u>0x43</SPAN>,
+        EM_KEY_D             = <SPAN CLASS=u>0x44</SPAN>,
+        EM_KEY_E             = <SPAN CLASS=u>0x45</SPAN>,
+        EM_KEY_F             = <SPAN CLASS=u>0x46</SPAN>,
+        EM_KEY_G             = <SPAN CLASS=u>0x47</SPAN>,
+        EM_KEY_H             = <SPAN CLASS=u>0x48</SPAN>,
+        EM_KEY_I             = <SPAN CLASS=u>0x49</SPAN>,
+        EM_KEY_J             = <SPAN CLASS=u>0x4A</SPAN>,
+        EM_KEY_K             = <SPAN CLASS=u>0x4B</SPAN>,
+        EM_KEY_L             = <SPAN CLASS=u>0x4C</SPAN>,
+        EM_KEY_M             = <SPAN CLASS=u>0x4D</SPAN>,
+        EM_KEY_N             = <SPAN CLASS=u>0x4E</SPAN>,
+        EM_KEY_O             = <SPAN CLASS=u>0x4F</SPAN>,
+        EM_KEY_P             = <SPAN CLASS=u>0x50</SPAN>,
+        EM_KEY_Q             = <SPAN CLASS=u>0x51</SPAN>,
+        EM_KEY_R             = <SPAN CLASS=u>0x52</SPAN>,
+        EM_KEY_S             = <SPAN CLASS=u>0x53</SPAN>,
+        EM_KEY_T             = <SPAN CLASS=u>0x54</SPAN>,
+        EM_KEY_U             = <SPAN CLASS=u>0x55</SPAN>,
+        EM_KEY_V             = <SPAN CLASS=u>0x56</SPAN>,
+        EM_KEY_W             = <SPAN CLASS=u>0x57</SPAN>,
+        EM_KEY_X             = <SPAN CLASS=u>0x58</SPAN>,
+        EM_KEY_Y             = <SPAN CLASS=u>0x59</SPAN>,
+        EM_KEY_Z             = <SPAN CLASS=u>0x5A</SPAN>,
+        EM_KEY_F1            = <SPAN CLASS=u>0xA1</SPAN>,
+        EM_KEY_F2            = <SPAN CLASS=u>0xA2</SPAN>,
+        EM_KEY_F3            = <SPAN CLASS=u>0xA3</SPAN>,
+        EM_KEY_F4            = <SPAN CLASS=u>0xA4</SPAN>,
+        EM_KEY_F5            = <SPAN CLASS=u>0xA5</SPAN>,
+        EM_KEY_F6            = <SPAN CLASS=u>0xA6</SPAN>,
+        EM_KEY_F7            = <SPAN CLASS=u>0xA7</SPAN>,
+        EM_KEY_F8            = <SPAN CLASS=u>0xA8</SPAN>,
+        EM_KEY_F9            = <SPAN CLASS=u>0xA9</SPAN>,
+        EM_KEY_F10           = <SPAN CLASS=u>0xAA</SPAN>,
+        EM_KEY_F11           = <SPAN CLASS=u>0xAB</SPAN>,
+        EM_KEY_F12           = <SPAN CLASS=u>0xAC
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=t>bool </SPAN>emIsMouseInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <SPAN CLASS=c>// True for mouse buttons and mouse wheel.
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emIsKeyboardInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <SPAN CLASS=c>// True for all keyboard keys, including modifiers.
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emIsModifierInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <SPAN CLASS=c>// True for shift, ctrl, alt and meta.
+
+</SPAN><SPAN CLASS=t>const char </SPAN>* emInputKeyToString(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> emStringToInputKey(<SPAN CLASS=t>const char </SPAN>* str);
+        <SPAN CLASS=c>// Convert an input key to and from string representation.
+
+
+<A NAME="emInputEvent"></A>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for an input event. Such an event consists of an input key
+        // (mouse buttons and wheel are even "keys" here), which has changed
+        // from non-pressed to pressed state. Instead of a key, or in addition
+        // to the key, a translation into text characters may be provided. It is
+        // possible that an original event comes through two input events: one
+        // with the input key, and one with the translated text characters (at
+        // the time of writing this, it is so with emWndsWindowPort, but not
+        // with emX11WindowPort).
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>();
+                <SPAN CLASS=c>// Construct an event which is initially empty.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Setup(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; chars, <SPAN CLASS=t>int </SPAN>repeat,
+                   <SPAN CLASS=t>int </SPAN>variant);
+                <SPAN CLASS=c>// Set-up the event.
+                // Arguments:
+                //   key     - see GetKey().
+                //   chars   - see GetChars().
+                //   repeat  - see GetRepeat().
+                //   variant - see GetVariant().
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> GetKey() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the key. This is EM_KEY_NONE if the event is empty or if
+                // the event provides characters only (see GetChars()).
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetChars() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the translated text characters. This should be at most
+                // one text character, but possibly encoded as a multi-byte
+                // sequence (e.g. UTF-8). This is an empty string if the event
+                // is empty, or if the key could not be translated.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetRepeat() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of event repetitions. For example, 1 means
+                // double-click for mouse buttons.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetVariant() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get variant of the event source. If the key is on the numeric
+                // key pad, or if it is the right shift, right ctrl or right alt
+                // key, then this should be 1. Otherwise this should be 0.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Eat();
+                <SPAN CLASS=c>// Eat this event (make it an empty event).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsMouseEvent() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsKeyboardEvent() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask for the type of event. One of these returns true.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like GetKey()==key.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsLeftButton() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsMiddleButton() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsRightButton() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like GetKey()==EM_KEY_LEFT_BUTTON and so on.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> Key;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Chars;
+        <SPAN CLASS=t>int </SPAN>Repeat,Variant;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emInputState"></A><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emInput_h.html#emInputState">emInputState</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for the state of keyboard and mouse. The state consists of the
+        // mouse pointer position, and which keys are pressed. (Mouse buttons
+        // are even keys)
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>();
+                <SPAN CLASS=c>// Construct without having any key pressed.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; inputState);
+                <SPAN CLASS=c>// Construct a copy of an input state.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; inputState);
+                <SPAN CLASS=c>// Copy another input state to this input state.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; inputState) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; inputState) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Comparison operators.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMouseX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMouseY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMouse(<SPAN CLASS=t>double </SPAN>mouseX, <SPAN CLASS=t>double </SPAN>mouseY);
+                <SPAN CLASS=c>// Get or set the mouse position in pixel coordinates of the
+                // view.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Get(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>Set(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key, <SPAN CLASS=t>bool </SPAN>pressed);
+                <SPAN CLASS=c>// Get or set the state of a particular keyboard key or mouse
+                // button. It is true if the key or button is pressed, false
+                // otherwise. EM_KEY_WHEEL_UP and EM_KEY_WHEEL_DOWN should never
+                // be set here.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>GetLeftButton() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetMiddleButton() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetRightButton() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetShift() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetCtrl() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetAlt() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetMeta() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// These are just some abbreviations. It's like
+                // Get(EM_KEY_LEFT_BUTTON) and so on.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsNoMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftCtrlMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftCtrlAltMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftCtrlAltMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftCtrlMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftAltMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftAltMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShiftMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsCtrlMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsCtrlAltMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsCtrlAltMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsCtrlMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsAltMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsAltMetaMod() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsMetaMod() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Test the four modifier keys at once. For example,
+                // IsShiftMetaMod() is like (GetShift() &amp;&amp; !GetCtrl() &amp;&amp;
+                // !GetAlt() &amp;&amp; GetMeta()).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>ClearKeyStates();
+                <SPAN CLASS=c>// Set all keys to non-pressed state. Returns true if something
+                // was pressed.
+
+        </SPAN><SPAN CLASS=t>const unsigned char </SPAN>* GetKeyStates() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>unsigned char </SPAN>* GetKeyStates();
+                <SPAN CLASS=c>// Get a pointer to the states of all keyboard keys and mouse
+                // buttons, even for modification. The size of the returned
+                // array is 32 bytes. A key is pressed if
+                // GetKeyStates()[key&gt;&gt;3]&amp;(1&lt;&lt;(key&amp;7)) is non-zero.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>double </SPAN>MouseX, MouseY;
+        <SPAN CLASS=t>unsigned char </SPAN>KeyStates[<SPAN CLASS=u>32</SPAN>];
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emInputHotkey"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a hotkey. It is a combination of modifier keys and a
+        // non-modifier keyboard key.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>();
+                <SPAN CLASS=c>// Construct an invalid hotkey.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey);
+                <SPAN CLASS=c>// Copy constructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier, <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier1, <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier2,
+                      <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier1, <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier2,
+                      <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier3, <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier1, <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier2,
+                      <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier3, <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier4,
+                      <A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+                <SPAN CLASS=c>// Construct a valid hotkey. The last argument must be a
+                // non-modifier keyboard key, the other arguments must be
+                // modifier keys.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+                <SPAN CLASS=c>// Construct form an input event and an input state. The hotkey
+                // gets invalid if the event is not a non-modifier keyboard key.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey);
+                <SPAN CLASS=c>// Copy operator.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Comparison operators.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryParse(<SPAN CLASS=t>const char </SPAN>* str) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Try to set this hotkey from a human-readable string
+                // representation (e.g. "Ctrl+C"). On failure, the hotkey is set
+                // invalid and an error message is thrown.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetString() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>GetString(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Create a human-readable string representation (e.g.
+                // "Ctrl+C"). If the hotkey is invalid, an empty string is
+                // returned.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsValid() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this is a valid hotkey.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>GetShift() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetCtrl() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetAlt() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>GetMeta() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the respective modifier key is part of this hotkey.
+
+        </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> GetKey() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the event key. Returns EM_KEY_NONE if the hotkey is not
+                // valid.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Match(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the input event and input state matches this
+                // hotkey.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearModifiers();
+                <SPAN CLASS=c>// Remove all modifiers.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddModifier(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> modifier);
+                <SPAN CLASS=c>// Add a modifier.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+                <SPAN CLASS=c>// Set the event key. Must be a non-modifier keyboard key or the
+                // hotkey gets invalid.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>static const char </SPAN>* Key2Name(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> Name2Key(<SPAN CLASS=t>const char </SPAN>* name, <SPAN CLASS=t>int </SPAN>len);
+
+        <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN>MF_SHIFT=(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>),
+                MF_CTRL =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>),
+                MF_ALT  =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>),
+                MF_META =(<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>)
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{
+                </SPAN>emUInt16 Packed;
+                <SPAN CLASS=t>struct </SPAN><SPAN CLASS=b>{
+                        </SPAN>emByte MFlags;
+                        emByte Key;
+                <SPAN CLASS=b>} </SPAN>Data;
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//=========================== Inline Implementations ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN>emIsMouseInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>key&gt;=EM_KEY_LEFT_BUTTON;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN>emIsKeyboardInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>key &amp;&amp; key&lt;EM_KEY_LEFT_BUTTON;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN>emIsModifierInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(((<SPAN CLASS=t>int</SPAN>)key)&amp;<SPAN CLASS=u>0xF8</SPAN>)==<SPAN CLASS=u>0x80</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::GetKey() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Key;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::GetChars() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Chars;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::GetRepeat() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Repeat;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::GetVariant() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Variant;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Key==EM_KEY_NONE &amp;&amp; Chars.IsEmpty();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsMouseEvent() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>emIsMouseInputKey(Key);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Key==key;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsLeftButton() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Key==EM_KEY_LEFT_BUTTON;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsMiddleButton() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Key==EM_KEY_MIDDLE_BUTTON;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsRightButton() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Key==EM_KEY_RIGHT_BUTTON;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetMouseX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MouseX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetMouseY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MouseY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::SetMouse(<SPAN CLASS=t>double </SPAN>mouseX, <SPAN CLASS=t>double </SPAN>mouseY)
+<SPAN CLASS=b>{
+        </SPAN>MouseX=mouseX;
+        MouseY=mouseY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetLeftButton() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_LEFT_BUTTON&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_LEFT_BUTTON&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetMiddleButton() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_MIDDLE_BUTTON&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_MIDDLE_BUTTON&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetRightButton() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_RIGHT_BUTTON&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_RIGHT_BUTTON&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetShift() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_SHIFT&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_SHIFT&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetCtrl() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_CTRL&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_CTRL&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetAlt() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_ALT&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_ALT&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetMeta() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(KeyStates[EM_KEY_META&gt;&gt;<SPAN CLASS=u>3</SPAN>]&amp;(<SPAN CLASS=u>1</SPAN>&lt;&lt;(EM_KEY_META&amp;<SPAN CLASS=u>7</SPAN>)))!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const unsigned char </SPAN>* <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetKeyStates() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>KeyStates;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline unsigned char </SPAN>* <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetKeyStates()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>KeyStates;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::<A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>()
+<SPAN CLASS=b>{
+        </SPAN>Packed=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::<A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey)
+<SPAN CLASS=b>{
+        </SPAN>Packed=hotkey.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; <A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey)
+<SPAN CLASS=b>{
+        </SPAN>Packed=hotkey.Packed;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed==hotkey.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A> &amp; hotkey) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Packed!=hotkey.Packed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::IsValid() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data.Key!=(emByte)EM_KEY_NONE;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::GetShift() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(Data.MFlags&amp;MF_SHIFT)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::GetCtrl() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(Data.MFlags&amp;MF_CTRL)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::GetAlt() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(Data.MFlags&amp;MF_ALT)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::GetMeta() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(Data.MFlags&amp;MF_META)!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> <A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::GetKey() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A>)Data.Key;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputHotkey">emInputHotkey</A>::ClearModifiers()
+<SPAN CLASS=b>{
+        </SPAN>Data.MFlags=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

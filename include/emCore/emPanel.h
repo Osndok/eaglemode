@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,10 @@
 #include <emCore/emWindow.h>
 #endif
 
+
+//==============================================================================
+//================================== emPanel ===================================
+//==============================================================================
 
 class emPanel : public emEngine {
 
@@ -391,7 +395,7 @@ public:
 		// it is not focusable (see SetFocusable()). A panel is in
 		// active path if itself or any descendant is the active panel.
 		//
-		// Why is there difference between visited and active? Indeed,
+		// Why is there a difference between visited and active? Indeed,
 		// normally the active panel is even the visited panel. But the
 		// visited panel must be a viewed panel, and the active panel
 		// must be focusable. On the other hand, the supreme viewed
@@ -437,7 +441,7 @@ public:
 
 	emUInt64 GetMemoryLimit() const;
 		// Get the maximum number of memory bytes this panel is allowed
-		// to allocated, including all descendant panels and all mostly
+		// to allocate, including all descendant panels and all mostly
 		// non-shared referred models, but not including any descendant
 		// panels which are also supporting this blurred concept.
 		// Mainly, this method has been invented for panels which are
@@ -508,7 +512,7 @@ protected:
 		//              focused path, and the event has not been eaten
 		//              by a descendant panel.
 		//            The event can be eaten by calling event.Eat(). The
-		//            event reference in non-const only for that. Please
+		//            event reference is non-const only for that. Please
 		//            do not modify the event in any other way.
 		//   state  - The current input state. The values of
 		//            state.GetMouseX/Y are from the coordinate system

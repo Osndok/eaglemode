@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,6 +59,7 @@ private:
 		int Width,Height,Channels;
 		int BitsPerPixel,BitsOffset,ColsOffset,ColSize,ColsUsed,Compress,NextY;
 		int CMax[3],CPos[3];
+		bool IsIcon;
 		bool ImagePrepared;
 		FILE * File;
 		unsigned char * Palette;

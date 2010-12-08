@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_wat.pm
 #
-# Copyright (C) 2006-2009 Oliver Hamann.
+# Copyright (C) 2006-2010 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -85,7 +85,7 @@ sub Compile
 		elsif ($tgtType eq 'wexe') { push(@args,"-bg"); }
 		elsif ($tgtType eq 'dynlib') { push(@args,"-bd"); }
 		push(@args,"-bm"); # multi-threaded
-		push(@args,"-br"); # run-time DLL's
+		push(@args,"-br"); # run-time DLLs
 		push(@args,"-mf");
 		push(@args,"-6r");
 		push(@args,"-otexan");

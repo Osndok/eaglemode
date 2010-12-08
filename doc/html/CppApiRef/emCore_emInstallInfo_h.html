@@ -1,0 +1,112 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emInstallInfo.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emInstallInfo.h
+//
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emInstallInfo_h
+#define emInstallInfo_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>;
+
+
+<A NAME="Install_info_functions"></A><SPAN CLASS=c>//==============================================================================
+//=========================== Install info functions ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>enum </SPAN>emInstallDirType <SPAN CLASS=b>{
+        </SPAN>EM_IDT_BIN        = <SPAN CLASS=u>0</SPAN>,
+        EM_IDT_INCLUDE    = <SPAN CLASS=u>1</SPAN>,
+        EM_IDT_LIB        = <SPAN CLASS=u>2</SPAN>,
+        EM_IDT_HTML_DOC   = <SPAN CLASS=u>3</SPAN>,
+        EM_IDT_PS_DOC     = <SPAN CLASS=u>4</SPAN>,
+        EM_IDT_USER_CONFIG= <SPAN CLASS=u>5</SPAN>,
+        EM_IDT_HOST_CONFIG= <SPAN CLASS=u>6</SPAN>,
+        EM_IDT_TMP        = <SPAN CLASS=u>7</SPAN>,
+        EM_IDT_RES        = <SPAN CLASS=u>8</SPAN>,
+        EM_IDT_HOME       = <SPAN CLASS=u>9</SPAN>,
+        EM_NUMBER_OF_IDTS =<SPAN CLASS=u>10
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetInstallPath(emInstallDirType idt, <SPAN CLASS=t>const char </SPAN>* prj,
+                          <SPAN CLASS=t>const char </SPAN>* subPath=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=c>// Get the installation path of a file or directory.
+        // Arguments:
+        //   idt     - Type of installation directory.
+        //   prj     - Name of the sub-project. Currently this is ignored for
+        //             some install dir types, but that could change in the
+        //             future, so please always set prj best possible.
+        //   subPath - A sub-path to be appended, or NULL.
+        // Returns: The installation path.
+        //
+        // The following table should make things clearer:
+        //
+        // Install Dir Type   | Current Implementation | A Future Example
+        // -------------------+------------------------+------------------------
+        // EM_IDT_BIN         | &lt;em&gt;/bin               | /usr/bin
+        // EM_IDT_INCLUDE     | &lt;em&gt;/include/&lt;prj&gt;     | /usr/include/&lt;prj&gt;
+        // EM_IDT_LIB         | &lt;em&gt;/lib               | /usr/lib
+        // EM_IDT_HTML_DOC    | &lt;em&gt;/doc/html          | /usr/share/doc/em/&lt;prj&gt;/html
+        // EM_IDT_PS_DOC      | &lt;em&gt;/doc/ps            | /usr/share/doc/em/&lt;prj&gt;/ps
+        // EM_IDT_USER_CONFIG | &lt;home&gt;/.eaglemode/&lt;prj&gt;| &lt;home&gt;/.em/&lt;prj&gt;
+        // EM_IDT_HOST_CONFIG | &lt;em&gt;/etc/&lt;prj&gt;         | /etc/em/&lt;prj&gt;
+        // EM_IDT_TMP         | /tmp                   | /tmp
+        // EM_IDT_RES         | &lt;em&gt;/res/&lt;prj&gt;         | /usr/share/emRes/&lt;prj&gt;
+        // EM_IDT_HOME        | &lt;home&gt;                 | &lt;home&gt;
+        // Hint: The implementation for Windows is a little bit different.
+
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetConfigDirOverloadable(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* prj,
+                                    <SPAN CLASS=t>const char </SPAN>* subDir=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=c>// This method returns either
+        //   emGetInstallPath(EM_IDT_HOST_CONFIG,prj,subDir)
+        // or
+        //   emGetInstallPath(EM_IDT_USER_CONFIG,prj,subDir)
+        // Idea is that the user can make a copy of a directory from host config
+        // to user config in order to manipulate it there. But if that copy gets
+        // outdated through an update of the other, it should no longer be used
+        // and the user should be warned. Therefore, both directories must
+        // contain a file named "version" which contains an integer version
+        // number. The user directory is returned only if the versions are
+        // equal, otherwise the host directory is returned. In addition, a
+        // warning is shown to the user if the user directory exists and if its
+        // version differs or cannot be read. The warning is made through a
+        // dialog if an <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A> can be found in the given context (or higher),
+        // otherwise the warning is reported through emWarning. If the version
+        // file of the host directory cannot be read, emFatalError is called. It
+        // is okay to call this function multiple times in a program run,
+        // because it remembers each shown warning for not showing it again, as
+        // long as the root context lives.
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

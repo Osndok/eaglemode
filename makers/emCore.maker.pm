@@ -16,7 +16,10 @@ sub IsEssential
 
 sub GetFileHandlingRules
 {
-	return ();
+	return (
+		# src directories are not installed by default, but we need one:
+		'+install:^doc/examples/CppApiExamples/PluginExample/src(/|$)'
+	);
 }
 
 sub GetExtraBuildOptions

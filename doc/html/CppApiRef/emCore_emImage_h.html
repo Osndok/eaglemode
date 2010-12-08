@@ -1,0 +1,500 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emImage.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A>.h
+//
+// Copyright (C) 2001,2003-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emImage_h
+#define emImage_h
+
+#ifndef emColor_h
+#include &lt;<A CLASS=f HREF="emCore_emColor_h.html">emCore/emColor.h</A>&gt;
+#endif
+
+#ifndef emATMatrix_h
+#include &lt;<A CLASS=f HREF="emCore_emATMatrix_h.html">emCore/emATMatrix.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>;
+
+
+<A NAME="emImage"></A><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for an image with copy-on-write behavior. Such an image
+        // consists of a three-dimensional array of bytes. The dimensions are X,
+        // Y and color channel.
+        //
+        // An image can have one, two, three or four channels. Each channel has
+        // one byte per pixel. The meaning of the channels depends on the number
+        // of channels:
+        //
+        //   ChannelCount = 1: Grey image without alpha
+        //     channel 0: grey components.
+        //   ChannelCount = 2: Grey image with alpha
+        //     channel 0: grey components.
+        //     channel 1: alpha components.
+        //   ChannelCount = 3: Color image without alpha
+        //     channel 0: red components.
+        //     channel 1: green components.
+        //     channel 2: blue components.
+        //   ChannelCount = 4: Color image with alpha
+        //     channel 0: red components.
+        //     channel 1: green components.
+        //     channel 2: blue components.
+        //     channel 3: alpha components.
+        //
+        // Like in most computer graphics, the origin of the image is in the
+        // upper-left corner, the X-axis points to the right, and the Y-axis
+        // points down. Pixels are areas and not points.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>();
+                <SPAN CLASS=c>// Construct an empty image. It has Width==0, Height==0 and
+                // ChannelCount==1.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img);
+                <SPAN CLASS=c>// Construct a copied image.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(<SPAN CLASS=t>int </SPAN>width, <SPAN CLASS=t>int </SPAN>height, <SPAN CLASS=t>int </SPAN>channelCount);
+                <SPAN CLASS=c>// Construct with the given dimensions. The pixel map is not
+                // initialized.
+                // Arguments:
+                //   width        - Horizontal extent in pixels.
+                //   height       - Vertical extent in pixels.
+                //   channelCount - Number of channels (bytes per pixel, 1-4).
+
+        </SPAN>~<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img);
+                <SPAN CLASS=c>// Copy an image.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compare images.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Setup(<SPAN CLASS=t>int </SPAN>width, <SPAN CLASS=t>int </SPAN>height, <SPAN CLASS=t>int </SPAN>channelCount);
+                <SPAN CLASS=c>// Set the dimensions of this image. This method does not care
+                // about preserving the contents.
+                // Arguments:
+                //   width        - Horizontal extent in pixels.
+                //   height       - Vertical extent in pixels.
+                //   channelCount - Number of channels (bytes per pixel, 1-4).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetUserMap(<SPAN CLASS=t>int </SPAN>width, <SPAN CLASS=t>int </SPAN>height, <SPAN CLASS=t>int </SPAN>channelCount, emByte * map);
+                <SPAN CLASS=c>// Prepare this image for being an interface to a user allocated
+                // pixel map. For example, this feature could be used for
+                // exchanging image data between system processes through shared
+                // memory. You should know about the following semantics: The
+                // copy-on-write behavior is disabled for such a "user map
+                // image", and the user map feature is never copied. That means,
+                // when copying a user map image to another image, a deep copy
+                // is performed immediately and the target image will be a
+                // normal image. Each operation which actually changes the
+                // dimensions of the image, will give up the user map feature
+                // and revert to the normal behavior. This means for example,
+                // calling Setup preserves the feature if the dimensions are not
+                // really changed. Call Empty or '=' if you want to revert to
+                // the normal behavior in any case.
+                // Arguments:
+                //   width        - Horizontal extent of the user map in pixels.
+                //   height       - Vertical extent of the user map in pixels.
+                //   channelCount - Number of channels in the user map (bytes
+                //                  per pixel, 1-4).
+                //   map          - The user allocated pixel map. It's what you
+                //                  will get through GetMap(). If channelCount
+                //                  is 2 or 4, the map address must be aligned
+                //                  accordingly.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>HasUserMap() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this image interfaces a user allocated pixel map.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryParseXpm(<SPAN CLASS=t>const char </SPAN>* <SPAN CLASS=t>const </SPAN>* xpm,
+                         <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Set this image by parsing an X Pixmap (XPM). The idea is to
+                // include an XPM file in the C++ source, and to convert it to
+                // an <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A> at run-time using this method.
+                // Arguments:
+                //   xpm          - The X Pixmap data array.
+                //   channelCount - Channel count of the returned image (1-4),
+                //                  or -1 to select the best channel count from
+                //                  the X Pixmap.
+                // Throws: An error message on failure.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryParseTga(<SPAN CLASS=t>const unsigned char </SPAN>* tgaData, <SPAN CLASS=t>int </SPAN>tgaSize,
+                         <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// -------------------------------------------------------------
+                // This method is deprecated and should not be used any longer.
+                // -------------------------------------------------------------
+                // Set this image by parsing a Targa image (TGA). The idea is
+                // to convert a run-length encoded TGA file to a C source file,
+                // and to include that source file in the C++ source, and to
+                // convert it to an <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A> at run-time using this function.
+                // Arguments:
+                //   tgaData      - Byte array with the contents of a TGA file.
+                //   tgaSize      - Number of bytes in the array.
+                //   channelCount - Channel count of the returned image (1-4),
+                //                  or -1 to select the best channel count from
+                //                  the TGA image.
+                // Throws: An error message on failure.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Empty();
+                <SPAN CLASS=c>// Like Setup(0,0,1).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this image is empty. It is empty if at least one
+                // of width and height is zero.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetWidth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetHeight() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetChannelCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the dimensions of this image.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>emByte * GetMap() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the pixel map of this image. If ChannelCount
+                // is 2 or 4, the map address is aligned accordingly. At least
+                // because of the copy-on-write feature, the pointer is valid
+                // only until calling any non-const method or operator on this
+                // image, or giving this image as a non-const argument to any
+                // call in the world. Hint: Even methods like GetConverted,
+                // GetCropped and so on may make shallow copies, like the copy
+                // operator and copy constructor do.
+                // Index to the map is:
+                //   (y*GetWidth()+x)*GetChannelCount()+c
+                // With:
+                //   x: 0 to GetWidth()-1
+                //   y: 0 to GetHeight()-1
+                //   c: 0 to GetChannelCount()-1
+
+        </SPAN>emByte * GetWritableMap();
+                <SPAN CLASS=c>// Like GetMap(), but for modifying the image. The rules for
+                // validity of the pointer are the same as with GetMap(), but:
+                // The pointer must not be used for modifying after doing
+                // something which could have made a shallow copy of this image.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetPixel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPixel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color);
+                <SPAN CLASS=c>// Get or set a pixel.
+
+        </SPAN>emByte GetPixelChannel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>channel) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPixelChannel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>channel, emByte value);
+                <SPAN CLASS=c>// Get or set one channel of a pixel.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetPixelInterpolated(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                                     <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> bgColor) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get an average color from a rectangular area. Performs
+                // bi-linear interpolation or area-sampling.
+                // Arguments:
+                //   x,y,w,h - Upper-left corner and size of the rectangle.
+                //   bgColor - A background color. It is used where the
+                //             rectangle lies outside the image.
+                // Returns: The interpolated color.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Fill(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color);
+        <SPAN CLASS=t>void </SPAN>Fill(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color);
+                <SPAN CLASS=c>// Fill the whole image or a rectangular area with the given
+                // color.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>FillChannel(<SPAN CLASS=t>int </SPAN>channel, emByte value=<SPAN CLASS=u>0</SPAN>);
+        <SPAN CLASS=t>void </SPAN>FillChannel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h, <SPAN CLASS=t>int </SPAN>channel,
+                         emByte value);
+                <SPAN CLASS=c>// Like Fill, but for modifying just a single channel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Copy(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img);
+        <SPAN CLASS=t>void </SPAN>Copy(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+                  <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h);
+                <SPAN CLASS=c>// Copy a rectangular area of pixels from a source image to this
+                // image. Source and target may overlap.
+                // Arguments:
+                //   x,y           - Upper-left corner of target rectangle on
+                //                   this image.
+                //   img           - The source image.
+                //   srcX,srcY,w,h - Upper-left corner and size of the rectangle
+                //                   on the source image, which is to be copied.
+                //                   Without these arguments, the whole source
+                //                   image is taken.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CopyChannel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>channel, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+                         <SPAN CLASS=t>int </SPAN>srcChannel);
+        <SPAN CLASS=t>void </SPAN>CopyChannel(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>channel, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+                         <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h, <SPAN CLASS=t>int </SPAN>srcChannel);
+                <SPAN CLASS=c>// Copy one channel of a rectangular area of pixels from a
+                // source image to this image. Source and target may overlap.
+                // Arguments:
+                //   x,y           - Upper-left corner of target rectangle on
+                //                   this image.
+                //   channel       - Target channel on this image.
+                //   img           - The source image.
+                //   srcX,srcY,w,h - Upper-left corner and size of the rectangle
+                //                   on the source image, which is to be copied.
+                //                   Without these arguments, the whole source
+                //                   image is taken.
+                //   srcChannel    - Source channel on the given image.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CopyTransformed(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h,
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; atm, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+                             <SPAN CLASS=t>bool </SPAN>interpolate=<SPAN CLASS=k>false</SPAN>, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> bgColor=<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=c>// Copy an image to this image while performing an affine
+                // transformation. Source and target must not overlap.
+                // Arguments:
+                //   x,y,w,h     - A clipping rectangle for the operation on
+                //                 this image. Exactly this area of pixels is
+                //                 modified.
+                //   atm         - A transformation matrix for transforming
+                //                 source image coordinates to coordinates of
+                //                 this image.
+                //   img         - The source image.
+                //   interpolate - Whether to perform bi-linear interpolation.
+                //   bgColor     - A color to be used for areas outside the
+                //                 source image.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> GetTransformed(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emATMatrix_h.html#emATMatrix">emATMatrix</A> &amp; atm, <SPAN CLASS=t>bool </SPAN>interpolate=<SPAN CLASS=k>false</SPAN>,
+                               <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> bgColor=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get an affine transformed version of this image.
+                // Arguments:
+                //   atm          - A transformation matrix for transforming
+                //                  coordinates of this image to coordinates of
+                //                  the returned image. Here, any translation
+                //                  will be ignored.
+                //   interpolate  - Whether to perform bi-linear interpolation.
+                //   bgColor      - A color to be used for areas outside the
+                //                  source image.
+                //   channelCount - Number of channels in the returned image
+                //                  (1-4), or -1 for taking the channel count of
+                //                  this image.
+                // Returns: The resulting image.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CalcMinMaxRect(<SPAN CLASS=t>int </SPAN>* pX, <SPAN CLASS=t>int </SPAN>* pY, <SPAN CLASS=t>int </SPAN>* pW, <SPAN CLASS=t>int </SPAN>* pH,
+                            <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> bgColor) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Calculate the smallest rectangle which contains all pixels
+                // which are not equal to the given background color.
+                // Arguments:
+                //   pX,pY,pW,pH - Pointers for returning the rectangle.
+                //   bgColor     - The background color.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CalcChannelMinMaxRect(<SPAN CLASS=t>int </SPAN>* pX, <SPAN CLASS=t>int </SPAN>* pY, <SPAN CLASS=t>int </SPAN>* pW, <SPAN CLASS=t>int </SPAN>* pH,
+                                   <SPAN CLASS=t>int </SPAN>channel, emByte bgValue) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like CalcMinMaxRect, but for a single channel.
+                // Arguments:
+                //   pX,pY,pW,pH - Pointers for returning the rectangle.
+                //   channel     - The channel to be inspected.
+                //   bgValue     - The channel value of the background color.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CalcAlphaMinMaxRect(<SPAN CLASS=t>int </SPAN>* pX, <SPAN CLASS=t>int </SPAN>* pY, <SPAN CLASS=t>int </SPAN>* pW,
+                                 <SPAN CLASS=t>int </SPAN>* pH) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Calculate the smallest rectangle which contains all pixels
+                // which are not zero in the alpha channel.
+                // Arguments:
+                //   pX,pY,pW,pH - Pointers for returning the rectangle.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> GetConverted(<SPAN CLASS=t>int </SPAN>channelCount) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a copy of this image, converted to the given number of
+                // channels.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> GetCropped(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h,
+                           <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a sub-image of this image.
+                // Arguments:
+                //   x,y,w,h      - A rectangle on this image. It's the area to
+                //                  be copied to the returned image, which will
+                //                  have the size of that rectangle (after
+                //                  clipping it by the image boundaries).
+                //   channelCount - Number of channels of the returned image
+                //                  (1-4), or -1 for taking the channel count of
+                //                  this image.
+                // Returns: The sub-image.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> GetCroppedByAlpha(<SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like GetCropped with a rectangle returned by
+                // GetAlphaMinMaxRect.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>PreparePainter(<A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter, <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext,
+                            <SPAN CLASS=t>double </SPAN>clipX1=<SPAN CLASS=u>0.0</SPAN>, <SPAN CLASS=t>double </SPAN>clipY1=<SPAN CLASS=u>0.0</SPAN>,
+                            <SPAN CLASS=t>double </SPAN>clipX2=<SPAN CLASS=u>3E9</SPAN>, <SPAN CLASS=t>double </SPAN>clipY2=<SPAN CLASS=u>3E9</SPAN>,
+                            <SPAN CLASS=t>double </SPAN>originX=<SPAN CLASS=u>0.0</SPAN>, <SPAN CLASS=t>double </SPAN>originY=<SPAN CLASS=u>0.0</SPAN>,
+                            <SPAN CLASS=t>double </SPAN>scaleX=<SPAN CLASS=u>1.0</SPAN>, <SPAN CLASS=t>double </SPAN>scaleY=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Prepare the given painter for painting to this image with
+                // the given clipping and transformation. IMPORTANT: Currently,
+                // the image must have 4 channels, otherwise painting would not
+                // be possible. But the alpha channel cannot be painted and may
+                // be damaged by the painter. In a near future version of
+                // <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>, the image may have to have 3 channels. And in a
+                // far future version, any channel count may be acceptable. If
+                // painting is not possible due to the channel count, the
+                // painter is disabled and false is returned. If you want to
+                // paint to an image in a portable way, please poll for a
+                // suitable channel count via IsChannelCountPaintable and
+                // prepare the image accordingly. After painting, you may
+                // convert the image to the desired channel count, or you could
+                // copy channels around. The rules for usability of the painter
+                // are like with a pointer returned by GetWritableMap().
+
+        </SPAN><SPAN CLASS=t>static bool </SPAN>IsChannelCountPaintable(<SPAN CLASS=t>int </SPAN>channelCount);
+                <SPAN CLASS=c>// Ask whether PreparePainter would be successful for an image
+                // of the given channel count.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this image.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the image to another
+                // thread.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>MakeWritable();
+        <SPAN CLASS=t>void </SPAN>FreeData();
+
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>unsigned int </SPAN>RefCount;
+                <SPAN CLASS=t>int </SPAN>Width;
+                <SPAN CLASS=t>int </SPAN>Height;
+                emByte ChannelCount;
+                emByte IsUsersMap;
+                emByte * Map;
+                <SPAN CLASS=c>// From here on comes the non-user map.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        SharedData * Data;
+
+        <SPAN CLASS=t>static </SPAN>SharedData EmptyData;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+<SPAN CLASS=b>{
+        </SPAN>Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img)
+<SPAN CLASS=b>{
+        </SPAN>Data=img.Data;
+        Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;IsUsersMap) MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::~<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!(*<SPAN CLASS=k>this </SPAN>== image);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::HasUserMap() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;IsUsersMap!=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::Empty()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Width==<SPAN CLASS=u>0 </SPAN>|| Data-&gt;Height==<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::GetWidth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Width;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::GetHeight() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Height;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::GetChannelCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;ChannelCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN>emByte * <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::GetMap() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Map;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte * <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::GetWritableMap()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;Map;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::Fill(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
+<SPAN CLASS=b>{
+        </SPAN>Fill(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,Data-&gt;Width,Data-&gt;Height,color);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::FillChannel(<SPAN CLASS=t>int </SPAN>channel, emByte value)
+<SPAN CLASS=b>{
+        </SPAN>FillChannel(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,Data-&gt;Width,Data-&gt;Height,channel,value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::Copy(<SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img)
+<SPAN CLASS=b>{
+        </SPAN>Copy(x,y,img,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.Data-&gt;Width,img.Data-&gt;Height);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::CopyChannel(
+        <SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>channel, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>srcChannel
+)
+<SPAN CLASS=b>{
+        </SPAN>CopyChannel(
+                x,y,channel,img,
+                <SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.Data-&gt;Width,img.Data-&gt;Height,
+                srcChannel
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::GetConverted(<SPAN CLASS=t>int </SPAN>channelCount) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GetCropped(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,Data-&gt;Width,Data-&gt;Height,channelCount);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

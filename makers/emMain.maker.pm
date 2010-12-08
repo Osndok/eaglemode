@@ -52,6 +52,7 @@ sub Build
 		"src/emMain/emBookmarks.cpp",
 		"src/emMain/emCoreConfigPanel.cpp",
 		"src/emMain/emMain.cpp",
+		"src/emMain/emMainConfig.cpp",
 		"src/emMain/emMainContentPanel.cpp",
 		"src/emMain/emMainPanel.cpp",
 		"src/emMain/emMainWindow.cpp",

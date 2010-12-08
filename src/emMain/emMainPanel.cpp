@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,9 +27,10 @@
 emMainPanel::emMainPanel(
 	ParentArg parent, const emString & name, double controlTallness
 )
-	: emPanel(parent, name)
+	: emPanel(parent, name),
+	SliderTimer(GetScheduler())
 {
-	StartUpCfg=CfgModel::Acquire(GetRootContext());
+	MainConfig=emMainConfig::Acquire(GetRootContext());
 
 	ControlEdgesColor=emTkLook().GetBgColor();
 
@@ -49,14 +50,24 @@ emMainPanel::emMainPanel(
 		emView::VF_ROOT_SAME_TALLNESS
 	);
 
+	ControlTallness=controlTallness;
+
+	UnifiedSliderPos=MainConfig->ControlViewSize;
+
+	FullscreenOn=false;
+
+	OldMouseX=0.0;
+	OldMouseY=0.0;
+
 	ContentViewPanel->ActivateLater();
 
 	AddWakeUpSignal(GetControlView().GetEOISignal());
+	AddWakeUpSignal(SliderTimer.GetSignal());
+	if (GetWindow()) AddWakeUpSignal(GetWindow()->GetWindowFlagsSignal());
 
-	ControlTallness=controlTallness;
-
-	UnifiedSliderPos=StartUpCfg->ControlSize;
 	UpdateCoordinates();
+	UpdateFullscreen();
+	UpdateSliderHiding(false);
 }
 
 
@@ -86,6 +97,15 @@ bool emMainPanel::Cycle()
 		ContentViewPanel->Activate();
 	}
 
+	if (IsSignaled(SliderTimer.GetSignal())) {
+		Slider->SetHidden(true);
+	}
+
+	if (GetWindow() && IsSignaled(GetWindow()->GetWindowFlagsSignal())) {
+		UpdateFullscreen();
+		UpdateSliderHiding(false);
+	}
+
 	return busy;
 }
 
@@ -103,6 +123,17 @@ void emMainPanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
+	if (
+		fabs(OldMouseX-state.GetMouseX())>2.5 ||
+		fabs(OldMouseY-state.GetMouseY())>2.5 ||
+		state.GetLeftButton() ||
+		state.GetMiddleButton() ||
+		state.GetRightButton()
+	) {
+		OldMouseX=state.GetMouseX();
+		OldMouseY=state.GetMouseY();
+		UpdateSliderHiding(true);
+	}
 }
 
 
@@ -240,6 +271,52 @@ void emMainPanel::UpdateCoordinates()
 }
 
 
+void emMainPanel::UpdateFullscreen()
+{
+	if (!GetWindow()) return;
+	if (GetWindow()->GetWindowFlags()&emWindow::WF_FULLSCREEN) {
+		if (!FullscreenOn) {
+			FullscreenOn=true;
+			if (MainConfig->AutoHideControlView) {
+				UnifiedSliderPos=0.0;
+				UpdateCoordinates();
+				UpdateSliderHiding(false);
+			}
+		}
+	}
+	else {
+		if (FullscreenOn) {
+			FullscreenOn=false;
+			if (MainConfig->AutoHideControlView) {
+				UnifiedSliderPos=MainConfig->ControlViewSize;
+				UpdateCoordinates();
+				UpdateSliderHiding(false);
+			}
+		}
+	}
+}
+
+
+void emMainPanel::UpdateSliderHiding(bool restart)
+{
+	bool toHide;
+
+	toHide=
+		UnifiedSliderPos<1E-15 &&
+		GetWindow()!=NULL &&
+		(GetWindow()->GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0 &&
+		MainConfig->AutoHideSlider
+	;
+	if (!toHide || restart) {
+		if (Slider->Hidden) Slider->SetHidden(false);
+		SliderTimer.Stop(true);
+	}
+	if (toHide && !Slider->Hidden && !SliderTimer.IsRunning()) {
+		SliderTimer.Start(5000);
+	}
+}
+
+
 void emMainPanel::DragSlider(double deltaY)
 {
 	double y,n;
@@ -251,9 +328,27 @@ void emMainPanel::DragSlider(double deltaY)
 	if (UnifiedSliderPos!=n) {
 		UnifiedSliderPos=n;
 		UpdateCoordinates();
-		StartUpCfg->ControlSize=UnifiedSliderPos;
-		StartUpCfg->Save();
+		UpdateSliderHiding(false);
+		MainConfig->ControlViewSize=UnifiedSliderPos;
+		MainConfig->Save();
 	}
+}
+
+
+void emMainPanel::DoubleClickSlider()
+{
+	if (UnifiedSliderPos<0.01) {
+		if (MainConfig->ControlViewSize<0.01) {
+			MainConfig->ControlViewSize=0.7;
+			MainConfig->Save();
+		}
+		UnifiedSliderPos=MainConfig->ControlViewSize;
+	}
+	else {
+		UnifiedSliderPos=0.0;
+	}
+	UpdateCoordinates();
+	UpdateSliderHiding(false);
 }
 
 
@@ -263,6 +358,7 @@ emMainPanel::SliderPanel::SliderPanel(emMainPanel & parent, const emString & nam
 {
 	MouseOver=false;
 	Pressed=false;
+	Hidden=false;
 	PressMY=0.0;
 	PressSliderY=0.0;
 	SetFocusable(false);
@@ -272,6 +368,15 @@ emMainPanel::SliderPanel::SliderPanel(emMainPanel & parent, const emString & nam
 
 emMainPanel::SliderPanel::~SliderPanel()
 {
+}
+
+
+void emMainPanel::SliderPanel::SetHidden(bool hidden)
+{
+	if (Hidden!=hidden) {
+		Hidden=hidden;
+		InvalidatePainting();
+	}
 }
 
 
@@ -290,11 +395,21 @@ void emMainPanel::SliderPanel::Input(
 	}
 
 	if (MouseOver && event.IsMouseEvent()) {
-		if (!Pressed && event.IsKey(EM_KEY_LEFT_BUTTON)) {
-			Pressed=true;
-			PressMY=my;
-			PressSliderY=MainPanel.SliderY;
-			InvalidatePainting();
+		if (event.IsKey(EM_KEY_LEFT_BUTTON)) {
+			if (event.GetRepeat()==0 && !Pressed) {
+				Pressed=true;
+				PressMY=my;
+				PressSliderY=MainPanel.SliderY;
+				InvalidatePainting();
+			}
+			else if (event.GetRepeat()==1) {
+				if (Pressed) {
+					Pressed=false;
+					MainPanel.UpdateCoordinates();
+					InvalidatePainting();
+				}
+				MainPanel.DoubleClickSlider();
+			}
 		}
 		event.Eat();
 	}
@@ -328,6 +443,7 @@ void emMainPanel::SliderPanel::Paint(const emPainter & painter, emColor canvasCo
 	double h,x1,y1,x2,y2;
 	int i;
 
+	if (!MouseOver && Hidden) return;
 	h=GetHeight();
 	painter.PaintRoundRect(
 		0.0,0.0,2.0,h,
@@ -359,34 +475,4 @@ void emMainPanel::SliderPanel::Paint(const emPainter & painter, emColor canvasCo
 	}
 
 	painter.PaintImage(0.0,0.0,1.0,h,SliderImage);
-}
-
-
-emRef<emMainPanel::CfgModel> emMainPanel::CfgModel::Acquire(emRootContext & rootContext)
-{
-	EM_IMPL_ACQUIRE_COMMON(CfgModel,rootContext,"")
-}
-
-
-const char * emMainPanel::CfgModel::GetFormatName() const
-{
-	return "emMainPanel";
-}
-
-
-emMainPanel::CfgModel::CfgModel(emContext & context, const emString & name)
-	: emConfigModel(context,name),
-	emStructRec(),
-	ControlSize(this,"ControlSize",0.7,0.0,1.0)
-{
-	PostConstruct(
-		*this,
-		emGetInstallPath(EM_IDT_USER_CONFIG,"emMain","MainPanel.rec")
-	);
-	LoadOrInstall();
-}
-
-
-emMainPanel::CfgModel::~CfgModel()
-{
 }

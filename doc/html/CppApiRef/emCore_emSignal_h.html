@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emSignal.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A>.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emSignal_h
+#define emSignal_h
+
+#ifndef emScheduler_h
+#include &lt;<A CLASS=f HREF="emCore_emScheduler_h.html">emCore/emScheduler.h</A>&gt;
+#endif
+
+
+<A NAME="emSignal"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a signal which can be sent (signaled) to all the engines
+        // of an <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>();
+        ~<A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>();
+
+        <SPAN CLASS=t>void </SPAN>Signal(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+                <SPAN CLASS=c>// Signal this signal. Please even read the comments on
+                // <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::AddWakeUpSignal, <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::Signal and
+                // <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::IsSignaled.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsPending() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// If a signal is signaled, it is always pending until the end
+                // or beginning of the schedulers call to an <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::Cycle.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Abort();
+                <SPAN CLASS=c>// Abort any signaling of this signal. No engine will see this
+                // signal signaled before it is signaled again (but engines
+                // could already have been woken up, except this is called in
+                // the pending phase of the signal).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>;
+
+        <SPAN CLASS=t>struct </SPAN>Link <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> * Engine;
+                Link * * ELThisPtr;
+                Link * ELNext;
+                <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> * Signal;
+                Link * * SLThisPtr;
+                Link * SLNext;
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::SignalRingNode RNode;
+                <SPAN CLASS=c>// Node for the list of pending signals (<A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::PSList).
+
+        </SPAN>Link * ELFirst;
+                <SPAN CLASS=c>// First element in the list of connected engines.
+
+        </SPAN>emUInt64 Clock;
+                <SPAN CLASS=c>// State of <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::Clock after signaling this signal,
+                // modified at end of pending phase.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>::Signal(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!RNode.Next) <SPAN CLASS=b>{
+                </SPAN>RNode.Next=scheduler.PSList.Next;
+                scheduler.PSList.Next=&amp;RNode;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>::IsPending() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>RNode.Next!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

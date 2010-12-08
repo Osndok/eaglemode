@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRecFileModel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,10 @@
 #include <emCore/emFileModel.h>
 #endif
 
+
+//==============================================================================
+//=============================== emRecFileModel ===============================
+//==============================================================================
 
 class emRecFileModel : public emFileModel {
 

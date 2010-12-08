@@ -1,0 +1,150 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emImageFile.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emImageFile.h
+//
+// Copyright (C) 2004-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emImageFile_h
+#define emImageFile_h
+
+#ifndef emFilePanel_h
+#include &lt;<A CLASS=f HREF="emCore_emFilePanel_h.html">emCore/emFilePanel.h</A>&gt;
+#endif
+
+
+<A NAME="emImageFileModel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> on an image file. Derived
+        // classes still have to overload and implement the file model methods
+        // for loading and saving. If one of the set methods below is called,
+        // the state of the file model is set to FS_UNSAVED. Remember, if the
+        // state was FS_SAVING, the file will be corrupted, because the saving
+        // is aborted.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetImage() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetImage(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image);
+                <SPAN CLASS=c>// The image.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetComment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetComment(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; comment);
+                <SPAN CLASS=c>// A comment on the image, stored in the file. May not be
+                // supported by every derived class.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetFileFormatInfo() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetFileFormatInfo(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; fileFormatInfo);
+                <SPAN CLASS=c>// User-readable Information about the file format. Setting this
+                // may not be useful.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetChangeSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled on every change of the image, the comment or the
+                // file format info.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>();
+
+        <SPAN CLASS=t>virtual void </SPAN>ResetData();
+                <SPAN CLASS=c>// Overloaded from <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>. This clears the image, the
+                // comment and the file format info, and it fires the signal.
+
+        </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> Image;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Comment;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> FileFormatInfo;
+                <SPAN CLASS=c>// To be modified directly by the implementation of
+                // TryStartLoading and/or TryContinueLoading (do not call the
+                // set methods therein, because they set the file state to
+                // FS_UNSAVED).
+
+        </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ChangeSignal;
+                <SPAN CLASS=c>// To be signaled by the implementation of TryStartLoading
+                // and/or TryContinueLoading.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>::GetImage() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Image;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>::GetComment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Comment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>::GetFileFormatInfo() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileFormatInfo;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>::GetChangeSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ChangeSignal;
+<SPAN CLASS=b>}
+
+
+<A NAME="emImageFilePanel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emImageFile_h.html#emImageFilePanel">emImageFilePanel</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emImageFile_h.html#emImageFilePanel">emImageFilePanel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Panel for showing an <A CLASS=m HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emImageFile_h.html#emImageFilePanel">emImageFilePanel</A>(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                         <A CLASS=l HREF="emCore_emImageFile_h.html#emImageFileModel">emImageFileModel</A> * fileModel=<SPAN CLASS=u>NULL</SPAN>,
+                         <SPAN CLASS=t>bool </SPAN>updateFileModel=<SPAN CLASS=k>true</SPAN>);
+
+        <SPAN CLASS=t>virtual void </SPAN>SetFileModel(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * fileModel,
+                                  <SPAN CLASS=t>bool </SPAN>updateFileModel=<SPAN CLASS=k>true</SPAN>);
+
+        <SPAN CLASS=t>virtual void </SPAN>GetEssenceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH);
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * CreateControlPanel(ParentArg parent,
+                                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

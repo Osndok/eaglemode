@@ -1,0 +1,250 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emStd2.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// emStd2.h
+//
+// Copyright (C) 2004-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emStd2_h
+#define emStd2_h
+
+#ifndef emArray_h
+#include &lt;<A CLASS=f HREF="emCore_emArray_h.html">emCore/emArray.h</A>&gt;
+#endif
+
+#ifndef emString_h
+#include &lt;<A CLASS=f HREF="emCore_emString_h.html">emCore/emString.h</A>&gt;
+#endif
+
+
+<A NAME="Host_user_process_id"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== Host, user, process id ===========================
+//==============================================================================
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetHostName();
+        <SPAN CLASS=c>// Get the name of the computer.
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetUserName();
+        <SPAN CLASS=c>// Get the name of the user.
+
+</SPAN><SPAN CLASS=t>int </SPAN>emGetProcessId();
+        <SPAN CLASS=c>// Get the identification number of the process.
+
+
+<A NAME="Time_functions"></A>//==============================================================================
+//=============================== Time functions ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>void </SPAN>emSleepMS(<SPAN CLASS=t>int </SPAN>millisecs);
+        <SPAN CLASS=c>// Sleep for the given number of milliseconds. Less or equal zero means
+        // to yield the CPU to another process.
+
+</SPAN>emUInt64 emGetClockMS();
+        <SPAN CLASS=c>// Get a system clock time in milliseconds. It started somewhere, but it
+        // should never overflow.
+
+</SPAN>emUInt64 emGetCPUTSC();
+        <SPAN CLASS=c>// Get the state of the time stamp counter (TSC) of the CPU.
+        // IMPORTANT: This only works with certain compiler and hardware.
+        // Use for debugging/development only.
+
+
+<A NAME="Error_texts"></A>//==============================================================================
+//================================ Error texts =================================
+//==============================================================================
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetErrorText(<SPAN CLASS=t>int </SPAN>errorNumber);
+        <SPAN CLASS=c>// This is like the C function strerror, but it is thread-safe, and on
+        // Windows it also supports error codes returned by GetLastError.
+
+
+<A NAME="Files_directories"></A>//==============================================================================
+//============================ Files &amp; directories =============================
+//==============================================================================
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetParentPath(<SPAN CLASS=t>const char </SPAN>* path);
+        <SPAN CLASS=c>// Get the parent path of a path.
+        // Examples:
+        //  "" =&gt; ""
+        //  "/" =&gt; "/"
+        //  "/x" =&gt; "/"
+        //  "/x/y" =&gt; "/x"
+        //  "/x/y///" =&gt; "/x"
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetChildPath(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>const char </SPAN>* name);
+        <SPAN CLASS=c>// Join a path and a name.
+        // Examples:
+        //  "/x/y", "z" =&gt; "x/y/z"
+        //  "/x/y/", "z" =&gt; "x/y/z"
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetAbsolutePath(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; path, <SPAN CLASS=t>const char </SPAN>* cwd=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=c>// Get the absolute path of a path. Symbolic links are not resolved. The
+        // argument cwd can be used to simulate another current working
+        // directory.
+
+</SPAN><SPAN CLASS=t>const char </SPAN>* emGetNameInPath(<SPAN CLASS=t>const char </SPAN>* path);
+        <SPAN CLASS=c>// Return a pointer to the last name in a path (similar to basename).
+
+</SPAN><SPAN CLASS=t>const char </SPAN>* emGetExtensionInPath(<SPAN CLASS=t>const char </SPAN>* path);
+        <SPAN CLASS=c>// Return a pointer to the extension including the dot of the last name
+        // in a path.
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emIsExistingPath(<SPAN CLASS=t>const char </SPAN>* path);
+<SPAN CLASS=t>bool </SPAN>emIsReadablePath(<SPAN CLASS=t>const char </SPAN>* path);
+<SPAN CLASS=t>bool </SPAN>emIsWritablePath(<SPAN CLASS=t>const char </SPAN>* path);
+<SPAN CLASS=t>bool </SPAN>emIsDirectory(<SPAN CLASS=t>const char </SPAN>* path);
+<SPAN CLASS=t>bool </SPAN>emIsRegularFile(<SPAN CLASS=t>const char </SPAN>* path);
+<SPAN CLASS=t>bool </SPAN>emIsSymLinkPath(<SPAN CLASS=t>const char </SPAN>* path);
+        <SPAN CLASS=c>// Ask whether the given file path exists, whether it is readable and so
+        // on.
+
+</SPAN>emUInt64 emTryGetFileSize(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Get the size of a file.
+
+</SPAN>time_t emTryGetFileTime(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Get the last modification time of a file.
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetCurrentDirectory();
+        <SPAN CLASS=c>// Get the absolute path of the current working directory.
+
+</SPAN><SPAN CLASS=t>typedef void </SPAN>* emDirHandle;
+emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emTryReadDir(emDirHandle dirHandle) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+<SPAN CLASS=t>void </SPAN>emCloseDir(emDirHandle dirHandle);
+        <SPAN CLASS=c>// Read a directory step by step. An empty string indicates the end.
+
+</SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; emTryLoadDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Read a directory at once.
+
+</SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; emTryLoadFile(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+<SPAN CLASS=t>void </SPAN>emTrySaveFile(<SPAN CLASS=t>const char </SPAN>* path,
+                   <SPAN CLASS=t>const char </SPAN>* data, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+<SPAN CLASS=t>void </SPAN>emTrySaveFile(<SPAN CLASS=t>const char </SPAN>* path,
+                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; data) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Read or write a file at once.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emTryMakeDirectories(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>int </SPAN>mode=<SPAN CLASS=u>0777</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Create a directory and its ancestors, as far as they do not exist.
+        // On Windows, the mode argument is ignored.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emTryRemoveFileOrTree(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Delete a file or a directory recursively. force=true means to defeat
+        // file permissions if possible.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emTryCopyFileOrTree(<SPAN CLASS=t>const char </SPAN>* targetPath,
+                         <SPAN CLASS=t>const char </SPAN>* sourcePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Copy a file or a directory recursively. This does not copy any file
+        // attributes (maybe a future version will do so).
+
+
+<A NAME="Dynamic_link_libraries"></A>//==============================================================================
+//=========================== Dynamic link libraries ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>typedef void </SPAN>* emLibHandle;
+        <SPAN CLASS=c>// Data type for a handle on an opened dynamic library.
+
+</SPAN>emLibHandle emTryOpenLib(<SPAN CLASS=t>const char </SPAN>* libName, <SPAN CLASS=t>bool </SPAN>isFilename) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Open a dynamic library.
+        // Arguments:
+        //   libName    - Name of the dynamic library.
+        //   isFilename - false if libName is just a pure name, which has to be
+        //                extended for making a file name (e.g. "Test" =&gt;
+        //                "libTest.so" or "Test.dll"). true if the name is
+        //                already a file name or a file path.
+        // Returns:
+        //   An abstract handle for the opened library.
+
+</SPAN><SPAN CLASS=t>void </SPAN>* emTryResolveSymbolFromLib(emLibHandle handle,
+                                 <SPAN CLASS=t>const char </SPAN>* symbol) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Get the address of a symbol in a dynamic library.
+        // Hint: C++ symbols have a compiler specific encoding. Best is to use
+        // C symbols only.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emCloseLib(emLibHandle handle);
+        <SPAN CLASS=c>// Close a dynamic library.
+
+</SPAN><SPAN CLASS=t>void </SPAN>* emTryResolveSymbol(<SPAN CLASS=t>const char </SPAN>* libName, <SPAN CLASS=t>bool </SPAN>isFilename,
+                          <SPAN CLASS=t>const char </SPAN>* symbol) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=c>// Similar to emTryOpenLib plus emTryResolveSymbolFromLib, but the
+        // library is never closed.
+
+
+<A NAME="Pseudo_random_numbers"></A>//==============================================================================
+//=========================== Pseudo random numbers ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>int          </SPAN>emGetIntRandom   (<SPAN CLASS=t>int          </SPAN>minimum, <SPAN CLASS=t>int          </SPAN>maximum);
+<SPAN CLASS=t>unsigned int </SPAN>emGetUIntRandom  (<SPAN CLASS=t>unsigned int </SPAN>minimum, <SPAN CLASS=t>unsigned int </SPAN>maximum);
+emInt64      emGetInt64Random (emInt64      minimum, emInt64      maximum);
+emUInt64     emGetUInt64Random(emUInt64     minimum, emUInt64     maximum);
+<SPAN CLASS=t>double       </SPAN>emGetDblRandom   (<SPAN CLASS=t>double       </SPAN>minimum, <SPAN CLASS=t>double       </SPAN>maximum);
+        <SPAN CLASS=c>// Get a pseudo random number within the given range.
+        // Cryptographically, this is absolutely not secure.
+
+
+<A NAME="Checksums_and_hash_codes"></A>//==============================================================================
+//========================== Checksums and hash codes ==========================
+//==============================================================================
+
+</SPAN>emUInt32 emCalcAdler32(<SPAN CLASS=t>const char </SPAN>* src, <SPAN CLASS=t>int </SPAN>srcLen, emUInt32 start=<SPAN CLASS=u>1</SPAN>);
+emUInt32 emCalcCRC32(<SPAN CLASS=t>const char </SPAN>* src, <SPAN CLASS=t>int </SPAN>srcLen, emUInt32 start=<SPAN CLASS=u>0</SPAN>);
+emUInt64 emCalcCRC64(<SPAN CLASS=t>const char </SPAN>* src, <SPAN CLASS=t>int </SPAN>srcLen, emUInt64 start=<SPAN CLASS=u>0</SPAN>);
+        <SPAN CLASS=c>// Calculate an Adler-32, CRC-32 or CRC-64 "checksum" from some data.
+        // Cryptographically, this is absolutely not secure.
+        // Arguments:
+        //   src     - Pointer to source data.
+        //   srcLen  - Number of bytes in the source.
+        //   start   - Start value (could be the result from a previous call).
+        // Returns:
+        //   The CRC value.
+
+</SPAN><SPAN CLASS=t>int </SPAN>emCalcHashCode(<SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>start=<SPAN CLASS=u>0</SPAN>);
+        <SPAN CLASS=c>// Calculate another kind of "checksum" from a string (simple &amp; fast).
+        // Cryptographically, this is absolutely not secure.
+        // Arguments:
+        //   src     - The string.
+        //   start   - Start value (could be the result from a previous call).
+        // Returns:
+        //   The hash code.
+
+</SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emCalcHashName(<SPAN CLASS=t>const char </SPAN>* src, <SPAN CLASS=t>int </SPAN>srcLen, <SPAN CLASS=t>int </SPAN>hashLen);
+        <SPAN CLASS=c>// Calculate an any-length hash code ("checksum") from some data. The
+        // result is a character string consisting of letters and digits. It's
+        // okay to ignore letter case in comparisons. Cryptographically, this is
+        // absolutely not secure.
+        // Arguments:
+        //   src     - Pointer to source data.
+        //   srcLen  - Number of bytes in the source.
+        //   hashLen - Length of the resulting hash name.
+        // Returns:
+        //   The hash name. It has hashLen characters and consists of
+        //   letters (A-Z) and digits (0-9) only.
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

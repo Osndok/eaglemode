@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.h
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,10 @@
 
 struct emProcessPrivate;
 
+
+//==============================================================================
+//================================= emProcess ==================================
+//==============================================================================
 
 class emProcess : public emUncopyable {
 
@@ -77,7 +81,7 @@ public:
 		//              The flags SF_SHARE_STDIN and SF_PIPE_STDIN
 		//              control the type of the standard input handle
 		//              for the child process. Giving none of these
-		//              flags means to have not standard input (closed
+		//              flags means to have no standard input (closed
 		//              handle). SF_SHARE_STDIN means to inherit the
 		//              handle from this process. SF_PIPE_STDIN means to
 		//              create a pipe (see methods TryWrite and

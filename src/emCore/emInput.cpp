@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,6 +42,7 @@ static const emInputKeyName emInputKeyNames[] = {
 	{ EM_KEY_CTRL         , "Ctrl"           },
 	{ EM_KEY_ALT          , "Alt"            },
 	{ EM_KEY_META         , "Meta"           },
+	{ EM_KEY_ALT_GR       , "Alt-Gr"         },
 	{ EM_KEY_CURSOR_UP    , "Cursor-Up"      },
 	{ EM_KEY_CURSOR_DOWN  , "Cursor-Down"    },
 	{ EM_KEY_CURSOR_LEFT  , "Cursor-Left"    },

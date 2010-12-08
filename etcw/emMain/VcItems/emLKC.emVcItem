@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "emLKC - The Eagle Mode Linux Kernel Configurator"
+
+PosX  = 0.855
+PosY  = 0.817
+Width = 0.024
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 3.5
+
+BackgroundColor = "#BBB"
+BorderColor = "#223"
+TitleColor = "#FFC"
+
+FileName = "emLKC.emFileLink"
+CopyToUser = false

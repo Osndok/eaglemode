@@ -1,0 +1,13 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Mandelbrot Fractal"
+
+PosX  = 0.536
+PosY  = 0.777
+Width = 0.04
+ContentTallness = 1.0
+
+BackgroundColor = "#333"
+
+FileName = "Mandelbrot.emFractal"
+CopyToUser = false

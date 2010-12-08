@@ -70,7 +70,7 @@ my $e=TermRunAndSync(
 );
 
 if (-e $newPath) {
-	SendSelect($newPath);
+	SendSelectKS($newPath);
 }
 else {
 	SendUpdate();

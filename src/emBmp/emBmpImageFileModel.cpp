@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,7 +48,6 @@ emBmpImageFileModel::~emBmpImageFileModel()
 void emBmpImageFileModel::TryStartLoading() throw(emString)
 {
 	int w,i,iconCnt,bestOffset,bihSize,bestSize,s,o;
-	bool isIcon;
 
 	errno=0;
 
@@ -65,6 +64,7 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 	L->NextY=0;
 	for (i=0; i<3; i++) L->CMax[i]=0;
 	for (i=0; i<3; i++) L->CPos[i]=0;
+	L->IsIcon=false;
 	L->ImagePrepared=false;
 	L->File=NULL;
 	L->Palette=NULL;
@@ -80,7 +80,6 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 		L->BitsOffset=Read32();
 		bihSize=Read32();
 		L->ColsOffset=bihSize+14;
-		isIcon=false;
 	}
 	else if (w==0) {
 		// ICO or CUR file.
@@ -106,7 +105,7 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 		L->BitsOffset=0;
 		bihSize=Read32();
 		L->ColsOffset=bestOffset+bihSize;
-		isIcon=true;
+		L->IsIcon=true;
 	}
 	else {
 		goto Err;
@@ -137,7 +136,7 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 		goto Err;
 	}
 
-	if (isIcon) {
+	if (L->IsIcon) {
 		L->Channels=4;
 		L->Height/=2;
 	}
@@ -169,7 +168,7 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 
 	FileFormatInfo=emString::Format(
 		"MS Windows %s file, %d-bit %s",
-		isIcon ? "icon or cursor" : "BMP",
+		L->IsIcon ? "icon or cursor" : "BMP",
 		L->BitsPerPixel,
 		L->Compress==0 || L->Compress==3 ? "uncompressed" :
 		L->Compress==1 || L->Compress==2 ? "RLE-compressed" :
@@ -383,24 +382,36 @@ bool emBmpImageFileModel::TryContinueLoading() throw(emString)
 	if (ferror(L->File)) goto Err;
 
 	L->NextY++;
-	if (L->NextY>=L->Height) {
-		if (L->Channels>3 && (L->BitsPerPixel!=32 || L->Compress!=0)) {
-			for (y=0; y<L->Height; y++) {
-				map=Image.GetWritableMap()+(L->Height-y-1)*L->Width*L->Channels;
-				for (n=0,x=0;x<L->Width;x++) {
-					if ((x&7)==0) n=Read8(); else n<<=1;
-					t=(n>>7)&1;
-					map[3]=(unsigned char)(t ? 0 : 255);
-					map+=L->Channels;
-				}
-				fseek(L->File,(0-((L->Width+7)>>3))&3,SEEK_CUR);
+	if (L->NextY<L->Height) return false;
+
+	if (L->Channels>3 && (L->BitsPerPixel!=32 || L->Compress!=0)) {
+		for (y=0; y<L->Height; y++) {
+			map=Image.GetWritableMap()+(L->Height-y-1)*L->Width*L->Channels;
+			for (n=0, x=0; x<L->Width; x++) {
+				if ((x&7)==0) n=Read8(); else n<<=1;
+				t=(n>>7)&1;
+				map[3]=(unsigned char)(t ? 0 : 255);
+				map+=L->Channels;
 			}
+			fseek(L->File,(0-((L->Width+7)>>3))&3,SEEK_CUR);
+			if (ferror(L->File)) goto Err;
 		}
-		if (ferror(L->File)) goto Err;
-		return true;
 	}
 
-	return false;
+	if (!L->IsIcon && L->BitsPerPixel==32 && L->Compress==0 && L->Channels==4) {
+		n=0;
+		map=Image.GetWritableMap();
+		for (y=0; y<L->Height; y++) {
+			for (x=0; x<L->Width; x++) {
+				n|=map[3];
+				map+=4;
+			}
+			if (n) break;
+		}
+		if (!n) Image.FillChannel(3,0xff);
+	}
+
+	return true;
 
 Err:
 	if (errno) throw emGetErrorText(errno);

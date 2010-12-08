@@ -1,0 +1,154 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emScreen.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>.h
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emScreen_h
+#define emScreen_h
+
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>;
+
+
+<A NAME="emScreen"></A><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This model class acts as an interface to the screen or desktop. It is
+        // an abstract base class for an interface implementation. Such an
+        // implementation should also define a public method like this:
+        //
+        //   static void Install(<A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context);
+        //
+        // That method should find or create an instance of the interface
+        // implementation within the given context, and it should call the
+        // protected method Install for registering it as the interface to be
+        // returned by LookupInherited. The main program or the <A CLASS=m HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>
+        // implementation should call the public Install method on the root
+        // context at program start.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>&gt; LookupInherited(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context);
+                <SPAN CLASS=c>// Get a reference to the screen interface.
+                // Arguments:
+                //   context - The context where the screen interface has been
+                //             installed, or any descendant context. Typically,
+                //             it should have been installed in the root
+                //             context, so you can give any context here.
+                // Returns:
+                //   The reference to the interface, or a NULL reference if not
+                //   found.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetWidth() = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual double </SPAN>GetHeight() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the resolution of the screen (or virtual desktop) in
+                // pixels.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetVisibleRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the pixel coordinates of the visible rectangle of the
+                // screen. If it is not a virtual desktop, the result is equal
+                // to: 0.0, 0.0, GetWidth(), GetHeight()
+                // Arguments:
+                //   pX - Pointer for returning the X-position of the rectangle.
+                //   pY - Pointer for returning the Y-position of the rectangle.
+                //   pW - Pointer for returning the width of the rectangle.
+                //   pH - Pointer for returning the height of the rectangle.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Move the mouse pointer programmatically.
+                // Arguments:
+                //   dx - Amount of pixels to move the pointer in X direction.
+                //   dy - Amount of pixels to move the pointer in Y direction.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Beep() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Give an acoustic warning to the user, if possible.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>DisableScreensaver() = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>EnableScreensaver() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Disable or re-enable the screensaver. This should implement
+                // an internal counter for calls to DisableScreensaver() which
+                // have not yet been taken back by calls to EnableScreensaver().
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; GetWindows();
+                <SPAN CLASS=c>// Get an array of pointers to all windows on the screen, which
+                // have been created within the context of this screen
+                // interface. Other windows are not included.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetWindowsSignal();
+                <SPAN CLASS=c>// This signal is signaled when the array returned by GetWindows
+                // has changed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>LeaveFullscreenModes(<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * exceptForWindow=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Make sure that no window is in fullscreen mode, except for a
+                // given one, optionally. This concerns only windows that have
+                // been created within the context of this screen interface.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>;
+
+        <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>();
+
+        <SPAN CLASS=t>void </SPAN>Install();
+                <SPAN CLASS=c>// Register this interface so that it can be found by
+                // LookupInherited.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> * CreateWindowPort(<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; window) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Create a window port implementation for a new window on the
+                // screen. (This is called by the constructor of <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>)
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; Windows;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> WindowsSignal;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetWindows()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Windows;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetWindowsSignal()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WindowsSignal;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

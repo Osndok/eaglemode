@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # cmd-util.pl
 #
-# Copyright (C) 2007-2008 Oliver Hamann.
+# Copyright (C) 2007-2008,2010 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -425,6 +425,22 @@ sub ErrorIfTargetsAccrossDirs
 }
 
 
+sub ErrorIfRootSources
+{
+	for (my $i=0; $i<@Src; $i++) {
+		if ($Src[$i] eq '/') { Error("Root directory selected as source."); }
+	}
+}
+
+
+sub ErrorIfRootTargets
+{
+	for (my $i=0; $i<@Tgt; $i++) {
+		if ($Tgt[$i] eq '/') { Error("Root directory selected as target."); }
+	}
+}
+
+
 #=========================== Selection confirmations ===========================
 
 sub ConfirmIfSourcesAccrossDirs
@@ -508,6 +524,7 @@ sub TermRun
 	print("\n\n");
 	return system({$_[0]} @_);
 }
+
 
 sub TermSync
 	# Print and run the sync command, return the exit status (non-zero on error).

@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Drive D"
+
+PosX  = 0.459
+PosY  = 0.523
+Width = 0.04
+ContentTallness = 0.3333333333333333
+
+BorderScaling = 2.5
+
+BackgroundColor = "#BBB"
+BorderColor = "#333"
+TitleColor = "#BBB"
+
+FileName = "DriveD.emFileLink"
+CopyToUser = false

@@ -7,24 +7,10 @@ Function = "emTmpConvFpPluginFunc"
 Properties = {
  {
   Name="OutFileEnding"
-  Value=".ps"
+  Value=".svg"
  }
  {
   Name="Command"
-  Value="
-   ERROR_HINT_FILE=\"/tmp/emTmpConv_fig2dev_error_hint_$$\"
-   if test -f \"$ERROR_HINT_FILE\" ; then
-    rm -f \"$ERROR_HINT_FILE\" || exit 1
-   fi
-   {
-    fig2dev -L eps < \"$INFILE\" || echo > \"$ERROR_HINT_FILE\"
-   } | gs -q -dNOPAUSE -dSAFER -sDEVICE=pswrite \"-sOutputFile=$OUTFILE\" -
-   EXIT_CODE=$?
-   if test -f \"$ERROR_HINT_FILE\" ; then
-    rm -f \"$ERROR_HINT_FILE\"
-    EXIT_CODE=1
-   fi
-   exit $EXIT_CODE
-  "
+  Value="exec fig2dev -L svg < \"$INFILE\"  > \"$OUTFILE\""
  }
 }

@@ -1,0 +1,68 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emErrorPanel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emErrorPanel_h.html#emErrorPanel">emErrorPanel</A>.h
+//
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emErrorPanel_h
+#define emErrorPanel_h
+
+#ifndef emPanel_h
+#include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+#endif
+
+
+<A NAME="emErrorPanel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emErrorPanel_h.html#emErrorPanel">emErrorPanel</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emErrorPanel_h.html#emErrorPanel">emErrorPanel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a red panel showing an error message.
+
+        </SPAN><A CLASS=l HREF="emCore_emErrorPanel_h.html#emErrorPanel">emErrorPanel</A>(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                     <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; errorMessage);
+
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emErrorPanel_h.html#emErrorPanel">emErrorPanel</A>();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ErrorMessage;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

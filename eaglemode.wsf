@@ -2,7 +2,7 @@
 //------------------------------------------------------------------------------
 // eaglemode.wsf
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,34 +20,11 @@
 //------------------------------------------------------------------------------
 
 // Have some objects.
-FileSys=WScript.CreateObject("Scripting.FileSystemObject");
-WshShell=WScript.CreateObject("WScript.Shell");
-ProcEnv=WshShell.Environment("PROCESS");
+var FileSys=WScript.CreateObject("Scripting.FileSystemObject");
+var WshShell=WScript.CreateObject("WScript.Shell");
+var ProcEnv=WshShell.Environment("PROCESS");
 
-// Determine the directory where this script file is in.
-emDir=FileSys.GetParentFolderName(WScript.ScriptFullName);
-
-// Set the environment variable EM_DIR.
-ProcEnv("EM_DIR")=emDir;
-
-// Have our lib directory as the first in PATH.
-LibDir=emDir+"\\lib";
-NewPath=LibDir;
-OldPath=ProcEnv("PATH");
-for (i=0; i<OldPath.length; i=j+1) {
-	j=OldPath.indexOf(";",i);
-	if (j<0) j=OldPath.length;
-	k=OldPath.substr(i,j-i);
-	if (k.length>0 && k!=LibDir) NewPath=NewPath+";"+k;
-}
-ProcEnv("PATH")=NewPath;
-
-// Prepare an array of arguments for starting the executable.
-Args=new Array;
-Args[0]=emDir+"\\bin\\eaglemode.exe";
-for (i=0; i<WScript.Arguments.length; i++) Args[i+1]=WScript.Arguments(i);
-
-// Convert the array of arguments to a command string.
+// Function for creating a command line from arguments.
 function CommandFromArgs(argsArray)
 {
 	var i,j,k,c,cmd,arg;
@@ -59,9 +36,9 @@ function CommandFromArgs(argsArray)
 		for (j=arg.length-1; j>=0; j--) {
 			c=arg.charAt(j);
 			if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
-			    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-') break;
+			    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-' && c!='+') break;
 		}
-		if (j<0) {
+		if (j<0 && arg.length>0) {
 			cmd+=arg;
 		}
 		else {
@@ -81,8 +58,47 @@ function CommandFromArgs(argsArray)
 			cmd+='"';
 		}
 	}
-	return cmd;
+	return (cmd);
 }
+
+// Helper for extending the PATH environment variable.
+function PrependPath(path, list)
+{
+	var i,j,k;
+	var newList=path;
+	for (i=0; i<list.length; i=j+1) {
+		j=list.indexOf(";",i);
+		if (j<0) j=list.length;
+		k=list.substr(i,j-i);
+		if (k.length>0 && k!=path) newList=newList+";"+k;
+	}
+	return newList;
+}
+
+// Determine the directory where this script file is in.
+var emDir=FileSys.GetParentFolderName(WScript.ScriptFullName);
+
+// Set the EM_DIR environment variable.
+ProcEnv("EM_DIR")=emDir;
+
+// Set the EM_ORIG_PATH environment variable.
+ProcEnv("EM_ORIG_PATH")=ProcEnv("PATH");
+
+// Prepend third-party bin directory to PATH, if it exists.
+var thirdpartyBin=emDir+"\\thirdparty\\bin";
+if (FileSys.FolderExists(thirdpartyBin)) {
+	ProcEnv("PATH")=PrependPath(thirdpartyBin,ProcEnv("PATH"));
+}
+
+// Prepend our own lib directory to PATH.
+ProcEnv("PATH")=PrependPath(emDir+"\\lib",ProcEnv("PATH"));
+
+// Prepare an array of arguments for starting the executable.
+Args=new Array;
+Args[0]=emDir+"\\bin\\eaglemode.exe";
+for (i=0; i<WScript.Arguments.length; i++) Args[i+1]=WScript.Arguments(i);
+
+// Convert the array of arguments to a command string.
 Cmd=CommandFromArgs(Args);
 
 // Run the command (without waiting for termination).

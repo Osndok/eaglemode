@@ -1,0 +1,311 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emEngine.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emEngine_h
+#define emEngine_h
+
+#ifndef emSignal_h
+#include &lt;<A CLASS=f HREF="emCore_emSignal_h.html">emCore/emSignal.h</A>&gt;
+#endif
+
+
+<A NAME="emEngine"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// The classes <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>, <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> and <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> can be used for some
+        // kind of CPU sharing and event handling, within one thread of
+        // execution.
+        //
+        // The central point is the virtual method Cycle of <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>. Derived
+        // classes have to overload it for doing something useful in it.
+        //
+        // Polling
+        // -------
+        //
+        // One possibility is that Cycle could be called by the scheduler on
+        // every time slice. The size of a time slice is defined by the actual
+        // derivative of <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>. It should be about 10 millisecs.
+        //
+        // Such a polling can be made by waking up the engine once through
+        // calling WakeUp, and by always returning true from the Cycle call.
+        //
+        // Not polling
+        // -----------
+        //
+        // For sparing CPU cycles, polling should be used in rare cases only.
+        // Best is to let the engine sleep most times, and to wake it up
+        // whenever there is something useful to do.
+        //
+        // After calling WakeUp on an engine, Cycle is called by the scheduler
+        // within the current time slice. The Cycle call should return false for
+        // falling asleep again.
+        //
+        // Through the wake-up mechanism, Cycle can be called multiple times
+        // within one time slice. For example, this allows to have chains of
+        // signals without any delay through the time slices.
+        //
+        // Signals
+        // -------
+        //
+        // <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> can be used for sending a unary event to the engines without
+        // having references to them. But all receiving engines must share the
+        // same scheduler, and the sender must have a reference to that
+        // scheduler. Very often, the sender is even an engine.
+        //
+        // An engine can receive a signal event by calling IsSignaled from
+        // within Cycle. To avoid polling, an engine can be woken up by signals.
+        // Therefore any number of signals can be connected to an engine with
+        // AddWakeUpSignal.
+        //
+        // Here is an example of how a sender can send two different signals A
+        // and B to receivers:
+        //
+        // class MySender : public <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> {
+        // private:
+        //   <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> A;
+        //   <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> B;
+        // public:
+        //   inline MySender(<A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler) : <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>(scheduler) {}
+        //   inline const <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSignalA() const { return A; }
+        //   inline const <A CLASS=m HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSignalB() const { return B; }
+        //   inline void SendA() { Signal(A); }
+        //   inline void SendB() { Signal(B); }
+        // };
+        //
+        // class MyReceiver : public <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> {
+        // private:
+        //   MySender &amp; Sender;
+        // public:
+        //   inline MyReceiver(MySender &amp; sender)
+        //     : <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>(sender.GetScheduler()), Sender(sender)
+        //   {
+        //     AddWakeUpSignal(Sender.GetSignalA());
+        //     AddWakeUpSignal(Sender.GetSignalB());
+        //   }
+        // protected:
+        //   virtual bool Cycle();
+        // };
+        //
+        // bool MyReceiver::Cycle()
+        // {
+        //   if (IsSignaled(Sender.GetSignalA())) {
+        //     //...got signal A...
+        //   }
+        //   if (IsSignaled(Sender.GetSignalB())) {
+        //     //...got signal B...
+        //   }
+        //   return false;
+        // }
+        //
+        // Minimum fairness
+        // ----------------
+        //
+        // A call to Cycle should not block for a too long time. If an engine
+        // wants to perform a long-time job, it should divide that job into
+        // multiple time slices. The method IsTimeSliceAtEnd can be helpful
+        // here. Example:
+        //
+        // bool JobEngine::Cycle()
+        // {
+        //   while (!JobFinished()) {
+        //     WorkOnTheJobALittleBit();
+        //     if (IsTimeSliceAtEnd()) break;
+        //   }
+        //   return !JobFinished();
+        // }
+        //
+        // The above example provides just minimum fairness, because if there
+        // are two such job engines, one would always eat the whole time slice
+        // and the other would perform WorkOnTheJobALittleBit only once per time
+        // slice.
+        //
+        // ??? More fairness for parallel jobs may be supported in the future.
+        // ??? Maybe the return value of Cycle should be replaced by a method.
+        //
+        // There is a helper for serializing jobs: <A CLASS=m HREF="emCore_emPriSchedAgent_h.html#emPriSchedAgent">emPriSchedAgent</A>
+
+        </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+                <SPAN CLASS=c>// Construct this as a sleeping engine.
+                // Arguments:
+                //   scheduler - The scheduler which has to serve this engine.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+                <SPAN CLASS=c>// Get the scheduler.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>WakeUp();
+                <SPAN CLASS=c>// Wake up this engine. This means that Cycle will be called by
+                // the scheduler within the current time slice. Even if WakeUp
+                // is called from within Cycle, Cycle will be called again
+                // within the current time slice.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddWakeUpSignal(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal);
+                <SPAN CLASS=c>// Wake up this engine whenever the given signal is signaled.
+                // Waking up through a signal is like calling WakeUp. Adding the
+                // same signal more than once does not cost any additional
+                // resources. But the number of additions is counted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveWakeUpSignal(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal);
+                <SPAN CLASS=c>// Remove the given signal from the set of signals waking up
+                // this engine. If a signal has been added multiple times, it
+                // would have to be removed for the same number of times, before
+                // it would really be disconnected from the engine (this is for
+                // solving conflicts between base classes and derived classes:
+                // the derived class does not need to know whether the base
+                // class has added a certain signal for its own purpose). There
+                // is no need to remove signals before destruction of signals or
+                // engines. This is solved by the destructors more efficient.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetWakeUpSignalRefs(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the given signal (how often the
+                // signal has been added and not removed).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Signal(<A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal);
+                <SPAN CLASS=c>// Signal the given signal. This is just a short cut for
+                // signal.Signal(GetScheduler()). It does not matter on which
+                // <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> the call is made, as long as they belong to the same
+                // scheduler.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSignaled(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the given signal has been signaled. This must be
+                // called only from within the Cycle method of this engine. The
+                // return value is true, if the signal has been signaled between
+                // the beginning of the previous call to Cycle and the beginning
+                // of the current call to Cycle.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsTimeSliceAtEnd() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Returns true if the current time slice is at its end.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>PriorityType <SPAN CLASS=b>{
+                </SPAN>VERY_LOW_PRIORITY  = <SPAN CLASS=u>0</SPAN>,
+                LOW_PRIORITY       = <SPAN CLASS=u>1</SPAN>,
+                DEFAULT_PRIORITY   = <SPAN CLASS=u>2</SPAN>,
+                HIGH_PRIORITY      = <SPAN CLASS=u>3</SPAN>,
+                VERY_HIGH_PRIORITY = <SPAN CLASS=u>4
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetEnginePriority(PriorityType priority);
+        PriorityType GetEnginePriority() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Set or get the priority. If two engines are to be called
+                // within the same time slice, the one with the higher priority
+                // is called first. And if the priority is equal, it's the order
+                // of waking up the engines. VERY_LOW_PRIORITY and
+                // VERY_HIGH_PRIORITY are meant to be used by driver
+                // implementations only. A GUI driver should perform input at
+                // VERY_HIGH_PRIORITY and output at VERY_LOW_PRIORITY.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// This is the virtual Cycle method mentioned all above. It is
+                // only to be called by the scheduler. There is no problem with
+                // doing a 'delete this' within Cycle, from the schedulers point
+                // of view.
+                // The meaning of the return value is:
+                //  false: Fall asleep if this engine has not been woken up
+                //         since the beginning of this call to Cycle.
+                //   true: Wake up this engine on next time slice if the engine
+                //         will not be woken up earlier or if it has not been
+                //         woken up since the beginning of this call to Cycle.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>;
+
+        <SPAN CLASS=t>void </SPAN>WakeUpImp();
+
+        <SPAN CLASS=t>static void </SPAN>RemoveLink(<A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>::Link * link);
+
+        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; Scheduler;
+                <SPAN CLASS=c>// The scheduler.
+
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::EngineRingNode RNode;
+                <SPAN CLASS=c>// A node for this engine in a list of awake engines, garbage
+                // when sleeping.
+
+        </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A>::Link * SLFirst;
+                <SPAN CLASS=c>// First element in the list of connected signals.
+
+        </SPAN>emInt8 AwakeState;
+                <SPAN CLASS=c>// -1 &lt;=&gt; Sleeping.
+                // <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::TimeSlice &lt;=&gt; Busy in current time slice
+                // <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::TimeSlice^1 &lt;=&gt; Busy in next time slice
+
+        </SPAN>emUInt8 Priority;
+                <SPAN CLASS=c>// The priority (0-4).
+
+        </SPAN>emUInt64 Clock;
+                <SPAN CLASS=c>// State of <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::Clock after last call to Cycle().
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::GetScheduler()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Scheduler;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::WakeUp()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(AwakeState!=Scheduler.TimeSlice) WakeUpImp();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::Signal(<A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!signal.RNode.Next) <SPAN CLASS=b>{
+                </SPAN>signal.RNode.Next=Scheduler.PSList.Next;
+                Scheduler.PSList.Next=&amp;signal.RNode;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::IsSignaled(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; signal) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>signal.Clock&gt;Clock;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::IsTimeSliceAtEnd() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Scheduler.IsTimeSliceAtEnd();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::PriorityType <A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::GetEnginePriority() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(PriorityType)Priority;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

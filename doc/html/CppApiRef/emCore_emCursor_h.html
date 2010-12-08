@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emCursor.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emCursor_h.html#emCursor">emCursor</A>.h
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emCursor_h
+#define emCursor_h
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+
+<A NAME="emCursor"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emCursor_h.html#emCursor">emCursor</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a mouse cursor.
+
+        //??? Allow custom cursors (e.g. construct from an image and
+        //??? hot spot coordinates, or from a file).
+
+        </SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possible values for the cursor id.
+                </SPAN>NORMAL                   = <SPAN CLASS=u>0</SPAN>,
+                INVISIBLE                = <SPAN CLASS=u>1</SPAN>,
+                WAIT                     = <SPAN CLASS=u>2</SPAN>,
+                CROSSHAIR                = <SPAN CLASS=u>3</SPAN>,
+                TEXT                     = <SPAN CLASS=u>4</SPAN>,
+                HAND                     = <SPAN CLASS=u>5</SPAN>,
+                LEFT_RIGHT_ARROW         = <SPAN CLASS=u>6</SPAN>,
+                UP_DOWN_ARROW            = <SPAN CLASS=u>7</SPAN>,
+                LEFT_RIGHT_UP_DOWN_ARROW = <SPAN CLASS=u>8
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>();
+                <SPAN CLASS=c>// Construct a normal cursor.
+
+        </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>(<SPAN CLASS=t>int </SPAN>cursorId);
+                <SPAN CLASS=c>// Construct from a cursor id.
+
+        </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; cursor);
+                <SPAN CLASS=c>// Copy constructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; cursor);
+        <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>cursorId);
+                <SPAN CLASS=c>// Copy operators.
+
+        </SPAN><SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the cursor id.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>int </SPAN>CursorId;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::<A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>()
+<SPAN CLASS=b>{
+        </SPAN>CursorId=NORMAL;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::<A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>(<SPAN CLASS=t>int </SPAN>cursorId)
+<SPAN CLASS=b>{
+        </SPAN>CursorId=cursorId;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::<A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; cursor)
+<SPAN CLASS=b>{
+        </SPAN>CursorId=cursor.CursorId;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; cursor)
+<SPAN CLASS=b>{
+        </SPAN>CursorId=cursor.CursorId;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> &amp; <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>cursorId)
+<SPAN CLASS=b>{
+        </SPAN>CursorId=cursorId;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::<SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CursorId;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CursorId;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

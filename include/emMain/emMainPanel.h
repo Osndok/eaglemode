@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emSubViewPanel_h
 #include <emCore/emSubViewPanel.h>
+#endif
+
+#ifndef emMainConfig_h
+#include <emMain/emMainConfig.h>
 #endif
 
 
@@ -54,12 +58,16 @@ protected:
 private:
 
 	void UpdateCoordinates();
+	void UpdateFullscreen();
+	void UpdateSliderHiding(bool restart);
 	void DragSlider(double deltaY);
+	void DoubleClickSlider();
 
 	class SliderPanel : public emPanel {
 	public:
 		SliderPanel(emMainPanel & parent, const emString & name);
 		virtual ~SliderPanel();
+		void SetHidden(bool hidden);
 		virtual void Input(emInputEvent & event,
 		                   const emInputState & state,
 		                   double mx, double my);
@@ -68,22 +76,12 @@ private:
 		                   emColor canvasColor);
 		emMainPanel & MainPanel;
 		emImage SliderImage;
-		bool MouseOver,Pressed;
+		bool MouseOver,Pressed,Hidden;
 		double PressMY,PressSliderY;
 	};
 	friend class SliderPanel;
 
-	class CfgModel : public emConfigModel, public emStructRec {
-	public:
-		static emRef<CfgModel> Acquire(emRootContext & rootContext);
-		emDoubleRec ControlSize;
-		virtual const char * GetFormatName() const;
-	protected:
-		CfgModel(emContext & context, const emString & name);
-		virtual ~CfgModel();
-	};
-
-	emRef<CfgModel> StartUpCfg;
+	emRef<emMainConfig> MainConfig;
 
 	emColor ControlEdgesColor;
 	emImage ControlEdgesImage;
@@ -98,6 +96,11 @@ private:
 	double ContentX,ContentY,ContentW,ContentH;
 	double SliderX,SliderY,SliderW,SliderH;
 	double SliderMinY,SliderMaxY;
+
+	bool FullscreenOn;
+
+	double OldMouseX,OldMouseY;
+	emTimer SliderTimer;
 };
 
 inline emView & emMainPanel::GetControlView()

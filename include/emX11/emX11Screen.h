@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,6 +61,9 @@ public:
 
 	virtual void Beep();
 
+	virtual void DisableScreensaver();
+	virtual void EnableScreensaver();
+
 protected:
 
 	virtual emWindowPort * CreateWindowPort(emWindow & window);
@@ -94,6 +97,12 @@ private:
 	);
 
 	::Cursor GetXCursor(int cursorId);
+
+	::Cursor CreateXCursor(
+		int srcWidth, int srcHeight, const unsigned char * srcBits,
+		int mskWidth, int mskHeight, const unsigned char * mskBits,
+		int hotX, int hotY
+	);
 
 	static emInputKey ConvertKey(KeySym ks, int * pVariant=NULL);
 
@@ -129,6 +138,8 @@ private:
 	emArray<emX11WindowPort*> WinPorts;
 	emX11WindowPort * GrabbingWinPort;
 	emX11Clipboard * Clipboard;
+	int       ScreensaverDisableCounter;
+	emTimer   ScreensaverDisableTimer;
 
 	static emThreadMiniMutex ErrorHandlerMutex;
 	static bool ErrorHandlerCalled;

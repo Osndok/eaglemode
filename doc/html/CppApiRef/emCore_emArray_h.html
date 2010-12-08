@@ -1,0 +1,1415 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emArray.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>.h
+//
+// Copyright (C) 2005-2009 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emArray_h
+#define emArray_h
+
+#include &lt;new&gt;
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="Array_functions"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== Array functions ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN>emSortArray(
+        OBJ * array, <SPAN CLASS=t>int </SPAN>count,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+);
+        <SPAN CLASS=c>// Sort an array where the elements are of the type OBJ. The order of
+        // equal elements is preserved. It is a merge-sort algorithm.
+        // Arguments:
+        //   array   - The array to be sorted.
+        //   count   - Number of elements in the array.
+        //   compare - Function for comparing two elements.
+        //             If you want the elements to be compared via the operators
+        //             '&lt;' and '&gt;', say:
+        //               <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+        //             with OBJ replaced by the real type of the elements. The
+        //             context argument is ignored then.
+        //             Arguments:
+        //               obj1    - Pointer to first element.
+        //               obj2    - Pointer to second element.
+        //               context - See below.
+        //             Returns: Zero if the elements are equal, a value greater
+        //               than zero if the first element is greater than the
+        //               second one, and a value less than zero if the first
+        //               element is less than the second one.
+        //   context - Any pointer to be forwarded to the compare function.
+        // Returns: true if there was a change, false otherwise.
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ, <SPAN CLASS=t>class </SPAN>KEY&gt; <SPAN CLASS=t>int </SPAN>emBinarySearch(
+        OBJ * array, <SPAN CLASS=t>int </SPAN>count, KEY key,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj, KEY key, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+);
+        <SPAN CLASS=c>// Perform a binary search in a sorted array of elements by comparing
+        // the elements against a key.
+        // Arguments:
+        //   array   - The array.
+        //   count   - Number of elements in the array.
+        //   key     - The key to be searched for.
+        //   compare - Function for comparing an element against the key.
+        //             If KEY is 'const OBJ *', and if you want the operators
+        //             '&lt;' and '&gt;' to be used, say:
+        //               <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+        //             with OBJ replaced by the real type of the elements. The
+        //             context argument is ignored then.
+        //             Arguments:
+        //               obj     - Pointer to the element.
+        //               key     - The key.
+        //               context - See below.
+        //             Returns: Zero if the element matches the key, a value
+        //               greater than zero if the element is greater, and a
+        //               value less than zero if it is less.
+        //   context - Any pointer to be forwarded to the compare function.
+        // Returns:
+        //   If a matching element could be found, the index of that element is
+        //   returned. Otherwise a value less than zero is returned: the binary
+        //   inversion of the index for insertion.
+
+
+<A NAME="emArray"></A>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a dynamic array with copy-on-write behavior. The
+        // template parameter OBJ is the type of the elements. To avoid frequent
+        // reallocations, the array manages a capacity (number of elements
+        // memory is allocated for), which may be greater than the count (number
+        // of valid elements). The capacity can be up to 3*count-1, or 2*count
+        // after increasing only.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>();
+                <SPAN CLASS=c>// Construct an empty array.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array);
+                <SPAN CLASS=c>// Construct a copied array.
+                // Arguments:
+                //   array - The array to be copied.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(<SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>int </SPAN>tuningLevel=<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=c>// Construct a copied array.
+                // Arguments:
+                //   array       - The array to be copied.
+                //   count       - Number of elements in array.
+                //   tuningLevel - Please read the comments on SetTuningLevel.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(<SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>const </SPAN>OBJ * array2, <SPAN CLASS=t>int </SPAN>count2,
+                <SPAN CLASS=t>int </SPAN>tuningLevel=<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=c>// Construct an array by copying two source arrays.
+                // Arguments:
+                //   array       - The array to be copied to the beginning.
+                //   count       - Number of elements in array.
+                //   array2      - The array to be copied to the end.
+                //   count2      - Number of elements in array2.
+                //   tuningLevel - Please read the comments on SetTuningLevel.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>int </SPAN>tuningLevel=<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=c>// Construct an array by filling.
+                // Arguments:
+                //   obj         - The object to be copied to all elements.
+                //   count       - Number of elements in the array.
+                //   tuningLevel - Please read the comments on SetTuningLevel.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array);
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=c>// Copy an array or an object to this array.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetTuningLevel() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetTuningLevel(<SPAN CLASS=t>int </SPAN>tuningLevel);
+                <SPAN CLASS=c>// **************************************************
+                // *** CAUTION: NEVER SET A TOO HIGH TUNING LEVEL ***
+                // **************************************************
+                // Get or set the tuning level. This has influence on the
+                // performance. The maximum allowed tuning level depends
+                // on the data type OBJ. Possible tuning levels are:
+                //   0 - Default level. Can be used for every type.
+                //   1 - Objects are moved in memory without calling copy
+                //       constructors on the target and without calling
+                //       destructors on the source. Can be used for
+                //       <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>, <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>, <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A>... but NOT <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>.
+                //   2 - Like 1, but objects are copied in memory without
+                //       calling copy constructors or copy operators.
+                //   3 - Like 2, but destructors are never called. Could
+                //       possibly be used for very simple classes which
+                //       still have virtual methods.
+                //   4 - Like 3, but constructors are never called. Can
+                //       be used for primitive types like int, double,
+                //       pointers and even <A CLASS=m HREF="emCore_emColor_h.html#emColor">emColor</A>.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the number of elements in this array.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetCount(<SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Set the number of elements in this array. Additional elements
+                // are set to default state. But if OBJ is a primitive type, or
+                // if the tuning level is 4, additional elements are not
+                // initialized.
+                // Arguments:
+                //   count   - The new number of elements in the array.
+                //   compact - Whether to make the capacity equal to the count.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Compact();
+                <SPAN CLASS=c>// Make the capacity equal to the count.
+
+        </SPAN><SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the first element in this array, that is,
+                // get the array as a normal C array. At least because of the
+                // copy-on-write feature, the pointer is valid only until
+                // calling any non-const method or operator on this array, or
+                // giving this array as a non-const argument to any call in the
+                // world. Hint: Even methods like Add, Insert, Replace and
+                // GetSubArray may make shallow copies, like the copy operator
+                // and copy constructor do.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a reference to an element. The rules for the validity of
+                // the reference are the same as with the pointer returned by
+                // Get().
+                // Arguments:
+                //   index - The index of the desired element. This must be
+                //           within the range of 0 to GetCount()-1.
+                // Returns: The reference to the element.
+
+        </SPAN>OBJ * GetWritable();
+        OBJ &amp; GetWritable(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Like Get() and Get(index), but for modifying the elements.
+                // There is no non-const version of the operator [], because
+                // compilers would make use of it too often. The rules for the
+                // validity of the pointer or reference are the same as with
+                // Get(), but modification is allowed only until doing something
+                // which could make a shallow copy of this array.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=c>// Set an element.
+                // Arguments:
+                //   index - The index of the element to be set. This must be
+                //           within the range of 0 to GetCount()-1.
+                //    obj  - The object to be copied to the element.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Add(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>AddNew(<SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Like the Insert methods, but with index=GetCount().
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array);
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Similar to the Add methods...
+
+        //friend <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A> operator + (const OBJ &amp; obj, const <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array);
+                // This one even exists and can be used.
+                // (Having the declaration here would not be portable)
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count,
+                    <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>,
+                    <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>InsertNew(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Like the Replace methods, but with remCount=0.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array,
+                     <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count,
+                     <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Replace(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>,
+                     <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>ReplaceByNew(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>,
+                          <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Remove and/or insert elements at a particular position. The
+                // memory areas of source and target may overlap. That means, an
+                // array could be inserted into itself, elements could be moved
+                // within the array, and so on. With ReplaceByNew, the new
+                // elements are set to default state, but if OBJ is a primitive
+                // type, or if the tuning level is 4, the new elements are not
+                // initialized. index and remCount are clipped if they are out
+                // of range.
+                // Arguments:
+                //   index    - Index of first element to be removed, and where
+                //              new elements are to be inserted.
+                //   remCount - Number of elements to be removed.
+                //   array    - An array whose elements are to be copied to the
+                //              new elements.
+                //   obj      - An object to be copied for filling the new
+                //              elements.
+                //   count or array.GetCount() - Number of elements to be
+                //              inserted.
+                //   compact  - Whether to minimize the capacity.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> GetSubArray(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Create a sub-array from elements of this array.
+                // Arguments:
+                //   index   - Index of first element to be copied into the
+                //             returned array.
+                //   count   - Number of elements to be copied into the
+                //             returned array
+                //   compact - Whether to minimize the capacity.
+                // Returns: The sub-array.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> Extract(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Like GetSubArray, but remove the affected elements from this
+                // array.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Remove elements from this array.
+                // Arguments:
+                //   index   - Index of first element to be removed.
+                //   count   - Number of elements to be removed.
+                //   compact - Whether to minimize the capacity.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Empty(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Remove all elements (set zero count).
+                // Arguments:
+                //   compact - Whether to minimize the capacity.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the number of elements is zero.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>PointerToIndex(<SPAN CLASS=t>const </SPAN>OBJ * ptr) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the element whose address is ptr.
+                // Returns -1 if ptr is out of range.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Sort(
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Sort this array. The order of equal elements is preserved.
+                // Arguments:
+                //   compare - Function for comparing two elements.
+                //             If you want the elements to be compared via the
+                //             operators '&lt;' and '&gt;', say:
+                //               <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+                //             with OBJ replaced by the real type of the
+                //             elements. The context argument is ignored then.
+                //             Arguments:
+                //               obj1    - Pointer to first element.
+                //               obj2    - Pointer to second element.
+                //               context - See below.
+                //             Returns: Zero if the elements are equal, a value
+                //               greater than zero if the first element is
+                //               greater than the second one, and a value less
+                //               than zero if the first element is less than the
+                //               second one.
+                //   context - Any pointer to be forwarded to the compare
+                //             function.
+                // Returns: Whether there was a change.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>BinarySearch(
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Search for an element equal to a given object. The array must
+                // already be sorted by the same compare function.
+                // Arguments:
+                //   obj     - An object which is equal to the searched element.
+                //   compare - Please see the Sort method.
+                //   context - Please see the Sort method.
+                // Returns:
+                //   If a matching element could be found, the index of that
+                //   element is returned. Otherwise a value less than zero is
+                //   returned: the binary inversion of the index for insertion.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>BinarySearchByKey(
+                <SPAN CLASS=t>void </SPAN>* key,
+                <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key,
+                                    <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like BinarySearch, but with comparing the elements against a
+                // key, which is given as a 'void *' here (because some
+                // compilers don't like nested templates).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>BinaryInsert(
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Insert an element by sorting it into the array, even if there
+                // is already an element which equals the given object. The
+                // array must already be sorted by the same compare function.
+                // Arguments:
+                //   obj     - An object to be copied for the insertion.
+                //   compare - Please see the Sort method.
+                //   context - Please see the Sort method.
+                //   compact - Whether to minimize the capacity.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>BinaryInsertIfNew(
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Like BinaryInsert, but return false and do nothing if there
+                // is already an element which equals the given object.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>BinaryInsertOrReplace(
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Like BinaryInsert, but if there is already an element which
+                // equals the given object, copy the given object into that
+                // element, instead of inserting an additional element.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>BinaryReplace(
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Like BinaryInsertOrReplace, but do nothing and return false
+                // if there is no element which equals the given object.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>BinaryRemove(
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+        <SPAN CLASS=t>bool </SPAN>BinaryRemoveByKey(
+                <SPAN CLASS=t>void </SPAN>* key,
+                <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key,
+                                    <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Like BinarySearch and BinarySearchByKey, but remove the found
+                // element, or return false if no such element can been found.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this array.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the array to another
+                // thread. This method is not recursive. So if the object class
+                // even has such a method, you have to call it on every object
+                // too.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>EmptySharedData <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>int </SPAN>Count;
+                <SPAN CLASS=t>int </SPAN>Capacity;
+                <SPAN CLASS=t>short </SPAN>TuningLevel;
+                <SPAN CLASS=t>short </SPAN>IsStaticEmpty;
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>struct </SPAN>SharedData : EmptySharedData <SPAN CLASS=b>{
+                </SPAN>OBJ Obj[<SPAN CLASS=u>16</SPAN>];
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>Construct(OBJ * array, <SPAN CLASS=t>const </SPAN>OBJ * src, <SPAN CLASS=t>bool </SPAN>srcIsArray,
+                       <SPAN CLASS=t>int </SPAN>count);
+        <SPAN CLASS=t>void </SPAN>Copy(OBJ * array, <SPAN CLASS=t>const </SPAN>OBJ * src, <SPAN CLASS=t>bool </SPAN>srcIsArray, <SPAN CLASS=t>int </SPAN>count);
+        <SPAN CLASS=t>void </SPAN>Move(OBJ * array, OBJ * srcArray, <SPAN CLASS=t>int </SPAN>count);
+        <SPAN CLASS=t>void </SPAN>Destruct(OBJ * array, <SPAN CLASS=t>int </SPAN>count);
+        <SPAN CLASS=t>static </SPAN>SharedData * AllocData(<SPAN CLASS=t>int </SPAN>capacity, <SPAN CLASS=t>int </SPAN>tuningLevel);
+        <SPAN CLASS=t>void </SPAN>FreeData();
+        <SPAN CLASS=t>void </SPAN>MakeWritable();
+        <SPAN CLASS=t>void </SPAN>PrivRep(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN>OBJ * src, <SPAN CLASS=t>bool </SPAN>srcIsArray,
+                     <SPAN CLASS=t>int </SPAN>insCount, <SPAN CLASS=t>bool </SPAN>compact);
+
+        SharedData * Data;
+        <SPAN CLASS=t>static </SPAN>EmptySharedData EmptyData[<SPAN CLASS=u>5</SPAN>];
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+//------------------------------ Array functions -------------------------------
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN>emSortArray(
+        OBJ * array, <SPAN CLASS=t>int </SPAN>count,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>autoIndices[<SPAN CLASS=u>384</SPAN>];
+        <SPAN CLASS=t>int </SPAN>stackMem[<SPAN CLASS=u>128</SPAN>];
+        <SPAN CLASS=t>int </SPAN>* stack, * indices, * s1, * s2, * t, * e;
+        <SPAN CLASS=t>int </SPAN>i, j, k, l;
+        OBJ * tmpArray;
+
+        <SPAN CLASS=k>if </SPAN>(count&lt;=<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>return false</SPAN>;
+        i=count+count/<SPAN CLASS=u>2</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(i&lt;=(<SPAN CLASS=t>int</SPAN>)(<SPAN CLASS=k>sizeof</SPAN>(autoIndices)/<SPAN CLASS=k>sizeof</SPAN>(<SPAN CLASS=t>int</SPAN>))) indices=autoIndices;
+        <SPAN CLASS=k>else </SPAN>indices=(<SPAN CLASS=t>int</SPAN>*)malloc(i*<SPAN CLASS=k>sizeof</SPAN>(<SPAN CLASS=t>int</SPAN>));
+        <SPAN CLASS=k>for </SPAN>(stack=stackMem, stack[<SPAN CLASS=u>0</SPAN>]=<SPAN CLASS=u>0</SPAN>, i=<SPAN CLASS=u>0</SPAN>, j=<SPAN CLASS=u>0</SPAN>, k=count;;) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>2</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>stack+=<SPAN CLASS=u>4</SPAN>;
+                        stack[<SPAN CLASS=u>0</SPAN>]=i;
+                        stack[<SPAN CLASS=u>1</SPAN>]=count;
+                        stack[<SPAN CLASS=u>2</SPAN>]=j;
+                        stack[<SPAN CLASS=u>3</SPAN>]=k;
+                        l=count/<SPAN CLASS=u>2</SPAN>;
+                        count-=l;
+                        i+=l;
+                        j+=l;
+                <SPAN CLASS=b>}
+                </SPAN>t=indices+j;
+                <SPAN CLASS=k>if </SPAN>(count&lt;<SPAN CLASS=u>2</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>t[<SPAN CLASS=u>0</SPAN>]=i;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(compare(array+i,array+i+<SPAN CLASS=u>1</SPAN>,context)&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>t[<SPAN CLASS=u>0</SPAN>]=i;
+                        t[<SPAN CLASS=u>1</SPAN>]=i+<SPAN CLASS=u>1</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>t[<SPAN CLASS=u>0</SPAN>]=i+<SPAN CLASS=u>1</SPAN>;
+                        t[<SPAN CLASS=u>1</SPAN>]=i;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>while </SPAN>(stack[<SPAN CLASS=u>0</SPAN>]&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>count=stack[<SPAN CLASS=u>1</SPAN>];
+                        t=indices+stack[<SPAN CLASS=u>2</SPAN>];
+                        s1=indices+stack[<SPAN CLASS=u>3</SPAN>];
+                        s2=t+count/<SPAN CLASS=u>2</SPAN>;
+                        e=t+count;
+                        stack-=<SPAN CLASS=u>4</SPAN>;
+                        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(compare(array+*s1,array+*s2,context)&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                                        </SPAN>*t++=*s1++;
+                                        <SPAN CLASS=k>if </SPAN>(t&lt;s2) <SPAN CLASS=k>continue</SPAN>;
+                                        <SPAN CLASS=k>break</SPAN>;
+                                <SPAN CLASS=b>}
+                                </SPAN>*t++=*s2++;
+                                <SPAN CLASS=k>if </SPAN>(s2&lt;e) <SPAN CLASS=k>continue</SPAN>;
+                                <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{ </SPAN>*t++=*s1++; <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(t&lt;s2);
+                                <SPAN CLASS=k>break</SPAN>;
+                        <SPAN CLASS=b>}
+                }
+                </SPAN><SPAN CLASS=k>if </SPAN>(stack==stackMem) <SPAN CLASS=k>break</SPAN>;
+                i=stack[<SPAN CLASS=u>0</SPAN>];
+                count=stack[<SPAN CLASS=u>1</SPAN>]/<SPAN CLASS=u>2</SPAN>;
+                j=stack[<SPAN CLASS=u>3</SPAN>];
+                k=stack[<SPAN CLASS=u>2</SPAN>];
+                stack[<SPAN CLASS=u>0</SPAN>]=-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN>tmpArray=(OBJ*)malloc(count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
+        <SPAN CLASS=k>for </SPAN>(i=<SPAN CLASS=u>0</SPAN>; i&lt;count; i++) <SPAN CLASS=b>{
+                </SPAN>::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(tmpArray+i)) OBJ(array[i]);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>for </SPAN>(i=count-<SPAN CLASS=u>1</SPAN>, k=-<SPAN CLASS=u>1</SPAN>; i&gt;=<SPAN CLASS=u>0</SPAN>; i--) <SPAN CLASS=b>{
+                </SPAN>j=indices[i];
+                <SPAN CLASS=k>if </SPAN>(i!=j) <SPAN CLASS=b>{
+                        </SPAN>k=<SPAN CLASS=u>0</SPAN>;
+                        array[i]=tmpArray[j];
+                <SPAN CLASS=b>}
+                </SPAN>tmpArray[j].~OBJ();
+        <SPAN CLASS=b>}
+        </SPAN>free((<SPAN CLASS=t>void</SPAN>*)tmpArray);
+        <SPAN CLASS=k>if </SPAN>(indices!=autoIndices) free(indices);
+        <SPAN CLASS=k>return </SPAN>k&gt;=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ, <SPAN CLASS=t>class </SPAN>KEY&gt; <SPAN CLASS=t>int </SPAN>emBinarySearch(
+        OBJ * array, <SPAN CLASS=t>int </SPAN>count, KEY key,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj, KEY key, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i1,i2,i,d;
+
+        i2=count;
+        <SPAN CLASS=k>if </SPAN>(i2) <SPAN CLASS=b>{
+                </SPAN>i1=<SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                        </SPAN>i=(i1+i2)&gt;&gt;<SPAN CLASS=u>1</SPAN>;
+                        d=compare(array+i,key,context);
+                        <SPAN CLASS=k>if </SPAN>(d&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                                </SPAN>i2=i;
+                                <SPAN CLASS=k>if </SPAN>(i1&lt;i2) <SPAN CLASS=k>continue</SPAN>;
+                                <SPAN CLASS=k>break</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(d&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                                </SPAN>i1=i+<SPAN CLASS=u>1</SPAN>;
+                                <SPAN CLASS=k>if </SPAN>(i1&lt;i2) <SPAN CLASS=k>continue</SPAN>;
+                                <SPAN CLASS=k>break</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>return </SPAN>i;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>return </SPAN>~i2;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//---------------------------------- <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A> -----------------------------------
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>()
+<SPAN CLASS=b>{
+        </SPAN>Data=(SharedData*)&amp;EmptyData[<SPAN CLASS=u>0</SPAN>];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array)
+<SPAN CLASS=b>{
+        </SPAN>Data=array.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(
+        <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>int </SPAN>tuningLevel
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>Data=AllocData(count,tuningLevel);
+                Data-&gt;Count=count;
+                Construct(Data-&gt;Obj,array,<SPAN CLASS=k>true</SPAN>,count);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>Data=(SharedData*)&amp;EmptyData[tuningLevel];
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(
+        <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>const </SPAN>OBJ * array2, <SPAN CLASS=t>int </SPAN>count2,
+        <SPAN CLASS=t>int </SPAN>tuningLevel
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(count&lt;<SPAN CLASS=u>0</SPAN>) count=<SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(count2&lt;<SPAN CLASS=u>0</SPAN>) count2=<SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(count+count2&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>Data=AllocData(count+count2,tuningLevel);
+                Data-&gt;Count=count+count2;
+                Construct(Data-&gt;Obj,array,<SPAN CLASS=k>true</SPAN>,count);
+                Construct(Data-&gt;Obj+count,array2,<SPAN CLASS=k>true</SPAN>,count2);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>Data=(SharedData*)&amp;EmptyData[tuningLevel];
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>int </SPAN>tuningLevel
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>Data=AllocData(count,tuningLevel);
+                Data-&gt;Count=count;
+                Construct(Data-&gt;Obj,&amp;obj,<SPAN CLASS=k>false</SPAN>,count);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>Data=(SharedData*)&amp;EmptyData[tuningLevel];
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::~<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array
+)
+<SPAN CLASS=b>{
+        </SPAN>array.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+        Data=array.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,Data-&gt;Count,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetTuningLevel() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;TuningLevel;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::SetTuningLevel(<SPAN CLASS=t>int </SPAN>tuningLevel)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel!=tuningLevel) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;Count) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+                        Data=(SharedData*)&amp;EmptyData[tuningLevel];
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+                        Data-&gt;TuningLevel=(<SPAN CLASS=t>short</SPAN>)tuningLevel;
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::SetCount(<SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(count&gt;Data-&gt;Count) <SPAN CLASS=b>{
+                </SPAN>PrivRep(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,count-Data-&gt;Count,compact);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>PrivRep(count,Data-&gt;Count-count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Compact()
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>[] (
+        <SPAN CLASS=t>int </SPAN>index
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Obj[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Obj[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetWritable()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetWritable(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>Data-&gt;Obj[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Set(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        Data-&gt;Obj[index]=obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Add(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>Replace(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,array,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Add(
+        <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,array,<SPAN CLASS=k>true</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Add(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::AddNew(<SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array
+)
+<SPAN CLASS=b>{
+        </SPAN>Replace(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,array,<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!array.Data-&gt;Count) <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!Data-&gt;Count) <SPAN CLASS=k>return </SPAN>array;
+        <SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;(
+                Data-&gt;Obj,Data-&gt;Count,
+                array.Data-&gt;Obj,array.Data-&gt;Count,
+                Data-&gt;TuningLevel
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;(Data-&gt;Obj,Data-&gt;Count,&amp;obj,<SPAN CLASS=u>1</SPAN>,Data-&gt;TuningLevel);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; <SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;(
+                &amp;obj,<SPAN CLASS=u>1</SPAN>,array.Get(),array.GetCount(),array.GetTuningLevel()
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Insert(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>Replace(index,<SPAN CLASS=u>0</SPAN>,array,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Insert(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,<SPAN CLASS=u>0</SPAN>,array,<SPAN CLASS=k>true</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Insert(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,<SPAN CLASS=u>0</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::InsertNew(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Replace(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A> &amp; array, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(
+                index&lt;=<SPAN CLASS=u>0 </SPAN>&amp;&amp;
+                index+remCount&gt;=Data-&gt;Count &amp;&amp;
+                array.Data-&gt;TuningLevel==Data-&gt;TuningLevel &amp;&amp;
+                (!compact || array.Data-&gt;Capacity==array.Data-&gt;Count)
+        ) <SPAN CLASS=b>{
+                </SPAN>array.Data-&gt;RefCount++;
+                <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+                Data=array.Data;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>PrivRep(index,remCount,array.Data-&gt;Obj,<SPAN CLASS=k>true</SPAN>,array.Data-&gt;Count,
+                        compact);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Replace(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,remCount,array,<SPAN CLASS=k>true</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Replace(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,remCount,&amp;obj,<SPAN CLASS=k>false</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::ReplaceByNew(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,remCount,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetSubArray(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(index&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>count+=index; index=<SPAN CLASS=u>0</SPAN>; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(count&gt;Data-&gt;Count-index) count=Data-&gt;Count-index;
+        <SPAN CLASS=k>if </SPAN>(count==Data-&gt;Count &amp;&amp; (!compact || Data-&gt;Capacity==Data-&gt;Count)) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;(Data-&gt;Obj+index,count,Data-&gt;TuningLevel);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Extract(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; result(GetSubArray(index,count,compact));
+        PrivRep(index,count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Remove(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(index,count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Empty(<SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,Data-&gt;Count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!Data-&gt;Count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::PointerToIndex(<SPAN CLASS=t>const </SPAN>OBJ * ptr) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(ptr&lt;Data-&gt;Obj || ptr&gt;=Data-&gt;Obj+Data-&gt;Count) <SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>return </SPAN>ptr-Data-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Sort(
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
+        <SPAN CLASS=k>return </SPAN>emSortArray(Data-&gt;Obj,Data-&gt;Count,compare,context);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinarySearch(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>emBinarySearch(Data-&gt;Obj,Data-&gt;Count,&amp;obj,compare,context);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinarySearchByKey(
+        <SPAN CLASS=t>void </SPAN>* key,
+        <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>emBinarySearch(Data-&gt;Obj,Data-&gt;Count,key,compareObjKey,context);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinaryInsert(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearch(obj,compare,context);
+        <SPAN CLASS=k>if </SPAN>(i&lt;<SPAN CLASS=u>0</SPAN>) i=~i;
+        PrivRep(i,<SPAN CLASS=u>0</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinaryInsertIfNew(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearch(obj,compare,context);
+        <SPAN CLASS=k>if </SPAN>(i&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>PrivRep(~i,<SPAN CLASS=u>0</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,compact);
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(compact &amp;&amp; Data-&gt;Count!=Data-&gt;Capacity) <SPAN CLASS=b>{
+                        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinaryInsertOrReplace(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearch(obj,compare,context);
+        <SPAN CLASS=k>if </SPAN>(i&gt;=<SPAN CLASS=u>0</SPAN>) PrivRep(i,<SPAN CLASS=u>1</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,compact);
+        <SPAN CLASS=k>else </SPAN>PrivRep(~i,<SPAN CLASS=u>0</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinaryReplace(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearch(obj,compare,context);
+        <SPAN CLASS=k>if </SPAN>(i&gt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>PrivRep(i,<SPAN CLASS=u>1</SPAN>,&amp;obj,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>1</SPAN>,compact);
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(compact &amp;&amp; Data-&gt;Count!=Data-&gt;Capacity) <SPAN CLASS=b>{
+                        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinaryRemove(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearch(obj,compare,context);
+        <SPAN CLASS=k>if </SPAN>(i&gt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>PrivRep(i,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(compact &amp;&amp; Data-&gt;Count!=Data-&gt;Capacity) <SPAN CLASS=b>{
+                        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::BinaryRemoveByKey(
+        <SPAN CLASS=t>void </SPAN>* key,
+        <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearchByKey(key,compareObjKey,context);
+        <SPAN CLASS=k>if </SPAN>(i&gt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>PrivRep(i,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(compact &amp;&amp; Data-&gt;Count!=Data-&gt;Capacity) <SPAN CLASS=b>{
+                        </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>unsigned int </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetDataRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;IsStaticEmpty ? UINT_MAX/<SPAN CLASS=u>2 </SPAN>: Data-&gt;RefCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Construct(
+        OBJ * array, <SPAN CLASS=t>const </SPAN>OBJ * src, <SPAN CLASS=t>bool </SPAN>srcIsArray, <SPAN CLASS=t>int </SPAN>count
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!src) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>4</SPAN>) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                        </SPAN>count--;
+                                        ::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+count)) OBJ();
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                        <SPAN CLASS=b>}
+                }
+                </SPAN><SPAN CLASS=k>else if </SPAN>(!srcIsArray) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                </SPAN>count--;
+                                ::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+count)) OBJ(*src);
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>2</SPAN>) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                        </SPAN>count--;
+                                        ::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+count)) OBJ(src[count]);
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                </SPAN>memcpy(array,src,count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
+                        <SPAN CLASS=b>}
+                }
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Copy(
+        OBJ * array, <SPAN CLASS=t>const </SPAN>OBJ * src, <SPAN CLASS=t>bool </SPAN>srcIsArray, <SPAN CLASS=t>int </SPAN>count
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        <SPAN CLASS=k>if </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!src) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>3</SPAN>) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                        </SPAN>count--;
+                                        array[count].~OBJ();
+                                        ::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+count)) OBJ();
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>4</SPAN>) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                        </SPAN>count--;
+                                        ::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+count)) OBJ();
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                        <SPAN CLASS=b>}
+                }
+                </SPAN><SPAN CLASS=k>else if </SPAN>(!srcIsArray) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                </SPAN>count--;
+                                array[count]=*src;
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(array!=src) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>2</SPAN>) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(array&lt;src) <SPAN CLASS=b>{
+                                        </SPAN>i=<SPAN CLASS=u>0</SPAN>;
+                                        <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                                </SPAN>array[i]=src[i];
+                                                i++;
+                                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(i&lt;count);
+                                <SPAN CLASS=b>}
+                                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                        </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                                </SPAN>count--;
+                                                array[count]=src[count];
+                                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                                <SPAN CLASS=b>}
+                        }
+                        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                </SPAN>memmove(array,src,count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
+                        <SPAN CLASS=b>}
+                }
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Move(
+        OBJ * array, OBJ * srcArray, <SPAN CLASS=t>int </SPAN>count
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        <SPAN CLASS=k>if </SPAN>(count&gt;<SPAN CLASS=u>0 </SPAN>&amp;&amp; array!=srcArray) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(array&lt;srcArray) <SPAN CLASS=b>{
+                                </SPAN>i=<SPAN CLASS=u>0</SPAN>;
+                                <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                        </SPAN>::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+i)) OBJ(srcArray[i]);
+                                        srcArray[i].~OBJ();
+                                        i++;
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(i&lt;count);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                        </SPAN>count--;
+                                        ::<SPAN CLASS=k>new </SPAN>((<SPAN CLASS=t>void</SPAN>*)(array+count)) OBJ(srcArray[count]);
+                                        srcArray[count].~OBJ();
+                                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+                        <SPAN CLASS=b>}
+                }
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>memmove(array,srcArray,count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Destruct(OBJ * array, <SPAN CLASS=t>int </SPAN>count)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>3 </SPAN>&amp;&amp; count&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                        </SPAN>count--;
+                        array[count].~OBJ();
+                <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>typename </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::SharedData * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::AllocData(
+        <SPAN CLASS=t>int </SPAN>capacity, <SPAN CLASS=t>int </SPAN>tuningLevel
+)
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d;
+
+        d=(SharedData*)malloc(
+                <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*capacity
+        );
+        d-&gt;Count=<SPAN CLASS=u>0</SPAN>;
+        d-&gt;Capacity=capacity;
+        d-&gt;TuningLevel=(<SPAN CLASS=t>short</SPAN>)tuningLevel;
+        d-&gt;IsStaticEmpty=<SPAN CLASS=u>0</SPAN>;
+        d-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>return </SPAN>d;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::FreeData()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        EmptyData[Data-&gt;TuningLevel].RefCount=UINT_MAX/<SPAN CLASS=u>2</SPAN>;
+
+        <SPAN CLASS=c>// Never do a
+        //  if (Data!=(SharedData*)&amp;EmptyData[Data-&gt;TuningLevel])...
+        // instead of
+        //  if (!Data-&gt;IsStaticEmpty)...
+        // because static member variables of template classes could exist
+        // multiple times for the same final type (e.g. with Windows DLLs).
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>3</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>i=Data-&gt;Count;
+                        <SPAN CLASS=k>while </SPAN>(--i&gt;=<SPAN CLASS=u>0</SPAN>) Data-&gt;Obj[i].~OBJ();
+                <SPAN CLASS=b>}
+                </SPAN>free((<SPAN CLASS=t>void</SPAN>*)Data);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::MakeWritable()
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d;
+
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>&amp;&amp; !Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;Count) <SPAN CLASS=b>{
+                        </SPAN>d=(SharedData*)&amp;EmptyData[Data-&gt;TuningLevel];
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>d=AllocData(Data-&gt;Count,Data-&gt;TuningLevel);
+                        d-&gt;Count=Data-&gt;Count;
+                        Construct(d-&gt;Obj,Data-&gt;Obj,<SPAN CLASS=k>true</SPAN>,Data-&gt;Count);
+                <SPAN CLASS=b>}
+                </SPAN>Data-&gt;RefCount--;
+                Data=d;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::PrivRep(
+        <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>const </SPAN>OBJ * src, <SPAN CLASS=t>bool </SPAN>srcIsArray, <SPAN CLASS=t>int </SPAN>insCount,
+        <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d;
+        <SPAN CLASS=t>int </SPAN>newCount,cap,l;
+
+        d=Data;
+        <SPAN CLASS=k>if </SPAN>((<SPAN CLASS=t>unsigned int</SPAN>)index&gt;(<SPAN CLASS=t>unsigned int</SPAN>)d-&gt;Count) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(index&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>remCount+=index; index=<SPAN CLASS=u>0</SPAN>; <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>index=d-&gt;Count;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>((<SPAN CLASS=t>unsigned int</SPAN>)remCount&gt;(<SPAN CLASS=t>unsigned int</SPAN>)(d-&gt;Count-index)) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(remCount&lt;<SPAN CLASS=u>0</SPAN>) remCount=<SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=k>else </SPAN>remCount=d-&gt;Count-index;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(insCount&lt;<SPAN CLASS=u>0</SPAN>) insCount=<SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!remCount &amp;&amp; !insCount &amp;&amp; (!compact || d-&gt;Count==d-&gt;Capacity)) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN>newCount=d-&gt;Count+insCount-remCount;
+
+        <SPAN CLASS=k>if </SPAN>(newCount&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>d=(SharedData*)&amp;EmptyData[d-&gt;TuningLevel];
+                <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
+                Data=d;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN>d=AllocData(newCount,d-&gt;TuningLevel);
+                d-&gt;Count=newCount;
+                <SPAN CLASS=k>if </SPAN>(index&gt;<SPAN CLASS=u>0</SPAN>) Construct(d-&gt;Obj,Data-&gt;Obj,<SPAN CLASS=k>true</SPAN>,index);
+                <SPAN CLASS=k>if </SPAN>(insCount&gt;<SPAN CLASS=u>0</SPAN>) Construct(d-&gt;Obj+index,src,srcIsArray,insCount);
+                l=newCount-index-insCount;
+                <SPAN CLASS=k>if </SPAN>(l&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Construct(d-&gt;Obj+index+insCount,Data-&gt;Obj+index+remCount,<SPAN CLASS=k>true</SPAN>,l);
+                <SPAN CLASS=b>}
+                </SPAN>Data-&gt;RefCount--;
+                Data=d;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(compact) cap=newCount;
+        <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>cap=d-&gt;Capacity;
+                <SPAN CLASS=k>if </SPAN>(cap&lt;newCount || cap&gt;=newCount*<SPAN CLASS=u>3</SPAN>) cap=newCount*<SPAN CLASS=u>2</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap &amp;&amp; d-&gt;TuningLevel&lt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN>d=AllocData(cap,d-&gt;TuningLevel);
+                d-&gt;Count=newCount;
+                <SPAN CLASS=k>if </SPAN>(insCount&gt;<SPAN CLASS=u>0</SPAN>) Construct(d-&gt;Obj+index,src,srcIsArray,insCount);
+                <SPAN CLASS=k>if </SPAN>(remCount&gt;<SPAN CLASS=u>0</SPAN>) Destruct(Data-&gt;Obj+index,remCount);
+                <SPAN CLASS=k>if </SPAN>(index&gt;<SPAN CLASS=u>0</SPAN>) Move(d-&gt;Obj,Data-&gt;Obj,index);
+                l=newCount-index-insCount;
+                <SPAN CLASS=k>if </SPAN>(l&gt;<SPAN CLASS=u>0</SPAN>) Move(d-&gt;Obj+index+insCount,Data-&gt;Obj+index+remCount,l);
+                Data-&gt;Count=<SPAN CLASS=u>0</SPAN>;
+                FreeData();
+                Data=d;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(insCount&lt;=remCount) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(insCount&gt;<SPAN CLASS=u>0</SPAN>) Copy(d-&gt;Obj+index,src,srcIsArray,insCount);
+                <SPAN CLASS=k>if </SPAN>(insCount&lt;remCount) <SPAN CLASS=b>{
+                        </SPAN>l=newCount-index-insCount;
+                        <SPAN CLASS=k>if </SPAN>(l&gt;<SPAN CLASS=u>0</SPAN>) Copy(d-&gt;Obj+index+insCount,d-&gt;Obj+index+remCount,<SPAN CLASS=k>true</SPAN>,l);
+                        Destruct(d-&gt;Obj+newCount,remCount-insCount);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap) <SPAN CLASS=b>{
+                        </SPAN>d=(SharedData*)realloc(
+                                d,
+                                <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*cap
+                        );
+                        d-&gt;Capacity=cap;
+                        Data=d;
+                <SPAN CLASS=b>}
+                </SPAN>d-&gt;Count=newCount;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(src&lt;d-&gt;Obj || src&gt;d-&gt;Obj+d-&gt;Count) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap) <SPAN CLASS=b>{
+                        </SPAN>d=(SharedData*)realloc(
+                                d,
+                                <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*cap
+                        );
+                        d-&gt;Capacity=cap;
+                        Data=d;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>if </SPAN>(remCount&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Copy(d-&gt;Obj+index,src,srcIsArray,remCount);
+                        <SPAN CLASS=k>if </SPAN>(srcIsArray) src+=remCount;
+                        index+=remCount;
+                        insCount-=remCount;
+                <SPAN CLASS=b>}
+                </SPAN>l=newCount-index-insCount;
+                <SPAN CLASS=k>if </SPAN>(l&gt;<SPAN CLASS=u>0</SPAN>) Move(d-&gt;Obj+index+insCount,d-&gt;Obj+index,l);
+                Construct(d-&gt;Obj+index,src,srcIsArray,insCount);
+                d-&gt;Count=newCount;
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+
+        </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap) <SPAN CLASS=b>{
+                </SPAN>Data=(SharedData*)realloc(
+                        d,
+                        <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*cap
+                );
+                src+=Data-&gt;Obj-d-&gt;Obj;
+                d=Data;
+                d-&gt;Capacity=cap;
+        <SPAN CLASS=b>}
+        </SPAN>Construct(d-&gt;Obj+d-&gt;Count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,insCount-remCount);
+        d-&gt;Count=newCount;
+        <SPAN CLASS=k>if </SPAN>(src&lt;=d-&gt;Obj+index) <SPAN CLASS=b>{
+                </SPAN>l=newCount-index-insCount;
+                <SPAN CLASS=k>if </SPAN>(l&gt;<SPAN CLASS=u>0</SPAN>) Copy(d-&gt;Obj+index+insCount,d-&gt;Obj+index+remCount,<SPAN CLASS=k>true</SPAN>,l);
+                Copy(d-&gt;Obj+index,src,srcIsArray,insCount);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(remCount&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Copy(d-&gt;Obj+index,src,srcIsArray,remCount);
+                        <SPAN CLASS=k>if </SPAN>(srcIsArray) src+=remCount;
+                        index+=remCount;
+                        insCount-=remCount;
+                <SPAN CLASS=b>}
+                </SPAN>l=newCount-index-insCount;
+                <SPAN CLASS=k>if </SPAN>(l&gt;<SPAN CLASS=u>0</SPAN>) Copy(d-&gt;Obj+index+insCount,d-&gt;Obj+index,<SPAN CLASS=k>true</SPAN>,l);
+                <SPAN CLASS=k>if </SPAN>(src&gt;=d-&gt;Obj+index) src+=insCount;
+                Copy(d-&gt;Obj+index,src,srcIsArray,insCount);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>typename </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::EmptySharedData <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::EmptyData[<SPAN CLASS=u>5</SPAN>]=<SPAN CLASS=b>{
+        {</SPAN><SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>1</SPAN>,UINT_MAX/<SPAN CLASS=u>2</SPAN><SPAN CLASS=b>}</SPAN>,
+        <SPAN CLASS=b>{</SPAN><SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>1</SPAN>,UINT_MAX/<SPAN CLASS=u>2</SPAN><SPAN CLASS=b>}</SPAN>,
+        <SPAN CLASS=b>{</SPAN><SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>2</SPAN>,<SPAN CLASS=u>1</SPAN>,UINT_MAX/<SPAN CLASS=u>2</SPAN><SPAN CLASS=b>}</SPAN>,
+        <SPAN CLASS=b>{</SPAN><SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>3</SPAN>,<SPAN CLASS=u>1</SPAN>,UINT_MAX/<SPAN CLASS=u>2</SPAN><SPAN CLASS=b>}</SPAN>,
+        <SPAN CLASS=b>{</SPAN><SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>4</SPAN>,<SPAN CLASS=u>1</SPAN>,UINT_MAX/<SPAN CLASS=u>2</SPAN><SPAN CLASS=b>}</SPAN>,
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

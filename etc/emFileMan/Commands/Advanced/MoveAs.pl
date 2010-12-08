@@ -26,6 +26,7 @@ if (IsFirstPass()) {
 	ErrorIfNotSingleSource();
 	ErrorIfNotSingleTarget();
 	ErrorIfTargetsNotDirs();
+	ErrorIfRootSources();
 
 	my @src=GetSrc();
 	my $oldPath=$src[0];

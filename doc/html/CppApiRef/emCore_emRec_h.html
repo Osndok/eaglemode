@@ -1,0 +1,1630 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emRec.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
+//
+// Copyright (C) 2005-2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emRec_h
+#define emRec_h
+
+#ifndef emColor_h
+#include &lt;<A CLASS=f HREF="emCore_emColor_h.html">emCore/emColor.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>;
+
+<SPAN CLASS=t>class </SPAN>emRecNode : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>virtual </SPAN>~emRecNode();
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A>;
+        <SPAN CLASS=t>virtual bool </SPAN>IsListener() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>ChildChanged() = <SPAN CLASS=u>0</SPAN>;
+        emRecNode * UpperNode;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRec"></A><SPAN CLASS=c>//==============================================================================
+//=================================== <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A> ====================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> : <SPAN CLASS=t>public </SPAN>emRecNode <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is the abstract base class for all record classes. The record
+        // classes can be used to design data structures whose contents can be
+        // converted to and from ASCII text. A typical example is the definition
+        // of a configuration file format. It takes just a few lines of
+        // programming to define a new file format and a structured C++
+        // interface with fastest get-methods and operators on the data fields.
+        // A disadvantage is that the records may take round about ten times
+        // more memory than a raw C data structure would take. Here comes a
+        // tiny example:
+        //
+        // Assumed our data structure would look like this in simple C:
+        //
+        //   struct Person {
+        //     char Name[64];
+        //     int Age;
+        //     unsigned Male : 1;
+        //   };
+        //
+        //   struct Person Persons[2];
+        //
+        // With the record classes, it looks like this:
+        //
+        //   class Person : public <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> {
+        //   public:
+        //     Person();
+        //     <A CLASS=m HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> Name;
+        //     <A CLASS=m HREF="emCore_emRec_h.html#emIntRec">emIntRec</A> Age;
+        //     <A CLASS=m HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> Male;
+        //   };
+        //
+        //   Person::Person() :
+        //     <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>(),
+        //     Name(this,"name"),
+        //     Age(this,"age"),
+        //     Male(this,"male")
+        //   {}
+        //
+        //   <A CLASS=m HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;Person&gt; Persons;
+        //
+        // This fills the data structure with some information and writes it to
+        // a file:
+        //
+        //   int main(int argc, char * argv[])
+        //   {
+        //     Persons.SetCount(2);
+        //     Persons[0].Name="Fred";
+        //     Persons[0].Age=12;
+        //     Persons[0].Male=true;
+        //     Persons[1].Name="Clara";
+        //     Persons[1].Age=11;
+        //     Persons[1].Male=false;
+        //     Persons.TrySave("test.rec");
+        //   }
+        //
+        // Here is the resulting contents of the file test.rec:
+        //
+        //   {
+        //     name = "Fred"
+        //     age = 12
+        //     male = yes
+        //   }
+        //   {
+        //     name = "Clara"
+        //     age = 11
+        //     male = no
+        //   }
+
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>();
+                <SPAN CLASS=c>// Construct this record without being a member of an
+                // <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier);
+                <SPAN CLASS=c>// Construct this record as a member of an <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>.
+                // Arguments:
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetParent();
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetParent() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the parent record. Returns NULL if this is a root record.
+                // (This is not super-fast, because the chain of listeners is
+                // walked to find the parent).
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetRoot();
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetRoot() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the root record (this is not super-fast).
+
+        </SPAN><SPAN CLASS=t>virtual const char </SPAN>* GetFormatName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// If this record is the root of records defining a file format,
+                // this method should be overloaded and it should return a handy
+                // name for the file format. Thereby, <A CLASS=m HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> and
+                // <A CLASS=m HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> are writing and checking a file format magic at
+                // the beginning of the file. The default implementation returns
+                // NULL which means to have no file format magic.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoad(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Load or save this tree of records from or to a file.
+                // Arguments:
+                //   filePath - Path/name of the file.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoadFromMem(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>TryLoadFromMem(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>SaveToMem(<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf);
+                <SPAN CLASS=c>// Load or save this tree of records from or to memory.
+                // SaveToMem adds the data to the array without emptying it
+                // first.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryCopy(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; source) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>Copy(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; source);
+                <SPAN CLASS=c>// Copy the given tree of records to this tree of records via
+                // the SaveToMem and TryLoadFromMem methods. This is slow and
+                // works only if the records are compatible. The second version
+                // calls emFatalError on error.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Set this record to default state. When reading an
+                // <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>, omitted members are set to their defaults.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Ask whether this record is set to its default state. When
+                // writing an <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>, members with default state may be
+                // omitted.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading() = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// This is only to be called by <A CLASS=m HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>/Writer and through
+                // recursion in the tree. Try to read or write this tree of
+                // records via the given reader or writer. First, the start
+                // method is called, and then the continue method is called
+                // again and again until it returns true. The quit method is
+                // called at the end, even on error or when aborting. The quit
+                // mechanism should be quite stable, because with
+                // <A CLASS=m HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>, it could happen that quit is called in
+                // response to OnChanged through a user modification.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Calculate best known number of bytes, which are allocated for
+                // this record, or which will be allocated after reading has
+                // completed.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>CheckIdentifier(<SPAN CLASS=t>const char </SPAN>* identifier);
+                <SPAN CLASS=c>// "identifiers" are names of variables, enumeration variants
+                // and so on. The syntactical rules are the same as with
+                // identifiers in the C programming language: begin with a
+                // letter or underscore and continue with letter, underscore or
+                // digit. But they are not case sensitive. This functions checks
+                // whether the given string is a valid identifier. If not,
+                // emFatalError is called.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Changed();
+                <SPAN CLASS=c>// This must be called by derived classes after each change of
+                // the record, even through TryStartReading and
+                // TryContinueReading, but never through constructors or
+                // destructors. It informs the listeners of all the records on
+                // the path from this record up to the root record.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>BeTheParentOf(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * child);
+                <SPAN CLASS=c>// This makes this record the parent of the given child. It is
+                // called by dynamic containers like <A CLASS=m HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A> and <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>
+                // on creation of children.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>IsListener() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>ChildChanged();
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>::<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>()
+<SPAN CLASS=b>{
+        </SPAN>UpperNode=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>::Changed()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(UpperNode) UpperNode-&gt;ChildChanged();
+<SPAN CLASS=b>}
+
+
+<A NAME="emRecListener"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> : <SPAN CLASS=t>public </SPAN>emRecNode <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for a listener on a record and it descendants.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A>(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * rec=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A>();
+
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetListenedRec() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetListenedRec();
+        <SPAN CLASS=t>void </SPAN>SetListenedRec(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * rec);
+                <SPAN CLASS=c>// Get/set the record to be listened. NULL means not to listen
+                // any record. On deletion of the listened record, this is
+                // automatically set to NULL.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>OnRecChanged() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Called on each change of the record and its descendants. This
+                // is a synchronous call - the implementation must not modify
+                // the records or the listeners.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>IsListener() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>ChildChanged();
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Rec;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * <A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A>::GetListenedRec() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Rec;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * <A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A>::GetListenedRec()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Rec;
+<SPAN CLASS=b>}
+
+
+<A NAME="emRecAllocator"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * (* <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A>)();
+        <SPAN CLASS=c>// Data type for a pointer to function which can allocate a new record.
+        // This is used for dynamic containers like <A CLASS=m HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A> and <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>.
+
+</SPAN><SPAN CLASS=p>#define EM_DEFAULT_REC_ALLOCATOR(REC) (&amp;emDfltRecAllocImp&lt;REC &gt;::Allocate)
+        </SPAN><SPAN CLASS=c>// This macro expands to an <A CLASS=m HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> which allocates a record of
+        // type REC with its default constructor.
+
+// private stuff for the macro above.
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>class </SPAN>emDfltRecAllocImp : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Allocate() <SPAN CLASS=b>{ </SPAN><SPAN CLASS=k>return new </SPAN>REC(); <SPAN CLASS=b>}
+}</SPAN>;
+
+
+<A NAME="emBoolRec"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for a boolean value.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A>(<SPAN CLASS=t>bool </SPAN>defaultValue=<SPAN CLASS=k>false</SPAN>);
+        <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                  <SPAN CLASS=t>bool </SPAN>defaultValue=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this boolean record.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator bool </SPAN>() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the boolean value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>bool </SPAN>value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>bool </SPAN>value);
+                <SPAN CLASS=c>// Set the boolean value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Invert();
+                <SPAN CLASS=c>// Invert the boolean value.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>bool </SPAN>DefaultValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A>::<SPAN CLASS=t>operator bool </SPAN>() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>bool </SPAN>value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+<A NAME="emIntRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emRec_h.html#emIntRec">emIntRec</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for an integer value.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>(<SPAN CLASS=t>int </SPAN>defaultValue=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>int </SPAN>minValue=INT_MIN,
+                 <SPAN CLASS=t>int </SPAN>maxValue=INT_MAX);
+        <A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                 <SPAN CLASS=t>int </SPAN>defaultValue=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>int </SPAN>minValue=INT_MIN,
+                 <SPAN CLASS=t>int </SPAN>maxValue=INT_MAX);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this integer record.
+                //   minValue      - The value will never be less than this.
+                //   maxValue      - The value will never be greater than this.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the integer value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>int </SPAN>value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value);
+                <SPAN CLASS=c>// Set the integer value. It is clipped if it would be less than
+                // the minimum value or greater than the maximum value.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMinValue() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetMaxValue() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get minimum and maximum values.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>int </SPAN>DefaultValue, MinValue, MaxValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>::<SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>::GetMinValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinValue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>::GetMaxValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxValue;
+<SPAN CLASS=b>}
+
+
+<A NAME="emDoubleRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for a double value.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>(<SPAN CLASS=t>double </SPAN>defaultValue=<SPAN CLASS=u>0.0</SPAN>, <SPAN CLASS=t>double </SPAN>minValue=-<SPAN CLASS=u>3.4E+38</SPAN>,
+                    <SPAN CLASS=t>double </SPAN>maxValue=<SPAN CLASS=u>3.4E+38</SPAN>);
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                    <SPAN CLASS=t>double </SPAN>defaultValue=<SPAN CLASS=u>0.0</SPAN>, <SPAN CLASS=t>double </SPAN>minValue=-<SPAN CLASS=u>3.4E+38</SPAN>,
+                    <SPAN CLASS=t>double </SPAN>maxValue=<SPAN CLASS=u>3.4E+38</SPAN>);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this double record.
+                //   minValue      - The value will never be less than this.
+                //   maxValue      - The value will never be greater than this.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator double </SPAN>() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>double </SPAN>value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>double </SPAN>value);
+                <SPAN CLASS=c>// Set the double value. It is clipped if it would be less than
+                // the minimum or greater than the maximum.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMinValue() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMaxValue() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get minimum and maximum values.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>double </SPAN>DefaultValue, MinValue, MaxValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>::<SPAN CLASS=t>operator double </SPAN>() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>double </SPAN>value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>::GetMinValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinValue;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>::GetMaxValue() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxValue;
+<SPAN CLASS=b>}
+
+
+<A NAME="emEnumRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for an enumeration value. It is like <A CLASS=m HREF="emCore_emRec_h.html#emIntRec">emIntRec</A>, but each
+        // possible value is given an identifier.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>(<SPAN CLASS=t>int </SPAN>defaultValue, <SPAN CLASS=t>const char </SPAN>* identifier0, ...);
+        <A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                  <SPAN CLASS=t>int </SPAN>defaultValue, <SPAN CLASS=t>const char </SPAN>* identifier0, ...);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this enumeration
+                //                   record.
+                //   identifier0   - The identifier for value=0. The identifier
+                //                   is not copied - the pointer must be valid
+                //                   for the life time of this record.
+                //   ...           - Any number of further identifiers for
+                //                   values 1, 2, 3 and so on, terminated by a
+                //                   NULL.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>int </SPAN>value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value);
+                <SPAN CLASS=c>// Set the value. It is clipped if out of range.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifier() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the identifier for the current value.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIdentifierCount();
+                <SPAN CLASS=c>// Get number of possible values.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>value);
+                <SPAN CLASS=c>// Get the identifier for the given value. Returns NULL if the
+                // value is out of range.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetValueOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+                <SPAN CLASS=c>// Get the value for the given identifier. Returns -1 if there
+                // is no such identifier.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Init(<SPAN CLASS=t>int </SPAN>defaultValue, <SPAN CLASS=t>const char </SPAN>* identifier0, va_list args);
+
+        <SPAN CLASS=t>const char </SPAN>* * Identifiers;
+        <SPAN CLASS=t>int </SPAN>IdentifierCount, DefaultValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::<SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const char </SPAN>* <A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::GetIdentifier() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Identifiers[Value];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::GetIdentifierCount()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>IdentifierCount;
+<SPAN CLASS=b>}
+
+
+<A NAME="emFlagsRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for a set of flags. It is a bit mask where each possible
+        // bit is given an identifier.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>(<SPAN CLASS=t>int </SPAN>defaultValue, <SPAN CLASS=t>const char </SPAN>* identifier0, ...);
+        <A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                  <SPAN CLASS=t>int </SPAN>defaultValue, <SPAN CLASS=t>const char </SPAN>* identifier0, ...);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this enumeration
+                //                   record.
+                //   identifier0   - The identifier for bit 0. The identifier
+                //                   is not copied - the pointer must be valid
+                //                   for the life time of this record.
+                //   ...           - Any number of further identifiers for
+                //                   bits 1, 2, 3, ... 31, terminated by a
+                //                   NULL.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the value. It's the bit mask.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>int </SPAN>value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value);
+                <SPAN CLASS=c>// Set the value. Undefined flag bits are set to zero.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIdentifierCount();
+                <SPAN CLASS=c>// Get number of possible flag bits.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>bit);
+                <SPAN CLASS=c>// Get the identifier for the given flag bit (0...31). Returns
+                // NULL when no identifier has been defined for the bit.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetBitOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+                <SPAN CLASS=c>// Get the flag bit for the given identifier. Returns -1 if
+                // there is no such identifier.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Init(<SPAN CLASS=t>int </SPAN>defaultValue, <SPAN CLASS=t>const char </SPAN>* identifier0, va_list args);
+
+        <SPAN CLASS=t>const char </SPAN>* * Identifiers;
+        <SPAN CLASS=t>int </SPAN>IdentifierCount, DefaultValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::<SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::GetIdentifierCount()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>IdentifierCount;
+<SPAN CLASS=b>}
+
+
+<A NAME="emStringRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for an <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A> value.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; defaultValue=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>());
+        <A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                    <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; defaultValue=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>());
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this string record.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the string value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; value);
+                <SPAN CLASS=c>// Set the string value.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> DefaultValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>::<SPAN CLASS=t>operator const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+<A NAME="emColorRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emRec_h.html#emColorRec">emColorRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for an <A CLASS=m HREF="emCore_emColor_h.html#emColor">emColor</A> value.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> defaultValue=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>255</SPAN>),
+                   <SPAN CLASS=t>bool </SPAN>haveAlpha=<SPAN CLASS=k>false</SPAN>);
+        <A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> defaultValue=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>255</SPAN>),
+                   <SPAN CLASS=t>bool </SPAN>haveAlpha=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this color record.
+                //   haveAlpha     - false if the color has to be opaque.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the color value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> value);
+                <SPAN CLASS=c>// Set the color value. The alpha channel is set to 255 if this
+                // color record has to be opaque.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> DefaultValue, Value;
+        <SPAN CLASS=t>bool </SPAN>HaveAlpha;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A>::<SPAN CLASS=t>operator </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emColorRec">emColorRec</A>::<SPAN CLASS=t>operator </SPAN>= (<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+<A NAME="emStructRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for a structured record class. The idea is to give derived
+        // classes some records as member variables.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>();
+        <A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of members.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; Get(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get a reference to a member. The index must be within the
+                // range of 0 to GetCount()-1.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get the identifier for the given member index. Returns NULL
+                // if the index is out of range.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * member);
+                <SPAN CLASS=c>// Get the member index for the given member pointer. Returns -1
+                // if there is no such member.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+                <SPAN CLASS=c>// Get the member index for the given identifier. Returns -1 if
+                // there is no such identifier.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>ShallWriteOptionalOnly(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * child) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the given member should not be written when it has
+                // default state. The default implementation always returns
+                // false.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>: <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>;
+
+        <SPAN CLASS=t>void </SPAN>AddMember(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * member, <SPAN CLASS=t>const char </SPAN>* identifier);
+
+        <SPAN CLASS=t>struct </SPAN>MemberType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>const char </SPAN>* Identifier;
+                <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Record;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>RWStateType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>int </SPAN>Pos;
+                <SPAN CLASS=t>bool </SPAN>ChildReady;
+                <SPAN CLASS=t>bool </SPAN>Empty;
+                emByte Map[<SPAN CLASS=u>1</SPAN>];
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>int </SPAN>Count, Capacity;
+        MemberType * Members;
+        RWStateType * RWState;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>::Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Members[index].Record;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>::Get(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Members[index].Record;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Members[index].Record;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Members[index].Record;
+<SPAN CLASS=b>}
+
+
+<A NAME="emUnionRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for a union. An instance of this class manages one child
+        // record with variable type. The possible types are called the
+        // "variants".
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>(<SPAN CLASS=t>int </SPAN>defaultVariant,
+                   <SPAN CLASS=t>const char </SPAN>* identifier0, <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> allocator0, ...);
+        <A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                   <SPAN CLASS=t>int </SPAN>defaultVariant,
+                   <SPAN CLASS=t>const char </SPAN>* identifier0, <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> allocator0, ...);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent         - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member
+                //                    of.
+                //   varIdentifier  - Identifier for this record within the
+                //                    <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied -
+                //                    the pointer must be valid for the life
+                //                    time of this record.
+                //   defaultVariant - Index of the default variant.
+                //   identifier0    - Identifier for the first variant.
+                //                    The string is not copied - the pointer
+                //                    must be valid for the life time of the
+                //                    record.
+                //   allocator0     - Allocator function for the first variant.
+                //   ...            - Any number of further pairs of identifier
+                //                    and allocator, terminated by a NULL.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetVariant() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the current variant index.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetVariant(<SPAN CLASS=t>int </SPAN>variant);
+                <SPAN CLASS=c>// Set the current variant index. If it is a change, the old
+                // child record is deleted and a new one is created by calling
+                // the corresponding allocator function.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; Get();
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a reference to the child record.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetVariantCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of variants.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>variant);
+                <SPAN CLASS=c>// Get the identifier for the given variant index. Returns NULL
+                // if there is no such variant.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetVariantOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+                <SPAN CLASS=c>// Get the variant index for the given identifier. Returns -1 if
+                // there is no such identifier.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Init(<SPAN CLASS=t>int </SPAN>defaultVariant, <SPAN CLASS=t>const char </SPAN>* identifier0,
+                  <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> allocator0, va_list args);
+
+        <SPAN CLASS=t>struct </SPAN>VariantType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>const char </SPAN>* Identifier;
+                <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> Allocator;
+        <SPAN CLASS=b>}</SPAN>;
+
+        VariantType * TypeArray;
+        <SPAN CLASS=t>int </SPAN>VariantCount, DefaultVariant, Variant;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Record;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>::GetVariant() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Variant;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>::Get()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Record;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Record;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>::GetVariantCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>VariantCount;
+<SPAN CLASS=b>}
+
+
+<A NAME="emArrayRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for an array of records. Please even see the template
+        // version <A CLASS=m HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A> more below.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> allocator, <SPAN CLASS=t>int </SPAN>minCount=<SPAN CLASS=u>0</SPAN>,
+                   <SPAN CLASS=t>int </SPAN>maxCount=INT_MAX);
+        <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                   <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> allocator, <SPAN CLASS=t>int </SPAN>minCount=<SPAN CLASS=u>0</SPAN>,
+                   <SPAN CLASS=t>int </SPAN>maxCount=INT_MAX);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   allocator     - Allocator function for elements of the
+                //                   array.
+                //   minCount      - Minimum number of elements. This is even
+                //                   the default number of elements.
+                //   maxCount      - Maximum number of elements.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of elements.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetCount(<SPAN CLASS=t>int </SPAN>count);
+                <SPAN CLASS=c>// Set number of elements. It is clipped if out of range. New
+                // elements are set to their defaults.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>insCount=<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount=<SPAN CLASS=u>1</SPAN>);
+                <SPAN CLASS=c>// Insert or remove elements at a particular position. The
+                // number of elements is clipped if the resulting total number
+                // would be out of range. New elements are set to their
+                // defaults.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMinCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetMaxCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get minimum and maximum number of elements.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; Get(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get a reference to an element. The index must be within the
+                // range of 0 to GetCount()-1.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Init(<A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> allocator, <SPAN CLASS=t>int </SPAN>minCount, <SPAN CLASS=t>int </SPAN>maxCount);
+
+        <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> Allocator;
+        <SPAN CLASS=t>int </SPAN>MinCount, MaxCount, Count, Capacity, RWPos;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * * Array;
+        <SPAN CLASS=t>bool </SPAN>RWChildReady;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::GetMinCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::GetMaxCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Array[index];
+<SPAN CLASS=b>}
+
+
+<A NAME="emTArrayRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template version of <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>(<SPAN CLASS=t>int </SPAN>minCount=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>int </SPAN>maxCount=INT_MAX);
+        <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                    <SPAN CLASS=t>int </SPAN>minCount=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>int </SPAN>maxCount=INT_MAX);
+                <SPAN CLASS=c>// Like with <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>, but the allocator is
+                // EM_DEFAULT_REC_ALLOCATOR(REC).
+
+        </SPAN><SPAN CLASS=t>const </SPAN>REC &amp; Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        REC &amp; Get(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>const </SPAN>REC &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        REC &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Like with <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>, but the results are casted...
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::<A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>(
+        <SPAN CLASS=t>int </SPAN>minCount, <SPAN CLASS=t>int </SPAN>maxCount
+)
+        : <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>(EM_DEFAULT_REC_ALLOCATOR(REC),minCount,maxCount)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::<A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>(
+        <A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier, <SPAN CLASS=t>int </SPAN>minCount,
+        <SPAN CLASS=t>int </SPAN>maxCount
+)
+        : <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>(parent,varIdentifier,EM_DEFAULT_REC_ALLOCATOR(REC),
+                      minCount,maxCount)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline const </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(<SPAN CLASS=t>const </SPAN>REC &amp;)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(index);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Get(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(REC &amp;)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(index);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline const </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::<SPAN CLASS=t>operator </SPAN>[] (
+        <SPAN CLASS=t>int </SPAN>index
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(<SPAN CLASS=t>const </SPAN>REC &amp;)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(index);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(REC &amp;)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(index);
+<SPAN CLASS=b>}
+
+
+<A NAME="emRecReader"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for reading a tree of records from a source.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>();
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start reading.
+                // Arguments:
+                //   root - The root of the records to filled.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>TryContinueReading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Continue reading. Returns true when ready, otherwise
+                // TryContinueReading has to be called again.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryFinishReading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Continue reading until ready.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>QuitReading();
+                <SPAN CLASS=c>// Abort any reading.
+
+        // - - The following things are for implementing <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A> derivatives - -
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>ElementType <SPAN CLASS=b>{
+                </SPAN>ET_DELIMITER,
+                ET_IDENTIFIER,
+                ET_INT,
+                ET_DOUBLE,
+                ET_QUOTED,
+                ET_END
+        <SPAN CLASS=b>}</SPAN>;
+
+        ElementType TryPeekNext(<SPAN CLASS=t>char </SPAN>* pDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Peek for the type of the next syntactical element to be read.
+                // If it is ET_DELIMITER and if pDelimiter is not NULL,
+                // *pDelimiter is set to the delimiter character,
+
+        </SPAN><SPAN CLASS=t>char </SPAN>TryReadDelimiter() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read the next syntactical element as a delimiter or throw an
+                // error. Currently, a delimiter can be any character except for
+                // white space, letters, digits, '#', '_' and '"'. The
+                // characters '.', '-' and '+' can be delimiters only if not
+                // confusable with numbers.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryReadCertainDelimiter(<SPAN CLASS=t>char </SPAN>delimiter) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read the next syntactical element as the given delimiter or
+                // throw an error.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* TryReadIdentifier() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read the next syntactical element as an identifier or throw
+                // an error.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>TryReadInt() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read the next syntactical element as an integer value or
+                // throw an error.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>TryReadDouble() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read the next syntactical element as a double value or throw
+                // an error.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* TryReadQuoted() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Read and unquote the next syntactical element as a quoted
+                // string or throw an error.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ThrowElemError(<SPAN CLASS=t>const char </SPAN>* text) <SPAN CLASS=t>const </SPAN><SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Throw an error containing the file name, the current line
+                // number and the given text.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ThrowSyntaxError() <SPAN CLASS=t>const </SPAN><SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Like ThrowElemError("syntax error")
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetRootRec() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the root record of the tree currently read or NULL.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Read up to maxLen bytes from the source into the given
+                // buffer, or throw an error. Return the number of bytes read,
+                // or 0 if the end of source has been reached.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Close the source, or throw an error.
+
+        </SPAN><SPAN CLASS=t>virtual const char </SPAN>* GetSourceName() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the file name or another identification. This is required
+                // for making error messages.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>SetMinNextBufSize(<SPAN CLASS=t>int </SPAN>minSize);
+        <SPAN CLASS=t>void </SPAN>TryNextChar() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>TryParseNext() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Root;
+        <SPAN CLASS=t>bool </SPAN>RootQuitPending;
+        <SPAN CLASS=t>bool </SPAN>ClosePending;
+        <SPAN CLASS=t>int </SPAN>Line;
+        <SPAN CLASS=t>bool </SPAN>NextEaten;
+        <SPAN CLASS=t>int </SPAN>NextLine;
+        ElementType NextType;
+        <SPAN CLASS=t>char </SPAN>NextDelimiter;
+        <SPAN CLASS=t>char </SPAN>* NextBuf;
+        <SPAN CLASS=t>int </SPAN>NextBufSize;
+        <SPAN CLASS=t>int </SPAN>NextInt;
+        <SPAN CLASS=t>double </SPAN>NextDouble;
+        <SPAN CLASS=t>int </SPAN>NextChar;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * <A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>::GetRootRec() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Root;
+<SPAN CLASS=b>}
+
+
+<A NAME="emRecWriter"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Abstract base class for writing a tree of records to a target.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>();
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start writing.
+                // Arguments:
+                //   root - The root of the records to be written.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>TryContinueWriting() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Continue writing. Returns true when ready, otherwise
+                // TryContinueWriting has to be called again.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryFinishWriting() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Continue writing until ready.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>QuitWriting();
+                <SPAN CLASS=c>// Abort any writing.
+
+        // - - The following things are for implementing <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A> derivatives - -
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteDelimiter(<SPAN CLASS=t>char </SPAN>c) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write the given delimiter character.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteIdentifier(<SPAN CLASS=t>const char </SPAN>* idf) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write the given identifier.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteInt(<SPAN CLASS=t>int </SPAN>i) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write the given integer value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteDouble(<SPAN CLASS=t>double </SPAN>d) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write the given double value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteQuoted(<SPAN CLASS=t>const char </SPAN>* q) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Quote and write the given string.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteSpace() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write a space character.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteNewLine() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write a new-line character.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteIndent() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Write an indent (to be called only at beginning of a new
+                // line). It is a number of tabulator characters.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>IncIndent();
+        <SPAN CLASS=t>void </SPAN>DecIndent();
+                <SPAN CLASS=c>// Increase or decrease the number of tabulator characters to be
+                // written by TryWriteIndent.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetRootRec() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the root record of the tree currently written or NULL.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Write len bytes from the given buffer to the target, or throw
+                // an error.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Flush and close the target, or throw an error.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>TryWriteChar(<SPAN CLASS=t>char </SPAN>c);
+        <SPAN CLASS=t>void </SPAN>TryWriteString(<SPAN CLASS=t>const char </SPAN>* s);
+
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Root;
+        <SPAN CLASS=t>bool </SPAN>RootQuitPending;
+        <SPAN CLASS=t>bool </SPAN>ClosePending;
+        <SPAN CLASS=t>int </SPAN>Indent;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>::IncIndent()
+<SPAN CLASS=b>{
+        </SPAN>Indent++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>::DecIndent()
+<SPAN CLASS=b>{
+        </SPAN>Indent--;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * <A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>::GetRootRec() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Root;
+<SPAN CLASS=b>}
+
+
+<A NAME="emRecFileReader"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for reading a tree of records from a regular file.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A>();
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root,
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start reading.
+                // Arguments:
+                //   root     - The root of the tree of records to be read from
+                //              the file.
+                //   filePath - Path/name of the file.
+
+        </SPAN>emUInt64 GetFileSize() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Size of the file.
+
+        </SPAN>emUInt64 GetFilePos() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Read position in the file.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetProgress() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Progress in percent.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual const char </SPAN>* GetSourceName() <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> FilePath;
+        FILE * File;
+        emUInt64 FileSize, FilePos;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A>::GetFileSize() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileSize;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A>::GetFilePos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FilePos;
+<SPAN CLASS=b>}
+
+
+<A NAME="emRecFileWriter"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for writing a tree of records to a regular file.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A>();
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root,
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start writing.
+                // Arguments:
+                //   root     - The root of the tree of records to be written to
+                //              the file.
+                //   filePath - Path/name of the file.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> FilePath;
+        FILE * File;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRecMemReader"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRec_h.html#emRecMemReader">emRecMemReader</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecMemReader">emRecMemReader</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for reading a tree of records from memory.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecMemReader">emRecMemReader</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root, <SPAN CLASS=t>const char </SPAN>* buf,
+                             <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start reading.
+                // Arguments:
+                //   root  - The root of the tree of records to be read from
+                //           memory.
+                //   buf   - Memory buffer to be read, must be valid until
+                //           reading has finished.
+                //   len   - Number of bytes in the buffer.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual const char </SPAN>* GetSourceName() <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>const char </SPAN>* MemPos, * MemEnd;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRecMemWriter"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRec_h.html#emRecMemWriter">emRecMemWriter</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecMemWriter">emRecMemWriter</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for writing a tree of records to memory.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecMemWriter">emRecMemWriter</A>();
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecMemWriter">emRecMemWriter</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root,
+                             <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Start writing. This and the other Try methods should never
+                // fail.
+                // Arguments:
+                //   root - The root of the tree of records to be written to
+                //          memory.
+                //   buf  - Memory buffer where the output is to be added. The
+                //          reference must be valid until the writing has
+                //          finished.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; * Buf;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

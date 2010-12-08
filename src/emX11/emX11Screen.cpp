@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,7 @@
 
 #include "cursors/emCursorNormalSource.xbm"
 #include "cursors/emCursorNormalMask.xbm"
+#include "cursors/emCursorInvisible.xbm"
 
 
 void emX11Screen::Install(emContext & context)
@@ -94,6 +95,21 @@ void emX11Screen::Beep()
 }
 
 
+void emX11Screen::DisableScreensaver()
+{
+	if (ScreensaverDisableCounter==0 && !ScreensaverDisableTimer.IsRunning()) {
+		ScreensaverDisableTimer.Start(0);
+	}
+	ScreensaverDisableCounter++;
+}
+
+
+void emX11Screen::EnableScreensaver()
+{
+	ScreensaverDisableCounter--;
+}
+
+
 emWindowPort * emX11Screen::CreateWindowPort(emWindow & window)
 {
 	return new emX11WindowPort(window);
@@ -101,7 +117,8 @@ emWindowPort * emX11Screen::CreateWindowPort(emWindow & window)
 
 
 emX11Screen::emX11Screen(emContext & context, const emString & name)
-	: emScreen(context,name)
+	: emScreen(context,name),
+	ScreensaverDisableTimer(GetScheduler())
 {
 	const char * displayName;
 	XVisualInfo * viList, viTemplate, * vi;
@@ -409,7 +426,11 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 
 	Clipboard=NULL;
 
+	ScreensaverDisableCounter=0;
+
 	SetEnginePriority(emEngine::VERY_HIGH_PRIORITY);
+
+	AddWakeUpSignal(ScreensaverDisableTimer.GetSignal());
 
 	WakeUp();
 }
@@ -497,6 +518,19 @@ bool emX11Screen::Cycle()
 		MouseWarpY-=dy;
 	}
 
+	if (
+		ScreensaverDisableCounter>0 &&
+		IsSignaled(ScreensaverDisableTimer.GetSignal())
+	) {
+		ScreensaverDisableTimer.Start(59000);
+		emDLog("emX11Screen: Touching screensavers.");
+		// Against the built-in screensaver of the X server:
+		XResetScreenSaver(Disp);
+		XFlush(Disp);
+		// Against xscreensaver:
+		system("xscreensaver-command -deactivate >&- 2>&- &");
+	}
+
 	return true;
 }
 
@@ -568,19 +602,20 @@ void emX11Screen::UpdateLastKnownTime(const XEvent & event)
 
 void emX11Screen::WaitBufs()
 {
-	XShmCompletionEvent * e;
-	XEvent event;
+	union {
+		XEvent x;
+		XShmCompletionEvent xsc;
+	} event;
 
 	if (BufActive[0] || BufActive[1]) {
 		for (;;) {
-			XIfEvent(Disp,&event,WaitPredicate,(XPointer)this);
-			if (event.type==ShmCompletionEventType) {
-				e=(XShmCompletionEvent*)(void*)&event;
-				if (BufActive[0] && e->shmseg==BufSeg[0].shmseg) {
+			XIfEvent(Disp,&event.x,WaitPredicate,(XPointer)this);
+			if (event.x.type==ShmCompletionEventType) {
+				if (BufActive[0] && event.xsc.shmseg==BufSeg[0].shmseg) {
 					BufActive[0]=false;
 					break;
 				}
-				if (BufActive[1] && e->shmseg==BufSeg[1].shmseg) {
+				if (BufActive[1] && event.xsc.shmseg==BufSeg[1].shmseg) {
 					BufActive[1]=false;
 					break;
 				}
@@ -615,8 +650,6 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 ::Cursor emX11Screen::GetXCursor(int cursorId)
 {
 	::Cursor c;
-	Pixmap src,msk;
-	XColor fg, bg;
 	int idx;
 
 	idx=CursorMap.BinarySearchByKey(&cursorId,CompareCurMapElemAgainstKey);
@@ -624,33 +657,28 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 	switch (cursorId) {
 		default:
 		case emCursor::NORMAL:
-			src=XCreateBitmapFromData(
-				Disp,RootWin,
-				(char*)emCursorNormalSource_bits,
+			c=CreateXCursor(
 				emCursorNormalSource_width,
-				emCursorNormalSource_height
-			);
-			msk=XCreateBitmapFromData(
-				Disp,RootWin,
-				(char*)emCursorNormalMask_bits,
+				emCursorNormalSource_height,
+				emCursorNormalSource_bits,
 				emCursorNormalMask_width,
-				emCursorNormalMask_height
-			);
-			fg.red  =0xffff;
-			fg.green=0xffff;
-			fg.blue =0xffff;
-			fg.flags=DoRed|DoGreen|DoBlue;
-			bg.red  =0x0000;
-			bg.green=0x0000;
-			bg.blue =0x0000;
-			bg.flags=DoRed|DoGreen|DoBlue;
-			c=XCreatePixmapCursor(
-				Disp,src,msk,&fg,&bg,
+				emCursorNormalMask_height,
+				emCursorNormalMask_bits,
 				emCursorNormalSource_x_hot,
 				emCursorNormalSource_y_hot
 			);
-			XFreePixmap(Disp,src);
-			XFreePixmap(Disp,msk);
+			break;
+		case emCursor::INVISIBLE:
+			c=CreateXCursor(
+				emCursorInvisible_width,
+				emCursorInvisible_height,
+				emCursorInvisible_bits,
+				emCursorInvisible_width,
+				emCursorInvisible_height,
+				emCursorInvisible_bits,
+				emCursorInvisible_x_hot,
+				emCursorInvisible_y_hot
+			);
 			break;
 		case emCursor::WAIT:
 			c=XCreateFontCursor(Disp,XC_watch);
@@ -660,6 +688,9 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 			break;
 		case emCursor::TEXT:
 			c=XCreateFontCursor(Disp,XC_xterm);
+			break;
+		case emCursor::HAND:
+			c=XCreateFontCursor(Disp,XC_hand1);
 			break;
 		case emCursor::LEFT_RIGHT_ARROW:
 			c=XCreateFontCursor(Disp,XC_sb_h_double_arrow);
@@ -679,6 +710,37 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 }
 
 
+::Cursor emX11Screen::CreateXCursor(
+	int srcWidth, int srcHeight, const unsigned char * srcBits,
+	int mskWidth, int mskHeight, const unsigned char * mskBits,
+	int hotX, int hotY
+)
+{
+	::Cursor c;
+	Pixmap src,msk;
+	XColor fg, bg;
+
+	src=XCreateBitmapFromData(
+		Disp,RootWin,(char*)srcBits,srcWidth,srcHeight
+	);
+	msk=XCreateBitmapFromData(
+		Disp,RootWin,(char*)mskBits,mskWidth,mskHeight
+	);
+	fg.red  =0xffff;
+	fg.green=0xffff;
+	fg.blue =0xffff;
+	fg.flags=DoRed|DoGreen|DoBlue;
+	bg.red  =0x0000;
+	bg.green=0x0000;
+	bg.blue =0x0000;
+	bg.flags=DoRed|DoGreen|DoBlue;
+	c=XCreatePixmapCursor(Disp,src,msk,&fg,&bg,hotX,hotY);
+	XFreePixmap(Disp,src);
+	XFreePixmap(Disp,msk);
+	return c;
+}
+
+
 emInputKey emX11Screen::ConvertKey(KeySym ks, int * pVariant)
 {
 	static struct {
@@ -686,146 +748,147 @@ emInputKey emX11Screen::ConvertKey(KeySym ks, int * pVariant)
 		emInputKey key;
 		int variant;
 	} table[] = {
-		{ XK_Shift_L        , EM_KEY_SHIFT       , 0 },
-		{ XK_Shift_R        , EM_KEY_SHIFT       , 1 },
-		{ XK_Control_L      , EM_KEY_CTRL        , 0 },
-		{ XK_Control_R      , EM_KEY_CTRL        , 1 },
-		{ XK_Alt_L          , EM_KEY_ALT         , 0 },
-		{ XK_Alt_R          , EM_KEY_ALT         , 1 },
-		{ XK_Meta_L         , EM_KEY_META        , 0 },
-		{ XK_Meta_R         , EM_KEY_META        , 1 },
-		{ XK_Super_L        , EM_KEY_META        , 0 },
-		{ XK_Super_R        , EM_KEY_META        , 1 },
-		{ XK_Hyper_L        , EM_KEY_META        , 0 },
-		{ XK_Hyper_R        , EM_KEY_META        , 1 },
-		{ XK_Up             , EM_KEY_CURSOR_UP   , 0 },
-		{ XK_KP_Up          , EM_KEY_CURSOR_UP   , 1 },
-		{ XK_Down           , EM_KEY_CURSOR_DOWN , 0 },
-		{ XK_KP_Down        , EM_KEY_CURSOR_DOWN , 1 },
-		{ XK_KP_Begin       , EM_KEY_CURSOR_DOWN , 1 },
-		{ XK_Left           , EM_KEY_CURSOR_LEFT , 0 },
-		{ XK_KP_Left        , EM_KEY_CURSOR_LEFT , 1 },
-		{ XK_Right          , EM_KEY_CURSOR_RIGHT, 0 },
-		{ XK_KP_Right       , EM_KEY_CURSOR_RIGHT, 1 },
-		{ XK_Page_Up        , EM_KEY_PAGE_UP     , 0 },
-		{ XK_KP_Page_Up     , EM_KEY_PAGE_UP     , 1 },
-		{ XK_Page_Down      , EM_KEY_PAGE_DOWN   , 0 },
-		{ XK_KP_Page_Down   , EM_KEY_PAGE_DOWN   , 1 },
-		{ XK_Home           , EM_KEY_HOME        , 0 },
-		{ XK_KP_Home        , EM_KEY_HOME        , 1 },
-		{ XK_End            , EM_KEY_END         , 0 },
-		{ XK_KP_End         , EM_KEY_END         , 1 },
-		{ XK_Print          , EM_KEY_PRINT       , 0 },
-		{ XK_Pause          , EM_KEY_PAUSE       , 0 },
-		{ XK_Menu           , EM_KEY_MENU        , 0 },
-		{ XK_Insert         , EM_KEY_INSERT      , 0 },
-		{ XK_KP_Insert      , EM_KEY_INSERT      , 1 },
-		{ XK_Delete         , EM_KEY_DELETE      , 0 },
-		{ XK_KP_Delete      , EM_KEY_DELETE      , 1 },
-		{ XK_BackSpace      , EM_KEY_BACKSPACE   , 0 },
-		{ XK_Tab            , EM_KEY_TAB         , 0 },
-		{ XK_ISO_Left_Tab   , EM_KEY_TAB         , 0 }, // Comes when Shift pressed
-		{ XK_KP_Tab         , EM_KEY_TAB         , 1 },
-		{ XK_Return         , EM_KEY_ENTER       , 0 },
-		{ XK_KP_Enter       , EM_KEY_ENTER       , 1 },
-		{ XK_Escape         , EM_KEY_ESCAPE      , 0 },
-		{ XK_space          , EM_KEY_SPACE       , 0 },
-		{ XK_KP_Space       , EM_KEY_SPACE       , 1 },
-		{ XK_0              , EM_KEY_0           , 0 },
-		{ XK_KP_0           , EM_KEY_0           , 1 },
-		{ XK_1              , EM_KEY_1           , 0 },
-		{ XK_KP_1           , EM_KEY_1           , 1 },
-		{ XK_2              , EM_KEY_2           , 0 },
-		{ XK_KP_2           , EM_KEY_2           , 1 },
-		{ XK_3              , EM_KEY_3           , 0 },
-		{ XK_KP_3           , EM_KEY_3           , 1 },
-		{ XK_4              , EM_KEY_4           , 0 },
-		{ XK_KP_4           , EM_KEY_4           , 1 },
-		{ XK_5              , EM_KEY_5           , 0 },
-		{ XK_KP_5           , EM_KEY_5           , 1 },
-		{ XK_6              , EM_KEY_6           , 0 },
-		{ XK_KP_6           , EM_KEY_6           , 1 },
-		{ XK_7              , EM_KEY_7           , 0 },
-		{ XK_KP_7           , EM_KEY_7           , 1 },
-		{ XK_8              , EM_KEY_8           , 0 },
-		{ XK_KP_8           , EM_KEY_8           , 1 },
-		{ XK_9              , EM_KEY_9           , 0 },
-		{ XK_KP_9           , EM_KEY_9           , 1 },
-		{ XK_A              , EM_KEY_A           , 0 },
-		{ XK_a              , EM_KEY_A           , 0 },
-		{ XK_B              , EM_KEY_B           , 0 },
-		{ XK_b              , EM_KEY_B           , 0 },
-		{ XK_C              , EM_KEY_C           , 0 },
-		{ XK_c              , EM_KEY_C           , 0 },
-		{ XK_D              , EM_KEY_D           , 0 },
-		{ XK_d              , EM_KEY_D           , 0 },
-		{ XK_E              , EM_KEY_E           , 0 },
-		{ XK_e              , EM_KEY_E           , 0 },
-		{ XK_F              , EM_KEY_F           , 0 },
-		{ XK_f              , EM_KEY_F           , 0 },
-		{ XK_G              , EM_KEY_G           , 0 },
-		{ XK_g              , EM_KEY_G           , 0 },
-		{ XK_H              , EM_KEY_H           , 0 },
-		{ XK_h              , EM_KEY_H           , 0 },
-		{ XK_I              , EM_KEY_I           , 0 },
-		{ XK_i              , EM_KEY_I           , 0 },
-		{ XK_J              , EM_KEY_J           , 0 },
-		{ XK_j              , EM_KEY_J           , 0 },
-		{ XK_K              , EM_KEY_K           , 0 },
-		{ XK_k              , EM_KEY_K           , 0 },
-		{ XK_L              , EM_KEY_L           , 0 },
-		{ XK_l              , EM_KEY_L           , 0 },
-		{ XK_M              , EM_KEY_M           , 0 },
-		{ XK_m              , EM_KEY_M           , 0 },
-		{ XK_N              , EM_KEY_N           , 0 },
-		{ XK_n              , EM_KEY_N           , 0 },
-		{ XK_O              , EM_KEY_O           , 0 },
-		{ XK_o              , EM_KEY_O           , 0 },
-		{ XK_P              , EM_KEY_P           , 0 },
-		{ XK_p              , EM_KEY_P           , 0 },
-		{ XK_Q              , EM_KEY_Q           , 0 },
-		{ XK_q              , EM_KEY_Q           , 0 },
-		{ XK_R              , EM_KEY_R           , 0 },
-		{ XK_r              , EM_KEY_R           , 0 },
-		{ XK_S              , EM_KEY_S           , 0 },
-		{ XK_s              , EM_KEY_S           , 0 },
-		{ XK_T              , EM_KEY_T           , 0 },
-		{ XK_t              , EM_KEY_T           , 0 },
-		{ XK_U              , EM_KEY_U           , 0 },
-		{ XK_u              , EM_KEY_U           , 0 },
-		{ XK_V              , EM_KEY_V           , 0 },
-		{ XK_v              , EM_KEY_V           , 0 },
-		{ XK_W              , EM_KEY_W           , 0 },
-		{ XK_w              , EM_KEY_W           , 0 },
-		{ XK_X              , EM_KEY_X           , 0 },
-		{ XK_x              , EM_KEY_X           , 0 },
-		{ XK_Y              , EM_KEY_Y           , 0 },
-		{ XK_y              , EM_KEY_Y           , 0 },
-		{ XK_Z              , EM_KEY_Z           , 0 },
-		{ XK_z              , EM_KEY_Z           , 0 },
-		{ XK_F1             , EM_KEY_F1          , 0 },
-		{ XK_KP_F1          , EM_KEY_F1          , 1 },
-		{ XK_F2             , EM_KEY_F2          , 0 },
-		{ XK_KP_F2          , EM_KEY_F2          , 1 },
-		{ XK_F3             , EM_KEY_F3          , 0 },
-		{ XK_KP_F3          , EM_KEY_F3          , 1 },
-		{ XK_F4             , EM_KEY_F4          , 0 },
-		{ XK_KP_F4          , EM_KEY_F4          , 1 },
-		{ XK_F5             , EM_KEY_F5          , 0 },
-		{ XK_F6             , EM_KEY_F6          , 0 },
-		{ XK_F7             , EM_KEY_F7          , 0 },
-		{ XK_F8             , EM_KEY_F8          , 0 },
-		{ XK_F9             , EM_KEY_F9          , 0 },
-		{ XK_F10            , EM_KEY_F10         , 0 },
-		{ XK_F11            , EM_KEY_F11         , 0 },
-		{ XK_F12            , EM_KEY_F12         , 0 },
-		{ XK_KP_Multiply    , EM_KEY_NONE        , 1 },
-		{ XK_KP_Add         , EM_KEY_NONE        , 1 },
-		{ XK_KP_Separator   , EM_KEY_NONE        , 1 },
-		{ XK_KP_Subtract    , EM_KEY_NONE        , 1 },
-		{ XK_KP_Decimal     , EM_KEY_NONE        , 1 },
-		{ XK_KP_Divide      , EM_KEY_NONE        , 1 },
-		{ 0                 , EM_KEY_NONE        , 0 }
+		{ XK_Shift_L         , EM_KEY_SHIFT       , 0 },
+		{ XK_Shift_R         , EM_KEY_SHIFT       , 1 },
+		{ XK_Control_L       , EM_KEY_CTRL        , 0 },
+		{ XK_Control_R       , EM_KEY_CTRL        , 1 },
+		{ XK_Alt_L           , EM_KEY_ALT         , 0 },
+		{ XK_Alt_R           , EM_KEY_ALT         , 1 },
+		{ XK_Meta_L          , EM_KEY_META        , 0 },
+		{ XK_Meta_R          , EM_KEY_META        , 1 },
+		{ XK_Super_L         , EM_KEY_META        , 0 },
+		{ XK_Super_R         , EM_KEY_META        , 1 },
+		{ XK_Hyper_L         , EM_KEY_META        , 0 },
+		{ XK_Hyper_R         , EM_KEY_META        , 1 },
+		{ XK_ISO_Level3_Shift, EM_KEY_ALT_GR      , 0 },
+		{ XK_Up              , EM_KEY_CURSOR_UP   , 0 },
+		{ XK_KP_Up           , EM_KEY_CURSOR_UP   , 1 },
+		{ XK_Down            , EM_KEY_CURSOR_DOWN , 0 },
+		{ XK_KP_Down         , EM_KEY_CURSOR_DOWN , 1 },
+		{ XK_KP_Begin        , EM_KEY_CURSOR_DOWN , 1 },
+		{ XK_Left            , EM_KEY_CURSOR_LEFT , 0 },
+		{ XK_KP_Left         , EM_KEY_CURSOR_LEFT , 1 },
+		{ XK_Right           , EM_KEY_CURSOR_RIGHT, 0 },
+		{ XK_KP_Right        , EM_KEY_CURSOR_RIGHT, 1 },
+		{ XK_Page_Up         , EM_KEY_PAGE_UP     , 0 },
+		{ XK_KP_Page_Up      , EM_KEY_PAGE_UP     , 1 },
+		{ XK_Page_Down       , EM_KEY_PAGE_DOWN   , 0 },
+		{ XK_KP_Page_Down    , EM_KEY_PAGE_DOWN   , 1 },
+		{ XK_Home            , EM_KEY_HOME        , 0 },
+		{ XK_KP_Home         , EM_KEY_HOME        , 1 },
+		{ XK_End             , EM_KEY_END         , 0 },
+		{ XK_KP_End          , EM_KEY_END         , 1 },
+		{ XK_Print           , EM_KEY_PRINT       , 0 },
+		{ XK_Pause           , EM_KEY_PAUSE       , 0 },
+		{ XK_Menu            , EM_KEY_MENU        , 0 },
+		{ XK_Insert          , EM_KEY_INSERT      , 0 },
+		{ XK_KP_Insert       , EM_KEY_INSERT      , 1 },
+		{ XK_Delete          , EM_KEY_DELETE      , 0 },
+		{ XK_KP_Delete       , EM_KEY_DELETE      , 1 },
+		{ XK_BackSpace       , EM_KEY_BACKSPACE   , 0 },
+		{ XK_Tab             , EM_KEY_TAB         , 0 },
+		{ XK_ISO_Left_Tab    , EM_KEY_TAB         , 0 }, // Comes when Shift pressed
+		{ XK_KP_Tab          , EM_KEY_TAB         , 1 },
+		{ XK_Return          , EM_KEY_ENTER       , 0 },
+		{ XK_KP_Enter        , EM_KEY_ENTER       , 1 },
+		{ XK_Escape          , EM_KEY_ESCAPE      , 0 },
+		{ XK_space           , EM_KEY_SPACE       , 0 },
+		{ XK_KP_Space        , EM_KEY_SPACE       , 1 },
+		{ XK_0               , EM_KEY_0           , 0 },
+		{ XK_KP_0            , EM_KEY_0           , 1 },
+		{ XK_1               , EM_KEY_1           , 0 },
+		{ XK_KP_1            , EM_KEY_1           , 1 },
+		{ XK_2               , EM_KEY_2           , 0 },
+		{ XK_KP_2            , EM_KEY_2           , 1 },
+		{ XK_3               , EM_KEY_3           , 0 },
+		{ XK_KP_3            , EM_KEY_3           , 1 },
+		{ XK_4               , EM_KEY_4           , 0 },
+		{ XK_KP_4            , EM_KEY_4           , 1 },
+		{ XK_5               , EM_KEY_5           , 0 },
+		{ XK_KP_5            , EM_KEY_5           , 1 },
+		{ XK_6               , EM_KEY_6           , 0 },
+		{ XK_KP_6            , EM_KEY_6           , 1 },
+		{ XK_7               , EM_KEY_7           , 0 },
+		{ XK_KP_7            , EM_KEY_7           , 1 },
+		{ XK_8               , EM_KEY_8           , 0 },
+		{ XK_KP_8            , EM_KEY_8           , 1 },
+		{ XK_9               , EM_KEY_9           , 0 },
+		{ XK_KP_9            , EM_KEY_9           , 1 },
+		{ XK_A               , EM_KEY_A           , 0 },
+		{ XK_a               , EM_KEY_A           , 0 },
+		{ XK_B               , EM_KEY_B           , 0 },
+		{ XK_b               , EM_KEY_B           , 0 },
+		{ XK_C               , EM_KEY_C           , 0 },
+		{ XK_c               , EM_KEY_C           , 0 },
+		{ XK_D               , EM_KEY_D           , 0 },
+		{ XK_d               , EM_KEY_D           , 0 },
+		{ XK_E               , EM_KEY_E           , 0 },
+		{ XK_e               , EM_KEY_E           , 0 },
+		{ XK_F               , EM_KEY_F           , 0 },
+		{ XK_f               , EM_KEY_F           , 0 },
+		{ XK_G               , EM_KEY_G           , 0 },
+		{ XK_g               , EM_KEY_G           , 0 },
+		{ XK_H               , EM_KEY_H           , 0 },
+		{ XK_h               , EM_KEY_H           , 0 },
+		{ XK_I               , EM_KEY_I           , 0 },
+		{ XK_i               , EM_KEY_I           , 0 },
+		{ XK_J               , EM_KEY_J           , 0 },
+		{ XK_j               , EM_KEY_J           , 0 },
+		{ XK_K               , EM_KEY_K           , 0 },
+		{ XK_k               , EM_KEY_K           , 0 },
+		{ XK_L               , EM_KEY_L           , 0 },
+		{ XK_l               , EM_KEY_L           , 0 },
+		{ XK_M               , EM_KEY_M           , 0 },
+		{ XK_m               , EM_KEY_M           , 0 },
+		{ XK_N               , EM_KEY_N           , 0 },
+		{ XK_n               , EM_KEY_N           , 0 },
+		{ XK_O               , EM_KEY_O           , 0 },
+		{ XK_o               , EM_KEY_O           , 0 },
+		{ XK_P               , EM_KEY_P           , 0 },
+		{ XK_p               , EM_KEY_P           , 0 },
+		{ XK_Q               , EM_KEY_Q           , 0 },
+		{ XK_q               , EM_KEY_Q           , 0 },
+		{ XK_R               , EM_KEY_R           , 0 },
+		{ XK_r               , EM_KEY_R           , 0 },
+		{ XK_S               , EM_KEY_S           , 0 },
+		{ XK_s               , EM_KEY_S           , 0 },
+		{ XK_T               , EM_KEY_T           , 0 },
+		{ XK_t               , EM_KEY_T           , 0 },
+		{ XK_U               , EM_KEY_U           , 0 },
+		{ XK_u               , EM_KEY_U           , 0 },
+		{ XK_V               , EM_KEY_V           , 0 },
+		{ XK_v               , EM_KEY_V           , 0 },
+		{ XK_W               , EM_KEY_W           , 0 },
+		{ XK_w               , EM_KEY_W           , 0 },
+		{ XK_X               , EM_KEY_X           , 0 },
+		{ XK_x               , EM_KEY_X           , 0 },
+		{ XK_Y               , EM_KEY_Y           , 0 },
+		{ XK_y               , EM_KEY_Y           , 0 },
+		{ XK_Z               , EM_KEY_Z           , 0 },
+		{ XK_z               , EM_KEY_Z           , 0 },
+		{ XK_F1              , EM_KEY_F1          , 0 },
+		{ XK_KP_F1           , EM_KEY_F1          , 1 },
+		{ XK_F2              , EM_KEY_F2          , 0 },
+		{ XK_KP_F2           , EM_KEY_F2          , 1 },
+		{ XK_F3              , EM_KEY_F3          , 0 },
+		{ XK_KP_F3           , EM_KEY_F3          , 1 },
+		{ XK_F4              , EM_KEY_F4          , 0 },
+		{ XK_KP_F4           , EM_KEY_F4          , 1 },
+		{ XK_F5              , EM_KEY_F5          , 0 },
+		{ XK_F6              , EM_KEY_F6          , 0 },
+		{ XK_F7              , EM_KEY_F7          , 0 },
+		{ XK_F8              , EM_KEY_F8          , 0 },
+		{ XK_F9              , EM_KEY_F9          , 0 },
+		{ XK_F10             , EM_KEY_F10         , 0 },
+		{ XK_F11             , EM_KEY_F11         , 0 },
+		{ XK_F12             , EM_KEY_F12         , 0 },
+		{ XK_KP_Multiply     , EM_KEY_NONE        , 1 },
+		{ XK_KP_Add          , EM_KEY_NONE        , 1 },
+		{ XK_KP_Separator    , EM_KEY_NONE        , 1 },
+		{ XK_KP_Subtract     , EM_KEY_NONE        , 1 },
+		{ XK_KP_Decimal      , EM_KEY_NONE        , 1 },
+		{ XK_KP_Divide       , EM_KEY_NONE        , 1 },
+		{ 0                  , EM_KEY_NONE        , 0 }
 	};
 	int i;
 

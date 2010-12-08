@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,6 +47,7 @@ enum emInputKey {
 	EM_KEY_CTRL          = 0x82,
 	EM_KEY_ALT           = 0x83,
 	EM_KEY_META          = 0x84,
+	EM_KEY_ALT_GR        = 0x85,
 	EM_KEY_CURSOR_UP     = 0x91,
 	EM_KEY_CURSOR_DOWN   = 0x92,
 	EM_KEY_CURSOR_LEFT   = 0x93,
@@ -139,7 +140,7 @@ class emInputEvent : public emUncopyable {
 public:
 
 	// Class for an input event. Such an event consists of an input key
-	// (mouse buttons and wheel are even "keys" here), which has has changed
+	// (mouse buttons and wheel are even "keys" here), which has changed
 	// from non-pressed to pressed state. Instead of a key, or in addition
 	// to the key, a translation into text characters may be provided. It is
 	// possible that an original event comes through two input events: one

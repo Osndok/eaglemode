@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkModel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,37 +39,41 @@ const char * emFileLinkModel::GetFormatName() const
 emString emFileLinkModel::GetFullPath() const
 {
 	emString basePath;
+	const char * basePathProject;
+
+	basePathProject=BasePathProject.Get();
+	if (!*basePathProject) basePathProject="unknown";
 
 	switch (BasePathType.Get()) {
 	case BPT_BIN:
-		basePath=emGetInstallPath(EM_IDT_BIN,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_BIN,basePathProject);
 		break;
 	case BPT_INCLUDE:
-		basePath=emGetInstallPath(EM_IDT_INCLUDE,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_INCLUDE,basePathProject);
 		break;
 	case BPT_LIB:
-		basePath=emGetInstallPath(EM_IDT_LIB,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_LIB,basePathProject);
 		break;
 	case BPT_HTML_DOC:
-		basePath=emGetInstallPath(EM_IDT_HTML_DOC,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_HTML_DOC,basePathProject);
 		break;
 	case BPT_PS_DOC:
-		basePath=emGetInstallPath(EM_IDT_PS_DOC,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_PS_DOC,basePathProject);
 		break;
 	case BPT_USER_CONFIG:
-		basePath=emGetInstallPath(EM_IDT_USER_CONFIG,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_USER_CONFIG,basePathProject);
 		break;
 	case BPT_HOST_CONFIG:
-		basePath=emGetInstallPath(EM_IDT_HOST_CONFIG,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_HOST_CONFIG,basePathProject);
 		break;
 	case BPT_TMP:
-		basePath=emGetInstallPath(EM_IDT_TMP,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_TMP,basePathProject);
 		break;
 	case BPT_RES:
-		basePath=emGetInstallPath(EM_IDT_RES,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_RES,basePathProject);
 		break;
 	case BPT_HOME:
-		basePath=emGetInstallPath(EM_IDT_HOME,BasePathProject.Get());
+		basePath=emGetInstallPath(EM_IDT_HOME,basePathProject);
 		break;
 	default:
 		basePath=emGetParentPath(GetFilePath());

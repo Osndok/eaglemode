@@ -1,0 +1,165 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emTmpFile.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>.h
+//
+// Copyright (C) 2006-2008 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emTmpFile_h
+#define emTmpFile_h
+
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+#ifndef emMiniIpc_h
+#include &lt;<A CLASS=f HREF="emCore_emMiniIpc_h.html">emCore/emMiniIpc.h</A>&gt;
+#endif
+
+
+<A NAME="emTmpFile"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// An object of this class can invent and hold the path of a temporary
+        // file (or directory). The file (or directory tree) is deleted
+        // automatically by the destructor. But the file is not created by this.
+
+        </SPAN><A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>();
+                <SPAN CLASS=c>// Construct with an empty path.
+
+        </SPAN><A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Like Setup.
+
+        </SPAN><A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; customPath);
+                <SPAN CLASS=c>// Like SetupCustomPath.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>();
+                <SPAN CLASS=c>// Like Discard.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Setup(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Invent and set a new path for a temporary file or directory,
+                // which does not yet exist. Before that, Discard is called.
+                //
+                // *** DANGER ***
+                // The path is invented via an <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>. Please read the
+                // comments on <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>::InventPath.
+                //
+                // Arguments:
+                //   rootContext - The root context. The context must live
+                //                 longer than this <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A> object.
+                //   postfix     - A postfix to be added to the end of the path
+                //                 (file name suffix), or NULL.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetupCustomPath(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; customPath);
+                <SPAN CLASS=c>// Like Setup, but use the given path.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the path of the temporary file.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Discard();
+                <SPAN CLASS=c>// If the path is not empty, the file or directory tree is
+                // deleted, and the path is set empty.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Path;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>::GetPath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Path;
+<SPAN CLASS=b>}
+
+
+<A NAME="emTmpFileMaster"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a central instance inventing temporary file paths, and for
+        // cleaning up.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>&gt; Acquire(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
+                <SPAN CLASS=c>// Acquire the <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> InventPath(<SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Invent a path for a temporary file or directory which does
+                // not yet exist. The path ends with the given postfix, and it
+                // lies in a special directory which is created solely for this
+                // <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>. That directory and all its contents are
+                // deleted on destruction of this <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> (= destruction
+                // of root context). If that deletion does not take place
+                // because of a program crash or so, the deletion is performed
+                // at next construction of an <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> if it is a process
+                // run by the same user on the same host. An <A CLASS=m HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> is
+                // managed to find out whether the <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> for a
+                // directory still exists.
+                //
+                // *** DANGER ***
+                // If it ever fails to access the <A CLASS=m HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> of an existing
+                // <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> from any process of the same user and host
+                // for some reason, the files are deleted falsely. Therefore,
+                // the temporary files should not be too valuable! And besides,
+                // no one else should ever create a file in the directory, than
+                // those who use a path invented with this method.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetCommonPath();
+        <SPAN CLASS=t>void </SPAN>DeleteDeadDirectories();
+        <SPAN CLASS=t>void </SPAN>StartOwnDirectory();
+
+        <SPAN CLASS=t>class </SPAN>IpcServerClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                IpcServerClass(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>OnReception(<SPAN CLASS=t>int </SPAN>argc, <SPAN CLASS=t>const char </SPAN>* <SPAN CLASS=t>const </SPAN>argv[]);
+        <SPAN CLASS=b>}</SPAN>;
+
+        IpcServerClass IpcServer;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> DirPath;
+        <SPAN CLASS=t>unsigned </SPAN>FileNameCounter;
+        <SPAN CLASS=t>static const char </SPAN>* DirNameEnding;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Test Panel"
+
+PosX  = 0.952
+PosY  = 0.790
+Width = 0.01
+ContentTallness = 1.0
+
+BorderScaling = 3.0
+
+BackgroundColor = { 0 0 0 0 }
+BorderColor = { 68 136 255 32 }
+TitleColor = { 255 204 204 128 }
+
+FileName = "TestPanel.emTestPanel"
+CopyToUser = false

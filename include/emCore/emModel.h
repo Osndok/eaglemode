@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emModel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,10 @@
 #include <emCore/emContext.h>
 #endif
 
+
+//==============================================================================
+//================================== emModel ===================================
+//==============================================================================
 
 class emModel : public emEngine {
 
@@ -86,7 +90,7 @@ public:
 	// Get or create a model: the Acquire function
 	// -------------------------------------------
 	// Each derived model class which is not just a base class must have a
-	// static method called Acquire. That function returns a reference to an
+	// static method named Acquire. That function returns a reference to an
 	// existing or newly created model. Constructors and destructors of
 	// models are never to be called by users and should always be
 	// protected.

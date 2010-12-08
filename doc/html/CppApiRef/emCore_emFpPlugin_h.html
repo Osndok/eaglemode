@@ -1,0 +1,213 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emFpPlugin.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>.h
+//
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emFpPlugin_h
+#define emFpPlugin_h
+
+#ifndef emPanel_h
+#include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+#endif
+
+
+<A NAME="emFpPlugin"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for a file panel plugin. Such a plugin is able to create
+        // a panel for showing (and maybe editing) a file. An instance of this
+        // record class holds the configuration of such a plugin. It is usually
+        // loaded from a configuration file (see <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>).
+
+        </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>();
+                <SPAN CLASS=c>// Construct empty.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>();
+                <SPAN CLASS=c>// Destructor.
+
+
+        // - - - - - Member Records - - - - -
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;<A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>&gt; FileTypes;
+                <SPAN CLASS=c>// Array of file types the plugin is able to handle. Each entry
+                // must be a file name suffix including the leading dot, or the
+                // special string "file" for accepting all regular files, or the
+                // special string "directory" for accepting directories.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> Priority;
+                <SPAN CLASS=c>// Priority of the plugin. If there are two plugins able to
+                // handle a file, the one with the higher priority is taken
+                // first.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> Library;
+                <SPAN CLASS=c>// Name of the dynamic library containing the plugin function
+                // (just the pure name, read comments on emTryOpenLib).
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> Function;
+                <SPAN CLASS=c>// Name of the plugin function. It must match the interface
+                // defined by <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A>.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>PropertyRec : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                PropertyRec();
+                <SPAN CLASS=t>virtual </SPAN>~PropertyRec();
+                <A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> Name;
+                <A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> Value;
+        <SPAN CLASS=b>}</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;PropertyRec&gt; Properties;
+                <SPAN CLASS=c>// Any number of plugin-defined properties in form of name/value
+                // pairs.
+
+        // - - - - - End of Member Records - - - - -
+
+
+        </SPAN>PropertyRec * GetProperty(<SPAN CLASS=t>const char </SPAN>* name);
+                <SPAN CLASS=c>// Search for a plugin-defined property. Returns NULL if not
+                // found.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * TryCreateFilePanel(
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; path
+        ) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                <SPAN CLASS=c>// Create a file panel via this plugin.
+                // Arguments:
+                //   parent - Parent of the panel.
+                //   name   - Name of the panel.
+                //   path   - Path name of the file to be shown.
+                // Returns: The created panel.
+                // Throws: An error message on failure.
+
+        </SPAN><SPAN CLASS=t>virtual const char </SPAN>* GetFormatName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// The file format name of this record file format.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>void </SPAN>* CachedFunc;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> CachedFuncLib;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> CachedFuncName;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emFpPluginFunc"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A> ===============================
+//==============================================================================
+
+
+</SPAN><SPAN CLASS=t>extern </SPAN><SPAN CLASS=v>"C" </SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * (*<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A>) (
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; path, <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * plugin,
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * errorBuf
+        );
+                <SPAN CLASS=c>// Type of the plugin function of an <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>. Such a function
+                // creates a panel for showing a file.
+                // Arguments:
+                //   parent   - Parent of the panel.
+                //   name     - Name of the panel.
+                //   path     - Path name of the file to be shown.
+                //   plugin   - The plugin record (mainly for reading the
+                //              plugin-defined properties).
+                //   errorBuf - For returning an error message on failure.
+                // Returns: The created panel, or NULL on failure.
+</SPAN><SPAN CLASS=b>}
+
+
+<A NAME="emFpPluginList"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a model containing a list of all the configured file panel
+        // plugins. The plugin configurations are loaded from a certain
+        // directory.
+
+        </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>&gt; Acquire(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
+                <SPAN CLASS=c>// Acquire the <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * CreateFilePanel(
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; path, <SPAN CLASS=t>int </SPAN>alternative=<SPAN CLASS=u>0
+        </SPAN>);
+                <SPAN CLASS=c>// Create a panel for a file. This calls the appropriate plugin.
+                // On failure, a panel showing the error message is created.
+                // Arguments:
+                //   parent      - Parent of the panel.
+                //   name        - Name of the panel.
+                //   path        - Path name of the file to be shown.
+                //   alternative - If there are multiple plugins able to show
+                //                 the file, the one with the highest priority
+                //                 is chosen if this argument is 0. If this
+                //                 argument is 1, the one with the
+                //                 second-highest priority is chosen, and so on.
+                // Returns: The created panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * CreateFilePanel(
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; absolutePath, <SPAN CLASS=t>int </SPAN>statErr, <SPAN CLASS=t>long </SPAN>statMode,
+                <SPAN CLASS=t>int </SPAN>alternative=<SPAN CLASS=u>0
+        </SPAN>);
+                <SPAN CLASS=c>// This method exists for optimization. It's like above, but the
+                // caller knows more about the file.
+                // Arguments:
+                //   parent       - Parent of the panel.
+                //   name         - Name of the panel.
+                //   absolutePath - Absolute path name of the file to be shown.
+                //   statErr      - Zero if calling stat on the file was
+                //                  successful, otherwise the resulting value of
+                //                  errno.
+                //   statMode     - st.st_mode from calling stat on the file.
+                //   alternative  - Like with the above method.
+                // Returns: The created panel.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>static int </SPAN>CmpReversePluginPriorities(
+                <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * <SPAN CLASS=t>const </SPAN>* obj1, <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * <SPAN CLASS=t>const </SPAN>* obj2,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>*&gt; Plugins;
+                <SPAN CLASS=c>// Sorted by descending priority, secondly by file name.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

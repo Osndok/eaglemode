@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "emNetwalk"
+
+PosX  = 0.12
+PosY  = 0.60
+Width = 0.04
+ContentTallness = 0.66
+
+BackgroundColor = "#000"
+BorderColor = "#269"
+TitleColor = "#EEE"
+
+FileName = "Netwalk1.emNetwalk"
+CopyToUser = true

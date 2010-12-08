@@ -31,6 +31,8 @@ if (IsFirstPass()) {
 
 	ErrorIfNotSingleSource();
 	ErrorIfNotSingleTarget();
+	ErrorIfRootSources();
+	ErrorIfRootTargets();
 
 	my $message=
 		"Are you sure to exchange\n".

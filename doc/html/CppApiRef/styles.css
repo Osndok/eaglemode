@@ -1,0 +1,115 @@
+
+BODY {
+	font-family:sans-serif;
+	background:#FFFFFF;
+	color:#000000;
+}
+A.main {
+	color:#0000E0;
+}
+A.main:visited {
+	color:#600080;
+}
+A.main:active {
+	color:#F00000;
+}
+A.nav {
+	font-weight:bold;
+	color:#6060A0;
+	text-decoration:none;
+}
+A.nav:hover {
+	text-decoration:underline;
+}
+SPAN.d { /* default source code (operators, symbols and some more)*/
+	color:#000000;
+}
+SPAN.p { /* preprocessor */
+	color:#004070;
+}
+SPAN.c { /* comment */
+	font-style:italic;
+	color:#207040;
+}
+SPAN.t { /* type keyword */
+	font-weight:bold;
+	color:#902020;
+}
+SPAN.k { /* non-type keyword */
+	font-weight:bold;
+	color:#000000;
+}
+SPAN.b { /* braces */
+	font-weight:bold;
+	color:#000000;
+}
+SPAN.u { /* numeric constant */
+	color:#209000;
+}
+SPAN.v { /* string constant  */
+	color:#209000;
+}
+SPAN.w { /* char constant */
+	color:#209000;
+}
+A.f { /* file link */
+	font-weight:bold;
+	color:#003080;
+	text-decoration:none;
+}
+A.f:hover {
+	text-decoration:underline;
+}
+A.l { /* symbol link */
+	font-weight:bold;
+	color:#0000C0;
+	text-decoration:none;
+}
+A.l:hover {
+	text-decoration:underline;
+}
+A.m { /* symbol link in a comment*/
+	font-style:italic;
+	font-weight:bold;
+	color:#006070;
+	text-decoration:none;
+}
+A.m:hover {
+	text-decoration:underline;
+}
+A.treeIndex {
+	font-size:166%;
+	white-space:nowrap;
+	font-weight:bold;
+	color:#303030;
+	text-decoration:none;
+}
+A.treeIndex:hover {
+	text-decoration:underline;
+}
+A.treeTopic {
+	white-space:nowrap;
+	font-weight:bold;
+	color:#005000;
+	text-decoration:none;
+}
+A.treeTopic:hover {
+	text-decoration:underline;
+}
+A.treeFile {
+	white-space:nowrap;
+	color:#003080;
+	text-decoration:none;
+}
+A.treeFile:hover {
+	text-decoration:underline;
+}
+A.treeSection {
+	white-space:nowrap;
+	font-weight:bold;
+	color:#0000C0;
+	text-decoration:none;
+}
+A.treeSection:hover {
+	text-decoration:underline;
+}

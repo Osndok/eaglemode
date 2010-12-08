@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emToolkit.h
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1413,8 +1413,8 @@ class emTkTextField : public emTkBorder {
 public:
 
 	// Class for a data field panel showing a single line of text which can
-	// optionally be edited by the user. Selection and clipboard functions
-	// are supported.
+	// optionally be edited by the user. An optional multi-line mode is also
+	// provided. Selection and clipboard functions are supported.
 
 	emTkTextField(
 		ParentArg parent, const emString & name,

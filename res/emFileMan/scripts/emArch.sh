@@ -7,7 +7,7 @@
 Description="\
 emArch.sh
 
-Copyright (C) 2007-2008 Oliver Hamann.
+Copyright (C) 2007-2008,2010 Oliver Hamann.
 
 Homepage: http://eaglemode.sourceforge.net/
 
@@ -41,14 +41,18 @@ Archive file name suffices    | Required system tools
 .bz2                          | bzip2
 .gz                           | gzip
 .lzh|.lha                     | lha
+.lzma                         | xz
 .lzo                          | lzop
 .rar            (unpack only) | unrar
 .tar                          | tar
 .tar.bz|.tbz    (unpack only) | tar, bzip2
 .tar.bz2|.tbz2|.tgj           | tar, bzip2
 .tar.gz|.tgz                  | tar, gzip
+.tar.lzma|.tlz                | tar, xz
 .tar.lzo|.tzo                 | tar, lzop
+.tar.xz|.txz                  | tar, xz
 .tar.Z|.taz     (unpack only) | tar, gzip
+.xz                           | xz
 .Z              (unpack only) | gzip
 .zip|.jar                     | zip, unzip
 .zoo                          | zoo
@@ -406,6 +410,20 @@ fi
 CheckErrorHintAnd $?
 
 ;;
+#-------------------------------- pack tar.lzma --------------------------------
+*.tar.lzma|*.TAR.lzma|*.Tar.lzma|\
+*.tar.LZMA|*.TAR.LZMA|*.Tar.LZMA|\
+*.tar.Lzma|*.TAR.Lzma|*.Tar.Lzma|\
+*.tlz|*.TLZ|*.Tlz)
+
+if test -f "$ArchFile" ; then
+	rm -f "$ArchFile" || exit 1
+fi
+
+{ tar cvf - "$@" || SetErrorHint ; } | xz --stdout --format=lzma > "$ArchFile"
+CheckErrorHintAnd $?
+
+;;
 #-------------------------------- pack tar.lzo ---------------------------------
 *.tar.lzo|*.TAR.lzo|*.Tar.lzo|\
 *.tar.LZO|*.TAR.LZO|*.Tar.LZO|\
@@ -417,6 +435,20 @@ if test -f "$ArchFile" ; then
 fi
 
 { tar cvf - "$@" || SetErrorHint ; } | lzop -c > "$ArchFile"
+CheckErrorHintAnd $?
+
+;;
+#--------------------------------- pack tar.xz ---------------------------------
+*.tar.xz|*.TAR.xz|*.Tar.xz|\
+*.tar.XZ|*.TAR.XZ|*.Tar.XZ|\
+*.tar.Xz|*.TAR.Xz|*.Tar.Xz|\
+*.txz|*.TXZ|*.Txz)
+
+if test -f "$ArchFile" ; then
+	rm -f "$ArchFile" || exit 1
+fi
+
+{ tar cvf - "$@" || SetErrorHint ; } | xz --stdout > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -513,6 +545,23 @@ fi
 exec gzip -c "$1" > "$ArchFile"
 
 ;;
+#---------------------------------- pack lzma ----------------------------------
+*.lzma|*.LZMA|*.Lzma)
+
+if test $# != 1 ; then
+	Error "Cannot pack multiple files with lzma."
+fi
+if test -d "$1" ; then
+	Error "Cannot pack a directory with lzma."
+fi
+
+if test -f "$ArchFile" ; then
+	rm -f "$ArchFile" || exit 1
+fi
+
+exec xz --stdout --format=lzma "$1" > "$ArchFile"
+
+;;
 #---------------------------------- pack lzo -----------------------------------
 *.lzo|*.LZO|*.Lzo)
 
@@ -528,6 +577,23 @@ if test -f "$ArchFile" ; then
 fi
 
 exec lzop -c "$1" > "$ArchFile"
+
+;;
+#----------------------------------- pack xz -----------------------------------
+*.xz|*.XZ|*.Xz)
+
+if test $# != 1 ; then
+	Error "Cannot pack multiple files with xz."
+fi
+if test -d "$1" ; then
+	Error "Cannot pack a directory with xz."
+fi
+
+if test -f "$ArchFile" ; then
+	rm -f "$ArchFile" || exit 1
+fi
+
+exec xz --stdout "$1" > "$ArchFile"
 
 ;;
 #-------------------------------------------------------------------------------
@@ -562,7 +628,7 @@ if test $TrustByOption != yes && test $Trust_7z != yes ; then
 		# echo "1234 ../bla"
 		# echo "1234 bla/../bla"
 	} | {
-		egrep -v "^Listing archive:( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+		egrep -v "^(Listing archive:|Path =)( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
 		case $? in
 			0|1)
 				break;
@@ -888,6 +954,49 @@ fi
 CheckErrorHintAnd $?
 
 ;;
+#-------------------------- unpack tar.lzma + tar.xz ---------------------------
+*.tar.lzma|*.TAR.lzma|*.Tar.lzma|\
+*.tar.LZMA|*.TAR.LZMA|*.Tar.LZMA|\
+*.tar.Lzma|*.TAR.Lzma|*.Tar.Lzma|\
+*.tlz|*.TLZ|*.Tlz|\
+*.tar.xz|*.TAR.xz|*.Tar.xz|\
+*.tar.XZ|*.TAR.XZ|*.Tar.XZ|\
+*.tar.Xz|*.TAR.Xz|*.Tar.Xz|\
+*.txz|*.TXZ|*.Txz)
+
+if test $TrustByOption != yes && test $Trust_tar != yes ; then
+	echo "Scanning archive listing for dangerous paths..."
+	{
+		xz --decompress --stdout < "$ArchFile" || SetErrorHint
+	} | {
+		tar tf - || SetErrorHint
+		# for testing the test:
+		# echo "/bla"
+		# echo "../bla"
+		# echo "  /bla"
+		# echo "  ../bla"
+		# echo "bla/../bla"
+	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	ret=$?
+	CheckErrorHint
+	case $ret in
+		0)
+			Error "$ArchFile looks like containing an absolute or up-going path."
+		;;
+		1)
+			break
+		;;
+		*)
+			exit 1
+		;;
+	esac
+	echo "okay, unpacking..."
+fi
+
+{ xz --decompress --stdout < "$ArchFile" || SetErrorHint ; } | tar xvf -
+CheckErrorHintAnd $?
+
+;;
 #------------------------------- unpack tar.lzo --------------------------------
 *.tar.lzo|*.TAR.lzo|*.Tar.lzo|\
 *.tar.LZO|*.TAR.LZO|*.Tar.LZO|\
@@ -1110,6 +1219,47 @@ if test -f "$n" || test -d "$n" ; then
 fi
 
 exec gzip -d -c < "$ArchFile" > "$n"
+
+;;
+#------------------------------ unpack lzma + xz -------------------------------
+*.lzma|*.LZMA|*.Lzma|\
+*.xz|*.XZ|*.Xz)
+
+n="`basename "$ArchFile"`"
+
+if   b="`basename "$n" .lzma`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .LZMA`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .Lzma`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .xz`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .XZ`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .Xz`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .tlz`" && test "$b" != "$n" ; then
+	n="$b.tar"
+elif b="`basename "$n" .TLZ`" && test "$b" != "$n" ; then
+	n="$b.TAR"
+elif b="`basename "$n" .Tlz`" && test "$b" != "$n" ; then
+	n="$b.Tar"
+elif b="`basename "$n" .txz`" && test "$b" != "$n" ; then
+	n="$b.tar"
+elif b="`basename "$n" .TXZ`" && test "$b" != "$n" ; then
+	n="$b.TAR"
+elif b="`basename "$n" .Txz`" && test "$b" != "$n" ; then
+	n="$b.Tar"
+else
+	n="$n.unpacked"
+fi
+
+if test -f "$n" || test -d "$n" ; then
+	Error "File already exists: $n"
+fi
+
+exec xz --decompress --stdout < "$ArchFile" > "$n"
 
 ;;
 #--------------------------------- unpack lzo ----------------------------------

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -546,7 +546,6 @@ bool emPsRenderer::TryRead() throw(emString)
 	int len,syncLen,eat,r;
 	bool syncFound;
 	const char * p;
-
 
 	if (ReadBufferFill>=(int)sizeof(ReadBuffer)) {
 		throw emString("PostScript interpretation failed: Read buffer too small.");

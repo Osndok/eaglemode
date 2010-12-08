@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,6 +38,8 @@ emCoreConfig::emCoreConfig(emContext & context, const emString & name)
 	: emConfigModel(context,name),
 	emStructRec(),
 	StickMouseWhenNavigating(this,"StickMouseWhenNavigating",false),
+	EmulateMiddleButton(this,"EmulateMiddleButton",false),
+	PanFunction(this,"PanFunction",false),
 	MouseZoomSpeedFactor(this,"MouseZoomSpeedFactor",1.0,0.25,4.0),
 	MouseFineZoomSpeedFactor(this,"MouseFineZoomSpeedFactor",1.0,0.25,4.0),
 	MouseScrollSpeedFactor(this,"MouseScrollSpeedFactor",1.0,0.25,4.0),

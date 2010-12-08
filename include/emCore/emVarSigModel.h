@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVarSigModel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,10 @@
 #include <emCore/emModel.h>
 #endif
 
+
+//==============================================================================
+//=============================== emVarSigModel ================================
+//==============================================================================
 
 template <class VAR> class emVarSigModel : public emModel {
 

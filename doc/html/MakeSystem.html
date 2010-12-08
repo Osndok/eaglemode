@@ -1,0 +1,387 @@
+<HTML>
+<HEAD>
+	<TITLE>Eagle Mode - Make System</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
+<CENTER>
+<FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
+<FONT SIZE=7><B>Make System</B></FONT><P>
+<FONT SIZE=2>Copyright &copy; 2010 Oliver Hamann.
+Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
+</CENTER>
+
+<H1>Contents</H1>
+<A HREF="#1">1 Introduction</A><BR>
+<A HREF="#2">2 Maker scripts</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.1">2.1 General requirements for a maker script</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.2">2.2 Example</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.3">2.3 GetDepedencies function</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4">2.4 IsEssential function</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.5">2.5 GetFileHandlingRules function</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.6">2.6 GetExtraBuildOptions function</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.7">2.7 Build function</A></SMALL><BR>
+<A HREF="#3">3 unicc</A><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Examples</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 Calling Conventions</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 Compilers</A></SMALL><BR>
+
+<H1><A NAME="1"></A>1 Introduction</H1>
+Eagle Mode is compiled, linked and installed with an own make system written in
+Perl. It is a replacement for classic makefiles, and it features
+auto-dependencies, multiple (sub-)projects, easy extension, optional
+continuation on non-fatal errors, easy portability, and special file handling
+rules. The latter allows to define patterns for marking project files for
+installation, clean-up, execution-attribute-setting, backup, and private use.
+The make system is well-tested and has also been used for some other projects
+than Eagle Mode.
+<P>
+The make system consists of three layers:
+<UL>
+<LI>The upper-most layer is the make.pl program in the top-directory of the
+project. It it called by the user and has options for doing all the necessary
+things. Type "perl make.pl --help" to read the help text. Unfortunately, make.pl
+still lacks a certain configuration interface. This means that you would have to
+edit it directly if you want to use the make system for another project than
+Eagle Mode.</LI>
+<P>
+<LI>The middle layer consists of so-called "maker scripts" in the subdirectory
+<TT>makers</TT>. There is one maker script for each "project" (i.e. sub-project
+of Eagle Mode). They can be seen as the makefiles.</LI>
+<P>
+<LI>The bottom layer is made of unicc, which is a unified high-level interface
+to C/C++ compilers. It has a command line similar to compilers, but it features
+auto-dependencies and compilation to object files and linkage with one call.
+This means, unicc can do what simple classic makefiles often do.</LI>
+</UL>
+<P>
+The following chapters are describing the maker scripts and unicc in detail.
+
+<H1><A NAME="2"></A>2 Maker scripts</H1>
+
+<H2><A NAME="2.1"></A>2.1 General requirements for a maker script</H2>
+As already said, the maker scripts can be seen as makefiles for the
+(sub-)projects. Each maker script must follow these rules:
+<UL>
+<LI>The script file must lie in the directory <TT>$EM_DIR/makers</TT> (replace
+$EM_DIR by the source directory of Eagle Mode).</LI>
+<P>
+<LI>The script file name must end with ".maker.pm", otherwise it will not be found
+by make.pl.</LI>
+<P>
+<LI>The script must be written in the Perl programming language.</LI>
+<P>
+<LI>The script must define a package with the same name as the file name without
+ending. We call it the (sub-)project name.</LI>
+<P>
+<LI>Within that package, the script must define a set of functions as described
+blow.</LI>
+<P>
+<LI>At execution, the current directory is always set to the top-level directory,
+there where make.pl is. All paths are relative to that point.</LI>
+</UL>
+<B>PITFALL WARNING</B>: If you copy and edit a maker script, please do not
+forget to set the package name to the same name as the file name (without
+.maker.pm), otherwise you will get very strange error messages.
+
+<H2><A NAME="2.2"></A>2.2 Example</H2>
+Here comes a simple sample maker script for a dynamic library project named
+"example" which depends on emCore. It uses <A HREF="#unicc">unicc</A> for
+compilation and linkage. Its path would have to be
+<TT>$EM_DIR/makers/examples.maker.pm</TT>.
+<P>
+<BLOCKQUOTE><TABLE BORDER=0 BGCOLOR="#D0D0D0" FGCOLOR="#000000"><TR><TD>
+<PRE><TT>package example;
+
+use strict;
+use warnings;
+
+sub GetDepedencies
+{
+        return ('emCore');
+}
+
+sub IsEssential
+{
+        return 0;
+}
+
+sub GetFileHandlingRules
+{
+        return ();
+}
+
+sub GetExtraBuildOptions
+{
+        return ();
+}
+
+sub Build
+{
+        shift;
+        my %options=@_;
+
+        system(
+                @{$options{'unicc_call'}},
+                "--math",
+                "--rtti",
+                "--exceptions",
+                "--bin-dir"       , "bin",
+                "--lib-dir"       , "lib",
+                "--obj-dir"       , "obj",
+                "--inc-search-dir", "include",
+                "--link"          , "emCore",
+                "--type"          , "dynlib",
+                "--name"          , "example",
+                "src/example/example.cpp"
+        )==0 or return 0;
+
+        return 1;
+}
+</TT></PRE></TD></TR></TABLE></BLOCKQUOTE>
+
+<H2><A NAME="2.3"></A>2.3 GetDepedencies function</H2>
+This function returns an array of project names. Those projects are always built
+before.
+<P>
+In addition to the dependencies defined by this function, every project
+implicitly depends on a special project which is named "defaults".
+
+<H2><A NAME="2.4"></A>2.4 IsEssential function</H2>
+Returns 0 or 1:
+<P>
+0 means that the project is not so essential and that the user may want to
+ignore a failure with building the project.
+<P>
+1 means that the project is so essential, that the overall building shall always
+be stopped on a failure with building the project.
+
+<H2><A NAME="2.5"></A>2.5 GetFileHandlingRules function</H2>
+Returns an array of file handling rules. These rules are used to decide whether
+a file should be deleted by the clean command, whether it should be copied by
+the install command, and whether it should have execution permission then.
+<P>
+For most files, the rules from the defaults project are already correct. But
+other projects can give some additional rules for their individual files.
+<P>
+Each rule is a string of the form:
+<BLOCKQUOTE>
+&lt;op&gt;&lt;flag&gt;[&lt;op&gt;&lt;flag&gt;[&lt;op&gt;&lt;flag&gt;...]]:&lt;pattern&gt;
+</BLOCKQUOTE>
+With:
+<BLOCKQUOTE>
+&lt;op&gt; is either a + for setting the flag, or a - for removing the flag.
+<P>
+&lt;flag&gt; is the name of the flag. Possible names are:
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0>
+<TR VALIGN=TOP><TD><TT>&nbsp;&nbsp;&nbsp;clean  </TT></TD><TD>&nbsp;-&nbsp;</TD><TD>The file has to be deleted by the clean command.</TD></TR>
+<TR VALIGN=TOP><TD><TT>&nbsp;&nbsp;&nbsp;install</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>The file has to be installed by the install command.</TD></TR>
+<TR VALIGN=TOP><TD><TT>&nbsp;&nbsp;&nbsp;exec   </TT></TD><TD>&nbsp;-&nbsp;</TD><TD>The file is an executable.</TD></TR>
+<TR VALIGN=TOP><TD><TT>&nbsp;&nbsp;&nbsp;private</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>The file must not be released in addition to files
+which have the clean flag set (developer's private stuff).</TD></TR>
+<TR VALIGN=TOP><TD><TT>&nbsp;&nbsp;&nbsp;nobackup</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>The file must not be backed up in addition to files
+which have the clean flag set (developer's private stuff).</TD></TR>
+</TABLE>
+<P>
+&lt;pattern&gt; is a pattern for matching the file path. It's a Perl regular
+expression.
+</BLOCKQUOTE>
+The flag operations of a rule are applied to all files whose file paths match
+the pattern. Hereby the path is relative to the current directory (the top-level
+directory), and the path elements are separated by slashes, even on Windows.
+<P>
+If there are contrary rules, the later one counts. The project dependencies are
+respected.
+<P>
+Be careful when writing the regular expressions. One error could mean that the
+clean command deletes some or all of the source files. Please study all existing
+rules before making new ones. Make backups before testing.
+
+<H2><A NAME="2.6"></A>2.6 GetExtraBuildOptions function</H2>
+The make.pl program defines some user options for the build command. Each
+project may define additional options though this function. It returns an array
+of references where each reference refers an array of three strings: The name of
+the option, the default value, and a description.
+
+<H2><A NAME="2.7"></A>2.7 Build function</H2>
+This function performs compilation, linkage and maybe other things for building
+the project. Output files which are up to date should not be re-generated (this
+is usually solved by using unicc). The beginning of the function body should
+look like:
+<BLOCKQUOTE>
+<TT>shift;</TT><BR>
+<TT>my %options=@_;</TT>
+</BLOCKQUOTE>
+Thereby the hashes variable %options contains all the options. Hash index is the
+option name, hash value is the option value. Following options are defined by
+default:
+<BLOCKQUOTE><DL>
+<DT><TT>compiler</TT></DT>
+<DD>Name of compiler and linker to be used.</DD>
+<P>
+<DT><TT>cpus</TT></DT>
+<DD>Number of CPUs to be used.</DD>
+<P>
+<DT><TT>debug</TT></DT>
+<DD>Whether to produce debug information. Must be "yes" or "no".</DD>
+<P>
+<DT><TT>unicc</TT></DT>
+<DD>Relative path to the unicc directory.</DD>
+<P>
+<DT><TT>unicc_call</TT></DT>
+<DD>Reference to an array which contains the first arguments for calling
+unicc.pl. It's like:
+<PRE><TT>[ 'perl', catfile($options{'unicc'},'unicc.pl'),
+  '--compiler', $options{'compiler'},
+  '--cpus', $options{'cpus'},
+  $options{'debug'} eq 'yes' ? ('--debug') : () ]</TT></PRE></DD>
+<P>
+<DT><TT>utils</TT></DT>
+<DD>Relative path to the utils directory.</DD>
+<P>
+<DT><TT>projects</TT></DT>
+<DD>This should not be used by the maker scripts.</DD>
+<P>
+<DT><TT>continue</TT></DT>
+<DD>This should not be used by the maker scripts.</DD>
+</DL></BLOCKQUOTE>
+In addition, there are all the extra options defined through
+GetExtraBuildOptions from all the projects.
+<P>
+The Build function has to return 1 on success. On failure, it may either return
+0 or call the die function.
+<P>
+<A NAME="unicc"></A>
+<H1><A NAME="3"></A>3 unicc</H1>
+unicc is a unified high-level interface to C/C++ compilers. It takes a couple of
+source files, compiles them to object files, and links these in order to create
+an executable, a static library or a dynamic library. Each operation is
+performed only if the output file is not existing, or if it is not newer than
+the input files. Therefore, include file dependencies are checked recursively,
+but only if found via an explicit given include path (option --inc-search-dir).
+This normally means that standard include files are not checked.
+<P>
+unicc is written in Perl, and it can be found in: <TT>$EM_DIR/makers/unicc</TT>
+
+<H2><A NAME="3.1"></A>3.1 Examples</H2>
+Here is a simple example for building a program using the GNU compiler:
+<BLOCKQUOTE>
+<TT>$EM_DIR/makers/unicc/unicc.pl --compiler gnu hello.c --name hello</TT>
+</BLOCKQUOTE>
+And here comes a more complex example:
+<BLOCKQUOTE>
+<TT>$EM_DIR/makers/unicc/unicc.pl --compiler wat src/hello.c src/world.c \<BR>
+  --obj-dir obj --lib-search-dir lib --inc-search-dir include \<BR>
+  --bin-dir bin --debug --type wexe --name helloworld</TT>
+</BLOCKQUOTE>
+
+<H2><A NAME="3.2"></A>3.2 Calling Conventions</H2>
+This chapter describes the arguments and options for calling unicc.pl. They can
+be given in any order.
+<BLOCKQUOTE><DL>
+<DT><I>src-file</I></DT>
+<DD>Path name of a source file including the file name ending which must be ".c",
+".cpp", ".cc" or ".cxx". On Windows, ".rc" files are also supported. This
+argument can be given multiple times.</DD>
+<P>
+<DT><TT>--compiler </TT><I>name</I></DT>
+<DD>Name of the compiler. See the Compilers chapter more below for all possible
+names. The default is <TT>gnu</TT>.</DD>
+<P>
+<DT><TT>--cpus </TT><I>count</I></DT>
+<DD>Number of CPUs to be used. More precisely, it is the maximum number of source
+files to be compiled in parallel. The default is 1.</DD>
+<P>
+<DT><TT>--type </TT><I>type</I></DT>
+<DD>Set the type of the output file. Possible types are:<BR>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0>
+<TR VALIGN=TOP><TD><TT>cexe</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>console executable (this is the default)</TD></TR>
+<TR VALIGN=TOP><TD><TT>wexe</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>windowed executable (different against cexe on Windows only)</TD></TR>
+<TR VALIGN=TOP><TD><TT>lib</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>static library</TD></TR>
+<TR VALIGN=TOP><TD><TT>dynlib</TT></TD><TD>&nbsp;-&nbsp;</TD><TD>dynamic library</TD></TR>
+</TABLE></DD>
+<P>
+<DT><TT>--name </TT><I>name</I></DT>
+<DD>Set the name of the output file without ending, and, if it's a library,
+without the UNIX "lib" in front (Default: "unnamed").</DD>
+<P>
+<DT><TT>--obj-dir </TT><I>dir</I></DT>
+<DD>Target directory for object files and other temporary files (default: ".").</DD>
+<P>
+<DT><TT>--bin-dir </TT><I>dir</I></DT>
+<DD>Target directory for the executable (default: "."). Ignored if type is not
+cexe or wexe.</DD>
+<P>
+<DT><TT>--lib-dir </TT><I>dir</I></DT>
+<DD>Target directory for the library, if type is lib or dynlib (default: "."). In
+addition, this option acts like --lib-search-dir.</DD>
+<P>
+<DT><TT>--lib-search-dir </TT><I>dir</I></DT>
+<DD>A directory where to search for libraries to be linked. This option can be
+given multiple times.</DD>
+<P>
+<DT><TT>--inc-search-dir </TT><I>dir</I></DT>
+<DD>A directory where to search for include files. This option can be given
+multiple times.</DD>
+<P>
+<DT><TT>--link </TT><I>name</I></DT>
+<DD>Name of a library to be linked. The name must be without file name ending and
+without the UNIX "lib" in front (e.g. say "X11" instead of "libX11.a"). This
+argument can be given multiple times. The order may be important (high-level
+first).</DD>
+<P>
+<DT><TT>--math</TT></DT>
+<DD>Link with the standard math library.</DD>
+<P>
+<DT><TT>--rtti</TT></DT>
+<DD>Enable Run Time Type Information.</DD>
+<P>
+<DT><TT>--exceptions</TT></DT>
+<DD>Enable C++ exceptions.</DD>
+<P>
+<DT><TT>--debug</TT></DT>
+<DD>Create debug information in the output.</DD>
+<P>
+<DT><TT>--def </TT><I>name</I>[<TT>=</TT><I>value</I>]</DT>
+<DD>Define a preprocessor variable. This option can be given multiple times.</DD>
+</DL></BLOCKQUOTE>
+
+<H2><A NAME="3.3"></A>3.3 Compilers</H2>
+Here is a list of all possible values for the compiler option:
+<BLOCKQUOTE><DL>
+<DT><TT>bor</TT></DT>
+<DD>Use the Borland C/C++ compiler on Windows.
+<U>Please do not use this for compiling Eagle Mode!</U>
+It has been tested with Borland C++ 5.6.4 (C++BuilderX) and CodeGear C++ 5.9
+(C++Builder 2007), but Eagle Mode always crashes right away or it even fails
+to compile (seems difficult to solve).</DD>
+<P>
+<DT><TT>gnu</TT></DT>
+<DD>Use the GNU C/C++ compiler (gcc). This has been successfully tested with many
+gcc versions. Minimum should be something like version 3.3. Cygwin and MinGW
+are also supported.</DD>
+<P>
+<DT><TT>int</TT></DT>
+<DD>Use the Intel C/C++ compiler (icc) on Linux.<BR>
+Successfully tested with:<BR>
+&nbsp;* icc 9.1 on Linux, 64-bit</DD>
+<P>
+<DT><TT>mic</TT></DT>
+<DD>Use the Microsoft C/C++ compiler on Windows.<BR>
+Successfully tested with:<BR>
+&nbsp;* cl 13.10 (Visual Studio .NET 2003)<BR>
+&nbsp;* cl 14.00 AMD64 (Platform SDK for Server 2003 R2)</DD>
+<P>
+<DT><TT>sun</TT></DT>
+<DD>Use the Sun C/C++ compiler on Linux.<BR>
+Successfully tested with:<BR>
+&nbsp;* Sun Studio 12 RC 1 on Linux, 64-bit</DD>
+<P>
+<DT><TT>wat</TT></DT>
+<DD>Use the Watcom or Open Watcom C/C++ compiler on Windows.<BR>
+Successfully tested with:<BR>
+&nbsp;* Watcom 11.0b<BR>
+&nbsp;* Open Watcom 1.7a</DD>
+</DL></BLOCKQUOTE>
+
+</BODY>
+</HTML>

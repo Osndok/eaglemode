@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,19 +27,29 @@ emAvFilePanel::emAvFilePanel(
 	ParentArg parent, const emString & name, emAvFileModel * fileModel,
 	bool updateFileModel
 )
-	: emFilePanel(parent,name)
+	: emFilePanel(parent,name),
+	CursorTimer(GetScheduler())
 {
+	CursorHidden=false;
+	ScreensaverDisabled=false;
 	HaveControlPanel=false;
 	WarningStartTime=0;
 	WarningAlpha=0;
+	OldMouseX=0.0;
+	OldMouseY=0.0;
 	UpdateEssenceRect();
 	AddWakeUpSignal(GetVirFileStateSignal());
+	AddWakeUpSignal(CursorTimer.GetSignal());
 	SetFileModel(fileModel,updateFileModel);
 }
 
 
 emAvFilePanel::~emAvFilePanel()
 {
+	if (ScreensaverDisabled) {
+		ScreensaverDisabled=false;
+		if (GetScreen()) GetScreen()->EnableScreensaver();
+	}
 }
 
 
@@ -151,6 +161,19 @@ bool emAvFilePanel::Cycle()
 		if (WarningAlpha>0) busy=true;
 	}
 
+	if (IsSignaled(CursorTimer.GetSignal())) {
+		CursorHidden=true;
+		InvalidateCursor();
+	}
+
+	if (
+		IsSignaled(GetVirFileStateSignal()) ||
+		(loaded && IsSignaled(fm->GetPlayStateSignal()))
+	) {
+		UpdateCursorHiding(false);
+		UpdateScreensaverDisabling();
+	}
+
 	return busy;
 }
 
@@ -159,6 +182,11 @@ void emAvFilePanel::Notice(NoticeFlags flags)
 {
 	emFilePanel::Notice(flags);
 	if (flags&NF_LAYOUT_CHANGED) UpdateEssenceRect();
+	if (flags&NF_FOCUS_CHANGED) UpdateCursorHiding(false);
+	if (flags&NF_VIEWING_CHANGED) {
+		UpdateCursorHiding(true);
+		UpdateScreensaverDisabling();
+	}
 }
 
 
@@ -351,7 +379,26 @@ void emAvFilePanel::Input(
 		break;
 	}
 
+	if (
+		fabs(OldMouseX-state.GetMouseX())>2.5 ||
+		fabs(OldMouseY-state.GetMouseY())>2.5 ||
+		state.GetLeftButton() ||
+		state.GetMiddleButton() ||
+		state.GetRightButton()
+	) {
+		OldMouseX=state.GetMouseX();
+		OldMouseY=state.GetMouseY();
+		UpdateCursorHiding(true);
+	}
+
 	emFilePanel::Input(event,state,mx,my);
+}
+
+
+emCursor emAvFilePanel::GetCursor()
+{
+	if (CursorHidden) return emCursor::INVISIBLE;
+	else return emFilePanel::GetCursor();
 }
 
 
@@ -524,4 +571,62 @@ void emAvFilePanel::UpdateEssenceRect()
 	EY=(h-eh)*0.5;
 	EW=ew;
 	EH=eh;
+}
+
+
+void emAvFilePanel::UpdateCursorHiding(bool restart)
+{
+	bool toHide;
+
+	toHide=
+		IsFocused() &&
+		IsViewed() &&
+		(GetClipX2()-GetClipX1())*(GetClipY2()-GetClipY1()) >
+			0.6*GetView().GetCurrentWidth()*GetView().GetCurrentHeight() &&
+		GetVirFileState()==VFS_LOADED &&
+		((emAvFileModel*)GetFileModel())->GetPlayState()!=emAvFileModel::PS_STOPPED
+	;
+	if (!toHide || restart) {
+		if (CursorHidden) {
+			CursorHidden=false;
+			InvalidateCursor();
+		}
+		CursorTimer.Stop(true);
+	}
+	if (toHide && !CursorHidden && !CursorTimer.IsRunning()) {
+		CursorTimer.Start(3000);
+	}
+}
+
+
+void emAvFilePanel::UpdateScreensaverDisabling()
+{
+	emScreen * screen;
+	emAvFileModel * fm;
+	emAvFileModel::PlayStateType playState;
+	double a,sx,sy,sw,sh;
+
+	screen=GetScreen();
+	if (!screen) return;
+	for (;;) {
+		if (!IsViewed()) break;
+		if (GetVirFileState()!=VFS_LOADED) break;
+		fm=(emAvFileModel*)GetFileModel();
+		playState=fm->GetPlayState();
+		if (playState==emAvFileModel::PS_STOPPED) break;
+		if (playState==emAvFileModel::PS_PAUSED) break;
+		if (!fm->IsVideo()) break;
+		a=(GetClipX2()-GetClipX1())*(GetClipY2()-GetClipY1());
+		screen->GetVisibleRect(&sx,&sy,&sw,&sh);
+		if (a<0.6*sw*sh) break;
+		if (!ScreensaverDisabled) {
+			ScreensaverDisabled=true;
+			screen->DisableScreensaver();
+		}
+		return;
+	}
+	if (ScreensaverDisabled) {
+		ScreensaverDisabled=false;
+		screen->EnableScreensaver();
+	}
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,9 @@ emWindow::emWindow(
 	emContext & parentContext, ViewFlags viewFlags, WindowFlags windowFlags,
 	const emString & wmResName
 )
-	: emView(parentContext,viewFlags)
+	: emView(parentContext,viewFlags),
+	CloseSignal(),
+	AutoDeleteEngine(this)
 {
 	emContext * con;
 	emWindow * win;
@@ -123,6 +125,7 @@ void emWindow::SetWindowFlags(WindowFlags windowFlags)
 		if ((WFlags&WF_FULLSCREEN)==0 && PrevVPValid) {
 			SetViewPosSize(PrevVPX,PrevVPY,PrevVPW,PrevVPH);
 		}
+		Signal(WindowFlagsSignal);
 	}
 }
 
@@ -173,6 +176,30 @@ void emWindow::InvalidateTitle()
 {
 	emView::InvalidateTitle();
 	WindowPort->InvalidateTitle();
+}
+
+
+emWindow::AutoDeleteEngineClass::AutoDeleteEngineClass(emWindow * window)
+	: emEngine(window->GetScheduler())
+{
+	Window=window;
+	CountDown=-1;
+	AddWakeUpSignal(Window->GetCloseSignal());
+}
+
+
+bool emWindow::AutoDeleteEngineClass::Cycle()
+{
+	if (
+		IsSignaled(Window->GetCloseSignal()) &&
+		(Window->GetWindowFlags()&emWindow::WF_AUTO_DELETE)!=0
+	) {
+		RemoveWakeUpSignal(Window->GetCloseSignal());
+		CountDown=3;
+	}
+	if (CountDown>0) { CountDown--; return true; }
+	if (CountDown==0) delete Window;
+	return false;
 }
 
 

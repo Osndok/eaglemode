@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScheduler.cpp
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -149,6 +149,7 @@ VOID CALLBACK emWndsScheduler::TimerProc(
 	// SetUnhandledExceptionFilter. But it would be possible with
 	// AddVectoredExceptionHandler.
 
+	s=NULL;
 	try {
 		InstanceListMutex.Lock();
 		for (s=InstanceList; s && s->TimerId!=idEvent; s=s->NextInstance);
@@ -156,7 +157,7 @@ VOID CALLBACK emWndsScheduler::TimerProc(
 		if (s) s->DoTimeSlice();
 	}
 	catch (...) {
-		KillTimer(NULL,s->TimerId);
+		if (s) KillTimer(NULL,s->TimerId);
 		emFatalError("uncaught exception");
 	}
 }

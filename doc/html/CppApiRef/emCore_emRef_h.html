@@ -1,0 +1,153 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emRef.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A>.h
+//
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emRef_h
+#define emRef_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="emRef"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=================================== <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A> ====================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a reference to an <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>, or to a similar class
+        // which also has the methods Alloc and Free. The template parameter CLS
+        // must be the model class. On each construction of a non-NULL
+        // reference, Alloc is called on the model. And on each destruction of a
+        // non-NULL reference, Free is called on the model. Reference assignment
+        // behaves like destructing and constructing. Through Alloc and Free,
+        // the model increments and decrements an internal reference counter,
+        // and it deletes itself through Free when the reference counter gets
+        // zero. Note that a common <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A> is also referred by its <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>.
+
+        //??? Four variants of this template class could exist:
+        //???   <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A>   - ref to non-constant, can be NULL
+        //???   emVRef  - ref to non-constant, cannot be NULL ("V" means valid)
+        //???   emCRef  - ref to constant, can be NULL
+        //???   emCVRef - ref to constant, cannot be NULL
+        //??? But maybe this would be a little bit too sophisticated.
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>();
+                <SPAN CLASS=c>// Construct a NULL reference.
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; ref);
+                <SPAN CLASS=c>// Construct a copied reference.
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>(CLS * model);
+                <SPAN CLASS=c>// Construct from a pointer (NULL is allowed).
+
+        </SPAN>~<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; ref);
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; <SPAN CLASS=t>operator </SPAN>= (CLS * model);
+                <SPAN CLASS=c>// Copy from a reference or pointer (NULL-pointer is allowed).
+
+        </SPAN><SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Cast this reference to a pointer (can be NULL).
+
+        </SPAN>CLS * Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the pointer (can be NULL).
+
+        </SPAN>CLS * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This makes the reference a so-called "smart pointer". For
+                // example, if r is reference to a model which has a method
+                // named Hello(), one could say r-&gt;Hello() instead of
+                // r.Get()-&gt;Hello().
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        CLS * Mdl;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>()
+<SPAN CLASS=b>{
+        </SPAN>Mdl=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; ref)
+<SPAN CLASS=b>{
+        </SPAN>Mdl=ref.Mdl;
+        <SPAN CLASS=k>if </SPAN>(Mdl) Mdl-&gt;Alloc();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>(CLS * model)
+<SPAN CLASS=b>{
+        </SPAN>Mdl=model;
+        <SPAN CLASS=k>if </SPAN>(model) model-&gt;Alloc();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::~<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Mdl) Mdl-&gt;Free();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; ref)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(ref.Mdl) ref.Mdl-&gt;Alloc();
+        <SPAN CLASS=k>if </SPAN>(Mdl) Mdl-&gt;Free();
+        Mdl=ref.Mdl;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (CLS * model)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(model) model-&gt;Alloc();
+        <SPAN CLASS=k>if </SPAN>(Mdl) Mdl-&gt;Free();
+        Mdl=model;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Mdl;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN>CLS * <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Mdl;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN>CLS * <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Mdl;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>
