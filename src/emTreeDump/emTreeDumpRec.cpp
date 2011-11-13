@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRec.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,6 +32,8 @@ emTreeDumpRec::emTreeDumpRec()
 	FgColor(this,"fgcolor",emColor::BLACK,true),
 	Title(this,"title"),
 	Text(this,"text"),
+	Commands(this,"commands"),
+	Files(this,"files"),
 	Children(this,"children")
 {
 }
@@ -45,4 +47,17 @@ emTreeDumpRec::~emTreeDumpRec()
 const char * emTreeDumpRec::GetFormatName() const
 {
 	return "emTreeDump";
+}
+
+
+emTreeDumpRec::CommandRec::CommandRec()
+	: emStructRec(),
+	Caption(this,"caption"),
+	Args(this,"args")
+{
+}
+
+
+emTreeDumpRec::CommandRec::~CommandRec()
+{
 }

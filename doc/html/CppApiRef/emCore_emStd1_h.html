@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@
 //==============================================================================
 
 </SPAN><SPAN CLASS=p>#define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 80
+#define EM_MINOR_VERSION 83
 #define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
         </SPAN><SPAN CLASS=c>// Version numbers and postfix. Postfix is a string like ".rc1" or "".
@@ -342,8 +342,11 @@
 
 </SPAN><SPAN CLASS=t>void </SPAN>emFatalError(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
         <SPAN CLASS=c>// Output an error message and exit this process. The message is written
-        // to stderr (a line break is appended), but if under Windows and stderr
-        // fails, the message is shown in a pop-up window.
+        // to stderr (a line break is appended). Optionally it is also shown in
+        // a GUI message box - see emSetFatalErrorGraphical.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emSetFatalErrorGraphical(<SPAN CLASS=t>bool </SPAN>graphical);
+        <SPAN CLASS=c>// Whether to show the fatal error message in a dialog (default: false).
 
 
 <A NAME="emUncopyable"></A>//==============================================================================

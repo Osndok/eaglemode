@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.h
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,10 @@
 #include <emFileMan/emDirEntry.h>
 #endif
 
+#ifndef emFileManViewConfig_h
+#include <emFileMan/emFileManViewConfig.h>
+#endif
+
 #ifndef emFileManModel_h
 #include <emFileMan/emFileManModel.h>
 #endif
@@ -50,7 +54,6 @@ public:
 	const emDirEntry & GetDirEntry() const;
 
 	void UpdateDirEntry(const emDirEntry & dirEntry);
-		// Must have same path.
 
 protected:
 
@@ -64,37 +67,14 @@ protected:
 
 private:
 
-	struct SharedStuff {
-		emRef<emFileManModel> FileMan;
-		emImage InnerBorderImage;
-	};
+	void UpdateContentPanel(bool forceRecreation=false, bool forceRelayout=false);
+	void UpdateAltPanel(bool forceRecreation=false, bool forceRelayout=false);
 
 	static const char * const ContentName;
 	static const char * const AltName;
-	static const double LayoutLabelX;
-	static const double LayoutLabelY;
-	static const double LayoutLabelW;
-	static const double LayoutLabelH;
-	static const double LayoutPathX;
-	static const double LayoutPathY;
-	static const double LayoutPathW;
-	static const double LayoutPathH;
-	static const double MinAltVW;
-	static const double LayoutAltX;
-	static const double LayoutAltY;
-	static const double LayoutAltW;
-	static const double LayoutAltH;
-	static const double MinContentVW;
-	static const double LayoutContentFrame;
-	static const double LayoutContentX;
-	static const double LayoutContentY;
-	static const double LayoutContentW;
-	static const double LayoutContentH;
-	static const emColor ColorBGNormal;
-	static const emColor ColorInfoLabel;
-	static const emColor ColorPath;
 
-	emRef<emVarModel<SharedStuff> > SharedVar;
+	emRef<emFileManModel> FileMan;
+	emRef<emFileManViewConfig> Config;
 	emDirEntry DirEntry;
 	int Alternative;
 };

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessControlPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,7 +27,6 @@ SilChessControlPanel::SilChessControlPanel(
 	: emTkGroup(parent,name,"SilChess")
 {
 	emTkTiling * t1, * t2;
-	emTkLook look;
 
 	Mdl=model;
 	LastOutputDepth=0;
@@ -119,20 +118,6 @@ SilChessControlPanel::SilChessControlPanel(
 	t2->SetPrefChildTallness(0.2,4);
 	SetPrefChildTallness(0.6);
 	SetPrefChildTallness(0.2,1);
-
-	look.SetBgColor(0x998877FF);
-	look.SetFgColor(0x000000FF);
-	look.SetButtonBgColor(0xEEDDCCFF);
-	look.SetButtonFgColor(0x000000FF);
-	look.SetInputBgColor(0xFFEEDDFF);
-	look.SetInputFgColor(0x000000FF);
-	look.SetInputHlColor(0x444488FF);
-	look.SetOutputBgColor(0xBBAA99FF);
-	look.SetOutputFgColor(0x000000FF);
-	look.SetOutputHlColor(0x444488FF);
-	SetLook(look,true);
-	look.SetBgColor(0x666666FF);
-	SetLook(look,false);
 
 	UpdateControls();
 

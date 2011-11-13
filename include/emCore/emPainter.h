@@ -101,27 +101,6 @@ public:
 	// situations where the errors are not so spectacular. However, a last
 	// chance could be the method PaintEdgeCorrection (read there).
 
-	//??? Problems with the current implementation
-	//??? ========================================
-	//???
-	//??? The current implementation works with hash tables, is pure C/C++
-	//??? and does not care about overflows in the color calculations. It
-	//??? can paint to typical X11 true color image formats, and it is
-	//??? pretty fast when an opaque canvas color is given. But it has the
-	//??? following major problems:
-	//???
-	//???  - There are still some visual errors, because of overflows in the
-	//???    calculations.
-	//???  - Through the hash table technique, the red, green and blue
-	//???    components of source colors are reduced to 4-bit each, except
-	//???    for the colors of images. Even some alpha values are reduced to
-	//???    4-bit.
-	//???  - Painting without canvas color is still slow where alpha is not
-	//???    100%.
-	//???  - emPainter cannot paint to a 3-channel emImage.
-	//???
-	//??? There are plans to fix it all.
-
 	emPainter();
 		// Construct a painter which paints nowhere.
 
@@ -566,7 +545,9 @@ private:
 		int BytesPerPixel;
 		emUInt32 RedRange,GreenRange,BlueRange;
 		int RedShift,GreenShift,BlueShift;
-		void * HashTable; // Index bits: rrrrggggbbbbaaaaaaaa
+		void * RedHash;   // Index bits: rrrrrrrraaaaaaaa or aaaaaaaarrrrrrrr
+		void * GreenHash; // Index bits: ggggggggaaaaaaaa or aaaaaaaagggggggg
+		void * BlueHash;  // Index bits: bbbbbbbbaaaaaaaa or aaaaaaaabbbbbbbb
 	};
 
 	void * Map;

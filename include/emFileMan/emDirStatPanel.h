@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirStatPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,10 @@
 #include <emCore/emFilePanel.h>
 #endif
 
+#ifndef emFileManViewConfig_h
+#include <emFileMan/emFileManViewConfig.h>
+#endif
+
 
 class emDirStatPanel : public emFilePanel {
 
@@ -52,6 +56,7 @@ private:
 
 	void UpdateStatistics();
 
+	emRef<emFileManViewConfig> Config;
 	int TotalCount,FileCount,SubDirCount,OtherTypeCount,HiddenCount;
 };
 

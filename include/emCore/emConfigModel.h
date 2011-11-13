@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emConfigModel.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,16 +54,22 @@ public:
 		// Signaled on every modification of the record and even on
 		// change of IsUnsaved.
 
-	void TrySave() throw(emString);
-	void Save();
+	void TrySave(bool force=false) throw(emString);
+	void Save(bool force=false);
 		// Save the record to the install path. On error, the first
 		// version throws the error message, and the second version
 		// calls emFatalError.
+		// Arguments:
+		//   force - false to save only if unsaved, true to save in
+		//           any case.
 
-	//??? An auto-save mechanism should be implemented, so that saving is
-	//??? performed automatically after each change, best with a small time
-	//??? delay (a second or so). Maybe that auto-save mechanism should be
-	//??? enabled by default.
+	int GetAutoSaveDelaySeconds() const;
+	void SetAutoSaveDelaySeconds(int seconds);
+		// Delay in seconds after which the record is saved
+		// automatically when it was modified. The default is -1 which
+		// means to disable the auto-save feature. If you make use of
+		// this feature, remember to call Save in desctructors of
+		// derived classes.
 
 protected:
 
@@ -105,6 +111,9 @@ protected:
 	emRec & GetRec();
 		// Not valid before PostConstruct has been called.
 
+	virtual bool Cycle();
+		// Implements the auto-save feature.
+
 private:
 
 	class RecLink : public emRecListener {
@@ -121,6 +130,8 @@ private:
 	RecLink Link;
 	emString InstallPath;
 	bool Unsaved;
+	emTimer AutoSaveTimer;
+	int AutoSaveDelaySeconds;
 };
 
 inline const emString & emConfigModel::GetInstallPath() const
@@ -136,6 +147,11 @@ inline bool emConfigModel::IsUnsaved() const
 inline const emSignal & emConfigModel::GetChangeSignal() const
 {
 	return ChangeSignal;
+}
+
+inline int emConfigModel::GetAutoSaveDelaySeconds() const
+{
+	return AutoSaveDelaySeconds;
 }
 
 inline emRec & emConfigModel::GetRec()

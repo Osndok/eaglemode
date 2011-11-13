@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,6 +18,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#if defined(_WIN32)
+#	include <windows.h>
+#endif
 #include <emCore/emInstallInfo.h>
 #include <emCore/emRes.h>
 #include <emCore/emProcess.h>
@@ -313,6 +316,10 @@ void emFileManModel::RunCommand(const CommandNode * cmd, emView & contentView)
 	extraEnv.Add(emString::Format("EM_WIDTH=%d",winW));
 	extraEnv.Add(emString::Format("EM_HEIGHT=%d",winH));
 
+#if defined(_WIN32)
+	extraEnv.Add(emString::Format("EM_ACP=%u",::GetACP()));
+#endif
+
 	// Prepare arguments:
 	//  [<interpreter>] <path> <src-count> <tgt-count> <src>... <tgt>... NULL
 	src=CreateSortedSrcSelDirEntries(contentView);
@@ -325,6 +332,19 @@ void emFileManModel::RunCommand(const CommandNode * cmd, emView & contentView)
 	args.Add(emString::Format("%d",tcnt));
 	for (i=0; i<scnt; i++) args.Add(src[i].GetPath());
 	for (i=0; i<tcnt; i++) args.Add(tgt[i].GetPath());
+
+#if defined(_WIN32)
+	for (i=0; i<args.GetCount(); i++) {
+		if (strchr(args[i].Get(),'?') || strchr(args[i].Get(),'*')) {
+			emTkDialog::ShowMessage(
+				contentView,"Error",
+				"A selected path contains a wild card character (? or *).\n"
+				"This cannot be handled safely."
+			);
+			return;
+		}
+	}
+#endif
 
 	try {
 		emProcess::TryStartUnmanaged(args,extraEnv);

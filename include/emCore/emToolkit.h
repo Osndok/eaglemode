@@ -1458,7 +1458,7 @@ public:
 		// Signaled whenever the text has changed.
 
 	const emString & GetText() const;
-	void SetText(emString text);
+	void SetText(const emString & text);
 		// The text.
 
 	int GetTextLen() const;
@@ -2221,7 +2221,7 @@ private:
 	public:
 		DlgPanel(ParentArg parent, const emString & name);
 		virtual ~DlgPanel();
-		void SetTitle(emString title);
+		void SetTitle(const emString & title);
 		virtual emString GetTitle();
 		emString Title;
 		emTkTiling * ContentTiling;

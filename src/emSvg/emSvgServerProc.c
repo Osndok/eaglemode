@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emSvgServerProc.c
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <sys/shm.h>
 #include <librsvg/rsvg.h>
 #include <librsvg/rsvg-cairo.h>
@@ -263,6 +264,7 @@ int main(int argc, char * argv[])
 	int len;
 
 	rsvg_init();
+	setlocale(LC_NUMERIC,"C");
 
 	while (fgets(buf,sizeof(buf),stdin)) {
 		len=strlen(buf);

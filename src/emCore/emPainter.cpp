@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2009 Oliver Hamann.
+// Copyright (C) 2001,2003-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,11 +108,11 @@ emPainter::emPainter(
 )
 {
 	emUInt32 redRange,greenRange,blueRange;
-	int redShift,greenShift,blueShift;
+	int i,redShift,greenShift,blueShift,shift;
 	SharedPixelFormat * list, * pf;
 	SharedPixelFormat * * ppf;
-	void * ht;
-	emUInt32 r,g,b,a,rm,gm,bm,pix,pixm;
+	void * hash;
+	emUInt32 c1,c2,c3,a1,a2,range;
 
 	if (bytesPerPixel!=1 && bytesPerPixel!=2 && bytesPerPixel!=4) {
 		emFatalError("emPainter: Illegal pixel format.");
@@ -171,7 +171,9 @@ emPainter::emPainter(
 			if (!pf) break;
 			if (pf->RefCount<=0) {
 				*ppf=pf->Next;
-				free(pf->HashTable);
+				free(pf->RedHash);
+				free(pf->GreenHash);
+				free(pf->BlueHash);
 				free(pf);
 			}
 			else ppf=&pf->Next;
@@ -188,32 +190,47 @@ emPainter::emPainter(
 		pf->RedShift=redShift;
 		pf->GreenShift=greenShift;
 		pf->BlueShift=blueShift;
-		pf->HashTable=malloc(16*16*16*256*bytesPerPixel);
-		for (r=0, ht=pf->HashTable; r<16; r++) {
-			rm=(redRange*r+7)/15;
-			for (g=0; g<16; g++) {
-				gm=(greenRange*g+7)/15;
-				for (b=0; b<16; b++, ht=((char*)ht)+256*bytesPerPixel) {
-					bm=(blueRange*b+7)/15;
-					pixm=(rm<<redShift)|(gm<<greenShift)|(bm<<blueShift);
-					for (a=0; a<128; a++) {
-						pix=
-							(((rm*a+127)/255)<<redShift  )|
-							(((gm*a+127)/255)<<greenShift)|
-							(((bm*a+127)/255)<<blueShift )
-						;
-						if (bytesPerPixel==4) {
-							((emUInt32 *)ht)[a]=pix;
-							((emUInt32 *)ht)[255-a]=pixm-pix;
-						}
-						else if (bytesPerPixel==2) {
-							((emUInt16 *)ht)[a    ]=(emUInt16)pix;
-							((emUInt16 *)ht)[255-a]=(emUInt16)(pixm-pix);
-						}
-						else {
-							((emByte *)ht)[a    ]=(emByte)pix;
-							((emByte *)ht)[255-a]=(emByte)(pixm-pix);
-						}
+		pf->RedHash=malloc(256*256*bytesPerPixel);
+		pf->GreenHash=malloc(256*256*bytesPerPixel);
+		pf->BlueHash=malloc(256*256*bytesPerPixel);
+		for (i=0; i<3; i++) {
+			if (i==0) {
+				hash=pf->RedHash;
+				range=pf->RedRange;
+				shift=pf->RedShift;
+			}
+			else if (i==1) {
+				hash=pf->GreenHash;
+				range=pf->GreenRange;
+				shift=pf->GreenShift;
+			}
+			else {
+				hash=pf->BlueHash;
+				range=pf->BlueRange;
+				shift=pf->BlueShift;
+			}
+			for (a1=0; a1<128; a1++) {
+				c1=(a1*range+127)/255;
+				for (a2=0; a2<128; a2++) {
+					c2=(a2*range+127)/255;
+					c3=(a1*a2*range+32512)/65025;
+					if (bytesPerPixel==4) {
+						((emUInt32*)hash)[(a1<<8)+a2]=c3<<shift;
+						((emUInt32*)hash)[(a1<<8)+(255-a2)]=(c1-c3)<<shift;
+						((emUInt32*)hash)[((255-a1)<<8)+a2]=(c2-c3)<<shift;
+						((emUInt32*)hash)[((255-a1)<<8)+(255-a2)]=(range+c3-c1-c2)<<shift;
+					}
+					else if (bytesPerPixel==2) {
+						((emUInt16*)hash)[(a1<<8)+a2]=(emUInt16)(c3<<shift);
+						((emUInt16*)hash)[(a1<<8)+(255-a2)]=(emUInt16)((c1-c3)<<shift);
+						((emUInt16*)hash)[((255-a1)<<8)+a2]=(emUInt16)((c2-c3)<<shift);
+						((emUInt16*)hash)[((255-a1)<<8)+(255-a2)]=(emUInt16)((range+c3-c1-c2)<<shift);
+					}
+					else {
+						((emByte*)hash)[(a1<<8)+a2]=(emByte)(c3<<shift);
+						((emByte*)hash)[(a1<<8)+(255-a2)]=(emByte)((c1-c3)<<shift);
+						((emByte*)hash)[((255-a1)<<8)+a2]=(emByte)((c2-c3)<<shift);
+						((emByte*)hash)[((255-a1)<<8)+(255-a2)]=(emByte)((range+c3-c1-c2)<<shift);
 					}
 				}
 			}
@@ -303,9 +320,10 @@ void emPainter::PaintRect(
 	emColor canvasColor
 ) const
 {
-	void * p, * p1, * p2, * p3, * p4, * hsAdd, * hsSub;
+	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
+	void * p, * p1, * p2, * p3, * p4;
 	double x2,y2;
-	emUInt32 colIdxAdd,colIdxSub,pix,rmsk,gmsk,bmsk;
+	emUInt32 pix,rmsk,gmsk,bmsk;
 	int i,alpha,a,bpp,ox1,oy1,ox2,oy2,ix1,iy1,ix2,iy2;
 	int ax1,ay1,ax2,ay2,rsh,gsh,bsh,t;
 
@@ -344,148 +362,12 @@ void emPainter::PaintRect(
 	ay2=((i&0xffff)*alpha+0x8000)>>16;
 	if (iy1>iy2) { ay1+=ay2-alpha; iy2++; }
 
-	if (canvasColor.IsOpaque()) {
-		if (alpha==255) {
-			colIdxAdd=
-				(((15*color.GetRed()  +127)/255)<<8) |
-				(((15*color.GetGreen()+127)/255)<<4) |
-				 ((15*color.GetBlue() +127)/255)
-			;
-			colIdxSub=
-				(((15*canvasColor.GetRed()  +127)/255)<<8) |
-				(((15*canvasColor.GetGreen()+127)/255)<<4) |
-				 ((15*canvasColor.GetBlue() +127)/255)
-			;
-		}
-		else {
-			i=(15*color.GetRed()+127)/255-(15*canvasColor.GetRed()+127)/255;
-			if (i>=0) { colIdxAdd=i<<8; colIdxSub=0; }
-			else { colIdxSub=(-i)<<8; colIdxAdd=0; }
-			i=(15*color.GetGreen()+127)/255-(15*canvasColor.GetGreen()+127)/255;
-			if (i>=0) colIdxAdd|=i<<4;
-			else colIdxSub|=(-i)<<4;
-			i=(15*color.GetBlue()+127)/255-(15*canvasColor.GetBlue()+127)/255;
-			if (i>=0) colIdxAdd|=i;
-			else colIdxSub|=(-i);
-		}
-		if (colIdxAdd==colIdxSub) return;
+	bpp=PixelFormat->BytesPerPixel;
 
-		bpp=PixelFormat->BytesPerPixel;
-		hsAdd=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
-		hsSub=((char*)PixelFormat->HashTable)+(colIdxSub<<8)*bpp;
-
-#		define PR_ADD_SUB_TEMPLATE(PTYPE) \
-			if (oy1<iy1) { \
-				p=((char*)Map)+oy1*BytesPerRow; \
-				if (ox1<ix1) { \
-					a=(ax1*ay1+(alpha-1)/2)/alpha; \
-					((PTYPE*)p)[ox1]+=(PTYPE)(((PTYPE*)hsAdd)[a]-((PTYPE*)hsSub)[a]); \
-				} \
-				if (ix1<ix2) { \
-					pix=((PTYPE*)hsAdd)[ay1]-((PTYPE*)hsSub)[ay1]; \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((PTYPE*)p)+ix2; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((PTYPE*)p1)+1; \
-					} while(p1<p2); \
-				} \
-				if (ix2<ox2) { \
-					a=(ax2*ay1+alpha/2)/alpha; \
-					((PTYPE*)p)[ix2]+=(PTYPE)(((PTYPE*)hsAdd)[a]-((PTYPE*)hsSub)[a]); \
-				} \
-			} \
-			if (iy1<iy2) { \
-				p=((char*)Map)+iy1*BytesPerRow; \
-				if (ox1<ix1) { \
-					pix=((PTYPE*)hsAdd)[ax1]-((PTYPE*)hsSub)[ax1]; \
-					p1=((PTYPE*)p)+ox1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((char*)p1)+BytesPerRow; \
-					} while(p1<p2); \
-				} \
-				if (ix1<ix2) { \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow;; \
-					if (alpha<255) { \
-						pix=((PTYPE*)hsAdd)[alpha]-((PTYPE*)hsSub)[alpha]; \
-						do { \
-							p3=p1; \
-							p4=((PTYPE*)p3)+(ix2-ix1); \
-							do { \
-								((PTYPE*)p3)[0]+=(PTYPE)pix; \
-								p3=((PTYPE*)p3)+1; \
-							} while(p3<p4); \
-							p1=((char*)p1)+BytesPerRow; \
-						} while(p1<p2); \
-					} \
-					else { \
-						pix=((PTYPE*)hsAdd)[255]; \
-						do { \
-							p3=p1; \
-							p4=((PTYPE*)p3)+(ix2-ix1); \
-							do { \
-								((PTYPE*)p3)[0]=(PTYPE)pix; \
-								p3=((PTYPE*)p3)+1; \
-							} while(p3<p4); \
-							p1=((char*)p1)+BytesPerRow; \
-						} while(p1<p2); \
-					} \
-				} \
-				if (ix2<ox2) { \
-					pix=((PTYPE*)hsAdd)[ax2]-((PTYPE*)hsSub)[ax2]; \
-					p1=((PTYPE*)p)+ix2; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((char*)p1)+BytesPerRow; \
-					} while(p1<p2); \
-				} \
-			} \
-			if (iy2<oy2) { \
-				p=((char*)Map)+iy2*BytesPerRow; \
-				if (ox1<ix1) { \
-					a=(ax1*ay2+alpha/2)/alpha; \
-					((PTYPE*)p)[ox1]+=(PTYPE)(((PTYPE*)hsAdd)[a]-((PTYPE*)hsSub)[a]); \
-				} \
-				if (ix1<ix2) { \
-					pix=((PTYPE*)hsAdd)[ay2]-((PTYPE*)hsSub)[ay2]; \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((PTYPE*)p)+ix2; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((PTYPE*)p1)+1; \
-					} while(p1<p2); \
-				} \
-				if (ix2<ox2) { \
-					a=(ax2*ay2+(alpha-1)/2)/alpha; \
-					((PTYPE*)p)[ix2]+=(PTYPE)(((PTYPE*)hsAdd)[a]-((PTYPE*)hsSub)[a]); \
-				} \
-			}
-
-		if (bpp==4) {
-			PR_ADD_SUB_TEMPLATE(emUInt32)
-		}
-		else if (bpp==2) {
-			PR_ADD_SUB_TEMPLATE(emUInt16)
-		}
-		else {
-			PR_ADD_SUB_TEMPLATE(emUInt8)
-		}
-	}
-	else {
-
-		colIdxAdd=
-			(((15*color.GetRed()  +127)/255)<<8) |
-			(((15*color.GetGreen()+127)/255)<<4) |
-			 ((15*color.GetBlue() +127)/255)
-		;
-
-		bpp=PixelFormat->BytesPerPixel;
-		hsAdd=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
-
+	if (!canvasColor.IsOpaque()) {
+		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
+		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
+		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
 		rsh=PixelFormat->RedShift;
 		gsh=PixelFormat->GreenShift;
 		bsh=PixelFormat->BlueShift;
@@ -507,10 +389,11 @@ void emPainter::PaintRect(
 				p=((char*)Map)+oy1*BytesPerRow; \
 				if (ox1<ix1) { \
 					a=(ax1*ay1+(alpha-1)/2)/alpha; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ox1,a,((PTYPE*)hsAdd)[a]) \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
+					PR_MUL_PIX_TEMPLATE(PTYPE,p,ox1,a,pix) \
 				} \
 				if (ix1<ix2) { \
-					pix=((PTYPE*)hsAdd)[ay1]; \
+					pix=((PTYPE*)hAddR)[ay1]+((PTYPE*)hAddG)[ay1]+((PTYPE*)hAddB)[ay1]; \
 					p1=((PTYPE*)p)+ix1; \
 					p2=((PTYPE*)p)+ix2; \
 					do { \
@@ -520,13 +403,14 @@ void emPainter::PaintRect(
 				} \
 				if (ix2<ox2) { \
 					a=(ax2*ay1+alpha/2)/alpha; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ix2,a,((PTYPE*)hsAdd)[a]) \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
+					PR_MUL_PIX_TEMPLATE(PTYPE,p,ix2,a,pix) \
 				} \
 			} \
 			if (iy1<iy2) { \
 				p=((char*)Map)+iy1*BytesPerRow; \
 				if (ox1<ix1) { \
-					pix=((PTYPE*)hsAdd)[ax1]; \
+					pix=((PTYPE*)hAddR)[ax1]+((PTYPE*)hAddG)[ax1]+((PTYPE*)hAddB)[ax1]; \
 					p1=((PTYPE*)p)+ox1; \
 					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
 					do { \
@@ -538,7 +422,7 @@ void emPainter::PaintRect(
 					p1=((PTYPE*)p)+ix1; \
 					p2=((char*)p1)+(iy2-iy1)*BytesPerRow;; \
 					if (alpha<255) { \
-						pix=((PTYPE*)hsAdd)[alpha]; \
+						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]; \
 						do { \
 							p3=p1; \
 							p4=((PTYPE*)p3)+(ix2-ix1); \
@@ -550,7 +434,7 @@ void emPainter::PaintRect(
 						} while(p1<p2); \
 					} \
 					else { \
-						pix=((PTYPE*)hsAdd)[255]; \
+						pix=((PTYPE*)hAddR)[255]+((PTYPE*)hAddG)[255]+((PTYPE*)hAddB)[255]; \
 						do { \
 							p3=p1; \
 							p4=((PTYPE*)p3)+(ix2-ix1); \
@@ -563,7 +447,7 @@ void emPainter::PaintRect(
 					} \
 				} \
 				if (ix2<ox2) { \
-					pix=((PTYPE*)hsAdd)[ax2]; \
+					pix=((PTYPE*)hAddR)[ax2]+((PTYPE*)hAddG)[ax2]+((PTYPE*)hAddB)[ax2]; \
 					p1=((PTYPE*)p)+ix2; \
 					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
 					do { \
@@ -576,10 +460,11 @@ void emPainter::PaintRect(
 				p=((char*)Map)+iy2*BytesPerRow; \
 				if (ox1<ix1) { \
 					a=(ax1*ay2+alpha/2)/alpha; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ox1,a,((PTYPE*)hsAdd)[a]) \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
+					PR_MUL_PIX_TEMPLATE(PTYPE,p,ox1,a,pix) \
 				} \
 				if (ix1<ix2) { \
-					pix=((PTYPE*)hsAdd)[ay2]; \
+					pix=((PTYPE*)hAddR)[ay2]+((PTYPE*)hAddG)[ay2]+((PTYPE*)hAddB)[ay2]; \
 					p1=((PTYPE*)p)+ix1; \
 					p2=((PTYPE*)p)+ix2; \
 					do { \
@@ -589,7 +474,8 @@ void emPainter::PaintRect(
 				} \
 				if (ix2<ox2) { \
 					a=(ax2*ay2+(alpha-1)/2)/alpha; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ix2,a,((PTYPE*)hsAdd)[a]) \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
+					PR_MUL_PIX_TEMPLATE(PTYPE,p,ix2,a,pix) \
 				} \
 			}
 
@@ -601,6 +487,128 @@ void emPainter::PaintRect(
 		}
 		else {
 			PR_MUL_TEMPLATE(emUInt8)
+		}
+	}
+	else if ((color.Get()|0x000000FF) != canvasColor.Get()) {
+		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
+		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
+		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
+		hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
+		hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
+		hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
+
+#		define PR_ADD_SUB_TEMPLATE(PTYPE) \
+			if (oy1<iy1) { \
+				p=((char*)Map)+oy1*BytesPerRow; \
+				if (ox1<ix1) { \
+					a=(ax1*ay1+(alpha-1)/2)/alpha; \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
+					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
+					((PTYPE*)p)[ox1]+=(PTYPE)pix; \
+				} \
+				if (ix1<ix2) { \
+					pix=((PTYPE*)hAddR)[ay1]+((PTYPE*)hAddG)[ay1]+((PTYPE*)hAddB)[ay1]- \
+					    ((PTYPE*)hSubR)[ay1]-((PTYPE*)hSubG)[ay1]-((PTYPE*)hSubB)[ay1]; \
+					p1=((PTYPE*)p)+ix1; \
+					p2=((PTYPE*)p)+ix2; \
+					do { \
+						((PTYPE*)p1)[0]+=(PTYPE)pix; \
+						p1=((PTYPE*)p1)+1; \
+					} while(p1<p2); \
+				} \
+				if (ix2<ox2) { \
+					a=(ax2*ay1+alpha/2)/alpha; \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
+					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
+					((PTYPE*)p)[ix2]+=(PTYPE)pix; \
+				} \
+			} \
+			if (iy1<iy2) { \
+				p=((char*)Map)+iy1*BytesPerRow; \
+				if (ox1<ix1) { \
+					pix=((PTYPE*)hAddR)[ax1]+((PTYPE*)hAddG)[ax1]+((PTYPE*)hAddB)[ax1]- \
+					    ((PTYPE*)hSubR)[ax1]-((PTYPE*)hSubG)[ax1]-((PTYPE*)hSubB)[ax1]; \
+					p1=((PTYPE*)p)+ox1; \
+					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
+					do { \
+						((PTYPE*)p1)[0]+=(PTYPE)pix; \
+						p1=((char*)p1)+BytesPerRow; \
+					} while(p1<p2); \
+				} \
+				if (ix1<ix2) { \
+					p1=((PTYPE*)p)+ix1; \
+					p2=((char*)p1)+(iy2-iy1)*BytesPerRow;; \
+					if (alpha<255) { \
+						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]- \
+						    ((PTYPE*)hSubR)[alpha]-((PTYPE*)hSubG)[alpha]-((PTYPE*)hSubB)[alpha]; \
+						do { \
+							p3=p1; \
+							p4=((PTYPE*)p3)+(ix2-ix1); \
+							do { \
+								((PTYPE*)p3)[0]+=(PTYPE)pix; \
+								p3=((PTYPE*)p3)+1; \
+							} while(p3<p4); \
+							p1=((char*)p1)+BytesPerRow; \
+						} while(p1<p2); \
+					} \
+					else { \
+						pix=((PTYPE*)hAddR)[255]+((PTYPE*)hAddG)[255]+((PTYPE*)hAddB)[255]; \
+						do { \
+							p3=p1; \
+							p4=((PTYPE*)p3)+(ix2-ix1); \
+							do { \
+								((PTYPE*)p3)[0]=(PTYPE)pix; \
+								p3=((PTYPE*)p3)+1; \
+							} while(p3<p4); \
+							p1=((char*)p1)+BytesPerRow; \
+						} while(p1<p2); \
+					} \
+				} \
+				if (ix2<ox2) { \
+					pix=((PTYPE*)hAddR)[ax2]+((PTYPE*)hAddG)[ax2]+((PTYPE*)hAddB)[ax2]- \
+					    ((PTYPE*)hSubR)[ax2]-((PTYPE*)hSubG)[ax2]-((PTYPE*)hSubB)[ax2]; \
+					p1=((PTYPE*)p)+ix2; \
+					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
+					do { \
+						((PTYPE*)p1)[0]+=(PTYPE)pix; \
+						p1=((char*)p1)+BytesPerRow; \
+					} while(p1<p2); \
+				} \
+			} \
+			if (iy2<oy2) { \
+				p=((char*)Map)+iy2*BytesPerRow; \
+				if (ox1<ix1) { \
+					a=(ax1*ay2+alpha/2)/alpha; \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
+					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
+					((PTYPE*)p)[ox1]+=(PTYPE)pix; \
+				} \
+				if (ix1<ix2) { \
+					pix=((PTYPE*)hAddR)[ay2]+((PTYPE*)hAddG)[ay2]+((PTYPE*)hAddB)[ay2]- \
+					    ((PTYPE*)hSubR)[ay2]-((PTYPE*)hSubG)[ay2]-((PTYPE*)hSubB)[ay2]; \
+					p1=((PTYPE*)p)+ix1; \
+					p2=((PTYPE*)p)+ix2; \
+					do { \
+						((PTYPE*)p1)[0]+=(PTYPE)pix; \
+						p1=((PTYPE*)p1)+1; \
+					} while(p1<p2); \
+				} \
+				if (ix2<ox2) { \
+					a=(ax2*ay2+(alpha-1)/2)/alpha; \
+					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
+					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
+					((PTYPE*)p)[ix2]+=(PTYPE)pix; \
+				} \
+			}
+
+		if (bpp==4) {
+			PR_ADD_SUB_TEMPLATE(emUInt32)
+		}
+		else if (bpp==2) {
+			PR_ADD_SUB_TEMPLATE(emUInt16)
+		}
+		else {
+			PR_ADD_SUB_TEMPLATE(emUInt8)
 		}
 	}
 }
@@ -630,11 +638,11 @@ void emPainter::PaintPolygon(
 	ScanEntry * * slmem, * * scanlines, * * ppse;
 	ScanEntry * freeScanEntries, * freeScanEntriesEnd, * pse;
 	SEChunk * seChunks, * psec;
-	void * p, * hsAdd, * hsSub;
+	void * p, * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
 	const double * pxy;
 	double minX,maxX,minY,maxY,x0,y0,x1,y1,x2,y2,dx,dy,ax,a0,a1,a2,va,t;
 	double ex1[2],ey1[2],ex2[2],ey2[2];
-	emUInt32 colIdxAdd,colIdxSub,pix,rmsk,gmsk,bmsk;
+	emUInt32 pix,rmsk,gmsk,bmsk;
 	int i,alpha,bpp,sly1,sly2,sx,sy,sx2,sy2,rsh,gsh,bsh;
 
 	if (!color.GetAlpha()) return;
@@ -880,7 +888,7 @@ void emPainter::PaintPolygon(
 						} \
 					} \
 					if (alpha>=255) { \
-						pix=((PTYPE*)hsAdd)[255]; \
+						pix=((PTYPE*)hAddR)[255]+((PTYPE*)hAddG)[255]+((PTYPE*)hAddB)[255]; \
 						do { \
 							((PTYPE*)p)[sx]=(PTYPE)pix; \
 							sx++; \
@@ -889,14 +897,15 @@ void emPainter::PaintPolygon(
 					else if (alpha) {
 
 #	define PP_PART_2_SUB_ADD(PTYPE) \
-						pix=((PTYPE*)hsAdd)[alpha]-((PTYPE*)hsSub)[alpha]; \
+						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]- \
+						    ((PTYPE*)hSubR)[alpha]-((PTYPE*)hSubG)[alpha]-((PTYPE*)hSubB)[alpha]; \
 						do { \
 							((PTYPE*)p)[sx]+=(PTYPE)pix; \
 							sx++; \
 						} while (sx<sx2);
 
 #	define PP_PART_2_MUL_ADD(PTYPE) \
-						pix=((PTYPE*)hsAdd)[alpha]; \
+						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]; \
 						alpha=(255-alpha)*257; \
 						do { \
 							((PTYPE*)p)[sx]=(PTYPE)( \
@@ -918,59 +927,11 @@ void emPainter::PaintPolygon(
 			sy++; \
 		} while (sy<sly2);
 
-	if (canvasColor.IsOpaque()) {
-		if (color.IsOpaque()) {
-			colIdxAdd=
-				(((15*color.GetRed()  +127)/255)<<8) |
-				(((15*color.GetGreen()+127)/255)<<4) |
-				 ((15*color.GetBlue() +127)/255)
-			;
-			colIdxSub=
-				(((15*canvasColor.GetRed()  +127)/255)<<8) |
-				(((15*canvasColor.GetGreen()+127)/255)<<4) |
-				 ((15*canvasColor.GetBlue() +127)/255)
-			;
-		}
-		else {
-			i=(15*color.GetRed()+127)/255-(15*canvasColor.GetRed()+127)/255;
-			if (i>=0) { colIdxAdd=i<<8; colIdxSub=0; }
-			else { colIdxSub=(-i)<<8; colIdxAdd=0; }
-			i=(15*color.GetGreen()+127)/255-(15*canvasColor.GetGreen()+127)/255;
-			if (i>=0) colIdxAdd|=i<<4;
-			else colIdxSub|=(-i)<<4;
-			i=(15*color.GetBlue()+127)/255-(15*canvasColor.GetBlue()+127)/255;
-			if (i>=0) colIdxAdd|=i;
-			else colIdxSub|=(-i);
-		}
-		if (colIdxAdd!=colIdxSub) {
-			bpp=PixelFormat->BytesPerPixel;
-			hsAdd=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
-			hsSub=((char*)PixelFormat->HashTable)+(colIdxSub<<8)*bpp;
-			if (bpp==4) {
-				PP_PART_1(emUInt32)
-				PP_PART_2_SUB_ADD(emUInt32)
-				PP_PART_3(emUInt32)
-			}
-			else if (bpp==2) {
-				PP_PART_1(emUInt16)
-				PP_PART_2_SUB_ADD(emUInt16)
-				PP_PART_3(emUInt16)
-			}
-			else {
-				PP_PART_1(emUInt8)
-				PP_PART_2_SUB_ADD(emUInt8)
-				PP_PART_3(emUInt8)
-			}
-		}
-	}
-	else {
-		colIdxAdd=
-			(((15*color.GetRed()  +127)/255)<<8) |
-			(((15*color.GetGreen()+127)/255)<<4) |
-			 ((15*color.GetBlue() +127)/255)
-		;
-		bpp=PixelFormat->BytesPerPixel;
-		hsAdd=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
+	bpp=PixelFormat->BytesPerPixel;
+	if (!canvasColor.IsOpaque()) {
+		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
+		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
+		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
 		rsh=PixelFormat->RedShift;
 		gsh=PixelFormat->GreenShift;
 		bsh=PixelFormat->BlueShift;
@@ -993,6 +954,29 @@ void emPainter::PaintPolygon(
 			PP_PART_3(emUInt8)
 		}
 	}
+	else if ((color.Get()|0x000000FF) != canvasColor.Get()) {
+		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
+		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
+		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
+		hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
+		hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
+		hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
+		if (bpp==4) {
+			PP_PART_1(emUInt32)
+			PP_PART_2_SUB_ADD(emUInt32)
+			PP_PART_3(emUInt32)
+		}
+		else if (bpp==2) {
+			PP_PART_1(emUInt16)
+			PP_PART_2_SUB_ADD(emUInt16)
+			PP_PART_3(emUInt16)
+		}
+		else {
+			PP_PART_1(emUInt8)
+			PP_PART_2_SUB_ADD(emUInt8)
+			PP_PART_3(emUInt8)
+		}
+	}
 
 	if (slmem!=autoScanlines) free(slmem);
 	while (seChunks) {
@@ -1008,10 +992,10 @@ void emPainter::PaintEdgeCorrection(
 	emColor color1, emColor color2
 ) const
 {
-	void * h1, * h2, * p;
+	void * h1R, * h1G, * h1B, * h2R, * h2G, * h2B, * p;
 	double t,dx,dy,adx,gx,gy,cx1,cy1,cx2,cy2,px1,py1,px2,py2,qx1,qy1,qx2,qy2;
 	double a1,a2,ac1,ac2;
-	emUInt32 colIdxAdd,pix,rmsk,gmsk,bmsk;
+	emUInt32 pix,rmsk,gmsk,bmsk;
 	int sy,sx,bpp,rsh,gsh,bsh,alpha1,alpha2,alpha3;
 	emColor tc;
 
@@ -1090,18 +1074,12 @@ void emPainter::PaintEdgeCorrection(
 	ac2=color2.GetAlpha()*(1.0/255.0);
 
 	bpp=PixelFormat->BytesPerPixel;
-	colIdxAdd=
-		(((15*color1.GetRed()  +127)/255)<<8) |
-		(((15*color1.GetGreen()+127)/255)<<4) |
-		 ((15*color1.GetBlue() +127)/255)
-	;
-	h1=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
-	colIdxAdd=
-		(((15*color2.GetRed()  +127)/255)<<8) |
-		(((15*color2.GetGreen()+127)/255)<<4) |
-		 ((15*color2.GetBlue() +127)/255)
-	;
-	h2=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
+	h1R=((char*)PixelFormat->RedHash  )+(color1.GetRed()  <<8)*bpp;
+	h1G=((char*)PixelFormat->GreenHash)+(color1.GetGreen()<<8)*bpp;
+	h1B=((char*)PixelFormat->BlueHash )+(color1.GetBlue() <<8)*bpp;
+	h2R=((char*)PixelFormat->RedHash  )+(color2.GetRed()  <<8)*bpp;
+	h2G=((char*)PixelFormat->GreenHash)+(color2.GetGreen()<<8)*bpp;
+	h2B=((char*)PixelFormat->BlueHash )+(color2.GetBlue() <<8)*bpp;
 
 	rsh=PixelFormat->RedShift;
 	gsh=PixelFormat->GreenShift;
@@ -1145,59 +1123,41 @@ void emPainter::PaintEdgeCorrection(
 			alpha1=(int)(a1*a2*(1-a2)*t);
 			alpha2=(int)(a1*a2*a2*t);
 			alpha3=(int)((1-a1-a2)*t);
+
+#			define PEC_TEMPLATE(PTYPE) \
+				if (alpha3>0) { \
+					pix=((PTYPE*)p)[sx]; \
+					((PTYPE*)p)[sx]=(PTYPE)( \
+						(((((pix>>rsh)&rmsk)*alpha3+127)/255)<<rsh) + \
+						(((((pix>>gsh)&gmsk)*alpha3+127)/255)<<gsh) + \
+						(((((pix>>bsh)&bmsk)*alpha3+127)/255)<<bsh) + \
+						((PTYPE*)h1R)[alpha1] + \
+						((PTYPE*)h1G)[alpha1] + \
+						((PTYPE*)h1B)[alpha1] + \
+						((PTYPE*)h2R)[alpha2] + \
+						((PTYPE*)h2G)[alpha2] + \
+						((PTYPE*)h2B)[alpha2] \
+					); \
+				} \
+				else { \
+					((PTYPE*)p)[sx]=(PTYPE)( \
+						((PTYPE*)h1R)[alpha1] + \
+						((PTYPE*)h1G)[alpha1] + \
+						((PTYPE*)h1B)[alpha1] + \
+						((PTYPE*)h2R)[alpha2] + \
+						((PTYPE*)h2G)[alpha2] + \
+						((PTYPE*)h2B)[alpha2] \
+					); \
+				}
+
 			if (bpp==4) {
-				if (alpha3>0) {
-					pix=((emUInt32*)p)[sx];
-					((emUInt32*)p)[sx]=(emUInt32)(
-						(((((pix>>rsh)&rmsk)*alpha3+127)/255)<<rsh) +
-						(((((pix>>gsh)&gmsk)*alpha3+127)/255)<<gsh) +
-						(((((pix>>bsh)&bmsk)*alpha3+127)/255)<<bsh) +
-						((emUInt32*)h1)[alpha1]+
-						((emUInt32*)h2)[alpha2]
-					);
-				}
-				else {
-					((emUInt32*)p)[sx]=(emUInt32)(
-						((emUInt32*)h1)[alpha1]+
-						((emUInt32*)h2)[alpha2]
-					);
-				}
+				PEC_TEMPLATE(emUInt32)
 			}
 			else if (bpp==2) {
-				if (alpha3>0) {
-					pix=((emUInt16*)p)[sx];
-					((emUInt16*)p)[sx]=(emUInt16)(
-						(((((pix>>rsh)&rmsk)*alpha3+127)/255)<<rsh) +
-						(((((pix>>gsh)&gmsk)*alpha3+127)/255)<<gsh) +
-						(((((pix>>bsh)&bmsk)*alpha3+127)/255)<<bsh) +
-						((emUInt16*)h1)[alpha1]+
-						((emUInt16*)h2)[alpha2]
-					);
-				}
-				else {
-					((emUInt16*)p)[sx]=(emUInt16)(
-						((emUInt16*)h1)[alpha1]+
-						((emUInt16*)h2)[alpha2]
-					);
-				}
+				PEC_TEMPLATE(emUInt16)
 			}
 			else {
-				if (alpha3>0) {
-					pix=((emUInt8*)p)[sx];
-					((emUInt8*)p)[sx]=(emUInt8)(
-						(((((pix>>rsh)&rmsk)*alpha3+127)/255)<<rsh) +
-						(((((pix>>gsh)&gmsk)*alpha3+127)/255)<<gsh) +
-						(((((pix>>bsh)&bmsk)*alpha3+127)/255)<<bsh) +
-						((emUInt8*)h1)[alpha1]+
-						((emUInt8*)h2)[alpha2]
-					);
-				}
-				else {
-					((emUInt8*)p)[sx]=(emUInt8)(
-						((emUInt8*)h1)[alpha1]+
-						((emUInt8*)h2)[alpha2]
-					);
-				}
+				PEC_TEMPLATE(emUInt8)
 			}
 		}
 		if (dx>=0) {
@@ -1749,13 +1709,14 @@ void emPainter::PaintShape(
 	emColor color, emColor canvasColor
 ) const
 {
-	void * hsAdd, * hsSub, * ptyx, * ptyx1, * ptyx2, * pty2x2;
+	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
+	void * ptyx, * ptyx1, * ptyx2, * pty2x2;
 	const emByte * psy, * psyx, * psyxy;
-	int i,n,n1,n2,alpha,colIdxAdd,colIdxSub,rowDelta,pixelDelta;
+	int n,n1,n2,alpha,rowDelta,pixelDelta;
 	int bpp,btx1,bty1,btx2,bty2,rsh,gsh,bsh;
 	unsigned int ay,ayx,csx,csxd,csx1,csxn,csyd,csy1,csy1c;
-	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c,t;
-	emUInt32 rmsk,gmsk,bmsk;
+	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c,t,alpha257;
+	emUInt32 pix,rmsk,gmsk,bmsk;
 	double x2,y2,srcX2,srcY2,f,s;
 
 	if (w<=0.0 || srcW<=0.0) return;
@@ -1907,26 +1868,60 @@ void emPainter::PaintShape(
 				ayx=((emUInt32)(ay*ctx+ayx))>>24; \
 
 #	define PS_PART_2_SUB_ADD(PTYPE) \
-				*(PTYPE*)ptyx+=(PTYPE)(((PTYPE*)hsAdd)[ayx]-((PTYPE*)hsSub)[ayx]);
+				if (ayx>=255) { \
+					*(PTYPE*)ptyx=(PTYPE)pix; \
+				} \
+				else if (ayx) { \
+					*(PTYPE*)ptyx+=(PTYPE)( \
+						((PTYPE*)hAddR)[ayx] + \
+						((PTYPE*)hAddG)[ayx] + \
+						((PTYPE*)hAddB)[ayx] - \
+						((PTYPE*)hSubR)[ayx] - \
+						((PTYPE*)hSubG)[ayx] - \
+						((PTYPE*)hSubB)[ayx] \
+					); \
+				}
+
+#	define PS_PART_2_SUB_ADD_ALPHA(PTYPE) \
+				if (ayx) { \
+					*(PTYPE*)ptyx+=(PTYPE)( \
+						((PTYPE*)hAddR)[ayx] + \
+						((PTYPE*)hAddG)[ayx] + \
+						((PTYPE*)hAddB)[ayx] - \
+						((PTYPE*)hSubR)[ayx] - \
+						((PTYPE*)hSubG)[ayx] - \
+						((PTYPE*)hSubB)[ayx] \
+					); \
+				}
 
 #	define PS_PART_2_MUL_ADD(PTYPE) \
-				t=(255-ayx)*257; \
-				*(PTYPE*)ptyx=(PTYPE)( \
-					((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-					((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-					((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-					((PTYPE*)hsAdd)[ayx] \
-				);
+				if (ayx>=255) { \
+					*(PTYPE*)ptyx=(PTYPE)pix; \
+				} \
+				else if (ayx) { \
+					t=(255-ayx)*257; \
+					*(PTYPE*)ptyx=(PTYPE)( \
+						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
+						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
+						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
+						((PTYPE*)hAddR)[ayx] + \
+						((PTYPE*)hAddG)[ayx] + \
+						((PTYPE*)hAddB)[ayx] \
+					); \
+				}
 
 #	define PS_PART_2_MUL_ADD_ALPHA(PTYPE) \
-				ayx=(ayx*alpha+127)/255; \
-				t=(255-ayx)*257; \
-				*(PTYPE*)ptyx=(PTYPE)( \
-					((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-					((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-					((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-					((PTYPE*)hsAdd)[ayx] \
-				);
+				if (ayx) { \
+					t=(255-((ayx*alpha257+0x8073)>>16))*257; \
+					*(PTYPE*)ptyx=(PTYPE)( \
+						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
+						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
+						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
+						((PTYPE*)hAddR)[ayx] + \
+						((PTYPE*)hAddG)[ayx] + \
+						((PTYPE*)hAddB)[ayx] \
+					); \
+				}
 
 #	define PS_PART_3(PTYPE) \
 				ptyx=((PTYPE*)ptyx)+1; \
@@ -1952,83 +1947,41 @@ void emPainter::PaintShape(
 			} \
 		}
 
-	if (canvasColor.IsOpaque()) {
-		if (alpha==255) {
-			colIdxAdd=
-				(((15*color.GetRed()  +127)/255)<<8) |
-				(((15*color.GetGreen()+127)/255)<<4) |
-				 ((15*color.GetBlue() +127)/255)
-			;
-			colIdxSub=
-				(((15*canvasColor.GetRed()  +127)/255)<<8) |
-				(((15*canvasColor.GetGreen()+127)/255)<<4) |
-				 ((15*canvasColor.GetBlue() +127)/255)
-			;
-		}
-		else {
-			i=(((15*color.GetRed()+127)/255-(15*canvasColor.GetRed()+127)/255)*alpha+127)/255;
-			if (i>=0) { colIdxAdd=i<<8; colIdxSub=0; }
-			else { colIdxSub=(-i)<<8; colIdxAdd=0; }
-			i=(((15*color.GetGreen()+127)/255-(15*canvasColor.GetGreen()+127)/255)*alpha+127)/255;
-			if (i>=0) colIdxAdd|=i<<4;
-			else colIdxSub|=(-i)<<4;
-			i=(((15*color.GetBlue()+127)/255-(15*canvasColor.GetBlue()+127)/255)*alpha+127)/255;
-			if (i>=0) colIdxAdd|=i;
-			else colIdxSub|=(-i);
-		}
-		if (colIdxAdd!=colIdxSub) {
-			hsAdd=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
-			hsSub=((char*)PixelFormat->HashTable)+(colIdxSub<<8)*bpp;
-			if (bpp==4) {
-				PS_PART_1(emUInt32)
-				PS_PART_2_SUB_ADD(emUInt32)
-				PS_PART_3(emUInt32)
-			}
-			else if (bpp==2) {
-				PS_PART_1(emUInt16)
-				PS_PART_2_SUB_ADD(emUInt16)
-				PS_PART_3(emUInt16)
-			}
-			else {
-				PS_PART_1(emUInt8)
-				PS_PART_2_SUB_ADD(emUInt8)
-				PS_PART_3(emUInt8)
-			}
-		}
-	}
-	else {
-		colIdxAdd=
-			(((15*color.GetRed()  +127)/255)<<8) |
-			(((15*color.GetGreen()+127)/255)<<4) |
-			 ((15*color.GetBlue() +127)/255)
-		;
-		hsAdd=((char*)PixelFormat->HashTable)+(colIdxAdd<<8)*bpp;
-
+	if (!canvasColor.IsOpaque()) {
 		rsh=PixelFormat->RedShift;
 		gsh=PixelFormat->GreenShift;
 		bsh=PixelFormat->BlueShift;
 		rmsk=PixelFormat->RedRange;
 		gmsk=PixelFormat->GreenRange;
 		bmsk=PixelFormat->BlueRange;
-
-		if (alpha==255) {
+		if (alpha>=255) {
+			hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
 			if (bpp==4) {
+				pix=((emUInt32*)hAddR)[255]+((emUInt32*)hAddG)[255]+((emUInt32*)hAddB)[255];
 				PS_PART_1(emUInt32)
 				PS_PART_2_MUL_ADD(emUInt32)
 				PS_PART_3(emUInt32)
 			}
 			else if (bpp==2) {
+				pix=((emUInt16*)hAddR)[255]+((emUInt16*)hAddG)[255]+((emUInt16*)hAddB)[255];
 				PS_PART_1(emUInt16)
 				PS_PART_2_MUL_ADD(emUInt16)
 				PS_PART_3(emUInt16)
 			}
 			else {
+				pix=((emUInt8*)hAddR)[255]+((emUInt8*)hAddG)[255]+((emUInt8*)hAddB)[255];
 				PS_PART_1(emUInt8)
 				PS_PART_2_MUL_ADD(emUInt8)
 				PS_PART_3(emUInt8)
 			}
 		}
 		else {
+			hAddR=((char*)PixelFormat->RedHash  )+(((color.GetRed()  *alpha+127)/255)<<8)*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+(((color.GetGreen()*alpha+127)/255)<<8)*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+(((color.GetBlue() *alpha+127)/255)<<8)*bpp;
+			alpha257=alpha*257;
 			if (bpp==4) {
 				PS_PART_1(emUInt32)
 				PS_PART_2_MUL_ADD_ALPHA(emUInt32)
@@ -2046,6 +1999,57 @@ void emPainter::PaintShape(
 			}
 		}
 	}
+	else if ((color.Get()|0x000000FF) != canvasColor.Get()) {
+		if (alpha>=255) {
+			hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
+			hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
+			hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
+			hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
+			if (bpp==4) {
+				pix=((emUInt32*)hAddR)[255]+((emUInt32*)hAddG)[255]+((emUInt32*)hAddB)[255];
+				PS_PART_1(emUInt32)
+				PS_PART_2_SUB_ADD(emUInt32)
+				PS_PART_3(emUInt32)
+			}
+			else if (bpp==2) {
+				pix=((emUInt16*)hAddR)[255]+((emUInt16*)hAddG)[255]+((emUInt16*)hAddB)[255];
+				PS_PART_1(emUInt16)
+				PS_PART_2_SUB_ADD(emUInt16)
+				PS_PART_3(emUInt16)
+			}
+			else {
+				pix=((emUInt8*)hAddR)[255]+((emUInt8*)hAddG)[255]+((emUInt8*)hAddB)[255];
+				PS_PART_1(emUInt8)
+				PS_PART_2_SUB_ADD(emUInt8)
+				PS_PART_3(emUInt8)
+			}
+		}
+		else {
+			hAddR=((char*)PixelFormat->RedHash  )+(((color.GetRed()  *alpha+127)/255)<<8)*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+(((color.GetGreen()*alpha+127)/255)<<8)*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+(((color.GetBlue() *alpha+127)/255)<<8)*bpp;
+			hSubR=((char*)PixelFormat->RedHash  )+(((canvasColor.GetRed()  *alpha+127)/255)<<8)*bpp;
+			hSubG=((char*)PixelFormat->GreenHash)+(((canvasColor.GetGreen()*alpha+127)/255)<<8)*bpp;
+			hSubB=((char*)PixelFormat->BlueHash )+(((canvasColor.GetBlue() *alpha+127)/255)<<8)*bpp;
+			if (bpp==4) {
+				PS_PART_1(emUInt32)
+				PS_PART_2_SUB_ADD_ALPHA(emUInt32)
+				PS_PART_3(emUInt32)
+			}
+			else if (bpp==2) {
+				PS_PART_1(emUInt16)
+				PS_PART_2_SUB_ADD_ALPHA(emUInt16)
+				PS_PART_3(emUInt16)
+			}
+			else {
+				PS_PART_1(emUInt8)
+				PS_PART_2_SUB_ADD_ALPHA(emUInt8)
+				PS_PART_3(emUInt8)
+			}
+		}
+	}
 }
 
 
@@ -2055,10 +2059,10 @@ void emPainter::PaintImage(
 	emColor canvasColor
 ) const
 {
-	void * hsAdd0, * hsAdd1, * hsAdd2, * hsSub;
+	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
 	void * ptyx, * ptyx1, * ptyx2, * pty2x2;
 	const emByte * psy, * psyx, * psyxy;
-	int i,n,n1,n2,rowDelta,pixelDelta;
+	int n,n1,n2,rowDelta,pixelDelta;
 	int bpp,btx1,bty1,btx2,bty2,rsh,gsh,bsh;
 	unsigned int csx,csxd,csx1,csxn,csyd,csy1,csy1c;
 	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c;
@@ -2207,7 +2211,7 @@ void emPainter::PaintImage(
 					csx=csxn; \
 					csxn=csxd; \
 				} \
-				gyx=((emUInt32)(gy*ctx+gyx))>>24;
+				ryx=gyx=byx=((emUInt32)(gy*ctx+gyx))>>24;
 
 #	define PI_INTEGRATE_2C \
 				gyx=0x7fffff; \
@@ -2242,7 +2246,7 @@ void emPainter::PaintImage(
 					csx=csxn; \
 					csxn=csxd; \
 				} \
-				gyx=((emUInt32)(gy*ctx+gyx))>>24; \
+				ryx=gyx=byx=((emUInt32)(gy*ctx+gyx))>>24; \
 				ayx=((emUInt32)(ay*ctx+ayx))>>24;
 
 #	define PI_INTEGRATE_3C \
@@ -2340,59 +2344,69 @@ void emPainter::PaintImage(
 				byx=((emUInt32)(by*ctx+byx))>>24; \
 				ayx=((emUInt32)(ay*ctx+ayx))>>24;
 
-#	define PI_SUB_ADD_1C2C(PTYPE) \
-				*(PTYPE*)ptyx+=(PTYPE)( \
-					((PTYPE*)hsAdd0)[gyx] - \
-					((PTYPE*)hsSub )[ayx] \
-				);
+#	define PI_SUB_ADD(PTYPE) \
+				if (ayx>=255) { \
+					*(PTYPE*)ptyx=(PTYPE)( \
+						((PTYPE*)hAddR)[ryx] + \
+						((PTYPE*)hAddG)[gyx] + \
+						((PTYPE*)hAddB)[byx] \
+					); \
+				} \
+				else if (ayx) { \
+					*(PTYPE*)ptyx+=(PTYPE)( \
+						((PTYPE*)hAddR)[ryx] + \
+						((PTYPE*)hAddG)[gyx] + \
+						((PTYPE*)hAddB)[byx] - \
+						((PTYPE*)hSubR)[ayx] - \
+						((PTYPE*)hSubG)[ayx] - \
+						((PTYPE*)hSubB)[ayx] \
+					); \
+				}
 
-#	define PI_SUB_ADD_3C4C(PTYPE) \
-				*(PTYPE*)ptyx+=(PTYPE)( \
-					((PTYPE*)hsAdd0)[ryx] + \
-					((PTYPE*)hsAdd1)[gyx] + \
-					((PTYPE*)hsAdd2)[byx] - \
-					((PTYPE*)hsSub )[ayx] \
-				);
+#	define PI_SUB_ADD_ALPHA(PTYPE) \
+				if (ayx) { \
+					*(PTYPE*)ptyx+=(PTYPE)( \
+						((PTYPE*)hAddR)[ryx] + \
+						((PTYPE*)hAddG)[gyx] + \
+						((PTYPE*)hAddB)[byx] - \
+						((PTYPE*)hSubR)[ayx] - \
+						((PTYPE*)hSubG)[ayx] - \
+						((PTYPE*)hSubB)[ayx] \
+					); \
+				}
 
-#	define PI_MUL_ADD_1C2C(PTYPE) \
-				t=(255-ayx)*257; \
-				*(PTYPE*)ptyx=(PTYPE)( \
-					((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-					((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-					((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-					((PTYPE*)hsAdd0)[gyx] \
-				);
+#	define PI_MUL_ADD(PTYPE) \
+				if (ayx>=255) { \
+					*(PTYPE*)ptyx=(PTYPE)( \
+						((PTYPE*)hAddR)[ryx] + \
+						((PTYPE*)hAddG)[gyx] + \
+						((PTYPE*)hAddB)[byx] \
+					); \
+				} \
+				else if (ayx) { \
+					t=(255-ayx)*257; \
+					*(PTYPE*)ptyx=(PTYPE)( \
+						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
+						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
+						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
+						((PTYPE*)hAddR)[ryx]+ \
+						((PTYPE*)hAddG)[gyx]+ \
+						((PTYPE*)hAddB)[byx] \
+					); \
+				}
 
-#	define PI_MUL_ADD_3C4C(PTYPE) \
-				t=(255-ayx)*257; \
-				*(PTYPE*)ptyx=(PTYPE)( \
-					((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-					((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-					((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-					((PTYPE*)hsAdd0)[ryx]+ \
-					((PTYPE*)hsAdd1)[gyx]+ \
-					((PTYPE*)hsAdd2)[byx] \
-				);
-
-#	define PI_MUL_ADD_ALPHA_1C2C(PTYPE) \
-				t=(255-((ayx*alpha257+0x8073)>>16))*257; \
-				*(PTYPE*)ptyx=(PTYPE)( \
-					((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-					((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-					((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-					((PTYPE*)hsAdd0)[(gyx*alpha257+0x8073)>>16] \
-				);
-
-#	define PI_MUL_ADD_ALPHA_3C4C(PTYPE) \
-				t=(255-((ayx*alpha257+0x8073)>>16))*257; \
-				*(PTYPE*)ptyx=(PTYPE)( \
-					((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-					((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-					((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-					((PTYPE*)hsAdd0)[(ryx*alpha257+0x8073)>>16] + \
-					((PTYPE*)hsAdd1)[(gyx*alpha257+0x8073)>>16] + \
-					((PTYPE*)hsAdd2)[(byx*alpha257+0x8073)>>16] \
-				);
+#	define PI_MUL_ADD_ALPHA(PTYPE) \
+				if (ayx) { \
+					t=(255-((ayx*alpha257+0x8073)>>16))*257; \
+					*(PTYPE*)ptyx=(PTYPE)( \
+						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
+						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
+						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
+						((PTYPE*)hAddR)[ryx]+ \
+						((PTYPE*)hAddG)[gyx]+ \
+						((PTYPE*)hAddB)[byx] \
+					); \
+				}
 
 #	define PI_LOOP_END(PTYPE) \
 				ptyx=((PTYPE*)ptyx)+1; \
@@ -2419,124 +2433,180 @@ void emPainter::PaintImage(
 		}
 
 	if (canvasColor.IsOpaque()) {
-		if (img.GetChannelCount()<=2) {
-			if (alpha>=255) {
-				hsAdd0=((char*)PixelFormat->HashTable)+0xfff00*bpp;
-				hsSub=((char*)PixelFormat->HashTable)+((
-					(((15*canvasColor.GetRed()  +127)/255)<<8) |
-					(((15*canvasColor.GetGreen()+127)/255)<<4) |
-					 ((15*canvasColor.GetBlue() +127)/255)
-				)<<8)*bpp;
-			}
-			else {
-				i=(alpha*15+127)/255;
-				hsAdd0=((char*)PixelFormat->HashTable)+((i<<16)|(i<<12)|(i<<8))*bpp;
-				hsSub=((char*)PixelFormat->HashTable)+((
-					(((i*canvasColor.GetRed()  +127)/255)<<8) |
-					(((i*canvasColor.GetGreen()+127)/255)<<4) |
-					 ((i*canvasColor.GetBlue() +127)/255)
-				)<<8)*bpp;
-			}
-			if (img.GetChannelCount()==1) {
+		if (alpha>=255) {
+			hAddR=((char*)PixelFormat->RedHash  )+0xFF00*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+0xFF00*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+0xFF00*bpp;
+			hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
+			hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
+			hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
+			switch (img.GetChannelCount()) {
+			case 1:
 				if (bpp==4) {
 					PI_LOOP_START
 					PI_INTEGRATE_1C
-					PI_SUB_ADD_1C2C(emUInt32)
+					PI_SUB_ADD(emUInt32)
 					PI_LOOP_END(emUInt32)
 				}
 				else if (bpp==2) {
 					PI_LOOP_START
 					PI_INTEGRATE_1C
-					PI_SUB_ADD_1C2C(emUInt16)
+					PI_SUB_ADD(emUInt16)
 					PI_LOOP_END(emUInt16)
 				}
 				else {
 					PI_LOOP_START
 					PI_INTEGRATE_1C
-					PI_SUB_ADD_1C2C(emUInt8)
+					PI_SUB_ADD(emUInt8)
 					PI_LOOP_END(emUInt8)
 				}
-			}
-			else {
+				break;
+			case 2:
 				if (bpp==4) {
 					PI_LOOP_START
 					PI_INTEGRATE_2C
-					PI_SUB_ADD_1C2C(emUInt32)
+					PI_SUB_ADD(emUInt32)
 					PI_LOOP_END(emUInt32)
 				}
 				else if (bpp==2) {
 					PI_LOOP_START
 					PI_INTEGRATE_2C
-					PI_SUB_ADD_1C2C(emUInt16)
+					PI_SUB_ADD(emUInt16)
 					PI_LOOP_END(emUInt16)
 				}
 				else {
 					PI_LOOP_START
 					PI_INTEGRATE_2C
-					PI_SUB_ADD_1C2C(emUInt8)
+					PI_SUB_ADD(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			case 3:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_SUB_ADD(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_SUB_ADD(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_SUB_ADD(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			default:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_SUB_ADD(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_SUB_ADD(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_SUB_ADD(emUInt8)
 					PI_LOOP_END(emUInt8)
 				}
 			}
 		}
 		else {
-			if (alpha>=255) {
-				hsAdd0=((char*)PixelFormat->HashTable)+0xf0000*bpp;
-				hsAdd1=((char*)PixelFormat->HashTable)+0x0f000*bpp;
-				hsAdd2=((char*)PixelFormat->HashTable)+0x00f00*bpp;
-				hsSub=((char*)PixelFormat->HashTable)+((
-					(((15*canvasColor.GetRed()  +127)/255)<<8) |
-					(((15*canvasColor.GetGreen()+127)/255)<<4) |
-					 ((15*canvasColor.GetBlue() +127)/255)
-				)<<8)*bpp;
-			}
-			else {
-				i=(alpha*15+127)/255;
-				hsAdd0=((char*)PixelFormat->HashTable)+(i<<16)*bpp;
-				hsAdd1=((char*)PixelFormat->HashTable)+(i<<12)*bpp;
-				hsAdd2=((char*)PixelFormat->HashTable)+(i<<8)*bpp;
-				hsSub=((char*)PixelFormat->HashTable)+((
-					(((i*canvasColor.GetRed()  +127)/255)<<8) |
-					(((i*canvasColor.GetGreen()+127)/255)<<4) |
-					 ((i*canvasColor.GetBlue() +127)/255)
-				)<<8)*bpp;
-			}
-			if (img.GetChannelCount()==3) {
+			hAddR=((char*)PixelFormat->RedHash  )+(alpha<<8)*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+(alpha<<8)*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+(alpha<<8)*bpp;
+			hSubR=((char*)PixelFormat->RedHash  )+(((canvasColor.GetRed()  *alpha+127)/255)<<8)*bpp;
+			hSubG=((char*)PixelFormat->GreenHash)+(((canvasColor.GetGreen()*alpha+127)/255)<<8)*bpp;
+			hSubB=((char*)PixelFormat->BlueHash )+(((canvasColor.GetBlue() *alpha+127)/255)<<8)*bpp;
+			switch (img.GetChannelCount()) {
+			case 1:
 				if (bpp==4) {
 					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD_3C4C(emUInt32)
+					PI_INTEGRATE_1C
+					PI_SUB_ADD_ALPHA(emUInt32)
 					PI_LOOP_END(emUInt32)
 				}
 				else if (bpp==2) {
 					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD_3C4C(emUInt16)
+					PI_INTEGRATE_1C
+					PI_SUB_ADD_ALPHA(emUInt16)
 					PI_LOOP_END(emUInt16)
 				}
 				else {
 					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD_3C4C(emUInt8)
+					PI_INTEGRATE_1C
+					PI_SUB_ADD_ALPHA(emUInt8)
 					PI_LOOP_END(emUInt8)
 				}
-			}
-			else {
+				break;
+			case 2:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_SUB_ADD_ALPHA(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_SUB_ADD_ALPHA(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_SUB_ADD_ALPHA(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			case 3:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_SUB_ADD_ALPHA(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_SUB_ADD_ALPHA(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_SUB_ADD_ALPHA(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			default:
 				if (bpp==4) {
 					PI_LOOP_START
 					PI_INTEGRATE_4C
-					PI_SUB_ADD_3C4C(emUInt32)
+					PI_SUB_ADD_ALPHA(emUInt32)
 					PI_LOOP_END(emUInt32)
 				}
 				else if (bpp==2) {
 					PI_LOOP_START
 					PI_INTEGRATE_4C
-					PI_SUB_ADD_3C4C(emUInt16)
+					PI_SUB_ADD_ALPHA(emUInt16)
 					PI_LOOP_END(emUInt16)
 				}
 				else {
 					PI_LOOP_START
 					PI_INTEGRATE_4C
-					PI_SUB_ADD_3C4C(emUInt8)
+					PI_SUB_ADD_ALPHA(emUInt8)
 					PI_LOOP_END(emUInt8)
 				}
 			}
@@ -2549,183 +2619,176 @@ void emPainter::PaintImage(
 		rmsk=PixelFormat->RedRange;
 		gmsk=PixelFormat->GreenRange;
 		bmsk=PixelFormat->BlueRange;
-		if (img.GetChannelCount()<=2) {
-			hsAdd0=((char*)PixelFormat->HashTable)+0xfff00*bpp;
-			if (img.GetChannelCount()==1) {
-				if (alpha>=255) {
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_1C
-						PI_MUL_ADD_1C2C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_1C
-						PI_MUL_ADD_1C2C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_1C
-						PI_MUL_ADD_1C2C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+		if (alpha>=255) {
+			hAddR=((char*)PixelFormat->RedHash  )+0xFF00*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+0xFF00*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+0xFF00*bpp;
+			switch (img.GetChannelCount()) {
+			case 1:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_1C
+					PI_MUL_ADD(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_1C
+					PI_MUL_ADD(emUInt16)
+					PI_LOOP_END(emUInt16)
 				}
 				else {
-					alpha257=alpha*257;
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_1C
-						PI_MUL_ADD_ALPHA_1C2C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_1C
-						PI_MUL_ADD_ALPHA_1C2C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_1C
-						PI_MUL_ADD_ALPHA_1C2C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+					PI_LOOP_START
+					PI_INTEGRATE_1C
+					PI_MUL_ADD(emUInt8)
+					PI_LOOP_END(emUInt8)
 				}
-			}
-			else {
-				if (alpha>=255) {
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_2C
-						PI_MUL_ADD_1C2C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_2C
-						PI_MUL_ADD_1C2C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_2C
-						PI_MUL_ADD_1C2C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+				break;
+			case 2:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_MUL_ADD(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_MUL_ADD(emUInt16)
+					PI_LOOP_END(emUInt16)
 				}
 				else {
-					alpha257=alpha*257;
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_2C
-						PI_MUL_ADD_ALPHA_1C2C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_2C
-						PI_MUL_ADD_ALPHA_1C2C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_2C
-						PI_MUL_ADD_ALPHA_1C2C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_MUL_ADD(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			case 3:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_MUL_ADD(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_MUL_ADD(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_MUL_ADD(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			default:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_MUL_ADD(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_MUL_ADD(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_MUL_ADD(emUInt8)
+					PI_LOOP_END(emUInt8)
 				}
 			}
 		}
 		else {
-			hsAdd0=((char*)PixelFormat->HashTable)+0xf0000*bpp;
-			hsAdd1=((char*)PixelFormat->HashTable)+0x0f000*bpp;
-			hsAdd2=((char*)PixelFormat->HashTable)+0x00f00*bpp;
-			if (img.GetChannelCount()==3) {
-				if (alpha>=255) {
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_3C
-						PI_MUL_ADD_3C4C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_3C
-						PI_MUL_ADD_3C4C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_3C
-						PI_MUL_ADD_3C4C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+			hAddR=((char*)PixelFormat->RedHash  )+(alpha<<8)*bpp;
+			hAddG=((char*)PixelFormat->GreenHash)+(alpha<<8)*bpp;
+			hAddB=((char*)PixelFormat->BlueHash )+(alpha<<8)*bpp;
+			alpha257=alpha*257;
+			switch (img.GetChannelCount()) {
+			case 1:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_1C
+					PI_MUL_ADD_ALPHA(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_1C
+					PI_MUL_ADD_ALPHA(emUInt16)
+					PI_LOOP_END(emUInt16)
 				}
 				else {
-					alpha257=alpha*257;
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_3C
-						PI_MUL_ADD_ALPHA_3C4C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_3C
-						PI_MUL_ADD_ALPHA_3C4C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_3C
-						PI_MUL_ADD_ALPHA_3C4C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+					PI_LOOP_START
+					PI_INTEGRATE_1C
+					PI_MUL_ADD_ALPHA(emUInt8)
+					PI_LOOP_END(emUInt8)
 				}
-			}
-			else {
-				if (alpha>=255) {
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_4C
-						PI_MUL_ADD_3C4C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_4C
-						PI_MUL_ADD_3C4C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_4C
-						PI_MUL_ADD_3C4C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+				break;
+			case 2:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_MUL_ADD_ALPHA(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_MUL_ADD_ALPHA(emUInt16)
+					PI_LOOP_END(emUInt16)
 				}
 				else {
-					alpha257=alpha*257;
-					if (bpp==4) {
-						PI_LOOP_START
-						PI_INTEGRATE_4C
-						PI_MUL_ADD_ALPHA_3C4C(emUInt32)
-						PI_LOOP_END(emUInt32)
-					}
-					else if (bpp==2) {
-						PI_LOOP_START
-						PI_INTEGRATE_4C
-						PI_MUL_ADD_ALPHA_3C4C(emUInt16)
-						PI_LOOP_END(emUInt16)
-					}
-					else {
-						PI_LOOP_START
-						PI_INTEGRATE_4C
-						PI_MUL_ADD_ALPHA_3C4C(emUInt8)
-						PI_LOOP_END(emUInt8)
-					}
+					PI_LOOP_START
+					PI_INTEGRATE_2C
+					PI_MUL_ADD_ALPHA(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			case 3:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_MUL_ADD_ALPHA(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_MUL_ADD_ALPHA(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_3C
+					PI_MUL_ADD_ALPHA(emUInt8)
+					PI_LOOP_END(emUInt8)
+				}
+				break;
+			default:
+				if (bpp==4) {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_MUL_ADD_ALPHA(emUInt32)
+					PI_LOOP_END(emUInt32)
+				}
+				else if (bpp==2) {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_MUL_ADD_ALPHA(emUInt16)
+					PI_LOOP_END(emUInt16)
+				}
+				else {
+					PI_LOOP_START
+					PI_INTEGRATE_4C
+					PI_MUL_ADD_ALPHA(emUInt8)
+					PI_LOOP_END(emUInt8)
 				}
 			}
 		}

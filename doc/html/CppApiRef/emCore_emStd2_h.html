@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,8 @@
 
 </SPAN><SPAN CLASS=p>#ifndef emStd2_h
 #define emStd2_h
+
+#include &lt;sys/stat.h&gt;
 
 #ifndef emArray_h
 #include &lt;<A CLASS=f HREF="emCore_emArray_h.html">emCore/emArray.h</A>&gt;
@@ -83,6 +85,24 @@
 <A NAME="Files_directories"></A>//==============================================================================
 //============================ Files &amp; directories =============================
 //==============================================================================
+
+// em_stat and em_lstat are like stat and lstat from sys/stat.h, but with 64-bit
+// file size field if possible.
+</SPAN><SPAN CLASS=p>#if defined(__linux__) &amp;&amp; !defined(__SUNPRO_CC)
+#       define em_stat stat64
+#       define em_lstat lstat64
+#elif defined(_WIN32)
+#       if defined(_MSC_VER) || defined(__GNUC__) || defined(__WATCOMC__)
+#               define em_stat _stati64
+#       else
+#               define em_stat stat
+#       endif
+#       define em_lstat em_stat
+#else
+#       define em_stat stat
+#       define em_lstat lstat
+#endif
+
 
 </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetParentPath(<SPAN CLASS=t>const char </SPAN>* path);
         <SPAN CLASS=c>// Get the parent path of a path.

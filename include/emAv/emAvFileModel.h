@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,10 @@
 
 #ifndef emFileModel_h
 #include <emCore/emFileModel.h>
+#endif
+
+#ifndef emAvStates_h
+#include <emAv/emAvStates.h>
 #endif
 
 #ifndef emAvClient_h
@@ -161,9 +165,18 @@ private:
 	void AddToActiveList();
 	void RemoveFromActiveList();
 
+	void SaveFileState();
+	void LoadFileState();
+	void SaveAudioVolume();
+	void LoadAudioVolume();
+	void SaveAudioVisu();
+	void LoadAudioVisu();
+
 	static bool UpdateStringArray(emArray<emString> & arr, const emString & val);
 
 	emString FilePath;
+
+	emRef<emAvStates> States;
 
 	emRef<emVarModel<emAvFileModel*> > ActiveList;
 	emAvFileModel * ALNext;

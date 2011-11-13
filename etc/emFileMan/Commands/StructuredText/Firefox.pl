@@ -4,8 +4,8 @@
 # Order = 1.0
 # Interpreter = perl
 # DefaultFor = .htm:.html
-# Caption = Iceweasel
-# Descr =Open files and/or directories in Iceweasel.
+# Caption = Firefox
+# Descr =Open files and/or directories in Firefox.
 # Descr =
 # Descr =Selection details:
 # Descr =
@@ -18,4 +18,4 @@ use strict;
 use warnings;
 BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; }
 
-OpenTargetsWith('iceweasel');
+OpenTargetsWith('firefox');

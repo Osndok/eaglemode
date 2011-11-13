@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2010 Oliver Hamann.
+# Copyright (C) 2006-2011 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -217,7 +217,7 @@ sub AD_Recurse
 	}
 	elsif ($$stateRef{$maker} eq 0) {
 		$$stateRef{$maker}=1;
-		my @dependencies=$maker->GetDepedencies();
+		my @dependencies=$maker->GetDependencies();
 		for (my $i=0; $i<@dependencies; $i++) {
 			AD_Recurse($resultRef,$stateRef,$dependencies[$i]);
 		}

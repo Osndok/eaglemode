@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # common.pm
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2010-2011 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -54,11 +54,12 @@ $V{'SHORT_DESCRIPTION'}="Zoomable user interface with plugin applications";
 
 $V{'LONG_DESCRIPTION'}=
 	"Eagle Mode is an advanced solution for a futuristic style of man-machine\n".
-	"communication in which the user can visit almost everything simply by zooming\n".
-	"in. It has a professional file manager, file viewers and players for most of\n".
-	"the common file types, a chess game, a 3D mines game, a multi-function clock\n".
-	"and some fractal fun, all integrated in a virtual cosmos. Besides, that cosmos\n".
-	"also provides a Linux kernel configurator in form of a kernel patch.";
+	"communication in which the user can visit almost everything simply by\n".
+	"zooming in. It has a professional file manager, file viewers and players\n".
+	"for most of the common file types, a chess game, a 3D mines game, a\n".
+	"netwalk game, a multi-function clock and some fractal fun, all\n".
+	"integrated in a virtual cosmos. Besides, that cosmos also provides a\n".
+	"Linux kernel configurator in form of a kernel patch.";
 
 $V{'SOFTWARE_AUTHOR'}='Oliver Hamann';
 
@@ -70,7 +71,8 @@ $V{'DEB_PACKAGE_VERSION'}='1';
 $V{'DEB_SECTION'}='x11';
 $V{'DEB_BUILD_DEPENDS'}=
 	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, libjpeg62-dev, '.
-	'libpng12-dev, libtiff4-dev, libxine-dev, librsvg2-dev, libfreetype6-dev';
+	'libpng12-dev, libtiff4-dev, libxine-dev, librsvg2-dev, '.
+	'libpoppler-glib-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
 	'libjpeg62, libpng12-0, libtiff4, libxine1, librsvg2-2, libfreetype6';
@@ -82,12 +84,12 @@ $V{'RPM_GROUP'}='System/GUI/Other';
 $V{'RPM_BUILD_REQUIRES'}=
 	"gcc-c++ perl libjpeg-devel libpng-devel libtiff-devel\n".
 	"\%if 0\%{?suse_version}\n".
-	"BuildRequires: xorg-x11-libX11-devel libxine-devel librsvg-devel freetype2-devel\n".
+	"BuildRequires: xorg-x11-libX11-devel libxine-devel librsvg-devel libpoppler-glib-devel freetype2-devel\n".
 	"\%else\n".
 	"\%if 0\%{?mdkversion}\n".
-	"BuildRequires: devel(libX11) devel(libxine) librsvg2-devel freetype2-devel\n".
+	"BuildRequires: devel(libX11) devel(libxine) librsvg2-devel libpoppler-glib-devel freetype2-devel\n".
 	"\%else\n".
-	"BuildRequires: libX11-devel xine-lib-devel librsvg2-devel freetype-devel\n".
+	"BuildRequires: libX11-devel xine-lib-devel librsvg2-devel poppler-glib-devel freetype-devel\n".
 	"\%endif\n".
 	"\%endif\n";
 $V{'RPM_REQUIRES'}='perl xterm ghostscript';
@@ -98,7 +100,7 @@ $V{'EBUILD_IUSE'}='';
 $V{'EBUILD_DEPEND'}=
 	"dev-lang/perl\n\tx11-libs/libX11\n\tmedia-libs/jpeg\n\t".
 	"media-libs/libpng\n\tmedia-libs/tiff\n\tmedia-libs/xine-lib\n\t".
-	"media-libs/freetype\n\tgnome-base/librsvg";
+	"gnome-base/librsvg\n\tapp-text/poppler[cairo]\n\tmedia-libs/freetype";
 $V{'EBUILD_RDEPEND'}="\${DEPEND}\n\tx11-terms/xterm\n\tapp-text/ghostscript-gpl";
 
 $V{'WIN_NSIS_DIR'}='C:\\Program Files (x86)\\NSIS';

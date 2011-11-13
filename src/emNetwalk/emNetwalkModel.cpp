@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.cpp
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,6 +35,16 @@ const char * emNetwalkModel::GetFormatName() const
 }
 
 
+void emNetwalkModel::SetAutoMark(bool autoMark, bool saveFile)
+{
+	if (AutoMark!=autoMark) {
+		AutoMark=autoMark;
+		AutoMarkPiece=-1;
+		if (saveFile) Save(true);
+	}
+}
+
+
 int emNetwalkModel::GetPiece(int x, int y) const
 {
 	int w,h;
@@ -56,7 +66,7 @@ int emNetwalkModel::GetPiece(int x, int y) const
 
 void emNetwalkModel::TrySetup(
 	int width, int height, bool borderless, bool noFourWayJunctions,
-	int complexity, bool digMode, bool saveFile
+	int complexity, bool digMode, bool autoMark, bool saveFile
 ) throw(emString)
 {
 	emArray<char> undoBuf;
@@ -71,9 +81,11 @@ void emNetwalkModel::TrySetup(
 	NoFourWayJunctions=noFourWayJunctions;
 	Complexity=complexity;
 	DigMode=digMode;
+	AutoMark=autoMark;
 	Finished=false;
 	PenaltyPoints=0;
 	CurrentPiece=-1;
+	AutoMarkPiece=-1;
 	Raster.SetCount(width*height);
 	for (i=1;;i++) {
 		Invent();
@@ -113,6 +125,26 @@ void emNetwalkModel::MarkOrUnmark(int x, int y, bool saveFile)
 }
 
 
+void emNetwalkModel::UnmarkAll(bool saveFile)
+{
+	bool changed;
+	int i;
+
+	changed=false;
+	for (i=Raster.GetCount()-1; i>=0; i--) {
+		if ((GetPiece(i)&PF_MARKED)!=0) {
+			XorPiece(i,PF_MARKED);
+			changed=true;
+		}
+	}
+	if (AutoMarkPiece>=0) {
+		AutoMarkPiece=-1;
+		changed=true;
+	}
+	if (changed && saveFile) Save(true);
+}
+
+
 void emNetwalkModel::Rotate(int x, int y, int angle, bool saveFile)
 {
 	int w,h,i,p;
@@ -141,6 +173,13 @@ void emNetwalkModel::Rotate(int x, int y, int angle, bool saveFile)
 	Raster[i].Set(p);
 	Fill();
 	Dig(true);
+	if (AutoMark) {
+		if (AutoMarkPiece!=-1 && AutoMarkPiece!=i) OrPiece(AutoMarkPiece,PF_MARKED);
+		AutoMarkPiece=i;
+		AutoMarkToSave=saveFile;
+		AutoMarkTimer.Stop(true);
+		AutoMarkTimer.Start(1000);
+	}
 	if (saveFile) Save(true);
 }
 
@@ -148,7 +187,7 @@ void emNetwalkModel::Rotate(int x, int y, int angle, bool saveFile)
 void emNetwalkModel::Scroll(int dx, int dy, bool saveFile)
 {
 	emArray<int> arr;
-	int i,n,x,y,w,h;
+	int i,j,cp,ap,n,x,y,w,h;
 
 	w=GetWidth();
 	h=GetHeight();
@@ -157,10 +196,15 @@ void emNetwalkModel::Scroll(int dx, int dy, bool saveFile)
 	for (i=0; i<n; i++) arr.Set(i,GetPiece(i));
 	dx=dx%w; if (dx<0) dx+=w;
 	dy=dy%h; if (dy<0) dy+=h;
+	cp=CurrentPiece.Get();
+	ap=AutoMarkPiece;
 	for (i=0; i<n; i++) {
 		x=(i+dx)%w;
 		y=(i/w+dy)%h;
-		SetPiece(y*w+x,arr[i]);
+		j=y*w+x;
+		SetPiece(j,arr[i]);
+		if (cp==i) CurrentPiece.Set(j);
+		if (ap==i) AutoMarkPiece=j;
 	}
 	if (saveFile) Save(true);
 }
@@ -175,12 +219,17 @@ emNetwalkModel::emNetwalkModel(emContext & context, const emString & name)
 	NoFourWayJunctions(this,"NoFourWayJunctions"),
 	Complexity(this,"Complexity",1,1,5),
 	DigMode(this,"DigMode"),
+	AutoMark(this,"AutoMark"),
 	Finished(this,"Finished"),
 	PenaltyPoints(this,"PenaltyPoints"),
 	CurrentPiece(this,"CurrentPiece",-1),
-	Raster(this,"Raster",4,INT_MAX)
+	Raster(this,"Raster",4,INT_MAX),
+	AutoMarkTimer(GetScheduler()),
+	AutoMarkPiece(-1),
+	AutoMarkToSave(false)
 {
 	PostConstruct(*this);
+	AddWakeUpSignal(AutoMarkTimer.GetSignal());
 }
 
 
@@ -198,6 +247,23 @@ bool emNetwalkModel::TryContinueLoading() throw(emString)
 	return true;
 }
 
+
+bool emNetwalkModel::Cycle()
+{
+	bool busy;
+
+	busy=emRecFileModel::Cycle();
+	if (IsSignaled(AutoMarkTimer.GetSignal())) {
+		if (AutoMark && AutoMarkPiece!=-1) {
+			if ((GetPiece(AutoMarkPiece)&PF_MARKED)==0) {
+				OrPiece(AutoMarkPiece,PF_MARKED);
+				if (AutoMarkToSave) Save(true);
+			}
+		}
+		AutoMarkPiece=-1;
+	}
+	return busy;
+}
 
 int emNetwalkModel::GetNeigborIndex(int index, int angle) const
 {

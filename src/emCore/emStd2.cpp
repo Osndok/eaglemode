@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,6 @@
 #	include <unistd.h>
 #	include <dlfcn.h>
 #endif
-#include <sys/stat.h>
 #include <emCore/emStd2.h>
 #include <emCore/emInstallInfo.h>
 #include <emCore/emThread.h>
@@ -130,6 +129,18 @@ int emGetProcessId()
 //================================ Error Texts =================================
 //==============================================================================
 
+#if !defined(_WIN32)
+const char * emGetErrorText_strerror_r_helper(int res, const char * buf)
+{
+	return res==0 ? buf : NULL;
+}
+const char * emGetErrorText_strerror_r_helper(const char * res, const char * buf)
+{
+	return res;
+}
+#endif
+
+
 emString emGetErrorText(int errorNumber)
 {
 #if defined(_WIN32)
@@ -147,25 +158,18 @@ emString emGetErrorText(int errorNumber)
 		sprintf(tmp,"error #%d",errorNumber);
 	}
 	return emString(tmp);
-#elif defined(__GLIBC__) || defined(__CYGWIN__)
+#else
 	char tmp[512];
 	const char * p;
 
-	tmp[0]=0;
-	p=strerror_r(errorNumber,tmp,sizeof(tmp));
-	if (!p || !*p) {
+	memset(tmp,0,sizeof(tmp));
+	p=emGetErrorText_strerror_r_helper(strerror_r(errorNumber,tmp,sizeof(tmp)),tmp);
+	tmp[sizeof(tmp)-1]=0;
+	if (!p) {
 		sprintf(tmp,"error #%d",errorNumber);
 		p=tmp;
 	}
 	return emString(p);
-#else
-	char tmp[512];
-	int i;
-
-	tmp[0]=0;
-	i=strerror_r(errorNumber,tmp,sizeof(tmp));
-	if (i || !tmp[0]) sprintf(tmp,"error #%d",errorNumber);
-	return emString(tmp);
 #endif
 }
 
@@ -506,9 +510,9 @@ bool emIsWritablePath(const char * path)
 
 bool emIsDirectory(const char * path)
 {
-	struct stat st;
+	struct em_stat st;
 
-	if (stat(path,&st)!=0) return false;
+	if (em_stat(path,&st)!=0) return false;
 	if ((st.st_mode&S_IFMT)!=S_IFDIR)  return false;
 	return true;
 }
@@ -516,9 +520,9 @@ bool emIsDirectory(const char * path)
 
 bool emIsRegularFile(const char * path)
 {
-	struct stat st;
+	struct em_stat st;
 
-	if (stat(path,&st)!=0) return false;
+	if (em_stat(path,&st)!=0) return false;
 	if ((st.st_mode&S_IFMT)!=S_IFREG)  return false;
 	return true;
 }
@@ -529,9 +533,9 @@ bool emIsSymLinkPath(const char * path)
 #if defined(_WIN32)
 	return false;
 #else
-	struct stat st;
+	struct em_stat st;
 
-	if (lstat(path,&st)!=0) return false;
+	if (em_lstat(path,&st)!=0) return false;
 	if ((st.st_mode&S_IFMT)!=S_IFLNK)  return false;
 	return true;
 #endif
@@ -540,9 +544,9 @@ bool emIsSymLinkPath(const char * path)
 
 emUInt64 emTryGetFileSize(const char * path) throw(emString)
 {
-	struct stat st;
+	struct em_stat st;
 
-	if (stat(path,&st)!=0) {
+	if (em_stat(path,&st)!=0) {
 		throw emString::Format(
 			"Failed to get size of \"%s\": %s",
 			path,
@@ -555,9 +559,9 @@ emUInt64 emTryGetFileSize(const char * path) throw(emString)
 
 time_t emTryGetFileTime(const char * path) throw(emString)
 {
-	struct stat st;
+	struct em_stat st;
 
-	if (stat(path,&st)!=0) {
+	if (em_stat(path,&st)!=0) {
 		throw emString::Format(
 			"Failed to get modification time of \"%s\": %s",
 			path,
@@ -824,7 +828,7 @@ void emTryMakeDirectories(const char * path, int mode) throw(emString)
 void emTryRemoveFileOrTree(const char * path, bool force) throw(emString)
 {
 	emArray<emString> list;
-	struct stat st;
+	struct em_stat st;
 	bool chmodDone;
 	int i;
 
@@ -863,7 +867,7 @@ L_TryIt:
 			!force ||
 			chmodDone ||
 			emIsSymLinkPath(path) ||
-			stat(path,&st)!=0
+			em_stat(path,&st)!=0
 		) {
 			throw errorMessage;
 		}

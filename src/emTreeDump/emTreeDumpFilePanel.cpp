@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpFilePanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -115,7 +115,10 @@ void emTreeDumpFilePanel::UpdateRecPanel()
 {
 	if (IsVFSGood()) {
 		if (!RecPanel) {
-			RecPanel=new emTreeDumpRecPanel(this,"rootrec",FileModel);
+			RecPanel=new emTreeDumpRecPanel(
+				this,"rootrec",FileModel,
+				emGetParentPath(FileModel->GetFilePath())
+			);
 		}
 	}
 	else {

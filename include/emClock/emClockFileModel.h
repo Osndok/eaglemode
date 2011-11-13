@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockFileModel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emRecFileModel_h
 #include <emCore/emRecFileModel.h>
+#endif
+
+#ifndef emToolkit_h
+#include <emCore/emToolkit.h>
 #endif
 
 
@@ -64,6 +68,8 @@ public:
 
 	emBoolRec StopwatchRunning;
 	emStringRec StopwatchState;
+
+	emTkLook TkLook;
 
 	bool IsStopwatchRunning() const;
 	emInt64 GetStopwatchTimeMS() const;

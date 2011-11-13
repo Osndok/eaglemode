@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -113,6 +113,8 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 		emFatalError("emWndsScreen: Scheduler must be an emWndsScheduler.");
 	}
 
+	WCThread=new WaitCursorThread();
+
 	i=0;
 	do {
 		i++;
@@ -199,6 +201,8 @@ emWndsScreen::~emWndsScreen()
 	emWndsScreen * * pp;
 
 	DestroySendBufThread();
+	delete WCThread;
+	WCThread=NULL;
 	UnregisterClass(WinClassName.Get(),NULL);
 	InstanceListMutex.Lock();
 	for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
@@ -211,6 +215,13 @@ bool emWndsScreen::Cycle()
 {
 	POINT pnt;
 	int i,dx,dy;
+
+	WCThread->SignOfLife();
+	if (WCThread->CursorToRestore()) {
+		for (i=WinPorts.GetCount()-1; i>=0; i--) {
+			WinPorts[i]->RestoreCursor();
+		}
+	}
 
 	if (InputStateToBeFlushed) {
 		UpdateKeymapAndInputState();
@@ -580,6 +591,78 @@ emInputKey emWndsScreen::ConvertKey(unsigned vk, int * pVariant)
 	}
 	if (pVariant) *pVariant=table[i].variant;
 	return table[i].key;
+}
+
+
+emWndsScreen::WaitCursorThread::WaitCursorThread()
+{
+	ParentThreadId=::GetCurrentThreadId();
+	Clock=emGetClockMS();
+	CursorChanged=false;
+	Start(NULL);
+}
+
+
+emWndsScreen::WaitCursorThread::~WaitCursorThread()
+{
+	QuitEvent.Send();
+	WaitForTermination();
+}
+
+
+void emWndsScreen::WaitCursorThread::SignOfLife()
+{
+	Mutex.Lock();
+	Clock=emGetClockMS();
+	Mutex.Unlock();
+}
+
+
+bool emWndsScreen::WaitCursorThread::CursorToRestore()
+{
+	bool b;
+
+	Mutex.Lock();
+	b=CursorChanged;
+	CursorChanged=false;
+	Mutex.Unlock();
+	return b;
+}
+
+
+int emWndsScreen::WaitCursorThread::Run(void * arg)
+{
+	static const emUInt64 blockTimeMS=125;
+	HCURSOR hcur;
+	emUInt64 t;
+
+	hcur=LoadCursor(NULL,IDC_WAIT);
+
+	if (!AttachThreadInput(::GetCurrentThreadId(),ParentThreadId,TRUE)) {
+		emFatalError(
+			"emWndsScreen::WaitCursorThread: AttachThreadInput failed: %s",
+			emGetErrorText(::GetLastError()).Get()
+		);
+	}
+
+	do {
+		Mutex.Lock();
+		t=Clock;
+		Mutex.Unlock();
+		t=emGetClockMS()-t;
+		if (t<blockTimeMS) {
+			t=blockTimeMS-t+1;
+		}
+		else {
+			emDLog("emWndsScreen::WaitCursorThread: blocking detected");
+			Mutex.Lock();
+			SetCursor(hcur);
+			CursorChanged=true;
+			Mutex.Unlock();
+			t=blockTimeMS;
+		}
+	} while (!QuitEvent.Receive(1,t));
+	return 0;
 }
 
 

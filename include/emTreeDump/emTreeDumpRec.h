@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRec.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,6 +56,17 @@ public:
 	emStringRec Title;
 
 	emStringRec Text;
+
+	class CommandRec : public emStructRec {
+	public:
+		CommandRec();
+		virtual ~CommandRec();
+		emStringRec Caption;
+		emTArrayRec<emStringRec> Args;
+	};
+	emTArrayRec<CommandRec> Commands;
+
+	emTArrayRec<emStringRec> Files;
 
 	emTArrayRec<emTreeDumpRec> Children;
 

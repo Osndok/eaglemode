@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,8 @@
 
 #ifndef emStd2_h
 #define emStd2_h
+
+#include <sys/stat.h>
 
 #ifndef emArray_h
 #include <emCore/emArray.h>
@@ -74,6 +76,24 @@ emString emGetErrorText(int errorNumber);
 //==============================================================================
 //============================ Files & directories =============================
 //==============================================================================
+
+// em_stat and em_lstat are like stat and lstat from sys/stat.h, but with 64-bit
+// file size field if possible.
+#if defined(__linux__) && !defined(__SUNPRO_CC)
+#	define em_stat stat64
+#	define em_lstat lstat64
+#elif defined(_WIN32)
+#	if defined(_MSC_VER) || defined(__GNUC__) || defined(__WATCOMC__)
+#		define em_stat _stati64
+#	else
+#		define em_stat stat
+#	endif
+#	define em_lstat em_stat
+#else
+#	define em_stat stat
+#	define em_lstat lstat
+#endif
+
 
 emString emGetParentPath(const char * path);
 	// Get the parent path of a path.

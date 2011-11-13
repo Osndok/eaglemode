@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emView_h
 #include <emCore/emView.h>
+#endif
+
+#ifndef emFileManTheme_h
+#include <emFileMan/emFileManTheme.h>
 #endif
 
 #ifndef emFileManConfig_h
@@ -69,27 +73,53 @@ public:
 	bool GetShowHiddenFiles() const;
 	void SetShowHiddenFiles(bool b);
 
+	const emString & GetThemeName() const;
+	void SetThemeName(const emString & themeName);
+	const emFileManTheme & GetTheme() const;
+
+	bool GetAutosave() const;
+	void SetAutosave(bool b);
+
+	bool IsUnsaved() const;
 	void SaveAsDefault();
 
 	int CompareDirEntries(const emDirEntry & e1, const emDirEntry & e2) const;
 
 protected:
 
-	emFileManViewConfig(emContext & context, const emString & name);
+	emFileManViewConfig(emView & view, const emString & name);
 	virtual ~emFileManViewConfig();
+
+	virtual bool Cycle();
 
 private:
 
 	int CompareNames(const char * n1, const char * n2) const;
 
+	class RevisitEngineClass : public emEngine {
+	public:
+		RevisitEngineClass(emFileManViewConfig & config);
+	protected:
+		virtual bool Cycle();
+	private:
+		emFileManViewConfig & Config;
+		emString VisIdentity;
+		double VisRelX,VisRelY,VisRelA;
+		bool VisAdherent;
+	};
+	friend class RevisitEngineClass;
+
+	emView & View;
+	RevisitEngineClass * RevisitEngine;
 	emSignal ChangeSignal;
-
 	emRef<emFileManConfig> FileManConfig;
-
 	SortCriterionType SortCriterion;
 	NameSortingStyleType NameSortingStyle;
 	bool SortDirectoriesFirst;
 	bool ShowHiddenFiles;
+	emString ThemeName;
+	emRef<emFileManTheme> Theme;
+	bool Autosave;
 };
 
 inline const emSignal & emFileManViewConfig::GetChangeSignal() const
@@ -115,6 +145,21 @@ inline bool emFileManViewConfig::GetSortDirectoriesFirst() const
 inline bool emFileManViewConfig::GetShowHiddenFiles() const
 {
 	return ShowHiddenFiles;
+}
+
+inline const emString & emFileManViewConfig::GetThemeName() const
+{
+	return ThemeName;
+}
+
+inline const emFileManTheme & emFileManViewConfig::GetTheme() const
+{
+	return *Theme;
+}
+
+inline bool emFileManViewConfig::GetAutosave() const
+{
+	return Autosave;
 }
 
 

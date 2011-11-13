@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -840,6 +840,12 @@ bool emWndsWindowPort::FlushInputState()
 	else {
 		return false;
 	}
+}
+
+
+void emWndsWindowPort::RestoreCursor()
+{
+	if (CursorShown) SetCursor(Screen.GetCursorHandle(Cursor));
 }
 
 

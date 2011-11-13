@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 #include <emFileMan/emFileManViewConfig.h>
+#include <emCore/emPanel.h>
 
 
 emRef<emFileManViewConfig> emFileManViewConfig::Acquire(emView & view)
@@ -32,6 +33,10 @@ void emFileManViewConfig::SetSortCriterion(SortCriterionType sc)
 {
 	if (SortCriterion!=sc) {
 		SortCriterion=sc;
+		if (Autosave) {
+			FileManConfig->SortCriterion=SortCriterion;
+			FileManConfig->Save();
+		}
 		Signal(ChangeSignal);
 	}
 }
@@ -41,6 +46,10 @@ void emFileManViewConfig::SetNameSortingStyle(NameSortingStyleType nss)
 {
 	if (NameSortingStyle!=nss) {
 		NameSortingStyle=nss;
+		if (Autosave) {
+			FileManConfig->NameSortingStyle=NameSortingStyle;
+			FileManConfig->Save();
+		}
 		Signal(ChangeSignal);
 	}
 }
@@ -50,6 +59,10 @@ void emFileManViewConfig::SetSortDirectoriesFirst(bool b)
 {
 	if (SortDirectoriesFirst!=b) {
 		SortDirectoriesFirst=b;
+		if (Autosave) {
+			FileManConfig->SortDirectoriesFirst=SortDirectoriesFirst;
+			FileManConfig->Save();
+		}
 		Signal(ChangeSignal);
 	}
 }
@@ -59,8 +72,62 @@ void emFileManViewConfig::SetShowHiddenFiles(bool b)
 {
 	if (ShowHiddenFiles!=b) {
 		ShowHiddenFiles=b;
+		if (Autosave) {
+			FileManConfig->ShowHiddenFiles=ShowHiddenFiles;
+			FileManConfig->Save();
+		}
 		Signal(ChangeSignal);
 	}
+}
+
+
+void emFileManViewConfig::SetThemeName(const emString & themeName)
+{
+	if (ThemeName != themeName) {
+		ThemeName=themeName;
+		Theme=emFileManTheme::Acquire(GetRootContext(),ThemeName);
+		if (Autosave) {
+			FileManConfig->ThemeName=ThemeName;
+			FileManConfig->Save();
+		}
+		Signal(ChangeSignal);
+		if (!RevisitEngine && !View.IsSeeking()) {
+			// This solves the problem that the view sometimes loses
+			// the position and the focus, when the panels are
+			// changing their layout by the new theme.
+			RevisitEngine=new RevisitEngineClass(*this);
+		}
+	}
+}
+
+
+void emFileManViewConfig::SetAutosave(bool b)
+{
+	if (Autosave!=b) {
+		Autosave=b;
+		if (b) {
+			SaveAsDefault();
+		}
+		else {
+			FileManConfig->Autosave=Autosave;
+			FileManConfig->Save();
+		}
+		Signal(ChangeSignal);
+	}
+}
+
+
+bool emFileManViewConfig::IsUnsaved() const
+{
+	return
+		FileManConfig->SortCriterion.Get()!=SortCriterion ||
+		FileManConfig->NameSortingStyle.Get()!=NameSortingStyle ||
+		FileManConfig->SortDirectoriesFirst.Get()!=SortDirectoriesFirst ||
+		FileManConfig->ShowHiddenFiles.Get()!=ShowHiddenFiles ||
+		FileManConfig->ThemeName.Get()!=ThemeName ||
+		FileManConfig->Autosave.Get()!=Autosave ||
+		FileManConfig->IsUnsaved()
+	;
 }
 
 
@@ -70,6 +137,8 @@ void emFileManViewConfig::SaveAsDefault()
 	FileManConfig->NameSortingStyle=NameSortingStyle;
 	FileManConfig->SortDirectoriesFirst=SortDirectoriesFirst;
 	FileManConfig->ShowHiddenFiles=ShowHiddenFiles;
+	FileManConfig->ThemeName=ThemeName;
+	FileManConfig->Autosave=Autosave;
 	FileManConfig->Save();
 }
 
@@ -195,23 +264,40 @@ int emFileManViewConfig::CompareDirEntries(
 
 
 emFileManViewConfig::emFileManViewConfig(
-	emContext & context, const emString & name
+	emView & view, const emString & name
 )
-	: emModel(context,name)
+	: emModel(view,name),
+	View(view)
 {
+	RevisitEngine=NULL;
 	FileManConfig=emFileManConfig::Acquire(GetRootContext());
-
 	SortCriterion=(SortCriterionType)FileManConfig->SortCriterion.Get();
 	NameSortingStyle=(NameSortingStyleType)FileManConfig->NameSortingStyle.Get();
 	SortDirectoriesFirst=FileManConfig->SortDirectoriesFirst.Get();
 	ShowHiddenFiles=FileManConfig->ShowHiddenFiles.Get();
+	ThemeName=FileManConfig->ThemeName.Get();
+	Theme=emFileManTheme::Acquire(GetRootContext(),ThemeName);
+	Autosave=FileManConfig->Autosave.Get();
 
+	AddWakeUpSignal(FileManConfig->GetChangeSignal());
 	SetMinCommonLifetime(UINT_MAX);
 }
 
 
 emFileManViewConfig::~emFileManViewConfig()
 {
+	if (RevisitEngine) delete RevisitEngine;
+}
+
+
+bool emFileManViewConfig::Cycle()
+{
+	if (IsSignaled(FileManConfig->GetChangeSignal())) {
+		Autosave=FileManConfig->Autosave.Get();
+		Signal(ChangeSignal); // Always, because IsUnsaved() could have changed.
+	}
+
+	return emModel::Cycle();
 }
 
 
@@ -225,4 +311,29 @@ int emFileManViewConfig::CompareNames(const char * n1, const char * n2) const
 		case NSS_CASE_INSENSITIVE:
 			return strcasecmp(n1,n2);
 	}
+}
+
+
+emFileManViewConfig::RevisitEngineClass::RevisitEngineClass(
+	emFileManViewConfig & config
+)
+	: emEngine(config.GetScheduler()),
+	Config(config)
+{
+	emPanel * p;
+	p=Config.View.GetVisitedPanel(&VisRelX,&VisRelY,&VisRelA,&VisAdherent);
+	if (p) VisIdentity=p->GetIdentity();
+	SetEnginePriority(LOW_PRIORITY);
+	WakeUp();
+}
+
+
+bool emFileManViewConfig::RevisitEngineClass::Cycle()
+{
+	if (!VisIdentity.IsEmpty()) {
+		Config.View.Seek(VisIdentity,VisRelX,VisRelY,VisRelA,VisAdherent);
+	}
+	Config.RevisitEngine=NULL;
+	delete this;
+	return false;
 }

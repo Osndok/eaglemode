@@ -94,11 +94,28 @@ private:
 
 	static emInputKey ConvertKey(unsigned vk, int * pVariant);
 
+	class WaitCursorThread : private emThread
+	{
+	public:
+		WaitCursorThread();
+		~WaitCursorThread();
+		void SignOfLife();
+		bool CursorToRestore();
+	private:
+		virtual int Run(void * arg);
+		DWORD ParentThreadId;
+		emThreadEvent QuitEvent;
+		emThreadMutex Mutex;
+		emUInt64 Clock;
+		bool CursorChanged;
+	};
+
 	static emThreadMiniMutex InstanceListMutex;
 	static emWndsScreen * InstanceList;
 	emWndsScreen * NextInstance;
 	int WindowProcRecursion;
 	emWndsScheduler * WndsScheduler;
+	WaitCursorThread * WCThread;
 	emString WinClassName;
 	int Width, Height;
 	double PixelTallness;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ extern "C" {
 	{
 		struct emPngLoadingState * L;
 
-		L=(struct emPngLoadingState *)png_ptr->error_ptr;
+		L=(struct emPngLoadingState *)png_get_error_ptr(png_ptr);
 		if (!error_msg) error_msg="PNG error";
 		snprintf(L->errorText,sizeof(L->errorText),"%s",error_msg);
 		L->errorText[sizeof(L->errorText)-1]=0;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Clipboard.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,17 +38,16 @@ void emX11Clipboard::Install(emContext & context)
 
 emInt64 emX11Clipboard::PutText(const emString & str, bool selection)
 {
+	::Window owner;
 	int idx;
 
 	idx=selection?1:0;
 	LocalText[idx]=str;
 	LocalTimestamp[idx]=Screen->LastKnownTime;
-	if (str.IsEmpty()) {
-		XSetSelectionOwner(Disp,SelAtom[idx],None,LocalTimestamp[idx]);
-	}
-	else {
-		XSetSelectionOwner(Disp,SelAtom[idx],Win,LocalTimestamp[idx]);
-	}
+	if (str.IsEmpty()) owner=None; else owner=Win;
+	XMutex->Lock();
+	XSetSelectionOwner(Disp,SelAtom[idx],owner,LocalTimestamp[idx]);
+	XMutex->Unlock();
 	if (selection) {
 		LocalSelectionId++;
 		return LocalSelectionId;
@@ -68,16 +67,20 @@ void emX11Clipboard::Clear(bool selection, emInt64 selectionId)
 		if (LocalSelectionId==selectionId) {
 			LocalText[idx].Empty();
 			LocalSelectionId++;
+			XMutex->Lock();
 			if (XGetSelectionOwner(Disp,SelAtom[idx])==Win) {
 				XSetSelectionOwner(Disp,SelAtom[idx],None,LocalTimestamp[idx]);
 			}
+			XMutex->Unlock();
 			LocalTimestamp[idx]=Screen->LastKnownTime;
 		}
 	}
 	else {
 		LocalText[idx].Empty();
 		LocalTimestamp[idx]=Screen->LastKnownTime;
+		XMutex->Lock();
 		XSetSelectionOwner(Disp,SelAtom[idx],None,LocalTimestamp[idx]);
+		XMutex->Unlock();
 	}
 }
 
@@ -93,10 +96,13 @@ emString emX11Clipboard::GetText(bool selection)
 	emString str;
 
 	idx=selection?1:0;
+	XMutex->Lock();
 	w=XGetSelectionOwner(Disp,SelAtom[idx]);
+	XMutex->Unlock();
 	if (w==Win) return LocalText[idx];
 	if (w==None) return emString();
 
+	XMutex->Lock();
 	XConvertSelection(
 		Disp,
 		SelAtom[idx],
@@ -105,6 +111,7 @@ emString emX11Clipboard::GetText(bool selection)
 		Win,
 		Screen->LastKnownTime
 	);
+	XMutex->Unlock();
 	se=WaitSelectionEvent(SelAtom[idx],MY_XA_TARGETS);
 	if (se && se->property!=None) {
 		array=GetLargeWindowProperty(
@@ -141,6 +148,7 @@ emString emX11Clipboard::GetText(bool selection)
 		target=XA_STRING;
 	}
 
+	XMutex->Lock();
 	XConvertSelection(
 		Disp,
 		SelAtom[idx],
@@ -149,6 +157,7 @@ emString emX11Clipboard::GetText(bool selection)
 		Win,
 		Screen->LastKnownTime
 	);
+	XMutex->Unlock();
 	se=WaitSelectionEvent(SelAtom[idx],target);
 	if (!se || se->property==None) {
 		return emString();
@@ -185,12 +194,15 @@ emX11Clipboard::emX11Clipboard(emContext & context, const emString & name)
 	if (!Screen) {
 		emFatalError("emX11Clipboard: An emX11Screen is required in same context.");
 	}
+	XMutex=&Screen->XMutex;
 	Disp=Screen->Disp;
 
+	XMutex->Lock();
 	MY_XA_TARGETS    =XInternAtom(Disp,"TARGETS"    ,False);
 	MY_XA_TIMESTAMP  =XInternAtom(Disp,"TIMESTAMP"  ,False);
 	MY_XA_UTF8_STRING=XInternAtom(Disp,"UTF8_STRING",False);
 	MY_XA_CLIPBOARD  =XInternAtom(Disp,"CLIPBOARD"  ,False);
+	XMutex->Unlock();
 
 	SelAtom[0]=MY_XA_CLIPBOARD;
 	SelAtom[1]=XA_PRIMARY;
@@ -201,11 +213,14 @@ emX11Clipboard::emX11Clipboard(emContext & context, const emString & name)
 
 	memset(&xswa,0,sizeof(xswa));
 	xswa.override_redirect=True;
+
+	XMutex->Lock();
 	Win=XCreateWindow(
 		Disp,Screen->RootWin,-100,-100,1,1,0,CopyFromParent,
 		InputOnly,CopyFromParent,CWOverrideRedirect,&xswa
 	);
 	XStoreName(Disp,Win,"EM Clipboard");
+	XMutex->Unlock();
 
 	if (Screen->Clipboard) {
 		emFatalError("Only one emX11Clipboard can be installed per context.");
@@ -217,18 +232,24 @@ emX11Clipboard::emX11Clipboard(emContext & context, const emString & name)
 emX11Clipboard::~emX11Clipboard()
 {
 	Screen->Clipboard=NULL;
+	XMutex->Lock();
 	XDestroyWindow(Disp,Win);
+	XMutex->Unlock();
 }
 
 
 XSelectionEvent * emX11Clipboard::WaitSelectionEvent(Atom selection, Atom target)
 {
 	XEvent e;
+	Bool b;
 	int t;
 
 	memset(&LastSelectionEvent,0,sizeof(LastSelectionEvent));
 	for (t=0;;) {
-		if (XCheckTypedWindowEvent(Disp,Win,SelectionNotify,&e)) {
+		XMutex->Lock();
+		b=XCheckTypedWindowEvent(Disp,Win,SelectionNotify,&e);
+		XMutex->Unlock();
+		if (b) {
 			HandleEvent(e);
 			if (
 				LastSelectionEvent.requestor==Win &&
@@ -298,6 +319,7 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 		atoms[i++]=MY_XA_TIMESTAMP;
 		atoms[i++]=MY_XA_UTF8_STRING;
 		atoms[i++]=XA_STRING;
+		XMutex->Lock();
 		XChangeProperty(
 			Disp,
 			sre.requestor,
@@ -308,9 +330,11 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 			(unsigned char*)atoms,
 			i
 		);
+		XMutex->Unlock();
 		result=sre.property;
 	}
 	else if (sre.target==MY_XA_TIMESTAMP) {
+		XMutex->Lock();
 		XChangeProperty(
 			Disp,
 			sre.requestor,
@@ -321,11 +345,13 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 			(unsigned char*)&LocalTimestamp[idx],
 			1
 		);
+		XMutex->Unlock();
 		result=sre.property;
 	}
 	else if (sre.target==MY_XA_UTF8_STRING) {
 		str=LocalText[idx];
 		if (!emIsUtf8System()) str=Latin1ToUtf8(str);
+		XMutex->Lock();
 		XChangeProperty(
 			Disp,
 			sre.requestor,
@@ -336,11 +362,13 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 			(unsigned char*)str.Get(),
 			str.GetLen()
 		);
+		XMutex->Unlock();
 		result=sre.property;
 	}
 	else if (sre.target==XA_STRING) {
 		str=LocalText[idx];
 		if (emIsUtf8System()) str=Utf8ToLatin1(str);
+		XMutex->Lock();
 		XChangeProperty(
 			Disp,
 			sre.requestor,
@@ -351,6 +379,7 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 			(unsigned char*)str.Get(),
 			str.GetLen()
 		);
+		XMutex->Unlock();
 		result=sre.property;
 	}
 	else {
@@ -365,8 +394,10 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 	e.xselection.target   = sre.target;
 	e.xselection.property = result;
 	e.xselection.time     = sre.time;
+	XMutex->Lock();
 	XSendEvent(Disp,sre.requestor,False,0,&e);
 	XFlush(Disp);
+	XMutex->Unlock();
 }
 
 
@@ -391,7 +422,7 @@ emArray<emByte> emX11Clipboard::GetLargeWindowProperty(
 	unsigned char * buf;
 	Atom actualType;
 	unsigned long items,offset,bytesAfter;
-	int format,len;
+	int format,len, r;
 
 	array.SetTuningLevel(4);
 	*actual_type_return=AnyPropertyType;
@@ -400,24 +431,23 @@ emArray<emByte> emX11Clipboard::GetLargeWindowProperty(
 	offset=0;
 	buf=NULL;
 	do {
-		if (
-			XGetWindowProperty(
-				display,
-				window,
-				property,
-				offset,
-				4000,
-				False,
-				type,
-				&actualType,
-				&format,
-				&items,
-				&bytesAfter,
-				&buf
-			) != Success
-		) {
-			goto L_Error;
-		}
+		XMutex->Lock();
+		r=XGetWindowProperty(
+			display,
+			window,
+			property,
+			offset,
+			4000,
+			False,
+			type,
+			&actualType,
+			&format,
+			&items,
+			&bytesAfter,
+			&buf
+		);
+		XMutex->Unlock();
+		if (r!= Success) goto L_Error;
 		if (*actual_type_return==AnyPropertyType) *actual_type_return=actualType;
 		else if (*actual_type_return!=actualType) goto L_Error;
 		if (*actual_format_return==0) *actual_format_return=format;
@@ -427,16 +457,30 @@ emArray<emByte> emX11Clipboard::GetLargeWindowProperty(
 		if (format==32) len=((int)items)*sizeof(long);
 		else len=((int)items)*format/8;
 		array.Add(buf,len);
+		XMutex->Lock();
 		XFree(buf);
+		XMutex->Unlock();
 		buf=NULL;
 	} while (bytesAfter && items>0);
-	if (deleteProperty) XDeleteProperty(display,window,property);
+	if (deleteProperty) {
+		XMutex->Lock();
+		XDeleteProperty(display,window,property);
+		XMutex->Unlock();
+	}
 	return array;
 L_Error:
-	if (buf) XFree(buf);
+	if (buf) {
+		XMutex->Lock();
+		XFree(buf);
+		XMutex->Unlock();
+	}
 	array.Empty();
 	*nitems_return=0;
-	if (deleteProperty) XDeleteProperty(display,window,property);
+	if (deleteProperty) {
+		XMutex->Lock();
+		XDeleteProperty(display,window,property);
+		XMutex->Unlock();
+	}
 	return array;
 }
 

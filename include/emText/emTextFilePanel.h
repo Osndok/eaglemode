@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,6 +69,12 @@ private:
 	) const;
 
 	int PaintTextUtf8To8Bit(
+		const emPainter & painter, double x, double y, double charWidth,
+		double charHeight, const char * text, int textLen,
+		emColor color, emColor canvasColor
+	) const;
+
+	int PaintTextUtf16(
 		const emPainter & painter, double x, double y, double charWidth,
 		double charHeight, const char * text, int textLen,
 		emColor color, emColor canvasColor

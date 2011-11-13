@@ -90,7 +90,7 @@ private:
 
 	emString Path;
 	emRef<emFileManModel> FileMan;
-	emRef<emFileManViewConfig> FileManViewConfig;
+	emRef<emFileManViewConfig> Config;
 	bool ContentComplete;
 	KeyWalkStateType * KeyWalkState;
 };

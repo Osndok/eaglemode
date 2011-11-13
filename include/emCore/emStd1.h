@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,7 +37,7 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 80
+#define EM_MINOR_VERSION 83
 #define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
@@ -333,8 +333,11 @@ void emWarning(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
 
 void emFatalError(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
 	// Output an error message and exit this process. The message is written
-	// to stderr (a line break is appended), but if under Windows and stderr
-	// fails, the message is shown in a pop-up window.
+	// to stderr (a line break is appended). Optionally it is also shown in
+	// a GUI message box - see emSetFatalErrorGraphical.
+
+void emSetFatalErrorGraphical(bool graphical);
+	// Whether to show the fatal error message in a dialog (default: false).
 
 
 //==============================================================================

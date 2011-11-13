@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2009,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,7 +25,7 @@
 emTestPanel::emTestPanel(ParentArg parent, const emString & name)
 	: emPanel(parent,name)
 {
-	DefaultBgColor=emColor(0,68,119);
+	DefaultBgColor=0x001C38FF;
 
 	BgColor=emVarModel<emColor>::GetAndRemove(
 		GetView(),

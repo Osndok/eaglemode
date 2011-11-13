@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_ebuild.pl
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2010-2011 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -53,5 +53,3 @@ CreateFile(
 	"\t".'|| die "install failed"'."\n".
 	'}'."\n"
 );
-
-print(STDERR "WARNING: THIS IS UNTESTED!\n");

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.h
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,10 @@
 #include <emFileMan/emDirEntry.h>
 #endif
 
+#ifndef emFileManViewConfig_h
+#include <emFileMan/emFileManViewConfig.h>
+#endif
+
 #ifndef emFileManModel_h
 #include <emFileMan/emFileManModel.h>
 #endif
@@ -50,7 +54,6 @@ public:
 	const emDirEntry & GetDirEntry() const;
 
 	void UpdateDirEntry(const emDirEntry & dirEntry);
-		// Must have same path.
 
 	virtual emString GetTitle();
 
@@ -72,64 +75,26 @@ protected:
 
 private:
 
-	struct SharedStuff {
-		emRef<emFileManModel> FileMan;
-		emImage InnerBorderImage;
-		emImage OuterBorderImage;
-	};
+	virtual void PaintInfo(
+		const emPainter & painter, double infoX, double infoY,
+		double infoW, double infoH, emAlignment alignment, emColor canvasColor
+	);
 
+	void UpdateContentPanel(bool forceRecreation=false, bool forceRelayout=false);
+	void UpdateAltPanel(bool forceRecreation=false, bool forceRelayout=false);
 	void UpdateBgColor();
 
 	void Select(bool shift, bool ctrl);
 	void SelectSolely();
 	void RunDefaultCommand();
 
-	static void FormatTime(time_t t, char * buf);
+	static void FormatTime(time_t t, char * buf, bool nl);
 
 	static const char * const ContentName;
 	static const char * const AltName;
-	static const double HeightFactor;
-	static const double LayoutFrame;
-	static const double LayoutTitleX;
-	static const double LayoutTitleY;
-	static const double LayoutTitleW;
-	static const double LayoutTitleH;
-	static const double LayoutInfoX;
-	static const double LayoutInfoY;
-	static const double LayoutInfoW;
-	static const double LayoutInfoH;
-	static const double LayoutPathX;
-	static const double LayoutPathY;
-	static const double LayoutPathW;
-	static const double LayoutPathH;
-	static const double MinAltVW;
-	static const double LayoutAltX;
-	static const double LayoutAltY;
-	static const double LayoutAltW;
-	static const double LayoutAltH;
-	static const double MinContentVW;
-	static const double LayoutContentFrame;
-	static const double LayoutContentX;
-	static const double LayoutContentY;
-	static const double LayoutContentW;
-	static const double LayoutContentH;
-	static const emColor ColorBGNormal;
-	static const emColor ColorBGSrc;
-	static const emColor ColorBGTgt;
-	static const emColor ColorNameNormal;
-	static const emColor ColorNameExe;
-	static const emColor ColorNameDir;
-	static const emColor ColorNameFifo;
-	static const emColor ColorNameBlk;
-	static const emColor ColorNameChr;
-	static const emColor ColorNameSock;
-	static const emColor ColorNameOther;
-	static const emColor ColorSymLink;
-	static const emColor ColorInfo;
-	static const emColor ColorInfoLabel;
-	static const emColor ColorPath;
 
-	emRef<emVarModel<SharedStuff> > SharedVar;
+	emRef<emFileManModel> FileMan;
+	emRef<emFileManViewConfig> Config;
 	emDirEntry DirEntry;
 	emColor BgColor;
 };

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,7 @@ emMainWindow::emMainWindow(emContext & parentContext)
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2010 Oliver Hamann.\n"
+		"Copyright (C) 2001-2011 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"
@@ -187,14 +187,19 @@ emMainWindow::emMainWindow(emContext & parentContext)
 
 	look=BtQuit->GetLook();
 	look.SetButtonBgColor(0x99CC99FF);
+	look.SetButtonFgColor(0x000000FF);
 	BtNewWindow->SetLook(look,false);
 	look.SetButtonBgColor(0xAAAADDFF);
+	look.SetButtonFgColor(0x000000FF);
 	BtFullscreen->SetLook(look,false);
 	look.SetButtonBgColor(0x99CCCCFF);
+	look.SetButtonFgColor(0x000000FF);
 	BtReload->SetLook(look,false);
 	look.SetButtonBgColor(0xCCCC99FF);
+	look.SetButtonFgColor(0x000000FF);
 	BtClose->SetLook(look,false);
 	look.SetButtonBgColor(0xCC9999FF);
+	look.SetButtonFgColor(0x000000FF);
 	BtQuit->SetLook(look,false);
 
 	AddWakeUpSignal(GetContentView().GetTitleSignal());

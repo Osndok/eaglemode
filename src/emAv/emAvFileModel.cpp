@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -89,15 +89,13 @@ void emAvFileModel::SetPlayState(PlayStateType playState)
 				Signal(InfoSignal);
 			}
 			OpenStream("auto","emAv",GetFilePath());
-#if 0
-			//??? This would still be a bad idea because the "none"
-			//??? drivers may produce useless initial values.
-			SetProperty("pos",emString::Format("%d",PlayPos));
 			SetProperty("audio_volume",emString::Format("%d",AudioVolume));
 			SetProperty("audio_mute",AudioMute?"on":"off");
 			if (AudioVisu>=0 && AudioVisu<AudioVisus.GetCount()) {
 				SetProperty("audio_visu",AudioVisus[AudioVisu].Get());
 			}
+			SetProperty("pos",emString::Format("%d",PlayPos));
+#if 0 // ??? This did not function.
 			if (AudioChannel>=0 && AudioChannel<AudioChannels.GetCount()) {
 				SetProperty("audio_channel",AudioChannels[AudioChannel].Get());
 			}
@@ -114,6 +112,7 @@ void emAvFileModel::SetPlayState(PlayStateType playState)
 			"normal"
 		);
 	}
+	SaveFileState();
 }
 
 
@@ -150,6 +149,7 @@ void emAvFileModel::SetPlayPos(int playPos)
 		Signal(PlayPosSignal);
 		SetProperty("pos",emString::Format("%d",PlayPos));
 	}
+	SaveFileState();
 }
 
 
@@ -163,6 +163,7 @@ void emAvFileModel::SetAudioVolume(int audioVolume)
 		Signal(AdjustmentSignal);
 		SetProperty("audio_volume",emString::Format("%d",AudioVolume));
 	}
+	SaveAudioVolume();
 }
 
 
@@ -192,6 +193,7 @@ void emAvFileModel::SetAudioVisu(int audioVisu)
 			SetProperty("audio_visu",AudioVisus[audioVisu].Get());
 		}
 	}
+	SaveAudioVisu();
 }
 
 
@@ -210,6 +212,7 @@ void emAvFileModel::SetAudioChannel(int audioChannel)
 			SetProperty("audio_channel",AudioChannels[audioChannel].Get());
 		}
 	}
+	SaveFileState();
 }
 
 
@@ -228,6 +231,7 @@ void emAvFileModel::SetSpuChannel(int spuChannel)
 			SetProperty("spu_channel",SpuChannels[spuChannel].Get());
 		}
 	}
+	SaveFileState();
 }
 
 
@@ -239,6 +243,8 @@ emAvFileModel::emAvFileModel(
 	emAvClient(emAvServerModel::Acquire(context.GetRootContext(),serverProcPath))
 {
 	FilePath=filePath;
+
+	States=emAvStates::Acquire(GetRootContext());
 
 	ActiveList=emVarModel<emAvFileModel*>::Lookup(
 		GetRootContext(),"emAvFileModel::ActiveList"
@@ -320,6 +326,12 @@ bool emAvFileModel::TryContinueLoading() throw(emString)
 		return false;
 	case STREAM_OPENED:
 		CloseStream();
+		PlayPos=0;
+		AudioVolume=100;
+		AudioMute=false;
+		LoadAudioVolume();
+		LoadAudioVisu();
+		LoadFileState();
 		return true;
 	case STREAM_ERRORED:
 		throw emString(GetStreamErrorText());
@@ -387,6 +399,7 @@ void emAvFileModel::StreamStateChanged(StreamStateType streamState)
 			Image.Empty();
 			Signal(ImageSignal);
 		}
+		SaveFileState();
 	}
 }
 
@@ -493,6 +506,7 @@ void emAvFileModel::PropertyChanged(const emString & name, const emString & valu
 		if (PlayPos!=i) {
 			PlayPos=i;
 			Signal(PlayPosSignal);
+			if (GetStreamState()==STREAM_OPENED) SaveFileState();
 		}
 	}
 	else if (name=="audio_volume") {
@@ -575,6 +589,126 @@ void emAvFileModel::RemoveFromActiveList()
 			ALNext=NULL;
 		}
 		ALThisPtr=NULL;
+	}
+}
+
+
+void emAvFileModel::SaveFileState()
+{
+	emTArrayRec<emAvStates::FileStateRec> * arr;
+	emAvStates::FileStateRec * rec;
+	emString path;
+	int i,arrMax;
+
+	if (Video) {
+		arrMax=States->MaxVideoStates;
+		arr=&States->VideoStates;
+	}
+	else {
+		arrMax=States->MaxAudioStates;
+		arr=&States->AudioStates;
+	}
+
+	path=GetFilePath();
+	for (i=arr->GetCount()-1; i>=0; i--) {
+		if (path==arr->Get(i).FilePath.Get()) break;
+	}
+	if (i==0) {
+		rec=&arr->Get(i);
+	}
+	else {
+		if (i>0) arr->Remove(i);
+		else if (arr->GetCount()>=arrMax) {
+			arr->Remove(arrMax-1,arr->GetCount()-(arrMax-1));
+		}
+		arr->Insert(0,1);
+		rec=&arr->Get(0);
+		rec->FilePath.Set(path);
+	}
+
+	rec->PlayLength.Set(PlayLength);
+
+	rec->PlayPos.Set(PlayPos);
+
+	if (AudioChannel>=0 && AudioChannel<AudioChannels.GetCount()) {
+		rec->AudioChannel.Set(AudioChannels[AudioChannel]);
+	}
+	else {
+		rec->AudioChannel.Set(emString());
+	}
+
+	if (SpuChannel>=0 && SpuChannel<SpuChannels.GetCount()) {
+		rec->SpuChannel.Set(SpuChannels[SpuChannel]);
+	}
+	else {
+		rec->SpuChannel.Set(emString());
+	}
+}
+
+
+void emAvFileModel::LoadFileState()
+{
+	emTArrayRec<emAvStates::FileStateRec> * arr;
+	emAvStates::FileStateRec * rec;
+	emString path;
+	int i;
+
+	arr = Video ? &States->VideoStates : &States->AudioStates;
+	path=GetFilePath();
+	for (i=arr->GetCount()-1; i>=0; i--) {
+		rec=&arr->Get(i);
+		if (path==rec->FilePath.Get() && PlayLength==rec->PlayLength.Get()) break;
+	}
+	if (i>=0) {
+		rec=&arr->Get(i);
+		if (rec->PlayPos.Get()>=0 && rec->PlayPos.Get()<PlayLength) {
+			PlayPos=rec->PlayPos.Get();
+		}
+		for (i=AudioChannels.GetCount()-1; i>=0; i--) {
+			if (AudioChannels[i]==rec->AudioChannel.Get()) {
+				AudioChannel=i;
+				break;
+			}
+		}
+		for (i=SpuChannels.GetCount()-1; i>=0; i--) {
+			if (SpuChannels[i]==rec->SpuChannel.Get()) {
+				SpuChannel=i;
+				break;
+			}
+		}
+	}
+}
+
+
+void emAvFileModel::SaveAudioVolume()
+{
+	States->AudioVolume=AudioVolume;
+}
+
+
+void emAvFileModel::LoadAudioVolume()
+{
+	AudioVolume=States->AudioVolume;
+}
+
+
+void emAvFileModel::SaveAudioVisu()
+{
+	if (AudioVisu>=0 && AudioVisu<AudioVisus.GetCount()) {
+		States->AudioVisu=AudioVisus[AudioVisu];
+	}
+}
+
+
+void emAvFileModel::LoadAudioVisu()
+{
+	int i;
+
+	for (i=AudioVisus.GetCount()-1; i>=0; i--) {
+		if (AudioVisus[i]==States->AudioVisu.Get()) {
+			AudioVisu=i;
+			break;
+		}
 	}
 }
 

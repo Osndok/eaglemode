@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,8 +20,6 @@
 
 #ifndef emDirEntry_h
 #define emDirEntry_h
-
-#include <sys/stat.h>
 
 #ifndef emStd2_h
 #include <emCore/emStd2.h>
@@ -56,8 +54,8 @@ public:
 	bool IsRegularFile() const;
 	bool IsHidden() const;
 
-	const struct stat * GetStat() const;
-	const struct stat * GetLStat() const;
+	const struct em_stat * GetStat() const;
+	const struct em_stat * GetLStat() const;
 
 	const emString & GetOwner() const;
 	const emString & GetGroup() const;
@@ -65,6 +63,10 @@ public:
 	int GetTargetPathErrNo() const;
 	int GetStatErrNo() const;
 	int GetLStatErrNo() const;
+
+#if defined(_WIN32)
+	emUInt32 GetWndsFileAttributes() const;
+#endif
 
 	unsigned int GetDataRefCount() const;
 
@@ -86,8 +88,11 @@ private:
 		emString Owner;
 		emString Group;
 		bool Hidden;
-		struct stat Stat;
-		struct stat * LStat;
+		struct em_stat Stat;
+		struct em_stat * LStat;
+#if defined(_WIN32)
+		emUInt32 WndsFileAttributes;
+#endif
 	};
 
 	SharedData * Data;
@@ -138,12 +143,12 @@ inline bool emDirEntry::IsHidden() const
 	return Data->Hidden;
 }
 
-inline const struct stat * emDirEntry::GetStat() const
+inline const struct em_stat * emDirEntry::GetStat() const
 {
 	return &Data->Stat;
 }
 
-inline const struct stat * emDirEntry::GetLStat() const
+inline const struct em_stat * emDirEntry::GetLStat() const
 {
 	return Data->LStat;
 }
@@ -172,6 +177,13 @@ inline int emDirEntry::GetLStatErrNo() const
 {
 	return Data->LStatErrNo;
 }
+
+#if defined(_WIN32)
+inline emUInt32 emDirEntry::GetWndsFileAttributes() const
+{
+	return Data->WndsFileAttributes;
+}
+#endif
 
 
 #endif

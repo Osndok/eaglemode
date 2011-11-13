@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,6 @@
 //------------------------------------------------------------------------------
 
 #if defined(_WIN32)
-#	include <sys/stat.h>
 #	include <windows.h>
 #else
 #	include <unistd.h>
@@ -28,6 +27,8 @@
 #include <locale.h>
 #include <emCore/emStd1.h>
 #include <emCore/emThread.h>
+#include <emCore/emProcess.h>
+#include <emCore/emInstallInfo.h>
 
 
 //==============================================================================
@@ -444,12 +445,13 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 #if defined(_WIN32)
 	static const char * const logFileName   ="emCoreBasedAppLog.log";
 	static const char * const backupFileName="emCoreBasedAppLog-old.log";
+	static emThreadMiniMutex logFileMutex;
 	char logFilePath[_MAX_PATH+1], backupFilePath[_MAX_PATH+1];
-	struct stat st;
+	struct em_stat st;
 	char * buf;
 	FILE * f;
 	DWORD d;
-	int r,bufSize;
+	int r,bufSize,e;
 
 	bufSize=100000;
 	buf=(char*)malloc(bufSize);
@@ -478,7 +480,8 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 		strcpy(backupFilePath,logFilePath);
 		strcat(logFilePath,logFileName);
 		strcat(backupFilePath,backupFileName);
-		if (stat(logFilePath,&st)==0 && st.st_size>64000) {
+		logFileMutex.Lock();
+		if (em_stat(logFilePath,&st)==0 && st.st_size>64000) {
 			remove(backupFilePath);
 			rename(logFilePath,backupFilePath);
 		}
@@ -486,12 +489,15 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 		if (f) {
 			fputs(buf,f);
 			fclose(f);
+			logFileMutex.Unlock();
 		}
 		else {
+			e=errno;
+			logFileMutex.Unlock();
 			emFatalError(
 				"emLog: Failed to open \"%s\": %s",
 				logFilePath,
-				strerror(errno)
+				strerror(e)
 			);
 		}
 	}
@@ -551,40 +557,52 @@ void emWarning(const char * format, ...)
 }
 
 
+static bool emFatalErrorGraphical=false;
+
+
 void emFatalError(const char * format, ...)
 {
-#if defined(_WIN32)
 	va_list args;
 	char tmp[512];
-	int r;
-
-	fprintf(stderr,"FATAL ERROR: ");
-	va_start(args,format);
-	r=vfprintf(stderr,format,args);
-	va_end(args);
-	if (r>=0) r=fprintf(stderr,"\n");
-	if (r>=0) r=fflush(stderr);
-	if (r<0) {
-		// stderr failed and it seems to be a window mode application.
-		// Therefore pop up a message box.
-		//??? Maybe we should call FatalAppExit instead.
-		va_start(args,format);
-		vsnprintf(tmp,sizeof(tmp),format,args);
-		tmp[sizeof(tmp)-1]=0;
-		va_end(args);
-		MessageBox(NULL,tmp,"Fatal Error",MB_OK|MB_ICONERROR);
-	}
-	_exit(255);
-#else
-	va_list args;
 
 	fprintf(stderr,"FATAL ERROR: ");
 	va_start(args,format);
 	vfprintf(stderr,format,args);
 	va_end(args);
 	fprintf(stderr,"\n");
+	if (emFatalErrorGraphical) {
+		va_start(args,format);
+		vsnprintf(tmp,sizeof(tmp),format,args);
+		tmp[sizeof(tmp)-1]=0;
+		va_end(args);
+#		if defined(_WIN32)
+			//??? Maybe we should call FatalAppExit instead.
+			MessageBox(NULL,tmp,"Fatal Error",MB_OK|MB_ICONERROR);
+#		else
+			if (
+				getenv("EM_FATAL_ERROR_LOCK")==NULL &&
+				putenv((char*)"EM_FATAL_ERROR_LOCK=1")==0
+			) {
+				emArray<emString> cmd;
+				cmd+=emGetInstallPath(EM_IDT_BIN,"emShowStdDlg","emShowStdDlg");
+				cmd+="message";
+				cmd+="Fatal Error";
+				cmd+=tmp;
+				try {
+					emProcess::TryStartUnmanaged(cmd);
+				}
+				catch (emString) {
+				}
+			}
+#		endif
+	}
 	_exit(255);
-#endif
+}
+
+
+void emSetFatalErrorGraphical(bool graphical)
+{
+	emFatalErrorGraphical=graphical;
 }
 
 

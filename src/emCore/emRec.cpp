@@ -913,6 +913,132 @@ void emFlagsRec::Init(int defaultValue, const char * identifier0, va_list args)
 
 
 //==============================================================================
+//=============================== emAlignmentRec ===============================
+//==============================================================================
+
+emAlignmentRec::emAlignmentRec(emAlignment defaultValue)
+{
+	DefaultValue=defaultValue;
+	Value=defaultValue;
+}
+
+
+emAlignmentRec::emAlignmentRec(
+	emStructRec * parent, const char * varIdentifier, emAlignment defaultValue
+)
+	: emRec(parent,varIdentifier)
+{
+	DefaultValue=defaultValue;
+	Value=defaultValue;
+}
+
+
+emAlignmentRec::~emAlignmentRec()
+{
+}
+
+
+void emAlignmentRec::Set(emAlignment value)
+{
+	if (Value!=value) {
+		Value=value;
+		Changed();
+	}
+}
+
+
+void emAlignmentRec::SetToDefault()
+{
+	Set(DefaultValue);
+}
+
+
+bool emAlignmentRec::IsSetToDefault() const
+{
+	return Value==DefaultValue;
+}
+
+
+void emAlignmentRec::TryStartReading(emRecReader & reader) throw(emString)
+{
+	const char * idf;
+	char delimiter;
+	emAlignment val;
+
+	val=0;
+	for (;;) {
+		idf=reader.TryReadIdentifier();
+		if      (strcasecmp(idf,"top"   )==0) val|=EM_ALIGN_TOP;
+		else if (strcasecmp(idf,"bottom")==0) val|=EM_ALIGN_BOTTOM;
+		else if (strcasecmp(idf,"left"  )==0) val|=EM_ALIGN_LEFT;
+		else if (strcasecmp(idf,"right" )==0) val|=EM_ALIGN_RIGHT;
+		else if (strcasecmp(idf,"center")==0) val|=EM_ALIGN_CENTER;
+		else reader.ThrowElemError("Unknown alignment identifier.");
+		if (reader.TryPeekNext(&delimiter)!=emRecReader::ET_DELIMITER) break;
+		if (delimiter!='-') break;
+		reader.TryReadCertainDelimiter('-');
+	}
+	Set(val);
+}
+
+
+bool emAlignmentRec::TryContinueReading(emRecReader & reader) throw(emString)
+{
+	return true;
+}
+
+
+void emAlignmentRec::QuitReading()
+{
+}
+
+
+void emAlignmentRec::TryStartWriting(emRecWriter & writer) throw(emString)
+{
+	bool someWritten;
+
+	someWritten = false;
+	if (Value&EM_ALIGN_TOP) {
+		writer.TryWriteIdentifier("top");
+		someWritten=true;
+	}
+	if (Value&EM_ALIGN_BOTTOM) {
+		if (someWritten) writer.TryWriteDelimiter('-');
+		writer.TryWriteIdentifier("bottom");
+		someWritten=true;
+	}
+	if (Value&EM_ALIGN_LEFT) {
+		if (someWritten) writer.TryWriteDelimiter('-');
+		writer.TryWriteIdentifier("left");
+		someWritten=true;
+	}
+	if (Value&EM_ALIGN_RIGHT) {
+		if (someWritten) writer.TryWriteDelimiter('-');
+		writer.TryWriteIdentifier("right");
+		someWritten=true;
+	}
+	if (!someWritten) writer.TryWriteIdentifier("center");
+}
+
+
+bool emAlignmentRec::TryContinueWriting(emRecWriter & writer) throw(emString)
+{
+	return true;
+}
+
+
+void emAlignmentRec::QuitWriting()
+{
+}
+
+
+emUInt64 emAlignmentRec::CalcRecMemNeed() const
+{
+	return sizeof(emAlignmentRec);
+}
+
+
+//==============================================================================
 //================================ emStringRec =================================
 //==============================================================================
 

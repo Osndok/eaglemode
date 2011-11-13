@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,7 +71,8 @@ public:
 
 	// Framework for a program with graphical user interface. An object of
 	// this class has an emScheduler and an emRootContext with an emScreen
-	// and an emClipboard installed.
+	// and an emClipboard installed. Besides, the constructor calls
+	// emSetFatalErrorGraphical(true).
 
 	emGUIFramework();
 		// Constructor.

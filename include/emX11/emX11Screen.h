@@ -108,7 +108,29 @@ private:
 
 	static int ErrorHandler(Display * display, XErrorEvent * event);
 
+	class WaitCursorThread : private emThread
+	{
+	public:
+		WaitCursorThread(emThreadMiniMutex & xMutex, Display * disp);
+		~WaitCursorThread();
+		void AddWindow(::Window win);
+		void RemoveWindow(::Window win);
+		void SignOfLife();
+		bool CursorToRestore();
+	private:
+		virtual int Run(void * arg);
+		emThreadMiniMutex & XMutex;
+		emThreadMiniMutex DataMutex;
+		Display * Disp;
+		emThreadEvent QuitEvent;
+		emArray<Window> Windows;
+		emUInt64 Clock;
+		bool CursorChanged;
+	};
+
+	emThreadMiniMutex XMutex; // (XInitThreads was too buggy for me...)
 	Display * Disp;
+	WaitCursorThread * WCThread;
 	XIM       InputMethod;
 	int       Scrn;
 	int       Width,Height;

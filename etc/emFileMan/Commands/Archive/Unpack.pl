@@ -15,9 +15,9 @@
 # Descr =
 # Descr =Following archive file formats are supported, provided that the
 # Descr =corresponding system tools are installed: 7z, a, ar, arc, arj, bz,
-# Descr =bz2, deb, gz, jar, lha, lzh, lzma, lzo, rar, tar, tar.bz, tar.bz2,
-# Descr =tar.gz, tar.lzma, tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2, tgj,
-# Descr =tgz, tlz, txz, tzo, xz, Z, zip, zoo
+# Descr =bz2, deb, gz, ipk, jar, lha, lzh, lzma, lzo, rar, tar, tar.bz,
+# Descr =tar.bz2, tar.gz, tar.lzma, tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2,
+# Descr =tgj, tgz, tlz, txz, tzo, xz, Z, zip, zoo
 # ButtonFgColor = #AAD
 # Hotkey = Ctrl+U
 #[[END PROPERTIES]]

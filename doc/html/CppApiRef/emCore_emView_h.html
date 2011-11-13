@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -297,7 +297,8 @@
         </SPAN><SPAN CLASS=t>void </SPAN>VisitLazy(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent);
                 <SPAN CLASS=c>// Visit a panel while being lazy in positioning the view.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>VisitFullsized(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent);
+        </SPAN><SPAN CLASS=t>void </SPAN>VisitFullsized(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>adherent,
+                            <SPAN CLASS=t>bool </SPAN>utilizeView=<SPAN CLASS=k>false</SPAN>);
                 <SPAN CLASS=c>// Visit a panel and position the view so that the panel is
                 // shown full-sized.
 
@@ -459,7 +460,8 @@
         <SPAN CLASS=t>void </SPAN>Update();
 
         <SPAN CLASS=t>void </SPAN>CalcVisitFullsizedCoords(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>* pRelX,
-                                      <SPAN CLASS=t>double </SPAN>* pRelY, <SPAN CLASS=t>double </SPAN>* pRelA);
+                                      <SPAN CLASS=t>double </SPAN>* pRelY, <SPAN CLASS=t>double </SPAN>* pRelA,
+                                      <SPAN CLASS=t>bool </SPAN>utilizeView=<SPAN CLASS=k>false</SPAN>);
 
         <SPAN CLASS=t>void </SPAN>VisitRelBy(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
                         <SPAN CLASS=t>bool </SPAN>forceViewingUpdate);

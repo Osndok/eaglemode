@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.h
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,6 +45,9 @@ public:
 	int GetComplexity() const;
 	bool IsDigMode() const;
 
+	void SetAutoMark(bool autoMark, bool saveFile=true);
+	bool IsAutoMark() const;
+
 	bool IsFinished() const;
 	int GetPenaltyPoints() const;
 
@@ -65,10 +68,11 @@ public:
 
 	void TrySetup(
 		int width, int height, bool borderless, bool noFourWayJunctions,
-		int complexity, bool digMode, bool saveFile=true
+		int complexity, bool digMode, bool autoMark, bool saveFile=true
 	) throw(emString);
 
 	void MarkOrUnmark(int x, int y, bool saveFile=true);
+	void UnmarkAll(bool saveFile=true);
 
 	void Rotate(int x, int y, int angle, bool saveFile=true);
 	void RotateLeft(int x, int y, bool saveFile=true);
@@ -82,6 +86,8 @@ protected:
 	virtual ~emNetwalkModel();
 
 	virtual bool TryContinueLoading() throw(emString);
+
+	virtual bool Cycle();
 
 private:
 
@@ -99,6 +105,8 @@ private:
 	void Shuffle();
 	void Fill();
 	void Dig(bool reset);
+
+	void DoAutoMark();
 
 	static int RawRotate(int piece, int angle);
 
@@ -150,10 +158,15 @@ private:
 	emBoolRec NoFourWayJunctions;
 	emIntRec Complexity;
 	emBoolRec DigMode;
+	emBoolRec AutoMark;
 	emBoolRec Finished;
 	emIntRec PenaltyPoints;
 	emIntRec CurrentPiece;
 	emTArrayRec<emIntRec> Raster;
+
+	emTimer AutoMarkTimer;
+	int AutoMarkPiece;
+	bool AutoMarkToSave;
 
 	static const int A2PF[4];
 };
@@ -186,6 +199,11 @@ inline int emNetwalkModel::GetComplexity() const
 inline bool emNetwalkModel::IsDigMode() const
 {
 	return DigMode;
+}
+
+inline bool emNetwalkModel::IsAutoMark() const
+{
+	return AutoMark;
 }
 
 inline bool emNetwalkModel::IsFinished() const

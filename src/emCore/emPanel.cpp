@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1093,6 +1093,10 @@ void emPanel::Input(
 			}
 			else if (state.IsAltMod()) {
 				View.VisitFullsized(this,View.IsVisitAdherent());
+				event.Eat();
+			}
+			else if (state.IsShiftAltMod()) {
+				View.VisitFullsized(this,View.IsVisitAdherent(),true);
 				event.Eat();
 			}
 			break;

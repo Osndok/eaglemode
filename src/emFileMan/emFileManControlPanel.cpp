@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,8 +34,10 @@ emFileManControlPanel::emFileManControlPanel(
 	ContentView(contentView)
 {
 	emTkTunnel * tunnel;
-	emTkTiling * t;
+	emTkTiling * t, * t2, * t3;
 	emTkGroup * g;
+	emRef<emFileManThemeNames> themeNames;
+	int i;
 
 	FMModel=emFileManModel::Acquire(GetRootContext());
 	FMVConfig=emFileManViewConfig::Acquire(contentView);
@@ -99,50 +101,75 @@ emFileManControlPanel::emFileManControlPanel(
 				"Hotkey: Shift+Alt+S"
 			);
 		t=new emTkTiling(GrView,"more");
-		t->SetPrefChildTallness(0.1);
+		t->SetPrefChildTallness(0.8);
 		t->SetPrefChildTallness(0.3,1);
-			CbSortDirectoriesFirst=new emTkCheckButton(
-				t,"sort directories first",
-				"Directories First",
-				"Always have directories at the beginning, regardless of\n"
-				"the other sort criterions."
+		t->SetPrefChildTallness(0.8,2);
+			RbgTheme=new emTkRadioButton::Group(
+				t,"theme","Theme",
+				"Here you can choose the look of directory entry panels."
 			);
-			CbShowHiddenFiles=new emTkCheckButton(
-				t,"show hidden files",
-				"Show Hidden Files",
-				"Hotkey: Shift+Alt+H"
-			);
-			g=new emTkGroup(
-				t,"nameSortingStyle",
-				"Name Sorting Style (Order of Characters)"
-			);
-			g->SetBorderScaling(2.0);
-			g->SetPrefChildTallness(0.05);
-				RbPerLocale=new emTkRadioButton(
-					g,"per locale",
-					"Per Locale",
-					"Sort names depending on the user's current locale.\n"
-					"Technically, names are compared through \"strcoll\"."
+			RbgTheme->SetPrefChildTallness(0.2);
+			themeNames=emFileManThemeNames::Acquire(GetRootContext());
+			for (i=0; i<themeNames->GetThemeCount(); i++) {
+				new emTkRadioButton(
+					RbgTheme,
+					themeNames->GetThemeName(i),
+					themeNames->GetThemeDisplayName(i)
 				);
-				RbCaseSensitive=new emTkRadioButton(
-					g,"case-sensitive",
-					"Classic Case-Sensitive",
-					"Sort names by the ASCII code of characters.\n"
-					"Technically, names are compared through \"strcmp\"."
+			}
+			t2=new emTkTiling(t,"left");
+			t2->SetPrefChildTallness(0.15);
+				CbSortDirectoriesFirst=new emTkCheckButton(
+					t2,"sort directories first",
+					"Directories First",
+					"Always have directories at the beginning, regardless of\n"
+					"the other sort criterions."
 				);
-				RbCaseInsensitive=new emTkRadioButton(
-					g,"case-insensitive",
-					"Classic Case-Insensitive",
-					"Sort names by the ASCII code of characters, but ignore the\n"
-					"letter case. This may be correct for English letters only.\n"
-					"Technically, names are compared through \"strcasecmp\"."
+				CbShowHiddenFiles=new emTkCheckButton(
+					t2,"show hidden files",
+					"Show Hidden Files",
+					"Hotkey: Shift+Alt+H"
 				);
-			tunnel=new emTkTunnel(t,"tunnel","Save");
-				BtSaveAsDefault=new emTkButton(
-					tunnel,"save",
-					"Save",
-					"Save the current view settings as the default for new windows."
+			t2=new emTkTiling(t,"right");
+			t2->SetPrefChildTallness(0.4);
+				g=new emTkGroup(
+					t2,"nameSortingStyle",
+					"Name Sorting Style (Order of Characters)"
 				);
+				g->SetBorderScaling(2.0);
+				g->SetPrefChildTallness(0.05);
+					RbPerLocale=new emTkRadioButton(
+						g,"per locale",
+						"Per Locale",
+						"Sort names depending on the user's current locale.\n"
+						"Technically, names are compared through \"strcoll\"."
+					);
+					RbCaseSensitive=new emTkRadioButton(
+						g,"case-sensitive",
+						"Classic Case-Sensitive",
+						"Sort names by the ASCII code of characters.\n"
+						"Technically, names are compared through \"strcmp\"."
+					);
+					RbCaseInsensitive=new emTkRadioButton(
+						g,"case-insensitive",
+						"Classic Case-Insensitive",
+						"Sort names by the ASCII code of characters, but ignore the\n"
+						"letter case. This may be correct for English letters only.\n"
+						"Technically, names are compared through \"strcasecmp\"."
+					);
+				tunnel=new emTkTunnel(t2,"tunnel","Save");
+					t3=new emTkGroup(tunnel,"save");
+						CbAutosave=new emTkCheckBox(
+							t3,"autosave",
+							"Save Automatically",
+							"Automatically save changes of the view settings as the default for new windows."
+						);
+						CbAutosave->SetNoEOI();
+						BtSaveAsDefault=new emTkButton(
+							t3,"save",
+							"Save",
+							"Save the current view settings as the default for new windows."
+						);
 
 	GrSelection=new emTkGroup(this,"selection","Selection");
 	GrSelection->SetPrefChildTallness(0.17);
@@ -208,6 +235,8 @@ emFileManControlPanel::emFileManControlPanel(
 	AddWakeUpSignal(RbCaseInsensitive->GetClickSignal());
 	AddWakeUpSignal(CbSortDirectoriesFirst->GetCheckSignal());
 	AddWakeUpSignal(CbShowHiddenFiles->GetCheckSignal());
+	AddWakeUpSignal(RbgTheme->GetCheckSignal());
+	AddWakeUpSignal(CbAutosave->GetCheckSignal());
 	AddWakeUpSignal(BtSaveAsDefault->GetClickSignal());
 	AddWakeUpSignal(BtSelectAll->GetClickSignal());
 	AddWakeUpSignal(BtClearSelection->GetClickSignal());
@@ -226,6 +255,7 @@ emFileManControlPanel::~emFileManControlPanel()
 
 bool emFileManControlPanel::Cycle()
 {
+	const emTkRadioButton * rb;
 	emScreen * screen;
 	emDirPanel * dp;
 	emPanel * p;
@@ -269,6 +299,13 @@ bool emFileManControlPanel::Cycle()
 	if (IsSignaled(CbShowHiddenFiles->GetCheckSignal())) {
 		FMVConfig->SetShowHiddenFiles(CbShowHiddenFiles->IsChecked());
 	}
+	if (IsSignaled(RbgTheme->GetCheckSignal())) {
+		rb=RbgTheme->GetChecked();
+		if (rb) FMVConfig->SetThemeName(rb->GetName());
+	}
+	if (IsSignaled(CbAutosave->GetCheckSignal())) {
+		FMVConfig->SetAutosave(CbAutosave->IsChecked());
+	}
 	if (IsSignaled(BtSaveAsDefault->GetClickSignal())) {
 		FMVConfig->SaveAsDefault();
 	}
@@ -305,6 +342,8 @@ bool emFileManControlPanel::Cycle()
 
 void emFileManControlPanel::UpdateButtonStates()
 {
+	emPanel * p;
+
 	RbSortByName->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_NAME);
 	RbSortByEnding->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_ENDING);
 	RbSortByClass->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_CLASS);
@@ -318,6 +357,12 @@ void emFileManControlPanel::UpdateButtonStates()
 
 	CbSortDirectoriesFirst->SetChecked(FMVConfig->GetSortDirectoriesFirst());
 	CbShowHiddenFiles->SetChecked(FMVConfig->GetShowHiddenFiles());
+
+	p=RbgTheme->GetChild(FMVConfig->GetThemeName());
+	RbgTheme->SetChecked(p ? dynamic_cast<emTkRadioButton*>(p) : NULL);
+
+	CbAutosave->SetChecked(FMVConfig->GetAutosave());
+	BtSaveAsDefault->SetEnableSwitch(FMVConfig->IsUnsaved());
 
 	BtClearSelection->SetEnableSwitch(
 		FMModel->GetSourceSelectionCount()>0 ||

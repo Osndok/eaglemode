@@ -647,7 +647,7 @@ public:
 		//                   emStructRec. The string is not copied - the
 		//                   pointer must be valid for the life time of
 		//                   this record.
-		//   defaultValue  - The default value for this enumeration
+		//   defaultValue  - The default value for this flags
 		//                   record.
 		//   identifier0   - The identifier for bit 0. The identifier
 		//                   is not copied - the pointer must be valid
@@ -716,6 +716,71 @@ inline emFlagsRec & emFlagsRec::operator = (int value)
 inline int emFlagsRec::GetIdentifierCount()
 {
 	return IdentifierCount;
+}
+
+
+//==============================================================================
+//=============================== emAlignmentRec ===============================
+//==============================================================================
+
+class emAlignmentRec : public emRec {
+
+public:
+
+	// Record class for an emAlignment value.
+
+	emAlignmentRec(emAlignment defaultValue=EM_ALIGN_CENTER);
+	emAlignmentRec(emStructRec * parent, const char * varIdentifier,
+	               emAlignment defaultValue=EM_ALIGN_CENTER);
+		// Construct this record.
+		//   parent        - The emStructRec this record is a member of.
+		//   varIdentifier - Identifier for this record within the
+		//                   emStructRec. The string is not copied - the
+		//                   pointer must be valid for the life time of
+		//                   this record.
+		//   defaultValue  - The default value for this record.
+
+	virtual ~emAlignmentRec();
+		// Destructor.
+
+	emAlignment Get() const;
+	operator emAlignment () const;
+		// Get the alignment value.
+
+	void Set(emAlignment value);
+	emAlignmentRec & operator = (emAlignment value);
+		// Set the alignment value.
+
+	virtual void SetToDefault();
+	virtual bool IsSetToDefault() const;
+	virtual void TryStartReading(emRecReader & reader) throw(emString);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void QuitReading();
+	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void QuitWriting();
+	virtual emUInt64 CalcRecMemNeed() const;
+		// See emRec.
+
+private:
+
+	emAlignment DefaultValue, Value;
+};
+
+inline emAlignment emAlignmentRec::Get() const
+{
+	return Value;
+}
+
+inline emAlignmentRec::operator emAlignment () const
+{
+	return Value;
+}
+
+inline emAlignmentRec & emAlignmentRec::operator = (emAlignment value)
+{
+	Set(value);
+	return *this;
 }
 
 

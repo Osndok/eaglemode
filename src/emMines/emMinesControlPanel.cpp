@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,8 +26,6 @@ emMinesControlPanel::emMinesControlPanel(
 )
 	: emTkTiling(parent,name)
 {
-	emTkLook look;
-
 	Mdl=fileModel;
 
 	GrMines=new emTkGroup(this,"","emMines");
@@ -68,14 +66,6 @@ emMinesControlPanel::emMinesControlPanel(
 
 	SetChildTallness(0.26);
 	SetAlignment(EM_ALIGN_LEFT);
-
-	look.SetBgColor(0x999999FF);
-	look.SetFgColor(0x221100FF);
-	look.SetButtonBgColor(0x552222FF);
-	look.SetButtonFgColor(0xCCCC55FF);
-	look.SetInputBgColor(0x332222FF);
-	look.SetInputFgColor(0xDDCC22FF);
-	SetLook(look,true);
 
 	AddWakeUpSignal(BtStartGame->GetClickSignal());
 	AddWakeUpSignal(Mdl->GetChangeSignal());

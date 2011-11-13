@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocumentPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,7 @@ emPsDocumentPanel::emPsDocumentPanel(
 ) :
 	emPanel(parent,name)
 {
-	BGColor=emColor(153,153,136);
+	BGColor=emColor(0,0,0,0);
 	FGColor=emColor(0,0,0);
 	PagePanels=NULL;
 	CalcLayout();
@@ -56,6 +56,7 @@ void emPsDocumentPanel::SetBGColor(emColor bgColor)
 	if (BGColor!=bgColor) {
 		BGColor=bgColor;
 		InvalidatePainting();
+		InvalidateChildrenLayout();
 	}
 }
 
@@ -101,8 +102,10 @@ void emPsDocumentPanel::Paint(
 	double cx,cy,tx,ty,tw,th,pw,ph;
 	int i,n;
 
-	painter.Clear(BGColor,canvasColor);
-	canvasColor=BGColor;
+	if (!BGColor.IsTotallyTransparent()) {
+		painter.Clear(BGColor,canvasColor);
+		canvasColor=BGColor;
+	}
 	n=Document.GetPageCount();
 	for (i=0; i<n; i++) {
 		cx=CellX0+CellW*(i/Rows);
@@ -157,9 +160,12 @@ void emPsDocumentPanel::Paint(
 
 void emPsDocumentPanel::LayoutChildren()
 {
+	emColor cc;
 	int i,n;
 
 	if (!PagePanels) return;
+	if (!BGColor.IsTotallyTransparent()) cc=BGColor;
+	else cc=GetCanvasColor();
 	n=Document.GetPageCount();
 	for (i=0; i<n; i++) {
 		if (PagePanels[i]) {
@@ -168,7 +174,7 @@ void emPsDocumentPanel::LayoutChildren()
 				CellY0+CellH*(i%Rows)+PgY,
 				Document.GetPageWidth(i)*PerPoint,
 				Document.GetPageHeight(i)*PerPoint,
-				BGColor
+				cc
 			);
 		}
 	}

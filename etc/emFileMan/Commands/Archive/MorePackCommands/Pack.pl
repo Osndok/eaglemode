@@ -45,7 +45,7 @@ if (IsFirstPass()) {
 		"\n".
 		"The file name suffix specifies the archive type and must be one of:\n".
 		"  .7z\n".
-		"  .ar | .a | .deb\n".
+		"  .ar | .a | .deb | .ipk\n".
 		"  .arc\n".
 		"  .arj\n".
 		"  .bz2\n".

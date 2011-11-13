@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManConfig.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -52,6 +52,10 @@ public:
 	emBoolRec SortDirectoriesFirst;
 
 	emBoolRec ShowHiddenFiles;
+
+	emStringRec ThemeName;
+
+	emBoolRec Autosave;
 
 	virtual const char * GetFormatName() const;
 

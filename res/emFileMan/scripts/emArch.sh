@@ -7,7 +7,7 @@
 Description="\
 emArch.sh
 
-Copyright (C) 2007-2008,2010 Oliver Hamann.
+Copyright (C) 2007-2008,2010-2011 Oliver Hamann.
 
 Homepage: http://eaglemode.sourceforge.net/
 
@@ -34,7 +34,7 @@ SUPPORTED FORMATS:
 Archive file name suffices    | Required system tools
 ------------------------------+----------------------
 .7z                           | 7z
-.ar|.a|.deb                   | ar
+.ar|.a|.deb|.ipk              | ar
 .arc                          | arc
 .arj                          | arj
 .bz             (unpack only) | bzip2
@@ -289,7 +289,8 @@ exec 7z a "$ArchFile" "$@"
 #----------------------------------- pack ar -----------------------------------
 *.ar|*.AR|*.Ar|\
 *.a|*.A|\
-*.deb|*.DEB|*.Deb)
+*.deb|*.DEB|*.Deb\
+*.ipk|*.IPK|*.Ipk)
 
 if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
@@ -660,7 +661,8 @@ exec 7z x "$ArchFile"
 #---------------------------------- unpack ar ----------------------------------
 *.ar|*.AR|*.Ar|\
 *.a|*.A|\
-*.deb|*.DEB|*.Deb)
+*.deb|*.DEB|*.Deb\
+*.ipk|*.IPK|*.Ipk)
 
 if test $TrustByOption != yes && test $Trust_ar != yes ; then
 	echo "Scanning archive listing for dangerous paths..."

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emToolkit.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -190,10 +190,10 @@ void emTkLook::MakeWritable()
 
 emTkLook::SharedData::SharedData()
 	: RefCount(UINT_MAX/2),
-	BgColor      (0xAAAAAAFF),
-	FgColor      (0x000000FF),
-	ButtonBgColor(0xCCCCCCFF),
-	ButtonFgColor(0x000000FF),
+	BgColor      (0x2A3F6BFF),
+	FgColor      (0xD0D7D2FF),
+	ButtonBgColor(0x2E332EFF),
+	ButtonFgColor(0xCBCBD6FF),
 	InputBgColor (0xFFFFFFFF),
 	InputFgColor (0x000000FF),
 	InputHlColor (0x0033BBFF),
@@ -944,7 +944,10 @@ void emTkBorder::DoBorder(
 				);
 			}
 		}
-		if (howToSpace>minSpace) rndX+=howToSpace-minSpace;
+		if (howToSpace>minSpace) {
+			rndX+=howToSpace-minSpace;
+			rndW-=howToSpace-minSpace;
+		}
 	}
 
 	if (LabelInBorder && HasLabel()) {
@@ -1287,15 +1290,29 @@ void emTkBorder::DoLabel(
 	}
 
 	if (!Icon.IsEmpty()) {
-		painter->PaintImage(
-			x,
-			y,
-			iconW*f,
-			capAndIconH*f,
-			Icon,
-			color.GetAlpha(),
-			canvasColor
-		);
+		if (Icon.GetChannelCount()==1) {
+			painter->PaintShape(
+				x,
+				y,
+				iconW*f,
+				capAndIconH*f,
+				Icon,
+				0,
+				color,
+				canvasColor
+			);
+		}
+		else {
+			painter->PaintImage(
+				x,
+				y,
+				iconW*f,
+				capAndIconH*f,
+				Icon,
+				color.GetAlpha(),
+				canvasColor
+			);
+		}
 	}
 	if (!Caption.IsEmpty()) {
 		painter->PaintTextBoxed(
@@ -2308,7 +2325,7 @@ void emTkButton::DoButton(
 		fw=bw-2*d;
 		fh=bh-2*d;
 		if (ShownRadioed) fr=fw*0.5;
-		else fr=fw*24.0/120;
+		else fr=bw*24.0/120-d;
 
 		if (func==BUTTON_FUNC_CHECK_MOUSE) {
 			dx=emMax(emMax(fx-mx,mx-fx-fw)+fr,0.0);
@@ -2874,7 +2891,7 @@ void emTkTextField::SetOverwriteMode(bool overwriteMode)
 }
 
 
-void emTkTextField::SetText(emString text)
+void emTkTextField::SetText(const emString & text)
 {
 	if (Text==text) return;
 	EmptySelection();
@@ -3715,7 +3732,12 @@ void emTkTextField::DoTextField(
 		}
 	}
 
-	if (!IsEnabled()) painter->PaintRoundRect(x,y,w,h,r,r,0x888888E0);
+	if (!IsEnabled()) {
+		painter->PaintRoundRect(
+			x,y,w,h,r,r,
+			GetLook().GetBgColor().GetTransparented(20.0F)
+		);
+	}
 }
 
 
@@ -4561,13 +4583,17 @@ void emTkScalarField::DoScalarField(
 		return;
 	}
 
-	if (IsEditable()) {
+	if (GetInnerBorderType()==IBT_INPUT_FIELD) {
 		bgCol=GetLook().GetInputBgColor();
 		fgCol=GetLook().GetInputFgColor();
 	}
-	else {
+	else if (GetInnerBorderType()==IBT_OUTPUT_FIELD) {
 		bgCol=GetLook().GetOutputBgColor();
 		fgCol=GetLook().GetOutputFgColor();
+	}
+	else {
+		bgCol=GetLook().GetBgColor();
+		fgCol=GetLook().GetFgColor();
 	}
 
 	col=bgCol.GetBlended(fgCol,25);
@@ -4626,7 +4652,12 @@ void emTkScalarField::DoScalarField(
 		}
 	}
 
-	if (!IsEnabled()) painter->PaintRoundRect(x,y,w,h,r,r,0x888888E0);
+	if (!IsEnabled()) {
+		painter->PaintRoundRect(
+			x,y,w,h,r,r,
+			GetLook().GetBgColor().GetTransparented(20.0F)
+		);
+	}
 }
 
 
@@ -5043,10 +5074,17 @@ void emTkColorField::PaintContent(
 	emColor canvasColor
 )
 {
-	double d;
+	double d,r;
 
+	GetContentRoundRect(&x,&y,&w,&h,&r);
 	d=emMin(w,h)*0.1;
-
+	if (!IsEnabled()) {
+		painter.PaintRoundRect(
+			x,y,w,h,r,r,
+			GetLook().GetBgColor().GetTransparented(20.0F)
+		);
+		canvasColor=0;
+	}
 	if (!Color.IsOpaque()) {
 		painter.PaintTextBoxed(
 			x+d,y+d,w-2*d,h-2*d,
@@ -5130,22 +5168,18 @@ void emTkColorField::UpdateExpAppearance()
 	if (!Exp) return;
 
 	look=GetLook();
-	if (Editable) {
-		bg=look.GetInputBgColor();
-		fg=look.GetInputFgColor();
+	if (IsEnabled()) {
+		if (Editable) {
+			bg=look.GetInputBgColor();
+			fg=look.GetInputFgColor();
+		}
+		else {
+			bg=look.GetOutputBgColor();
+			fg=look.GetOutputFgColor();
+		}
+		look.SetBgColor(bg);
+		look.SetFgColor(fg);
 	}
-	else {
-		bg=look.GetOutputBgColor();
-		fg=look.GetOutputFgColor();
-	}
-	bg=bg.GetTransparented(12.0F);
-	fg=fg.GetTransparented(12.0F);
-	look.SetBgColor(bg);
-	look.SetFgColor(fg);
-	look.SetInputBgColor(bg);
-	look.SetInputFgColor(fg);
-	look.SetOutputBgColor(bg);
-	look.SetOutputFgColor(fg);
 	Exp->Tiling->SetLook(look,true);
 
 	Exp->SfRed  ->SetEditable(Editable);
@@ -5688,7 +5722,7 @@ emTkDialog::DlgPanel::~DlgPanel()
 }
 
 
-void emTkDialog::DlgPanel::SetTitle(emString title)
+void emTkDialog::DlgPanel::SetTitle(const emString & title)
 {
 	if (Title!=title) {
 		Title=title;

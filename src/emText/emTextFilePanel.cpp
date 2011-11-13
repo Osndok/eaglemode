@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -123,10 +123,12 @@ emPanel * emTextFilePanel::CreateControlPanel(
 		grp->SetPrefChildTallness(0.2);
 
 		switch (Model->GetCharEncoding()) {
-			case emTextFileModel::CE_7BIT: p="7-Bit" ; break;
-			case emTextFileModel::CE_8BIT: p="8-Bit" ; break;
-			case emTextFileModel::CE_UTF8: p="UTF-8" ; break;
-			default:                       p="Binary";
+			case emTextFileModel::CE_7BIT   : p="7-Bit"    ; break;
+			case emTextFileModel::CE_8BIT   : p="8-Bit"    ; break;
+			case emTextFileModel::CE_UTF8   : p="UTF-8"    ; break;
+			case emTextFileModel::CE_UTF16LE: p="UTF-16LE" ; break;
+			case emTextFileModel::CE_UTF16BE: p="UTF-16BE" ; break;
+			default                         : p="Binary"   ;
 		}
 		new emTkTextField(
 			grp,
@@ -271,9 +273,33 @@ void emTextFilePanel::PaintAsText(
 				i2=0;
 				col=0;
 				for (;;) {
-					while (i2<i3 && pRow[i2]==0x09) { col=(col+8)&~7; i2++; }
-					i1=i2;
-					while (i2<i3 && pRow[i2]!=0x09) i2++;
+					switch (Model->GetCharEncoding()) {
+					case emTextFileModel::CE_UTF16LE:
+						while (i2<i3 && (((emByte)pRow[i2])|(((emByte)pRow[i2+1])<<8))==0x09) {
+							col=(col+8)&~7;
+							i2+=2;
+						}
+						i1=i2;
+						while (i2<i3 && (((emByte)pRow[i2])|(((emByte)pRow[i2+1])<<8))!=0x09) {
+							i2+=2;
+						}
+						break;
+					case emTextFileModel::CE_UTF16BE:
+						while (i2<i3 && ((((emByte)pRow[i2])<<8)|((emByte)pRow[i2+1]))==0x09) {
+							col=(col+8)&~7;
+							i2+=2;
+						}
+						i1=i2;
+						while (i2<i3 && ((((emByte)pRow[i2])<<8)|((emByte)pRow[i2+1]))!=0x09) {
+							i2+=2;
+						}
+						break;
+					default:
+						while (i2<i3 && pRow[i2]==0x09) { col=(col+8)&~7; i2++; }
+						i1=i2;
+						while (i2<i3 && pRow[i2]!=0x09) i2++;
+						break;
+					}
 					if (i1>=i2) break;
 					switch (Model->GetCharEncoding()) {
 					case emTextFileModel::CE_UTF8:
@@ -331,6 +357,20 @@ void emTextFilePanel::PaintAsText(
 							);
 							col+=i2-i1;
 						}
+						break;
+					case emTextFileModel::CE_UTF16LE:
+					case emTextFileModel::CE_UTF16BE:
+						col+=PaintTextUtf16(
+							painter,
+							x+col*cw,
+							y,
+							cw,
+							ch,
+							pRow+i1,
+							i2-i1,
+							textFgColor,
+							textBgColor
+						);
 						break;
 					default:
 						painter.PaintText(
@@ -482,6 +522,73 @@ int emTextFilePanel::PaintTextUtf8To8Bit(
 		);
 	}
 	return columns;
+}
+
+
+int emTextFilePanel::PaintTextUtf16(
+	const emPainter & painter, double x, double y, double charWidth,
+	double charHeight, const char * text, int textLen,
+	emColor color, emColor canvasColor
+) const
+{
+	char buf[256];
+	int i,l,c,c2,pos,bufPos,sh1,sh2;
+	bool isUtf8;
+
+	if (Model->GetCharEncoding()==emTextFileModel::CE_UTF16LE) { sh1=0; sh2=8; }
+	else { sh1=8; sh2=0; }
+	isUtf8=emIsUtf8System();
+	pos=0;
+	bufPos=0;
+	l=0;
+	for (i=0; i<textLen; ) {
+		if (l>=(int)sizeof(buf)-6) {
+			painter.PaintText(
+				x+bufPos*charWidth,
+				y,
+				buf,
+				charHeight,
+				1.0,
+				color,
+				canvasColor,
+				l
+			);
+			bufPos=pos;
+			l=0;
+		}
+		c=((((emByte)text[i])<<sh1)|(((emByte)text[i+1])<<sh2));
+		i+=2;
+		if (c<128) {
+			buf[l++]=(char)c;
+			pos++;
+		}
+		else if (c!=0xFEFF) {
+			if (c>=0xD800 && c<=0xDBFF && i<textLen) {
+				c2=((((emByte)text[i])<<sh1)|(((emByte)text[i+1])<<sh2));
+				if (c2>=0xDC00 && c2<=0xDFFF) {
+					i+=2;
+					c=0x10000+((c&0x03FF)<<10)+(c2&0x03FF);
+				}
+			}
+			if (isUtf8) l+=emEncodeUtf8Char(buf+l,c);
+			else if (c<256) buf[l++]=(char)c;
+			else buf[l++]='?';
+			pos++;
+		}
+	}
+	if (l>0) {
+		painter.PaintText(
+			x+bufPos*charWidth,
+			y,
+			buf,
+			charHeight,
+			1.0,
+			color,
+			canvasColor,
+			l
+		);
+	}
+	return pos;
 }
 
 

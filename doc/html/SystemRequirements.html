@@ -24,7 +24,7 @@ carefully.
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Disk:</B></TD>
-		<TD>About 15 MB disk space for installation, 1 GB for temporary
+		<TD>About 30 MB disk space for installation, 1 GB for temporary
 		files at run-time. The disk should be quite fast and without
 		frequent sleep states (notebook hard disks are not so
 		suitable).</TD>
@@ -35,8 +35,8 @@ carefully.
 		may also be suitable (tested were FreeBSD, OpenSolaris, Cygwin
 		and Mac OS X 10.5). Eagle Mode also runs on Windows &ge;
 		2000-SP2, but several features are not ported (UTF-8 encoding,
-		time zones, audio/video player, postscript viewer, SVG viewer,
-		viewers that perform temporary conversion).</TD>
+		time zones, audio/video player, postscript viewer, PDF viewer,
+		SVG viewer, viewers that perform temporary conversion).</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Graphics:</B></TD>
@@ -66,12 +66,12 @@ carefully.
 		<TD><B>Required?</B></TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>perl&nbsp;(Perl&nbsp;&gt;=5.8)</TD>
+		<TD>perl&nbsp;(Perl&nbsp;&ge;&nbsp;5.8)</TD>
 		<TD>perl</TD>
 		<TD>By all means (but on Windows only for compilation)</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>gcc&nbsp;(GCC&nbsp;&gt;=3.3)</TD>
+		<TD>gcc&nbsp;(GCC&nbsp;&ge;&nbsp;3.3)</TD>
 		<TD>g++</TD>
 		<TD>Only for compilation. If you want to use another compiler,
 		then please read the Compilers section at the end of
@@ -89,7 +89,7 @@ carefully.
 		<TD>Highly recommended (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>gs&nbsp;(Ghostscript&nbsp;&gt;=8.x)</TD>
+		<TD>gs&nbsp;(Ghostscript&nbsp;&ge;&nbsp;8.x)</TD>
 		<TD>ghostscript</TD>
 		<TD>Highly recommended (not on Windows)</TD>
 	</TR>
@@ -117,6 +117,11 @@ carefully.
 		<TD>RSVG library 2.x</TD>
 		<TD>librsvg2-dev</TD>
 		<TD>Only for viewing svg files (not on Windows)</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>Poppler-glib library</TD>
+		<TD>libpoppler-glib-dev</TD>
+		<TD>Only for viewing pdf files (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD>freetype library 2.x</TD>
@@ -201,7 +206,7 @@ carefully.
 	</TR>
 	<TR VALIGN="top">
 		<TD>dvips</TD>
-		<TD>tetex-bin</TD>
+		<TD>texlive-binaries</TD>
 		<TD>Only for viewing dvi files (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
@@ -223,11 +228,6 @@ carefully.
 		<TD>isoinfo</TD>
 		<TD>genisoimage</TD>
 		<TD>Only for viewing infos from iso files (not on Windows)</TD>
-	</TR>
-	<TR VALIGN="top">
-		<TD>pdf2ps</TD>
-		<TD>gs-common</TD>
-		<TD>Only for viewing pdf files (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD>povray</TD>
@@ -255,7 +255,7 @@ carefully.
 <B><FONT SIZE=5>Do not have the wrong program to a name</FONT></B>
 <P>
 Eagle Mode runs many standard programs by names like they have on Debian
-GNU/Linux 5.0. Your system must not have another program with one of those
+GNU/Linux 6.0. Your system must not have another program with one of those
 names, otherwise unforeseeable things could happen. For example, Eagle Mode runs
 "gs" when it means Ghostscript, and therefore you should not have another
 program named "gs" which, for example, formats the hard disk. In detail, Eagle

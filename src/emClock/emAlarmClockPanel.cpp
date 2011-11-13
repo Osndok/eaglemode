@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,6 +58,8 @@ emAlarmClockPanel::emAlarmClockPanel(
 		"clicking this means to get the alarm again\n"
 		"after 24 hours."
 	);
+
+	FileModel->TkLook.Apply(this,true);
 
 	AddWakeUpSignal(GetVirFileStateSignal());
 	AddWakeUpSignal(FileModel->GetChangeSignal());

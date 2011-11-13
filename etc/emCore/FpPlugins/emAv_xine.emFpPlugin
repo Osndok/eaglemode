@@ -28,6 +28,7 @@ FileTypes = {
  ".mpeg"
  ".mpg"
  ".mpv"
+ ".ogv"
  ".rm"
  ".vob"
  ".wmv"

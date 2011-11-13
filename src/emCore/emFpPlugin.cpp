@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,7 +18,6 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <sys/stat.h>
 #include <emCore/emInstallInfo.h>
 #include <emCore/emErrorPanel.h>
 #include <emCore/emFpPlugin.h>
@@ -121,11 +120,11 @@ emPanel * emFpPluginList::CreateFilePanel(
 )
 {
 	emString absPath;
-	struct stat st;
+	struct em_stat st;
 	int err;
 
 	absPath=emGetAbsolutePath(path);
-	err=stat(absPath.Get(),&st);
+	err=em_stat(absPath.Get(),&st);
 	if (err) err=errno;
 	return CreateFilePanel(parent,name,absPath,err,st.st_mode,alternative);
 }

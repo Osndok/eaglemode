@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.h
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,8 +81,10 @@ private:
 
 	void SendLaunchFeedback();
 
-	static void GetAbsWinGeometry(Display * disp, ::Window win,
-	                              int * pX, int *pY, int * pW, int *pH);
+	void RestoreCursor();
+
+	void GetAbsWinGeometry(Display * disp, ::Window win,
+	                       int * pX, int *pY, int * pW, int *pH);
 
 	struct InvRect {
 		InvRect * Next;
@@ -90,6 +92,7 @@ private:
 	};
 
 	emX11Screen & Screen;
+	emThreadMiniMutex & XMutex;
 	Display * Disp;
 	emX11WindowPort * Owner;
 	::Window Win;

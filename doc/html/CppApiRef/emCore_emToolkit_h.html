@@ -1467,7 +1467,7 @@
                 <SPAN CLASS=c>// Signaled whenever the text has changed.
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetText() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>SetText(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> text);
+        <SPAN CLASS=t>void </SPAN>SetText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text);
                 <SPAN CLASS=c>// The text.
 
         </SPAN><SPAN CLASS=t>int </SPAN>GetTextLen() <SPAN CLASS=t>const</SPAN>;
@@ -2230,7 +2230,7 @@
         </SPAN><SPAN CLASS=t>public</SPAN>:
                 DlgPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
                 <SPAN CLASS=t>virtual </SPAN>~DlgPanel();
-                <SPAN CLASS=t>void </SPAN>SetTitle(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> title);
+                <SPAN CLASS=t>void </SPAN>SetTitle(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title);
                 <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
                 <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Title;
                 <A CLASS=l HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A> * ContentTiling;

@@ -3,7 +3,7 @@ package emShowStdDlg;
 use strict;
 use warnings;
 
-sub GetDepedencies
+sub GetDependencies
 {
 	return ('emCore');
 }

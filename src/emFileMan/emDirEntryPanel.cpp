@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,35 +18,16 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <sys/stat.h>
 #if defined(_WIN32)
-#	include <io.h>
-#	ifndef S_IRUSR
-#		define S_IRUSR _S_IREAD
-#	endif
-#	ifndef S_IWUSR
-#		define S_IWUSR _S_IWRITE
-#	endif
+#	include <windows.h>
 #	ifndef S_IXUSR
-#		define S_IXUSR _S_IEXEC
-#	endif
-#	ifndef S_IRGRP
-#		define S_IRGRP S_IRUSR
-#	endif
-#	ifndef S_IWGRP
-#		define S_IWGRP S_IWUSR
+#		define S_IXUSR 0100
 #	endif
 #	ifndef S_IXGRP
-#		define S_IXGRP S_IXUSR
-#	endif
-#	ifndef S_IROTH
-#		define S_IROTH S_IRGRP
-#	endif
-#	ifndef S_IWOTH
-#		define S_IWOTH S_IWGRP
+#		define S_IXGRP 0010
 #	endif
 #	ifndef S_IXOTH
-#		define S_IXOTH S_IXGRP
+#		define S_IXOTH 0001
 #	endif
 #else
 #	include <unistd.h>
@@ -64,18 +45,12 @@ emDirEntryPanel::emDirEntryPanel(
 )
 	: emPanel(parent,name), DirEntry(dirEntry)
 {
-	SharedVar=emVarModel<SharedStuff>::Acquire(GetRootContext(),"");
-	if (!SharedVar->Var.FileMan) {
-		SharedVar->Var.FileMan=emFileManModel::Acquire(GetRootContext());
-		SharedVar->Var.InnerBorderImage=emGetInsResImage(
-			GetRootContext(),"emFileMan","images/InnerBorder.tga"
-		);
-		SharedVar->Var.OuterBorderImage=emGetInsResImage(
-			GetRootContext(),"emFileMan","images/OuterBorder.tga"
-		);
-	}
+	FileMan=emFileManModel::Acquire(GetRootContext());
+	Config=emFileManViewConfig::Acquire(GetView());
+	BgColor=0;
 
-	AddWakeUpSignal(SharedVar->Var.FileMan->GetSelectionSignal());
+	AddWakeUpSignal(FileMan->GetSelectionSignal());
+	AddWakeUpSignal(Config->GetChangeSignal());
 
 	UpdateBgColor();
 }
@@ -88,21 +63,30 @@ emDirEntryPanel::~emDirEntryPanel()
 
 void emDirEntryPanel::UpdateDirEntry(const emDirEntry & dirEntry)
 {
+	bool pathChanged, errOrFmtChanged;
 	emPanel * p;
 
 	if (DirEntry == dirEntry) return;
 
-	if (dirEntry.GetPath() != DirEntry.GetPath()) {
-		emFatalError("emDirEntryPanel::UpdateDirEntry: different path");
-	}
+	pathChanged = (dirEntry.GetPath() != DirEntry.GetPath());
+
+	errOrFmtChanged = (
+		dirEntry.GetStatErrNo() != DirEntry.GetStatErrNo() ||
+		(dirEntry.GetStat()->st_mode&S_IFMT) != (DirEntry.GetStat()->st_mode&S_IFMT)
+	);
+
+	DirEntry=dirEntry;
+
+	InvalidatePainting();
+
+	if (pathChanged || errOrFmtChanged) UpdateContentPanel(true);
+
+	if (pathChanged) UpdateBgColor();
 
 	p=GetChild(AltName);
 	if (p) {
 		((emDirEntryAltPanel*)p)->UpdateDirEntry(dirEntry);
 	}
-
-	DirEntry=dirEntry;
-	InvalidatePainting();
 }
 
 
@@ -114,7 +98,13 @@ emString emDirEntryPanel::GetTitle()
 
 bool emDirEntryPanel::Cycle()
 {
-	if (IsSignaled(SharedVar->Var.FileMan->GetSelectionSignal())) {
+	if (IsSignaled(FileMan->GetSelectionSignal())) {
+		UpdateBgColor();
+	}
+	if (IsSignaled(Config->GetChangeSignal())) {
+		InvalidatePainting();
+		UpdateContentPanel(false,true);
+		UpdateAltPanel(false,true);
 		UpdateBgColor();
 	}
 	return false;
@@ -123,79 +113,9 @@ bool emDirEntryPanel::Cycle()
 
 void emDirEntryPanel::Notice(NoticeFlags flags)
 {
-	const char * soughtName;
-	emRef<emFpPluginList> fppl;
-	emPanel * p;
-
 	if ((flags&(NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED|NF_VISIT_CHANGED))!=0) {
-		soughtName=GetSoughtName();
-		p=GetChild(ContentName);
-		if (
-			(
-				soughtName &&
-				strcmp(soughtName,ContentName)==0
-			) ||
-			(
-				IsViewed() &&
-				GetViewedWidth()*LayoutContentW>=MinContentVW &&
-				PanelToViewX(LayoutContentX)<GetClipX2() &&
-				PanelToViewX(LayoutContentX+LayoutContentW)>GetClipX1() &&
-				PanelToViewY(LayoutContentY)<GetClipY2() &&
-				PanelToViewY(LayoutContentY+LayoutContentH)>GetClipY1()
-			)
-		) {
-			if (!p) {
-				fppl=emFpPluginList::Acquire(GetRootContext());
-				p=fppl->CreateFilePanel(
-					this,
-					ContentName,
-					DirEntry.GetPath(),
-					DirEntry.GetStatErrNo(),
-					DirEntry.GetStat()->st_mode
-				);
-				p->BeFirst();
-				p->Layout(
-					LayoutContentX,LayoutContentY,
-					LayoutContentW,LayoutContentH,
-					ColorBGNormal
-				);
-			}
-		}
-		else if (p && !p->IsInVisitedPath()) {
-			delete p;
-		}
-		p=GetChild(AltName);
-		if (
-			(
-				soughtName &&
-				strcmp(soughtName,AltName)==0
-			) ||
-			(
-				IsViewed() &&
-				GetViewedWidth()*LayoutAltW>=MinAltVW &&
-				PanelToViewX(LayoutAltX)<GetClipX2() &&
-				PanelToViewX(LayoutAltX+LayoutAltW)>GetClipX1() &&
-				PanelToViewY(LayoutAltY)<GetClipY2() &&
-				PanelToViewY(LayoutAltY+LayoutAltH)>GetClipY1()
-			)
-		) {
-			if (!p) {
-				p=new emDirEntryAltPanel(
-					this,
-					AltName,
-					DirEntry,
-					1
-				);
-				p->Layout(
-					LayoutAltX,LayoutAltY,
-					LayoutAltW,LayoutAltH,
-					BgColor
-				);
-			}
-		}
-		else if (p && !p->IsInVisitedPath()) {
-			delete p;
-		}
+		UpdateContentPanel();
+		UpdateAltPanel();
 	}
 }
 
@@ -254,336 +174,192 @@ void emDirEntryPanel::Input(
 	emPanel::Input(event,state,mx,my);
 
 	if (event.IsKeyboardEvent()) {
-		SharedVar->Var.FileMan->HotkeyInput(GetView(),event,state);
+		FileMan->HotkeyInput(GetView(),event,state);
 	}
 }
 
 
 bool emDirEntryPanel::IsOpaque()
 {
-	return false;
+	const emFileManTheme * theme;
+
+	theme = &Config->GetTheme();
+
+	return
+		BgColor.IsOpaque() &&
+		theme->BackgroundX <= 0.0 &&
+		theme->BackgroundY <= 0.0 &&
+		theme->BackgroundW >= 1.0 &&
+		theme->BackgroundH >= GetHeight() &&
+		theme->BackgroundRX <= 0.0 &&
+		theme->BackgroundRY <= 0.0
+	;
 }
 
 
 void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
+	const emFileManTheme * theme;
 	emColor color;
-	emString str;
-	char tmp[1024];
-	const char * p;
-	double w,ws,ch,cw,ch2,x,y,x1,y1;
-	int i,j,k,len;
+	double t;
+
+	theme = &Config->GetTheme();
 
 	painter.PaintRoundRect(
-		0.0,
-		0.0,
-		1-LayoutFrame*(32.0/96.0),
-		HeightFactor-LayoutFrame*(32.0/96.0),
-		LayoutFrame,
-		LayoutFrame,
+		theme->BackgroundX,
+		theme->BackgroundY,
+		theme->BackgroundW,
+		theme->BackgroundH,
+		theme->BackgroundRX,
+		theme->BackgroundRY,
 		BgColor,
 		canvasColor
 	);
-	if (!canvasColor.IsOpaque() || BgColor!=canvasColor) canvasColor=0;
+
+	if (
+		BgColor==canvasColor || (
+			theme->OuterBorderX >= theme->BackgroundX + theme->BackgroundRX * 0.3 &&
+			theme->OuterBorderY >= theme->BackgroundY + theme->BackgroundRY * 0.3 &&
+			theme->OuterBorderW <= theme->BackgroundX + theme->BackgroundW -
+				theme->BackgroundRX * 0.3 - theme->OuterBorderX &&
+			theme->OuterBorderH <= theme->BackgroundY + theme->BackgroundH -
+				theme->BackgroundRY * 0.3 - theme->OuterBorderY
+		)
+	) {
+		canvasColor=BgColor;
+	}
+	else {
+		canvasColor=0;
+	}
 	painter.PaintBorderImage(
-		0,0,1,HeightFactor,
-		LayoutFrame*(124.0/96.0),
-		LayoutFrame*(121.0/96.0),
-		LayoutFrame*(129.0/96.0),
-		LayoutFrame*(128.0/96.0),
-		SharedVar->Var.OuterBorderImage,
-		124.0,
-		121.0,
-		129.0,
-		128.0,
+		theme->OuterBorderX,
+		theme->OuterBorderY,
+		theme->OuterBorderW,
+		theme->OuterBorderH,
+		theme->OuterBorderL,
+		theme->OuterBorderT,
+		theme->OuterBorderR,
+		theme->OuterBorderB,
+		theme->OuterBorderImg.GetImage(),
+		theme->OuterBorderImgL,
+		theme->OuterBorderImgT,
+		theme->OuterBorderImgR,
+		theme->OuterBorderImgB,
 		255,
 		canvasColor,
 		0757
 	);
+
 	canvasColor=BgColor;
 
 	if (DirEntry.IsRegularFile()) {
 		if (DirEntry.GetStat()->st_mode&(S_IXUSR|S_IXGRP|S_IXOTH))
-			color=ColorNameExe;
+			color=theme->ExeNameColor;
 		else
-			color=ColorNameNormal;
+			color=theme->NormalNameColor;
 	}
-	else if (DirEntry.IsDirectory()) color=ColorNameDir;
+	else if (DirEntry.IsDirectory()) color=theme->DirNameColor;
 #if !defined(_WIN32)
-	else if (S_ISFIFO(DirEntry.GetStat()->st_mode)) color=ColorNameFifo;
-	else if (S_ISBLK (DirEntry.GetStat()->st_mode)) color=ColorNameBlk;
-	else if (S_ISCHR (DirEntry.GetStat()->st_mode)) color=ColorNameChr;
-	else if (S_ISSOCK(DirEntry.GetStat()->st_mode)) color=ColorNameSock;
+	else if (S_ISFIFO(DirEntry.GetStat()->st_mode)) color=theme->FifoNameColor;
+	else if (S_ISBLK (DirEntry.GetStat()->st_mode)) color=theme->BlkNameColor;
+	else if (S_ISCHR (DirEntry.GetStat()->st_mode)) color=theme->ChrNameColor;
+	else if (S_ISSOCK(DirEntry.GetStat()->st_mode)) color=theme->SockNameColor;
 #endif
-	else color=ColorNameOther;
+	else color=theme->OtherNameColor;
 	if (DirEntry.IsHidden()) color=color.GetTransparented(27.0F);
 	painter.PaintTextBoxed(
-		LayoutTitleX,
-		LayoutTitleY,
-		LayoutTitleW,
-		LayoutTitleH,
+		theme->NameX,
+		theme->NameY,
+		theme->NameW,
+		theme->NameH,
 		DirEntry.GetName(),
-		LayoutTitleH,
+		theme->NameH,
 		color,
 		canvasColor,
-		EM_ALIGN_LEFT,
+		theme->NameAlignment,
 		EM_ALIGN_LEFT,
 		0.5,
 		false
 	);
 
-	if (BgColor==ColorBGTgt || BgColor==ColorBGSrc) {
-		if (BgColor==ColorBGTgt) {
-			p="Target-Selected";
-			color=0x440000C0;
-		}
-		else {
-			p="Source-Selected";
-			color=0x004400C0;
-		}
+	PaintInfo(
+		painter,
+		theme->InfoX,
+		theme->InfoY,
+		theme->InfoW,
+		theme->InfoH,
+		theme->InfoAlignment,
+		canvasColor
+	);
+
+	t = DirEntry.IsDirectory() ? theme->DirContentW : theme->FileContentW;
+	if (GetChild(ContentName) || GetViewedWidth()*t >= theme->MinContentVW) {
 		painter.PaintTextBoxed(
-			LayoutTitleX,
-			LayoutFrame,
-			LayoutTitleW,
-			LayoutTitleH,
-			p,
-			LayoutTitleH*0.12,
-			color,
-			0,
-			EM_ALIGN_TOP_RIGHT
-		);
-	}
-
-	ch=LayoutInfoH*0.21;
-	if (ch*GetViewedWidth()>1.0) {
-		cw=painter.GetTextSize("X",ch,false);
-		ch2=ch*0.15;
-		x1=LayoutInfoX;
-		y1=LayoutInfoY;
-		w=LayoutInfoW;
-
-		x=x1;
-		y=y1;
-
-		if (ch2*GetViewedWidth()>1.0) {
-			painter.PaintText(x,y,"Type",ch2,1.0,ColorInfoLabel,canvasColor);
-		}
-		y+=ch2;
-
-		if      (DirEntry.IsRegularFile())              p="File";
-		else if (DirEntry.IsDirectory())                p="Directory";
-#if !defined(_WIN32)
-		else if (S_ISFIFO(DirEntry.GetStat()->st_mode)) p="FIFO";
-		else if (S_ISBLK (DirEntry.GetStat()->st_mode)) p="Block Device";
-		else if (S_ISCHR (DirEntry.GetStat()->st_mode)) p="Char Device";
-		else if (S_ISSOCK(DirEntry.GetStat()->st_mode)) p="Socket";
-#endif
-		else                                            p="Unknown Type";
-		if (DirEntry.IsSymbolicLink()) {
-			sprintf(tmp,"Symbolic Link to %s:",p);
-			painter.PaintTextBoxed(
-				x,
-				y,
-				w,
-				ch/2,
-				tmp,
-				ch/2,
-				ColorSymLink,
-				canvasColor,
-				EM_ALIGN_LEFT,
-				EM_ALIGN_LEFT,
-				0.5,
-				false
-			);
-			if (DirEntry.GetTargetPathErrNo()) {
-				str=emGetErrorText(DirEntry.GetTargetPathErrNo());
-			}
-			else {
-				str=DirEntry.GetTargetPath();
-			}
-			painter.PaintTextBoxed(
-				x,
-				y+ch/2,
-				w,
-				ch/2,
-				str,
-				ch/2,
-				ColorSymLink,
-				canvasColor,
-				EM_ALIGN_LEFT,
-				EM_ALIGN_LEFT,
-				0.5,
-				false
-			);
-		}
-		else {
-			painter.PaintTextBoxed(
-				x,
-				y,
-				w,
-				ch,
-				p,
-				ch,
-				ColorInfo,
-				canvasColor,
-				EM_ALIGN_LEFT,
-				EM_ALIGN_LEFT,
-				0.5,
-				false
-			);
-		}
-		y+=ch*1.1;
-
-		if (ch2*GetViewedWidth()>1.0) {
-			painter.PaintText(
-				x,y,"Permissions of Owner, Group and Others",ch2,1.0,
-				ColorInfoLabel,canvasColor
-			);
-			painter.PaintText(
-				x+w/2+cw/2,y,"Size in Bytes",ch2,1.0,
-				ColorInfoLabel,canvasColor
-			);
-		}
-		y+=ch2;
-		ws=(w-cw)/(cw*20);
-		if (ws>1.0) ws=1.0;
-		tmp[0]=((DirEntry.GetStat()->st_mode&S_IRUSR)?'r':'-');
-		tmp[1]=((DirEntry.GetStat()->st_mode&S_IWUSR)?'w':'-');
-		tmp[2]=((DirEntry.GetStat()->st_mode&S_IXUSR)?'x':'-');
-		tmp[3]=0;
-		painter.PaintText(x,y,tmp,ch,ws,ColorInfo,canvasColor);
-		tmp[0]=((DirEntry.GetStat()->st_mode&S_IRGRP)?'r':'-');
-		tmp[1]=((DirEntry.GetStat()->st_mode&S_IWGRP)?'w':'-');
-		tmp[2]=((DirEntry.GetStat()->st_mode&S_IXGRP)?'x':'-');
-		tmp[3]=0;
-		painter.PaintText(x+cw*3.5*ws,y,tmp,ch,ws,ColorInfo,canvasColor);
-		tmp[0]=((DirEntry.GetStat()->st_mode&S_IROTH)?'r':'-');
-		tmp[1]=((DirEntry.GetStat()->st_mode&S_IWOTH)?'w':'-');
-		tmp[2]=((DirEntry.GetStat()->st_mode&S_IXOTH)?'x':'-');
-		tmp[3]=0;
-		painter.PaintText(x+cw*7*ws,y,tmp,ch,ws,ColorInfo,canvasColor);
-		len=emUInt64ToStr(tmp,sizeof(tmp),DirEntry.GetStat()->st_size);
-		ws=(w-cw)/(cw*len*32/15);
-		if (ws>1.0) ws=1.0;
-		x=x1+(w+cw)/2;
-		for (i=0; i<len; i+=j) {
-			j=(len-i)-(len-i-1)/3*3;
-			painter.PaintText(x,y,tmp+i,ch,ws,ColorInfo,canvasColor,j);
-			x+=cw*j*ws;
-			k=(len-i-j)/3-1;
-			if (k>=0) {
-				painter.PaintText(
-					x,
-					y+ch*0.75,
-					"kMGTPEZY"+k,
-					ch/5,
-					ws,
-					ColorInfo,
-					canvasColor,
-					1
-				);
-			}
-			x+=cw/5*ws;
-		}
-		x=x1;
-		y+=ch*1.1;
-
-		if (ch2*GetViewedWidth()>1.0) {
-			painter.PaintText(x,y,"Owner",ch2,1.0,ColorInfoLabel,canvasColor);
-			painter.PaintText(
-				x+w/2+cw/2,y,"Group",ch2,1.0,
-				ColorInfoLabel,canvasColor
-			);
-		}
-		y+=ch2;
-
-		painter.PaintTextBoxed(
-			x,
-			y,
-			(w-cw)/2,
-			ch,
-			DirEntry.GetOwner(),
-			ch,
-			ColorInfo,
-			canvasColor,
-			EM_ALIGN_LEFT,
-			EM_ALIGN_LEFT,
-			0.5,
-			false
-		);
-		painter.PaintTextBoxed(
-			x+(w+cw)/2,
-			y,
-			(w-cw)/2,
-			ch,
-			DirEntry.GetGroup(),
-			ch,
-			ColorInfo,
-			canvasColor,
-			EM_ALIGN_LEFT,
-			EM_ALIGN_LEFT,
-			0.5,
-			false
-		);
-		y+=ch*1.1;
-
-		if (ch2*GetViewedWidth()>1.0) {
-			painter.PaintText(
-				x,y,"Time of Last Modification",ch2,1.0,
-				ColorInfoLabel,canvasColor
-			);
-		}
-		y+=ch2;
-		FormatTime(DirEntry.GetStat()->st_mtime,tmp);
-		painter.PaintTextBoxed(
-			x,
-			y,
-			w,
-			ch,
-			tmp,
-			ch,
-			ColorInfo,
-			canvasColor,
-			EM_ALIGN_LEFT,
-			EM_ALIGN_LEFT,
-			0.5,
-			false
-		);
-	}
-
-	if (GetChild(ContentName) || GetViewedWidth()*LayoutContentW >= MinContentVW) {
-		painter.PaintTextBoxed(
-			LayoutPathX,
-			LayoutPathY,
-			LayoutPathW,
-			LayoutPathH,
+			theme->PathX,
+			theme->PathY,
+			theme->PathW,
+			theme->PathH,
 			DirEntry.GetPath(),
-			LayoutPathH,
-			ColorPath,
+			theme->PathH,
+			theme->PathColor,
 			canvasColor,
-			EM_ALIGN_BOTTOM_LEFT,
+			theme->PathAlignment,
 			EM_ALIGN_LEFT,
 			0.5,
 			false
 		);
-		painter.PaintBorderImage(
-			LayoutContentX-LayoutContentFrame,
-			LayoutContentY-LayoutContentFrame,
-			LayoutContentW+LayoutContentFrame*2,
-			LayoutContentH+LayoutContentFrame*2,
-			LayoutContentFrame,
-			LayoutContentFrame,
-			LayoutContentFrame,
-			LayoutContentFrame,
-			SharedVar->Var.InnerBorderImage,
-			64.0,64.0,64.0,64.0,
-			255,canvasColor,0757
-		);
-		painter.PaintRect(
-			LayoutContentX,LayoutContentY,
-			LayoutContentW,LayoutContentH,
-			ColorBGNormal,canvasColor
-		);
+		if (DirEntry.IsDirectory()) {
+			painter.PaintBorderImage(
+				theme->DirInnerBorderX,
+				theme->DirInnerBorderY,
+				theme->DirInnerBorderW,
+				theme->DirInnerBorderH,
+				theme->DirInnerBorderL,
+				theme->DirInnerBorderT,
+				theme->DirInnerBorderR,
+				theme->DirInnerBorderB,
+				theme->DirInnerBorderImg.GetImage(),
+				theme->DirInnerBorderImgL,
+				theme->DirInnerBorderImgT,
+				theme->DirInnerBorderImgR,
+				theme->DirInnerBorderImgB,
+				255,canvasColor,0757
+			);
+			painter.PaintRect(
+				theme->DirContentX,
+				theme->DirContentY,
+				theme->DirContentW,
+				theme->DirContentH,
+				theme->DirContentColor,
+				canvasColor
+			);
+		}
+		else {
+			painter.PaintBorderImage(
+				theme->FileInnerBorderX,
+				theme->FileInnerBorderY,
+				theme->FileInnerBorderW,
+				theme->FileInnerBorderH,
+				theme->FileInnerBorderL,
+				theme->FileInnerBorderT,
+				theme->FileInnerBorderR,
+				theme->FileInnerBorderB,
+				theme->FileInnerBorderImg.GetImage(),
+				theme->FileInnerBorderImgL,
+				theme->FileInnerBorderImgT,
+				theme->FileInnerBorderImgR,
+				theme->FileInnerBorderImgB,
+				255,canvasColor,0757
+			);
+			painter.PaintRect(
+				theme->FileContentX,
+				theme->FileContentY,
+				theme->FileContentW,
+				theme->FileContentH,
+				theme->FileContentColor,
+				canvasColor
+			);
+		}
 	}
 }
 
@@ -601,35 +377,365 @@ emPanel * emDirEntryPanel::CreateControlPanel(
 }
 
 
+void emDirEntryPanel::PaintInfo(
+	const emPainter & painter, double infoX, double infoY,
+	double infoW, double infoH, emAlignment alignment, emColor canvasColor
+)
+{
+	const char * label[6] = {
+		"Type",
+#		if defined(_WIN32)
+			"File Attributes",
+#		else
+			"Permissions of Owner, Group and Others",
+#		endif
+		"Owner",
+		"Group",
+		"Size in Bytes",
+		"Time of Last Modification"
+	};
+	double bx[6],by[6],bw[6],bh[6];
+	double spx,spy,tw,th,ws,cw,lh,x,t;
+	const emFileManTheme * theme;
+	emString str;
+	char tmp[1024];
+	const char * p;
+	int i,j,k,len;
+
+	theme = &Config->GetTheme();
+
+	t=infoH/infoW;
+	if (t>0.9) {
+		th=infoW*1.4;
+		if (infoH>th) {
+			if (alignment&EM_ALIGN_BOTTOM) infoY+=infoH-th;
+			else if (!(alignment&EM_ALIGN_TOP)) infoY+=(infoH-th)*0.5;
+			infoH=th;
+		}
+		th=infoH/(7+(7-2)*0.087);
+		if (th*GetViewedWidth()<=1.15) return;
+		spy=(infoH-7*th)/(7-2);
+		for (i=0; i<6; i++) {
+			bx[i]=infoX;
+			by[i]=infoY+i*(th+spy);
+			bw[i]=infoW;
+			bh[i]=th;
+		}
+		bh[5]*=2;
+		lh=th/7.6666;
+	}
+	else if (t>0.04) {
+		infoH*=1.03; // Because time stamp has no descenders
+		th=infoH/(4+(4-1)*0.087);
+		if (th*GetViewedWidth()<=1.15) return;
+		spy=(infoH-4*th)/(4-1);
+		spx=th*0.483;
+		tw=(infoW-spx)/2;
+		bx[0]=infoX;        by[0]=infoY;            bw[0]=infoW; bh[0]=th;
+		bx[1]=infoX;        by[1]=infoY+th+spy;     bw[1]=tw;    bh[1]=th;
+		bx[2]=infoX;        by[2]=infoY+2*(th+spy); bw[2]=tw;    bh[2]=th;
+		bx[3]=infoX+tw+spx; by[3]=infoY+2*(th+spy); bw[3]=tw;    bh[3]=th;
+		bx[4]=infoX+tw+spx; by[4]=infoY+th+spy;     bw[4]=tw;    bh[4]=th;
+		bx[5]=infoX;        by[5]=infoY+3*(th+spy); bw[5]=infoW; bh[5]=th;
+		lh=th/7.6666;
+	}
+	else {
+		if (infoH*GetViewedWidth()<=1.15) return;
+		tw=infoH/0.025;
+		if (infoW>tw) {
+			if (alignment&EM_ALIGN_RIGHT) infoX+=infoW-tw;
+			else if (!(alignment&EM_ALIGN_LEFT)) infoX+=(infoW-tw)*0.5;
+			infoW=tw;
+		}
+		tw=infoW/(6+(6-1)*0.087);
+		spx=(infoW-6*tw)/(6-1);
+		for (i=0; i<6; i++) {
+			bx[i]=infoX+i*(tw+spx);
+			by[i]=infoY;
+			bw[i]=tw;
+			bh[i]=infoH;
+		}
+		lh=infoH/7.6666;
+	}
+
+	if (lh*GetViewedWidth()>1.0) {
+		for (i=0; i<6; i++) {
+			painter.PaintTextBoxed(
+				bx[i],by[i],bw[i],bh[i],
+				label[i],lh,
+				theme->LabelColor,canvasColor,
+				EM_ALIGN_TOP_LEFT,EM_ALIGN_LEFT
+			);
+		}
+	}
+
+	for (i=0; i<6; i++) { by[i]+=lh; bh[i]-=lh; }
+
+	if      (DirEntry.IsRegularFile())              p="File";
+	else if (DirEntry.IsDirectory())                p="Directory";
+#if !defined(_WIN32)
+	else if (S_ISFIFO(DirEntry.GetStat()->st_mode)) p="FIFO";
+	else if (S_ISBLK (DirEntry.GetStat()->st_mode)) p="Block Device";
+	else if (S_ISCHR (DirEntry.GetStat()->st_mode)) p="Char Device";
+	else if (S_ISSOCK(DirEntry.GetStat()->st_mode)) p="Socket";
+#endif
+	else                                            p="Unknown Type";
+	if (DirEntry.IsSymbolicLink()) {
+		sprintf(tmp,"Symbolic Link to %s:",p);
+		painter.PaintTextBoxed(
+			bx[0],by[0],bw[0],bh[0]/2,
+			tmp,bh[0]/2,
+			theme->SymLinkColor,canvasColor,
+			EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+			0.5,false
+		);
+		if (DirEntry.GetTargetPathErrNo()) {
+			str=emGetErrorText(DirEntry.GetTargetPathErrNo());
+		}
+		else {
+			str=DirEntry.GetTargetPath();
+		}
+		painter.PaintTextBoxed(
+			bx[0],by[0]+bh[0]/2,bw[0],bh[0]/2,
+			str,bh[0]/2,
+			theme->SymLinkColor,canvasColor,
+			EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+			0.5,false
+		);
+	}
+	else {
+		painter.PaintTextBoxed(
+			bx[0],by[0],bw[0],bh[0],
+			p,bh[0],
+			theme->InfoColor,canvasColor,
+			EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+			0.5,false
+		);
+	}
+
+#if defined(_WIN32)
+	tmp[0]=(DirEntry.GetWndsFileAttributes()&FILE_ATTRIBUTE_READONLY)?'R':'-';
+	tmp[1]=(DirEntry.GetWndsFileAttributes()&FILE_ATTRIBUTE_HIDDEN  )?'H':'-';
+	tmp[2]=(DirEntry.GetWndsFileAttributes()&FILE_ATTRIBUTE_SYSTEM  )?'S':'-';
+	tmp[3]=(DirEntry.GetWndsFileAttributes()&FILE_ATTRIBUTE_ARCHIVE )?'A':'-';
+	tmp[4]=0;
+	painter.PaintTextBoxed(
+		bx[1],by[1],bw[1],bh[1],
+		tmp,bh[1],
+		theme->InfoColor,canvasColor,
+		EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+		0.5,false
+	);
+#else
+	cw=painter.GetTextSize("X",bh[1],false);
+	ws=bw[1]/(cw*10);
+	if (ws>1.0) ws=1.0;
+	tmp[0]=((DirEntry.GetStat()->st_mode&S_IRUSR)?'r':'-');
+	tmp[1]=((DirEntry.GetStat()->st_mode&S_IWUSR)?'w':'-');
+	tmp[2]=((DirEntry.GetStat()->st_mode&S_IXUSR)?'x':'-');
+	tmp[3]=0;
+	painter.PaintText(bx[1],by[1],tmp,bh[1],ws,theme->InfoColor,canvasColor);
+	tmp[0]=((DirEntry.GetStat()->st_mode&S_IRGRP)?'r':'-');
+	tmp[1]=((DirEntry.GetStat()->st_mode&S_IWGRP)?'w':'-');
+	tmp[2]=((DirEntry.GetStat()->st_mode&S_IXGRP)?'x':'-');
+	tmp[3]=0;
+	painter.PaintText(bx[1]+cw*3.5*ws,by[1],tmp,bh[1],ws,theme->InfoColor,canvasColor);
+	tmp[0]=((DirEntry.GetStat()->st_mode&S_IROTH)?'r':'-');
+	tmp[1]=((DirEntry.GetStat()->st_mode&S_IWOTH)?'w':'-');
+	tmp[2]=((DirEntry.GetStat()->st_mode&S_IXOTH)?'x':'-');
+	tmp[3]=0;
+	painter.PaintText(bx[1]+cw*7*ws,by[1],tmp,bh[1],ws,theme->InfoColor,canvasColor);
+#endif
+
+	painter.PaintTextBoxed(
+		bx[2],by[2],bw[2],bh[2],
+		DirEntry.GetOwner(),bh[2],
+		theme->InfoColor,canvasColor,
+		EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+		0.5,false
+	);
+
+	painter.PaintTextBoxed(
+		bx[3],by[3],bw[3],bh[3],
+		DirEntry.GetGroup(),bh[3],
+		theme->InfoColor,canvasColor,
+		EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+		0.5,false
+	);
+
+	len=emUInt64ToStr(tmp,sizeof(tmp),DirEntry.GetStat()->st_size);
+	cw=painter.GetTextSize("X",bh[4],false);
+	ws=bw[4]/(cw*len*16/15);
+	if (ws>1.0) ws=1.0;
+	x=bx[4];
+	for (i=0; i<len; i+=j) {
+		j=(len-i)-(len-i-1)/3*3;
+		painter.PaintText(x,by[4],tmp+i,bh[4],ws,theme->InfoColor,canvasColor,j);
+		x+=cw*j*ws;
+		k=(len-i-j)/3-1;
+		if (k>=0) {
+			painter.PaintText(
+				x,by[4]+bh[4]*0.75,"kMGTPEZY"+k,bh[4]/5,ws,
+				theme->InfoColor,canvasColor,1
+			);
+		}
+		x+=cw/5*ws;
+	}
+
+	FormatTime(DirEntry.GetStat()->st_mtime,tmp,bw[5]/bh[5]<6.0);
+	painter.PaintTextBoxed(
+		bx[5],by[5],bw[5],bh[5],
+		tmp,bh[5],
+		theme->InfoColor,canvasColor,
+		EM_ALIGN_LEFT,EM_ALIGN_LEFT,
+		0.5,true
+	);
+}
+
+
+void emDirEntryPanel::UpdateContentPanel(bool forceRecreation, bool forceRelayout)
+{
+	const char * soughtName;
+	emRef<emFpPluginList> fppl;
+	emPanel * p;
+	const emFileManTheme * theme;
+	double cx,cy,cw,ch;
+	emColor cc;
+
+	theme = &Config->GetTheme();
+	p=GetChild(ContentName);
+	if (forceRecreation && p) { delete p; p=NULL; }
+
+	if (DirEntry.IsDirectory()) {
+		cx=theme->DirContentX;
+		cy=theme->DirContentY;
+		cw=theme->DirContentW;
+		ch=theme->DirContentH;
+		cc=theme->DirContentColor;
+	}
+	else {
+		cx=theme->FileContentX;
+		cy=theme->FileContentY;
+		cw=theme->FileContentW;
+		ch=theme->FileContentH;
+		cc=theme->FileContentColor;
+	}
+
+	soughtName=GetSoughtName();
+
+	if (
+		(
+			soughtName &&
+			strcmp(soughtName,ContentName)==0
+		) ||
+		(
+			IsViewed() &&
+			GetViewedWidth()*cw>=theme->MinContentVW &&
+			PanelToViewX(cx)<GetClipX2() &&
+			PanelToViewX(cx+cw)>GetClipX1() &&
+			PanelToViewY(cy)<GetClipY2() &&
+			PanelToViewY(cy+ch)>GetClipY1()
+		)
+	) {
+		if (!p) {
+			fppl=emFpPluginList::Acquire(GetRootContext());
+			p=fppl->CreateFilePanel(
+				this,
+				ContentName,
+				DirEntry.GetPath(),
+				DirEntry.GetStatErrNo(),
+				DirEntry.GetStat()->st_mode
+			);
+			p->BeFirst();
+			forceRelayout=true;
+		}
+	}
+	else if (p && !p->IsInVisitedPath()) {
+		delete p;
+		p=NULL;
+	}
+
+	if (p && forceRelayout) p->Layout(cx,cy,cw,ch,cc);
+}
+
+
+void emDirEntryPanel::UpdateAltPanel(bool forceRecreation, bool forceRelayout)
+{
+	const char * soughtName;
+	emPanel * p;
+	const emFileManTheme * theme;
+
+	theme = &Config->GetTheme();
+	p=GetChild(AltName);
+	if (forceRecreation && p) { delete p; p=NULL; }
+	soughtName=GetSoughtName();
+	if (
+		(
+			soughtName &&
+			strcmp(soughtName,AltName)==0
+		) ||
+		(
+			IsViewed() &&
+			GetViewedWidth()*theme->AltW>=theme->MinAltVW &&
+			PanelToViewX(theme->AltX)<GetClipX2() &&
+			PanelToViewX(theme->AltX+theme->AltW)>GetClipX1() &&
+			PanelToViewY(theme->AltY)<GetClipY2() &&
+			PanelToViewY(theme->AltY+theme->AltH)>GetClipY1()
+		)
+	) {
+		if (!p) {
+			p=new emDirEntryAltPanel(
+				this,
+				AltName,
+				DirEntry,
+				1
+			);
+			forceRelayout=true;
+		}
+	}
+	else if (p && !p->IsInVisitedPath()) {
+		delete p;
+		p=NULL;
+	}
+
+	if (p && forceRelayout) {
+		p->Layout(
+			theme->AltX,theme->AltY,
+			theme->AltW,theme->AltH,
+			BgColor
+		);
+	}
+}
+
+
 void emDirEntryPanel::UpdateBgColor()
 {
+	const emFileManTheme * theme;
 	emFileManModel * fm;
-	emPanel * p;
 	bool selSrc,selTgt;
 	emColor newBgColor;
 
-	fm=SharedVar->Var.FileMan;
+	theme = &Config->GetTheme();
+	fm=FileMan;
 	selSrc=fm->IsSelectedAsSource(DirEntry.GetPath());
 	selTgt=fm->IsSelectedAsTarget(DirEntry.GetPath());
 	if (selTgt) {
-		if (selSrc) newBgColor=ColorBGTgt.GetBlended(ColorBGSrc,50.0F);
-		else newBgColor=ColorBGTgt;
+		newBgColor=theme->TargetSelectionColor;
+		if (selSrc) {
+			newBgColor=newBgColor.GetBlended(
+				theme->SourceSelectionColor,
+				50.0F
+			);
+		}
 	}
 	else {
-		if (selSrc) newBgColor=ColorBGSrc;
-		else newBgColor=ColorBGNormal;
+		if (selSrc) newBgColor=theme->SourceSelectionColor;
+		else newBgColor=theme->BackgroundColor;
 	}
 	if (BgColor!=newBgColor) {
 		BgColor=newBgColor;
 		InvalidatePainting();
-		p=GetChild(AltName);
-		if (p) {
-			p->Layout(
-				LayoutAltX,LayoutAltY,
-				LayoutAltW,LayoutAltH,
-				BgColor
-			);
-		}
+		UpdateAltPanel(false,true);
 	}
 }
 
@@ -643,7 +749,7 @@ void emDirEntryPanel::Select(bool shift, bool ctrl)
 	emPanel * p, * c;
 	int i,i1,i2;
 
-	fm=SharedVar->Var.FileMan;
+	fm=FileMan;
 
 	if (!shift && !ctrl) {
 		fm->ClearSourceSelection();
@@ -707,7 +813,7 @@ void emDirEntryPanel::SelectSolely()
 {
 	emFileManModel * fm;
 
-	fm=SharedVar->Var.FileMan;
+	fm=FileMan;
 
 	fm->ClearSourceSelection();
 	fm->ClearTargetSelection();
@@ -722,28 +828,29 @@ void emDirEntryPanel::RunDefaultCommand()
 	const emFileManModel::CommandNode * cmd;
 	emFileManModel * fm;
 
-	fm=SharedVar->Var.FileMan;
+	fm=FileMan;
 	cmd=fm->SearchDefaultCommandFor(DirEntry.GetPath());
 	if (cmd) fm->RunCommand(cmd,GetView());
 }
 
 
-void emDirEntryPanel::FormatTime(time_t t, char * buf)
+void emDirEntryPanel::FormatTime(time_t t, char * buf, bool nl)
 {
 	struct tm tmbuf;
 	struct tm * p;
 
 	p=localtime_r(&t,&tmbuf);
 	if (!p) {
-		strcpy(buf,"0000-00-00 00:00:00");
+		sprintf(buf,"0000-00-00%c00:00:00",nl?'\n':' ');
 	}
 	else {
 		sprintf(
 			buf,
-			"%04d-%02d-%02d %02d:%02d:%02d",
+			"%04d-%02d-%02d%c%02d:%02d:%02d",
 			(int)p->tm_year+1900,
 			(int)p->tm_mon+1,
 			(int)p->tm_mday,
+			nl ? '\n' : ' ',
 			(int)p->tm_hour,
 			(int)p->tm_min,
 			(int)p->tm_sec
@@ -754,43 +861,3 @@ void emDirEntryPanel::FormatTime(time_t t, char * buf)
 
 const char * const emDirEntryPanel::ContentName="";
 const char * const emDirEntryPanel::AltName="a";
-const double emDirEntryPanel::HeightFactor=1/3.0;
-const double emDirEntryPanel::LayoutFrame=0.01;
-const double emDirEntryPanel::LayoutTitleX=0.012;
-const double emDirEntryPanel::LayoutTitleY=0.012;
-const double emDirEntryPanel::LayoutTitleW=0.9745;
-const double emDirEntryPanel::LayoutTitleH=0.0915;
-const double emDirEntryPanel::LayoutInfoX=0.012;
-const double emDirEntryPanel::LayoutInfoY=0.1055;
-const double emDirEntryPanel::LayoutInfoW=0.3685;
-const double emDirEntryPanel::LayoutInfoH=0.214;
-const double emDirEntryPanel::LayoutPathX=0.3825;
-const double emDirEntryPanel::LayoutPathY=0.1055;
-const double emDirEntryPanel::LayoutPathW=0.575;
-const double emDirEntryPanel::LayoutPathH=0.01;
-const double emDirEntryPanel::MinAltVW=25.0;
-const double emDirEntryPanel::LayoutAltX=0.95884;
-const double emDirEntryPanel::LayoutAltY=0.1055;
-const double emDirEntryPanel::LayoutAltW=0.02766;
-const double emDirEntryPanel::LayoutAltH=0.01;
-const double emDirEntryPanel::MinContentVW=45.0;
-const double emDirEntryPanel::LayoutContentFrame=0.002;
-const double emDirEntryPanel::LayoutContentX=0.3845;
-const double emDirEntryPanel::LayoutContentY=0.1178333333;
-const double emDirEntryPanel::LayoutContentW=0.6;
-const double emDirEntryPanel::LayoutContentH=0.2;
-const emColor emDirEntryPanel::ColorBGNormal=emColor(187,187,187);
-const emColor emDirEntryPanel::ColorBGSrc=emColor(187,221,187);
-const emColor emDirEntryPanel::ColorBGTgt=emColor(255,153,153);
-const emColor emDirEntryPanel::ColorNameNormal=emColor(0,0,0);
-const emColor emDirEntryPanel::ColorNameExe=emColor(0,85,0);
-const emColor emDirEntryPanel::ColorNameDir=emColor(0,0,204);
-const emColor emDirEntryPanel::ColorNameFifo=emColor(204,0,102);
-const emColor emDirEntryPanel::ColorNameBlk=emColor(102,68,0);
-const emColor emDirEntryPanel::ColorNameChr=emColor(85,102,0);
-const emColor emDirEntryPanel::ColorNameSock=emColor(187,0,187);
-const emColor emDirEntryPanel::ColorNameOther=emColor(153,34,17);
-const emColor emDirEntryPanel::ColorSymLink=emColor(255,255,255);
-const emColor emDirEntryPanel::ColorInfo=emColor(102,102,102);
-const emColor emDirEntryPanel::ColorInfoLabel=emColor(136,136,136);
-const emColor emDirEntryPanel::ColorPath=emColor(68,68,68);

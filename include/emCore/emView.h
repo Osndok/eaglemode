@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -288,7 +288,8 @@ public:
 	void VisitLazy(emPanel * panel, bool adherent);
 		// Visit a panel while being lazy in positioning the view.
 
-	void VisitFullsized(emPanel * panel, bool adherent);
+	void VisitFullsized(emPanel * panel, bool adherent,
+	                    bool utilizeView=false);
 		// Visit a panel and position the view so that the panel is
 		// shown full-sized.
 
@@ -450,7 +451,8 @@ private:
 	void Update();
 
 	void CalcVisitFullsizedCoords(emPanel * panel, double * pRelX,
-	                              double * pRelY, double * pRelA);
+	                              double * pRelY, double * pRelA,
+	                              bool utilizeView=false);
 
 	void VisitRelBy(emPanel * panel, double relX, double relY, double relA,
 	                bool forceViewingUpdate);

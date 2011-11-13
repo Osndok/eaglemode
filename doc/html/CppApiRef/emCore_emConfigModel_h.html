@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,16 +63,22 @@
                 <SPAN CLASS=c>// Signaled on every modification of the record and even on
                 // change of IsUnsaved.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TrySave() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
-        <SPAN CLASS=t>void </SPAN>Save();
+        </SPAN><SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>void </SPAN>Save(<SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>);
                 <SPAN CLASS=c>// Save the record to the install path. On error, the first
                 // version throws the error message, and the second version
                 // calls emFatalError.
+                // Arguments:
+                //   force - false to save only if unsaved, true to save in
+                //           any case.
 
-        //??? An auto-save mechanism should be implemented, so that saving is
-        //??? performed automatically after each change, best with a small time
-        //??? delay (a second or so). Maybe that auto-save mechanism should be
-        //??? enabled by default.
+        </SPAN><SPAN CLASS=t>int </SPAN>GetAutoSaveDelaySeconds() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAutoSaveDelaySeconds(<SPAN CLASS=t>int </SPAN>seconds);
+                <SPAN CLASS=c>// Delay in seconds after which the record is saved
+                // automatically when it was modified. The default is -1 which
+                // means to disable the auto-save feature. If you make use of
+                // this feature, remember to call Save in desctructors of
+                // derived classes.
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
@@ -114,6 +120,9 @@
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; GetRec();
                 <SPAN CLASS=c>// Not valid before PostConstruct has been called.
 
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=c>// Implements the auto-save feature.
+
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>class </SPAN>RecLink : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
@@ -130,6 +139,8 @@
         RecLink Link;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> InstallPath;
         <SPAN CLASS=t>bool </SPAN>Unsaved;
+        <A CLASS=l HREF="emCore_emTimer_h.html#emTimer">emTimer</A> AutoSaveTimer;
+        <SPAN CLASS=t>int </SPAN>AutoSaveDelaySeconds;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetInstallPath() <SPAN CLASS=t>const
@@ -145,6 +156,11 @@
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetChangeSignal() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>ChangeSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetAutoSaveDelaySeconds() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>AutoSaveDelaySeconds;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; <A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>::GetRec()

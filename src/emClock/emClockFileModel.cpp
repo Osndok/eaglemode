@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockFileModel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,6 +129,16 @@ emClockFileModel::emClockFileModel(emContext & context, const emString & name)
 	StopwatchRunning(this,"StopwatchRunning",false),
 	StopwatchState(this,"StopwatchState","0")
 {
+	TkLook.SetBgColor      (0xAAAAAAFF);
+	TkLook.SetFgColor      (0x000000FF);
+	TkLook.SetButtonBgColor(0xCCCCCCFF);
+	TkLook.SetButtonFgColor(0x000000FF);
+	TkLook.SetInputBgColor (0xFFFFFFFF);
+	TkLook.SetInputFgColor (0x000000FF);
+	TkLook.SetInputHlColor (0x0033BBFF);
+	TkLook.SetOutputBgColor(0xBBBBBBFF);
+	TkLook.SetOutputFgColor(0x000000FF);
+	TkLook.SetOutputHlColor(0x0033BBFF);
 	PostConstruct(*this);
 }
 

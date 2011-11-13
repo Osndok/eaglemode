@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emConfigModel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,20 +21,22 @@
 #include <emCore/emConfigModel.h>
 
 
-void emConfigModel::TrySave() throw(emString)
+void emConfigModel::TrySave(bool force) throw(emString)
 {
-	GetRec().TrySave(InstallPath);
-	if (Unsaved) {
-		Unsaved=false;
-		Signal(ChangeSignal);
+	if (Unsaved || force) {
+		GetRec().TrySave(InstallPath);
+		if (Unsaved) {
+			Unsaved=false;
+			Signal(ChangeSignal);
+		}
 	}
 }
 
 
-void emConfigModel::Save()
+void emConfigModel::Save(bool force)
 {
 	try {
-		TrySave();
+		TrySave(force);
 	}
 	catch (emString errorMessage) {
 		emFatalError("%s",errorMessage.Get());
@@ -42,10 +44,21 @@ void emConfigModel::Save()
 }
 
 
+void emConfigModel::SetAutoSaveDelaySeconds(int seconds)
+{
+	AutoSaveDelaySeconds=seconds;
+	if (Unsaved && AutoSaveDelaySeconds>=0) {
+		AutoSaveTimer.Start(((emUInt64)AutoSaveDelaySeconds)*1000);
+	}
+}
+
+
 emConfigModel::emConfigModel(emContext & context, const emString & name)
-	: emModel(context,name), Link(*this)
+	: emModel(context,name), Link(*this), AutoSaveTimer(GetScheduler())
 {
 	Unsaved=false;
+	AutoSaveDelaySeconds=-1;
+	AddWakeUpSignal(AutoSaveTimer.GetSignal());
 }
 
 
@@ -95,7 +108,7 @@ void emConfigModel::TryLoadOrInstall(const char * insSrcPath) throw(emString)
 		}
 		else {
 			GetRec().SetToDefault();
-			TrySave();
+			TrySave(true);
 		}
 	}
 }
@@ -112,6 +125,21 @@ void emConfigModel::LoadOrInstall(const char * insSrcPath)
 }
 
 
+bool emConfigModel::Cycle()
+{
+	bool busy;
+
+	busy=emModel::Cycle();
+	if (
+		IsSignaled(AutoSaveTimer.GetSignal()) &&
+		AutoSaveDelaySeconds>=0
+	) {
+		Save();
+	}
+	return busy;
+}
+
+
 emConfigModel::RecLink::RecLink(emConfigModel & model)
 	: Model(model)
 {
@@ -120,6 +148,11 @@ emConfigModel::RecLink::RecLink(emConfigModel & model)
 
 void emConfigModel::RecLink::OnRecChanged()
 {
-	Model.Unsaved=true;
+	if (!Model.Unsaved) {
+		Model.Unsaved=true;
+		if (Model.AutoSaveDelaySeconds>=0) {
+			Model.AutoSaveTimer.Start(((emUInt64)Model.AutoSaveDelaySeconds)*1000);
+		}
+	}
 	Model.Signal(Model.ChangeSignal);
 }

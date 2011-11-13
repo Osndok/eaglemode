@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.cpp
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -155,12 +155,17 @@ void emNetwalkPanel::Input(
 			Mdl->TrySetup(
 				Mdl->GetWidth(),Mdl->GetHeight(),Mdl->IsBorderless(),
 				Mdl->IsNoFourWayJunctions(),Mdl->GetComplexity(),
-				Mdl->IsDigMode()
+				Mdl->IsDigMode(),Mdl->IsAutoMark()
 			);
 		}
 		catch (emString errorMessage) {
 			emTkDialog::ShowMessage(GetViewContext(),"Error",errorMessage);
 		}
+		event.Eat();
+	}
+
+	if (event.IsKey(EM_KEY_U) && state.IsCtrlMod()) {
+		Mdl->UnmarkAll();
 		event.Eat();
 	}
 
@@ -267,7 +272,6 @@ void emNetwalkPanel::Paint(const emPainter & painter, emColor canvasColor)
 			255,0,0757
 		);
 	}
-	
 
 	if (Mdl->IsFinished()) {
 		str=emString::Format(
@@ -297,7 +301,7 @@ emPanel * emNetwalkPanel::CreateControlPanel(
 )
 {
 	if (HaveControlPanel) {
-		return new emNetwalkControlPanel(parent,name,Mdl);
+		return new emNetwalkControlPanel(parent,name,GetView(),Mdl);
 	}
 	else {
 		return emFilePanel::CreateControlPanel(parent,name);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRecPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,7 @@ class emTreeDumpRecPanel : public emPanel {
 public:
 
 	emTreeDumpRecPanel(ParentArg parent, const emString & name,
-	                   emTreeDumpRec * rec);
+	                   emTreeDumpRec * rec,  const emString & dir);
 	virtual ~emTreeDumpRecPanel();
 
 	// Hint: The rec is referred by an emCrossPtr. So it's okay to delete
@@ -53,9 +53,13 @@ protected:
 
 	virtual void LayoutChildren();
 
+	virtual emPanel * CreateControlPanel(ParentArg parent,
+	                                     const emString & name);
+
 private:
 
 	emCrossPtr<emTreeDumpRec> Rec;
+	emString Dir;
 	emColor BgColor;
 };
 

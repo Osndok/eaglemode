@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Config;
 
-sub GetDepedencies
+sub GetDependencies
 {
 	return ('emCore');
 }
@@ -61,6 +61,7 @@ sub Build
 		"src/emFileMan/emFileManControlPanel.cpp",
 		"src/emFileMan/emFileManModel.cpp",
 		"src/emFileMan/emFileManSelInfoPanel.cpp",
+		"src/emFileMan/emFileManTheme.cpp",
 		"src/emFileMan/emFileManViewConfig.cpp"
 	)==0 or return 0;
 

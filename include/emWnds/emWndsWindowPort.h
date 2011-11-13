@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -60,6 +60,8 @@ private:
 	                   bool goodCall);
 
 	bool FlushInputState();
+
+	void RestoreCursor();
 
 	virtual bool Cycle();
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Clipboard.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,7 +57,7 @@ private:
 	void HandleSelectionRequest(XSelectionRequestEvent & sre);
 	void HandleSelectionNotify(XSelectionEvent & se);
 
-	static emArray<emByte> GetLargeWindowProperty(
+	emArray<emByte> GetLargeWindowProperty(
 		Display * display, Window window, Atom property, bool deleteProperty,
 		Atom type, Atom * actual_type_return, int * actual_format_return,
 		unsigned long * nitems_return
@@ -68,6 +68,7 @@ private:
 		//??? These functions should move into a public module.
 
 	emRef<emX11Screen> Screen;
+	emThreadMiniMutex * XMutex;
 	Display * Disp;
 	::Window Win;
 	Atom MY_XA_CLIPBOARD;

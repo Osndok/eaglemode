@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManConfig.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,7 +59,9 @@ emFileManConfig::emFileManConfig(emContext & context, const emString & name)
 		NULL
 	),
 	SortDirectoriesFirst(this,"SortDirectoriesFirst",false),
-	ShowHiddenFiles(this,"ShowHiddenFiles",false)
+	ShowHiddenFiles(this,"ShowHiddenFiles",false),
+	ThemeName(this,"ThemeName","Metal1"),
+	Autosave(this,"Autosave",true)
 {
 	PostConstruct(
 		*this,

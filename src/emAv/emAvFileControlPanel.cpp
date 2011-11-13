@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileControlPanel.cpp
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,17 +31,6 @@ emAvFileControlPanel::emAvFileControlPanel(
 	emTkLook look;
 
 	Mdl=fileModel;
-
-	look=GetLook();
-	look.SetBgColor(0x777788FF);
-	look.SetFgColor(0x000000FF);
-	look.SetButtonBgColor(0x99CCBBFF);
-	look.SetButtonFgColor(0x000000FF);
-	look.SetOutputBgColor(0x99AAAAFF);
-	look.SetOutputFgColor(0x001111FF);
-	look.SetInputBgColor(0xEEFFFFFF);
-	look.SetInputFgColor(0x001111FF);
-	SetLook(look);
 
 	SetPrefChildTallness(0.2);
 	SetPrefChildTallness(0.4,1);
@@ -143,14 +132,14 @@ emAvFileControlPanel::emAvFileControlPanel(
 		CbAudioMute=new emTkCheckButton(
 			vol,"mute",
 			"Mute",
-			"Hotkey: Ctrl+M"
+			"Hotkey: U"
 		);
 		SfAudioVolume=new emTkScalarField(
 			vol,"audio_volume",
 			"Audio Volume",
 			"Hotkeys:\n"
-			"  Ctrl+V       = Increase.\n"
-			"  Ctrl+Shift+V = Decrease."
+			"  + = Increase.\n"
+			"  - = Decrease."
 		);
 		SfAudioVolume->SetScaleMarkIntervals(25,5,1,0);
 		SfAudioVolume->SetTextOfValueFunc(TextOfAudioVolume,this);

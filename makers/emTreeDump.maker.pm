@@ -3,7 +3,7 @@ package emTreeDump;
 use strict;
 use warnings;
 
-sub GetDepedencies
+sub GetDependencies
 {
 	return ('emCore');
 }
@@ -40,6 +40,7 @@ sub Build
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emTreeDump",
+		"src/emTreeDump/emTreeDumpControlPanel.cpp",
 		"src/emTreeDump/emTreeDumpFileModel.cpp",
 		"src/emTreeDump/emTreeDumpFilePanel.cpp",
 		"src/emTreeDump/emTreeDumpFpPlugin.cpp",

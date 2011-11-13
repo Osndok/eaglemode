@@ -46,6 +46,8 @@ emMainPanel::emMainPanel(
 		emView::VF_NO_ACTIVE_HIGHLIGHT
 	);
 
+	GetControlView().SetBackgroundColor(emTkLook().GetBgColor());
+
 	GetContentView().SetViewFlags(
 		emView::VF_ROOT_SAME_TALLNESS
 	);

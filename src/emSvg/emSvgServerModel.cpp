@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -764,16 +764,6 @@ emSvgServerModel::Job * emSvgServerModel::SearchBestNextJob() const
 }
 
 
-void emSvgServerModel::AddJobToRunningList(Job * job)
-{
-	job->Prev=LastRunningJob;
-	job->Next=NULL;
-	if (LastRunningJob) LastRunningJob->Next=job;
-	else FirstRunningJob=job;
-	LastRunningJob=job;
-}
-
-
 void emSvgServerModel::AddJobToWaitingList(Job * job)
 {
 	job->Prev=LastWaitingJob;
@@ -781,6 +771,16 @@ void emSvgServerModel::AddJobToWaitingList(Job * job)
 	if (LastWaitingJob) LastWaitingJob->Next=job;
 	else FirstWaitingJob=job;
 	LastWaitingJob=job;
+}
+
+
+void emSvgServerModel::AddJobToRunningList(Job * job)
+{
+	job->Prev=LastRunningJob;
+	job->Next=NULL;
+	if (LastRunningJob) LastRunningJob->Next=job;
+	else FirstRunningJob=job;
+	LastRunningJob=job;
 }
 
 

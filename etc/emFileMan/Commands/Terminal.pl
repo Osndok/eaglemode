@@ -33,12 +33,4 @@ if (! -d $dir) {
 }
 ChDirOrError($dir);
 
-my $x=int($ENV{'EM_X'}+($ENV{'EM_WIDTH'}-510)/2);
-my $y=int($ENV{'EM_Y'}+($ENV{'EM_HEIGHT'}-350)/2);
-if ($x < 0) { $x=0; }
-if ($y < 0) { $y=0; }
-ExecOrError(
-	"xterm",
-	"-geometry",
-	"80x24+${x}+${y}"
-);
+ExecOrError('xterm');

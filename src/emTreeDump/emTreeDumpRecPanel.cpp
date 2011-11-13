@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRecPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,14 +19,18 @@
 //------------------------------------------------------------------------------
 
 #include <emTreeDump/emTreeDumpRecPanel.h>
+#include <emTreeDump/emTreeDumpControlPanel.h>
+#include <emCore/emFpPlugin.h>
 
 
 emTreeDumpRecPanel::emTreeDumpRecPanel(
-	ParentArg parent, const emString & name, emTreeDumpRec * rec
+	ParentArg parent, const emString & name, emTreeDumpRec * rec,
+	const emString & dir
 )
 	: emPanel(parent,name)
 {
 	Rec=rec;
+	Dir=dir;
 	if (Rec) BgColor=Rec->BgColor;
 	else BgColor=0;
 	EnableAutoExpansion();
@@ -121,17 +125,29 @@ void emTreeDumpRecPanel::Paint(const emPainter & painter, emColor canvasColor)
 
 void emTreeDumpRecPanel::AutoExpand()
 {
-	char name[256];
-	int i;
+	emRef<emFpPluginList> pl;
+	int i,n;
 
 	if (!Rec) return;
 
+	n=Rec->Files.GetCount();
+	if (n) {
+		pl=emFpPluginList::Acquire(GetRootContext());
+		for (i=0; i<n; i++) {
+			pl->CreateFilePanel(
+				this,
+				emString::Format("%d",i),
+				emGetAbsolutePath(Rec->Files.Get(i),Dir)
+			);
+		}
+	}
+
 	for (i=0; i<Rec->Children.GetCount(); i++) {
-		sprintf(name,"%d",i);
 		new emTreeDumpRecPanel(
 			this,
-			name,
-			&Rec->Children[i]
+			emString::Format("%d",n+i),
+			&Rec->Children[i],
+			Dir
 		);
 	}
 }
@@ -159,5 +175,18 @@ void emTreeDumpRecPanel::LayoutChildren()
 		for (i=0, p=GetFirstChild(); p; i++, p=p->GetNext()) {
 			p->Layout(x+cw*(i/sz),y+ch*(i%sz),pw,ph,BgColor);
 		}
+	}
+}
+
+
+emPanel * emTreeDumpRecPanel::CreateControlPanel(
+	ParentArg parent, const emString & name
+)
+{
+	if (IsActive()) {
+		return new emTreeDumpControlPanel(parent,name,GetView(),Rec,Dir);
+	}
+	else {
+		return NULL;
 	}
 }

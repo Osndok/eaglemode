@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStopwatchPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -40,6 +40,9 @@ emStopwatchPanel::emStopwatchPanel(
 		this,"clear_button","Clear",
 		"Reset the stopwatch to zero time."
 	);
+
+	FileModel->TkLook.Apply(this,true);
+
 	AddWakeUpSignal(GetVirFileStateSignal());
 	AddWakeUpSignal(FileModel->GetChangeSignal());
 	AddWakeUpSignal(StartStopButton->GetClickSignal());

@@ -656,7 +656,7 @@
                 //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
                 //                   pointer must be valid for the life time of
                 //                   this record.
-                //   defaultValue  - The default value for this enumeration
+                //   defaultValue  - The default value for this flags
                 //                   record.
                 //   identifier0   - The identifier for bit 0. The identifier
                 //                   is not copied - the pointer must be valid
@@ -725,6 +725,71 @@
 </SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::GetIdentifierCount()
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>IdentifierCount;
+<SPAN CLASS=b>}
+
+
+<A NAME="emAlignmentRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Record class for an <A CLASS=m HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> value.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A>(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> defaultValue=EM_ALIGN_CENTER);
+        <A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A>(<A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> * parent, <SPAN CLASS=t>const char </SPAN>* varIdentifier,
+                       <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> defaultValue=EM_ALIGN_CENTER);
+                <SPAN CLASS=c>// Construct this record.
+                //   parent        - The <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> this record is a member of.
+                //   varIdentifier - Identifier for this record within the
+                //                   <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>. The string is not copied - the
+                //                   pointer must be valid for the life time of
+                //                   this record.
+                //   defaultValue  - The default value for this record.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> Get() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the alignment value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> value);
+        <A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> value);
+                <SPAN CLASS=c>// Set the alignment value.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
+        <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitReading();
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> DefaultValue, Value;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A>::<SPAN CLASS=t>operator </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A> &amp; <A CLASS=l HREF="emCore_emRec_h.html#emAlignmentRec">emAlignmentRec</A>::<SPAN CLASS=t>operator </SPAN>= (<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> value)
+<SPAN CLASS=b>{
+        </SPAN>Set(value);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
 <SPAN CLASS=b>}
 
 

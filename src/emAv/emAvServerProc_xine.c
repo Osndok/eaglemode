@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010 Oliver Hamann.
+// Copyright (C) 2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -899,14 +899,14 @@ static void emAvPollProperties(int instIndex, int initialize)
 	}
 
 	/* audio_volume */
-	param=xine_get_param(inst->Stream,XINE_PARAM_AUDIO_VOLUME);
+	param=xine_get_param(inst->Stream,XINE_PARAM_AUDIO_AMP_LEVEL);
 	if (inst->AudioVolume!=param || initialize) {
 		inst->AudioVolume=param;
 		emAvSendMsg(instIndex,"set","audio_volume:%d",param);
 	}
 
 	/* audio_mute */
-	param=xine_get_param(inst->Stream,XINE_PARAM_AUDIO_MUTE);
+	param=xine_get_param(inst->Stream,XINE_PARAM_AUDIO_AMP_MUTE);
 	if (inst->AudioMute!=param || initialize) {
 		inst->AudioMute=param;
 		emAvSendMsg(instIndex,"set","audio_mute:%s",param?"on":"off");
@@ -1106,11 +1106,11 @@ static const char *  emAvSetProperty(
 	}
 	else if (strcmp(name,"audio_volume")==0) {
 		inst->AudioVolume=atoi(value);
-		xine_set_param(inst->Stream,XINE_PARAM_AUDIO_VOLUME,inst->AudioVolume);
+		xine_set_param(inst->Stream,XINE_PARAM_AUDIO_AMP_LEVEL,inst->AudioVolume);
 	}
 	else if (strcmp(name,"audio_mute")==0) {
 		inst->AudioMute=(strcmp(value,"on")==0 ? 1 : 0);
-		xine_set_param(inst->Stream,XINE_PARAM_AUDIO_MUTE,inst->AudioMute);
+		xine_set_param(inst->Stream,XINE_PARAM_AUDIO_AMP_MUTE,inst->AudioMute);
 	}
 	else if (strcmp(name,"audio_visu")==0) {
 		for (i=0; inst->AudioVisus[i]; i++) {

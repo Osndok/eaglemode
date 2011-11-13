@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.h
 //
-// Copyright (C) 2009 Oliver Hamann.
+// Copyright (C) 2009-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -133,6 +133,53 @@ inline bool emThread::IsRunning()
 
 
 //==============================================================================
+//============================ emThreadMutexLocker =============================
+//==============================================================================
+
+template <class OBJ> class emThreadMutexLocker : public emUncopyable {
+
+public:
+
+	// This is a template class for a locker which simply locks a mutex for
+	// the time the locker exists. The template parameter OBJ describes the
+	// class of the mutex.
+
+	emThreadMutexLocker(OBJ & mutex);
+		// Calls Lock() on the given mutex.
+		// Arguments:
+		//   mutex - The mutex to be locked by this locker.
+
+	~emThreadMutexLocker();
+		// Calls Unlock() on the mutex.
+
+	OBJ & GetMutex();
+		// Get the mutex which is locked by this locker.
+
+private:
+
+	OBJ & Mutex;
+};
+
+template <class OBJ> inline emThreadMutexLocker<OBJ>::emThreadMutexLocker(
+	OBJ & mutex
+)
+	: Mutex(mutex)
+{
+	Mutex.Lock();
+}
+
+template <class OBJ> inline emThreadMutexLocker<OBJ>::~emThreadMutexLocker()
+{
+	Mutex.Unlock();
+}
+
+template <class OBJ> inline OBJ & emThreadMutexLocker<OBJ>::GetMutex()
+{
+	return Mutex;
+}
+
+
+//==============================================================================
 //============================= emThreadMiniMutex ==============================
 //==============================================================================
 
@@ -158,6 +205,9 @@ public:
 
 	void Unlock();
 		// Unlock this mutex.
+
+	typedef emThreadMutexLocker<emThreadMiniMutex> Locker;
+		// A locker class for this mutex class.
 
 private:
 
@@ -304,6 +354,19 @@ public:
 	bool IsLockedAnyhow() const;
 		// Whether this mutex is currently locked for any access.
 
+	typedef emThreadMutexLocker<emThreadMutex> Locker;
+		// A locker class for this mutex class.
+
+	class ReadOnlyLocker : public emUncopyable {
+	public:
+		// A read-only locker class for this mutex class.
+		ReadOnlyLocker(emThreadMutex & mutex);
+		~ReadOnlyLocker();
+		emThreadMutex & GetMutex();
+	private:
+		emThreadMutex & Mutex;
+	};
+
 private:
 
 	enum { MAX_COUNT = 2147483647 };
@@ -330,6 +393,22 @@ inline bool emThreadMutex::IsLockedAnyhow() const
 	return Event.GetCount()<MAX_COUNT;
 }
 
+inline emThreadMutex::ReadOnlyLocker::ReadOnlyLocker(emThreadMutex & mutex)
+	: Mutex(mutex)
+{
+	Mutex.LockReadOnly();
+}
+
+inline emThreadMutex::ReadOnlyLocker::~ReadOnlyLocker()
+{
+	Mutex.UnlockReadOnly();
+}
+
+inline emThreadMutex & emThreadMutex::ReadOnlyLocker::GetMutex()
+{
+	return Mutex;
+}
+
 
 //==============================================================================
 //=========================== emThreadRecursiveMutex ===========================
@@ -349,6 +428,8 @@ public:
 	bool Lock(unsigned timeoutMS=UINT_MAX);
 	void Unlock();
 	bool IsLocked() const;
+
+	typedef emThreadMutexLocker<emThreadRecursiveMutex> Locker;
 
 private:
 

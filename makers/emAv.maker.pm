@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Config;
 
-sub GetDepedencies
+sub GetDependencies
 {
 	return ('emCore');
 }
@@ -64,7 +64,8 @@ sub Build
 		"src/emAv/emAvFileModel.cpp",
 		"src/emAv/emAvFilePanel.cpp",
 		"src/emAv/emAvFpPlugin.cpp",
-		"src/emAv/emAvServerModel.cpp"
+		"src/emAv/emAvServerModel.cpp",
+		"src/emAv/emAvStates.cpp"
 	)==0 or return 0;
 
 	system(

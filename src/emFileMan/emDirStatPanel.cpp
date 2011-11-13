@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirStatPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,11 +29,14 @@ emDirStatPanel::emDirStatPanel(
 {
 	AddWakeUpSignal(GetVirFileStateSignal());
 	SetFileModel(fileModel,updateFileModel);
+	Config=emFileManViewConfig::Acquire(GetView());
 	TotalCount=-1;
 	FileCount=-1;
 	SubDirCount=-1;
 	OtherTypeCount=-1;
 	HiddenCount=-1;
+
+	AddWakeUpSignal(Config->GetChangeSignal());
 }
 
 
@@ -55,6 +58,9 @@ bool emDirStatPanel::Cycle()
 		UpdateStatistics();
 		InvalidatePainting();
 	}
+	if (IsSignaled(Config->GetChangeSignal())) {
+		InvalidatePainting();
+	}
 	return busy;
 }
 
@@ -62,7 +68,7 @@ bool emDirStatPanel::Cycle()
 bool emDirStatPanel::IsOpaque()
 {
 	if (GetVirFileState()!=VFS_LOADED) return emFilePanel::IsOpaque();
-	return false;
+	return Config->GetTheme().BackgroundColor.Get().IsOpaque();
 }
 
 
@@ -74,6 +80,8 @@ void emDirStatPanel::Paint(const emPainter & painter, emColor canvasColor)
 		emFilePanel::Paint(painter,canvasColor);
 		return;
 	}
+
+	painter.Clear(Config->GetTheme().BackgroundColor);
 
 	sprintf(tmp,
 		"Directory Statistics\n"
@@ -97,7 +105,7 @@ void emDirStatPanel::Paint(const emPainter & painter, emColor canvasColor)
 		1.0-0.04, GetHeight()-0.04,
 		tmp,
 		GetHeight(),
-		emColor(68,68,136),
+		Config->GetTheme().DirNameColor,
 		canvasColor
 	);
 }

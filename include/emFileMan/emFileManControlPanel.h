@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -91,7 +91,9 @@ private:
 		emTkRadioButton * RbCaseInsensitive;
 		emTkCheckButton * CbSortDirectoriesFirst;
 		emTkCheckButton * CbShowHiddenFiles;
-		emTkButton      * BtSaveAsDefault;
+		emTkRadioButton::Group * RbgTheme;
+		emTkCheckButton * CbAutosave;
+		emTkButton * BtSaveAsDefault;
 	emTkGroup * GrSelection;
 		emTkButton * BtSelectAll;
 		emTkButton * BtClearSelection;

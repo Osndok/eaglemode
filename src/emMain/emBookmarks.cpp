@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -247,13 +247,16 @@ emRec * emBookmarksRec::AllocateUnion()
 //============================= emBookmarkEntryRec =============================
 //==============================================================================
 
-emBookmarkEntryRec::emBookmarkEntryRec()
+emBookmarkEntryRec::emBookmarkEntryRec(
+		const emColor & defaultBgColor,
+		const emColor & defaultFgColor
+)
 	: emStructRec(),
 	Name(this,"Name"),
 	Description(this,"Description"),
 	Icon(this,"Icon"),
-	BgColor(this,"BgColor",0xBBBBBBFF),
-	FgColor(this,"FgColor",0x000000FF)
+	BgColor(this,"BgColor",defaultBgColor),
+	FgColor(this,"FgColor",defaultFgColor)
 {
 }
 
@@ -329,7 +332,10 @@ void emBookmarkEntryRec::TryPasteColorsFromClipboard(
 
 emBookmarkGroupRec::emBookmarkGroupRec()
 	:
-	emBookmarkEntryRec(),
+	emBookmarkEntryRec(
+		emTkLook().GetBgColor(),
+		emTkLook().GetFgColor()
+	),
 	Bookmarks(this,"Bookmarks")
 {
 }
@@ -346,7 +352,10 @@ emBookmarkGroupRec::~emBookmarkGroupRec()
 
 emBookmarkRec::emBookmarkRec()
 	:
-	emBookmarkEntryRec(),
+	emBookmarkEntryRec(
+		emTkLook().GetButtonBgColor(),
+		emTkLook().GetButtonFgColor()
+	),
 	Hotkey(this,"Hotkey"),
 	LocationIdentity(this,"LocationIdentity"),
 	LocationRelX(this,"LocationRelX"),

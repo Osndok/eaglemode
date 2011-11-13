@@ -1,0 +1,17 @@
+emPdf Server Process Protocol
+#############################
+
+client: open <file>
+server: instance: <inst>
+server: pages: <page count>
+server: pageinfo: <page index> <width> <height> "<label>"
+server: pageinfo: <page index> <width> <height> "<label>"
+server: ... 
+server: ok
+or    : error: <message>
+
+client: render <inst> <page> <x> <y> <width> <height> <out width> <out height>
+server: <ppm P6 file contents>
+or    : error: <message>
+
+client: close <inst>

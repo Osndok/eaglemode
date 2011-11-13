@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,6 +34,8 @@ emGUIFramework::emGUIFramework()
 	emString createSchedulerFuncName;
 	emString installDriversFuncName;
 	const char * lib;
+
+	emSetFatalErrorGraphical(true);
 
 	lib=getenv("EM_GUI_LIB");
 	if (!lib) {

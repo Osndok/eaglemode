@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,13 +32,20 @@ void emX11WindowPort::WindowFlagsChanged()
 		FullscreenUpdateTimer=NULL;
 	}
 	if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
+	XMutex.Lock();
 	XFreeGC(Disp,Gc);
+	XMutex.Unlock();
 	Gc=NULL;
 	if (InputContext) {
+		XMutex.Lock();
 		XDestroyIC(InputContext);
+		XMutex.Unlock();
 		InputContext=NULL;
 	}
+	Screen.WCThread->RemoveWindow(Win);
+	XMutex.Lock();
 	XDestroyWindow(Disp,Win);
+	XMutex.Unlock();
 	Win=None;
 
 	PreConstruct();
@@ -48,7 +55,9 @@ void emX11WindowPort::WindowFlagsChanged()
 			Screen.WinPorts[i]->Owner==this &&
 			Screen.WinPorts[i]->Win!=None
 		) {
+			XMutex.Lock();
 			XSetTransientForHint(Disp,Screen.WinPorts[i]->Win,Win);
+			XMutex.Unlock();
 		}
 	}
 }
@@ -114,7 +123,9 @@ void emX11WindowPort::RequestFocus()
 	if (!Focused) {
 		if (PostConstructed) {
 			if (!MakeViewable()) return;
+			XMutex.Lock();
 			XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
+			XMutex.Unlock();
 		}
 		Focused=true;
 		SetViewFocused(true);
@@ -125,8 +136,10 @@ void emX11WindowPort::RequestFocus()
 void emX11WindowPort::Raise()
 {
 	if (PostConstructed) {
+		XMutex.Lock();
 		if (!Mapped) XMapRaised(Disp,Win);
 		else XRaiseWindow(Disp,Win);
+		XMutex.Unlock();
 	}
 }
 
@@ -172,7 +185,8 @@ void emX11WindowPort::InvalidatePainting(double x, double y, double w, double h)
 emX11WindowPort::emX11WindowPort(emWindow & window)
 	: emWindowPort(window),
 	emEngine(window.GetScheduler()),
-	Screen((emX11Screen&)window.GetScreen())
+	Screen((emX11Screen&)window.GetScreen()),
+	XMutex(Screen.XMutex)
 {
 	emContext * c;
 	emX11WindowPort * wp;
@@ -264,13 +278,20 @@ emX11WindowPort::~emX11WindowPort()
 			break;
 		}
 	}
+	XMutex.Lock();
 	XFreeGC(Disp,Gc);
+	XMutex.Unlock();
 	Gc=NULL;
 	if (InputContext) {
+		XMutex.Lock();
 		XDestroyIC(InputContext);
+		XMutex.Unlock();
 		InputContext=NULL;
 	}
+	Screen.WCThread->RemoveWindow(Win);
+	XMutex.Lock();
 	XDestroyWindow(Disp,Win);
+	XMutex.Unlock();
 	Win=None;
 }
 
@@ -392,6 +413,7 @@ void emX11WindowPort::PreConstruct()
 		border=0;
 	}
 
+	XMutex.Lock();
 	Win=XCreateWindow(
 		Disp,
 		Screen.RootWin,
@@ -406,16 +428,25 @@ void emX11WindowPort::PreConstruct()
 		CWBitGravity|CWColormap|CWEventMask|CWOverrideRedirect,
 		&xswa
 	);
+	XMutex.Unlock();
 
-	if (Owner) XSetTransientForHint(Disp,Win,Owner->Win);
+	Screen.WCThread->AddWindow(Win);
+
+	if (Owner) {
+		XMutex.Lock();
+		XSetTransientForHint(Disp,Win,Owner->Win);
+		XMutex.Unlock();
+	}
 
 	if (Screen.InputMethod) {
+		XMutex.Lock();
 		InputContext=XCreateIC(
 			Screen.InputMethod,
 			XNInputStyle,XIMPreeditNothing|XIMStatusNothing,
 			XNClientWindow,Win,
 			(char*)NULL
 		);
+		XMutex.Unlock();
 		if (InputContext==NULL) {
 			emFatalError("Failed to create X input context.");
 		}
@@ -425,10 +456,14 @@ void emX11WindowPort::PreConstruct()
 	}
 
 	if (InputContext) {
+		XMutex.Lock();
 		XGetICValues(InputContext,XNFilterEvents,&extraEventMask,(char*)NULL);
+		XMutex.Unlock();
 		eventMask|=extraEventMask;
 	}
+	XMutex.Lock();
 	XSelectInput(Disp,Win,eventMask);
+	XMutex.Unlock();
 
 	memset(&xwmh,0,sizeof(xwmh));
 	xwmh.flags=(InputHint|StateHint);
@@ -439,8 +474,11 @@ void emX11WindowPort::PreConstruct()
 	xch.res_name =(char*)GetWMResName().Get();
 	xch.res_class=(char*)"EagleMode";
 
+	XMutex.Lock();
 	XmbSetWMProperties(Disp,Win,Title.Get(),NULL,NULL,0,&xsh,&xwmh,&xch);
+	XMutex.Unlock();
 
+	XMutex.Lock();
 	XChangeProperty(
 		Disp,
 		Win,
@@ -451,9 +489,12 @@ void emX11WindowPort::PreConstruct()
 		(const unsigned char*)&Screen.WM_DELETE_WINDOW,
 		1
 	);
+	XMutex.Unlock();
 
 	memset(&xgcv,0,sizeof(xgcv));
+	XMutex.Lock();
 	Gc=XCreateGC(Disp,Win,0,&xgcv);
+	XMutex.Unlock();
 
 	SetViewFocused(Focused);
 	SetViewGeometry(PaneX,PaneY,PaneW,PaneH,Screen.PixelTallness);
@@ -464,24 +505,32 @@ void emX11WindowPort::PreConstruct()
 
 void emX11WindowPort::PostConstruct()
 {
-	int i;
+	int i,r;
 
 	if ((GetWindowFlags()&(
 		emWindow::WF_POPUP|emWindow::WF_UNDECORATED|emWindow::WF_FULLSCREEN
 	))!=0) {
+		XMutex.Lock();
 		XMapRaised(Disp,Win);
+		XMutex.Unlock();
 	}
 	else {
+		XMutex.Lock();
 		XMapWindow(Disp,Win);
+		XMutex.Unlock();
 	}
 
 	if (Focused) {
 		if (MakeViewable()) {
 			if ((GetWindowFlags()&emWindow::WF_MODAL)!=0 && Owner) {
+				XMutex.Lock();
 				XSetInputFocus(Disp,Win,RevertToParent,CurrentTime);
+				XMutex.Unlock();
 			}
 			else {
+				XMutex.Lock();
 				XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
+				XMutex.Unlock();
 			}
 		}
 		else {
@@ -502,20 +551,24 @@ void emX11WindowPort::PostConstruct()
 	) {
 		if (MakeViewable()) {
 			for (i=0; ; i++) {
-				if (XGrabKeyboard(
+				XMutex.Lock();
+				r=XGrabKeyboard(
 					Disp,
 					Win,
 					True,
 					GrabModeSync,
 					GrabModeAsync,
 					CurrentTime
-				)==GrabSuccess) break;
+				);
+				XMutex.Unlock();
+				if (r==GrabSuccess) break;
 				if (i>10) emFatalError("XGrabKeyboard failed.");
 				emWarning("XGrabKeyboard failed - trying again...");
 				emSleepMS(50);
 			}
 			for (i=0; ; i++) {
-				if (XGrabPointer(
+				XMutex.Lock();
+				r=XGrabPointer(
 					Disp,
 					Win,
 					True,
@@ -526,12 +579,16 @@ void emX11WindowPort::PostConstruct()
 					(GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0 ? Win : None,
 					None,
 					CurrentTime
-				)==GrabSuccess) break;
+				);
+				XMutex.Unlock();
+				if (r==GrabSuccess) break;
 				if (i>10) emFatalError("XGrabPointer failed.");
 				emWarning("XGrabPointer failed - trying again...");
 				emSleepMS(50);
 			}
+			XMutex.Lock();
 			XAllowEvents(Disp,SyncPointer,CurrentTime);
+			XMutex.Unlock();
 			Screen.GrabbingWinPort=this;
 		}
 	}
@@ -560,13 +617,17 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 	int i,x,y,w,h,mask,repeat,variant,len;
 	double mx,my;
 	bool inside;
+	Bool xb;
 
 	// Remember:
 	// - Calling InputToView may delete this window port.
 	// - The grab stuff is very very tricky.
 
 	if (!forwarded) {
-		if (XFilterEvent(&event,Win)) return;
+		XMutex.Lock();
+		xb=XFilterEvent(&event,Win);
+		XMutex.Unlock();
+		if (xb) return;
 	}
 
 	switch (event.type) {
@@ -622,7 +683,9 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 			Screen.GrabbingWinPort==this &&
 			(GetWindowFlags()&emWindow::WF_POPUP)!=0
 		) {
+			XMutex.Lock();
 			XAllowEvents(Disp,ReplayPointer,CurrentTime);
+			XMutex.Unlock();
 			Screen.GrabbingWinPort=NULL;
 			LastButtonPress=EM_KEY_NONE;
 			SignalWindowClosing();
@@ -718,6 +781,7 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 			Screen.UpdateInputStateFromKeymap();
 		}
 		if (InputContext) {
+			XMutex.Lock();
 			len=XmbLookupString(
 				InputContext,
 				&event.xkey,
@@ -726,10 +790,12 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 				&ks,
 				&status
 			);
+			XMutex.Unlock();
 			if (status!=XLookupChars && status!=XLookupBoth) len=0;
 			if (status!=XLookupKeySym && status!=XLookupBoth) ks=0;
 		}
 		else {
+			XMutex.Lock();
 			len=XLookupString(
 				&event.xkey,
 				tmp,
@@ -737,6 +803,7 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 				&ks,
 				&ComposeStatus
 			);
+			XMutex.Unlock();
 		}
 		tmp[len]=0;
 		key=emX11Screen::ConvertKey(ks,&variant);
@@ -758,7 +825,9 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 		return;
 	case KeyRelease:
 		memset(keymap,0,sizeof(keymap));
+		XMutex.Lock();
 		XQueryKeymap(Disp,keymap);
+		XMutex.Unlock();
 		i=event.xkey.keycode/8;
 		mask=1<<(event.xkey.keycode&7);
 		if (i<32 && (keymap[i]&mask)==0) {
@@ -788,7 +857,11 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 			event.xfocus.mode==NotifyNormal ||
 			event.xfocus.mode==NotifyWhileGrabbed
 		) {
-			if (InputContext) XSetICFocus(InputContext);
+			if (InputContext) {
+				XMutex.Lock();
+				XSetICFocus(InputContext);
+				XMutex.Unlock();
+			}
 			Screen.UpdateKeymapAndInputState();
 			RepeatKey=EM_KEY_NONE;
 			if (!Focused) {
@@ -803,7 +876,11 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 			event.xfocus.mode==NotifyNormal ||
 			event.xfocus.mode==NotifyWhileGrabbed
 		) {
-			if (InputContext) XUnsetICFocus(InputContext);
+			if (InputContext) {
+				XMutex.Lock();
+				XUnsetICFocus(InputContext);
+				XMutex.Unlock();
+			}
 			if (Focused) {
 				Focused=false;
 				SetViewFocused(false);
@@ -894,9 +971,11 @@ bool emX11WindowPort::Cycle()
 	emString str;
 	emCursor cur;
 	::Window win;
+	::Cursor xcur;
 	emX11WindowPort * wp;
 	double vrx,vry,vrw,vrh,fx,fy,fw,fh;
 	int i,x,y,w,h;
+	Status xs;
 
 	if (
 		FullscreenUpdateTimer &&
@@ -916,7 +995,9 @@ bool emX11WindowPort::Cycle()
 
 		// Workaround for lots of focus problems with several window managers:
 		if (Screen.GrabbingWinPort==this) {
+			XMutex.Lock();
 			XGetInputFocus(Disp,&win,&i);
+			XMutex.Unlock();
 			wp=NULL;
 			for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
 				if (Screen.WinPorts[i]->Win==win) {
@@ -936,13 +1017,16 @@ bool emX11WindowPort::Cycle()
 					if (wp==this) break;
 					wp=wp->Owner;
 				}
-				if (
-					!wp &&
-					XGetWindowAttributes(Disp,Win,&attr) &&
-					attr.map_state==IsViewable
-				) {
-					XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
-					emWarning("emX11WindowPort: Focus workaround 2 applied.");
+				if (!wp) {
+					XMutex.Lock();
+					xs=XGetWindowAttributes(Disp,Win,&attr);
+					XMutex.Unlock();
+					if (xs && attr.map_state==IsViewable) {
+						XMutex.Lock();
+						XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
+						XMutex.Unlock();
+						emWarning("emX11WindowPort: Focus workaround 2 applied.");
+					}
 				}
 			}
 		}
@@ -995,6 +1079,7 @@ bool emX11WindowPort::Cycle()
 			xsh.width=w;
 			xsh.height=h;
 		}
+		XMutex.Lock();
 		XSetWMNormalHints(Disp,Win,&xsh);
 		if (PosPending && SizePending) {
 			XMoveResizeWindow(Disp,Win,x,y,w,h);
@@ -1005,6 +1090,7 @@ bool emX11WindowPort::Cycle()
 		else {
 			XResizeWindow(Disp,Win,w,h);
 		}
+		XMutex.Unlock();
 		PosPending=false;
 		SizePending=false;
 	}
@@ -1013,7 +1099,9 @@ bool emX11WindowPort::Cycle()
 		str=GetWindowTitle();
 		if (Title!=str) {
 			Title=str;
+			XMutex.Lock();
 			XmbSetWMProperties(Disp,Win,Title.Get(),NULL,NULL,0,NULL,NULL,NULL);
+			XMutex.Unlock();
 		}
 		TitlePending=false;
 	}
@@ -1027,7 +1115,10 @@ bool emX11WindowPort::Cycle()
 		cur=GetViewCursor();
 		if (Cursor!=cur) {
 			Cursor=cur;
-			XDefineCursor(Disp,Win,Screen.GetXCursor(cur));
+			xcur=Screen.GetXCursor(cur);
+			XMutex.Lock();
+			XDefineCursor(Disp,Win,xcur);
+			XMutex.Unlock();
 		}
 		CursorPending=false;
 	}
@@ -1072,6 +1163,7 @@ void emX11WindowPort::UpdatePainting()
 					w=rx2-x;
 					if (w>Screen.BufWidth) w=Screen.BufWidth;
 					PaintView(emPainter(Screen.BufPainter[0],0,0,w,h,-x,-y,1,1),0);
+					XMutex.Lock();
 					XPutImage(
 						Disp,
 						Win,
@@ -1081,6 +1173,7 @@ void emX11WindowPort::UpdatePainting()
 						x-PaneX,y-PaneY,
 						w,h
 					);
+					XMutex.Unlock();
 					x+=w;
 				} while (x<rx2);
 				y+=h;
@@ -1111,6 +1204,7 @@ void emX11WindowPort::UpdatePainting()
 					Screen.WaitBufs();
 				}
 				PaintView(emPainter(Screen.BufPainter[i],0,0,w,h,-x,-y,1,1),0);
+				XMutex.Lock();
 				XShmPutImage(
 					Disp,
 					Win,
@@ -1122,6 +1216,7 @@ void emX11WindowPort::UpdatePainting()
 					True
 				);
 				XFlush(Disp);
+				XMutex.Unlock();
 				Screen.BufActive[i]=true;
 				x+=w;
 			} while (x<rx2);
@@ -1235,14 +1330,24 @@ void emX11WindowPort::MergeToInvRectList(int x1, int y1, int x2, int y2)
 bool emX11WindowPort::MakeViewable()
 {
 	XWindowAttributes attr;
+	Status xs;
 	int i;
 
 	for (i=0; i<100; i++) {
+		XMutex.Lock();
 		XSync(Disp,False);
-		if (!XGetWindowAttributes(Disp,Win,&attr)) break;
+		xs=XGetWindowAttributes(Disp,Win,&attr);
+		XMutex.Unlock();
+		if (!xs) break;
 		if (attr.map_state==IsViewable) return true;
-		if (i==0) XMapWindow(Disp,Win);
-		else emSleepMS(10);
+		if (i==0) {
+			XMutex.Lock();
+			XMapWindow(Disp,Win);
+			XMutex.Unlock();
+		}
+		else {
+			emSleepMS(10);
+		}
 	}
 	emWarning("emX11WindowPort::MakeViewable failed.");
 	return false;
@@ -1321,20 +1426,26 @@ void emX11WindowPort::Flash()
 
 	Screen.Beep();
 
+	XMutex.Lock();
 	gc=XCreateGC(Disp,Win,0,&gcv);
+	XMutex.Unlock();
 	d=emMin(2,emMin(PaneW,PaneH));
 	for (i=0; i<2; i++) {
 		if ((i&1)==0) pix=BlackPixel(Disp,Screen.Scrn);
 		else pix=WhitePixel(Disp,Screen.Scrn);
+		XMutex.Lock();
 		XSetForeground(Disp,gc,pix);
 		XFillRectangle(Disp,Win,gc,0,0,PaneW,d);
 		XFillRectangle(Disp,Win,gc,0,0,d,PaneH);
 		XFillRectangle(Disp,Win,gc,PaneW-d,0,d,PaneH);
 		XFillRectangle(Disp,Win,gc,0,PaneH-d,PaneW,d);
 		XFlush(Disp);
+		XMutex.Unlock();
 		emSleepMS(20);
 	}
+	XMutex.Lock();
 	XFreeGC(Disp,gc);
+	XMutex.Unlock();
 	InvalidatePainting(PaneX,PaneY,PaneW,PaneH);
 }
 
@@ -1368,6 +1479,7 @@ void emX11WindowPort::SetIconProperty(const emImage & icon)
 		s+=4;
 	}
 
+	XMutex.Lock();
 	XChangeProperty(
 		Disp,
 		Win,
@@ -1378,6 +1490,7 @@ void emX11WindowPort::SetIconProperty(const emImage & icon)
 		(const unsigned char*)data,
 		n
 	);
+	XMutex.Unlock();
 
 	delete [] data;
 }
@@ -1396,8 +1509,10 @@ void emX11WindowPort::SendLaunchFeedback()
 	msg=emString::Format("remove: ID=%s",id);
 	unsetenv("DESKTOP_STARTUP_ID");
 	sz=msg.GetLen()+1;
+	XMutex.Lock();
 	_NET_STARTUP_INFO_BEGIN=XInternAtom(Disp,"_NET_STARTUP_INFO_BEGIN",False);
 	_NET_STARTUP_INFO=XInternAtom(Disp,"_NET_STARTUP_INFO",False);
+	XMutex.Unlock();
 	for (i=0; i<sz; i+=20) {
 		memset(&xevent,0,sizeof(xevent));
 		xevent.xclient.type=ClientMessage;
@@ -1407,8 +1522,21 @@ void emX11WindowPort::SendLaunchFeedback()
 		else xevent.xclient.message_type=_NET_STARTUP_INFO;
 		xevent.xclient.format=8;
 		memcpy(xevent.xclient.data.b,msg.Get()+i,emMin(sz-i,20));
+		XMutex.Lock();
 		XSendEvent(Disp,Screen.RootWin,False,PropertyChangeMask,&xevent);
+		XMutex.Unlock();
 	}
+}
+
+
+void emX11WindowPort::RestoreCursor()
+{
+	::Cursor xcur;
+
+	xcur=Screen.GetXCursor(Cursor);
+	XMutex.Lock();
+	XDefineCursor(Disp,Win,xcur);
+	XMutex.Unlock();
 }
 
 
@@ -1420,28 +1548,39 @@ void emX11WindowPort::GetAbsWinGeometry(
 	::Window * children;
 	XWindowAttributes attr;
 	unsigned int nchildren;
+	Status xs;
 
 	*pX=0;
 	*pY=0;
 	*pW=100;
 	*pH=100;
 	for (current=win;;) {
-		if (!XGetWindowAttributes(disp,current,&attr)) break;
+		XMutex.Lock();
+		xs=XGetWindowAttributes(disp,current,&attr);
+		XMutex.Unlock();
+		if (!xs) break;
 		*pX+=attr.x;
 		*pY+=attr.y;
 		if (current==win) {
 			*pW=attr.width;
 			*pH=attr.height;
 		}
-		if (!XQueryTree(
+		XMutex.Lock();
+		xs=XQueryTree(
 			disp,
 			current,
 			&root,
 			&parent,
 			&children,
 			&nchildren
-		)) break;
-		if (children) XFree(children);
+		);
+		XMutex.Unlock();
+		if (!xs) break;
+		if (children) {
+			XMutex.Lock();
+			XFree(children);
+			XMutex.Unlock();
+		}
 		if (root==parent) break;
 		current=parent;
 	}

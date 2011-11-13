@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -40,7 +40,9 @@ public:
 		CE_BINARY,
 		CE_7BIT,
 		CE_8BIT,
-		CE_UTF8
+		CE_UTF8,
+		CE_UTF16LE,
+		CE_UTF16BE
 	};
 	CEType GetCharEncoding() const;
 
@@ -102,7 +104,7 @@ private:
 		emUInt64 FileRead;
 		char Buf[4096];
 		int Statistics[256];
-		int Pos,Row,Col,Col1,Col2;
+		int StartPos,Pos,Row,Col,Col1,Col2;
 		bool FoundCR,FoundLF,FoundCRLF;
 	};
 	LoadingState * L;

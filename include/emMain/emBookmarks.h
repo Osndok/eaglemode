@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,7 +76,10 @@ class emBookmarkEntryRec : public emStructRec {
 
 public:
 
-	emBookmarkEntryRec();
+	emBookmarkEntryRec(
+		const emColor & defaultBgColor,
+		const emColor & defaultFgColor
+	);
 	virtual ~emBookmarkEntryRec();
 
 	emStringRec Name;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,10 @@
 #include <emFileMan/emFileLinkModel.h>
 #endif
 
+#ifndef emFileManViewConfig_h
+#include <emFileMan/emFileManViewConfig.h>
+#endif
+
 
 class emFileLinkPanel : public emFilePanel {
 
@@ -60,18 +64,20 @@ protected:
 
 private:
 
+	void CalcContentCoords(double * pX, double * pY, double * pW, double * pH);
 	void UpdateChildPanel(bool forceRecreation=false);
 	void LayoutChildPanel();
 
 	bool HaveBorder;
-	emImage BorderImage;
 	emFileLinkModel * Model;
 	emRef<emSigModel> UpdateSignalModel;
+	emRef<emFileManViewConfig> Config;
 	emPanel * ChildPanel;
 	emString CachedFullPath;
 	emDirEntry DirEntry;
 	bool DirEntryUpToDate;
-	static const double BorderSize;
+	static const emColor BorderBgColor;
+	static const emColor BorderFgColor;
 };
 
 

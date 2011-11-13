@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Make System</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2011 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -15,7 +15,7 @@ Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourcefor
 <A HREF="#2">2 Maker scripts</A><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.1">2.1 General requirements for a maker script</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.2">2.2 Example</A></SMALL><BR>
-<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.3">2.3 GetDepedencies function</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.3">2.3 GetDependencies function</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4">2.4 IsEssential function</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.5">2.5 GetFileHandlingRules function</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.6">2.6 GetExtraBuildOptions function</A></SMALL><BR>
@@ -95,7 +95,7 @@ compilation and linkage. Its path would have to be
 use strict;
 use warnings;
 
-sub GetDepedencies
+sub GetDependencies
 {
         return ('emCore');
 }
@@ -139,7 +139,7 @@ sub Build
 }
 </TT></PRE></TD></TR></TABLE></BLOCKQUOTE>
 
-<H2><A NAME="2.3"></A>2.3 GetDepedencies function</H2>
+<H2><A NAME="2.3"></A>2.3 GetDependencies function</H2>
 This function returns an array of project names. Those projects are always built
 before.
 <P>

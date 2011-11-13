@@ -29,6 +29,23 @@ use IO::Handle;
 # command scripts which use the normal stat function.
 
 
+#================================ Configuration ================================
+
+# Whether to run sync at the end of commands. Can be overloaded with the
+# environment variable EM_FM_SYNC.
+my $Sync='no';
+if (exists($ENV{'EM_FM_SYNC'})) { $Sync=$ENV{'EM_FM_SYNC'}; }
+
+# Terminal colors.
+my $TermBg   ='#aaaaaa';
+my $TermFg   ='#000000';
+my $TCNormal ="\e[0m";
+my $TCInfo   ="\e[0;34m";
+my $TCSuccess="\e[1;32m";
+my $TCError  ="\e[1;31m";
+my $TCClose  ="\e[1;37m";
+
+
 #======================= Parse arguments / private stuff =======================
 
 if ($Config{'osname'} eq 'MSWin32') {
@@ -86,8 +103,8 @@ sub SecondPassInTerminal
 		'xterm',
 		'-sb',
 		'-sl','1000', # don't make this too large (slows down)
-		'-bg','#300a00',
-		'-fg','#ffca00',
+		'-bg',$TermBg,
+		'-fg',$TermFg,
 		'-geometry',"80x24+${x}+${y}",
 		'-T',@_,
 		'-e',
@@ -517,19 +534,25 @@ sub TermRun
 	# Print and run a program, return the exit status (non-zero on error).
 	# Arguments: <program> [,<arguments>...]
 {
-	print("\nRunning: ");
+	print("\n${TCInfo}Running: ");
 	for (my $i=0; $i<@_; $i++) {
 		print("$_[$i] ");
 	}
-	print("\n\n");
+	print("${TCNormal}\n\n");
 	return system({$_[0]} @_);
 }
 
 
 sub TermSync
 	# Print and run the sync command, return the exit status (non-zero on error).
+	# This is now disabled by default (see $Sync in configuration more above).
 {
-	return TermRun("sync");
+	if ((lc($Sync) eq 'yes' || lc($Sync) eq 'true' || $Sync eq '1')) {
+		return TermRun("sync");
+	}
+	else {
+		return 0;
+	}
 }
 
 
@@ -546,7 +569,7 @@ sub TermChDir
 	# Change the current directory, return non-zero on error.
 	# Arguments: <directory>
 {
-	print("\nSetting current directory: $_[0]\n");
+	print("\n${TCInfo}Setting current directory: $_[0]${TCNormal}\n");
 	if (!chdir($_[0])) {
 		print("Cannot chdir to '$_[0]': $!");
 		return 1;
@@ -563,9 +586,9 @@ sub TermEnd
 	if ($_[0]!=0) {
 		print(
 			"\n".
-			"ERROR!\n".
+			"${TCError}ERROR!${TCNormal}\n".
 			"\n".
-			"Read the messages, then press enter or close the terminal.\n"
+			"${TCClose}Read the messages, then press enter or close the terminal.${TCNormal}\n"
 		);
 		readline(*STDIN);
 		exit(1);
@@ -573,7 +596,7 @@ sub TermEnd
 	else {
 		print(
 			"\n".
-			"SUCCESS!\n".
+			"${TCSuccess}SUCCESS!${TCNormal}\n".
 			"\n"
 		);
 		sleep(1);
@@ -589,9 +612,9 @@ sub TermEndByUser
 	if ($_[0]!=0) {
 		print(
 			"\n".
-			"ERROR!\n".
+			"${TCError}ERROR!${TCNormal}\n".
 			"\n".
-			"Read the messages, then press enter or close the terminal.\n"
+			"${TCClose}Read the messages, then press enter or close the terminal.${TCNormal}\n"
 		);
 		readline(*STDIN);
 		exit(1);
@@ -599,7 +622,7 @@ sub TermEndByUser
 	else {
 		print(
 			"\n".
-			"Read the messages, then press enter or close the terminal.\n"
+			"${TCClose}Read the messages, then press enter or close the terminal.${TCNormal}\n"
 		);
 		readline(*STDIN);
 		exit(0);

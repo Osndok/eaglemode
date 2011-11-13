@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Config;
 
-sub GetDepedencies
+sub GetDependencies
 {
 	return ('emCore');
 }

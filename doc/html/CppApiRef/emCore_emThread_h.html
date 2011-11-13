@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emThread_h.html#emThread">emThread</A>.h
 //
-// Copyright (C) 2009 Oliver Hamann.
+// Copyright (C) 2009-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -141,6 +141,53 @@
 <SPAN CLASS=b>}
 
 
+<A NAME="emThreadMutexLocker"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================ <A CLASS=m HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A> =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is a template class for a locker which simply locks a mutex for
+        // the time the locker exists. The template parameter OBJ describes the
+        // class of the mutex.
+
+        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>(OBJ &amp; mutex);
+                <SPAN CLASS=c>// Calls Lock() on the given mutex.
+                // Arguments:
+                //   mutex - The mutex to be locked by this locker.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>();
+                <SPAN CLASS=c>// Calls Unlock() on the mutex.
+
+        </SPAN>OBJ &amp; GetMutex();
+                <SPAN CLASS=c>// Get the mutex which is locked by this locker.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        OBJ &amp; Mutex;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>(
+        OBJ &amp; mutex
+)
+        : Mutex(mutex)
+<SPAN CLASS=b>{
+        </SPAN>Mutex.Lock();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;OBJ&gt;::~<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>()
+<SPAN CLASS=b>{
+        </SPAN>Mutex.Unlock();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;OBJ&gt;::GetMutex()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Mutex;
+<SPAN CLASS=b>}
+
+
 <A NAME="emThreadMiniMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
 //============================= <A CLASS=m HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> ==============================
 //==============================================================================
@@ -167,6 +214,9 @@
 
         </SPAN><SPAN CLASS=t>void </SPAN>Unlock();
                 <SPAN CLASS=c>// Unlock this mutex.
+
+        </SPAN><SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;<A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A>&gt; Locker;
+                <SPAN CLASS=c>// A locker class for this mutex class.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
@@ -313,7 +363,20 @@
         </SPAN><SPAN CLASS=t>bool </SPAN>IsLockedAnyhow() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Whether this mutex is currently locked for any access.
 
-</SPAN><SPAN CLASS=t>private</SPAN>:
+        </SPAN><SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>&gt; Locker;
+                <SPAN CLASS=c>// A locker class for this mutex class.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>ReadOnlyLocker : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                <SPAN CLASS=c>// A read-only locker class for this mutex class.
+                </SPAN>ReadOnlyLocker(<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; mutex);
+                ~ReadOnlyLocker();
+                <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; GetMutex();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; Mutex;
+        <SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{ </SPAN>MAX_COUNT = <SPAN CLASS=u>2147483647 </SPAN><SPAN CLASS=b>}</SPAN>;
         <A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A> Event;
@@ -339,6 +402,22 @@
         </SPAN><SPAN CLASS=k>return </SPAN>Event.GetCount()&lt;MAX_COUNT;
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::ReadOnlyLocker::ReadOnlyLocker(<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; mutex)
+        : Mutex(mutex)
+<SPAN CLASS=b>{
+        </SPAN>Mutex.LockReadOnly();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::ReadOnlyLocker::~ReadOnlyLocker()
+<SPAN CLASS=b>{
+        </SPAN>Mutex.UnlockReadOnly();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::ReadOnlyLocker::GetMutex()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Mutex;
+<SPAN CLASS=b>}
+
 
 <A NAME="emThreadRecursiveMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
 //=========================== <A CLASS=m HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A> ===========================
@@ -358,6 +437,8 @@
         <SPAN CLASS=t>bool </SPAN>Lock(<SPAN CLASS=t>unsigned </SPAN>timeoutMS=UINT_MAX);
         <SPAN CLASS=t>void </SPAN>Unlock();
         <SPAN CLASS=t>bool </SPAN>IsLocked() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;<A CLASS=l HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A>&gt; Locker;
 
 <SPAN CLASS=t>private</SPAN>:
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -266,7 +266,6 @@ static void emMiniIpc_CleanUpFiles()
 //-------------------------------- UNIX variant --------------------------------
 
 #	include <fcntl.h>
-#	include <sys/stat.h>
 #	include <unistd.h>
 
 

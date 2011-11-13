@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_gnu.pm
 #
-# Copyright (C) 2006-2010 Oliver Hamann.
+# Copyright (C) 2006-2011 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -115,6 +115,7 @@ sub Compile
 		push(@args,"gcc");
 		if (HaveDebug) { push(@args,"-g"); }
 		push(@args,"-O2");
+		if ($IsWinOrCygwin) { push(@args,"-mthreads"); }
 		if (!$IsWinOrCygwin) {
 			my $tgtType=GetTgtType;
 			if ($tgtType eq 'dynlib' or $tgtType eq 'lib') { push(@args,"-fPIC"); }
@@ -164,6 +165,10 @@ sub Link
 		if (HaveDebug) { push(@args,"-g"); }
 		if ($type eq 'dynlib') {
 			push(@args,$IsDarwin ? "-dynamiclib" : "-shared");
+		}
+		if ($IsWinOrCygwin) {
+			push(@args,"-mthreads");
+			push(@args,"-shared-libgcc");
 		}
 		if ($IsWin and $type eq 'wexe') { push(@args,"-mwindows"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }

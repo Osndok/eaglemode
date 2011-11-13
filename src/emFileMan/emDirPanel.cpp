@@ -31,11 +31,11 @@ emDirPanel::emDirPanel(
 	Path(path)
 {
 	FileMan=emFileManModel::Acquire(GetRootContext());
-	FileManViewConfig=emFileManViewConfig::Acquire(GetView());
+	Config=emFileManViewConfig::Acquire(GetView());
 	ContentComplete=false;
 	KeyWalkState=NULL;
 	AddWakeUpSignal(GetVirFileStateSignal());
-	AddWakeUpSignal(FileManViewConfig->GetChangeSignal());
+	AddWakeUpSignal(Config->GetChangeSignal());
 }
 
 
@@ -68,9 +68,13 @@ bool emDirPanel::Cycle()
 	busy=emFilePanel::Cycle();
 	if (
 		IsSignaled(GetVirFileStateSignal()) ||
-		IsSignaled(FileManViewConfig->GetChangeSignal())
+		IsSignaled(Config->GetChangeSignal())
 	) {
+		InvalidatePainting();
 		UpdateChildren();
+		if (IsSignaled(Config->GetChangeSignal())) {
+			InvalidateChildrenLayout();
+		}
 	}
 	if (KeyWalkState && IsSignaled(KeyWalkState->Timer.GetSignal())) {
 		ClearKeyWalkState();
@@ -138,31 +142,53 @@ void emDirPanel::Input(
 bool emDirPanel::IsOpaque()
 {
 	if (GetVirFileState()!=VFS_LOADED) return emFilePanel::IsOpaque();
-	return false;
+	else return Config->GetTheme().DirContentColor.Get().IsOpaque();
 }
 
 
 void emDirPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
 	if (GetVirFileState()!=VFS_LOADED) emFilePanel::Paint(painter,canvasColor);
+	else painter.Clear(Config->GetTheme().DirContentColor);
 }
 
 
 void emDirPanel::LayoutChildren()
 {
+	int cnt,col,cols,row,rows;
+	double h,t,cw,ch;
 	emPanel * p;
-	int i,sz,cnt;
-	double w,h;
 
-	if (!IsContentComplete()) return;
-
-	for (cnt=0, p=GetFirstChild(); p; cnt++, p=p->GetNext());
-	if (cnt>0) {
-		for (sz=1; sz*sz<cnt; sz++);
-		w=GetWidth()/sz;
-		h=GetHeight()/sz;
-		for (i=0, p=GetFirstChild(); p; i++, p=p->GetNext()) {
-			p->Layout(w*(i/sz),h*(i%sz),w,h,GetCanvasColor());
+	if (IsContentComplete()) {
+		for (cnt=0, p=GetFirstChild(); p; cnt++, p=p->GetNext());
+		if (cnt) {
+			h=GetHeight();
+			t=Config->GetTheme().Height;
+			for (rows=1; ;rows++) {
+				cols=(int)(rows*t/(h*(1.0-0.05/rows)));
+				if (cols<=0) cols=1;
+				if (rows*cols>=cnt) break;
+			}
+			cols=(cnt+rows-1)/rows;
+			ch=h/rows;
+			cw=1.0/cols;
+			if (ch>cw*t) ch=cw*t; else cw=ch/t;
+			for (col=0, row=0, p=GetFirstChild(); p; p=p->GetNext()) {
+				p->Layout(cw*col,ch*row,cw,ch,Config->GetTheme().DirContentColor);
+				row++;
+				if (row>=rows) { col++; row=0; }
+			}
+		}
+	}
+	else {
+		for (p=GetFirstChild(); p; p=p->GetNext()) {
+			p->Layout(
+				p->GetLayoutX(),
+				p->GetLayoutY(),
+				p->GetLayoutWidth(),
+				p->GetLayoutWidth()*Config->GetTheme().Height,
+				Config->GetTheme().DirContentColor
+			);
 		}
 	}
 }
@@ -230,7 +256,7 @@ void emDirPanel::UpdateChildren()
 		for (p=GetFirstChild(); p; ) {
 			np=p->GetNext();
 			de=&((emDirEntryPanel*)p)->GetDirEntry();
-			if (de->IsHidden() && !FileManViewConfig->GetShowHiddenFiles()) {
+			if (de->IsHidden() && !Config->GetShowHiddenFiles()) {
 				delete p;
 			}
 			else {
@@ -246,7 +272,7 @@ void emDirPanel::UpdateChildren()
 		for (i=0; i<count; i++) {
 			if (!foundMap[i]) {
 				de=&dm->GetEntry(i);
-				if (!de->IsHidden() || FileManViewConfig->GetShowHiddenFiles()) {
+				if (!de->IsHidden() || Config->GetShowHiddenFiles()) {
 					new emDirEntryPanel(*this,de->GetName(),*de);
 				}
 			}
@@ -275,7 +301,7 @@ void emDirPanel::SortChildren()
 
 int emDirPanel::CompareChildren(emPanel * c1, emPanel * c2, void * context)
 {
-	return ((emDirPanel*)context)->FileManViewConfig->CompareDirEntries(
+	return ((emDirPanel*)context)->Config->CompareDirEntries(
 		((emDirEntryPanel*)c1)->GetDirEntry(),
 		((emDirEntryPanel*)c2)->GetDirEntry()
 	);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -335,12 +335,6 @@ void emAvFilePanel::Input(
 			event.Eat();
 		}
 		break;
-	case EM_KEY_M:
-		if (state.IsCtrlMod() && adjustingEnabled) {
-			fm->SetAudioMute(!fm->GetAudioMute());
-			event.Eat();
-		}
-		break;
 	case EM_KEY_N:
 		if (state.IsNoMod()) {
 			fm->Play();
@@ -363,9 +357,9 @@ void emAvFilePanel::Input(
 			event.Eat();
 		}
 		break;
-	case EM_KEY_V:
-		if ((state.IsCtrlMod() || state.IsShiftCtrlMod()) && adjustingEnabled) {
-			fm->SetAudioVolume(fm->GetAudioVolume()+(state.GetShift()?-volStep:volStep));
+	case EM_KEY_U:
+		if (state.IsNoMod() && adjustingEnabled) {
+			fm->SetAudioMute(!fm->GetAudioMute());
 			event.Eat();
 		}
 		break;
@@ -377,6 +371,15 @@ void emAvFilePanel::Input(
 		break;
 	default:
 		break;
+	}
+
+	if (event.GetChars()=="+" && adjustingEnabled) {
+		fm->SetAudioVolume(fm->GetAudioVolume()+volStep);
+		event.Eat();
+	}
+	else if (event.GetChars()=="-" && adjustingEnabled) {
+		fm->SetAudioVolume(fm->GetAudioVolume()-volStep);
+		event.Eat();
 	}
 
 	if (
@@ -414,7 +417,7 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 	emAvFileModel * fm;
 	const emImage * image;
 	double xy[2*10];
-	double x1,y1,x2,y2,x,y,w,h,d,t;
+	double x1,y1,x2,y2,x,y,w,h,d,e,t;
 	emColor c1,c2,c3,c4;
 
 	if (GetVirFileState()!=VFS_LOADED) {
@@ -481,11 +484,12 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			canvasColor=0;
 		}
 		d=emMin(EW,EH)*0.05;
+		if (fm->GetPlayPos()>0) e=d*2.5; else e=0;
 		painter.PaintTextBoxed(
 			EX+d,
 			EY+d,
 			EW-2*d,
-			EH-2*d,
+			EH-2*d-e,
 			fm->GetInfoText(),
 			EH,
 			c3,
@@ -493,6 +497,35 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			EM_ALIGN_TOP_LEFT,
 			EM_ALIGN_LEFT
 		);
+		if (fm->GetPlayPos()>0) {
+			x1=EX+d;
+			y1=EY+EH-e-d*0.4;
+			x2=EX+EW-d;
+			y2=EY+EH-d;
+			d=e*0.09;
+			painter.PaintRectOutline(
+				x1+d*0.5,
+				y1+d*0.5,
+				x2-x1-d,
+				y2-y1-d,
+				d,
+				c3,
+				canvasColor
+			);
+			d*=1.7;
+			x1+=d;
+			y1+=d;
+			x2-=d;
+			y2-=d;
+			painter.PaintRect(
+				x1,
+				y1,
+				(x2-x1)*fm->GetPlayPos()/fm->GetPlayLength(),
+				y2-y1,
+				c3,
+				canvasColor
+			);
+		}
 		d=emMin(EW,EH)*0.02;
 		painter.PaintTextBoxed(
 			EX,

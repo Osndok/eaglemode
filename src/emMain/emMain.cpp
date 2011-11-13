@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -293,7 +293,6 @@ void emMain::CreateFSDialog()
 	emTkLabel * label;
 	emString docIndexPath;
 	emString text;
-	emTkLook look;
 
 	if (FSDialog) return;
 
@@ -317,13 +316,6 @@ void emMain::CreateFSDialog()
 	FSDialog->GetButton(1)->ActivateLater();
 	label=new emTkLabel(FSDialog->GetContentTiling(),"text");
 	label->SetCaption(text);
-	look.SetBgColor(0xAABBEEFF);
-	look.SetFgColor(0x221100FF);
-	look.Apply(FSDialog->GetRootPanel(),true);
-	look.SetButtonFgColor(0x003300FF);
-	look.Apply(FSDialog->GetButton(0),true);
-	look.SetButtonFgColor(0x330000FF);
-	look.Apply(FSDialog->GetButton(1),true);
 	AddWakeUpSignal(FSDialog->GetFinishSignal());
 }
 
@@ -464,7 +456,7 @@ static int wrapped_main(int argc, char * argv[])
 				sendArgs.Get()
 			);
 		}
-		catch (emString errorMessage) {
+		catch (emString) {
 			fprintf(stderr,"Failed to find server process.\n");
 			return 1;
 		}

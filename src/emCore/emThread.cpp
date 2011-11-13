@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.cpp
 //
-// Copyright (C) 2009 Oliver Hamann.
+// Copyright (C) 2009,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -679,13 +679,31 @@ bool emThreadEvent::Receive(emInt64 n, unsigned timeoutMS)
 		tv.tv_usec=(time_t)((timeoutMS%1000)*1000);
 		ptv=&tv;
 	}
+#	if defined(__sun) && defined(__SVR4)
+		int retr=0;
+#	endif
 	for (;;) {
 		FD_ZERO(&rset);
 		FD_SET(r.Pipe[0],&rset);
+#		if defined(__sun) && defined(__SVR4)
+			errno=0;
+#		endif
 		if (select(r.Pipe[0]+1,&rset,NULL,NULL,ptv)>=0) break;
+#		if defined(__sun) && defined(__SVR4)
+			if (errno==0) {
+				if (retr<100) {
+					emWarning("emThreadEvent: select returned bad status without setting errno - retrying.");
+					retr++;
+					continue;
+				}
+				else {
+					emFatalError("emThreadEvent: select continuously returned bad status without setting errno.");
+				}
+			}
+#		endif
 		if (errno!=EINTR) {
 			emFatalError(
-				"emThreadEvent: select failed: %s\n",
+				"emThreadEvent: select failed: %s",
 				emGetErrorText(errno).Get()
 			);
 		}

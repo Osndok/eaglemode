@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2010 Oliver Hamann.
+// Copyright (C) 2008-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -680,6 +680,9 @@ var BatFileHandle;
 
 function BatBegin(title)
 {
+	var env=WshShell.Environment("PROCESS");
+	var acp=env("EM_ACP");
+	if (acp.length<=0) Error("EM_ACP not set");
 	var tempPath=FileSys.GetSpecialFolder(2).Path;
 	for (i=0; ; i++) {
 		BatFilePath=GetChildPath(tempPath,"emFmCmdTmp"+i+".bat");
@@ -690,7 +693,9 @@ function BatBegin(title)
 	}
 	BatWrite(
 		"@echo off\n"+
-		"color 0E\n"+
+		"color 70\n"+
+		"chcp " + acp + "\n"+
+		"if errorlevel 1 goto _L_ERROR\n"+
 		"title " + title + "\n"+
 		"if %1==key892345289 goto _L_START\n"+
 		"echo Bad args\n"+
@@ -712,6 +717,9 @@ function BatEnd()
 {
 	BatWrite(
 		"if not %ANY_ERROR%==0 goto _L_ERROR\n"+
+		"echo.\n"+
+		"echo SUCCESS!\n"+
+		"echo.\n"+
 		"cscript /nologo " +
 			QuoteArg(
 				WshShell.ExpandEnvironmentStrings(
@@ -747,36 +755,6 @@ function BatAbort()
 
 function BatWrite(str)
 {
-	for (var i=0; i<str.length; i++) {
-		if ((str.charCodeAt(i)&~127)!=0) {
-			BatAbort();
-			Error(
-				"Sorry, but this command only supports\n"+
-				"7-bit ASCII characters in file names,\n"+
-				"paths, and whatever.\n"+
-				"\n"+
-				"This error message may even appear if\n"+
-				"Eagle Mode is installed in a directory\n"+
-				"whose path is different from that.\n"+
-				"\n"+
-				"I know it's bad, but it could be worse."
-			);
-			// ???
-			// The problem is that cmd.exe could expect another
-			// encoding than javascript produces (I saw code page
-			// 850 for the first and 1252 for the second). A
-			// solution would be to insert "chcp 1252\n" at the
-			// beginning of the batch file, but only if Eagle Mode
-			// runs with code page 1252, and only if we are sure that
-			// the javascript interpreter produces that code (how
-			// can we be sure?). It's risky because a wrong code
-			// page could mean that wrong files could be deleted by
-			// the file manager commands. Besides, cmd.exe would
-			// have to be set to a true-type font in order to
-			// display the characters correctly (I think this can be
-			// done by the user only).
-		}
-	}
 	if (BatFileHandle) BatFileHandle.Write(str);
 }
 

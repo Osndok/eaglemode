@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,8 +25,6 @@
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 
-#include "cursors/emCursorNormalSource.xbm"
-#include "cursors/emCursorNormalMask.xbm"
 #include "cursors/emCursorInvisible.xbm"
 
 
@@ -62,23 +60,25 @@ void emX11Screen::GetVisibleRect(
 {
 	XF86VidModeModeLine ml;
 	int x,y,dc;
+	bool b;
 
-	if (
-		HaveXF86VidMode &&
-		XF86VidModeGetModeLine(Disp,Scrn,&dc,&ml) &&
-		XF86VidModeGetViewPort(Disp,Scrn,&x,&y)
-	) {
-		*pX=x;
-		*pY=y;
-		*pW=ml.hdisplay;
-		*pH=ml.vdisplay;
+	if (HaveXF86VidMode) {
+		XMutex.Lock();
+		b=XF86VidModeGetModeLine(Disp,Scrn,&dc,&ml) &&
+		  XF86VidModeGetViewPort(Disp,Scrn,&x,&y);
+		XMutex.Unlock();
+		if (b) {
+			*pX=x;
+			*pY=y;
+			*pW=ml.hdisplay;
+			*pH=ml.vdisplay;
+			return;
+		}
 	}
-	else {
-		*pX=0.0;
-		*pY=0.0;
-		*pW=Width;
-		*pH=Height;
-	}
+	*pX=0.0;
+	*pY=0.0;
+	*pW=Width;
+	*pH=Height;
 }
 
 
@@ -91,7 +91,9 @@ void emX11Screen::MoveMousePointer(double dx, double dy)
 
 void emX11Screen::Beep()
 {
+	XMutex.Lock();
 	XBell(Disp,0);
+	XMutex.Unlock();
 }
 
 
@@ -126,6 +128,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	Bool xshmCanDoPixmaps,allowTwoBuffers;
 	XErrorHandler originalHandler;
 	Status status;
+	Bool xb;
 	int eventBase,errorBase;
 
 	displayName=XDisplayName(NULL);
@@ -134,8 +137,12 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 		emFatalError("Failed to open X display \"%s\".",displayName);
 	}
 
+	WCThread=new WaitCursorThread(XMutex,Disp);
+
+	XMutex.Lock();
 	XSetLocaleModifiers("");
 	InputMethod=XOpenIM(Disp,NULL,NULL,NULL);
+	XMutex.Unlock();
 	if (InputMethod==NULL) {
 		emWarning(
 			"emX11Screen: Failed to open X input method for display \"%s\".",
@@ -157,7 +164,9 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	if (Visu->c_class!=TrueColor || VisuDepth>32) {
 		Visu=NULL;
 		viTemplate.screen=Scrn;
+		XMutex.Lock();
 		viList=XGetVisualInfo(Disp,VisualScreenMask,&viTemplate,&viCount);
+		XMutex.Unlock();
 		for (i=0, vi=viList; i<viCount; i++, vi++) {
 			if (vi->visual->c_class==TrueColor && vi->depth<=32) {
 				Visu=vi->visual;
@@ -165,7 +174,9 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 				break;
 			}
 		}
+		XMutex.Lock();
 		XFree(viList);
+		XMutex.Unlock();
 		if (!Visu) {
 			emFatalError(
 				"No suitable true color visual available on X display \"%s\".",
@@ -177,11 +188,12 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	else if (VisuDepth<=16) bytesPerPixel=2;
 	else                    bytesPerPixel=4;
 
+	XMutex.Lock();
 	Colmap=XCreateColormap(Disp,RootWin,Visu,AllocNone);
-
 	WM_PROTOCOLS=XInternAtom(Disp,"WM_PROTOCOLS",False);
 	WM_DELETE_WINDOW=XInternAtom(Disp,"WM_DELETE_WINDOW",False);
 	_NET_WM_ICON=XInternAtom(Disp,"_NET_WM_ICON",False);
+	XMutex.Unlock();
 
 	try {
 		emX11_TryLoadLibXxf86vm();
@@ -189,18 +201,19 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	catch (emString errorMessage) {
 		emWarning("emX11Screen: %s",errorMessage.Get());
 	}
-	if (
-		emX11_IsLibXxf86vmLoaded() &&
-		XF86VidModeQueryVersion(Disp,&major,&minor) &&
-		(major>=1 || (major==0 && minor>=8)) &&
-		XF86VidModeQueryExtension(Disp,&eventBase,&errorBase)
-	) {
-		HaveXF86VidMode=true;
+	HaveXF86VidMode=false;
+	if (emX11_IsLibXxf86vmLoaded()) {
+		XMutex.Lock();
+		xb=XF86VidModeQueryVersion(Disp,&major,&minor);
+		XMutex.Unlock();
+		if (xb && (major>=1 || (major==0 && minor>=8))) {
+			XMutex.Lock();
+			xb=XF86VidModeQueryExtension(Disp,&eventBase,&errorBase);
+			XMutex.Unlock();
+			if (xb) HaveXF86VidMode=true;
+		}
 	}
-	else {
-		emWarning("emX11Screen: no XF86VidMode");
-		HaveXF86VidMode=false;
-	}
+	if (!HaveXF86VidMode) emWarning("emX11Screen: no XF86VidMode");
 
 	BufWidth=Width;
 
@@ -228,6 +241,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 		emWarning("emX11Screen: %s",errorMessage.Get());
 	}
 	UsingXShm=false;
+	XMutex.Lock();
 	XSync(Disp,False);
 	ErrorHandlerMutex.Lock();
 	ErrorHandlerCalled=false;
@@ -345,9 +359,11 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	XSync(Disp,False);
 	XSetErrorHandler(originalHandler);
 	ErrorHandlerMutex.Unlock();
+	XMutex.Unlock();
 
 	if (!UsingXShm) {
 		emWarning("emX11Screen: no XShm (=>slow)");
+		XMutex.Lock();
 		BufImg[0]=XCreateImage(
 			Disp,
 			Visu,
@@ -360,6 +376,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 			bytesPerPixel<<3,
 			BufWidth*bytesPerPixel
 		);
+		XMutex.Unlock();
 		if (
 			bytesPerPixel==4 &&
 			BufImg[0]->bits_per_pixel==24 &&
@@ -440,6 +457,11 @@ emX11Screen::~emX11Screen()
 {
 	int i;
 
+	delete WCThread;
+	WCThread=NULL;
+
+	XMutex.Lock();
+
 	XSync(Disp,False);
 
 	for (i=0; i<CursorMap.GetCount(); i++) {
@@ -475,10 +497,19 @@ bool emX11Screen::Cycle()
 	int dx,dy,i;
 	bool gotAnyWinPortEvent;
 
+	WCThread->SignOfLife();
+	if (WCThread->CursorToRestore()) {
+		for (i=WinPorts.GetCount()-1; i>=0; i--) {
+			WinPorts[i]->RestoreCursor();
+		}
+	}
+
 	gotAnyWinPortEvent=false;
 
+	XMutex.Lock();
 	while (XPending(Disp)) {
 		XNextEvent(Disp,&event);
+		XMutex.Unlock();
 		UpdateLastKnownTime(event);
 		win=event.xany.window;
 		if (Clipboard && win==Clipboard->Win) {
@@ -493,10 +524,12 @@ bool emX11Screen::Cycle()
 				}
 			}
 		}
+		XMutex.Lock();
 		if (event.type==ButtonPress || event.type==ButtonRelease) {
 			XAllowEvents(Disp,SyncPointer,CurrentTime);
 		}
 	}
+	XMutex.Unlock();
 
 	if (gotAnyWinPortEvent) {
 		UpdateKeymapAndInputState();
@@ -513,7 +546,9 @@ bool emX11Screen::Cycle()
 	dx=(int)floor(MouseWarpX+0.5);
 	dy=(int)floor(MouseWarpY+0.5);
 	if (dx || dy) {
+		XMutex.Lock();
 		XWarpPointer(Disp,None,None,0,0,0,0,dx,dy);
+		XMutex.Unlock();
 		MouseWarpX-=dx;
 		MouseWarpY-=dy;
 	}
@@ -525,10 +560,14 @@ bool emX11Screen::Cycle()
 		ScreensaverDisableTimer.Start(59000);
 		emDLog("emX11Screen: Touching screensavers.");
 		// Against the built-in screensaver of the X server:
+		XMutex.Lock();
 		XResetScreenSaver(Disp);
 		XFlush(Disp);
+		XMutex.Unlock();
 		// Against xscreensaver:
-		system("xscreensaver-command -deactivate >&- 2>&- &");
+		if (system("xscreensaver-command -deactivate >&- 2>&- &")==-1) {
+			emDLog("Could not run xscreensaver-command: %s",emGetErrorText(errno).Get());
+		}
 	}
 
 	return true;
@@ -540,7 +579,9 @@ void emX11Screen::UpdateKeymapAndInputState()
 	char newKeymap[32];
 
 	memset(newKeymap,0,sizeof(newKeymap));
+	XMutex.Lock();
 	XQueryKeymap(Disp,newKeymap);
+	XMutex.Unlock();
 	if (memcmp(Keymap,newKeymap,sizeof(Keymap))!=0) {
 		memcpy(Keymap,newKeymap,sizeof(Keymap));
 		UpdateInputStateFromKeymap();
@@ -551,6 +592,7 @@ void emX11Screen::UpdateKeymapAndInputState()
 void emX11Screen::UpdateInputStateFromKeymap()
 {
 	unsigned char keyStates[32];
+	KeySym ks;
 	int i,j,k;
 
 	memset(keyStates,0,sizeof(keyStates));
@@ -558,7 +600,10 @@ void emX11Screen::UpdateInputStateFromKeymap()
 		if (Keymap[i]) {
 			for (j=0; j<8; j++) {
 				if ((Keymap[i]&(1<<j))!=0) {
-					k=(int)ConvertKey(XKeycodeToKeysym(Disp,i*8+j,0));
+					XMutex.Lock();
+					ks=XKeycodeToKeysym(Disp,i*8+j,0);
+					XMutex.Unlock();
+					k=(int)ConvertKey(ks);
 					if (k!=EM_KEY_NONE) keyStates[k>>3]|=1<<(k&7);
 				}
 			}
@@ -609,7 +654,9 @@ void emX11Screen::WaitBufs()
 
 	if (BufActive[0] || BufActive[1]) {
 		for (;;) {
+			XMutex.Lock();
 			XIfEvent(Disp,&event.x,WaitPredicate,(XPointer)this);
+			XMutex.Unlock();
 			if (event.x.type==ShmCompletionEventType) {
 				if (BufActive[0] && event.xsc.shmseg==BufSeg[0].shmseg) {
 					BufActive[0]=false;
@@ -657,16 +704,9 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 	switch (cursorId) {
 		default:
 		case emCursor::NORMAL:
-			c=CreateXCursor(
-				emCursorNormalSource_width,
-				emCursorNormalSource_height,
-				emCursorNormalSource_bits,
-				emCursorNormalMask_width,
-				emCursorNormalMask_height,
-				emCursorNormalMask_bits,
-				emCursorNormalSource_x_hot,
-				emCursorNormalSource_y_hot
-			);
+			XMutex.Lock();
+			c=XCreateFontCursor(Disp,XC_left_ptr);
+			XMutex.Unlock();
 			break;
 		case emCursor::INVISIBLE:
 			c=CreateXCursor(
@@ -681,25 +721,39 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 			);
 			break;
 		case emCursor::WAIT:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_watch);
+			XMutex.Unlock();
 			break;
 		case emCursor::CROSSHAIR:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_crosshair);
+			XMutex.Unlock();
 			break;
 		case emCursor::TEXT:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_xterm);
+			XMutex.Unlock();
 			break;
 		case emCursor::HAND:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_hand1);
+			XMutex.Unlock();
 			break;
 		case emCursor::LEFT_RIGHT_ARROW:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_sb_h_double_arrow);
+			XMutex.Unlock();
 			break;
 		case emCursor::UP_DOWN_ARROW:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_sb_v_double_arrow);
+			XMutex.Unlock();
 			break;
 		case emCursor::LEFT_RIGHT_UP_DOWN_ARROW:
+			XMutex.Lock();
 			c=XCreateFontCursor(Disp,XC_fleur);
+			XMutex.Unlock();
 			break;
 	}
 	idx=~idx;
@@ -720,12 +774,6 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 	Pixmap src,msk;
 	XColor fg, bg;
 
-	src=XCreateBitmapFromData(
-		Disp,RootWin,(char*)srcBits,srcWidth,srcHeight
-	);
-	msk=XCreateBitmapFromData(
-		Disp,RootWin,(char*)mskBits,mskWidth,mskHeight
-	);
 	fg.red  =0xffff;
 	fg.green=0xffff;
 	fg.blue =0xffff;
@@ -734,9 +782,17 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 	bg.green=0x0000;
 	bg.blue =0x0000;
 	bg.flags=DoRed|DoGreen|DoBlue;
+	XMutex.Lock();
+	src=XCreateBitmapFromData(
+		Disp,RootWin,(char*)srcBits,srcWidth,srcHeight
+	);
+	msk=XCreateBitmapFromData(
+		Disp,RootWin,(char*)mskBits,mskWidth,mskHeight
+	);
 	c=XCreatePixmapCursor(Disp,src,msk,&fg,&bg,hotX,hotY);
 	XFreePixmap(Disp,src);
 	XFreePixmap(Disp,msk);
+	XMutex.Unlock();
 	return c;
 }
 
@@ -903,6 +959,106 @@ emInputKey emX11Screen::ConvertKey(KeySym ks, int * pVariant)
 int emX11Screen::ErrorHandler(Display * display, XErrorEvent * event)
 {
 	ErrorHandlerCalled=true;
+	return 0;
+}
+
+
+emX11Screen::WaitCursorThread::WaitCursorThread(
+	emThreadMiniMutex & xMutex, Display * disp
+)
+	: XMutex(xMutex)
+{
+	Disp=disp;
+	Windows.SetTuningLevel(4);
+	Clock=emGetClockMS();
+	CursorChanged=false;
+	Start(NULL);
+}
+
+
+emX11Screen::WaitCursorThread::~WaitCursorThread()
+{
+	QuitEvent.Send();
+	WaitForTermination();
+}
+
+
+void emX11Screen::WaitCursorThread::AddWindow(::Window win)
+{
+	DataMutex.Lock();
+	Windows.BinaryInsertIfNew(win,emStdComparer<Window>::Compare);
+	DataMutex.Unlock();
+}
+
+
+void emX11Screen::WaitCursorThread::RemoveWindow(::Window win)
+{
+	DataMutex.Lock();
+	Windows.BinaryRemove(win,emStdComparer<Window>::Compare);
+	DataMutex.Unlock();
+}
+
+
+void emX11Screen::WaitCursorThread::SignOfLife()
+{
+	DataMutex.Lock();
+	Clock=emGetClockMS();
+	DataMutex.Unlock();
+}
+
+
+bool emX11Screen::WaitCursorThread::CursorToRestore()
+{
+	bool b;
+
+	DataMutex.Lock();
+	b=CursorChanged;
+	CursorChanged=false;
+	DataMutex.Unlock();
+	return b;
+}
+
+
+int emX11Screen::WaitCursorThread::Run(void * arg)
+{
+	static const emUInt64 blockTimeMS=125;
+	::Cursor cur;
+	emUInt64 t;
+	int i;
+
+	XMutex.Lock();
+	cur=XCreateFontCursor(Disp,XC_watch);
+	XMutex.Unlock();
+
+	do {
+		DataMutex.Lock();
+		t=Clock;
+		DataMutex.Unlock();
+		t=emGetClockMS()-t;
+		if (t<blockTimeMS) {
+			t=blockTimeMS-t+1;
+		}
+		else {
+			emDLog("emX11Screen::WaitCursorThread: blocking detected");
+			DataMutex.Lock();
+			for (i=Windows.GetCount()-1; i>=0; i--) {
+				XMutex.Lock();
+				XDefineCursor(Disp,Windows[i],cur);
+				XMutex.Unlock();
+			}
+			CursorChanged=true;
+			DataMutex.Unlock();
+			XMutex.Lock();
+			XFlush(Disp);
+			XMutex.Unlock();
+			t=blockTimeMS;
+		}
+	}	while (!QuitEvent.Receive(1,t));
+
+	XMutex.Lock();
+	XFreeCursor(Disp,cur);
+	XMutex.Unlock();
+
 	return 0;
 }
 

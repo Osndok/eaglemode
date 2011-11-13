@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -84,8 +84,8 @@ bool emDirEntry::operator == (const emDirEntry & dirEntry) const
 			Data->Owner!=dirEntry.Data->Owner ||
 			Data->Group!=dirEntry.Data->Group ||
 			Data->Hidden!=dirEntry.Data->Hidden ||
-			memcmp(&Data->Stat,&dirEntry.Data->Stat,sizeof(struct stat))!=0 ||
-			memcmp(&Data->LStat,&dirEntry.Data->LStat,sizeof(struct stat))!=0
+			memcmp(&Data->Stat,&dirEntry.Data->Stat,sizeof(Data->Stat))!=0 ||
+			memcmp(&Data->LStat,&dirEntry.Data->LStat,sizeof(Data->LStat))!=0
 		) return false;
 	}
 	return true;
@@ -128,18 +128,16 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	Data->Path=path;
 	Data->Name=name;
 	Data->TargetPath=Data->Path;
-	if (stat(Data->Path,&Data->Stat)) {
+	if (em_stat(Data->Path,&Data->Stat)) {
 		Data->LStatErrNo=errno;
 		Data->StatErrNo=errno;
-		memset(&Data->Stat,0,sizeof(struct stat));
+		memset(&Data->Stat,0,sizeof(struct em_stat));
 	}
 	Data->Owner=emString::Format("%u",Data->Stat.st_uid);
 	Data->Group=emString::Format("%u",Data->Stat.st_gid);
-	Data->Hidden=false;
 	b=GetFileAttributesEx(Data->Path.Get(),GetFileExInfoStandard,&fad);
-	if (b) {
-		if (fad.dwFileAttributes&FILE_ATTRIBUTE_HIDDEN) Data->Hidden=true;
-	}
+	Data->WndsFileAttributes = b ? fad.dwFileAttributes : 0;
+	Data->Hidden=(Data->WndsFileAttributes&FILE_ATTRIBUTE_HIDDEN)!=0;
 #else
 	char tmp[1024];
 	struct passwd pwbuf;
@@ -153,23 +151,23 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	Data->Path=path;
 	Data->Name=name;
 	Data->TargetPath=Data->Path;
-	if (lstat(Data->Path,&Data->Stat)) {
+	if (em_lstat(Data->Path,&Data->Stat)) {
 		Data->LStatErrNo=errno;
-		if (stat(Data->Path,&Data->Stat)) {
+		if (em_stat(Data->Path,&Data->Stat)) {
 			Data->StatErrNo=errno;
-			memset(&Data->Stat,0,sizeof(struct stat));
+			memset(&Data->Stat,0,sizeof(struct em_stat));
 		}
 		else {
-			Data->LStat=(struct stat*)malloc(sizeof(struct stat));
-			memset(Data->LStat,0,sizeof(struct stat));
+			Data->LStat=(struct em_stat*)malloc(sizeof(struct em_stat));
+			memset(Data->LStat,0,sizeof(struct em_stat));
 		}
 	}
 	else if (S_ISLNK(Data->Stat.st_mode)) {
-		Data->LStat=(struct stat*)malloc(sizeof(struct stat));
-		memcpy(Data->LStat,&Data->Stat,sizeof(struct stat));
-		if (stat(Data->Path,&Data->Stat)) {
+		Data->LStat=(struct em_stat*)malloc(sizeof(struct em_stat));
+		memcpy(Data->LStat,&Data->Stat,sizeof(struct em_stat));
+		if (em_stat(Data->Path,&Data->Stat)) {
 			Data->StatErrNo=errno;
-			memset(&Data->Stat,0,sizeof(struct stat));
+			memset(&Data->Stat,0,sizeof(struct em_stat));
 		}
 		i=readlink(Data->Path,tmp,sizeof(tmp)-1);
 		if (i<0) {
@@ -209,7 +207,7 @@ emDirEntry::SharedData::SharedData()
 	LStatErrNo=0;
 	TargetPathErrNo=0;
 	Hidden=false;
-	memset(&Stat,0,sizeof(struct stat));
+	memset(&Stat,0,sizeof(struct em_stat));
 	LStat=&Stat;
 }
 

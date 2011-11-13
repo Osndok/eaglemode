@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkControlPanel.cpp
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -22,11 +22,13 @@
 
 
 emNetwalkControlPanel::emNetwalkControlPanel(
-	ParentArg parent, const emString & name, emNetwalkModel * fileModel
+	ParentArg parent, const emString & name, emView & contentView,
+	emNetwalkModel * fileModel
 )
-	: emTkGroup(parent,name,"emNetwalk")
+	: emTkGroup(parent,name,"emNetwalk"),
+	ContentView(contentView)
 {
-	emTkTiling * t1, * t2, * t3;
+	emTkTiling * t1, * t2, * t3, * t4;
 	Mdl=fileModel;
 
 	SetPrefChildTallness(1.0);
@@ -129,8 +131,24 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"Hotkey: Ctrl+N"
 	);
 
+	t4=new emTkTiling(this,"t4");
+	t4->SetPrefChildTallness(0.07);
+	t4->SetPrefChildTallness(0.33,-1);
+	GrExtra=new emTkGroup(t4,"extra","Extra");
+	GrExtra->SetBorderScaling(2.0);
+	CbAutoMark=new emTkCheckBox(
+		GrExtra,"automark","Auto Mark",
+		"Whether to mark pieces automatically after rotating them."
+	);
+	CbAutoMark->SetNoEOI();
+	BtUnmarkAll=new emTkButton(
+		GrExtra,"unmarkall","Unmark All",
+		"Unmark all pieces.\n"
+		"\n"
+		"Hotkey: Ctrl+U"
+	);
 	TfPenalty=new emTkTextField(
-		this,"penalty","Penalty Points",
+		t4,"penalty","Penalty Points",
 		"A penalty point is given whenever you rotate a piece once again\n"
 		"after rotating at least one other piece in between. Advanced players\n"
 		"should try to solve the puzzle without getting any penalty points."
@@ -140,6 +158,8 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 
 	AddWakeUpSignal(Mdl->GetChangeSignal());
 	AddWakeUpSignal(BtStart->GetClickSignal());
+	AddWakeUpSignal(CbAutoMark->GetCheckSignal());
+	AddWakeUpSignal(BtUnmarkAll->GetClickSignal());
 }
 
 
@@ -166,13 +186,22 @@ bool emNetwalkControlPanel::Cycle()
 					CbBorderless->IsChecked(),
 					CbNoFourWayJunctions->IsChecked(),
 					(int)SfComplexity->GetValue(),
-					CbDigMode->IsChecked()
+					CbDigMode->IsChecked(),
+					CbAutoMark->IsChecked()
 				);
 			}
 			catch (emString errorMessage) {
-				emTkDialog::ShowMessage(GetViewContext(),"Error",errorMessage);
+				emTkDialog::ShowMessage(ContentView,"Error",errorMessage);
 			}
 		}
+	}
+
+	if (IsSignaled(CbAutoMark->GetCheckSignal())) {
+		Mdl->SetAutoMark(CbAutoMark->IsChecked());
+	}
+
+	if (IsSignaled(BtUnmarkAll->GetClickSignal())) {
+		Mdl->UnmarkAll();
 	}
 
 	return emTkGroup::Cycle();
@@ -186,5 +215,6 @@ void emNetwalkControlPanel::UpdateFields()
 	CbBorderless->SetChecked(Mdl->IsBorderless());
 	CbNoFourWayJunctions->SetChecked(Mdl->IsNoFourWayJunctions());
 	CbDigMode->SetChecked(Mdl->IsDigMode());
+	CbAutoMark->SetChecked(Mdl->IsAutoMark());
 	TfPenalty->SetText(emString::Format("%d",Mdl->GetPenaltyPoints()));
 }

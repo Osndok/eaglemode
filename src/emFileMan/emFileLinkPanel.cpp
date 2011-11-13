@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,6 @@ emFileLinkPanel::emFileLinkPanel(
 {
 	emPanel * p;
 
-
 	p=GetParent();
 	HaveBorder = (
 		p && (
@@ -42,19 +41,15 @@ emFileLinkPanel::emFileLinkPanel(
 		)
 	);
 
-	if (HaveBorder) {
-		BorderImage=emGetInsResImage(
-			GetRootContext(),"emFileMan","images/InnerBorder.tga"
-		);
-	}
-
 	Model=fileModel;
 	UpdateSignalModel=emFileModel::AcquireUpdateSignalModel(GetRootContext());
+	Config=emFileManViewConfig::Acquire(GetView());
 	ChildPanel=NULL;
 	DirEntryUpToDate=false;
 
 	AddWakeUpSignal(UpdateSignalModel->Sig);
 	AddWakeUpSignal(GetVirFileStateSignal());
+	AddWakeUpSignal(Config->GetChangeSignal());
 	if (Model) AddWakeUpSignal(Model->GetChangeSignal());
 }
 
@@ -72,6 +67,10 @@ void emFileLinkPanel::SetFileModel(
 	Model=dynamic_cast<emFileLinkModel*>(fileModel);
 	emFilePanel::SetFileModel(Model,updateFileModel);
 	if (Model) AddWakeUpSignal(Model->GetChangeSignal());
+	CachedFullPath.Empty();
+	DirEntryUpToDate=false;
+	InvalidatePainting();
+	UpdateChildPanel(true);
 }
 
 
@@ -87,11 +86,17 @@ bool emFileLinkPanel::Cycle()
 	if (IsSignaled(GetVirFileStateSignal())) {
 		doUpdate=true;
 		InvalidatePainting();
+		InvalidateChildrenLayout();
 	}
 
 	if (IsSignaled(UpdateSignalModel->Sig)) {
 		DirEntryUpToDate=false;
 		doUpdate=true;
+	}
+
+	if (IsSignaled(Config->GetChangeSignal())) {
+		InvalidatePainting();
+		InvalidateChildrenLayout();
 	}
 
 	if (Model && IsSignaled(Model->GetChangeSignal())) {
@@ -120,59 +125,104 @@ bool emFileLinkPanel::IsOpaque()
 	if (!IsVFSGood()) {
 		return emFilePanel::IsOpaque();
 	}
-	return false;
+	else if (HaveBorder) {
+		return BorderBgColor.IsOpaque();
+	}
+	else if (Model->HaveDirEntry) {
+		return Config->GetTheme().DirContentColor.Get().IsOpaque();
+	}
+	else {
+		return false;
+	}
 }
 
 
 void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
-	double x,y,w,h,bw,bh,d;
+	double x,y,w,h,d,t;
 
 	if (!IsVFSGood()) {
 		emFilePanel::Paint(painter,canvasColor);
 		return;
 	}
 
-	if (!HaveBorder) return;
-
-	bw=BorderSize;
-	bh=BorderSize*GetHeight();
-	d=emMin(bw,bh)*0.03;
-	x=bw-d;
-	y=bh-d;
-	w=1.0-2*bw+2*d;
-	h=GetHeight()-2*bh+2*d;
-	painter.PaintBorderImage(
-		x,y,w,h,
-		d,d,d,d,
-		BorderImage,
-		64.0,64.0,64.0,64.0,
-		255,canvasColor,0757
-	);
-
-	if (CachedFullPath.IsEmpty()) CachedFullPath=Model->GetFullPath();
-	d=y*0.2;
-	painter.PaintTextBoxed(
-		d,
-		d,
-		1.0-2*d,
-		y-2*d,
-		emString::Format(
-			"emFileLink to: %s",
-			CachedFullPath.Get()
-		),
-		y,
-		emColor(221,255,255),
-		canvasColor,
-		EM_ALIGN_CENTER,
-		EM_ALIGN_CENTER
-	);
+	if (HaveBorder) {
+		painter.Clear(BorderBgColor);
+		canvasColor=BorderBgColor;
+		CalcContentCoords(&x,&y,&w,&h);
+		d=emMin(x,y)*0.15;
+		t=emMin(x,y)*0.03;
+		painter.PaintRectOutline(
+			x-d*0.5,
+			y-d*0.5,
+			w+d,
+			h+d,
+			t,
+			BorderFgColor
+		);
+		if (CachedFullPath.IsEmpty()) CachedFullPath=Model->GetFullPath();
+		t=emMin(x,y)*0.2;
+		painter.PaintTextBoxed(
+			t,0.0,1.0-t*2.0,y-t,
+			emString::Format(
+				"emFileLink to %s",
+				CachedFullPath.Get()
+			),
+			(y-t)*0.9,
+			BorderFgColor,
+			canvasColor,
+			EM_ALIGN_CENTER,
+			EM_ALIGN_CENTER
+		);
+		if (Model->HaveDirEntry) {
+			painter.PaintRect(x,y,w,h,Config->GetTheme().DirContentColor,canvasColor);
+		}
+	}
+	else if (Model->HaveDirEntry) {
+		painter.Clear(Config->GetTheme().DirContentColor,canvasColor);
+	}
 }
 
 
 void emFileLinkPanel::LayoutChildren()
 {
 	LayoutChildPanel();
+}
+
+
+void emFileLinkPanel::CalcContentCoords(
+	double * pX, double * pY, double * pW, double * pH
+)
+{
+	double t,x,y,w,h;
+
+	if (HaveBorder) {
+		x=0.15;
+		y=x*GetHeight();
+		w=1.0-2*x;
+		h=GetHeight()-2*y;
+	}
+	else {
+		x=0.0;
+		y=0.0;
+		w=1.0;
+		h=GetHeight();
+	}
+	if (IsVFSGood() && Model->HaveDirEntry) {
+		t=Config->GetTheme().Height;
+		if (h>w*t) {
+			y+=(h-w*t)*0.5;
+			h=w*t;
+		}
+		else {
+			x+=(w-h/t)*0.5;
+			w=h/t;
+		}
+	}
+	*pX=x;
+	*pY=y;
+	*pW=w;
+	*pH=h;
 }
 
 
@@ -246,21 +296,15 @@ void emFileLinkPanel::LayoutChildPanel()
 	double x,y,w,h;
 
 	if (ChildPanel) {
-		if (HaveBorder) {
-			x=BorderSize;
-			y=BorderSize*GetHeight();
-			w=1.0-2*x;
-			h=GetHeight()-2*y;
-		}
-		else {
-			x=0.0;
-			y=0.0;
-			w=1.0;
-			h=GetHeight();
-		}
-		ChildPanel->Layout(x,y,w,h,GetCanvasColor());
+		CalcContentCoords(&x,&y,&w,&h);
+		ChildPanel->Layout(
+			x,y,w,h,
+			Model->HaveDirEntry ? Config->GetTheme().DirContentColor.Get() :
+			HaveBorder ? BorderBgColor :
+			GetCanvasColor()
+		);
 	}
 }
 
-
-const double emFileLinkPanel::BorderSize=0.15;
+const emColor emFileLinkPanel::BorderBgColor=0xBBBBBBFF;
+const emColor emFileLinkPanel::BorderFgColor=0x444444FF;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2010 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,15 +30,11 @@ emDirEntryAltPanel::emDirEntryAltPanel(
 )
 	: emPanel(parent,name), DirEntry(dirEntry), Alternative(alternative)
 {
-	SharedVar=emVarModel<SharedStuff>::Acquire(GetRootContext(),"");
-	if (!SharedVar->Var.FileMan) {
-		SharedVar->Var.FileMan=emFileManModel::Acquire(GetRootContext());
-		SharedVar->Var.InnerBorderImage=emGetInsResImage(
-			GetRootContext(),"emFileMan","images/InnerBorder.tga"
-		);
-	}
+	FileMan=emFileManModel::Acquire(GetRootContext());
+	Config=emFileManViewConfig::Acquire(GetView());
 
-	AddWakeUpSignal(SharedVar->Var.FileMan->GetSelectionSignal());
+	AddWakeUpSignal(FileMan->GetSelectionSignal());
+	AddWakeUpSignal(Config->GetChangeSignal());
 
 	SetFocusable(false);
 }
@@ -51,28 +47,40 @@ emDirEntryAltPanel::~emDirEntryAltPanel()
 
 void emDirEntryAltPanel::UpdateDirEntry(const emDirEntry & dirEntry)
 {
+	bool pathChanged, errOrFmtChanged;
 	emPanel * p;
 
 	if (DirEntry == dirEntry) return;
 
-	if (dirEntry.GetPath() != DirEntry.GetPath()) {
-		emFatalError("emDirEntryAltPanel::UpdateDirEntry: different path");
-	}
+	pathChanged = (dirEntry.GetPath() != DirEntry.GetPath());
+
+	errOrFmtChanged = (
+		dirEntry.GetStatErrNo() != DirEntry.GetStatErrNo() ||
+		(dirEntry.GetStat()->st_mode&S_IFMT) != (DirEntry.GetStat()->st_mode&S_IFMT)
+	);
+
+	DirEntry=dirEntry;
+
+	InvalidatePainting();
+
+	if (pathChanged || errOrFmtChanged) UpdateContentPanel(true);
 
 	p=GetChild(AltName);
 	if (p) {
 		((emDirEntryAltPanel*)p)->UpdateDirEntry(dirEntry);
 	}
-
-	DirEntry=dirEntry;
-	InvalidatePainting();
 }
 
 
 bool emDirEntryAltPanel::Cycle()
 {
-	if (IsSignaled(SharedVar->Var.FileMan->GetSelectionSignal())) {
+	if (IsSignaled(FileMan->GetSelectionSignal())) {
 		InvalidatePainting();
+	}
+	if (IsSignaled(Config->GetChangeSignal())) {
+		InvalidatePainting();
+		UpdateContentPanel(false,true);
+		UpdateAltPanel(false,true);
 	}
 	return false;
 }
@@ -80,91 +88,12 @@ bool emDirEntryAltPanel::Cycle()
 
 void emDirEntryAltPanel::Notice(NoticeFlags flags)
 {
-	const char * soughtName;
-	emRef<emFpPluginList> fppl;
-	emPanel * p;
-
 	if ((flags&(NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED|NF_VISIT_CHANGED))!=0) {
-		soughtName=GetSoughtName();
-		p=GetChild(ContentName);
-		if (
-			(
-				soughtName &&
-				strcmp(soughtName,ContentName)==0
-			) ||
-			(
-				IsViewed() &&
-				GetViewedWidth()*LayoutContentW>=MinContentVW &&
-				PanelToViewX(LayoutContentX)<GetClipX2() &&
-				PanelToViewX(LayoutContentX+LayoutContentW)>GetClipX1() &&
-				PanelToViewY(LayoutContentY)<GetClipY2() &&
-				PanelToViewY(LayoutContentY+LayoutContentH)>GetClipY1()
-			)
-		) {
-			if (!p) {
-				fppl=emFpPluginList::Acquire(GetRootContext());
-				p=fppl->CreateFilePanel(
-					this,
-					ContentName,
-					DirEntry.GetPath(),
-					DirEntry.GetStatErrNo(),
-					DirEntry.GetStat()->st_mode,
-					Alternative
-				);
-				p->BeFirst();
-				p->Layout(
-					LayoutContentX,LayoutContentY,
-					LayoutContentW,LayoutContentH,
-					ColorBGNormal
-				);
-			}
-		}
-		else if (p && !p->IsInVisitedPath()) {
-			delete p;
-		}
-		p=GetChild(AltName);
-		if (
-			(
-				soughtName &&
-				strcmp(soughtName,AltName)==0
-			) ||
-			(
-				IsViewed() &&
-				GetViewedWidth()*LayoutAltW>=MinAltVW &&
-				PanelToViewX(LayoutAltX)<GetClipX2() &&
-				PanelToViewX(LayoutAltX+LayoutAltW)>GetClipX1() &&
-				PanelToViewY(LayoutAltY)<GetClipY2() &&
-				PanelToViewY(LayoutAltY+LayoutAltH)>GetClipY1()
-			)
-		) {
-			if (!p) {
-				p=new emDirEntryAltPanel(
-					this,
-					AltName,
-					DirEntry,
-					Alternative+1
-				);
-				p->Layout(
-					LayoutAltX,LayoutAltY,
-					LayoutAltW,LayoutAltH,
-					GetCanvasColor()
-				);
-			}
-		}
-		else if (p && !p->IsInVisitedPath()) {
-			delete p;
-		}
+		UpdateContentPanel();
+		UpdateAltPanel();
 	}
-
 	if (flags&NF_LAYOUT_CHANGED) {
-		p=GetChild(AltName);
-		if (p) {
-			p->Layout(
-				LayoutAltX,LayoutAltY,
-				LayoutAltW,LayoutAltH,
-				GetCanvasColor()
-			);
-		}
+		UpdateAltPanel(false,true);
 	}
 }
 
@@ -178,61 +107,172 @@ bool emDirEntryAltPanel::IsOpaque()
 void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
 	char tmp[256];
+	const emFileManTheme * theme;
+
+	theme = &Config->GetTheme();
 
 	sprintf(tmp, "Alternative Content Panel #%d", Alternative);
 	painter.PaintTextBoxed(
-		LayoutLabelX,
-		LayoutLabelY,
-		LayoutLabelW,
-		LayoutLabelH,
+		theme->AltLabelX,
+		theme->AltLabelY,
+		theme->AltLabelW,
+		theme->AltLabelH,
 		tmp,
-		LayoutLabelH,
-		ColorInfoLabel,
+		theme->AltLabelH,
+		theme->LabelColor,
 		canvasColor,
-		EM_ALIGN_LEFT,
+		theme->AltLabelAlignment,
 		EM_ALIGN_LEFT,
 		0.5,
 		false
 	);
-	if (GetViewedWidth()*LayoutContentW >= MinContentVW) {
+	if (GetViewedWidth()*theme->AltContentW >= theme->MinContentVW) {
 		painter.PaintTextBoxed(
-			LayoutPathX,
-			LayoutPathY,
-			LayoutPathW,
-			LayoutPathH,
+			theme->AltPathX,
+			theme->AltPathY,
+			theme->AltPathW,
+			theme->AltPathH,
 			DirEntry.GetPath(),
-			LayoutPathH,
-			ColorPath,
+			theme->AltPathH,
+			theme->PathColor,
 			canvasColor,
-			EM_ALIGN_BOTTOM_LEFT,
+			theme->AltPathAlignment,
 			EM_ALIGN_LEFT,
 			0.5,
 			false
 		);
 		painter.PaintBorderImage(
-			LayoutContentX-LayoutContentFrame,
-			LayoutContentY-LayoutContentFrame,
-			LayoutContentW+LayoutContentFrame*2,
-			LayoutContentH+LayoutContentFrame*2,
-			LayoutContentFrame,
-			LayoutContentFrame,
-			LayoutContentFrame,
-			LayoutContentFrame,
-			SharedVar->Var.InnerBorderImage,
-			64.0,64.0,64.0,64.0,
+			theme->AltInnerBorderX,
+			theme->AltInnerBorderY,
+			theme->AltInnerBorderW,
+			theme->AltInnerBorderH,
+			theme->AltInnerBorderL,
+			theme->AltInnerBorderT,
+			theme->AltInnerBorderR,
+			theme->AltInnerBorderB,
+			theme->AltInnerBorderImg.GetImage(),
+			theme->AltInnerBorderImgL,
+			theme->AltInnerBorderImgT,
+			theme->AltInnerBorderImgR,
+			theme->AltInnerBorderImgB,
 			255,canvasColor,0757
 		);
 		painter.PaintRect(
-			LayoutContentX,LayoutContentY,
-			LayoutContentW,LayoutContentH,
-			ColorBGNormal,canvasColor
+			theme->AltContentX,theme->AltContentY,
+			theme->AltContentW,theme->AltContentH,
+			theme->BackgroundColor,
+			canvasColor
 		);
 	}
 	else {
 		painter.PaintRect(
-			LayoutContentX,LayoutContentY,
-			LayoutContentW,LayoutContentH,
-			emColor(0,0,0,20),canvasColor
+			theme->AltContentX,theme->AltContentY,
+			theme->AltContentW,theme->AltContentH,
+			theme->LabelColor.Get().GetTransparented(68.0f),
+			canvasColor
+		);
+	}
+}
+
+
+void emDirEntryAltPanel::UpdateContentPanel(bool forceRecreation, bool forceRelayout)
+{
+	const char * soughtName;
+	emRef<emFpPluginList> fppl;
+	emPanel * p;
+	const emFileManTheme * theme;
+
+	theme = &Config->GetTheme();
+	p=GetChild(ContentName);
+	if (forceRecreation && p) { delete p; p=NULL; }
+	soughtName=GetSoughtName();
+	if (
+		(
+			soughtName &&
+			strcmp(soughtName,ContentName)==0
+		) ||
+		(
+			IsViewed() &&
+			GetViewedWidth()*theme->AltContentW>=theme->MinContentVW &&
+			PanelToViewX(theme->AltContentX)<GetClipX2() &&
+			PanelToViewX(theme->AltContentX+theme->AltContentW)>GetClipX1() &&
+			PanelToViewY(theme->AltContentY)<GetClipY2() &&
+			PanelToViewY(theme->AltContentY+theme->AltContentH)>GetClipY1()
+		)
+	) {
+		if (!p) {
+			fppl=emFpPluginList::Acquire(GetRootContext());
+			p=fppl->CreateFilePanel(
+				this,
+				ContentName,
+				DirEntry.GetPath(),
+				DirEntry.GetStatErrNo(),
+				DirEntry.GetStat()->st_mode,
+				Alternative
+			);
+			p->BeFirst();
+			forceRelayout=true;
+		}
+	}
+	else if (p && !p->IsInVisitedPath()) {
+		delete p;
+		p=NULL;
+	}
+
+	if (p && forceRelayout) {
+		p->Layout(
+			theme->AltContentX,theme->AltContentY,
+			theme->AltContentW,theme->AltContentH,
+			theme->BackgroundColor
+		);
+	}
+}
+
+
+void emDirEntryAltPanel::UpdateAltPanel(bool forceRecreation, bool forceRelayout)
+{
+	const char * soughtName;
+	emPanel * p;
+	const emFileManTheme * theme;
+
+	theme = &Config->GetTheme();
+	p=GetChild(AltName);
+	if (forceRecreation && p) { delete p; p=NULL; }
+	soughtName=GetSoughtName();
+	if (
+		(
+			soughtName &&
+			strcmp(soughtName,AltName)==0
+		) ||
+		(
+			IsViewed() &&
+			GetViewedWidth()*theme->AltAltW>=theme->MinAltVW &&
+			PanelToViewX(theme->AltAltX)<GetClipX2() &&
+			PanelToViewX(theme->AltAltX+theme->AltAltW)>GetClipX1() &&
+			PanelToViewY(theme->AltAltY)<GetClipY2() &&
+			PanelToViewY(theme->AltAltY+theme->AltAltH)>GetClipY1()
+		)
+	) {
+		if (!p) {
+			p=new emDirEntryAltPanel(
+				this,
+				AltName,
+				DirEntry,
+				Alternative+1
+			);
+			forceRelayout=true;
+		}
+	}
+	else if (p && !p->IsInVisitedPath()) {
+		delete p;
+		p=NULL;
+	}
+
+	if (p && forceRelayout) {
+		p->Layout(
+			theme->AltAltX,theme->AltAltY,
+			theme->AltAltW,theme->AltAltH,
+			GetCanvasColor()
 		);
 	}
 }
@@ -240,25 +280,3 @@ void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor)
 
 const char * const emDirEntryAltPanel::ContentName="";
 const char * const emDirEntryAltPanel::AltName="a";
-const double emDirEntryAltPanel::LayoutLabelX=0.0/0.604;
-const double emDirEntryAltPanel::LayoutLabelY=0.0/0.604;
-const double emDirEntryAltPanel::LayoutLabelW=0.575/0.604;
-const double emDirEntryAltPanel::LayoutLabelH=0.004/0.604;
-const double emDirEntryAltPanel::LayoutPathX=0.0/0.604;
-const double emDirEntryAltPanel::LayoutPathY=0.004/0.604;
-const double emDirEntryAltPanel::LayoutPathW=0.575/0.604;
-const double emDirEntryAltPanel::LayoutPathH=0.01/0.604;
-const double emDirEntryAltPanel::MinAltVW=25.0;
-const double emDirEntryAltPanel::LayoutAltX=0.57634/0.604;
-const double emDirEntryAltPanel::LayoutAltY=0.004/0.604;
-const double emDirEntryAltPanel::LayoutAltW=0.02766/0.604;
-const double emDirEntryAltPanel::LayoutAltH=0.01/0.604;
-const double emDirEntryAltPanel::MinContentVW=45.0;
-const double emDirEntryAltPanel::LayoutContentFrame=0.002/0.604;
-const double emDirEntryAltPanel::LayoutContentX=0.002/0.604;
-const double emDirEntryAltPanel::LayoutContentY=0.0163333333/0.604;
-const double emDirEntryAltPanel::LayoutContentW=0.6/0.604;
-const double emDirEntryAltPanel::LayoutContentH=0.2/0.604;
-const emColor emDirEntryAltPanel::ColorBGNormal=emColor(187,187,187);
-const emColor emDirEntryAltPanel::ColorInfoLabel=emColor(136,136,136);
-const emColor emDirEntryAltPanel::ColorPath=emColor(68,68,68);
