@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSubViewPanel.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -52,6 +52,8 @@ public:
 
 	virtual emString GetTitle();
 
+	virtual double GetTouchEventPriority(double touchX, double touchY);
+
 protected:
 
 	virtual void Notice(NoticeFlags flags);
@@ -91,6 +93,9 @@ private:
 		void PaintView(const emPainter & painter, emColor canvasColor);
 	protected:
 		virtual void RequestFocus();
+		virtual bool IsSoftKeyboardShown();
+		virtual void ShowSoftKeyboard(bool show);
+		virtual emUInt64 GetInputClockMS();
 		virtual void InvalidateCursor();
 		virtual void InvalidatePainting(double x, double y, double w,
 		                                double h);

@@ -1,0 +1,929 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emClipRects.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>.h
+//
+// Copyright (C) 2011-2012 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emClipRects_h
+#define emClipRects_h
+
+#ifndef emList_h
+#include &lt;<A CLASS=f HREF="emCore_emList_h.html">emCore/emList.h</A>&gt;
+#endif
+
+
+<A NAME="emClipRects"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a disjoint set of clip rectangles with
+        // copy-on-write behavior. The template parameter NUM is the type of the
+        // rectangle coordinates (usually int or double).
+
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>();
+                <SPAN CLASS=c>// Construct an empty set of clip rectangles.
+
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+                <SPAN CLASS=c>// Construct a copied set of clip rectangles.
+                // Arguments:
+                //   clipRects - The set to be copied.
+
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>(NUM x1, NUM y1, NUM x2, NUM y2);
+                <SPAN CLASS=c>// Construct a set of clip rectangles with a single rectangle.
+                // Arguments:
+                //   x1,y1,x2,y2 - Coordinates of the rectangle.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>();
+                <SPAN CLASS=c>// Destruct a set of clip rectangles.
+
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+                <SPAN CLASS=c>// Copy a set of clip rectangles.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Rect <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for one rectangle of a set of clip rectangles.
+
+                </SPAN>NUM GetX1() <SPAN CLASS=t>const</SPAN>;
+                NUM GetY1() <SPAN CLASS=t>const</SPAN>;
+                NUM GetX2() <SPAN CLASS=t>const</SPAN>;
+                NUM GetY2() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>void </SPAN>Get(NUM * pX1, NUM * pY1, NUM * pX2, NUM * pY2) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the coordinates of the rectangle.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Rect * GetNext() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the next rectangle in the list of rectangles.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;;
+                NUM X1,Y1,X2,Y2;
+                Rect * Next;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>const </SPAN>Rect * GetFirst() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the first rectangle. The rectangles are
+                // organized in a single-linked NULL-terminated list. So you can
+                // iterate the rectangles with:
+                //
+                //   for (r=clipRects.GetFirst(); r; r=r-&gt;GetNext()) {...}
+                //
+                // The rectangles have no order, except after one has called
+                // Sort().
+                //
+                // At least because of the copy-on-write feature, the pointers
+                // are valid only until calling any non-const method or operator
+                // on this list, or giving this list as a non-const argument to
+                // any call in the world.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the number of rectangles.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>GetMinMax(NUM * pX1, NUM * pY1, NUM * pX2, NUM * pY2) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Calculate the min/max rectangle. That is the smallest
+                // rectangle which encloses the whole set of clip rectangles. If
+                // the set is empty, the rectangle (0,0,0,0) is returned.
+                // Arguments:
+                //   pX1,pY1,pX2,pY2 - Pointers for returning the coordinates of
+                //                     the min/max rectangle.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetToMinMax();
+                <SPAN CLASS=c>// Set this set of clip rectangles to its min/max rectangle.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetToMinMaxOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+                <SPAN CLASS=c>// Set this set of clip rectangles to the min/max rectangle of
+                // another set of clip rectangles.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(NUM x1, NUM y1, NUM x2, NUM y2);
+                <SPAN CLASS=c>// Set this set of clip rectangles to a single rectangle.
+                // Arguments:
+                //   x1,y1,x2,y2 - Coordinates of the rectangle.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+                <SPAN CLASS=c>// Set this set of clip rectangles equal to another set of clip
+                // rectangles.
+                //   clipRects - The set to be copied.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Unite(NUM x1, NUM y1, NUM x2, NUM y2);
+        <SPAN CLASS=t>void </SPAN>Unite(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; <SPAN CLASS=t>operator </SPAN>|= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> <SPAN CLASS=t>operator </SPAN>| (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Perform the OR operation.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Intersect(NUM x1, NUM y1, NUM x2, NUM y2);
+        <SPAN CLASS=t>void </SPAN>Intersect(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; <SPAN CLASS=t>operator </SPAN>&amp;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> <SPAN CLASS=t>operator </SPAN>&amp; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Perform the AND operation.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Subtract(NUM x1, NUM y1, NUM x2, NUM y2);
+        <SPAN CLASS=t>void </SPAN>Subtract(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; <SPAN CLASS=t>operator </SPAN>-= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects);
+        <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> <SPAN CLASS=t>operator </SPAN>- (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Perform the AND-NOT operation.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Sort();
+                <SPAN CLASS=c>// Sort the list of rectangles primarily by Y1 and secondarily
+                // by X1.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Empty();
+                <SPAN CLASS=c>// Empty the set of clip rectangles.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the set of clip rectangles is empty.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSubsetOf(NUM x1, NUM y1, NUM x2, NUM y2) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsSubsetOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the set of clip rectangles is contained in
+                // another rectangle or set.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSupersetOf(NUM x1, NUM y1, NUM x2, NUM y2) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsSupersetOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the set of clip rectangles is containing
+                // another rectangle or set.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compare sets of clip rectangles.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this set of clip
+                // rectangles.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the object to another
+                // thread.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>PrivUnite(Rect * * list, NUM x1, NUM y1, NUM x2, NUM y2);
+        <SPAN CLASS=t>void </SPAN>DeleteData();
+        Rect * AllocRect();
+        <SPAN CLASS=t>void </SPAN>FreeRect(Rect * rect);
+        <SPAN CLASS=t>void </SPAN>AllocBlock();
+        <SPAN CLASS=t>static int </SPAN>CompareRects(<SPAN CLASS=t>void </SPAN>* r1, <SPAN CLASS=t>void </SPAN>* r2, <SPAN CLASS=t>void </SPAN>* context);
+
+        <SPAN CLASS=t>struct </SPAN>MemBlock <SPAN CLASS=b>{
+                </SPAN>Rect Rects[<SPAN CLASS=u>16</SPAN>];
+                MemBlock * Next;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN>Rect * List;
+                Rect * FreeList;
+                MemBlock * BlockList;
+                <SPAN CLASS=t>unsigned int </SPAN>Count;
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+                <SPAN CLASS=t>bool </SPAN>IsStaticEmpty;
+        <SPAN CLASS=b>}</SPAN>;
+
+        SharedData * Data;
+        <SPAN CLASS=t>static </SPAN>SharedData EmptyData;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+//--------------------------- Inline implementations ---------------------------
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>()
+<SPAN CLASS=b>{
+        </SPAN>Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>Data=clipRects.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::~<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; &amp; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>clipRects.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=clipRects.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline </SPAN>NUM <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect::GetX1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>X1;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline </SPAN>NUM <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect::GetY1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Y1;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline </SPAN>NUM <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect::GetX2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>X2;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline </SPAN>NUM <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect::GetY2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Y2;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect::Get(NUM * pX1, NUM * pY1, NUM * pX2, NUM * pY2) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>*pX1=X1;
+        *pY1=Y1;
+        *pX2=X2;
+        *pY2=Y2;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect * <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect::GetNext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Next;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect * <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::GetFirst() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;List;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;Count;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::SetToMinMax()
+<SPAN CLASS=b>{
+        </SPAN>SetToMinMaxOf(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>clipRects.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=clipRects.Data;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; &amp; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>Unite(clipRects);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; &amp; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>|= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>+=clipRects;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>| (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>+clipRects;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; &amp; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>&amp;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>Intersect(clipRects);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; &amp; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>-= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>Subtract(clipRects);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Empty()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!Data-&gt;Count;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::IsSupersetOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>clipRects.IsSubsetOf(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!(*<SPAN CLASS=k>this </SPAN>== clipRects);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline unsigned int </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::GetDataRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;IsStaticEmpty ? UINT_MAX/<SPAN CLASS=u>2 </SPAN>: Data-&gt;RefCount;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Rect * <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::AllocRect()
+<SPAN CLASS=b>{
+        </SPAN>Rect * r;
+
+        r=Data-&gt;FreeList;
+        <SPAN CLASS=k>if </SPAN>(!r) <SPAN CLASS=b>{
+                </SPAN>AllocBlock();
+                r=Data-&gt;FreeList;
+        <SPAN CLASS=b>}
+        </SPAN>Data-&gt;FreeList=r-&gt;Next;
+        Data-&gt;Count++;
+        <SPAN CLASS=k>return </SPAN>r;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::FreeRect(Rect * rect)
+<SPAN CLASS=b>{
+        </SPAN>Data-&gt;Count--;
+        rect-&gt;Next=Data-&gt;FreeList;
+        Data-&gt;FreeList=rect;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//------------------------- Non-inline implementations -------------------------
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>(NUM x1, NUM y1, NUM x2, NUM y2)
+<SPAN CLASS=b>{
+        </SPAN>Rect * r;
+
+        Data=<SPAN CLASS=k>new </SPAN>SharedData;
+        Data-&gt;List=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;FreeList=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;BlockList=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;Count=<SPAN CLASS=u>0</SPAN>;
+        Data-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+        Data-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+        r=AllocRect();
+        r-&gt;X1=x1;
+        r-&gt;Y1=y1;
+        r-&gt;X2=x2;
+        r-&gt;Y2=y2;
+        r-&gt;Next=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;List=r;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::GetMinMax(NUM * pX1, NUM * pY1, NUM * pX2, NUM * pY2) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>NUM x1,y1,x2,y2;
+        Rect * r;
+
+        r=Data-&gt;List;
+        <SPAN CLASS=k>if </SPAN>(!r) <SPAN CLASS=b>{
+                </SPAN>x1=<SPAN CLASS=u>0</SPAN>;
+                y1=<SPAN CLASS=u>0</SPAN>;
+                x2=<SPAN CLASS=u>0</SPAN>;
+                y2=<SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>x1=r-&gt;X1;
+                y1=r-&gt;Y1;
+                x2=r-&gt;X2;
+                y2=r-&gt;Y2;
+                <SPAN CLASS=k>for </SPAN>(r=r-&gt;Next; r; r=r-&gt;Next) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(x1&gt;r-&gt;X1) x1=r-&gt;X1;
+                        <SPAN CLASS=k>if </SPAN>(y1&gt;r-&gt;Y1) y1=r-&gt;Y1;
+                        <SPAN CLASS=k>if </SPAN>(x2&lt;r-&gt;X2) x2=r-&gt;X2;
+                        <SPAN CLASS=k>if </SPAN>(y2&lt;r-&gt;Y2) y2=r-&gt;Y2;
+                <SPAN CLASS=b>}
+        }
+        </SPAN>*pX1=x1;
+        *pY1=y1;
+        *pX2=x2;
+        *pY2=y2;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::SetToMinMaxOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>NUM x1,y1,x2,y2;
+
+        <SPAN CLASS=k>if </SPAN>(clipRects.Data-&gt;Count&lt;=<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN>clipRects.Data-&gt;RefCount++;
+                <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+                Data=clipRects.Data;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>GetMinMax(&amp;x1,&amp;y1,&amp;x2,&amp;y2);
+                Set(x1,y1,x2,y2);
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Set(NUM x1, NUM y1, NUM x2, NUM y2)
+<SPAN CLASS=b>{
+        </SPAN>Rect * r;
+
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=<SPAN CLASS=k>new </SPAN>SharedData;
+        Data-&gt;List=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;FreeList=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;BlockList=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;Count=<SPAN CLASS=u>0</SPAN>;
+        Data-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+        Data-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+        r=AllocRect();
+        r-&gt;X1=x1;
+        r-&gt;Y1=y1;
+        r-&gt;X2=x2;
+        r-&gt;Y2=y2;
+        r-&gt;Next=<SPAN CLASS=u>NULL</SPAN>;
+        Data-&gt;List=r;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Unite(NUM x1, NUM y1, NUM x2, NUM y2)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(x1&gt;=x2 || y1&gt;=y2) <SPAN CLASS=k>return</SPAN>;
+        MakeNonShared();
+        PrivUnite(&amp;Data-&gt;List,x1,y1,x2,y2);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Unite(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Rect * r;
+
+        <SPAN CLASS=k>if </SPAN>(Data==clipRects.Data || !clipRects.Data) <SPAN CLASS=k>return</SPAN>;
+        MakeNonShared();
+        <SPAN CLASS=k>for </SPAN>(r=clipRects.Data-&gt;List; r; r=r-&gt;Next) <SPAN CLASS=b>{
+                </SPAN>PrivUnite(&amp;Data-&gt;List,r-&gt;X1,r-&gt;Y1,r-&gt;X2,r-&gt;Y2);
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> cr(*<SPAN CLASS=k>this</SPAN>);
+        cr.Unite(clipRects);
+        <SPAN CLASS=k>return </SPAN>cr;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Intersect(NUM x1, NUM y1, NUM x2, NUM y2)
+<SPAN CLASS=b>{
+        </SPAN>Rect * * pr;
+        Rect * r;
+
+        <SPAN CLASS=k>if </SPAN>(x1&gt;=x2 || y1&gt;=y2) <SPAN CLASS=b>{
+                </SPAN>Empty();
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN>MakeNonShared();
+        pr=&amp;Data-&gt;List;
+        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                </SPAN>r=*pr;
+                <SPAN CLASS=k>if </SPAN>(!r) <SPAN CLASS=k>break</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(r-&gt;X1&lt;x1) r-&gt;X1=x1;
+                <SPAN CLASS=k>if </SPAN>(r-&gt;X2&gt;x2) r-&gt;X2=x2;
+                <SPAN CLASS=k>if </SPAN>(r-&gt;X1&lt;r-&gt;X2) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(r-&gt;Y1&lt;y1) r-&gt;Y1=y1;
+                        <SPAN CLASS=k>if </SPAN>(r-&gt;Y2&gt;y2) r-&gt;Y2=y2;
+                        <SPAN CLASS=k>if </SPAN>(r-&gt;Y1&lt;r-&gt;Y2) <SPAN CLASS=b>{
+                                </SPAN>pr=&amp;r-&gt;Next;
+                                <SPAN CLASS=k>continue</SPAN>;
+                        <SPAN CLASS=b>}
+                }
+                </SPAN>*pr=r-&gt;Next;
+                FreeRect(r);
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Intersect(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN>Rect * r1, * r2;
+
+        <SPAN CLASS=k>if </SPAN>(Data!=clipRects.Data) <SPAN CLASS=b>{
+                </SPAN>r1=Data-&gt;List;
+                <SPAN CLASS=k>if </SPAN>(r1) <SPAN CLASS=b>{
+                        </SPAN>r2=clipRects.Data-&gt;List;
+                        <SPAN CLASS=k>if </SPAN>(!r2) <SPAN CLASS=b>{
+                                </SPAN>Empty();
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else if </SPAN>(!r2-&gt;Next) <SPAN CLASS=b>{
+                                </SPAN>Intersect(r2-&gt;X1,r2-&gt;Y1,r2-&gt;X2,r2-&gt;Y2);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else if </SPAN>(!r1-&gt;Next) <SPAN CLASS=b>{
+                                </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> cr(clipRects);
+                                cr.Intersect(r1-&gt;X1,r1-&gt;Y1,r1-&gt;X2,r1-&gt;Y2);
+                                Set(cr);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> cr;
+                                cr.SetToMinMaxOf(*<SPAN CLASS=k>this</SPAN>);
+                                cr.Subtract(clipRects);
+                                Subtract(cr);
+                        <SPAN CLASS=b>}
+                }
+        }
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>&amp; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> cr(*<SPAN CLASS=k>this</SPAN>);
+        cr.Intersect(clipRects);
+        <SPAN CLASS=k>return </SPAN>cr;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Subtract(NUM x1, NUM y1, NUM x2, NUM y2)
+<SPAN CLASS=b>{
+        </SPAN>NUM rx1,ry1,rx2,ry2,sy1,sy2;
+        Rect * * pr;
+        Rect * r;
+
+        <SPAN CLASS=k>if </SPAN>(!Data-&gt;List || x1&gt;=x2 || y1&gt;=y2) <SPAN CLASS=k>return</SPAN>;
+        MakeNonShared();
+        pr=&amp;Data-&gt;List;
+        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                </SPAN>r=*pr;
+                <SPAN CLASS=k>if </SPAN>(!r) <SPAN CLASS=k>break</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(
+                        (rx1=r-&gt;X1)&lt;x2 &amp;&amp;
+                        (rx2=r-&gt;X2)&gt;x1 &amp;&amp;
+                        (ry1=r-&gt;Y1)&lt;y2 &amp;&amp;
+                        (ry2=r-&gt;Y2)&gt;y1
+                ) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(ry2&gt;y2) sy2=y2;
+                        <SPAN CLASS=k>else </SPAN>sy2=ry2;
+                        <SPAN CLASS=k>if </SPAN>(ry1&lt;y1) <SPAN CLASS=b>{
+                                </SPAN>r-&gt;Y2=y1;
+                                sy1=y1;
+                                pr=&amp;r-&gt;Next;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                </SPAN>sy1=ry1;
+                                *pr=r-&gt;Next;
+                                FreeRect(r);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(rx1&lt;x1) <SPAN CLASS=b>{
+                                </SPAN>r=AllocRect();
+                                r-&gt;X1=rx1;
+                                r-&gt;Y1=sy1;
+                                r-&gt;X2=x1;
+                                r-&gt;Y2=sy2;
+                                r-&gt;Next=*pr;
+                                *pr=r;
+                                pr=&amp;r-&gt;Next;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(rx2&gt;x2) <SPAN CLASS=b>{
+                                </SPAN>r=AllocRect();
+                                r-&gt;X1=x2;
+                                r-&gt;Y1=sy1;
+                                r-&gt;X2=rx2;
+                                r-&gt;Y2=sy2;
+                                r-&gt;Next=*pr;
+                                *pr=r;
+                                pr=&amp;r-&gt;Next;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(ry2&gt;y2) <SPAN CLASS=b>{
+                                </SPAN>r=AllocRect();
+                                r-&gt;X1=rx1;
+                                r-&gt;Y1=y2;
+                                r-&gt;X2=rx2;
+                                r-&gt;Y2=ry2;
+                                r-&gt;Next=*pr;
+                                *pr=r;
+                                pr=&amp;r-&gt;Next;
+                        <SPAN CLASS=b>}
+                }
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>pr=&amp;r-&gt;Next;
+                <SPAN CLASS=b>}
+        }
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Subtract(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Rect * r;
+
+        <SPAN CLASS=k>if </SPAN>(Data==clipRects.Data) <SPAN CLASS=b>{
+                </SPAN>Empty();
+                <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>for </SPAN>(r=clipRects.Data-&gt;List; r; r=r-&gt;Next) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;List) <SPAN CLASS=k>break</SPAN>;
+                Subtract(r-&gt;X1,r-&gt;Y1,r-&gt;X2,r-&gt;Y2);
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt; <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>- (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> cr(*<SPAN CLASS=k>this</SPAN>);
+        cr.Subtract(clipRects);
+        <SPAN CLASS=k>return </SPAN>cr;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Sort()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;Count&gt;<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=b>{
+                </SPAN>MakeNonShared();
+                emSortSingleLinkedList(
+                        (<SPAN CLASS=t>void</SPAN>**)&amp;Data-&gt;List,
+                        offsetof(Rect,Next),
+                        CompareRects,
+                        <SPAN CLASS=u>NULL
+                </SPAN>);
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::IsSubsetOf(NUM x1, NUM y1, NUM x2, NUM y2) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>Rect * r;
+
+        <SPAN CLASS=k>for </SPAN>(r=Data-&gt;List; r; r=r-&gt;Next) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(r-&gt;X1&lt;x1 || r-&gt;Y1&lt;y1 || r-&gt;X2&gt;x2 || r-&gt;Y2&gt;y2) <SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return true</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::IsSubsetOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>Rect * r;
+
+        <SPAN CLASS=k>if </SPAN>(Data==clipRects.Data) <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!Data-&gt;List) <SPAN CLASS=k>return true</SPAN>;
+        r=clipRects.Data-&gt;List;
+        <SPAN CLASS=k>if </SPAN>(!r) <SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!r-&gt;Next) <SPAN CLASS=k>return </SPAN>IsSubsetOf(r-&gt;X1,r-&gt;Y1,r-&gt;X2,r-&gt;Y2);
+        <SPAN CLASS=k>return </SPAN>(*<SPAN CLASS=k>this </SPAN>- clipRects).IsEmpty();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::IsSupersetOf(NUM x1, NUM y1, NUM x2, NUM y2) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>(x1,y1,x2,y2).IsSubsetOf(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A> &amp; clipRects) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data==clipRects.Data) <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=k>return </SPAN>IsSubsetOf(clipRects) &amp;&amp; clipRects.IsSubsetOf(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d1, * d2;
+        Rect * r1, *r2;
+        Rect * * pr;
+
+        d1=Data;
+        <SPAN CLASS=k>if </SPAN>(d1-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| d1-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN>d2=<SPAN CLASS=k>new </SPAN>SharedData;
+                d2-&gt;List=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;FreeList=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;BlockList=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;Count=<SPAN CLASS=u>0</SPAN>;
+                d2-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+                d2-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+                d1-&gt;RefCount--;
+                Data=d2;
+                r1=d1-&gt;List;
+                <SPAN CLASS=k>if </SPAN>(r1) <SPAN CLASS=b>{
+                        </SPAN>pr=&amp;d2-&gt;List;
+                        <SPAN CLASS=k>do </SPAN><SPAN CLASS=b>{
+                                </SPAN>r2=AllocRect();
+                                r2-&gt;X1=r1-&gt;X1;
+                                r2-&gt;Y1=r1-&gt;Y1;
+                                r2-&gt;X2=r1-&gt;X2;
+                                r2-&gt;Y2=r1-&gt;Y2;
+                                *pr=r2;
+                                pr=&amp;r2-&gt;Next;
+                                r1=r1-&gt;Next;
+                        <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(r1);
+                        *pr=<SPAN CLASS=u>NULL</SPAN>;
+                <SPAN CLASS=b>}
+        }
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::PrivUnite(Rect * * list, NUM x1, NUM y1, NUM x2, NUM y2)
+<SPAN CLASS=b>{
+        </SPAN>NUM rx1,ry1,rx2,ry2;
+        Rect * r;
+
+        <SPAN CLASS=k>for </SPAN>(;;) <SPAN CLASS=b>{
+                </SPAN>r=*list;
+                <SPAN CLASS=k>if </SPAN>(!r) <SPAN CLASS=k>break</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(
+                        (ry1=r-&gt;Y1)&gt;y2 || (ry2=r-&gt;Y2)&lt;y1 ||
+                        (rx1=r-&gt;X1)&gt;x2 || (rx2=r-&gt;X2)&lt;x1
+                ) <SPAN CLASS=b>{
+                        </SPAN>list=&amp;r-&gt;Next;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(rx1&lt;=x1 &amp;&amp; rx2&gt;=x2 &amp;&amp; ry1&lt;=y1 &amp;&amp; ry2&gt;=y2) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>return</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(rx1&gt;=x1 &amp;&amp; rx2&lt;=x2 &amp;&amp; ry1&gt;=y1 &amp;&amp; ry2&lt;=y2) <SPAN CLASS=b>{
+                        </SPAN>*list=r-&gt;Next;
+                        FreeRect(r);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(rx1==x1 &amp;&amp; rx2==x2) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(y1&gt;ry1) y1=ry1;
+                        <SPAN CLASS=k>if </SPAN>(y2&lt;ry2) y2=ry2;
+                        *list=r-&gt;Next;
+                        FreeRect(r);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(ry1&lt;y2 &amp;&amp; ry2&gt;y1) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(ry2&gt;y2) <SPAN CLASS=b>{
+                                </SPAN>r-&gt;Y1=y2;
+                                <SPAN CLASS=k>if </SPAN>(ry1&lt;y1) <SPAN CLASS=b>{
+                                        </SPAN>r=AllocRect();
+                                        r-&gt;X1=rx1;
+                                        r-&gt;Y1=ry1;
+                                        r-&gt;X2=rx2;
+                                        r-&gt;Y2=y1;
+                                        r-&gt;Next=*list;
+                                        *list=r;
+                                <SPAN CLASS=b>}
+                        }
+                        </SPAN><SPAN CLASS=k>else if </SPAN>(ry1&lt;y1) <SPAN CLASS=b>{
+                                </SPAN>r-&gt;Y2=y1;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                                </SPAN>*list=r-&gt;Next;
+                                FreeRect(r);
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(y1&lt;ry1) <SPAN CLASS=b>{
+                                </SPAN>PrivUnite(list,x1,y1,x2,ry1);
+                                y1=ry1;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(y2&gt;ry2) <SPAN CLASS=b>{
+                                </SPAN>PrivUnite(list,x1,ry2,x2,y2);
+                                y2=ry2;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(x1&gt;rx1) x1=rx1;
+                        <SPAN CLASS=k>if </SPAN>(x2&lt;rx2) x2=rx2;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN>list=&amp;r-&gt;Next;
+                <SPAN CLASS=b>}
+        }
+        </SPAN>r=AllocRect();
+        r-&gt;X1=x1;
+        r-&gt;Y1=y1;
+        r-&gt;X2=x2;
+        r-&gt;Y2=y2;
+        r-&gt;Next=<SPAN CLASS=u>NULL</SPAN>;
+        *list=r;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::DeleteData()
+<SPAN CLASS=b>{
+        </SPAN>MemBlock * b;
+
+        EmptyData.RefCount=UINT_MAX/<SPAN CLASS=u>2</SPAN>;
+
+        <SPAN CLASS=c>// Never do a
+        //  if (Data!=&amp;EmptyData)...
+        // instead of
+        //  if (!Data-&gt;IsStaticEmpty)...
+        // because static member variables of template classes could exist
+        // multiple times for the same final type (e.g. with Windows DLLs).
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>while </SPAN>((b=Data-&gt;BlockList)!=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{
+                        </SPAN>Data-&gt;BlockList=b-&gt;Next;
+                        <SPAN CLASS=k>delete </SPAN>b;
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>delete </SPAN>Data;
+        <SPAN CLASS=b>}
+}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::AllocBlock()
+<SPAN CLASS=b>{
+        </SPAN>MemBlock * b;
+        Rect * r, * e;
+        <SPAN CLASS=t>int </SPAN>n;
+
+        b=<SPAN CLASS=k>new </SPAN>MemBlock;
+        b-&gt;Next=Data-&gt;BlockList;
+        Data-&gt;BlockList=b;
+        n=<SPAN CLASS=k>sizeof</SPAN>(b-&gt;Rects)/<SPAN CLASS=k>sizeof</SPAN>(Rect);
+        e=b-&gt;Rects+n-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>for </SPAN>(r=b-&gt;Rects; r&lt;e; r++) r-&gt;Next=r+<SPAN CLASS=u>1</SPAN>;
+        e-&gt;Next=Data-&gt;FreeList;
+        Data-&gt;FreeList=b-&gt;Rects;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::CompareRects(<SPAN CLASS=t>void </SPAN>* r1, <SPAN CLASS=t>void </SPAN>* r2, <SPAN CLASS=t>void </SPAN>* context)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(((<SPAN CLASS=t>const </SPAN>Rect*)r1)-&gt;Y1&lt;((<SPAN CLASS=t>const </SPAN>Rect*)r2)-&gt;Y1) <SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(((<SPAN CLASS=t>const </SPAN>Rect*)r1)-&gt;Y1&gt;((<SPAN CLASS=t>const </SPAN>Rect*)r2)-&gt;Y1) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(((<SPAN CLASS=t>const </SPAN>Rect*)r1)-&gt;X1&lt;((<SPAN CLASS=t>const </SPAN>Rect*)r2)-&gt;X1) <SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(((<SPAN CLASS=t>const </SPAN>Rect*)r1)-&gt;X1&gt;((<SPAN CLASS=t>const </SPAN>Rect*)r2)-&gt;X1) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt;
+<SPAN CLASS=t>typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::SharedData <A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::EmptyData=
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=u>0</SPAN>,UINT_MAX/<SPAN CLASS=u>2</SPAN>,<SPAN CLASS=k>true
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

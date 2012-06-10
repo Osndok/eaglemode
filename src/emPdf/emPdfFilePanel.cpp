@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.cpp
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,6 +70,24 @@ void emPdfFilePanel::SetFGColor(emColor fgColor)
 	if (FGColor!=fgColor) {
 		FGColor=fgColor;
 		InvalidatePainting();
+	}
+}
+
+
+void emPdfFilePanel::Notice(NoticeFlags flags)
+{
+	emFilePanel::Notice(flags);
+	if (flags&(NF_LAYOUT_CHANGED|NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED)) {
+		if (flags&NF_LAYOUT_CHANGED) {
+			CalcLayout();
+			InvalidateChildrenLayout();
+		}
+		if (ArePagePanelsToBeShown()) {
+			if (!PagePanels) CreatePagePanels();
+		}
+		else {
+			if (PagePanels) DestroyPagePanels();
+		}
 	}
 }
 

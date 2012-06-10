@@ -1,0 +1,317 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emViewInputFilter.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>.h
+//
+// Copyright (C) 2011-2012 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emViewInputFilter_h
+#define emViewInputFilter_h
+
+#ifndef emView_h
+#include &lt;<A CLASS=f HREF="emCore_emView_h.html">emCore/emView.h</A>&gt;
+#endif
+
+
+<A NAME="emViewInputFilter"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for an input event filter of an <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>. Each view can have
+        // a list of filters. Such a filter typically eats certain events for
+        // zooming and scrolling the view.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * next=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Construct a view input filter and insert it to the list of
+                // filters of a view.
+                // Arguments:
+                //   view - The view.
+                //   next - The next filter in the list. This filter is
+                //          inserted before that filter. If next is NULL, this
+                //          filter is appended to the end of the list.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>();
+                <SPAN CLASS=c>// Destruct this view input filter. This also removes the filter
+                // from the list.
+
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView();
+                <SPAN CLASS=c>// Get the view.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetPrev();
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetNext();
+                <SPAN CLASS=c>// Get the previous or next filter in the list. NULL means this
+                // is the first or last filter.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+                <SPAN CLASS=c>// Get the maximum touch event priority of this view input
+                // filter and all its successors and all the panels of the view
+                // for a certain touch position. The default implementation
+                // calls GetForwardTouchEventPriority. This should usually also
+                // be made by overloaded implementations. See the comments on
+                // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetTouchEventPriority for more.
+                // Arguments:
+                //   touchX, touchY - Position of a first touch in view
+                //                    coordinates.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+                <SPAN CLASS=c>// Process input form keyboard, mouse, and touch. The default
+                // implementation calls ForwardInput. This should usually also
+                // be made by overloaded implementations.
+                // Arguments:
+                //   event  - An input event. It may be eaten by calling
+                //            event.Eat(). The event reference in non-const only
+                //            for that.
+                //   state  - The current input state.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=c>// <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> has been derived from <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A> for
+                // convenience. This default implementation does nothing and
+                // returns false.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ForwardInput(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+                <SPAN CLASS=c>// Forward input to succeeding filters and the panels. Actually
+                // this calls Input on the next filter, or on the view if this
+                // is the last filter.
+                // Arguments:
+                //   event  - An input event. It may be eaten by calling
+                //            event.Eat(). The event reference in non-const only
+                //            for that.
+                //   state  - The current input state.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetForwardTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+                <SPAN CLASS=c>// Get the maximum touch event priority of succeeding filters
+                // and the panels. Actually this calls GetTouchEventPriority on
+                // the next filter, or on the view if this is the last filter.
+                // Arguments:
+                //   touchX, touchY - Position of a first touch in view
+                //                    coordinates.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>;
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * Prev;
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * Next;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetView()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetPrev()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Prev;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetNext()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Next;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::ForwardInput(
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Next) View.Input(event,state);
+        <SPAN CLASS=k>else </SPAN>Next-&gt;Input(event,state);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetForwardTouchEventPriority(
+        <SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Next) <SPAN CLASS=k>return </SPAN>View.GetTouchEventPriority(touchX,touchY,<SPAN CLASS=k>true</SPAN>);
+        <SPAN CLASS=k>else return </SPAN>Next-&gt;GetTouchEventPriority(touchX,touchY);
+<SPAN CLASS=b>}
+
+
+<A NAME="emMouseZoomScrollVIF"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================ <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emMouseZoomScrollVIF">emMouseZoomScrollVIF</A> ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emMouseZoomScrollVIF">emMouseZoomScrollVIF</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This view input filter eats some mouse events for zooming and
+        // scrolling.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emMouseZoomScrollVIF">emMouseZoomScrollVIF</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * next=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewInputFilter_h.html#emMouseZoomScrollVIF">emMouseZoomScrollVIF</A>();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>EmulateMiddleButton(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>bool </SPAN>MoveMousePointerBackIntoView(<SPAN CLASS=t>double </SPAN>* pmx, <SPAN CLASS=t>double </SPAN>* pmy);
+        <SPAN CLASS=t>void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy);
+        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetWheelZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
+        <SPAN CLASS=t>double </SPAN>LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
+        <SPAN CLASS=t>bool </SPAN>ZoomScrollInAction;
+        emUInt64 EmuMidButtonTime;
+        <SPAN CLASS=t>int </SPAN>EmuMidButtonRepeat;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emKeyboardZoomScrollVIF"></A><SPAN CLASS=c>//==============================================================================
+//========================== <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emKeyboardZoomScrollVIF">emKeyboardZoomScrollVIF</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emKeyboardZoomScrollVIF">emKeyboardZoomScrollVIF</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This view input filter eats some keyboard events for zooming and
+        // scrolling.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emKeyboardZoomScrollVIF">emKeyboardZoomScrollVIF</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * next=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewInputFilter_h.html#emKeyboardZoomScrollVIF">emKeyboardZoomScrollVIF</A>();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>double </SPAN>Impulse(<SPAN CLASS=t>double </SPAN>cv, <SPAN CLASS=t>double </SPAN>tv, <SPAN CLASS=t>double </SPAN>mv, <SPAN CLASS=t>double </SPAN>dt);
+        <SPAN CLASS=t>void </SPAN>NavigateByProgram(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>double </SPAN>GetKeyboardZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine);
+        <SPAN CLASS=t>double </SPAN>GetKeyboardScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine);
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
+        <SPAN CLASS=t>bool </SPAN>Active;
+        <SPAN CLASS=t>double </SPAN>TargetVx,TargetVy,TargetVz;
+        <SPAN CLASS=t>double </SPAN>CurrentVx,CurrentVy,CurrentVz;
+        emUInt64 LastClock;
+        <SPAN CLASS=t>int </SPAN>NavByProgState;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emCheatVIF"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This view input filter implements some chat codes.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * next=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A>();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
+        <SPAN CLASS=t>char </SPAN>CheatBuffer[<SPAN CLASS=u>64</SPAN>];
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emDefaultTouchVIF"></A><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This view input filter eats touch events for zooming and scrolling
+        // and for emulating mouse events.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * next=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A>();
+
+        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>DoGesture();
+        <SPAN CLASS=t>void </SPAN>ResetTouches();
+        <SPAN CLASS=t>void </SPAN>NextTouches();
+        <SPAN CLASS=t>void </SPAN>RemoveTouch(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>bool </SPAN>IsAnyTouchDown();
+        <SPAN CLASS=t>double </SPAN>GetTouchMoveX(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>double </SPAN>GetTouchMoveY(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>double </SPAN>GetTouchMove(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>double </SPAN>GetTotalTouchMoveX(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>double </SPAN>GetTotalTouchMoveY(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>double </SPAN>GetTotalTouchMove(<SPAN CLASS=t>int </SPAN>index);
+
+        <SPAN CLASS=t>struct </SPAN>Touch <SPAN CLASS=b>{
+                </SPAN>emUInt64 Id;
+                <SPAN CLASS=t>int </SPAN>MsTotal;
+                <SPAN CLASS=t>int </SPAN>MsSincePrev;
+                <SPAN CLASS=t>bool </SPAN>Down;
+                <SPAN CLASS=t>double </SPAN>X;
+                <SPAN CLASS=t>double </SPAN>Y;
+                <SPAN CLASS=t>bool </SPAN>PrevDown;
+                <SPAN CLASS=t>double </SPAN>PrevX;
+                <SPAN CLASS=t>double </SPAN>PrevY;
+                <SPAN CLASS=t>double </SPAN>DownX;
+                <SPAN CLASS=t>double </SPAN>DownY;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{ </SPAN>MAX_TOUCH_COUNT=<SPAN CLASS=u>16 </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> InputState;
+        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> InputEvent;
+        Touch Touches[MAX_TOUCH_COUNT];
+        <SPAN CLASS=t>int </SPAN>TouchCount;
+        emUInt64 TouchesTime;
+        <SPAN CLASS=t>int </SPAN>GestureState;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

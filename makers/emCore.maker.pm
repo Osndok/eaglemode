@@ -65,6 +65,7 @@ sub Build
 		"src/emCore/emContext.cpp",
 		"src/emCore/emCoreConfig.cpp",
 		"src/emCore/emCrossPtr.cpp",
+		"src/emCore/emCursor.cpp",
 		"src/emCore/emEngine.cpp",
 		"src/emCore/emErrorPanel.cpp",
 		"src/emCore/emFileModel.cpp",
@@ -99,6 +100,7 @@ sub Build
 		"src/emCore/emTmpFile.cpp",
 		"src/emCore/emToolkit.cpp",
 		"src/emCore/emView.cpp",
+		"src/emCore/emViewInputFilter.cpp",
 		"src/emCore/emWindow.cpp"
 	)==0 or return 0;
 

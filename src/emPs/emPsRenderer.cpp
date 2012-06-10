@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -168,6 +168,7 @@ L_ENTER_PREPARE_PROCESS:
 		break;
 
 L_ENTER_RUN_JOB:
+		if (CurrentDocument.GetDataRefCount()<=1) goto L_ENTER_QUIT_PROCESS;
 		job=SearchBestSameDocJob();
 		if (!job) goto L_ENTER_QUIT_PROCESS;
 		SetJobState(job,JS_RUNNING);
@@ -213,8 +214,10 @@ L_ENTER_HOT_WAIT_JOB:
 		Timer.Start(3000);
 		MainState=HOT_WAIT_JOB;
 	case HOT_WAIT_JOB:
+		if (CurrentDocument.GetDataRefCount()<=1) goto L_ENTER_QUIT_PROCESS;
 		if (FirstJob) goto L_ENTER_HOT_WAIT_ACCESS;
 		if (!Timer.IsRunning()) goto L_ENTER_QUIT_PROCESS;
+		busy=true;
 		break;
 
 L_ENTER_HOT_WAIT_ACCESS:
@@ -222,9 +225,11 @@ L_ENTER_HOT_WAIT_ACCESS:
 		PSAgent.RequestAccess();
 		MainState=HOT_WAIT_ACCESS;
 	case HOT_WAIT_ACCESS:
+		if (CurrentDocument.GetDataRefCount()<=1) goto L_ENTER_QUIT_PROCESS;
 		if (!FirstJob) goto L_ENTER_QUIT_PROCESS;
 		if (PSAgent.HasAccess()) goto L_ENTER_RUN_JOB;
 		UpdatePSPriority();
+		busy=true;
 		break;
 
 L_ENTER_QUIT_PROCESS:
@@ -293,16 +298,13 @@ emPsRenderer::Job * emPsRenderer::SearchBestJob()
 emPsRenderer::Job * emPsRenderer::SearchBestSameDocJob()
 {
 	Job * job, * bestJob;
-	double bestPri;
 
 	for (bestJob=FirstJob; bestJob; bestJob=bestJob->Next) {
 		if (CurrentDocument==bestJob->Document) break;
 	}
 	if (bestJob) {
-		bestPri=bestJob->Priority;
 		for (job=bestJob->Next; job; job=job->Next) {
-			if (bestPri<job->Priority && CurrentDocument==job->Document) {
-				bestPri=job->Priority;
+			if (bestJob->Priority<job->Priority && bestJob->Document==job->Document) {
 				bestJob=job;
 			}
 		}

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -43,6 +43,11 @@ static void emInitBaseInstallPaths(emString basePaths[EM_NUMBER_OF_IDTS])
 	emString prefix;
 	const char * p;
 
+#if defined(_WIN32)
+	r=SHGetMalloc(&pMalloc);
+	if (r!=NOERROR) emFatalError("SHGetMalloc failed.");
+#endif
+
 	p=getenv("EM_DIR");
 	if (!p) emFatalError("Environment variable EM_DIR not set.");
 	prefix=emGetAbsolutePath(p);
@@ -59,6 +64,8 @@ static void emInitBaseInstallPaths(emString basePaths[EM_NUMBER_OF_IDTS])
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	basePaths[EM_IDT_HOST_CONFIG]=emGetChildPath(prefix,"etcw");
+#elif defined(ANDROID)
+	basePaths[EM_IDT_HOST_CONFIG]=emGetChildPath(prefix,"etca");
 #else
 	basePaths[EM_IDT_HOST_CONFIG]=emGetChildPath(prefix,"etc");
 #endif
@@ -66,40 +73,46 @@ static void emInitBaseInstallPaths(emString basePaths[EM_NUMBER_OF_IDTS])
 	basePaths[EM_IDT_RES]=emGetChildPath(prefix,"res");
 
 #if defined(_WIN32)
-
-	r=SHGetMalloc(&pMalloc);
-	if (r!=NOERROR) emFatalError("SHGetMalloc failed.");
-
 	r=SHGetSpecialFolderLocation(NULL,CSIDL_PROFILE,&pidl);
 	if (r!=NOERROR) emFatalError("SHGetSpecialFolderLocation failed.");
 	b=SHGetPathFromIDList(pidl,buf);
 	if (!b) emFatalError("SHGetPathFromIDList failed.");
 	pMalloc->Free(pidl);
 	basePaths[EM_IDT_HOME]=buf;
+#else
+	p=getenv("HOME");
+	if (!p) emFatalError("Environment variable HOME not set.");
+	basePaths[EM_IDT_HOME]=p;
+#endif
 
-	r=SHGetSpecialFolderLocation(NULL,CSIDL_APPDATA,&pidl);
-	if (r!=NOERROR) emFatalError("SHGetSpecialFolderLocation failed.");
-	b=SHGetPathFromIDList(pidl,buf);
-	if (!b) emFatalError("SHGetPathFromIDList failed.");
-	pMalloc->Free(pidl);
-	basePaths[EM_IDT_USER_CONFIG]=emGetChildPath(buf,"eaglemode");
+	p=getenv("EM_USER_CONFIG_DIR");
+	if (p) {
+		basePaths[EM_IDT_USER_CONFIG]=p;
+	}
+	else {
+#if defined(_WIN32)
+		r=SHGetSpecialFolderLocation(NULL,CSIDL_APPDATA,&pidl);
+		if (r!=NOERROR) emFatalError("SHGetSpecialFolderLocation failed.");
+		b=SHGetPathFromIDList(pidl,buf);
+		if (!b) emFatalError("SHGetPathFromIDList failed.");
+		pMalloc->Free(pidl);
+		basePaths[EM_IDT_USER_CONFIG]=emGetChildPath(buf,"eaglemode");
+#else
+		basePaths[EM_IDT_USER_CONFIG]=emGetChildPath(basePaths[EM_IDT_HOME],".eaglemode");
+#endif
+	}
 
+#if defined(_WIN32)
 	d=GetTempPath(sizeof(buf),buf);
 	if (d==0 || d>=sizeof(buf)) {
 		emFatalError("GetTempPath failed.");
 	}
 	buf[d-1]=0;
 	basePaths[EM_IDT_TMP]=buf;
-
 #else
-	p=getenv("HOME");
-	if (!p) emFatalError("Environment variable HOME not set.");
-
-	basePaths[EM_IDT_HOME]=p;
-
-	basePaths[EM_IDT_USER_CONFIG]=emGetChildPath(p,".eaglemode");
-
-	basePaths[EM_IDT_TMP]="/tmp";
+	p=getenv("TMPDIR");
+	if (!p) p="/tmp";
+	basePaths[EM_IDT_TMP]=p;
 #endif
 }
 

@@ -3,7 +3,7 @@ What is emLKC?
 
 emLKC is a Linux Kernel Configurator based on Eagle Mode. It allows to configure
 the Linux kernel in a zoomable user interface. The minimum supported kernel
-version is 2.6.25, and the latest tested version is 2.6.33-rc2. emLKC comes as a
+version is 3.1.1, and the latest tested version is 3.2.11. emLKC comes as a
 kernel source patch. After patching the kernel, you can run it like the original
 configurators.
 

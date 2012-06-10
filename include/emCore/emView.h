@@ -41,6 +41,8 @@ class emPanel;
 class emViewPort;
 class emWindow;
 class emScreen;
+class emViewInputFilter;
+class emCheatVIF;
 
 
 //==============================================================================
@@ -216,6 +218,20 @@ public:
 		// This signal is signaled when the home geometry or the current
 		// geometry of this view has changed.
 
+	emViewInputFilter * GetFirstVIF();
+	emViewInputFilter * GetLastVIF();
+		// Get the first or last view input filter (VIF) in the chain of
+		// the VIFs of this view. The default chain (after contructing
+		// the view) contains emDefaultTouchVIF, emCheatVIF,
+		// emKeyboardZoomScrollVIF, and emMouseZoomScrollVIF in that
+		// order. This could change in future versions. You can modify
+		// the chain simply by deleting and creating VIFs as you like.
+		// See emViewInputFilter for more details. Note that the
+		// zoom/scroll VIFs have no effect when VF_NO_USER_NAVIGATION is
+		// set in the view flags. Also, never forget about the
+		// possibility of parent and child views (=>emSubViewPanel).
+		// Parent views should always have VF_NO_ZOOM.
+
 	emPanel * GetRootPanel();
 		// Get the root panel of this view. Returns NULL when this view
 		// has no panels.
@@ -378,12 +394,34 @@ public:
 		// VF_POPUP_ZOOM set, the application should call ZoomOut() when
 		// an EOI has been signaled.
 
+	bool IsSoftKeyboardShown() const;
+	void ShowSoftKeyboard(bool show);
+		// Get and set whether to show a software keyboard (if there is
+		// no hardware keyboard).
+
+	emUInt64 GetInputClockMS() const;
+		// Get the time of the currently handled input event and input
+		// state, or the current time if all events are handled. The
+		// time is measured in milliseconds and starts anywhere, but it
+		// should never overflow.
+
+	virtual double GetTouchEventPriority(
+		double touchX, double touchY, bool afterVIFs=false
+	);
+		// Get the touch event priority of this view for a certain touch
+		// position. (See emPanel::GetTouchEventPriority).
+		// Arguments:
+		//   touchX, touchY - Position of a first touch in view
+		//                    coordinates.
+		//   afterVIFs      - Whether to leave out the view input filters
+		//                    in the calculation.
+
 protected:
 
 	virtual void Input(emInputEvent & event, const emInputState & state);
-		// Process input form keyboard and mouse. The default
-		// implementation performs user navigation, and it forward to
-		// the panels.
+		// Process input form keyboard, mouse, and touch after filtering
+		// it by the view input filters. The default implementation
+		// forwards to the panels.
 		// Arguments:
 		//   event  - An input event. It may be eaten by calling
 		//            event.Eat(). The event reference in non-const only
@@ -434,6 +472,8 @@ protected:
 
 private:
 	friend class emViewPort;
+	friend class emViewInputFilter;
+	friend class emCheatVIF;
 	friend class emPanel;
 	friend class emSubViewPanel;
 
@@ -469,30 +509,15 @@ private:
 
 	void SwapViewPorts(bool swapFocus);
 
-	void NavigateByUser(emInputEvent & event, emInputState & state);
-	void NavigateByProgram(emInputEvent & event, emInputState & state);
-
-	void EmulateMiddleButton(emInputEvent & event, emInputState & state);
-
-	void DoCheats(emInputEvent & event, emInputState & state);
-
 	void RecurseInput(emInputEvent & event,
 	                  const emInputState & state);
 	void RecurseChildrenInput(emPanel * parent, double mx, double my,
+	                          double tx, double ty,
 	                          emInputEvent & event,
 	                          const emInputState & state);
 
-	bool MoveMousePointerBackIntoView(double * pmx, double * pmy);
-	void MoveMousePointer(double dx, double dy);
-
 	void InvalidateHighlight();
 	void PaintHighlight(const emPainter & painter);
-
-	double GetMouseZoomSpeed(bool fine) const;
-	double GetMouseScrollSpeed(bool fine) const;
-	double GetWheelZoomSpeed(bool fine) const;
-	double GetKeyboardZoomSpeed(bool fine) const;
-	double GetKeyboardScrollSpeed(bool fine) const;
 
 	void SetSeekPos(emPanel * panel, const char * childName);
 	bool IsHopeForSeeking();
@@ -530,24 +555,6 @@ private:
 	};
 	friend class EOIEngineClass;
 
-	class SmoothKBNaviEngineClass : public emEngine {
-	public:
-		SmoothKBNaviEngineClass(emView & view);
-		void Input(emInputEvent & event, const emInputState & state);
-	protected:
-		virtual bool Cycle();
-	private:
-		emView & View;
-		enum {
-			DIR_LEFT=1<<0, DIR_RIGHT=1<<1, DIR_UP=1<<2,
-			DIR_DOWN=1<<3, DIR_IN=1<<4, DIR_OUT=1<<5
-		};
-		int Dir;
-		bool Fine;
-		emUInt64 LastClock;
-	};
-	friend class SmoothKBNaviEngineClass;
-
 	class SeekEngineClass : public emEngine {
 	public:
 		SeekEngineClass(
@@ -556,7 +563,6 @@ private:
 			const emString & subject
 		);
 		virtual ~SeekEngineClass();
-		void Input(emInputEvent & event, const emInputState & state);
 		void Paint(const emPainter & painter);
 	protected:
 		virtual bool Cycle();
@@ -600,6 +606,8 @@ private:
 	bool WindowPtrValid;
 	bool ScreenRefValid;
 	emWindow * PopupWindow;
+	emViewInputFilter * FirstVIF;
+	emViewInputFilter * LastVIF;
 	emPanel * RootPanel;
 	emPanel * SupremeViewedPanel;
 	emPanel * MinSVP, * MaxSVP;
@@ -616,7 +624,7 @@ private:
 	double HomeX,HomeY,HomeWidth,HomeHeight,HomePixelTallness;
 	double CurrentX,CurrentY,CurrentWidth,CurrentHeight,
 	       CurrentPixelTallness;
-	double LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
+	double LastMouseX,LastMouseY;
 	emString Title;
 	emCursor Cursor;
 	emColor BackgroundColor;
@@ -639,16 +647,11 @@ private:
 	UpdateEngineClass * UpdateEngine;
 	ActivationEngineClass * ActivationEngine;
 	EOIEngineClass * EOIEngine;
-	SmoothKBNaviEngineClass * SmoothKBNaviEngine;
 	SeekEngineClass * SeekEngine;
 	int ProtectSeeking;
 	emPanel * SeekPosPanel;
 	emString SeekPosChildName;
 	StressTestClass * StressTest;
-	int NavByProgState;
-	emUInt64 EmuMidButtonTime;
-	int EmuMidButtonRepeat;
-	char CheatBuffer[64];
 
 	static const double MaxSVPSize;
 	static const double MaxSVPSearchSize;
@@ -700,6 +703,11 @@ protected:
 
 	void SetViewFocused(bool focused);
 	virtual void RequestFocus();
+
+	virtual bool IsSoftKeyboardShown();
+	virtual void ShowSoftKeyboard(bool show);
+
+	virtual emUInt64 GetInputClockMS();
 
 	void InputToView(emInputEvent & event, const emInputState & state);
 
@@ -830,6 +838,16 @@ inline const emSignal & emView::GetGeometrySignal() const
 	return GeometrySignal;
 }
 
+inline emViewInputFilter * emView::GetFirstVIF()
+{
+	return FirstVIF;
+}
+
+inline emViewInputFilter * emView::GetLastVIF()
+{
+	return LastVIF;
+}
+
 inline emPanel * emView::GetRootPanel()
 {
 	return RootPanel;
@@ -863,6 +881,21 @@ inline bool emView::IsPoppedUp() const
 inline const emSignal & emView::GetEOISignal() const
 {
 	return EOISignal;
+}
+
+inline bool emView::IsSoftKeyboardShown() const
+{
+	return CurrentViewPort->IsSoftKeyboardShown();
+}
+
+inline void emView::ShowSoftKeyboard(bool show)
+{
+	CurrentViewPort->ShowSoftKeyboard(show);
+}
+
+inline emUInt64 emView::GetInputClockMS() const
+{
+	return CurrentViewPort->GetInputClockMS();
 }
 
 inline void emView::InvalidateCursor()
@@ -915,13 +948,6 @@ inline double emViewPort::GetViewHeight() const
 inline void emViewPort::SetViewFocused(bool focused)
 {
 	CurrentView->SetFocused(focused);
-}
-
-inline void emViewPort::InputToView(
-	emInputEvent & event, const emInputState & state
-)
-{
-	CurrentView->Input(event,state);
 }
 
 inline emCursor emViewPort::GetViewCursor()

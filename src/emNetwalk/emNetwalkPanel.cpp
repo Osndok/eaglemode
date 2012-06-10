@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.cpp
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -314,13 +314,11 @@ void emNetwalkPanel::PaintPieceBackground(
 	int px, int py, emColor canvasColor
 )
 {
-	int piece,east,west,south,north,northwest,tileSize,tx,ty;
+	int piece,west,north,northwest,tileSize,tx,ty;
 	double w2,h2;
 
 	piece=Mdl->GetPiece(px,py);
-	east=Mdl->GetPiece(px+1,py);
 	west=Mdl->GetPiece(px-1,py);
-	south=Mdl->GetPiece(px,py+1);
 	north=Mdl->GetPiece(px,py-1);
 	northwest=Mdl->GetPiece(px-1,py-1);
 

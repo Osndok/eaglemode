@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -518,6 +518,11 @@ emDoubleRec::emDoubleRec(
 	MinValue=minValue;
 	MaxValue=maxValue;
 	Value=defaultValue;
+}
+
+
+emDoubleRec::~emDoubleRec()
+{
 }
 
 

@@ -267,6 +267,7 @@ static void emMiniIpc_CleanUpFiles()
 
 #	include <fcntl.h>
 #	include <unistd.h>
+#	include <emCore/emInstallInfo.h>
 
 
 static int emMiniIpc_Lock(const char * lockFilePath)
@@ -318,9 +319,10 @@ static void emMiniIpc_Unlock(int lockFileHandle)
 
 static emString emMiniIpc_CalcFifoDir()
 {
-	return emString::Format("/tmp/emMiniIpc-%s",emGetUserName().Get());
-		// It does not work to use something like /var/run/emMiniIpc/%s
-		// without an installation by root (permission denied...).
+	return emGetChildPath(
+		emGetInstallPath(EM_IDT_TMP,"emCore"),
+		emString::Format("emMiniIpc-%s",emGetUserName().Get())
+	);
 }
 
 
@@ -414,15 +416,21 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 				break;
 			}
 		}
-		if (mkfifo(inst->FifoPath,S_IRUSR|S_IWUSR)!=0) break;
+		if (mkfifo(inst->FifoPath,S_IRUSR|S_IWUSR)!=0) {
+			if (errno==EEXIST) break;
+			emFatalError(
+				"emMiniIpc_OpenServer: Failed to create fifo file \"%s\": %s",
+				inst->FifoPath.Get(),
+				emGetErrorText(errno).Get()
+			);
+		}
 		inst->FifoHandle=open(inst->FifoPath,O_RDONLY|O_NONBLOCK);
 		if (inst->FifoHandle==-1) {
-			try {
-				emTryRemoveFileOrTree(inst->FifoPath);
-			}
-			catch (emString) {
-			}
-			break;
+			emFatalError(
+				"emMiniIpc_OpenServer: Failed to open created fifo file \"%s\": %s",
+				inst->FifoPath.Get(),
+				emGetErrorText(errno).Get()
+			);
 		}
 		break;
 	}

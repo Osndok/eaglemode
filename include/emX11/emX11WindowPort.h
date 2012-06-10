@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emX11WindowPort_h
 #define emX11WindowPort_h
+
+#ifndef emClipRects_h
+#include <emCore/emClipRects.h>
+#endif
 
 #ifndef emX11Screen_h
 #include <emX11/emX11Screen.h>
@@ -40,6 +44,7 @@ protected:
 	);
 	virtual void RequestFocus();
 	virtual void Raise();
+	virtual emUInt64 GetInputClockMS();
 	virtual void InvalidateTitle();
 	virtual void InvalidateIcon();
 	virtual void InvalidateCursor();
@@ -56,15 +61,13 @@ private:
 	void PreConstruct();
 	void PostConstruct();
 
-	void HandleEvent(XEvent & event, bool forwarded=false);
+	void HandleEvent(XEvent & event);
 
 	bool FlushInputState();
 
 	virtual bool Cycle();
 
 	void UpdatePainting();
-	void ClearInvRectList();
-	void MergeToInvRectList(int x1, int y1, int x2, int y2);
 
 	bool MakeViewable();
 
@@ -85,11 +88,6 @@ private:
 
 	void GetAbsWinGeometry(Display * disp, ::Window win,
 	                       int * pX, int *pY, int * pW, int *pH);
-
-	struct InvRect {
-		InvRect * Next;
-		int x1,y1,x2,y2;
-	};
 
 	emX11Screen & Screen;
 	emThreadMiniMutex & XMutex;
@@ -115,9 +113,7 @@ private:
 	bool IconPending;
 	bool CursorPending;
 	bool LaunchFeedbackSent;
-	InvRect InvRectHeap[100];
-	InvRect * InvRectFreeList;
-	InvRect * InvRectList;
+	emClipRects<int> InvalidRects;
 	emUInt64 InputStateClock;
 	emInputKey LastButtonPress;
 	Time LastButtonPressTime;

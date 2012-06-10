@@ -63,6 +63,12 @@ void emWndsScreen::GetVisibleRect(
 }
 
 
+double emWndsScreen::GetDPI()
+{
+	return DPI;
+}
+
+
 void emWndsScreen::MoveMousePointer(double dx, double dy)
 {
 	MouseWarpX+=dx;
@@ -135,6 +141,7 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	Width=rect.right-rect.left;
 	Height=rect.bottom-rect.top;
 
+	DPI=75.0; //???
 	PixelTallness=1.0; //???
 
 	BufWidth=Width;
@@ -661,7 +668,7 @@ int emWndsScreen::WaitCursorThread::Run(void * arg)
 			Mutex.Unlock();
 			t=blockTimeMS;
 		}
-	} while (!QuitEvent.Receive(1,t));
+	} while (!QuitEvent.Receive(1,(unsigned)t));
 	return 0;
 }
 

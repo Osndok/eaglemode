@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.h
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -86,7 +86,7 @@ public:
 		emView & GetView() const;
 		emPanel * GetPanel() const;
 	private:
-		emView & View;
+		emView * View;
 		emPanel * Panel;
 	};
 
@@ -449,6 +449,29 @@ public:
 		// can have any size, and we have to make sure that the overall
 		// process does not consume too much memory.
 
+	emUInt64 GetInputClockMS() const;
+		// Get the time of the currently handled input event and input
+		// state, or the current time if all events are handled. The
+		// time is measured in milliseconds and starts anywhere, but it
+		// should never overflow.
+
+	virtual double GetTouchEventPriority(double touchX, double touchY);
+		// Get the priority of this panel for receiving touch events.
+		// This is used by certain view input filters to decide whether
+		// to eat touch events for their purpose. Remember the
+		// possibility of an emSubViewPanel. Currently, following
+		// priorities are defined:
+		//  0.0 - No touch event processing.
+		//  1.0 - Set focus by touches.
+		//  2.0 - Emulate mouse functions by touches.
+		//  3.0 - Emulate mouse functions, and zoom/scroll by touches.
+		// The default implementation returns 0.0 when not focusable, or
+		// 1.0 when focusable, according to the default implementation
+		// of the Input method.
+		// Arguments:
+		//   touchX, touchY - Position of a first touch in view
+		//                    coordinates.
+
 protected:
 
 	virtual bool Cycle();
@@ -491,26 +514,34 @@ protected:
 
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
-		// Process input form keyboard and mouse. This method is called
-		// on every panel which has IsInViewedPath()==true whenever
-		// there is a change in the input state or when there is an
-		// input event. The order of callings is from children to
+		// Process input form keyboard, mouse, and touch. This method is
+		// called on every panel which has IsInViewedPath()==true
+		// whenever there is a change in the input state or when there
+		// is an input event. The order of callings is from children to
 		// parents and from top to bottom (=last to first). The default
-		// implementation does this: First, if it is a mouse event and
-		// if this panel is focusable, the focus is set to this panel
-		// and the mouse event is eaten. And secondly, if this is the
-		// active panel, certain keyboard events are processed and eaten
-		// for switching the focus to another panel.
+		// implementation does this: First, if it is a mouse or touch
+		// event and if this panel is focusable, the focus is set to
+		// this panel and the event is eaten. And secondly, if this is
+		// the active panel, certain keyboard events are processed and
+		// eaten for switching the focus to another panel. Also see
+		// the methods GetInputClockMS and GetTouchEventPriority.
 		// Arguments:
 		//   event  - An input event. This is non-empty only if:
 		//            * It is a mouse button event, and the mouse
 		//              position lies within the panel and all its
 		//              ancestors, and the event has not been eaten by a
 		//              descendant panel or by an overlapping panel in
-		//              front.
+		//              front, or by a view input filter.
+		//            * It is a touch event, and the first touch
+		//              position lies within the panel and all its
+		//              ancestors, and the event has not been eaten by a
+		//              descendant panel or by an overlapping panel in
+		//              front, or by a view input filter. Normally,
+		//              touch events are converted to mouse events by a
+		//              view input filter.
 		//            * It is a keyboard key event, and this panel is in
 		//              focused path, and the event has not been eaten
-		//              by a descendant panel.
+		//              by a descendant panel, or by a view input filter.
 		//            The event can be eaten by calling event.Eat(). The
 		//            event reference is non-const only for that. Please
 		//            do not modify the event in any other way.
@@ -706,33 +737,33 @@ private:
 };
 
 inline emPanel::ParentArgClass::ParentArgClass(emPanel & panel)
-	: View(panel.View),Panel(&panel)
+	: View(&panel.View),Panel(&panel)
 {
 }
 
 inline emPanel::ParentArgClass::ParentArgClass(emPanel * panel)
-	: View(panel->View),Panel(panel)
+	: View(&panel->View),Panel(panel)
 {
 }
 
 inline emPanel::ParentArgClass::ParentArgClass(emView & view)
-	: View(view),Panel(NULL)
+	: View(&view),Panel(NULL)
 {
 }
 
 inline emPanel::ParentArgClass::ParentArgClass(emView * view)
-	: View(*view),Panel(NULL)
+	: View(view),Panel(NULL)
 {
 }
 
 inline emRootContext & emPanel::ParentArgClass::GetRootContext() const
 {
-	return View.GetRootContext();
+	return View->GetRootContext();
 }
 
 inline emView & emPanel::ParentArgClass::GetView() const
 {
-	return View;
+	return *View;
 }
 
 inline emPanel * emPanel::ParentArgClass::GetPanel() const
@@ -998,6 +1029,11 @@ inline bool emPanel::IsInFocusedPath() const
 inline bool emPanel::IsViewFocused() const
 {
 	return View.IsFocused();
+}
+
+inline emUInt64 emPanel::GetInputClockMS() const
+{
+	return View.GetInputClockMS();
 }
 
 inline void emPanel::InvalidateChildrenLayout()

@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTmpConvProc.c
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,7 +117,11 @@ int main(int argc, char * argv[])
 		}
 
 		i=0;
+#if defined(ANDROID)
+		cargs[i++]=(char*)"/system/bin/sh";
+#else
 		cargs[i++]=(char*)"/bin/sh";
+#endif
 		/* cargs[i++]=(char*)"-e"; */
 		/* Option -e is not portable! */
 		cargs[i++]=(char*)"-c";

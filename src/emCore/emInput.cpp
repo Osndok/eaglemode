@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,11 +33,12 @@ struct emInputKeyName {
 
 static const emInputKeyName emInputKeyNames[] = {
 	{ EM_KEY_NONE         , "None"           },
-	{ EM_KEY_LEFT_BUTTON  , "Left-Button  "  },
+	{ EM_KEY_LEFT_BUTTON  , "Left-Button"    },
 	{ EM_KEY_MIDDLE_BUTTON, "Middle-Button"  },
-	{ EM_KEY_RIGHT_BUTTON , "Right-Button "  },
+	{ EM_KEY_RIGHT_BUTTON , "Right-Button"   },
 	{ EM_KEY_WHEEL_UP     , "Wheel-Up"       },
 	{ EM_KEY_WHEEL_DOWN   , "Wheel-Down"     },
+	{ EM_KEY_TOUCH        , "Touch"          },
 	{ EM_KEY_SHIFT        , "Shift"          },
 	{ EM_KEY_CTRL         , "Ctrl"           },
 	{ EM_KEY_ALT          , "Alt"            },
@@ -210,7 +211,7 @@ void emInputEvent::Eat()
 
 bool emInputEvent::IsKeyboardEvent() const
 {
-	return !IsEmpty() && !IsMouseEvent();
+	return !IsEmpty() && !IsMouseEvent() && !IsTouchEvent();
 }
 
 
@@ -223,6 +224,7 @@ emInputState::emInputState()
 	MouseX=0.0;
 	MouseY=0.0;
 	memset(KeyStates,0,sizeof(KeyStates));
+	Touches.SetTuningLevel(4);
 }
 
 
@@ -231,6 +233,7 @@ emInputState::emInputState(const emInputState & inputState)
 	MouseX=inputState.MouseX;
 	MouseY=inputState.MouseY;
 	memcpy(KeyStates,inputState.KeyStates,sizeof(KeyStates));
+	Touches=inputState.Touches;
 }
 
 
@@ -239,27 +242,72 @@ emInputState & emInputState::operator = (const emInputState & inputState)
 	MouseX=inputState.MouseX;
 	MouseY=inputState.MouseY;
 	memcpy(KeyStates,inputState.KeyStates,sizeof(KeyStates));
+	Touches=inputState.Touches;
 	return *this;
 }
 
 
 bool emInputState::operator == (const emInputState & inputState) const
 {
-	return
-		MouseX==inputState.MouseX &&
-		MouseY==inputState.MouseY &&
-		memcmp(KeyStates,inputState.KeyStates,sizeof(KeyStates))==0
-	;
+	int i;
+
+	if (MouseX!=inputState.MouseX) return false;
+	if (MouseY!=inputState.MouseY) return false;
+	if (Touches.GetCount()!=inputState.Touches.GetCount()) return false;
+	for (i=Touches.GetCount()-1; i>=0; i--) {
+		if (Touches[i].Id!=inputState.Touches[i].Id) return false;
+		if (Touches[i].X!=inputState.Touches[i].X) return false;
+		if (Touches[i].Y!=inputState.Touches[i].Y) return false;
+	}
+	if (memcmp(KeyStates,inputState.KeyStates,sizeof(KeyStates))!=0) return false;
+	return true;
 }
 
 
 bool emInputState::operator != (const emInputState & inputState) const
 {
-	return
-		MouseX!=inputState.MouseX ||
-		MouseY!=inputState.MouseY ||
-		memcmp(KeyStates,inputState.KeyStates,sizeof(KeyStates))!=0
-	;
+	return !(*this == inputState);
+}
+
+
+int emInputState::SearchTouch(emUInt64 id) const
+{
+	int i;
+
+	for (i=Touches.GetCount()-1; i>=0; i--) {
+		if (Touches[i].Id==id) break;
+	}
+	return i;
+}
+
+
+void emInputState::AddTouch(emUInt64 id, double x, double y)
+{
+	Touches.AddNew();
+	SetTouch(Touches.GetCount()-1,id,x,y);
+}
+
+
+void emInputState::SetTouch(int index, emUInt64 id, double x, double y)
+{
+	Touch * t;
+
+	t=&Touches.GetWritable(index);
+	t->Id=id;
+	t->X=x;
+	t->Y=y;
+}
+
+
+void emInputState::RemoveTouch(int index)
+{
+	Touches.Remove(index);
+}
+
+
+void emInputState::ClearTouches()
+{
+	Touches.Empty();
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,6 +56,8 @@ public:
 
 	virtual void GetVisibleRect(double * pX, double * pY,
 	                            double * pW, double * pH);
+
+	virtual double GetDPI();
 
 	virtual void MoveMousePointer(double dx, double dy);
 
@@ -134,6 +136,7 @@ private:
 	XIM       InputMethod;
 	int       Scrn;
 	int       Width,Height;
+	double    DPI;
 	double    PixelTallness;
 	Window    RootWin;
 	Visual *  Visu;

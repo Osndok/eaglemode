@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emCursor_h.html#emCursor">emCursor</A>.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,6 +77,9 @@
         </SPAN><SPAN CLASS=t>operator int </SPAN>() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the cursor id.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* ToString() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Convert to string representation.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 

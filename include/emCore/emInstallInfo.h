@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,7 +68,7 @@ emString emGetInstallPath(emInstallDirType idt, const char * prj,
 	// EM_IDT_PS_DOC      | <em>/doc/ps            | /usr/share/doc/em/<prj>/ps
 	// EM_IDT_USER_CONFIG | <home>/.eaglemode/<prj>| <home>/.em/<prj>
 	// EM_IDT_HOST_CONFIG | <em>/etc/<prj>         | /etc/em/<prj>
-	// EM_IDT_TMP         | /tmp                   | /tmp
+	// EM_IDT_TMP         | $TMPDIR or /tmp        | $TMPDIR or /tmp
 	// EM_IDT_RES         | <em>/res/<prj>         | /usr/share/emRes/<prj>
 	// EM_IDT_HOME        | <home>                 | <home>
 	// Hint: The implementation for Windows is a little bit different.

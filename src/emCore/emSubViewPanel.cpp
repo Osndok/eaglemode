@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSubViewPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,6 +42,12 @@ emString emSubViewPanel::GetTitle()
 }
 
 
+double emSubViewPanel::GetTouchEventPriority(double touchX, double touchY)
+{
+	return SubView->GetTouchEventPriority(touchX,touchY);
+}
+
+
 void emSubViewPanel::Notice(NoticeFlags flags)
 {
 	if ((flags&NF_FOCUS_CHANGED)!=0) {
@@ -66,7 +72,7 @@ void emSubViewPanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	if (IsFocusable() && event.IsMouseEvent()) {
+	if (IsFocusable() && (event.IsMouseEvent() || event.IsTouchEvent())) {
 		Focus();
 		SubViewPort->SetViewFocused(IsFocused());
 	}
@@ -137,6 +143,23 @@ void emSubViewPanel::SubViewPortClass::RequestFocus()
 {
 	SuperPanel.Focus();
 	SetViewFocused(SuperPanel.IsFocused());
+}
+
+
+bool emSubViewPanel::SubViewPortClass::IsSoftKeyboardShown()
+{
+	return SuperPanel.GetView().IsSoftKeyboardShown();
+}
+
+
+void emSubViewPanel::SubViewPortClass::ShowSoftKeyboard(bool show)
+{
+	SuperPanel.GetView().ShowSoftKeyboard(show);
+}
+
+emUInt64 emSubViewPanel::SubViewPortClass::GetInputClockMS()
+{
+	return SuperPanel.GetInputClockMS();
 }
 
 

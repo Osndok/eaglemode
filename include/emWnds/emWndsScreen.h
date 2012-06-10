@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.h
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,6 +48,8 @@ public:
 
 	virtual void GetVisibleRect(double * pX, double * pY,
 	                            double * pW, double * pH);
+
+	virtual double GetDPI();
 
 	virtual void MoveMousePointer(double dx, double dy);
 
@@ -118,6 +120,7 @@ private:
 	WaitCursorThread * WCThread;
 	emString WinClassName;
 	int Width, Height;
+	double DPI;
 	double PixelTallness;
 	int BufWidth,BufHeight;
 	BITMAPINFOHEADER BufInfo[2];

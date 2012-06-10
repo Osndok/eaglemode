@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>.h
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -95,7 +95,7 @@
                 <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView() <SPAN CLASS=t>const</SPAN>;
                 <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPanel() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>private</SPAN>:
-                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> * View;
                 <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * Panel;
         <SPAN CLASS=b>}</SPAN>;
 
@@ -458,6 +458,29 @@
                 // can have any size, and we have to make sure that the overall
                 // process does not consume too much memory.
 
+        </SPAN>emUInt64 GetInputClockMS() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the time of the currently handled input event and input
+                // state, or the current time if all events are handled. The
+                // time is measured in milliseconds and starts anywhere, but it
+                // should never overflow.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+                <SPAN CLASS=c>// Get the priority of this panel for receiving touch events.
+                // This is used by certain view input filters to decide whether
+                // to eat touch events for their purpose. Remember the
+                // possibility of an <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>. Currently, following
+                // priorities are defined:
+                //  0.0 - No touch event processing.
+                //  1.0 - Set focus by touches.
+                //  2.0 - Emulate mouse functions by touches.
+                //  3.0 - Emulate mouse functions, and zoom/scroll by touches.
+                // The default implementation returns 0.0 when not focusable, or
+                // 1.0 when focusable, according to the default implementation
+                // of the Input method.
+                // Arguments:
+                //   touchX, touchY - Position of a first touch in view
+                //                    coordinates.
+
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual bool </SPAN>Cycle();
@@ -500,26 +523,34 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                            <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
-                <SPAN CLASS=c>// Process input form keyboard and mouse. This method is called
-                // on every panel which has IsInViewedPath()==true whenever
-                // there is a change in the input state or when there is an
-                // input event. The order of callings is from children to
+                <SPAN CLASS=c>// Process input form keyboard, mouse, and touch. This method is
+                // called on every panel which has IsInViewedPath()==true
+                // whenever there is a change in the input state or when there
+                // is an input event. The order of callings is from children to
                 // parents and from top to bottom (=last to first). The default
-                // implementation does this: First, if it is a mouse event and
-                // if this panel is focusable, the focus is set to this panel
-                // and the mouse event is eaten. And secondly, if this is the
-                // active panel, certain keyboard events are processed and eaten
-                // for switching the focus to another panel.
+                // implementation does this: First, if it is a mouse or touch
+                // event and if this panel is focusable, the focus is set to
+                // this panel and the event is eaten. And secondly, if this is
+                // the active panel, certain keyboard events are processed and
+                // eaten for switching the focus to another panel. Also see
+                // the methods GetInputClockMS and GetTouchEventPriority.
                 // Arguments:
                 //   event  - An input event. This is non-empty only if:
                 //            * It is a mouse button event, and the mouse
                 //              position lies within the panel and all its
                 //              ancestors, and the event has not been eaten by a
                 //              descendant panel or by an overlapping panel in
-                //              front.
+                //              front, or by a view input filter.
+                //            * It is a touch event, and the first touch
+                //              position lies within the panel and all its
+                //              ancestors, and the event has not been eaten by a
+                //              descendant panel or by an overlapping panel in
+                //              front, or by a view input filter. Normally,
+                //              touch events are converted to mouse events by a
+                //              view input filter.
                 //            * It is a keyboard key event, and this panel is in
                 //              focused path, and the event has not been eaten
-                //              by a descendant panel.
+                //              by a descendant panel, or by a view input filter.
                 //            The event can be eaten by calling event.Eat(). The
                 //            event reference is non-const only for that. Please
                 //            do not modify the event in any other way.
@@ -715,33 +746,33 @@
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> &amp; panel)
-        : View(panel.View),Panel(&amp;panel)
+        : View(&amp;panel.View),Panel(&amp;panel)
 <SPAN CLASS=b>{
 }
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel)
-        : View(panel-&gt;View),Panel(panel)
+        : View(&amp;panel-&gt;View),Panel(panel)
 <SPAN CLASS=b>{
 }
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view)
-        : View(view),Panel(<SPAN CLASS=u>NULL</SPAN>)
+        : View(&amp;view),Panel(<SPAN CLASS=u>NULL</SPAN>)
 <SPAN CLASS=b>{
 }
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::ParentArgClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> * view)
-        : View(*view),Panel(<SPAN CLASS=u>NULL</SPAN>)
+        : View(view),Panel(<SPAN CLASS=u>NULL</SPAN>)
 <SPAN CLASS=b>{
 }
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::GetRootContext() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>View.GetRootContext();
+        </SPAN><SPAN CLASS=k>return </SPAN>View-&gt;GetRootContext();
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::GetView() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>View;
+        </SPAN><SPAN CLASS=k>return </SPAN>*View;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArgClass::GetPanel() <SPAN CLASS=t>const
@@ -1007,6 +1038,11 @@
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsViewFocused() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View.IsFocused();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetInputClockMS() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.GetInputClockMS();
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::InvalidateChildrenLayout()

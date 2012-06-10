@@ -394,7 +394,7 @@ int emThread::Run(void * arg)
 		// be implemented in emTMM_Xchg.
 	}
 
-#elif 1
+#elif !defined(ANDROID)
 
 	emThreadMiniMutex::emThreadMiniMutex()
 	{

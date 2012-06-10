@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScreen.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,6 +76,9 @@ public:
 		//   pY - Pointer for returning the Y-position of the rectangle.
 		//   pW - Pointer for returning the width of the rectangle.
 		//   pH - Pointer for returning the height of the rectangle.
+
+	virtual double GetDPI() = 0;
+		// Get pixels per inch (horizontally).
 
 	virtual void MoveMousePointer(double dx, double dy) = 0;
 		// Move the mouse pointer programmatically.

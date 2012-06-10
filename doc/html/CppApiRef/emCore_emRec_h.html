@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -480,6 +480,9 @@
                 //   defaultValue  - The default value for this double record.
                 //   minValue      - The value will never be less than this.
                 //   maxValue      - The value will never be greater than this.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A>();
+                <SPAN CLASS=c>// Destructor.
 
         </SPAN><SPAN CLASS=t>double </SPAN>Get() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>operator double </SPAN>() <SPAN CLASS=t>const</SPAN>;

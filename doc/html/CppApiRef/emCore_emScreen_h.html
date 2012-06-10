@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,6 +85,9 @@
                 //   pY - Pointer for returning the Y-position of the rectangle.
                 //   pW - Pointer for returning the width of the rectangle.
                 //   pH - Pointer for returning the height of the rectangle.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetDPI() = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get pixels per inch (horizontally).
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy) = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Move the mouse pointer programmatically.

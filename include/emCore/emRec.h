@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -471,6 +471,9 @@ public:
 		//   defaultValue  - The default value for this double record.
 		//   minValue      - The value will never be less than this.
 		//   maxValue      - The value will never be greater than this.
+
+	virtual ~emDoubleRec();
+		// Destructor.
 
 	double Get() const;
 	operator double () const;

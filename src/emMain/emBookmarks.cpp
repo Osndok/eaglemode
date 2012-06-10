@@ -145,13 +145,15 @@ emBookmarkRec * emBookmarksRec::SearchBookmarkByHotkey(const emInputHotkey & hot
 		switch (u->GetVariant()) {
 		case BOOKMARK:
 			bm=(emBookmarkRec*)&u->Get();
-			try {
-				bmhk.TryParse(bm->Hotkey.Get().Get());
+			if (!bm->Hotkey.Get().IsEmpty()) {
+				try {
+					bmhk.TryParse(bm->Hotkey.Get().Get());
+				}
+				catch (emString) {
+					bmhk=emInputHotkey();
+				}
+				if (bmhk==hotkey) return bm;
 			}
-			catch (emString) {
-				bmhk=emInputHotkey();
-			}
-			if (bmhk==hotkey) return bm;
 			break;
 		case GROUP:
 			grp=(emBookmarkGroupRec*)&u->Get();

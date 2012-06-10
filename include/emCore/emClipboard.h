@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipboard.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,6 +97,36 @@ protected:
 	void Install();
 		// Register this interface so that it can be found by
 		// LookupInherited.
+};
+
+
+//==============================================================================
+//============================= emPrivateClipboard =============================
+//==============================================================================
+
+class emPrivateClipboard : public emClipboard {
+
+public:
+
+	// This is a simple implementation for a clipboard which is not shared
+	// with anything.
+
+	static void Install(emContext & context);
+
+	virtual emInt64 PutText(const emString & str, bool selection=false);
+
+	virtual void Clear(bool selection=false, emInt64 selectionId=0);
+
+	virtual emString GetText(bool selection=false);
+
+private:
+
+	emPrivateClipboard(emContext & context, const emString & name);
+	virtual ~emPrivateClipboard();
+
+	emString ClipText;
+	emString SelText;
+	emInt64 SelId;
 };
 
 

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emInput.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,6 +34,10 @@
 #include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
 #endif
 
+#ifndef emArray_h
+#include &lt;<A CLASS=f HREF="emCore_emArray_h.html">emCore/emArray.h</A>&gt;
+#endif
+
 
 <A NAME="emInputKey"></A></SPAN><SPAN CLASS=c>//==============================================================================
 //================================= <A CLASS=m HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> =================================
@@ -50,6 +54,9 @@
         EM_KEY_RIGHT_BUTTON  = <SPAN CLASS=u>0xF2</SPAN>,
         EM_KEY_WHEEL_UP      = <SPAN CLASS=u>0xF3</SPAN>,
         EM_KEY_WHEEL_DOWN    = <SPAN CLASS=u>0xF4</SPAN>,
+
+        <SPAN CLASS=c>// Screen touch:
+        </SPAN>EM_KEY_TOUCH         = <SPAN CLASS=u>0xEF</SPAN>,
 
         <SPAN CLASS=c>// Keyboard keys:
         </SPAN>EM_KEY_SHIFT         = <SPAN CLASS=u>0x81</SPAN>,
@@ -129,6 +136,9 @@
 <SPAN CLASS=t>bool </SPAN>emIsMouseInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
         <SPAN CLASS=c>// True for mouse buttons and mouse wheel.
 
+</SPAN><SPAN CLASS=t>bool </SPAN>emIsTouchInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
+        <SPAN CLASS=c>// True screen touch.
+
 </SPAN><SPAN CLASS=t>bool </SPAN>emIsKeyboardInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key);
         <SPAN CLASS=c>// True for all keyboard keys, including modifiers.
 
@@ -193,6 +203,7 @@
 
         </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsMouseEvent() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsTouchEvent() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsKeyboardEvent() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Ask for the type of event. One of these returns true.
 
@@ -242,12 +253,37 @@
                 <SPAN CLASS=c>// Get or set the mouse position in pixel coordinates of the
                 // view.
 
+        </SPAN><SPAN CLASS=t>int </SPAN>GetTouchCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of touches.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>SearchTouch(emUInt64 id) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Search a touch by id. Returns the index or -1 if not found.
+
+        </SPAN>emUInt64 GetTouchId(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the id of a touch. A touch may get another index over the
+                // time, but it should keep its id.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetTouchX(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTouchY(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get position of a touch in pixel coordinates of the view.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddTouch(emUInt64 id, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+                <SPAN CLASS=c>// Add a touch.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetTouch(<SPAN CLASS=t>int </SPAN>index, emUInt64 id, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+                <SPAN CLASS=c>// Modify an existing touch.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveTouch(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Remove a touch.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearTouches();
+                <SPAN CLASS=c>// Remove all touches.
+
         </SPAN><SPAN CLASS=t>bool </SPAN>Get(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>Set(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key, <SPAN CLASS=t>bool </SPAN>pressed);
-                <SPAN CLASS=c>// Get or set the state of a particular keyboard key or mouse
-                // button. It is true if the key or button is pressed, false
-                // otherwise. EM_KEY_WHEEL_UP and EM_KEY_WHEEL_DOWN should never
-                // be set here.
+                <SPAN CLASS=c>// Get or set the state of a particular key. It is true if the
+                // key or button is pressed, false otherwise. EM_KEY_WHEEL_UP
+                // and EM_KEY_WHEEL_DOWN should never be set here.
 
         </SPAN><SPAN CLASS=t>bool </SPAN>GetLeftButton() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>GetMiddleButton() <SPAN CLASS=t>const</SPAN>;
@@ -291,8 +327,15 @@
                 // GetKeyStates()[key&gt;&gt;3]&amp;(1&lt;&lt;(key&amp;7)) is non-zero.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>Touch <SPAN CLASS=b>{
+                </SPAN>emUInt64 Id;
+                <SPAN CLASS=t>double </SPAN>X, Y;
+        <SPAN CLASS=b>}</SPAN>;
+
         <SPAN CLASS=t>double </SPAN>MouseX, MouseY;
         <SPAN CLASS=t>unsigned char </SPAN>KeyStates[<SPAN CLASS=u>32</SPAN>];
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;Touch&gt; Touches;
 <SPAN CLASS=b>}</SPAN>;
 
 
@@ -406,9 +449,14 @@
         </SPAN><SPAN CLASS=k>return </SPAN>key&gt;=EM_KEY_LEFT_BUTTON;
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline bool </SPAN>emIsTouchInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>key==EM_KEY_TOUCH;
+<SPAN CLASS=b>}
+
 </SPAN><SPAN CLASS=t>inline bool </SPAN>emIsKeyboardInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key)
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>key &amp;&amp; key&lt;EM_KEY_LEFT_BUTTON;
+        </SPAN><SPAN CLASS=k>return </SPAN>key &amp;&amp; key&lt;EM_KEY_TOUCH;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline bool </SPAN>emIsModifierInputKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key)
@@ -446,6 +494,11 @@
         </SPAN><SPAN CLASS=k>return </SPAN>emIsMouseInputKey(Key);
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsTouchEvent() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>emIsTouchInputKey(Key);
+<SPAN CLASS=b>}
+
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A>::IsKey(<A CLASS=l HREF="emCore_emInput_h.html#emInputKey">emInputKey</A> key) <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Key==key;
@@ -480,6 +533,26 @@
 <SPAN CLASS=b>{
         </SPAN>MouseX=mouseX;
         MouseY=mouseY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetTouchCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Touches.GetCount();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetTouchId(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Touches[index].Id;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetTouchX(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Touches[index].X;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetTouchY(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Touches[index].Y;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A>::GetLeftButton() <SPAN CLASS=t>const

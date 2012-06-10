@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.h
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,6 +56,8 @@ public:
 protected:
 
 	virtual bool Cycle();
+
+	virtual void Notice(NoticeFlags flags);
 
 	virtual bool IsOpaque();
 

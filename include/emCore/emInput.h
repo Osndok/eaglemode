@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,10 @@
 #include <emCore/emStd2.h>
 #endif
 
+#ifndef emArray_h
+#include <emCore/emArray.h>
+#endif
+
 
 //==============================================================================
 //================================= emInputKey =================================
@@ -41,6 +45,9 @@ enum emInputKey {
 	EM_KEY_RIGHT_BUTTON  = 0xF2,
 	EM_KEY_WHEEL_UP      = 0xF3,
 	EM_KEY_WHEEL_DOWN    = 0xF4,
+
+	// Screen touch:
+	EM_KEY_TOUCH         = 0xEF,
 
 	// Keyboard keys:
 	EM_KEY_SHIFT         = 0x81,
@@ -120,6 +127,9 @@ enum emInputKey {
 bool emIsMouseInputKey(emInputKey key);
 	// True for mouse buttons and mouse wheel.
 
+bool emIsTouchInputKey(emInputKey key);
+	// True screen touch.
+
 bool emIsKeyboardInputKey(emInputKey key);
 	// True for all keyboard keys, including modifiers.
 
@@ -184,6 +194,7 @@ public:
 
 	bool IsEmpty() const;
 	bool IsMouseEvent() const;
+	bool IsTouchEvent() const;
 	bool IsKeyboardEvent() const;
 		// Ask for the type of event. One of these returns true.
 
@@ -233,12 +244,37 @@ public:
 		// Get or set the mouse position in pixel coordinates of the
 		// view.
 
+	int GetTouchCount() const;
+		// Get number of touches.
+
+	int SearchTouch(emUInt64 id) const;
+		// Search a touch by id. Returns the index or -1 if not found.
+
+	emUInt64 GetTouchId(int index) const;
+		// Get the id of a touch. A touch may get another index over the
+		// time, but it should keep its id.
+
+	double GetTouchX(int index) const;
+	double GetTouchY(int index) const;
+		// Get position of a touch in pixel coordinates of the view.
+
+	void AddTouch(emUInt64 id, double x, double y);
+		// Add a touch.
+
+	void SetTouch(int index, emUInt64 id, double x, double y);
+		// Modify an existing touch.
+
+	void RemoveTouch(int index);
+		// Remove a touch.
+
+	void ClearTouches();
+		// Remove all touches.
+
 	bool Get(emInputKey key) const;
 	void Set(emInputKey key, bool pressed);
-		// Get or set the state of a particular keyboard key or mouse
-		// button. It is true if the key or button is pressed, false
-		// otherwise. EM_KEY_WHEEL_UP and EM_KEY_WHEEL_DOWN should never
-		// be set here.
+		// Get or set the state of a particular key. It is true if the
+		// key or button is pressed, false otherwise. EM_KEY_WHEEL_UP
+		// and EM_KEY_WHEEL_DOWN should never be set here.
 
 	bool GetLeftButton() const;
 	bool GetMiddleButton() const;
@@ -282,8 +318,15 @@ public:
 		// GetKeyStates()[key>>3]&(1<<(key&7)) is non-zero.
 
 private:
+
+	struct Touch {
+		emUInt64 Id;
+		double X, Y;
+	};
+
 	double MouseX, MouseY;
 	unsigned char KeyStates[32];
+	emArray<Touch> Touches;
 };
 
 
@@ -397,9 +440,14 @@ inline bool emIsMouseInputKey(emInputKey key)
 	return key>=EM_KEY_LEFT_BUTTON;
 }
 
+inline bool emIsTouchInputKey(emInputKey key)
+{
+	return key==EM_KEY_TOUCH;
+}
+
 inline bool emIsKeyboardInputKey(emInputKey key)
 {
-	return key && key<EM_KEY_LEFT_BUTTON;
+	return key && key<EM_KEY_TOUCH;
 }
 
 inline bool emIsModifierInputKey(emInputKey key)
@@ -437,6 +485,11 @@ inline bool emInputEvent::IsMouseEvent() const
 	return emIsMouseInputKey(Key);
 }
 
+inline bool emInputEvent::IsTouchEvent() const
+{
+	return emIsTouchInputKey(Key);
+}
+
 inline bool emInputEvent::IsKey(emInputKey key) const
 {
 	return Key==key;
@@ -471,6 +524,26 @@ inline void emInputState::SetMouse(double mouseX, double mouseY)
 {
 	MouseX=mouseX;
 	MouseY=mouseY;
+}
+
+inline int emInputState::GetTouchCount() const
+{
+	return Touches.GetCount();
+}
+
+inline emUInt64 emInputState::GetTouchId(int index) const
+{
+	return Touches[index].Id;
+}
+
+inline double emInputState::GetTouchX(int index) const
+{
+	return Touches[index].X;
+}
+
+inline double emInputState::GetTouchY(int index) const
+{
+	return Touches[index].Y;
 }
 
 inline bool emInputState::GetLeftButton() const

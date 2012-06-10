@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2011 Oliver Hamann.
+// Copyright (C) 2006-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,7 @@ emMainWindow::emMainWindow(emContext & parentContext)
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2011 Oliver Hamann.\n"
+		"Copyright (C) 2001-2012 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"
@@ -347,12 +347,11 @@ void emMainWindow::Input(emInputEvent & event, const emInputState & state)
 		}
 		break;
 	case EM_KEY_ESCAPE:
+#if defined(ANDROID)
+	case EM_KEY_MENU:
+#endif
 		if (state.IsNoMod()) {
-			if (GetContentView().IsFocused()) {
-				GetControlView().Focus();
-				GetControlView().VisitFullsized(ControlPanel,false);
-			}
-			else GetContentView().Focus();
+			ToggleControlView();
 			event.Eat();
 		}
 		break;
@@ -409,6 +408,19 @@ void emMainWindow::RecreateContentPanels(emScreen & screen)
 }
 
 
+void emMainWindow::ToggleControlView()
+{
+	if (GetContentView().IsFocused()) {
+		GetControlView().Focus();
+		GetControlView().VisitFullsized(ControlPanel,false);
+	}
+	else {
+		GetControlView().ZoomOut();
+		GetContentView().Focus();
+	}
+}
+
+
 emMainWindow::ControlPanelClass::ControlPanelClass(
 	ParentArg parent, const emString & name, emMainWindow & mainWin
 )
@@ -421,10 +433,18 @@ void emMainWindow::ControlPanelClass::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	if (event.GetKey()==EM_KEY_ESCAPE && state.IsNoMod()) {
-		GetView().ZoomOut();
-		MainWin.GetContentView().Focus();
-		event.Eat();
+	switch (event.GetKey()) {
+	case EM_KEY_ESCAPE:
+#if defined(ANDROID)
+	case EM_KEY_MENU:
+#endif
+		if (state.IsNoMod()) {
+			MainWin.ToggleControlView();
+			event.Eat();
+		}
+		break;
+	default:
+		break;
 	}
 	emTkGroup::Input(event,state,mx,my);
 }

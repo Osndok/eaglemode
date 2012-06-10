@@ -20,15 +20,6 @@
 
 #if defined(_WIN32)
 #	include <windows.h>
-#	ifndef S_IXUSR
-#		define S_IXUSR 0100
-#	endif
-#	ifndef S_IXGRP
-#		define S_IXGRP 0010
-#	endif
-#	ifndef S_IXOTH
-#		define S_IXOTH 0001
-#	endif
 #else
 #	include <unistd.h>
 #endif
@@ -38,6 +29,17 @@
 #include <emFileMan/emDirEntryAltPanel.h>
 #include <emFileMan/emFileManControlPanel.h>
 #include <emCore/emRes.h>
+#if defined(_WIN32)
+#	ifndef S_IXUSR
+#		define S_IXUSR 0100
+#	endif
+#	ifndef S_IXGRP
+#		define S_IXGRP 0010
+#	endif
+#	ifndef S_IXOTH
+#		define S_IXOTH 0001
+#	endif
+#endif
 
 
 emDirEntryPanel::emDirEntryPanel(

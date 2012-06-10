@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -155,6 +155,12 @@ void emWndsWindowPort::Raise()
 }
 
 
+emUInt64 emWndsWindowPort::GetInputClockMS()
+{
+	return emGetClockMS(); // ???
+}
+
+
 void emWndsWindowPort::InvalidateTitle()
 {
 	TitlePending=true;
@@ -188,7 +194,8 @@ void emWndsWindowPort::InvalidatePainting(double x, double y, double w, double h
 	if (y2>ClipY2) y2=ClipY2;
 	if (y<ClipY1) y=ClipY1;
 	if (y>=y2) return;
-	MergeToInvRectList((int)x,(int)y,(int)ceil(x2),(int)ceil(y2));
+	InvalidRects.Unite((int)x,(int)y,(int)ceil(x2),(int)ceil(y2));
+	if (InvalidRects.GetCount()>64) InvalidRects.SetToMinMax();
 	WakeUp();
 }
 
@@ -201,7 +208,6 @@ emWndsWindowPort::emWndsWindowPort(emWindow & window)
 	emContext * c;
 	emWndsWindowPort * wp;
 	emWindow * w;
-	int i;
 
 	Owner=NULL;
 	for (c=window.GetParentContext(); c; c=c->GetParentContext()) {
@@ -235,12 +241,6 @@ emWndsWindowPort::emWndsWindowPort(emWindow & window)
 	TitlePending=false;
 	IconPending=false;
 	CursorPending=false;
-	InvRectFreeList=NULL;
-	InvRectList=NULL;
-	for (i=0; i<(int)(sizeof(InvRectHeap)/sizeof(InvRect)); i++) {
-		InvRectHeap[i].Next=InvRectFreeList;
-		InvRectFreeList=&InvRectHeap[i];
-	}
 	InputStateClock=0;
 	LastButtonPress=EM_KEY_NONE;
 	LastButtonPressTime=0;
@@ -337,8 +337,7 @@ void emWndsWindowPort::PreConstruct()
 	PosPending=false;
 	SizeForced=false;
 	SizePending=false;
-	ClearInvRectList();
-	MergeToInvRectList(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
+	InvalidRects.Set(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
 	Title.Empty();
 	TitlePending=true;
 	IconPending=true;
@@ -702,14 +701,7 @@ LRESULT emWndsWindowPort::WindowProc(
 			y=ps.rcPaint.top;
 			w=ps.rcPaint.right-ps.rcPaint.left;
 			h=ps.rcPaint.bottom-ps.rcPaint.top;
-			if (x<0) { w+=x; x=0; }
-			if (y<0) { h+=y; y=0; }
-			if (w>PaneW-x) w=PaneW-x;
-			if (h>PaneH-y) h=PaneH-y;
-			if (w>0 && h>0) {
-				MergeToInvRectList(PaneX+x,PaneY+y,PaneX+x+w,PaneY+y+h);
-				WakeUp();
-			}
+			InvalidatePainting(PaneX+x,PaneY+y,w,h);
 			EndPaint(HWnd,&ps);
 		}
 		return 0;
@@ -770,8 +762,7 @@ LRESULT emWndsWindowPort::WindowProc(
 			ClipY1=PaneY;
 			ClipX2=PaneX+PaneW;
 			ClipY2=PaneY+PaneH;
-			ClearInvRectList();
-			MergeToInvRectList(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
+			InvalidRects.Set(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
 			WakeUp();
 			if (!PosPending && !SizePending) {
 				SetViewGeometry(
@@ -912,7 +903,7 @@ bool emWndsWindowPort::Cycle()
 		PostConstructed=true;
 	}
 
-	if (InvRectList && Mapped) UpdatePainting();
+	if (!InvalidRects.IsEmpty() && Mapped) UpdatePainting();
 
 	return false;
 }
@@ -920,138 +911,37 @@ bool emWndsWindowPort::Cycle()
 
 void emWndsWindowPort::UpdatePainting()
 {
-	InvRect * r;
+	const emClipRects<int>::Rect * r;
 	HDC hdc;
 	int bufIdx,rx1,ry1,rx2,ry2,x,y,w,h;
 
-	if (InvRectList) {
-		hdc=GetDC(HWnd);
-		bufIdx=0;
+	if (InvalidRects.IsEmpty()) return;
+	InvalidRects.Sort();
+	hdc=GetDC(HWnd);
+	bufIdx=0;
+	for (r=InvalidRects.GetFirst(); r; r=r->GetNext()) {
+		rx1=r->GetX1();
+		ry1=r->GetY1();
+		rx2=r->GetX2();
+		ry2=r->GetY2();
+		y=ry1;
 		do {
-			r=InvRectList;
-			rx1=r->x1;
-			ry1=r->y1;
-			rx2=r->x2;
-			ry2=r->y2;
-			InvRectList=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-			y=ry1;
+			h=ry2-y;
+			if (h>Screen.BufHeight) h=Screen.BufHeight;
+			x=rx1;
 			do {
-				h=ry2-y;
-				if (h>Screen.BufHeight) h=Screen.BufHeight;
-				x=rx1;
-				do {
-					w=rx2-x;
-					if (w>Screen.BufWidth) w=Screen.BufWidth;
-					PaintView(emPainter(Screen.BufPainter[bufIdx],0,0,w,h,-x,-y,1,1),0);
-					Screen.BeginSendBuf(hdc,bufIdx,x-PaneX,y-PaneY,w,h);
-					bufIdx^=1;
-					x+=w;
-				} while (x<rx2);
-				y+=h;
-			} while (y<ry2);
-		} while (InvRectList);
-		Screen.WaitSendBuf();
+				w=rx2-x;
+				if (w>Screen.BufWidth) w=Screen.BufWidth;
+				PaintView(emPainter(Screen.BufPainter[bufIdx],0,0,w,h,-x,-y,1,1),0);
+				Screen.BeginSendBuf(hdc,bufIdx,x-PaneX,y-PaneY,w,h);
+				bufIdx^=1;
+				x+=w;
+			} while (x<rx2);
+			y+=h;
+		} while (y<ry2);
 	}
-}
-
-
-void emWndsWindowPort::ClearInvRectList()
-{
-	InvRect * r;
-
-	while ((r=InvRectList)!=NULL) {
-		InvRectList=r->Next;
-		r->Next=InvRectFreeList;
-		InvRectFreeList=r;
-	}
-}
-
-
-void emWndsWindowPort::MergeToInvRectList(int x1, int y1, int x2, int y2)
-{
-	InvRect * * pr;
-	InvRect * r;
-	int rx1,ry1,rx2,ry2;
-
-	pr=&InvRectList;
-	for (;;) {
-		r=*pr;
-		if (!r || (ry1=r->y1)>y2) break;
-		if ((ry2=r->y2)<y1 || (rx1=r->x1)>x2 || (rx2=r->x2)<x1) {
-			pr=&r->Next;
-		}
-		else if (rx1>=x1 && rx2<=x2 && ry1>=y1 && ry2<=y2) {
-			*pr=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-		}
-		else if (rx1<=x1 && rx2>=x2 && ry1<=y1 && ry2>=y2) {
-			return;
-		}
-		else if (rx1==x1 && rx2==x2) {
-			if (y1>ry1) y1=ry1;
-			if (y2<ry2) y2=ry2;
-			*pr=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-			pr=&InvRectList;
-		}
-		else if (ry1<y2 && ry2>y1) {
-			*pr=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-			if (ry1<y1) {
-				MergeToInvRectList(rx1,ry1,rx2,y1);
-			}
-			else if (y1<ry1) {
-				MergeToInvRectList(x1,y1,x2,ry1);
-				y1=ry1;
-			}
-			if (ry2>y2) {
-				MergeToInvRectList(rx1,y2,rx2,ry2);
-			}
-			else if (ry2<y2) {
-				MergeToInvRectList(x1,ry2,x2,y2);
-				y2=ry2;
-			}
-			if (x1>rx1) x1=rx1;
-			if (x2<rx2) x2=rx2;
-			pr=&InvRectList;
-		}
-		else {
-			pr=&r->Next;
-		}
-	}
-
-	pr=&InvRectList;
-	for (;;) {
-		r=*pr;
-		if (!r || r->y1>y1 || (r->y1==y1 && r->x1>x1)) break;
-		pr=&r->Next;
-	}
-	r=InvRectFreeList;
-	if (!r) {
-		while ((r=InvRectList)!=NULL) {
-			if (x1>r->x1) x1=r->x1;
-			if (x2<r->x2) x2=r->x2;
-			if (y1>r->y1) y1=r->y1;
-			if (y2<r->y2) y2=r->y2;
-			InvRectList=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-		}
-		pr=&InvRectList;
-		r=InvRectFreeList;
-	}
-	InvRectFreeList=r->Next;
-	r->x1=x1;
-	r->y1=y1;
-	r->x2=x2;
-	r->y2=y2;
-	r->Next=*pr;
-	*pr=r;
+	Screen.WaitSendBuf();
+	InvalidRects.Empty();
 }
 
 

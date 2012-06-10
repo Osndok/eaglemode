@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCursor.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,6 +68,9 @@ public:
 	operator int () const;
 	int Get() const;
 		// Get the cursor id.
+
+	const char * ToString() const;
+		// Convert to string representation.
 
 private:
 

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -107,6 +107,36 @@
                 <SPAN CLASS=c>// Register this interface so that it can be found by
                 // LookupInherited.
 </SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emPrivateClipboard"></A><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emClipboard_h.html#emPrivateClipboard">emPrivateClipboard</A> =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emClipboard_h.html#emPrivateClipboard">emPrivateClipboard</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is a simple implementation for a clipboard which is not shared
+        // with anything.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>Install(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context);
+
+        <SPAN CLASS=t>virtual </SPAN>emInt64 PutText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; str, <SPAN CLASS=t>bool </SPAN>selection=<SPAN CLASS=k>false</SPAN>);
+
+        <SPAN CLASS=t>virtual void </SPAN>Clear(<SPAN CLASS=t>bool </SPAN>selection=<SPAN CLASS=k>false</SPAN>, emInt64 selectionId=<SPAN CLASS=u>0</SPAN>);
+
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetText(<SPAN CLASS=t>bool </SPAN>selection=<SPAN CLASS=k>false</SPAN>);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emClipboard_h.html#emPrivateClipboard">emPrivateClipboard</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emClipboard_h.html#emPrivateClipboard">emPrivateClipboard</A>();
+
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ClipText;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> SelText;
+        emInt64 SelId;
+<SPAN CLASS=b>}</SPAN>;
 
 
 <SPAN CLASS=p>#endif

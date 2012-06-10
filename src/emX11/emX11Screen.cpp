@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,6 +63,8 @@ void emX11Screen::GetVisibleRect(
 	bool b;
 
 	if (HaveXF86VidMode) {
+		memset(&ml,0,sizeof(ml));
+		x=y=dc=0;
 		XMutex.Lock();
 		b=XF86VidModeGetModeLine(Disp,Scrn,&dc,&ml) &&
 		  XF86VidModeGetViewPort(Disp,Scrn,&x,&y);
@@ -79,6 +81,12 @@ void emX11Screen::GetVisibleRect(
 	*pY=0.0;
 	*pW=Width;
 	*pH=Height;
+}
+
+
+double emX11Screen::GetDPI()
+{
+	return DPI;
 }
 
 
@@ -122,11 +130,12 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	: emScreen(context,name),
 	ScreensaverDisableTimer(GetScheduler())
 {
-	const char * displayName;
+	const char * displayName, * modifiers;
 	XVisualInfo * viList, viTemplate, * vi;
-	int viCount,i,major,minor,bytesPerPixel;
+	int viCount,i,major,minor,bytesPerPixel,x,y,dc;
 	Bool xshmCanDoPixmaps,allowTwoBuffers;
 	XErrorHandler originalHandler;
+	XF86VidModeModeLine ml;
 	Status status;
 	Bool xb;
 	int eventBase,errorBase;
@@ -140,14 +149,44 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	WCThread=new WaitCursorThread(XMutex,Disp);
 
 	XMutex.Lock();
-	XSetLocaleModifiers("");
-	InputMethod=XOpenIM(Disp,NULL,NULL,NULL);
+	xb=XSupportsLocale();
 	XMutex.Unlock();
-	if (InputMethod==NULL) {
+	if (!xb) {
 		emWarning(
-			"emX11Screen: Failed to open X input method for display \"%s\".",
+			"emX11Screen: X does not support current locale for display \"%s\".",
 			displayName
 		);
+		InputMethod=NULL;
+	}
+	else {
+		modifiers=getenv("XMODIFIERS");
+		emDLog("emX11Screen: XMODIFIERS=%s",modifiers?modifiers:"<not defined>");
+		XMutex.Lock();
+		modifiers=XSetLocaleModifiers("");
+		XMutex.Unlock();
+		if (!modifiers) {
+			XMutex.Lock();
+			modifiers=XSetLocaleModifiers("@im=none");
+			XMutex.Unlock();
+		}
+		if (!modifiers) {
+			emWarning(
+				"emX11Screen: Failed to set locale modifiers for display \"%s\".",
+				displayName
+			);
+			InputMethod=NULL;
+		}
+		else {
+			XMutex.Lock();
+			InputMethod=XOpenIM(Disp,NULL,NULL,NULL);
+			XMutex.Unlock();
+			if (InputMethod==NULL) {
+				emWarning(
+					"emX11Screen: Failed to open X input method for display \"%s\".",
+					displayName
+				);
+			}
+		}
 	}
 
 	Scrn=DefaultScreen(Disp);
@@ -155,7 +194,8 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	Width=DisplayWidth(Disp,Scrn);
 	Height=DisplayHeight(Disp,Scrn);
 
-	PixelTallness=1.0; //???
+	DPI=Width*25.4/DisplayWidthMM(Disp,Scrn);
+	PixelTallness=1.0; //??? DPI/(Height*25.4/DisplayHeightMM(Disp,Scrn));
 
 	RootWin=RootWindow(Disp,Scrn);
 
@@ -204,14 +244,30 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	HaveXF86VidMode=false;
 	if (emX11_IsLibXxf86vmLoaded()) {
 		XMutex.Lock();
+		XSync(Disp,False);
+		ErrorHandlerMutex.Lock();
+		ErrorHandlerCalled=false;
+		originalHandler=XSetErrorHandler(ErrorHandler);
 		xb=XF86VidModeQueryVersion(Disp,&major,&minor);
-		XMutex.Unlock();
-		if (xb && (major>=1 || (major==0 && minor>=8))) {
-			XMutex.Lock();
+		if (xb && !ErrorHandlerCalled && (major>=1 || (major==0 && minor>=8))) {
 			xb=XF86VidModeQueryExtension(Disp,&eventBase,&errorBase);
-			XMutex.Unlock();
-			if (xb) HaveXF86VidMode=true;
+			if (xb && !ErrorHandlerCalled) {
+				memset(&ml,0,sizeof(ml));
+				dc=0;
+				xb=XF86VidModeGetModeLine(Disp,Scrn,&dc,&ml);
+				if (xb && !ErrorHandlerCalled) {
+					x=y=0;
+					xb=XF86VidModeGetViewPort(Disp,Scrn,&x,&y);
+					if (xb && !ErrorHandlerCalled) {
+						HaveXF86VidMode=true;
+					}
+				}
+			}
 		}
+		XSync(Disp,False);
+		XSetErrorHandler(originalHandler);
+		ErrorHandlerMutex.Unlock();
+		XMutex.Unlock();
 	}
 	if (!HaveXF86VidMode) emWarning("emX11Screen: no XF86VidMode");
 
@@ -509,24 +565,26 @@ bool emX11Screen::Cycle()
 	XMutex.Lock();
 	while (XPending(Disp)) {
 		XNextEvent(Disp,&event);
-		XMutex.Unlock();
-		UpdateLastKnownTime(event);
-		win=event.xany.window;
-		if (Clipboard && win==Clipboard->Win) {
-			Clipboard->HandleEvent(event);
-		}
-		else {
-			for (i=WinPorts.GetCount()-1; i>=0; i--) {
-				if (WinPorts[i]->Win==win) {
-					WinPorts[i]->HandleEvent(event);
-					gotAnyWinPortEvent=true;
-					break;
+		if (!XFilterEvent(&event,None)) {
+			XMutex.Unlock();
+			UpdateLastKnownTime(event);
+			win=event.xany.window;
+			if (Clipboard && win==Clipboard->Win) {
+				Clipboard->HandleEvent(event);
+			}
+			else {
+				for (i=WinPorts.GetCount()-1; i>=0; i--) {
+					if (WinPorts[i]->Win==win) {
+						WinPorts[i]->HandleEvent(event);
+						gotAnyWinPortEvent=true;
+						break;
+					}
 				}
 			}
-		}
-		XMutex.Lock();
-		if (event.type==ButtonPress || event.type==ButtonRelease) {
-			XAllowEvents(Disp,SyncPointer,CurrentTime);
+			XMutex.Lock();
+			if (event.type==ButtonPress || event.type==ButtonRelease) {
+				XAllowEvents(Disp,SyncPointer,CurrentTime);
+			}
 		}
 	}
 	XMutex.Unlock();

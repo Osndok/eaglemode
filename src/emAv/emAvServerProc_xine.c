@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2008,2010-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -196,9 +196,9 @@ static void emAv_vo_driver_update_frame_format(
 				frame->mem[i]=NULL;
 			}
 			if (frame->sizes[i]>0) {
-				frame->base.base[i]=(uint8_t*)xine_xmalloc_aligned(
-					16,frame->sizes[i],(void**)(void*)&frame->mem[i]
-				);
+				frame->mem[i]=calloc(1,frame->sizes[i]+255);
+				frame->base.base[i]=(uint8_t*)frame->mem[i];
+				frame->base.base[i]+=(0-((size_t)frame->base.base[i]))&255;
 			}
 		}
 		pthread_mutex_lock(&driver->mutex);
@@ -1278,7 +1278,21 @@ static const char * emAvOpenInstance(
 #endif
 
 	if (strcmp(audioDrv,"auto")==0) audioDrv=NULL;
+#if defined(__linux__)
+	if (!audioDrv) {
+		audioDrv="alsa";
+		inst->AudioPort=xine_open_audio_driver(inst->Xine,audioDrv,NULL);
+		if (!inst->AudioPort) {
+			audioDrv=NULL;
+			inst->AudioPort=xine_open_audio_driver(inst->Xine,audioDrv,NULL);
+		}
+	}
+	else {
+		inst->AudioPort=xine_open_audio_driver(inst->Xine,audioDrv,NULL);
+	}
+#else
 	inst->AudioPort=xine_open_audio_driver(inst->Xine,audioDrv,NULL);
+#endif
 	if (!inst->AudioPort) {
 		inst->Warnings|=EM_AV_WARNING_NO_AUDIO_DRIVER;
 		inst->AudioPort=xine_open_audio_driver(inst->Xine,"none",NULL);

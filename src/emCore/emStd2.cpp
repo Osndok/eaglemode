@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -96,6 +96,19 @@ emString emGetUserName()
 	}
 	tmp[sizeof(tmp)-1]=0;
 	return emString(tmp);
+#elif defined(ANDROID)
+	struct passwd * pw;
+	int i;
+
+	errno=0;
+	pw=getpwuid(getuid());
+	if (!pw || !pw->pw_name) {
+		emFatalError(
+			"emGetUserName: getpwuid failed: %s",
+			emGetErrorText(errno).Get()
+		);
+	}
+	return emString(pw->pw_name);
 #else
 	char tmp[1024];
 	struct passwd pwbuf;
@@ -1096,7 +1109,13 @@ void * emTryResolveSymbolFromLib(
 	r=dlsym(e->DLHandle,symbol);
 	err=dlerror();
 	if (err) {
-#		if defined(__linux__) || defined(__sun__) || defined(__FreeBSD__)
+#		if defined(ANDROID)
+			throw emString::Format(
+				"Failed to get address of \"%s\" in \"%s\".",
+				symbol,
+				e->Filename.Get()
+			);
+#		elif defined(__linux__) || defined(__sun__) || defined(__FreeBSD__)
 			throw emString(err);
 #		else
 			throw emString::Format(

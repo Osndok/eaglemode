@@ -55,7 +55,7 @@ void emSleepMS(int millisecs);
 	// to yield the CPU to another process.
 
 emUInt64 emGetClockMS();
-	// Get a system clock time in milliseconds. It started somewhere, but it
+	// Get a system clock time in milliseconds. It starts anywhere, but it
 	// should never overflow.
 
 emUInt64 emGetCPUTSC();

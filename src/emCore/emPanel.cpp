@@ -121,7 +121,7 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		ClipX1=ViewedX;
 		ClipY1=ViewedY;
 		ClipX2=ViewedX+ViewedWidth;
-		ClipY2=ViewedX+ViewedHeight;
+		ClipY2=ViewedY+ViewedHeight;
 		AEThresholdValue=EM_PANEL_DEFAULT_AE_THRESHOLD;
 		CreationNumber=++View.PanelCreationNumber;
 		CanvasColor=0;
@@ -1019,6 +1019,12 @@ emUInt64 emPanel::GetMemoryLimit() const
 }
 
 
+double emPanel::GetTouchEventPriority(double touchX, double touchY)
+{
+	return Focusable ? 1.0 : 0.0;
+}
+
+
 bool emPanel::Cycle()
 {
 	return false;
@@ -1034,7 +1040,7 @@ void emPanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	if (Focusable && event.IsMouseEvent()) {
+	if (Focusable && (event.IsMouseEvent() || event.IsTouchEvent())) {
 		Focus();
 		event.Eat();
 	}

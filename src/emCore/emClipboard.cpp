@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipboard.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,6 +21,10 @@
 #include <emCore/emVarModel.h>
 #include <emCore/emClipboard.h>
 
+
+//==============================================================================
+//================================ emClipboard =================================
+//==============================================================================
 
 emRef<emClipboard> emClipboard::LookupInherited(emContext & context)
 {
@@ -46,4 +50,73 @@ void emClipboard::Install()
 		emRef<emClipboard>(this),
 		UINT_MAX
 	);
+}
+
+
+//==============================================================================
+//============================= emPrivateClipboard =============================
+//==============================================================================
+
+void emPrivateClipboard::Install(emContext & context)
+{
+	emPrivateClipboard * m;
+	emString name;
+
+	m=(emPrivateClipboard*)context.Lookup(typeid(emPrivateClipboard),name);
+	if (!m) {
+		m=new emPrivateClipboard(context,name);
+		m->Register();
+	}
+	m->emClipboard::Install();
+}
+
+
+emInt64 emPrivateClipboard::PutText(const emString & str, bool selection)
+{
+	if (selection) {
+		SelText=str;
+		SelId++;
+		return SelId;
+	}
+	else {
+		ClipText=str;
+		return 0;
+	}
+}
+
+
+void emPrivateClipboard::Clear(bool selection, emInt64 selectionId)
+{
+	if (selection) {
+		if (SelId==selectionId) {
+			SelText.Empty();
+			SelId++;
+		}
+	}
+	else {
+		ClipText.Empty();
+	}
+}
+
+
+emString emPrivateClipboard::GetText(bool selection)
+{
+	if (selection) {
+		return SelText;
+	}
+	else {
+		return ClipText;
+	}
+}
+
+
+emPrivateClipboard::emPrivateClipboard(emContext & context, const emString & name)
+	: emClipboard(context,name)
+{
+	SelId=1;
+}
+
+
+emPrivateClipboard::~emPrivateClipboard()
+{
 }

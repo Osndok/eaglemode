@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -144,6 +144,12 @@ void emX11WindowPort::Raise()
 }
 
 
+emUInt64 emX11WindowPort::GetInputClockMS()
+{
+	return emGetClockMS(); // ???
+}
+
+
 void emX11WindowPort::InvalidateTitle()
 {
 	TitlePending=true;
@@ -177,7 +183,8 @@ void emX11WindowPort::InvalidatePainting(double x, double y, double w, double h)
 	if (y2>ClipY2) y2=ClipY2;
 	if (y<ClipY1) y=ClipY1;
 	if (y>=y2) return;
-	MergeToInvRectList((int)x,(int)y,(int)ceil(x2),(int)ceil(y2));
+	InvalidRects.Unite((int)x,(int)y,(int)ceil(x2),(int)ceil(y2));
+	if (InvalidRects.GetCount()>64) InvalidRects.SetToMinMax();
 	WakeUp();
 }
 
@@ -191,7 +198,6 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	emContext * c;
 	emX11WindowPort * wp;
 	emWindow * w;
-	int i;
 
 	Disp=Screen.Disp;
 	Owner=NULL;
@@ -232,12 +238,6 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	IconPending=false;
 	CursorPending=false;
 	LaunchFeedbackSent=false;
-	InvRectFreeList=NULL;
-	InvRectList=NULL;
-	for (i=0; i<(int)(sizeof(InvRectHeap)/sizeof(InvRect)); i++) {
-		InvRectHeap[i].Next=InvRectFreeList;
-		InvRectFreeList=&InvRectHeap[i];
-	}
 	InputStateClock=0;
 	LastButtonPress=EM_KEY_NONE;
 	LastButtonPressTime=0;
@@ -374,8 +374,7 @@ void emX11WindowPort::PreConstruct()
 	PosPending=false;
 	SizeForced=false;
 	SizePending=false;
-	ClearInvRectList();
-	MergeToInvRectList(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
+	InvalidRects.Set(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
 	Title.Empty();
 	TitlePending=true;
 	IconPending=true;
@@ -605,7 +604,7 @@ void emX11WindowPort::PostConstruct()
 }
 
 
-void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
+void emX11WindowPort::HandleEvent(XEvent & event)
 {
 	emInputEvent inputEvent;
 	emX11WindowPort * wp;
@@ -617,18 +616,10 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 	int i,x,y,w,h,mask,repeat,variant,len;
 	double mx,my;
 	bool inside;
-	Bool xb;
 
 	// Remember:
 	// - Calling InputToView may delete this window port.
 	// - The grab stuff is very very tricky.
-
-	if (!forwarded) {
-		XMutex.Lock();
-		xb=XFilterEvent(&event,Win);
-		XMutex.Unlock();
-		if (xb) return;
-	}
 
 	switch (event.type) {
 	case MotionNotify:
@@ -666,7 +657,7 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 			if (wp->Mapped) {
 				event.xbutton.x+=PaneX-wp->PaneX;
 				event.xbutton.y+=PaneY-wp->PaneY;
-				wp->HandleEvent(event,true);
+				wp->HandleEvent(event);
 			}
 			return;
 		}
@@ -843,14 +834,7 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 		y=event.xexpose.y;
 		w=event.xexpose.width;
 		h=event.xexpose.height;
-		if (x<0) { w+=x; x=0; }
-		if (y<0) { h+=y; y=0; }
-		if (w>PaneW-x) w=PaneW-x;
-		if (h>PaneH-y) h=PaneH-y;
-		if (w>0 && h>0) {
-			MergeToInvRectList(PaneX+x,PaneY+y,PaneX+x+w,PaneY+y+h);
-			WakeUp();
-		}
+		InvalidatePainting(PaneX+x,PaneY+y,w,h);
 		return;
 	case FocusIn:
 		if (
@@ -902,8 +886,7 @@ void emX11WindowPort::HandleEvent(XEvent & event, bool forwarded)
 			ClipY1=PaneY;
 			ClipX2=PaneX+PaneW;
 			ClipY2=PaneY+PaneH;
-			ClearInvRectList();
-			MergeToInvRectList(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
+			InvalidRects.Set(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
 			WakeUp();
 			if (!PosPending && !SizePending) {
 				SetViewGeometry(
@@ -1128,7 +1111,7 @@ bool emX11WindowPort::Cycle()
 		PostConstructed=true;
 	}
 
-	if (InvRectList && Mapped) {
+	if (!InvalidRects.IsEmpty() && Mapped) {
 		UpdatePainting();
 		if (!LaunchFeedbackSent) {
 			LaunchFeedbackSent=true;
@@ -1142,26 +1125,47 @@ bool emX11WindowPort::Cycle()
 
 void emX11WindowPort::UpdatePainting()
 {
-	InvRect * r;
+	const emClipRects<int>::Rect * r;
 	int i,rx1,ry1,rx2,ry2,x,y,w,h;
 
-	if (!Screen.UsingXShm) {
-		while ((r=InvRectList)!=NULL) {
-			rx1=r->x1;
-			ry1=r->y1;
-			rx2=r->x2;
-			ry2=r->y2;
-			InvRectList=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-			y=ry1;
+	if (InvalidRects.IsEmpty()) return;
+	InvalidRects.Sort();
+	for (r=InvalidRects.GetFirst(); r; r=r->GetNext()) {
+		rx1=r->GetX1();
+		ry1=r->GetY1();
+		rx2=r->GetX2();
+		ry2=r->GetY2();
+		y=ry1;
+		do {
+			h=ry2-y;
+			if (h>Screen.BufHeight) h=Screen.BufHeight;
+			x=rx1;
 			do {
-				h=ry2-y;
-				if (h>Screen.BufHeight) h=Screen.BufHeight;
-				x=rx1;
-				do {
-					w=rx2-x;
-					if (w>Screen.BufWidth) w=Screen.BufWidth;
+				w=rx2-x;
+				if (w>Screen.BufWidth) w=Screen.BufWidth;
+				if (Screen.UsingXShm) {
+					for (;;) {
+						if (!Screen.BufActive[0]) { i=0; break; }
+						if (Screen.BufImg[1] && !Screen.BufActive[1]) { i=1; break; }
+						Screen.WaitBufs();
+					}
+					PaintView(emPainter(Screen.BufPainter[i],0,0,w,h,-x,-y,1,1),0);
+					XMutex.Lock();
+					XShmPutImage(
+						Disp,
+						Win,
+						Gc,
+						Screen.BufImg[i],
+						0,0,
+						x-PaneX,y-PaneY,
+						w,h,
+						True
+					);
+					XFlush(Disp);
+					XMutex.Unlock();
+					Screen.BufActive[i]=true;
+				}
+				else {
 					PaintView(emPainter(Screen.BufPainter[0],0,0,w,h,-x,-y,1,1),0);
 					XMutex.Lock();
 					XPutImage(
@@ -1174,156 +1178,18 @@ void emX11WindowPort::UpdatePainting()
 						w,h
 					);
 					XMutex.Unlock();
-					x+=w;
-				} while (x<rx2);
-				y+=h;
-			} while (y<ry2);
-		}
-		return;
-	}
-
-	while ((r=InvRectList)!=NULL) {
-		rx1=r->x1;
-		ry1=r->y1;
-		rx2=r->x2;
-		ry2=r->y2;
-		InvRectList=r->Next;
-		r->Next=InvRectFreeList;
-		InvRectFreeList=r;
-		y=ry1;
-		do {
-			h=ry2-y;
-			if (h>Screen.BufHeight) h=Screen.BufHeight;
-			x=rx1;
-			do {
-				w=rx2-x;
-				if (w>Screen.BufWidth) w=Screen.BufWidth;
-				for (;;) {
-					if (!Screen.BufActive[0]) { i=0; break; }
-					if (Screen.BufImg[1] && !Screen.BufActive[1]) { i=1; break; }
-					Screen.WaitBufs();
 				}
-				PaintView(emPainter(Screen.BufPainter[i],0,0,w,h,-x,-y,1,1),0);
-				XMutex.Lock();
-				XShmPutImage(
-					Disp,
-					Win,
-					Gc,
-					Screen.BufImg[i],
-					0,0,
-					x-PaneX,y-PaneY,
-					w,h,
-					True
-				);
-				XFlush(Disp);
-				XMutex.Unlock();
-				Screen.BufActive[i]=true;
 				x+=w;
 			} while (x<rx2);
 			y+=h;
 		} while (y<ry2);
 	}
-	while (Screen.BufActive[0] || Screen.BufActive[1]) {
-		Screen.WaitBufs();
-	}
-}
-
-
-void emX11WindowPort::ClearInvRectList()
-{
-	InvRect * r;
-
-	while ((r=InvRectList)!=NULL) {
-		InvRectList=r->Next;
-		r->Next=InvRectFreeList;
-		InvRectFreeList=r;
-	}
-}
-
-
-void emX11WindowPort::MergeToInvRectList(int x1, int y1, int x2, int y2)
-{
-	InvRect * * pr;
-	InvRect * r;
-	int rx1,ry1,rx2,ry2;
-
-	pr=&InvRectList;
-	for (;;) {
-		r=*pr;
-		if (!r || (ry1=r->y1)>y2) break;
-		if ((ry2=r->y2)<y1 || (rx1=r->x1)>x2 || (rx2=r->x2)<x1) {
-			pr=&r->Next;
-		}
-		else if (rx1>=x1 && rx2<=x2 && ry1>=y1 && ry2<=y2) {
-			*pr=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-		}
-		else if (rx1<=x1 && rx2>=x2 && ry1<=y1 && ry2>=y2) {
-			return;
-		}
-		else if (rx1==x1 && rx2==x2) {
-			if (y1>ry1) y1=ry1;
-			if (y2<ry2) y2=ry2;
-			*pr=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-			pr=&InvRectList;
-		}
-		else if (ry1<y2 && ry2>y1) {
-			*pr=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-			if (ry1<y1) {
-				MergeToInvRectList(rx1,ry1,rx2,y1);
-			}
-			else if (y1<ry1) {
-				MergeToInvRectList(x1,y1,x2,ry1);
-				y1=ry1;
-			}
-			if (ry2>y2) {
-				MergeToInvRectList(rx1,y2,rx2,ry2);
-			}
-			else if (ry2<y2) {
-				MergeToInvRectList(x1,ry2,x2,y2);
-				y2=ry2;
-			}
-			if (x1>rx1) x1=rx1;
-			if (x2<rx2) x2=rx2;
-			pr=&InvRectList;
-		}
-		else {
-			pr=&r->Next;
+	if (Screen.UsingXShm) {
+		while (Screen.BufActive[0] || Screen.BufActive[1]) {
+			Screen.WaitBufs();
 		}
 	}
-
-	pr=&InvRectList;
-	for (;;) {
-		r=*pr;
-		if (!r || r->y1>y1 || (r->y1==y1 && r->x1>x1)) break;
-		pr=&r->Next;
-	}
-	r=InvRectFreeList;
-	if (!r) {
-		while ((r=InvRectList)!=NULL) {
-			if (x1>r->x1) x1=r->x1;
-			if (x2<r->x2) x2=r->x2;
-			if (y1>r->y1) y1=r->y1;
-			if (y2<r->y2) y2=r->y2;
-			InvRectList=r->Next;
-			r->Next=InvRectFreeList;
-			InvRectFreeList=r;
-		}
-		pr=&InvRectList;
-		r=InvRectFreeList;
-	}
-	InvRectFreeList=r->Next;
-	r->x1=x1;
-	r->y1=y1;
-	r->x2=x2;
-	r->y2=y2;
-	r->Next=*pr;
-	*pr=r;
+	InvalidRects.Empty();
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.h
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,6 +61,8 @@ private:
 
 	static void RecreateContentPanels(emScreen & screen);
 
+	void ToggleControlView();
+
 	class ControlPanelClass : public emTkGroup {
 	public:
 		ControlPanelClass(ParentArg parent, const emString & name,
@@ -71,6 +73,7 @@ private:
 	private:
 		emMainWindow & MainWin;
 	};
+	friend class ControlPanelClass;
 
 	emRef<emMainConfig> MainConfig;
 	emRef<emBookmarksModel> BookmarksModel;

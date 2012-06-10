@@ -20,6 +20,9 @@
 
 #if defined(_WIN32)
 #	include <windows.h>
+#elif defined(ANDROID)
+#	include <unistd.h>
+#	include <android/log.h>
 #else
 #	include <unistd.h>
 #	include <langinfo.h>
@@ -239,6 +242,8 @@ void emInitLocale()
 	int cp=(p?atoi(p+1):0);
 	if (cp==65001) emUtf8System=true;
 	else if (cp==850 || cp==858 || cp==1252 || cp==28591) latin1=true;
+#elif defined(ANDROID)
+	emUtf8System=true;
 #else
 	p=nl_langinfo(CODESET);
 	if (strcmp(p,"UTF-8")==0) emUtf8System=true;
@@ -502,6 +507,21 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 		}
 	}
 	free(buf);
+#elif defined(ANDROID)
+	char * buf;
+	int r,bufSize;
+
+	bufSize=10000;
+	buf=(char*)malloc(bufSize);
+	r=0;
+	if (pre) {
+		strcpy(buf,pre);
+		r=strlen(buf);
+	}
+	vsnprintf(buf+r,bufSize-r,format,args);
+	buf[bufSize-1]=0;
+	__android_log_print(ANDROID_LOG_INFO,"eaglemode",buf);
+	free(buf);
 #else
 	if (pre) fputs(pre,stderr);
 	vfprintf(stderr,format,args);
@@ -562,6 +582,13 @@ static bool emFatalErrorGraphical=false;
 
 void emFatalError(const char * format, ...)
 {
+#if defined(ANDROID)
+	va_list args;
+
+	va_start(args,format);
+	emRawLog("FATAL ERROR: ",format,args);
+	va_end(args);
+#else
 	va_list args;
 	char tmp[512];
 
@@ -596,6 +623,7 @@ void emFatalError(const char * format, ...)
 			}
 #		endif
 	}
+#endif
 	_exit(255);
 }
 

@@ -26,7 +26,7 @@
 #include <emMain/emMainWindow.h>
 
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(ANDROID)
 	#include <signal.h>
 	#include <execinfo.h>
 	#include <unistd.h>
@@ -150,7 +150,7 @@ emString emMain::CalcServerName()
 void emMain::NewWindow(int argc, const char * const argv[])
 {
 	const char * opt, * optGeometry, * optCEColor, * optVisit;
-	bool optFullscreen;
+	bool optFullscreen,optUndecorated;
 	emMainWindow * w;
 	emColor col;
 	int i;
@@ -167,6 +167,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 	optGeometry=NULL;
 	optCEColor=NULL;
 	optFullscreen=false;
+	optUndecorated=false;
 	optVisit=NULL;
 	for (i=0; i<argc; ) {
 		opt=argv[i++];
@@ -179,6 +180,9 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		}
 		else if (strcmp(opt,"-fullscreen")==0) {
 			optFullscreen=true;
+		}
+		else if (strcmp(opt,"-undecorated")==0) {
+			optUndecorated=true;
 		}
 		else if (strcmp(opt,"-visit")==0 && i<argc) {
 			optVisit=argv[i++];
@@ -197,6 +201,9 @@ void emMain::NewWindow(int argc, const char * const argv[])
 	}
 
 	w=new emMainWindow(Context);
+	if (optUndecorated) {
+		w->SetWindowFlags(w->GetWindowFlags()|emWindow::WF_UNDECORATED);
+	}
 	if (optGeometry) {
 		if (!w->SetWinPosViewSize(optGeometry)) {
 			emWarning(
@@ -400,6 +407,7 @@ static int wrapped_main(int argc, char * argv[])
 				"  -cecolor <color>        Set color of unused areas beside control view\n"
 				"                          (could be used to indicate root privileges).\n"
 				"  -fullscreen             Show the window in fullscreen mode.\n"
+				"  -undecorated            Show the window without decorations.\n"
 				"  -visit <panel identity> Panel to be visited initially.\n"
 				"  -reload                 Just tell the server process to reload files.\n",
 				argv[0]
@@ -431,6 +439,9 @@ static int wrapped_main(int argc, char * argv[])
 			forwardArgs.Add(argv[i++]);
 		}
 		else if (strcmp(opt,"-fullscreen")==0) {
+			forwardArgs.Add(opt);
+		}
+		else if (strcmp(opt,"-undecorated")==0) {
 			forwardArgs.Add(opt);
 		}
 		else if (strcmp(opt,"-visit")==0 && i<argc) {

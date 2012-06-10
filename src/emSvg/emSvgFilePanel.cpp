@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -325,7 +325,7 @@ void emSvgFilePanel::ClearSvgDisplay()
 {
 	if (Job) {
 		ServerModel->CloseJob(Job);
-		Job=NULL;;
+		Job=NULL;
 	}
 	if (!JobImg.IsEmpty()) {
 		JobImg.Empty();
@@ -370,7 +370,7 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 			RenderError=ServerModel->GetJobErrorText(Job);
 			if (RenderError.IsEmpty()) RenderError="unknown error";
 			ServerModel->CloseJob(Job);
-			Job=NULL;;
+			Job=NULL;
 			JobImg.Empty();
 			Img.Empty();
 			JobUpToDate=false;

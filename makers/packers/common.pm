@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # common.pm
 #
-# Copyright (C) 2010-2011 Oliver Hamann.
+# Copyright (C) 2010-2012 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -69,13 +69,23 @@ $V{'INSTALL_DIR'}='/usr/lib/'.$V{'NAME'};
 
 $V{'DEB_PACKAGE_VERSION'}='1';
 $V{'DEB_SECTION'}='x11';
+my $dist='';
+if ($Config{'osname'} eq "linux") {
+	$dist=readpipe('lsb_release --id');
+	if (defined($dist)) { ($dist)=($dist=~/^.*[:][\s]*([^\s].*)$/); }
+	if (!defined($dist)) { $dist=''; }
+}
 $V{'DEB_BUILD_DEPENDS'}=
-	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, libjpeg62-dev, '.
+	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, '.
+	($dist eq 'Ubuntu' ? 'libjpeg8-dev' : 'libjpeg62-dev').', '.
 	'libpng12-dev, libtiff4-dev, libxine-dev, librsvg2-dev, '.
 	'libpoppler-glib-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-	'libjpeg62, libpng12-0, libtiff4, libxine1, librsvg2-2, libfreetype6';
+	($dist eq 'Ubuntu' ? 'libjpeg8' : 'libjpeg62').', '.
+	'libpng12-0, libtiff4, libxine1, librsvg2-2, '.
+	($dist eq 'Ubuntu' ? 'libpoppler-glib8' : 'libpoppler-glib4').', '.
+	'libfreetype6';
 $V{'DEB_RECOMMENDS'}=
 	'abiword, genisoimage, htmldoc, netpbm, transfig, skencil';
 
@@ -84,12 +94,12 @@ $V{'RPM_GROUP'}='System/GUI/Other';
 $V{'RPM_BUILD_REQUIRES'}=
 	"gcc-c++ perl libjpeg-devel libpng-devel libtiff-devel\n".
 	"\%if 0\%{?suse_version}\n".
-	"BuildRequires: xorg-x11-libX11-devel libxine-devel librsvg-devel libpoppler-glib-devel freetype2-devel\n".
+	"BuildRequires: xorg-x11-libX11-devel libxine-devel librsvg-devel gtk2-devel libpoppler-glib-devel freetype2-devel\n".
 	"\%else\n".
 	"\%if 0\%{?mdkversion}\n".
-	"BuildRequires: devel(libX11) devel(libxine) librsvg2-devel libpoppler-glib-devel freetype2-devel\n".
+	"BuildRequires: libx11-devel libxine-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype2-devel\n".
 	"\%else\n".
-	"BuildRequires: libX11-devel xine-lib-devel librsvg2-devel poppler-glib-devel freetype-devel\n".
+	"BuildRequires: libX11-devel xine-lib-devel librsvg2-devel gtk2-devel poppler-glib-devel freetype-devel\n".
 	"\%endif\n".
 	"\%endif\n";
 $V{'RPM_REQUIRES'}='perl xterm ghostscript';

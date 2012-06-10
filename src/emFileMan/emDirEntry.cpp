@@ -140,8 +140,10 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	Data->Hidden=(Data->WndsFileAttributes&FILE_ATTRIBUTE_HIDDEN)!=0;
 #else
 	char tmp[1024];
+#if !defined(ANDROID)
 	struct passwd pwbuf;
 	struct group grbuf;
+#endif
 	struct passwd * pw;
 	struct group * gr;
 	int i;
@@ -180,11 +182,21 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 		Data->TargetPath=tmp;
 	}
 
+#if defined(ANDROID)
+	pw=getpwuid(Data->Stat.st_uid);
+	i=0;
+#else
 	i=getpwuid_r(Data->Stat.st_uid,&pwbuf,tmp,sizeof(tmp),&pw);
+#endif
 	if (i==0 && pw && pw->pw_name) Data->Owner=pw->pw_name;
 	else Data->Owner=emString::Format("%lu",(unsigned long)Data->Stat.st_uid);
 
+#if defined(ANDROID)
+	gr=getgrgid(Data->Stat.st_gid);
+	i=0;
+#else
 	i=getgrgid_r(Data->Stat.st_gid,&grbuf,tmp,sizeof(tmp),&gr);
+#endif
 	if (i==0 && gr && gr->gr_name) Data->Group=gr->gr_name;
 	else Data->Group=emString::Format("%lu",(unsigned long)Data->Stat.st_gid);
 

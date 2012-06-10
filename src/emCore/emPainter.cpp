@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2010 Oliver Hamann.
+// Copyright (C) 2001,2003-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -420,7 +420,7 @@ void emPainter::PaintRect(
 				} \
 				if (ix1<ix2) { \
 					p1=((PTYPE*)p)+ix1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow;; \
+					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
 					if (alpha<255) { \
 						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]; \
 						do { \
@@ -537,7 +537,7 @@ void emPainter::PaintRect(
 				} \
 				if (ix1<ix2) { \
 					p1=((PTYPE*)p)+ix1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow;; \
+					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
 					if (alpha<255) { \
 						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]- \
 						    ((PTYPE*)hSubR)[alpha]-((PTYPE*)hSubG)[alpha]-((PTYPE*)hSubB)[alpha]; \

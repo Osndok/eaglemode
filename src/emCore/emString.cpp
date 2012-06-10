@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -475,6 +475,13 @@ unsigned int emString::GetDataRefCount() const
 {
 	return Data==&EmptyData ? UINT_MAX/2 : Data->RefCount;
 }
+
+
+#if defined(ANDROID)
+void emString::VirtualDummyMethod()
+{
+}
+#endif
 
 
 void emString::FreeData()

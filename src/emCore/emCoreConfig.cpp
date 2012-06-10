@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,7 +50,15 @@ emCoreConfig::emCoreConfig(emContext & context, const emString & name)
 	KeyboardFineZoomSpeedFactor(this,"KeyboardFineZoomSpeedFactor",1.0,0.25,4.0),
 	KeyboardScrollSpeedFactor(this,"KeyboardScrollSpeedFactor",1.0,0.25,4.0),
 	KeyboardFineScrollSpeedFactor(this,"KeyboardFineScrollSpeedFactor",1.0,0.25,4.0),
-	MaxMegabytesPerView(this,"MaxMegabytesPerView",512,8,16384)
+	MaxMegabytesPerView(
+		this,"MaxMegabytesPerView",
+#if defined(ANDROID)
+		64,
+#else
+		512,
+#endif
+		8,16384
+	)
 {
 	PostConstruct(
 		*this,

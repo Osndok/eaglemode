@@ -18,8 +18,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <emCore/emInstallInfo.h>
 #include <emCore/emPanel.h>
+#include <emCore/emViewInputFilter.h>
 
 
 //==============================================================================
@@ -40,6 +40,8 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	WindowPtrValid=false;
 	ScreenRefValid=false;
 	PopupWindow=NULL;
+	FirstVIF=NULL;
+	LastVIF=NULL;
 	RootPanel=NULL;
 	SupremeViewedPanel=NULL;
 	MinSVP=NULL;
@@ -60,15 +62,12 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	CurrentPixelTallness=1.0;
 	LastMouseX=0.0;
 	LastMouseY=0.0;
-	ZoomFixX=0.0;
-	ZoomFixY=0.0;
 	Title="";
 	Cursor=emCursor::NORMAL;
 	BackgroundColor=0x808080FF;
 	VFlags=0;
 	Focused=false;
 	VisitAdherent=false;
-	ZoomScrollInAction=false;
 	TitleInvalid=false;
 	CursorInvalid=false;
 	SVPChoiceInvalid=false;
@@ -81,22 +80,22 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	SVPUpdSlice=0;
 	NoticeList.Prev=&NoticeList;
 	NoticeList.Next=&NoticeList;
-	UpdateEngine=new UpdateEngineClass(*this);;
+	UpdateEngine=new UpdateEngineClass(*this);
 	ActivationEngine=NULL;
 	EOIEngine=NULL;
-	SmoothKBNaviEngine=new SmoothKBNaviEngineClass(*this);
 	SeekEngine=NULL;
 	ProtectSeeking=0;
 	SeekPosPanel=NULL;
 	StressTest=NULL;
-	NavByProgState=0;
-	EmuMidButtonTime=0;
-	EmuMidButtonRepeat=0;
-	memset(CheatBuffer,0,sizeof(CheatBuffer));
 
 	UpdateEngine->WakeUp();
 
 	SetViewFlags(viewFlags);
+
+	new emDefaultTouchVIF(*this);
+	new emCheatVIF(*this);
+	new emKeyboardZoomScrollVIF(*this);
+	new emMouseZoomScrollVIF(*this);
 }
 
 
@@ -109,7 +108,7 @@ emView::~emView()
 	//??? child views are deleted at least by the context destructor)
 	if (RootPanel) delete RootPanel;
 	if (StressTest) delete StressTest;
-	delete SmoothKBNaviEngine;
+	while (LastVIF) delete LastVIF;
 	if (EOIEngine) delete EOIEngine;
 	if (ActivationEngine) delete ActivationEngine;
 	delete UpdateEngine;
@@ -167,7 +166,6 @@ void emView::SetViewFlags(ViewFlags viewFlags)
 				InvalidatePainting();
 			}
 		}
-		ZoomScrollInAction=false;
 		SVPChoiceInvalid=true;
 		Signal(ViewFlagsSignal);
 		UpdateEngine->WakeUp();
@@ -859,7 +857,6 @@ void emView::ZoomOut()
 	if (!ProtectSeeking) AbortSeeking();
 
 	if (RootPanel) {
-		ZoomScrollInAction=false;
 		relA=HomeWidth*RootPanel->GetHeight()/HomePixelTallness/HomeHeight;
 		relA2=HomeHeight/RootPanel->GetHeight()*HomePixelTallness/HomeWidth;
 		if (relA<relA2) relA=relA2;
@@ -907,31 +904,63 @@ void emView::SignalEOIDelayed()
 }
 
 
+double emView::GetTouchEventPriority(
+	double touchX, double touchY, bool afterVIFs
+)
+{
+	emPanel * p;
+	double pri,t;
+
+	if (!afterVIFs && FirstVIF) {
+		return FirstVIF->GetTouchEventPriority(touchX,touchY);
+	}
+	pri=-1E30;
+	p=RootPanel;
+	if (p) {
+		for (;;) {
+			if (
+				p->InViewedPath && (
+					!p->Viewed || (
+						p->ClipX1<=touchX &&
+						p->ClipY1<=touchY &&
+						p->ClipX2>touchX &&
+						p->ClipY2>touchY
+					)
+				)
+			) {
+				t=p->GetTouchEventPriority(touchX,touchY);
+				if (pri<t) pri=t;
+			}
+			if (p->FirstChild) p=p->FirstChild;
+			else if (p->Next) p=p->Next;
+			else {
+				do {
+					p=p->Parent;
+				} while (p && !p->Next);
+				if (!p) break;
+				p=p->Next;
+			}
+		}
+	}
+	return pri;
+}
+
+
 void emView::Input(emInputEvent & event, const emInputState & state)
 {
 	emPanel * p;
-	emInputState rwstate;
 
-	rwstate=state;
-
-	if (SeekEngine) SeekEngine->Input(event,rwstate);
-
-	if (CoreConfig->EmulateMiddleButton) {
-		EmulateMiddleButton(event,rwstate);
-	}
-
-	if ((VFlags&VF_NO_USER_NAVIGATION)==0) {
-		DoCheats(event,rwstate);
-		NavigateByProgram(event,rwstate);
-		NavigateByUser(event,rwstate);
+	if (SeekEngine && !event.IsEmpty()) {
+		event.Eat();
+		AbortSeeking();
 	}
 
 	if (
-		fabs(rwstate.GetMouseX()-LastMouseX)>0.1 ||
-		fabs(rwstate.GetMouseY()-LastMouseY)>0.1
+		fabs(state.GetMouseX()-LastMouseX)>0.1 ||
+		fabs(state.GetMouseY()-LastMouseY)>0.1
 	) {
-		LastMouseX=rwstate.GetMouseX();
-		LastMouseY=rwstate.GetMouseY();
+		LastMouseX=state.GetMouseX();
+		LastMouseY=state.GetMouseY();
 		CursorInvalid=true;
 		UpdateEngine->WakeUp();
 	}
@@ -954,7 +983,7 @@ void emView::Input(emInputEvent & event, const emInputState & state)
 
 	do {
 		RestartInputRecursion=false;
-		RecurseInput(event,rwstate);
+		RecurseInput(event,state);
 		if (RestartInputRecursion) {
 			emDLog("emView %p: Restarting input recursion.",this);
 		}
@@ -1922,365 +1951,47 @@ void emView::SwapViewPorts(bool swapFocus)
 }
 
 
-void emView::NavigateByUser(emInputEvent & event, emInputState & state)
-{
-	double my,mx,dmx,dmy,f;
-	emPanel * p;
-
-	if ((VFlags&VF_EGO_MODE)!=0) {
-		if (!ZoomScrollInAction && Focused) {
-			ZoomScrollInAction=true;
-			mx=HomeX+HomeWidth*0.5;
-			my=HomeY+HomeHeight*0.5;
-			MoveMousePointer(mx-state.GetMouseX(),my-state.GetMouseY());
-			state.SetMouse(mx,my);
-			LastMouseX=mx;
-			LastMouseY=my;
-		}
-	}
-	else if (ZoomScrollInAction && (!state.GetMiddleButton() || !Focused)) {
-		ZoomScrollInAction=false;
-	}
-
-	mx=state.GetMouseX();
-	my=state.GetMouseY();
-	dmx=mx-LastMouseX;
-	dmy=my-LastMouseY;
-	if (fabs(dmx)>0.1 || fabs(dmy)>0.1) {
-		if (ZoomScrollInAction) {
-			if (state.GetCtrl()) {
-				f=GetMouseZoomSpeed(state.GetShift());
-				f=pow(f,-dmy);
-				Zoom(ZoomFixX,ZoomFixY,f);
-				if (
-					(VFlags&VF_EGO_MODE)!=0 ||
-					CoreConfig->StickMouseWhenNavigating
-				) {
-					MoveMousePointer(-dmx,-dmy);
-					mx-=dmx;
-					my-=dmy;
-					state.SetMouse(mx,my);
-				}
-				ZoomFixX=mx;
-			}
-			else {
-				f=GetMouseScrollSpeed(state.GetShift());
-				Scroll(dmx*f,dmy*f);
-				if (
-					(VFlags&VF_EGO_MODE)!=0 ||
-					(CoreConfig->StickMouseWhenNavigating && !CoreConfig->PanFunction)
-				) {
-					MoveMousePointer(-dmx,-dmy);
-					mx-=dmx;
-					my-=dmy;
-					state.SetMouse(mx,my);
-				}
-				ZoomFixX=mx;
-				ZoomFixY=my;
-			}
-		}
-	}
-
-	switch (event.GetKey()) {
-	case EM_KEY_MIDDLE_BUTTON:
-		if (!state.GetAlt() && !state.GetMeta()) {
-			if (event.GetRepeat()) {
-				p=GetFocusablePanelAt(mx,my);
-				if (!p) p=RootPanel;
-				if (p) VisitFullsized(p,true,((event.GetRepeat()&1)==0)!=state.GetShift());
-			}
-			else if ((VFlags&VF_EGO_MODE)==0) {
-				ZoomScrollInAction=true;
-				ZoomFixX=mx;
-				ZoomFixY=my;
-			}
-			event.Eat();
-		}
-		break;
-	case EM_KEY_WHEEL_UP:
-	case EM_KEY_WHEEL_DOWN:
-		if (state.IsNoMod() || state.IsShiftMod()) {
-			f=GetWheelZoomSpeed(state.GetShift() || state.Get(EM_KEY_MIDDLE_BUTTON));
-			if (event.GetKey()==EM_KEY_WHEEL_DOWN) f=1.0/f;
-			Zoom(mx,my,f);
-			if ((VFlags&VF_POPUP_ZOOM)!=0) {
-				if (MoveMousePointerBackIntoView(&mx,&my)) {
-					state.SetMouse(mx,my);
-				}
-			}
-			event.Eat();
-		}
-		break;
-	default:
-		break;
-	}
-
-	SmoothKBNaviEngine->Input(event,state);
-}
-
-
-void emView::NavigateByProgram(emInputEvent & event, emInputState & state)
-{
-	static const double scrollDelta=3.0;
-	static const double zoomFac=1.015;
-	int step;
-
-	// This implements a special key sequence for scrolling and zooming. The
-	// sequence is meant to be generated by other programs. It is not useful
-	// for control by human. The key sequence consists of three key
-	// combinations:
-	// 1.) Shift+Alt+End
-	// 2.) Shift+Alt+A or Shift+Alt+B or Shift+Alt+C ... or Shift+Alt+Z
-	//     This is the strength of the move (A = weakest, Z = strongest).
-	// 3.) Shift+Alt+CursorUp|Down|Left|Right or Shift+Alt+PageUp|Down
-	//     This is the direction of the operation (scrolling or zooming).
-
-	if (NavByProgState==0) {
-		if (event.GetKey()==EM_KEY_END && state.IsShiftAltMod()) {
-			NavByProgState=1;
-			event.Eat();
-		}
-	}
-	else if (NavByProgState==1) {
-		if (event.GetKey()!=EM_KEY_NONE) {
-			NavByProgState=0;
-			if (state.IsShiftAltMod()) {
-				step=((int)event.GetKey())-EM_KEY_A+1;
-				if (step>=1 && step<=26) {
-					NavByProgState=1+step;
-					event.Eat();
-				}
-			}
-		}
-	}
-	else if (NavByProgState>=2) {
-		if (event.GetKey()!=EM_KEY_NONE) {
-			step=NavByProgState-1;
-			NavByProgState=0;
-			if (state.IsShiftAltMod()) {
-				switch (event.GetKey()) {
-				case EM_KEY_CURSOR_LEFT:
-					Scroll(-scrollDelta*step,0.0);
-					event.Eat();
-					break;
-				case EM_KEY_CURSOR_RIGHT:
-					Scroll(scrollDelta*step,0.0);
-					event.Eat();
-					break;
-				case EM_KEY_CURSOR_UP:
-					Scroll(0.0,-scrollDelta*step/CurrentPixelTallness);
-					event.Eat();
-					break;
-				case EM_KEY_CURSOR_DOWN:
-					Scroll(0.0,scrollDelta*step/CurrentPixelTallness);
-					event.Eat();
-					break;
-				case EM_KEY_PAGE_UP:
-					Zoom(CurrentX+CurrentWidth*0.5,CurrentY+CurrentHeight*0.5,
-					     pow(zoomFac,step));
-					event.Eat();
-					break;
-				case EM_KEY_PAGE_DOWN:
-					Zoom(CurrentX+CurrentWidth*0.5,CurrentY+CurrentHeight*0.5,
-					     1.0/pow(zoomFac,step));
-					event.Eat();
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-}
-
-
-void emView::EmulateMiddleButton(emInputEvent & event, emInputState & state)
-{
-	emUInt64 d;
-
-	// Remember that we have to make sure that the event is not emulated
-	// multiple times by nested views. Therefore this condition:
-	if (!state.Get(EM_KEY_MIDDLE_BUTTON)) {
-		if (
-			(event.GetKey()==EM_KEY_ALT || event.GetKey()==EM_KEY_ALT_GR) &&
-			event.GetRepeat()==0
-		) {
-			state.Set(EM_KEY_MIDDLE_BUTTON,true);
-			emInputState tmpState(state);
-			tmpState.Set(EM_KEY_ALT,false);
-			tmpState.Set(EM_KEY_ALT_GR,false);
-			d=emGetClockMS()-EmuMidButtonTime;
-			if (d<330) EmuMidButtonRepeat++;
-			else EmuMidButtonRepeat=0;
-			EmuMidButtonTime+=d;
-			emInputEvent tmpEvent;
-			tmpEvent.Setup(EM_KEY_MIDDLE_BUTTON,emString(),EmuMidButtonRepeat,0);
-			emView::Input(tmpEvent,tmpState);
-		}
-		else if (state.Get(EM_KEY_ALT) || state.Get(EM_KEY_ALT_GR)) {
-			state.Set(EM_KEY_MIDDLE_BUTTON,true);
-		}
-	}
-}
-
-
-void emView::DoCheats(emInputEvent & event, emInputState & state)
-{
-	const char * p, * func;
-	emLibHandle lib;
-	emString str;
-	void * sym;
-	size_t sz;
-
-	p=event.GetChars();
-	if (!*p) return;
-	sz=strlen(p);
-	if (sz>sizeof(CheatBuffer)) sz=sizeof(CheatBuffer);
-	memmove(CheatBuffer,CheatBuffer+sz,sizeof(CheatBuffer)-sz);
-	memcpy(CheatBuffer+sizeof(CheatBuffer)-sz,p,sz);
-	p=CheatBuffer+sizeof(CheatBuffer)-1;
-	if (*p!='!') return;
-	(*(char*)p)=0;
-	do { p--; if (p<CheatBuffer || !*p) return; } while (*p!=':');
-	func=p+1;
-	p=getenv("EM_EASY_CHEATS");
-	if (!p || strcasecmp(p,"enabled")!=0) {
-		if (func-6<CheatBuffer) return;
-		if (memcmp(func-6,"chEat",5)!=0) return;
-	}
-
-	// Enable easy cheats for the whole process and even for child processes
-	// (no need to type chEat): chEat:easy!
-	if (strcmp(func,"easy")==0) {
-		putenv((char*)"EM_EASY_CHEATS=enabled");
-	}
-
-	// Stress test on/off: chEat:st!
-	else if (strcmp(func,"st")==0) {
-		SetViewFlags(VFlags^VF_STRESS_TEST);
-	}
-
-	// Popup-zoom on/off: chEat:pz!
-	else if (strcmp(func,"pz")==0) {
-		SetViewFlags(VFlags^VF_POPUP_ZOOM);
-	}
-
-	// Ego mode on/off: chEat:egomode!
-	else if (strcmp(func,"egomode")==0) {
-		SetViewFlags(VFlags^VF_EGO_MODE);
-	}
-
-	// StickMouseWhenNavigating on/off: chEat:smwn!
-	else if (strcmp(func,"smwn")==0) {
-		CoreConfig->StickMouseWhenNavigating.Invert();
-		CoreConfig->Save();
-	}
-
-	// EmulateMiddleButton on/off: chEat:emb!
-	else if (strcmp(func,"emb")==0) {
-		CoreConfig->EmulateMiddleButton.Invert();
-		CoreConfig->Save();
-	}
-
-	// PanFunction on/off: chEat:pan!
-	else if (strcmp(func,"pan")==0) {
-		CoreConfig->PanFunction.Invert();
-		CoreConfig->Save();
-	}
-
-	// Tree dump: chEat:td!
-	else if (strcmp(func,"td")==0) {
-		lib=NULL;
-		try {
-			lib=emTryOpenLib("emTreeDump",false);
-			sym=emTryResolveSymbolFromLib(lib,"emTreeDumpFileFromRootContext");
-			if (
-				!((bool(*)(emRootContext*,const char *,emString*))sym)(
-					&GetRootContext(),
-					emGetInstallPath(EM_IDT_TMP,"emCore","debug.emTreeDump"),
-					&str
-				)
-			) {
-				throw str;
-			}
-		}
-		catch (emString errorMessage) {
-			emWarning("%s",errorMessage.Get());
-		}
-		if (lib) emCloseLib(lib);
-	}
-
-	// Debug log on/off: chEat:dlog!
-	else if (strcmp(func,"dlog")==0) {
-		emEnableDLog(!emIsDLogEnabled());
-	}
-
-#if defined(_WIN32)
-	// On Windows, simply press the Print key and find the screenshot in the
-	// clipboard.
-#else
-	// Screenshot: chEat:ss!
-	else if (strcmp(func,"ss")==0) {
-		char scPath[256];
-		for (int scNum=0; ; scNum++) {
-			sprintf(scPath,"/tmp/emScreenshot%03d.xwd",scNum);
-			if (!emIsExistingPath(scPath)) break;
-		}
-		if (system(emString::Format("xwd -root > %s",scPath).Get())==-1) {
-			emWarning("Could not run xwd: %s",emGetErrorText(errno).Get());
-		}
-		// Note: Sometimes xwdtopnm produces a black image (seen with
-		// Netpbm 10.18.18). Better convert with gimp.
-	}
-#endif
-
-	// Crash by a segmentation fault: chEat:segfault!
-	else if (strcmp(func,"segfault")==0) {
-		*(char*)NULL=0;
-	}
-
-	// Crash by an arithmetic exception: chEat:divzero!
-	else if (strcmp(func,"divzero")==0) {
-		emSleepMS(255/func[strlen(func)]);
-	}
-
-	// Call emFatalError: chEat:fatal!
-	else if (strcmp(func,"fatal")==0) {
-		emFatalError("You entered that cheat code!");
-	}
-
-	// For application defined cheat codes.
-	else DoCustomCheat(func);
-}
-
-
 void emView::RecurseInput(
 	emInputEvent & event, const emInputState & state
 )
 {
 	emPanel * p;
 	emInputEvent * e;
-	double x, y;
+	double mx, my, tx, ty;
 
 	p=SupremeViewedPanel;
 	if (!p) return;
 
 	NoEvent.Eat();
 
-	x=state.GetMouseX();
-	y=state.GetMouseY();
-
 	e=&event;
-	if (e->IsMouseEvent()) {
-		if (x<p->ClipX1 || x>=p->ClipX2 ||
-		    y<p->ClipY1 || y>=p->ClipY2) e=&NoEvent;
-	}
 
-	x=(x-p->ViewedX)/p->ViewedWidth;
-	y=(y-p->ViewedY)/p->ViewedWidth*CurrentPixelTallness;
+	mx=state.GetMouseX();
+	my=state.GetMouseY();
+	if (e->IsMouseEvent()) {
+		if (mx<p->ClipX1 || mx>=p->ClipX2 ||
+		    my<p->ClipY1 || my>=p->ClipY2) e=&NoEvent;
+	}
+	mx=(mx-p->ViewedX)/p->ViewedWidth;
+	my=(my-p->ViewedY)/p->ViewedWidth*CurrentPixelTallness;
+
+	if (state.GetTouchCount()>0) {
+		tx=state.GetTouchX(0);
+		ty=state.GetTouchY(0);
+	}
+	else {
+		tx=state.GetMouseX();
+		ty=state.GetMouseY();
+	}
+	if (e->IsTouchEvent()) {
+		if (tx<p->ClipX1 || tx>=p->ClipX2 ||
+		    ty<p->ClipY1 || ty>=p->ClipY2) e=&NoEvent;
+	}
+	tx=(tx-p->ViewedX)/p->ViewedWidth;
+	ty=(ty-p->ViewedY)/p->ViewedWidth*CurrentPixelTallness;
 
 	if (p->PendingInput && p->LastChild) {
-		RecurseChildrenInput(p,x,y,*e,state);
+		RecurseChildrenInput(p,mx,my,tx,ty,*e,state);
 		if (RestartInputRecursion) return;
 	}
 
@@ -2290,44 +2001,56 @@ void emView::RecurseInput(
 			if (
 				(
 					e->IsMouseEvent() &&
-					x>=0.0 && x<1.0 && y>=0.0 && y<p->GetHeight()
+					mx>=0.0 && mx<1.0 && my>=0.0 && my<p->GetHeight()
+				) ||
+				(
+					e->IsTouchEvent() &&
+					tx>=0.0 && tx<1.0 && ty>=0.0 && ty<p->GetHeight()
 				) ||
 				(
 					p->InActivePath && e->IsKeyboardEvent()
 				)
 			) {
-				p->Input(*e,state,x,y);
+				p->Input(*e,state,mx,my);
 			}
 			else {
-				p->Input(NoEvent,state,x,y);
+				p->Input(NoEvent,state,mx,my);
 			}
 			if (RestartInputRecursion) return;
 		}
 		if (!p->Parent) break;
-		x=x*p->LayoutWidth+p->LayoutX;
-		y=y*p->LayoutWidth+p->LayoutY;
+		mx=mx*p->LayoutWidth+p->LayoutX;
+		my=my*p->LayoutWidth+p->LayoutY;
+		tx=tx*p->LayoutWidth+p->LayoutX;
+		ty=ty*p->LayoutWidth+p->LayoutY;
 		p=p->Parent;
 	}
 }
 
 
 void emView::RecurseChildrenInput(
-	emPanel * parent, double mx, double my, emInputEvent & event,
-	const emInputState & state
+	emPanel * parent, double mx, double my, double tx, double ty,
+	emInputEvent & event, const emInputState & state
 )
 {
 	emPanel * p;
 	emInputEvent * e;
-	double x, y;
+	double cmx,cmy,ctx,cty;
 
 	for (p=parent->LastChild; p; p=p->Prev) {
 		if (!p->PendingInput || !p->InViewedPath) continue;
-		x=(mx-p->LayoutX)/p->LayoutWidth;
-		y=(my-p->LayoutY)/p->LayoutWidth;
+		cmx=(mx-p->LayoutX)/p->LayoutWidth;
+		cmy=(my-p->LayoutY)/p->LayoutWidth;
+		ctx=(tx-p->LayoutX)/p->LayoutWidth;
+		cty=(ty-p->LayoutY)/p->LayoutWidth;
 		if (
 			(
 				event.IsMouseEvent() &&
-				x>=0.0 && x<1.0 && y>=0.0 && y<p->GetHeight()
+				cmx>=0.0 && cmx<1.0 && cmy>=0.0 && cmy<p->GetHeight()
+			) ||
+			(
+				event.IsTouchEvent() &&
+				ctx>=0.0 && ctx<1.0 && cty>=0.0 && cty<p->GetHeight()
 			) ||
 			(
 				p->InActivePath && event.IsKeyboardEvent()
@@ -2339,63 +2062,13 @@ void emView::RecurseChildrenInput(
 			e=&NoEvent;
 		}
 		if (p->LastChild) {
-			RecurseChildrenInput(p,x,y,*e,state);
+			RecurseChildrenInput(p,cmx,cmy,ctx,cty,*e,state);
 			if (RestartInputRecursion) return;
 		}
 		p->PendingInput=0;
-		p->Input(*e,state,x,y);
+		p->Input(*e,state,cmx,cmy);
 		if (RestartInputRecursion) return;
 	}
-}
-
-
-bool emView::MoveMousePointerBackIntoView(double * pmx, double * pmy)
-{
-	double mx,my,safety,s;
-	bool doMove;
-
-	safety=3.0;
-	mx=*pmx;
-	my=*pmy;
-	s=safety;
-	if (s>CurrentWidth*0.5) s=CurrentWidth*0.5;
-	doMove=false;
-	if (mx<CurrentX+s) {
-		mx=CurrentX+s;
-		doMove=true;
-	}
-	else if (mx>CurrentX+CurrentWidth-s) {
-		mx=CurrentX+CurrentWidth-s;
-		doMove=true;
-	}
-	s=safety;
-	if (s>CurrentHeight*0.5) s=CurrentHeight*0.5;
-	if (my<CurrentY+s) {
-		my=CurrentY+s;
-		doMove=true;
-	}
-	else if (my>CurrentY+CurrentHeight-s) {
-		my=CurrentY+CurrentHeight-s;
-		doMove=true;
-	}
-	if (doMove) {
-		MoveMousePointer(mx-(*pmx),my-(*pmy));
-		*pmx=mx;
-		*pmy=my;
-	}
-	return doMove;
-}
-
-
-void emView::MoveMousePointer(double dx, double dy)
-{
-	emScreen * screen;
-
-	screen=GetScreen();
-	if (!screen) {
-		emFatalError("emView::MoveMousePointer: No screen interface found.");
-	}
-	screen->MoveMousePointer(dx,dy);
 }
 
 
@@ -2538,57 +2211,6 @@ void emView::PaintHighlight(const emPainter & painter)
 }
 
 
-double emView::GetMouseZoomSpeed(bool fine) const
-{
-	double f;
-
-	if (fine) f=CoreConfig->MouseFineZoomSpeedFactor*0.1;
-	else      f=CoreConfig->MouseZoomSpeedFactor;
-	return pow(1.0625,f);
-}
-
-
-double emView::GetMouseScrollSpeed(bool fine) const
-{
-	double f;
-
-	if (fine) f=CoreConfig->MouseFineScrollSpeedFactor*0.1;
-	else      f=CoreConfig->MouseScrollSpeedFactor;
-	if (CoreConfig->PanFunction) f=-f; else f=6.0*f;
-	return f;
-}
-
-
-double emView::GetWheelZoomSpeed(bool fine) const
-{
-	double f;
-
-	if (fine) f=CoreConfig->WheelFineZoomSpeedFactor*0.1;
-	else      f=CoreConfig->WheelZoomSpeedFactor;
-	return pow(2.0,f);
-}
-
-
-double emView::GetKeyboardZoomSpeed(bool fine) const
-{
-	double f;
-
-	if (fine) f=CoreConfig->KeyboardFineZoomSpeedFactor*0.1;
-	else      f=CoreConfig->KeyboardZoomSpeedFactor;
-	return pow(1.042,f);
-}
-
-
-double emView::GetKeyboardScrollSpeed(bool fine) const
-{
-	double f;
-
-	if (fine) f=CoreConfig->KeyboardFineScrollSpeedFactor*0.1;
-	else      f=CoreConfig->KeyboardScrollSpeedFactor;
-	return 7.5*f;
-}
-
-
 void emView::SetSeekPos(emPanel * panel, const char * childName)
 {
 	if (!panel || !childName) childName="";
@@ -2679,107 +2301,6 @@ bool emView::EOIEngineClass::Cycle()
 }
 
 
-emView::SmoothKBNaviEngineClass::SmoothKBNaviEngineClass(emView & view)
-	: emEngine(view.GetScheduler()), View(view)
-{
-	Dir=0;
-	Fine=false;
-	LastClock=0;
-}
-
-
-void emView::SmoothKBNaviEngineClass::Input(emInputEvent & event, const emInputState & state)
-{
-	int msk;
-
-	if (state.IsAltMod() || state.IsShiftAltMod()) {
-		msk=0;
-		switch (event.GetKey()) {
-			case EM_KEY_CURSOR_LEFT : msk|=DIR_LEFT ; event.Eat(); break;
-			case EM_KEY_CURSOR_RIGHT: msk|=DIR_RIGHT; event.Eat(); break;
-			case EM_KEY_CURSOR_UP   : msk|=DIR_UP   ; event.Eat(); break;
-			case EM_KEY_CURSOR_DOWN : msk|=DIR_DOWN ; event.Eat(); break;
-			case EM_KEY_PAGE_UP     : msk|=DIR_IN   ; event.Eat(); break;
-			case EM_KEY_PAGE_DOWN   : msk|=DIR_OUT  ; event.Eat(); break;
-			default: break;
-		}
-		if (msk) {
-			if (!Dir) {
-				LastClock=emGetClockMS();
-				WakeUp();
-			}
-			Dir|=msk;
-		}
-	}
-
-	if (Dir) {
-		msk=0;
-		if (state.Get(EM_KEY_ALT)) {
-			if (state.Get(EM_KEY_CURSOR_RIGHT)) msk|=DIR_RIGHT;
-			if (state.Get(EM_KEY_CURSOR_LEFT )) msk|=DIR_LEFT;
-			if (state.Get(EM_KEY_CURSOR_UP   )) msk|=DIR_UP;
-			if (state.Get(EM_KEY_CURSOR_DOWN )) msk|=DIR_DOWN;
-			if (state.Get(EM_KEY_PAGE_UP     )) msk|=DIR_IN;
-			if (state.Get(EM_KEY_PAGE_DOWN   )) msk|=DIR_OUT;
-			Fine=state.Get(EM_KEY_SHIFT);
-		}
-		Dir&=msk;
-	}
-}
-
-
-bool emView::SmoothKBNaviEngineClass::Cycle()
-{
-	emScreen * screen;
-	emUInt64 clk;
-	double cs,dx,dy,dz,sp,sx,sy,sw,sh,x1,y1,x2,y2;
-
-	if (!Dir) return false;
-	clk=emGetClockMS();
-	cs=(clk-LastClock)*0.1;
-	LastClock=clk;
-	if (cs<=0.0) return true;
-	if (cs>100.0) cs=100.0;
-	if (Dir&(DIR_LEFT|DIR_RIGHT|DIR_UP|DIR_DOWN)) {
-		dx=0.0;
-		dy=0.0;
-		sp=View.GetKeyboardScrollSpeed(Fine)*cs;
-		screen=View.GetScreen();
-		if (screen) {
-			screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-			sp*=(sw+sh)/(1024.0+768.0);
-		}
-		if (Dir&DIR_LEFT ) dx-=sp;
-		if (Dir&DIR_RIGHT) dx+=sp;
-		if (Dir&DIR_UP   ) dy-=sp;
-		if (Dir&DIR_DOWN ) dy+=sp;
-		View.Scroll(dx,dy);
-	}
-	if (Dir&(DIR_IN|DIR_OUT)) {
-		dz=1.0;
-		sp=pow(View.GetKeyboardZoomSpeed(Fine),cs);
-		if (Dir&DIR_IN ) dz*=sp;
-		if (Dir&DIR_OUT) dz/=sp;
-		x1=View.CurrentX;
-		y1=View.CurrentY;
-		x2=x1+View.CurrentWidth;
-		y2=y1+View.CurrentHeight;
-		if (View.IsPoppedUp()) {
-			screen=View.GetScreen();
-			if (screen) {
-				screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-				if (x1<sx) x1=sx;
-				if (y1<sy) y1=sy;
-				if (x2>sx+sw) x2=sx+sw;
-				if (y2>sy+sh) y2=sy+sh;
-			}
-		}
-		View.Zoom((x1+x2)*0.5,(y1+y2)*0.5,dz);
-	}
-	return true;
-}
-
-
 emView::SeekEngineClass::SeekEngineClass(
 	emView & view, int seekType, const emString & identity,
 	double relX, double relY, double relA, bool adherent,
@@ -2804,15 +2325,6 @@ emView::SeekEngineClass::SeekEngineClass(
 
 emView::SeekEngineClass::~SeekEngineClass()
 {
-}
-
-
-void emView::SeekEngineClass::Input(emInputEvent & event, const emInputState & state)
-{
-	if (!event.IsEmpty()) {
-		event.Eat();
-		View.AbortSeeking(); // deletes this
-	}
 }
 
 
@@ -3114,6 +2626,32 @@ emViewPort::~emViewPort()
 void emViewPort::RequestFocus()
 {
 	SetViewFocused(true);
+}
+
+
+bool emViewPort::IsSoftKeyboardShown()
+{
+	return false;
+}
+
+
+void emViewPort::ShowSoftKeyboard(bool show)
+{
+}
+
+
+emUInt64 emViewPort::GetInputClockMS()
+{
+	return emGetClockMS();
+}
+
+
+void emViewPort::InputToView(
+	emInputEvent & event, const emInputState & state
+)
+{
+	if (!CurrentView->FirstVIF) CurrentView->Input(event,state);
+	else CurrentView->FirstVIF->Input(event,state);
 }
 
 

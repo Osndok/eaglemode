@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,7 +37,7 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 83
+#define EM_MINOR_VERSION 84
 #define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
@@ -145,7 +145,7 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 
 // EM_BYTE_ORDER is 1234 (little endian) or 4321 (big endian) or maybe 3412.
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(ANDROID)
 #	include <sys/endian.h>
 #endif
 

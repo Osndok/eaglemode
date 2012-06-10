@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,6 +61,8 @@
 
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
 
+        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+
 <SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
@@ -100,6 +102,9 @@
                 <SPAN CLASS=t>void </SPAN>PaintView(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual void </SPAN>RequestFocus();
+                <SPAN CLASS=t>virtual bool </SPAN>IsSoftKeyboardShown();
+                <SPAN CLASS=t>virtual void </SPAN>ShowSoftKeyboard(<SPAN CLASS=t>bool </SPAN>show);
+                <SPAN CLASS=t>virtual </SPAN>emUInt64 GetInputClockMS();
                 <SPAN CLASS=t>virtual void </SPAN>InvalidateCursor();
                 <SPAN CLASS=t>virtual void </SPAN>InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                                                 <SPAN CLASS=t>double </SPAN>h);

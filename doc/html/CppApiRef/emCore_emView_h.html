@@ -50,6 +50,8 @@
 <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>;
 <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>;
 <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>;
+<SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A>;
 
 
 <A NAME="emView"></A><SPAN CLASS=c>//==============================================================================
@@ -225,6 +227,20 @@
                 <SPAN CLASS=c>// This signal is signaled when the home geometry or the current
                 // geometry of this view has changed.
 
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetFirstVIF();
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetLastVIF();
+                <SPAN CLASS=c>// Get the first or last view input filter (VIF) in the chain of
+                // the VIFs of this view. The default chain (after contructing
+                // the view) contains <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A>, <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A>,
+                // <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emKeyboardZoomScrollVIF">emKeyboardZoomScrollVIF</A>, and <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emMouseZoomScrollVIF">emMouseZoomScrollVIF</A> in that
+                // order. This could change in future versions. You can modify
+                // the chain simply by deleting and creating VIFs as you like.
+                // See <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> for more details. Note that the
+                // zoom/scroll VIFs have no effect when VF_NO_USER_NAVIGATION is
+                // set in the view flags. Also, never forget about the
+                // possibility of parent and child views (=&gt;<A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>).
+                // Parent views should always have VF_NO_ZOOM.
+
         </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetRootPanel();
                 <SPAN CLASS=c>// Get the root panel of this view. Returns NULL when this view
                 // has no panels.
@@ -387,12 +403,34 @@
                 // VF_POPUP_ZOOM set, the application should call ZoomOut() when
                 // an EOI has been signaled.
 
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSoftKeyboardShown() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>ShowSoftKeyboard(<SPAN CLASS=t>bool </SPAN>show);
+                <SPAN CLASS=c>// Get and set whether to show a software keyboard (if there is
+                // no hardware keyboard).
+
+        </SPAN>emUInt64 GetInputClockMS() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the time of the currently handled input event and input
+                // state, or the current time if all events are handled. The
+                // time is measured in milliseconds and starts anywhere, but it
+                // should never overflow.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(
+                <SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY, <SPAN CLASS=t>bool </SPAN>afterVIFs=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Get the touch event priority of this view for a certain touch
+                // position. (See <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetTouchEventPriority).
+                // Arguments:
+                //   touchX, touchY - Position of a first touch in view
+                //                    coordinates.
+                //   afterVIFs      - Whether to leave out the view input filters
+                //                    in the calculation.
+
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-                <SPAN CLASS=c>// Process input form keyboard and mouse. The default
-                // implementation performs user navigation, and it forward to
-                // the panels.
+                <SPAN CLASS=c>// Process input form keyboard, mouse, and touch after filtering
+                // it by the view input filters. The default implementation
+                // forwards to the panels.
                 // Arguments:
                 //   event  - An input event. It may be eaten by calling
                 //            event.Eat(). The event reference in non-const only
@@ -443,6 +481,8 @@
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
         <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>;
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emCheatVIF">emCheatVIF</A>;
         <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>;
         <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>;
 
@@ -478,30 +518,15 @@
 
         <SPAN CLASS=t>void </SPAN>SwapViewPorts(<SPAN CLASS=t>bool </SPAN>swapFocus);
 
-        <SPAN CLASS=t>void </SPAN>NavigateByUser(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-        <SPAN CLASS=t>void </SPAN>NavigateByProgram(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-
-        <SPAN CLASS=t>void </SPAN>EmulateMiddleButton(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-
-        <SPAN CLASS=t>void </SPAN>DoCheats(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-
         <SPAN CLASS=t>void </SPAN>RecurseInput(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
         <SPAN CLASS=t>void </SPAN>RecurseChildrenInput(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * parent, <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my,
+                                  <SPAN CLASS=t>double </SPAN>tx, <SPAN CLASS=t>double </SPAN>ty,
                                   <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
                                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
 
-        <SPAN CLASS=t>bool </SPAN>MoveMousePointerBackIntoView(<SPAN CLASS=t>double </SPAN>* pmx, <SPAN CLASS=t>double </SPAN>* pmy);
-        <SPAN CLASS=t>void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy);
-
         <SPAN CLASS=t>void </SPAN>InvalidateHighlight();
         <SPAN CLASS=t>void </SPAN>PaintHighlight(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
-
-        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>double </SPAN>GetWheelZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>double </SPAN>GetKeyboardZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>double </SPAN>GetKeyboardScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>void </SPAN>SetSeekPos(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>const char </SPAN>* childName);
         <SPAN CLASS=t>bool </SPAN>IsHopeForSeeking();
@@ -539,24 +564,6 @@
         <SPAN CLASS=b>}</SPAN>;
         <SPAN CLASS=t>friend class </SPAN>EOIEngineClass;
 
-        <SPAN CLASS=t>class </SPAN>SmoothKBNaviEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=t>public</SPAN>:
-                SmoothKBNaviEngineClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
-                <SPAN CLASS=t>void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-        <SPAN CLASS=t>protected</SPAN>:
-                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
-        <SPAN CLASS=t>private</SPAN>:
-                <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
-                <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
-                        </SPAN>DIR_LEFT=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>, DIR_RIGHT=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>, DIR_UP=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>,
-                        DIR_DOWN=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>, DIR_IN=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>, DIR_OUT=<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5
-                </SPAN><SPAN CLASS=b>}</SPAN>;
-                <SPAN CLASS=t>int </SPAN>Dir;
-                <SPAN CLASS=t>bool </SPAN>Fine;
-                emUInt64 LastClock;
-        <SPAN CLASS=b>}</SPAN>;
-        <SPAN CLASS=t>friend class </SPAN>SmoothKBNaviEngineClass;
-
         <SPAN CLASS=t>class </SPAN>SeekEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=t>public</SPAN>:
                 SeekEngineClass(
@@ -565,7 +572,6 @@
                         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; subject
                 );
                 <SPAN CLASS=t>virtual </SPAN>~SeekEngineClass();
-                <SPAN CLASS=t>void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
                 <SPAN CLASS=t>void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual bool </SPAN>Cycle();
@@ -609,6 +615,8 @@
         <SPAN CLASS=t>bool </SPAN>WindowPtrValid;
         <SPAN CLASS=t>bool </SPAN>ScreenRefValid;
         <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * PopupWindow;
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * FirstVIF;
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * LastVIF;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * RootPanel;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * SupremeViewedPanel;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * MinSVP, * MaxSVP;
@@ -625,7 +633,7 @@
         <SPAN CLASS=t>double </SPAN>HomeX,HomeY,HomeWidth,HomeHeight,HomePixelTallness;
         <SPAN CLASS=t>double </SPAN>CurrentX,CurrentY,CurrentWidth,CurrentHeight,
                CurrentPixelTallness;
-        <SPAN CLASS=t>double </SPAN>LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
+        <SPAN CLASS=t>double </SPAN>LastMouseX,LastMouseY;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Title;
         <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> Cursor;
         <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> BackgroundColor;
@@ -648,16 +656,11 @@
         UpdateEngineClass * UpdateEngine;
         ActivationEngineClass * ActivationEngine;
         EOIEngineClass * EOIEngine;
-        SmoothKBNaviEngineClass * SmoothKBNaviEngine;
         SeekEngineClass * SeekEngine;
         <SPAN CLASS=t>int </SPAN>ProtectSeeking;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * SeekPosPanel;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> SeekPosChildName;
         StressTestClass * StressTest;
-        <SPAN CLASS=t>int </SPAN>NavByProgState;
-        emUInt64 EmuMidButtonTime;
-        <SPAN CLASS=t>int </SPAN>EmuMidButtonRepeat;
-        <SPAN CLASS=t>char </SPAN>CheatBuffer[<SPAN CLASS=u>64</SPAN>];
 
         <SPAN CLASS=t>static const double </SPAN>MaxSVPSize;
         <SPAN CLASS=t>static const double </SPAN>MaxSVPSearchSize;
@@ -709,6 +712,11 @@
 
         <SPAN CLASS=t>void </SPAN>SetViewFocused(<SPAN CLASS=t>bool </SPAN>focused);
         <SPAN CLASS=t>virtual void </SPAN>RequestFocus();
+
+        <SPAN CLASS=t>virtual bool </SPAN>IsSoftKeyboardShown();
+        <SPAN CLASS=t>virtual void </SPAN>ShowSoftKeyboard(<SPAN CLASS=t>bool </SPAN>show);
+
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 GetInputClockMS();
 
         <SPAN CLASS=t>void </SPAN>InputToView(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
 
@@ -839,6 +847,16 @@
         </SPAN><SPAN CLASS=k>return </SPAN>GeometrySignal;
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetFirstVIF()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstVIF;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetLastVIF()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LastVIF;
+<SPAN CLASS=b>}
+
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetRootPanel()
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>RootPanel;
@@ -872,6 +890,21 @@
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetEOISignal() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>EOISignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::IsSoftKeyboardShown() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentViewPort-&gt;IsSoftKeyboardShown();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::ShowSoftKeyboard(<SPAN CLASS=t>bool </SPAN>show)
+<SPAN CLASS=b>{
+        </SPAN>CurrentViewPort-&gt;ShowSoftKeyboard(show);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::GetInputClockMS() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CurrentViewPort-&gt;GetInputClockMS();
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>::InvalidateCursor()
@@ -924,13 +957,6 @@
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::SetViewFocused(<SPAN CLASS=t>bool </SPAN>focused)
 <SPAN CLASS=b>{
         </SPAN>CurrentView-&gt;SetFocused(focused);
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::InputToView(
-        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state
-)
-<SPAN CLASS=b>{
-        </SPAN>CurrentView-&gt;Input(event,state);
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewCursor()

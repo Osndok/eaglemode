@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emWndsWindowPort_h
 #define emWndsWindowPort_h
+
+#ifndef emClipRects_h
+#include <emCore/emClipRects.h>
+#endif
 
 #ifndef emWndsScreen_h
 #include <emWnds/emWndsScreen.h>
@@ -40,6 +44,7 @@ protected:
 	);
 	virtual void RequestFocus();
 	virtual void Raise();
+	virtual emUInt64 GetInputClockMS();
 	virtual void InvalidateTitle();
 	virtual void InvalidateIcon();
 	virtual void InvalidateCursor();
@@ -66,8 +71,6 @@ private:
 	virtual bool Cycle();
 
 	void UpdatePainting();
-	void ClearInvRectList();
-	void MergeToInvRectList(int x1, int y1, int x2, int y2);
 
 	bool IsAncestorOf(emWndsWindowPort * wp);
 
@@ -76,11 +79,6 @@ private:
 	void SetIconProperty(const emImage & icon);
 
 	static HICON Image2Icon(const emImage & image, int width, int height);
-
-	struct InvRect {
-		InvRect * Next;
-		int x1,y1,x2,y2;
-	};
 
 	emWndsScreen & Screen;
 	emWndsWindowPort * Owner;
@@ -101,9 +99,7 @@ private:
 	bool TitlePending;
 	bool IconPending;
 	bool CursorPending;
-	InvRect InvRectHeap[100];
-	InvRect * InvRectFreeList;
-	InvRect * InvRectList;
+	emClipRects<int> InvalidRects;
 	emUInt64 InputStateClock;
 	emInputKey LastButtonPress;
 	emUInt64 LastButtonPressTime;

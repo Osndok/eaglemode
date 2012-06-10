@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2012 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -96,7 +96,8 @@ Topics=[
 			AutoSectionsFile("emCore/emColor.h"),
 			AutoSectionsFile("emCore/emImage.h"),
 			AutoSectionsFile("emCore/emPainter.h"),
-			AutoSectionsFile("emCore/emATMatrix.h")
+			AutoSectionsFile("emCore/emATMatrix.h"),
+			AutoSectionsFile("emCore/emClipRects.h")
 		]
 	),
 	Topic(text="Recordable Data Structures",
@@ -124,7 +125,8 @@ Topics=[
 			AutoSectionsFile("emCore/emPanel.h"),
 			AutoSectionsFile("emCore/emSubViewPanel.h"),
 			AutoSectionsFile("emCore/emErrorPanel.h"),
-			AutoSectionsFile("emCore/emGUIFramework.h")
+			AutoSectionsFile("emCore/emGUIFramework.h"),
+			AutoSectionsFile("emCore/emViewInputFilter.h")
 		]
 	),
 	Topic(text="Toolkit Panels",

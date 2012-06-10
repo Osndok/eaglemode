@@ -218,7 +218,11 @@ if test "$Format" = "" ; then
 	Format="$ArchFile"
 fi
 
-ErrorHintFile="/tmp/emArch-error-hint-$$"
+if test "$TMPDIR" = "" ; then
+	TMPDIR="/tmp"
+fi
+
+ErrorHintFile="$TMPDIR/emArch-error-hint-$$"
 if test -f "$ErrorHintFile" ; then
 	rm -f "$ErrorHintFile" || exit 1
 fi
