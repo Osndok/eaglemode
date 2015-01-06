@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.cpp
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,7 +97,7 @@ emTextFileModel::~emTextFileModel()
 
 void emTextFileModel::ResetData()
 {
-	Content.Empty(true);
+	Content.Clear(true);
 	CharEncoding=CE_BINARY;
 	LineBreakEncoding=LBE_NONE;
 	LineCount=0;
@@ -117,7 +117,7 @@ void emTextFileModel::ResetData()
 }
 
 
-void emTextFileModel::TryStartLoading() throw(emString)
+void emTextFileModel::TryStartLoading() throw(emException)
 {
 	emInt64 l;
 
@@ -140,11 +140,11 @@ void emTextFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 }
 
 
-bool emTextFileModel::TryContinueLoading() throw(emString)
+bool emTextFileModel::TryContinueLoading() throw(emException)
 {
 	const char * p;
 	int * s;
@@ -154,7 +154,7 @@ bool emTextFileModel::TryContinueLoading() throw(emString)
 	switch (L->Stage) {
 	case 0:
 		// Set size of Content.
-		if (L->FileSize>(emUInt64)INT_MAX) throw emString("File too large.");
+		if (L->FileSize>(emUInt64)INT_MAX) throw emException("File too large.");
 		Content.SetCount((int)L->FileSize,true);
 		L->Stage=1;
 		break;
@@ -202,7 +202,7 @@ bool emTextFileModel::TryContinueLoading() throw(emString)
 		len=fread(L->Buf,1,sizeof(L->Buf),L->File);
 		if (len>0) {
 			if (((emUInt64)Content.GetCount())+((emUInt64)len)>(emUInt64)INT_MAX) {
-				throw emString("file too large");
+				throw emException("file too large");
 			}
 			Content.Add(L->Buf,len,true);
 			L->FileRead+=len;
@@ -596,13 +596,13 @@ void emTextFileModel::QuitLoading()
 }
 
 
-void emTextFileModel::TryStartSaving() throw(emString)
+void emTextFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emTextFileModel: Saving not supported.");
+	throw emException("emTextFileModel: Saving not supported.");
 }
 
 
-bool emTextFileModel::TryContinueSaving() throw(emString)
+bool emTextFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

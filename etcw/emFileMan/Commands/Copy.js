@@ -39,7 +39,7 @@ if (IsRegularFile(Tgt[0])) {
 	}
 }
 
-ConfirmIfSourcesAccrossDirs();
+ConfirmIfSourcesAcrossDirs();
 
 var message=
 	"Are you sure to copy, overwriting any existing target files?\n"+

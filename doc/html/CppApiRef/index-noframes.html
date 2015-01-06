@@ -38,6 +38,7 @@ complete index below.
 <A CLASS=main HREF="emCore_emStd1_h.html#Integer_data_types">Integer data types</A><BR>
 <A CLASS=main HREF="emCore_emStd1_h.html#Locale_and_UTF_8_support">Locale and UTF-8 support</A><BR>
 <A CLASS=main HREF="emCore_emStd1_h.html#Logs_warnings_and_errors">Logs, warnings and errors</A><BR>
+<A CLASS=main HREF="emCore_emStd1_h.html#emException">emException</A><BR>
 <A CLASS=main HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A><BR>
 <A CLASS=main HREF="emCore_emStd1_h.html#emUnconstructable">emUnconstructable</A><BR>
 <A CLASS=main HREF="emCore_emStd1_h.html#emMin_emMax">emMin &amp; emMax</A><BR>
@@ -97,7 +98,7 @@ complete index below.
 <A CLASS=main HREF="emCore_emAvlTree_h.html">emCore/emAvlTree.h</A><BR>
 </TD><TD VALIGN=TOP>
 <A CLASS=main HREF="emCore_emAvlTree_h.html#AVL_tree_macros">AVL-tree macros</A><BR>
-<A CLASS=main HREF="emCore_emAvlTree_h.html#emAvlTreeExample">emAvlTreeExample</A><BR>
+<A CLASS=main HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A><BR>
 </TD></TR>
 </TABLE>
 <H2>Smart Pointers</H2>
@@ -337,24 +338,84 @@ complete index below.
 <TABLE BORDER=1 CELLPADDING=3 CELLSPACING=1>
 <TR><TD><I>File</I></TD><TD><I>Section/Symbol</I></TD></TR>
 <TR><TD VALIGN=TOP>
-<A CLASS=main HREF="emCore_emToolkit_h.html">emCore/emToolkit.h</A><BR>
+<A CLASS=main HREF="emCore_emLook_h.html">emCore/emLook.h</A><BR>
 </TD><TD VALIGN=TOP>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkLook">emTkLook</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkBorder">emTkBorder</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkLabel">emTkLabel</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkTiling">emTkTiling</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkGroup">emTkGroup</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkButton">emTkButton</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkTextField">emTkTextField</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkColorField">emTkColorField</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A><BR>
-<A CLASS=main HREF="emCore_emToolkit_h.html#emTkDialog">emTkDialog</A><BR>
+<A CLASS=main HREF="emCore_emLook_h.html#emLook">emLook</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emBorder_h.html">emCore/emBorder.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emBorder_h.html#emBorder">emBorder</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emLabel_h.html">emCore/emLabel.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emLabel_h.html#emLabel">emLabel</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emTiling_h.html">emCore/emTiling.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emTiling_h.html#emTiling">emTiling</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emGroup_h.html">emCore/emGroup.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emGroup_h.html#emGroup">emGroup</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emTunnel_h.html">emCore/emTunnel.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emButton_h.html">emCore/emButton.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emButton_h.html#emButton">emButton</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emCheckButton_h.html">emCore/emCheckButton.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emRadioButton_h.html">emCore/emRadioButton.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emCheckBox_h.html">emCore/emCheckBox.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emRadioBox_h.html">emCore/emRadioBox.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emRadioBox_h.html#emRadioBox">emRadioBox</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emTextField_h.html">emCore/emTextField.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emTextField_h.html#emTextField">emTextField</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emScalarField_h.html">emCore/emScalarField.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emColorField_h.html">emCore/emColorField.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emColorField_h.html#emColorField">emColorField</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emSplitter_h.html">emCore/emSplitter.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A><BR>
+</TD></TR>
+<TR><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emDialog_h.html">emCore/emDialog.h</A><BR>
+</TD><TD VALIGN=TOP>
+<A CLASS=main HREF="emCore_emDialog_h.html#emDialog">emDialog</A><BR>
 </TD></TR>
 </TABLE>
 <H2>File Models &amp; -Panels</H2>

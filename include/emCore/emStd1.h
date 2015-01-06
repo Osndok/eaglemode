@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2012 Oliver Hamann.
+// Copyright (C) 2004-2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,7 +37,7 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 84
+#define EM_MINOR_VERSION 87
 #define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
@@ -341,6 +341,34 @@ void emSetFatalErrorGraphical(bool graphical);
 
 
 //==============================================================================
+//================================ emException =================================
+//==============================================================================
+
+class emException {
+
+public:
+
+	// Class for an exception.
+
+	emException();
+		// Construct an exception with an empty text.
+
+	emException(const char * format, ...) EM_FUNC_ATTR_PRINTF(2);
+		// Construct an exception with a formatted text.
+		// The arguments are like with printf.
+
+	virtual ~emException();
+		// Destructor.
+
+	const char * GetText() const;
+		// Get the text.
+
+private:
+	char Text[256];
+};
+
+
+//==============================================================================
 //================================ emUncopyable ================================
 //==============================================================================
 
@@ -422,6 +450,21 @@ typedef emByte emAlignment;
 const char * emAlignmentToString(emAlignment alignment);
 emAlignment emStringToAlignment(const char * str);
 	// Convert an alignment to and from string representation.
+
+
+//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+inline emException::emException()
+{
+	Text[0]=0;
+}
+
+inline const char * emException::GetText() const
+{
+	return Text;
+}
 
 
 #endif

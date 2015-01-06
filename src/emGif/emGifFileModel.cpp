@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -235,7 +235,7 @@ emImage emGifFileModel::RenderAll() const
 			undoImage.Copy(-r->X,-r->X,image);
 		}
 		else {
-			undoImage.Empty();
+			undoImage.Clear();
 		}
 		RenderImage(i,&image);
 	}
@@ -256,7 +256,7 @@ emGifFileModel::emGifFileModel(emContext & context, const emString & name)
 	BGColor=emColor(0,0,0,0);
 	FileSize=0;
 	PixelTallness=1.0;
-	Comment.Empty();
+	Comment.Clear();
 	Colors=NULL;
 	RenderArray=NULL;
 	File=NULL;
@@ -304,11 +304,11 @@ void emGifFileModel::ResetData()
 	BGColor=emColor(0,0,0,0);
 	FileSize=0;
 	PixelTallness=1.0;
-	Comment.Empty();
+	Comment.Clear();
 }
 
 
-void emGifFileModel::TryStartLoading() throw(emString)
+void emGifFileModel::TryStartLoading() throw(emException)
 {
 	char sigver[6];
 	int i,flags,bgIndex,aspect;
@@ -356,12 +356,12 @@ void emGifFileModel::TryStartLoading() throw(emString)
 
 	return;
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("GIF format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("GIF format error");
 }
 
 
-bool emGifFileModel::TryContinueLoading() throw(emString)
+bool emGifFileModel::TryContinueLoading() throw(emException)
 {
 	char * p;
 	Render * r;
@@ -518,8 +518,8 @@ bool emGifFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("GIF format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("GIF format error");
 }
 
 
@@ -537,13 +537,13 @@ void emGifFileModel::QuitLoading()
 }
 
 
-void emGifFileModel::TryStartSaving() throw(emString)
+void emGifFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emGifFileModel: Saving not implemented.");
+	throw emException("emGifFileModel: Saving not implemented.");
 }
 
 
-bool emGifFileModel::TryContinueSaving() throw(emString)
+bool emGifFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.cpp
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -67,7 +67,7 @@ int emNetwalkModel::GetPiece(int x, int y) const
 void emNetwalkModel::TrySetup(
 	int width, int height, bool borderless, bool noFourWayJunctions,
 	int complexity, bool digMode, bool autoMark, bool saveFile
-) throw(emString)
+) throw(emException)
 {
 	emArray<char> undoBuf;
 	int i;
@@ -95,7 +95,7 @@ void emNetwalkModel::TrySetup(
 		}
 		if (i>1000) {
 			TryLoadFromMem(undoBuf);
-			throw emString("Could not find any setup with unique solution.");
+			throw emException("Could not find any setup with unique solution.");
 		}
 	}
 	Shuffle();
@@ -238,11 +238,11 @@ emNetwalkModel::~emNetwalkModel()
 }
 
 
-bool emNetwalkModel::TryContinueLoading() throw(emString)
+bool emNetwalkModel::TryContinueLoading() throw(emException)
 {
 	if (!emRecFileModel::TryContinueLoading()) return false;
 	if (Width.Get()*Height.Get()!=Raster.GetCount()) {
-		throw emString("file content not consistent");
+		throw emException("file content not consistent");
 	}
 	return true;
 }
@@ -265,7 +265,7 @@ bool emNetwalkModel::Cycle()
 	return busy;
 }
 
-int emNetwalkModel::GetNeigborIndex(int index, int angle) const
+int emNetwalkModel::GetNeighborIndex(int index, int angle) const
 {
 	int w,h,x,y;
 
@@ -313,7 +313,7 @@ void emNetwalkModel::Connect(int index, int angle)
 {
 	int index2;
 
-	index2=GetNeigborIndex(index,angle);
+	index2=GetNeighborIndex(index,angle);
 	if (index2<0) return;
 	OrPiece(index,A2PF[angle&3]);
 	OrPiece(index2,A2PF[(angle+2)&3]);
@@ -340,7 +340,7 @@ void emNetwalkModel::Invent()
 		else i=emGetIntRandom(1,h-2)*w+emGetIntRandom(1,w-2);
 		SetPiece(i,PF_CONMASK);
 		for (a=3; a>=0; a--) {
-			j=GetNeigborIndex(i,a);
+			j=GetNeighborIndex(i,a);
 			SetPiece(j,A2PF[(a+2)&3]);
 			arr1.Add(j);
 		}
@@ -360,14 +360,14 @@ void emNetwalkModel::Invent()
 			for (a=3, ac=-1, f=0; a>=0; a--) {
 				if (IsConnected(i,a)) ac=a;
 				else {
-					j=GetNeigborIndex(i,a);
+					j=GetNeighborIndex(i,a);
 					if (j>=0 && GetPiece(j)==0) as[f++]=a;
 				}
 			}
 			if (f>0) {
 				if (
 					ac>=0 &&
-					(j=GetNeigborIndex(i,ac+2))>=0 &&
+					(j=GetNeighborIndex(i,ac+2))>=0 &&
 					GetPiece(j)==0 &&
 					emGetIntRandom(0,100)<pr2
 				) {
@@ -377,7 +377,7 @@ void emNetwalkModel::Invent()
 					a=as[emGetIntRandom(0,f-1)];
 				}
 				Connect(i,a);
-				arr1.Add(GetNeigborIndex(i,a));
+				arr1.Add(GetNeighborIndex(i,a));
 				if (ac==-1) arr1.Add(i); else arr2.Add(i);
 			}
 			else {
@@ -389,13 +389,13 @@ void emNetwalkModel::Invent()
 			i=arr2[k];
 			for (a=3, f=0; a>=0; a--) {
 				if (IsConnected(i,a)) continue;
-				j=GetNeigborIndex(i,a);
+				j=GetNeighborIndex(i,a);
 				if (j>=0 && GetPiece(j)==0) as[f++]=a;
 			}
 			if (f>0) {
 				a=as[emGetIntRandom(0,f-1)];
 				Connect(i,a);
-				arr1.Add(GetNeigborIndex(i,a));
+				arr1.Add(GetNeighborIndex(i,a));
 			}
 			if (f<=1 || NoFourWayJunctions.Get()) arr2.Remove(k);
 		}
@@ -435,7 +435,7 @@ void emNetwalkModel::Fill()
 		stack.Remove(stack.GetCount()-1);
 		for (a=3; a>=0; a--) {
 			if (!IsConnected(i,a)) continue;
-			j=GetNeigborIndex(i,a);
+			j=GetNeighborIndex(i,a);
 			if (j<0) continue;
 			if (GetPiece(j)&PF_FILLED) continue;
 			if (!IsConnected(j,a+2)) continue;
@@ -458,7 +458,7 @@ void emNetwalkModel::Dig(bool reset)
 	for (i=Raster.GetCount()-1; i>=0; i--) {
 		if (DigMode.Get() && (GetPiece(i)&PF_FILLED)==0) {
 			for (a=3; a>=0; a--) {
-				j=GetNeigborIndex(i,a);
+				j=GetNeighborIndex(i,a);
 				if (j<0) continue;
 				if ((GetPiece(j)&PF_FILLED)==0) continue;
 				if (IsConnected(j,a+2)) break;
@@ -506,7 +506,7 @@ emNetwalkModel::Solver::Solver(emNetwalkModel * model)
 		Pieces[i].OrigDirs=0;
 		for (a=0; a<4; a++) {
 			if (p&A2PF[a]) Pieces[i].OrigDirs|=(1<<a);
-			Pieces[i].Neighbor[a]=model->GetNeigborIndex(i,a);
+			Pieces[i].Neighbor[a]=model->GetNeighborIndex(i,a);
 		}
 	}
 }

@@ -23,7 +23,7 @@ if (IsFirstPass()) {
 
 	ErrorIfNoTargets();
 
-	ConfirmIfTargetsAccrossDirs();
+	ConfirmIfTargetsAcrossDirs();
 
 	my @tgt=GetTgt();
 	my $oldUser;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,7 +57,7 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 {
 	if (maj!=EM_MAJOR_VERSION || min!=EM_MINOR_VERSION) {
 		emFatalError(
-			"Some linked object is binary incompatible with emCore (=> try recompilation).\n"
+			"Some linked object is binary incompatible with emCore (=> try recompilation)."
 		);
 	}
 }
@@ -520,7 +520,7 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 	}
 	vsnprintf(buf+r,bufSize-r,format,args);
 	buf[bufSize-1]=0;
-	__android_log_print(ANDROID_LOG_INFO,"eaglemode",buf);
+	__android_log_write(ANDROID_LOG_INFO,"eaglemode",buf);
 	free(buf);
 #else
 	if (pre) fputs(pre,stderr);
@@ -618,7 +618,7 @@ void emFatalError(const char * format, ...)
 				try {
 					emProcess::TryStartUnmanaged(cmd);
 				}
-				catch (emString) {
+				catch (emException &) {
 				}
 			}
 #		endif
@@ -631,6 +631,26 @@ void emFatalError(const char * format, ...)
 void emSetFatalErrorGraphical(bool graphical)
 {
 	emFatalErrorGraphical=graphical;
+}
+
+
+//==============================================================================
+//================================ emException =================================
+//==============================================================================
+
+emException::emException(const char * format, ...)
+{
+	va_list args;
+
+	va_start(args,format);
+	vsnprintf(Text,sizeof(Text),format,args);
+	Text[sizeof(Text)-1]=0;
+	va_end(args);
+}
+
+
+emException::~emException()
+{
 }
 
 

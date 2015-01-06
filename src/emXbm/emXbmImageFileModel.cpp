@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emXbmImageFileModel::~emXbmImageFileModel()
 }
 
 
-void emXbmImageFileModel::TryStartLoading() throw(emString)
+void emXbmImageFileModel::TryStartLoading() throw(emException)
 {
 	emInt64 l;
 
@@ -63,18 +63,18 @@ void emXbmImageFileModel::TryStartLoading() throw(emString)
 	if (fseek(L->File,0,SEEK_END)) goto Err;
 	l=ftell(L->File);
 	if (l<0) goto Err;
-	if (l>INT_MAX) throw emString("File too large.");
+	if (l>INT_MAX) throw emException("File too large.");
 	L->StrMaxLen=(int)l;
 	if (fseek(L->File,0,SEEK_SET)) goto Err;
 
 	return;
 
 Err:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 }
 
 
-bool emXbmImageFileModel::TryContinueLoading() throw(emString)
+bool emXbmImageFileModel::TryContinueLoading() throw(emException)
 {
 	char * p, * p2;
 	unsigned char * map;
@@ -151,7 +151,7 @@ bool emXbmImageFileModel::TryContinueLoading() throw(emString)
 	}
 
 ErrFormat:
-	throw emString("XBM format error");
+	throw emException("XBM format error");
 }
 
 
@@ -166,13 +166,13 @@ void emXbmImageFileModel::QuitLoading()
 }
 
 
-void emXbmImageFileModel::TryStartSaving() throw(emString)
+void emXbmImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emXbmImageFileModel: Saving not implemented.");
+	throw emException("emXbmImageFileModel: Saving not implemented.");
 }
 
 
-bool emXbmImageFileModel::TryContinueSaving() throw(emString)
+bool emXbmImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

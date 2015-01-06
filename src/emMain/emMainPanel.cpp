@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainPanel.cpp
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,7 @@ emMainPanel::emMainPanel(
 {
 	MainConfig=emMainConfig::Acquire(GetRootContext());
 
-	ControlEdgesColor=emTkLook().GetBgColor();
+	ControlEdgesColor=emLook().GetBgColor();
 
 	ControlEdgesImage=emGetInsResImage(GetRootContext(),"emMain","ControlEdges.tga");
 
@@ -46,7 +46,7 @@ emMainPanel::emMainPanel(
 		emView::VF_NO_ACTIVE_HIGHLIGHT
 	);
 
-	GetControlView().SetBackgroundColor(emTkLook().GetBgColor());
+	GetControlView().SetBackgroundColor(emLook().GetBgColor());
 
 	GetContentView().SetViewFlags(
 		emView::VF_ROOT_SAME_TALLNESS
@@ -61,7 +61,7 @@ emMainPanel::emMainPanel(
 	OldMouseX=0.0;
 	OldMouseY=0.0;
 
-	ContentViewPanel->ActivateLater();
+	ContentViewPanel->Activate();
 
 	AddWakeUpSignal(GetControlView().GetEOISignal());
 	AddWakeUpSignal(SliderTimer.GetSignal());

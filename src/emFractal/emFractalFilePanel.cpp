@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFilePanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -137,8 +137,8 @@ void emFractalFilePanel::Prepare()
 	ImgY2=GetClipY2();
 
 	if (!IsViewed() || !IsVFSGood() || ImgX1>=ImgX2-2 || ImgY1>=ImgY2-2) {
-		Image.Empty();
-		Colors.Empty();
+		Image.Clear();
+		Colors.Clear();
 		return;
 	}
 

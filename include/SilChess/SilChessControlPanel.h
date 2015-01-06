@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessControlPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class SilChessControlPanel : public emTkGroup {
+class SilChessControlPanel : public emGroup {
 
 public:
 
@@ -47,14 +47,14 @@ private:
 
 	emRef<SilChessModel> Mdl;
 
-	emTkGroup * GrAbout;
-	emTkLabel * LbAbout;
-	emTkButton * BtNew;
-	emTkButton * BtFlip;
-	emTkButton * BtUndo;
-	emTkButton * BtHint;
-	emTkScalarField * SfDepth;
-	emTkTextField * TfStatus;
+	emGroup * GrAbout;
+	emLabel * LbAbout;
+	emButton * BtNew;
+	emButton * BtFlip;
+	emButton * BtUndo;
+	emButton * BtHint;
+	emScalarField * SfDepth;
+	emTextField * TfStatus;
 
 	int LastOutputDepth;
 };

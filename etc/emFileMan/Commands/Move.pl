@@ -28,7 +28,7 @@ if (IsFirstPass()) {
 	ErrorIfNotSingleTarget();
 	ErrorIfRootSources();
 
-	ConfirmIfSourcesAccrossDirs();
+	ConfirmIfSourcesAcrossDirs();
 
 	my $message=
 		"Are you sure to move, overwriting any existing target files?\n".

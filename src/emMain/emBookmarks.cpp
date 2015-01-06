@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,6 +51,7 @@ void emBookmarksRec::InsertNewBookmark(int index, emView * contentView)
 	emPanel * p;
 	emUnionRec * u;
 	emBookmarkRec * bm;
+	emString title,name,desc;
 	double x,y,a;
 
 	if (index<0) index=0;
@@ -61,8 +62,14 @@ void emBookmarksRec::InsertNewBookmark(int index, emView * contentView)
 	if (!contentView) return;
 	p=contentView->GetVisitedPanel(&x,&y,&a);
 	if (!p) return;
+
+	title=p->GetTitle();
+	name=BookmarkNameFromPanelTitle(p->GetTitle());
+	desc=(name!=title ? title : emString());
+
 	bm=(emBookmarkRec*)&u->Get();
-	bm->Name=p->GetTitle();
+	bm->Name=name;
+	bm->Description=desc;
 	bm->LocationIdentity=p->GetIdentity();
 	bm->LocationRelX=x;
 	bm->LocationRelY=y;
@@ -100,7 +107,7 @@ void emBookmarksRec::CopyToClipboard(int index, emClipboard & clipboard)
 
 void emBookmarksRec::TryInsertFromClipboard(
 	int index, emClipboard & clipboard
-) throw(emString)
+) throw(emException)
 {
 	emString txt;
 	emBookmarksRec tmpRec;
@@ -111,10 +118,10 @@ void emBookmarksRec::TryInsertFromClipboard(
 	try {
 		tmpRec.TryLoadFromMem(txt.Get(),txt.GetLen());
 	}
-	catch (emString errorMessage) {
-		throw emString::Format(
+	catch (emException & exception) {
+		throw emException(
 			"No valid bookmarks in clipboard (%s)",
-			errorMessage.Get()
+			exception.GetText()
 		);
 	}
 
@@ -149,7 +156,7 @@ emBookmarkRec * emBookmarksRec::SearchBookmarkByHotkey(const emInputHotkey & hot
 				try {
 					bmhk.TryParse(bm->Hotkey.Get().Get());
 				}
-				catch (emString) {
+				catch (emException &) {
 					bmhk=emInputHotkey();
 				}
 				if (bmhk==hotkey) return bm;
@@ -234,6 +241,21 @@ const char * emBookmarksRec::GetFormatName() const
 }
 
 
+emString emBookmarksRec::BookmarkNameFromPanelTitle(const emString & title)
+{
+	int i,l;
+
+	for (i=title.GetLen()-1; i>0; i--) {
+		if (title[i-1]=='/' || title[i-1]=='\\') break;
+	}
+	if (i<=0) return title;
+	for (l=1; i+l<title.GetLen(); l++) {
+		if (title[i+l]=='.') break;
+	}
+	return title.GetSubString(i,l);
+}
+
+
 emRec * emBookmarksRec::AllocateUnion()
 {
 	return new emUnionRec(
@@ -301,7 +323,7 @@ int emBookmarkEntryRec::GetIndexInBookmarksRec()
 
 void emBookmarkEntryRec::TryPasteColorsFromClipboard(
 	emClipboard & clipboard
-) throw(emString)
+) throw(emException)
 {
 	emBookmarksRec tmpRec;
 	emBookmarkEntryRec * e;
@@ -313,10 +335,10 @@ void emBookmarkEntryRec::TryPasteColorsFromClipboard(
 	try {
 		tmpRec.TryLoadFromMem(txt.Get(),txt.GetLen());
 	}
-	catch (emString errorMessage) {
-		throw emString::Format(
+	catch (emException & exception) {
+		throw emException(
 			"No valid bookmarks in clipboard (%s)",
-			errorMessage.Get()
+			exception.GetText()
 		);
 	}
 
@@ -335,8 +357,8 @@ void emBookmarkEntryRec::TryPasteColorsFromClipboard(
 emBookmarkGroupRec::emBookmarkGroupRec()
 	:
 	emBookmarkEntryRec(
-		emTkLook().GetBgColor(),
-		emTkLook().GetFgColor()
+		emLook().GetBgColor(),
+		emLook().GetFgColor()
 	),
 	Bookmarks(this,"Bookmarks")
 {
@@ -355,8 +377,8 @@ emBookmarkGroupRec::~emBookmarkGroupRec()
 emBookmarkRec::emBookmarkRec()
 	:
 	emBookmarkEntryRec(
-		emTkLook().GetButtonBgColor(),
-		emTkLook().GetButtonFgColor()
+		emLook().GetButtonBgColor(),
+		emLook().GetButtonFgColor()
 	),
 	Hotkey(this,"Hotkey"),
 	LocationIdentity(this,"LocationIdentity"),
@@ -405,8 +427,8 @@ emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 				emTryMakeDirectories(emGetParentPath(recPath));
 				emTryCopyFileOrTree(recPath,srcPath);
 			}
-			catch (emString errorMessage) {
-				emWarning("%s",errorMessage.Get());
+			catch (emException & exception) {
+				emWarning("%s",exception.GetText());
 			}
 		}
 		else {
@@ -423,8 +445,8 @@ emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 				process.TryStart(args);
 				while (!process.WaitForTermination(60000)) {}
 			}
-			catch (emString errorMessage) {
-				emWarning("%s",errorMessage.Get());
+			catch (emException & exception) {
+				emWarning("%s",exception.GetText());
 			}
 		}
 	}
@@ -447,9 +469,9 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emBookmarkEntryRec * rec
 )
-	: emTkGroup(parent,name)
+	: emGroup(parent,name)
 {
-	emTkLook look;
+	emLook look;
 
 	ContentView=contentView;
 	Model=model;
@@ -487,7 +509,7 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	SetAlignment(EM_ALIGN_CENTER);
 	SetInnerSpace(0.0,1.2);
 	SetFocusable(false);
-	emTkGroup::SetLook(look);
+	emGroup::SetLook(look);
 	WakeUp();
 }
 
@@ -497,7 +519,7 @@ emBookmarkEntryAuxPanel::~emBookmarkEntryAuxPanel()
 }
 
 
-void emBookmarkEntryAuxPanel::SetLook(const emTkLook & look, bool recursively)
+void emBookmarkEntryAuxPanel::SetLook(const emLook & look, bool recursively)
 {
 	// Simply don't do it.
 }
@@ -522,7 +544,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 	bool busy,modified,zoomOut;
 	int index;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 
 	if (!UpToDate) {
 		Update();
@@ -566,7 +588,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				modified=true;
 				zoomOut=true;
 			}
-			catch (emString) {
+			catch (emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -631,7 +653,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				entryRec->TryPasteColorsFromClipboard(*clipboard);
 				modified=true;
 			}
-			catch (emString) {
+			catch (emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -685,7 +707,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				modified=true;
 				zoomOut=true;
 			}
-			catch (emString) {
+			catch (emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -709,9 +731,9 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	emBookmarkRec * bmRec;
 	emBookmarkGroupRec * grpRec;
 	emBookmarksRec * bmsParentRec;
-	emTkGroup * g, * g2;
+	emGroup * g, * g2;
 
-	emTkGroup::AutoExpand();
+	emGroup::AutoExpand();
 
 	bmRec=NULL;
 	bmsParentRec=NULL;
@@ -723,12 +745,12 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	}
 
 	if (bmsParentRec) {
-		g=new emTkGroup(
+		g=new emGroup(
 			this,
 			"before",
 			bmRec ? "Before This Bookmark" : "Before This Group"
 		);
-		BtNewBookmarkBefore=new emTkButton(
+		BtNewBookmarkBefore=new emButton(
 			g,
 			"nb",
 			"New Bookmark",
@@ -736,7 +758,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		BtNewBookmarkBefore->SetNoEOI();
 		AddWakeUpSignal(BtNewBookmarkBefore->GetClickSignal());
-		BtNewGroupBefore=new emTkButton(
+		BtNewGroupBefore=new emButton(
 			g,
 			"ng",
 			"New Group",
@@ -744,7 +766,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		BtNewGroupBefore->SetNoEOI();
 		AddWakeUpSignal(BtNewGroupBefore->GetClickSignal());
-		BtPasteBefore=new emTkButton(
+		BtPasteBefore=new emButton(
 			g,
 			"p",
 			"Paste",
@@ -755,13 +777,13 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	}
 
 	if (entryRec) {
-		g=new emTkGroup(
+		g=new emGroup(
 			this,
 			"entry",
 			bmRec ? "This Bookmark" : "This Group"
 		);
 		g->SetMinCellCount(12);
-		BtCut=new emTkButton(
+		BtCut=new emButton(
 			g,
 			"cut",
 			"Cut",
@@ -772,7 +794,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		BtCut->SetNoEOI();
 		AddWakeUpSignal(BtCut->GetClickSignal());
-		BtCopy=new emTkButton(
+		BtCopy=new emButton(
 			g,
 			"copy",
 			"Copy",
@@ -783,7 +805,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		BtCopy->SetNoEOI();
 		AddWakeUpSignal(BtCopy->GetClickSignal());
-		TfName=new emTkTextField(
+		TfName=new emTextField(
 			g,
 			"name",
 			"Name",
@@ -795,7 +817,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		TfName->SetEditable();
 		TfName->SetMultiLineMode();
 		AddWakeUpSignal(TfName->GetTextSignal());
-		TfDescription=new emTkTextField(
+		TfDescription=new emTextField(
 			g,
 			"desc",
 			"Description",
@@ -807,7 +829,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		TfDescription->SetEditable();
 		TfDescription->SetMultiLineMode();
 		AddWakeUpSignal(TfDescription->GetTextSignal());
-		TfIcon=new emTkTextField(
+		TfIcon=new emTextField(
 			g,
 			"icon",
 			"Icon",
@@ -819,7 +841,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		TfIcon->SetEditable();
 		AddWakeUpSignal(TfIcon->GetTextSignal());
-		CfBgColor=new emTkColorField(
+		CfBgColor=new emColorField(
 			g,
 			"bgcol",
 			"Background Color",
@@ -830,7 +852,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		CfBgColor->SetEditable();
 		AddWakeUpSignal(CfBgColor->GetColorSignal());
-		CfFgColor=new emTkColorField(
+		CfFgColor=new emColorField(
 			g,
 			"fgcol",
 			"Foreground Color",
@@ -841,7 +863,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		CfFgColor->SetEditable();
 		AddWakeUpSignal(CfFgColor->GetColorSignal());
-		BtPasteColors=new emTkButton(
+		BtPasteColors=new emButton(
 			g,
 			"pastecolors",
 			"Paste Colors",
@@ -855,13 +877,13 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		BtPasteColors->SetNoEOI();
 		AddWakeUpSignal(BtPasteColors->GetClickSignal());
 		if (bmRec) {
-			g2=new emTkGroup(g,"loc","Location");
+			g2=new emGroup(g,"loc","Location");
 			g2->SetOuterBorderType(OBT_INSTRUMENT);
-			TfLocationIdentity=new emTkTextField(g2,"Identity","Panel Identity");
-			TfLocationRelX=new emTkTextField(g2,"RelX","Relative X-Position");
-			TfLocationRelY=new emTkTextField(g2,"RelY","Relative Y-Position");
-			TfLocationRelA=new emTkTextField(g2,"RelA","Relative Area Size");
-			BtSetLocation=new emTkButton(
+			TfLocationIdentity=new emTextField(g2,"Identity","Panel Identity");
+			TfLocationRelX=new emTextField(g2,"RelX","Relative X-Position");
+			TfLocationRelY=new emTextField(g2,"RelY","Relative Y-Position");
+			TfLocationRelA=new emTextField(g2,"RelA","Relative Area Size");
+			BtSetLocation=new emButton(
 				g,
 				"setlocation",
 				"Set Location",
@@ -869,7 +891,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 			);
 			BtSetLocation->SetNoEOI();
 			AddWakeUpSignal(BtSetLocation->GetClickSignal());
-			TfHotkey=new emTkTextField(
+			TfHotkey=new emTextField(
 				g,"hotkey",
 				"Hotkey",
 				"A hotkey for this bookmark, or leave blank.\n"
@@ -879,7 +901,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 			);
 			TfHotkey->SetEditable(true);
 			AddWakeUpSignal(TfHotkey->GetTextSignal());
-			RbVisitAtProgramStart=new emTkRadioBox(
+			RbVisitAtProgramStart=new emRadioBox(
 				g,
 				"visitatprogramstart",
 				"Visit At Program Start",
@@ -892,12 +914,12 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	}
 
 	if (bmsParentRec) {
-		g=new emTkGroup(
+		g=new emGroup(
 			this,
 			"after",
 			bmRec ? "After This Bookmark" : "After This Group"
 		);
-		BtNewBookmarkAfter=new emTkButton(
+		BtNewBookmarkAfter=new emButton(
 			g,
 			"nb",
 			"New Bookmark",
@@ -905,7 +927,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		BtNewBookmarkAfter->SetNoEOI();
 		AddWakeUpSignal(BtNewBookmarkAfter->GetClickSignal());
-		BtNewGroupAfter=new emTkButton(
+		BtNewGroupAfter=new emButton(
 			g,
 			"ng",
 			"New Group",
@@ -913,7 +935,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		);
 		BtNewGroupAfter->SetNoEOI();
 		AddWakeUpSignal(BtNewGroupAfter->GetClickSignal());
-		BtPasteAfter=new emTkButton(
+		BtPasteAfter=new emButton(
 			g,
 			"p",
 			"Paste",
@@ -930,7 +952,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 
 void emBookmarkEntryAuxPanel::AutoShrink()
 {
-	emTkGroup::AutoShrink();
+	emGroup::AutoShrink();
 
 	BtNewBookmarkBefore=NULL;
 	BtNewGroupBefore=NULL;
@@ -1008,7 +1030,7 @@ emBookmarksAuxPanel::emBookmarksAuxPanel(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emBookmarksRec * rec
 )
-	: emTkGroup(parent,name)
+	: emGroup(parent,name)
 {
 	ContentView=contentView;
 	Model=model;
@@ -1018,7 +1040,7 @@ emBookmarksAuxPanel::emBookmarksAuxPanel(
 	SetListenedRec(rec);
 	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
-	emTkGroup::SetLook(emTkLook());
+	emGroup::SetLook(emLook());
 	SetCaption("In This Empty Group");
 }
 
@@ -1028,7 +1050,7 @@ emBookmarksAuxPanel::~emBookmarksAuxPanel()
 }
 
 
-void emBookmarksAuxPanel::SetLook(const emTkLook & look, bool recursively)
+void emBookmarksAuxPanel::SetLook(const emLook & look, bool recursively)
 {
 	// Simply don't do it.
 }
@@ -1046,7 +1068,7 @@ bool emBookmarksAuxPanel::Cycle()
 	emPanel * p;
 	bool busy,modified,zoomOut;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 
 	modified=false;
 	zoomOut=false;
@@ -1076,7 +1098,7 @@ bool emBookmarksAuxPanel::Cycle()
 				modified=true;
 				zoomOut=true;
 			}
-			catch (emString) {
+			catch (emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -1094,9 +1116,9 @@ bool emBookmarksAuxPanel::Cycle()
 
 void emBookmarksAuxPanel::AutoExpand()
 {
-	emTkGroup::AutoExpand();
+	emGroup::AutoExpand();
 
-	BtNewBookmark=new emTkButton(
+	BtNewBookmark=new emButton(
 		this,
 		"nb",
 		"New Bookmark",
@@ -1104,7 +1126,7 @@ void emBookmarksAuxPanel::AutoExpand()
 	);
 	BtNewBookmark->SetNoEOI();
 	AddWakeUpSignal(BtNewBookmark->GetClickSignal());
-	BtNewGroup=new emTkButton(
+	BtNewGroup=new emButton(
 		this,
 		"ng",
 		"New Group",
@@ -1112,7 +1134,7 @@ void emBookmarksAuxPanel::AutoExpand()
 	);
 	BtNewGroup->SetNoEOI();
 	AddWakeUpSignal(BtNewGroup->GetClickSignal());
-	BtPaste=new emTkButton(
+	BtPaste=new emButton(
 		this,
 		"p",
 		"Paste",
@@ -1125,7 +1147,7 @@ void emBookmarksAuxPanel::AutoExpand()
 
 void emBookmarksAuxPanel::AutoShrink()
 {
-	emTkGroup::AutoShrink();
+	emGroup::AutoShrink();
 	BtNewBookmark=NULL;
 	BtNewGroup=NULL;
 	BtPaste=NULL;
@@ -1140,7 +1162,7 @@ emBookmarkButton::emBookmarkButton(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emBookmarkRec * rec
 )
-	: emTkButton(parent,name)
+	: emButton(parent,name)
 {
 	ContentView=contentView;
 	Model=model;
@@ -1159,10 +1181,10 @@ emBookmarkButton::~emBookmarkButton()
 }
 
 
-void emBookmarkButton::SetLook(const emTkLook & look, bool recursively)
+void emBookmarkButton::SetLook(const emLook & look, bool recursively)
 {
 	emBookmarkRec * bmRec;
-	emTkLook newLook;
+	emLook newLook;
 
 	newLook=look;
 	bmRec=(emBookmarkRec*)GetListenedRec();
@@ -1170,7 +1192,7 @@ void emBookmarkButton::SetLook(const emTkLook & look, bool recursively)
 		newLook.SetButtonBgColor(bmRec->BgColor);
 		newLook.SetButtonFgColor(bmRec->FgColor);
 	}
-	emTkButton::SetLook(newLook,recursively);
+	emButton::SetLook(newLook,recursively);
 }
 
 
@@ -1186,7 +1208,7 @@ bool emBookmarkButton::Cycle()
 	emBookmarkRec * bmRec;
 	bool busy;
 
-	busy=emTkButton::Cycle();
+	busy=emButton::Cycle();
 
 	if (!UpToDate) {
 		Update();
@@ -1196,7 +1218,7 @@ bool emBookmarkButton::Cycle()
 	if (IsSignaled(GetClickSignal()) && ContentView!=NULL) {
 		bmRec=(emBookmarkRec*)GetListenedRec();
 		if (bmRec) {
-			ContentView->Seek(
+			ContentView->Visit(
 				bmRec->LocationIdentity.Get(),
 				bmRec->LocationRelX.Get(),
 				bmRec->LocationRelY.Get(),
@@ -1222,7 +1244,7 @@ void emBookmarkButton::Update()
 	emBookmarkRec * bmRec;
 	emString str;
 	emImage img;
-	emTkLook look;
+	emLook look;
 
 	bmRec=(emBookmarkRec*)GetListenedRec();
 	if (!bmRec) return;
@@ -1247,7 +1269,7 @@ void emBookmarkButton::Update()
 				)
 			);
 		}
-		catch (emString) {
+		catch (emException &) {
 			try {
 				img=emTryGetResImage(
 					GetRootContext(),
@@ -1257,8 +1279,8 @@ void emBookmarkButton::Update()
 					)
 				);
 			}
-			catch (emString) {
-				img.Empty();
+			catch (emException &) {
+				img.Clear();
 			}
 		}
 	}
@@ -1266,7 +1288,7 @@ void emBookmarkButton::Update()
 	look=GetLook();
 	look.SetButtonBgColor(bmRec->BgColor);
 	look.SetButtonFgColor(bmRec->FgColor);
-	emTkButton::SetLook(look);
+	emButton::SetLook(look);
 }
 
 
@@ -1278,7 +1300,7 @@ emBookmarksPanel::emBookmarksPanel(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emRec * rec
 )
-	: emTkGroup(parent,name)
+	: emGroup(parent,name)
 {
 	if (!rec) rec=model;
 	ContentView=contentView;
@@ -1303,11 +1325,11 @@ emBookmarksPanel::~emBookmarksPanel()
 }
 
 
-void emBookmarksPanel::SetLook(const emTkLook & look, bool recursively)
+void emBookmarksPanel::SetLook(const emLook & look, bool recursively)
 {
 	emRec * rec;
 	emBookmarkGroupRec * grpRec;
-	emTkLook newLook;
+	emLook newLook;
 
 	newLook=look;
 	rec=GetListenedRec();
@@ -1318,7 +1340,7 @@ void emBookmarksPanel::SetLook(const emTkLook & look, bool recursively)
 			newLook.SetFgColor(grpRec->FgColor);
 		}
 	}
-	emTkGroup::SetLook(newLook,recursively);
+	emGroup::SetLook(newLook,recursively);
 }
 
 
@@ -1333,7 +1355,7 @@ bool emBookmarksPanel::Cycle()
 {
 	bool busy;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 
 	if (!UpToDate) {
 		Update();
@@ -1353,7 +1375,7 @@ void emBookmarksPanel::AutoExpand()
 	char name[256];
 	int idx,cnt;
 
-	emTkGroup::AutoExpand();
+	emGroup::AutoExpand();
 
 	rec=GetListenedRec();
 	if (!rec) return;
@@ -1364,7 +1386,7 @@ void emBookmarksPanel::AutoExpand()
 	if (!bmsRec) return;
 
 	if (grpRec) {
-		Tiling=new emTkTiling(this,"t");
+		Tiling=new emTiling(this,"t");
 		Tiling->HaveAux("aux",11.0);
 		new emBookmarkEntryAuxPanel(Tiling,"aux",ContentView,Model,grpRec);
 		Tiling->SetBorderType(OBT_NONE,IBT_GROUP);
@@ -1419,7 +1441,7 @@ void emBookmarksPanel::AutoExpand()
 
 void emBookmarksPanel::AutoShrink()
 {
-	emTkGroup::AutoShrink();
+	emGroup::AutoShrink();
 	Tiling=NULL;
 }
 
@@ -1430,7 +1452,7 @@ void emBookmarksPanel::Update()
 	emBookmarksRec * bmsRec;
 	emBookmarkGroupRec * grpRec;
 	emImage img;
-	emTkLook look;
+	emLook look;
 	emPanel * p, * aux;
 	emBookmarkButton * bmButton;
 	emBookmarksPanel * bmsPanel;
@@ -1455,7 +1477,7 @@ void emBookmarksPanel::Update()
 					)
 				);
 			}
-			catch (emString) {
+			catch (emException &) {
 				try {
 					img=emTryGetResImage(
 						GetRootContext(),
@@ -1465,8 +1487,8 @@ void emBookmarksPanel::Update()
 						)
 					);
 				}
-				catch (emString) {
-					img.Empty();
+				catch (emException &) {
+					img.Clear();
 				}
 			}
 		}
@@ -1474,7 +1496,7 @@ void emBookmarksPanel::Update()
 		look=GetLook();
 		look.SetBgColor(grpRec->BgColor);
 		look.SetFgColor(grpRec->FgColor);
-		emTkGroup::SetLook(look,true);
+		emGroup::SetLook(look,true);
 	}
 
 	if (bmsRec && Tiling) {

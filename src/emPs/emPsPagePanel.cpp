@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsPagePanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,9 +54,9 @@ void emPsPagePanel::SetPage(const emPsDocument & document, int pageIndex)
 	}
 	Document=document;
 	PageIndex=pageIndex;
-	Image.Empty();
+	Image.Clear();
 	JobState=emPsRenderer::JS_SUCCESS;
-	JobErrorText.Empty();
+	JobErrorText.Clear();
 	InvalidatePainting();
 	UpdateJobAndImage();
 }
@@ -199,7 +199,7 @@ void emPsPagePanel::UpdateJobAndImage()
 			JobState=emPsRenderer::JS_SUCCESS;
 		}
 		if (iw<=0 || ih<=0) {
-			Image.Empty();
+			Image.Clear();
 		}
 		else {
 			if (Image.IsEmpty()) oldImg=NULL;
@@ -242,7 +242,7 @@ void emPsPagePanel::UpdateJobAndImage()
 			JobErrorText=Renderer->GetJobErrorText(Job);
 			Renderer->CloseJob(Job);
 			Job=NULL;
-			Image.Empty();
+			Image.Clear();
 		}
 		else if (s==emPsRenderer::JS_SUCCESS) {
 			Renderer->CloseJob(Job);

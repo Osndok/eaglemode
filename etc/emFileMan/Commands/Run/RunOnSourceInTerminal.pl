@@ -27,7 +27,7 @@ BEGIN { require "$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl"; }
 if (IsFirstPass()) {
 
 	ErrorIfNoSources();
-	ConfirmIfSourcesAccrossDirs();
+	ConfirmIfSourcesAcrossDirs();
 	ErrorIfNotSingleTarget();
 	ErrorIfTargetsNotFiles();
 

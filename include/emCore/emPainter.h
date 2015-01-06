@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.h
 //
-// Copyright (C) 2001,2003-2010 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -330,7 +330,7 @@ public:
 		// second version of PaintEllipseOutline paints just an arc
 		// (instead of the outline of a pie).
 		// ??? BUG: PaintPolygonOutline currently always ignores the
-		// canvasColor, and it does not produces correct results if the
+		// canvasColor, and it does not produce correct results if the
 		// alpha channel of the color is not 255.
 
 

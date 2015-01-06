@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emConfigModel.cpp
 //
-// Copyright (C) 2006-2008,2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,7 +21,7 @@
 #include <emCore/emConfigModel.h>
 
 
-void emConfigModel::TrySave(bool force) throw(emString)
+void emConfigModel::TrySave(bool force) throw(emException)
 {
 	if (Unsaved || force) {
 		GetRec().TrySave(InstallPath);
@@ -38,8 +38,8 @@ void emConfigModel::Save(bool force)
 	try {
 		TrySave(force);
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 	}
 }
 
@@ -74,7 +74,7 @@ emConfigModel::~emConfigModel()
 }
 
 
-void emConfigModel::TryLoad() throw(emString)
+void emConfigModel::TryLoad() throw(emException)
 {
 	GetRec().TryLoad(InstallPath);
 	if (Unsaved) {
@@ -89,13 +89,13 @@ void emConfigModel::Load()
 	try {
 		TryLoad();
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 	}
 }
 
 
-void emConfigModel::TryLoadOrInstall(const char * insSrcPath) throw(emString)
+void emConfigModel::TryLoadOrInstall(const char * insSrcPath) throw(emException)
 {
 	if (emIsExistingPath(InstallPath)) {
 		TryLoad();
@@ -119,8 +119,8 @@ void emConfigModel::LoadOrInstall(const char * insSrcPath)
 	try {
 		TryLoadOrInstall(insSrcPath);
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 	}
 }
 

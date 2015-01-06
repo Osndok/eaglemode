@@ -6,7 +6,7 @@ server: instance: <inst>
 server: pages: <page count>
 server: pageinfo: <page index> <width> <height> "<label>"
 server: pageinfo: <page index> <width> <height> "<label>"
-server: ... 
+server: ...
 server: ok
 or    : error: <message>
 

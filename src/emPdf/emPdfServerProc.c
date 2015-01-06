@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011-2013 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,12 +55,48 @@ static void emPdfPrintQuoted(const char * str)
 }
 
 
+static void emPdfEncodeFileUri(const char * filePath, char * uri)
+{
+	int c;
+
+	strcpy(uri,"file:");
+	uri+=strlen(uri);
+	while (*filePath) {
+		c=(*filePath++)&255;
+		if (
+			c<32 ||
+			c==' ' ||
+			c=='#' ||
+			c=='$' ||
+			c=='%' ||
+			c=='&' ||
+			c=='+' ||
+			c=='#' ||
+			c==',' ||
+			c==';' ||
+			c=='=' ||
+			c=='?' ||
+			c=='@' ||
+			c==127
+		) {
+			sprintf(uri,"%%%2X",c);
+			uri+=strlen(uri);
+		}
+		else {
+			*uri++=c;
+		}
+	}
+	*uri=0;
+}
+
+
 static void emPdfOpen(const char * args)
 {
 	const char * filePath;
 	const char * label;
 	char genericLabel[256];
-	char uri[64+PATH_MAX];
+	char absFilePath[PATH_MAX];
+	char uri[64+3*PATH_MAX];
 	GError * err;
 	emPdfInst * inst;
 	PopplerPage * page;
@@ -73,8 +109,7 @@ static void emPdfOpen(const char * args)
 		exit(1);
 	}
 
-	strcpy(uri,"file:");
-	if (!realpath(filePath,uri+strlen(uri))) {
+	if (!realpath(filePath,absFilePath)) {
 		printf(
 			"error: Failed to read %s (%s)\n",
 			filePath,
@@ -82,6 +117,8 @@ static void emPdfOpen(const char * args)
 		);
 		return;
 	}
+
+	emPdfEncodeFileUri(absFilePath,uri);
 
 	inst=(emPdfInst*)malloc(sizeof(emPdfInst));
 	memset(inst,0,sizeof(emPdfInst));
@@ -125,7 +162,7 @@ static void emPdfOpen(const char * args)
 	printf("subject: %s\n",poppler_document_get_subject(inst->doc));
 	printf("keyword: %s\n",poppler_document_get_keyword(inst->doc));
 	printf("creator: %s\n",poppler_document_get_creator(inst->doc));
-	printf("producer: %s\n",poppler_document_get_produer(inst->doc));
+	printf("producer: %s\n",poppler_document_get_producer(inst->doc));
 	time_t t1=poppler_document_get_creation_date(inst->doc);
 	time_t t2=poppler_document_get_modification_date(inst->doc);
 	gboolean lin=poppler_document_is_linearized(inst->doc);

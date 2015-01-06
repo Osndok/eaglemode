@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2012 Oliver Hamann.
+// Copyright (C) 2006-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -338,7 +338,7 @@ void emWndsWindowPort::PreConstruct()
 	SizeForced=false;
 	SizePending=false;
 	InvalidRects.Set(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
-	Title.Empty();
+	Title.Clear();
 	TitlePending=true;
 	IconPending=true;
 	Cursor=-1;
@@ -941,7 +941,7 @@ void emWndsWindowPort::UpdatePainting()
 		} while (y<ry2);
 	}
 	Screen.WaitSendBuf();
-	InvalidRects.Empty();
+	InvalidRects.Clear();
 }
 
 

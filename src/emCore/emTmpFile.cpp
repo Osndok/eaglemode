@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,9 +72,9 @@ void emTmpFile::Discard()
 		try {
 			emTryRemoveFileOrTree(Path,true);
 		}
-		catch (emString) {
+		catch (emException &) {
 		}
-		Path.Empty();
+		Path.Clear();
 	}
 }
 
@@ -125,8 +125,8 @@ emTmpFileMaster::~emTmpFileMaster()
 		try {
 			emTryRemoveFileOrTree(DirPath,true);
 		}
-		catch (emString errorMessage) {
-			emFatalError("emTmpFileMaster: %s",errorMessage.Get());
+		catch (emException & exception) {
+			emFatalError("emTmpFileMaster: %s",exception.GetText());
 		}
 	}
 }
@@ -166,7 +166,7 @@ void emTmpFileMaster::DeleteDeadDirectories()
 	try {
 		list=emTryLoadDir(commonPath);
 	}
-	catch (emString) {
+	catch (emException &) {
 		return;
 	}
 
@@ -181,14 +181,14 @@ void emTmpFileMaster::DeleteDeadDirectories()
 		try {
 			emMiniIpcClient::TrySend(srv,1,args);
 		}
-		catch (emString) {
+		catch (emException &) {
 			srvOkay=false;
 		}
 		if (srvOkay) continue;
 		try {
 			emTryRemoveFileOrTree(emGetChildPath(commonPath,nm),true);
 		}
-		catch (emString) {
+		catch (emException &) {
 		}
 	}
 }
@@ -216,8 +216,8 @@ void emTmpFileMaster::StartOwnDirectory()
 	try {
 		emTryMakeDirectories(DirPath,0700);
 	}
-	catch (emString errorMessage) {
-		emFatalError("emTmpFileMaster: %s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("emTmpFileMaster: %s",exception.GetText());
 	}
 }
 

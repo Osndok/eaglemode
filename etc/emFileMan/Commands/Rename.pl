@@ -26,7 +26,7 @@ if (IsFirstPass()) {
 
 	ErrorIfNoTargets();
 	ErrorIfRootTargets();
-	ConfirmIfTargetsAccrossDirs();
+	ConfirmIfTargetsAcrossDirs();
 
 	my @tgt=GetTgt();
 

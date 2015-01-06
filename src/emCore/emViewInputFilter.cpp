@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.cpp
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,16 +77,23 @@ bool emViewInputFilter::Cycle()
 //==============================================================================
 
 emMouseZoomScrollVIF::emMouseZoomScrollVIF(emView & view, emViewInputFilter * next)
-	: emViewInputFilter(view,next)
+	: emViewInputFilter(view,next),
+	MouseAnim(view),
+	WheelAnim(view)
 {
 	CoreConfig=emCoreConfig::Acquire(view.GetRootContext());
-	ZoomScrollInAction=false;
 	LastMouseX=0.0;
 	LastMouseY=0.0;
 	ZoomFixX=0.0;
 	ZoomFixY=0.0;
 	EmuMidButtonTime=0;
 	EmuMidButtonRepeat=0;
+	WheelZoomSpeed=0;
+	WheelZoomTime=0;
+	MagnetismAvoidance=false;
+	MagAvMouseMoveX=0.0;
+	MagAvMouseMoveY=0.0;
+	MagAvTime=0;
 }
 
 
@@ -108,28 +115,30 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 	}
 
 	if ((GetView().GetViewFlags()&emView::VF_NO_USER_NAVIGATION)!=0) {
-		ZoomScrollInAction=false;
+		if (MouseAnim.IsActive()) MouseAnim.Deactivate();
+		if (WheelAnim.IsActive()) WheelAnim.Deactivate();
 		ForwardInput(event,rwstate);
 		return;
 	}
 
-	if (
-		ZoomScrollInAction &&
-		(!rwstate.GetMiddleButton() || !GetView().IsFocused())
-	) {
-		ZoomScrollInAction=false;
-	}
-
 	mx=rwstate.GetMouseX();
 	my=rwstate.GetMouseY();
-	dmx=mx-LastMouseX;
-	dmy=my-LastMouseY;
-	if (fabs(dmx)>0.1 || fabs(dmy)>0.1) {
-		if (ZoomScrollInAction) {
+
+	if (MouseAnim.IsActive() && MouseAnim.IsGripped()) {
+		dmx=mx-LastMouseX;
+		dmy=my-LastMouseY;
+		UpdateMagnetismAvoidance(dmx,dmy);
+		if (!rwstate.GetMiddleButton() || !GetView().IsFocused()) {
+			MouseAnim.SetGripped(false);
+			MouseAnim.SetDeactivateWhenIdle(true);
+			if (!MagnetismAvoidance) {
+				GetView().ActivateMagneticViewAnimator();
+			}
+		}
+		else if (fabs(dmx)>0.1 || fabs(dmy)>0.1) {
 			if (rwstate.GetCtrl()) {
 				f=GetMouseZoomSpeed(rwstate.GetShift());
-				f=pow(f,-dmy);
-				GetView().Zoom(ZoomFixX,ZoomFixY,f);
+				MouseAnim.MoveGrip(2,-dmy*f);
 				if (CoreConfig->StickMouseWhenNavigating) {
 					MoveMousePointer(-dmx,-dmy);
 					mx-=dmx;
@@ -140,7 +149,8 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 			}
 			else {
 				f=GetMouseScrollSpeed(rwstate.GetShift());
-				GetView().Scroll(dmx*f,dmy*f);
+				MouseAnim.MoveGrip(0,dmx*f);
+				MouseAnim.MoveGrip(1,dmy*f);
 				if (
 					CoreConfig->StickMouseWhenNavigating &&
 					!CoreConfig->PanFunction
@@ -153,6 +163,8 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 				ZoomFixX=mx;
 				ZoomFixY=my;
 			}
+			MouseAnim.SetZoomFixPoint(ZoomFixX,ZoomFixY);
+			SetMouseAnimParams();
 		}
 	}
 
@@ -165,9 +177,14 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 				if (p) GetView().VisitFullsized(p,true,((event.GetRepeat()&1)==0)!=rwstate.GetShift());
 			}
 			else {
-				ZoomScrollInAction=true;
 				ZoomFixX=mx;
 				ZoomFixY=my;
+				InitMagnetismAvoidance();
+				MouseAnim.Activate();
+				SetMouseAnimParams();
+				MouseAnim.SetZoomFixPoint(ZoomFixX,ZoomFixY);
+				MouseAnim.SetDeactivateWhenIdle(false);
+				MouseAnim.SetGripped(true);
 			}
 			event.Eat();
 		}
@@ -175,13 +192,25 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 	case EM_KEY_WHEEL_UP:
 	case EM_KEY_WHEEL_DOWN:
 		if (rwstate.IsNoMod() || rwstate.IsShiftMod()) {
-			f=GetWheelZoomSpeed(rwstate.GetShift() || rwstate.Get(EM_KEY_MIDDLE_BUTTON));
-			if (event.GetKey()==EM_KEY_WHEEL_DOWN) f=1.0/f;
-			GetView().Zoom(mx,my,f);
-			if ((GetView().GetViewFlags()&emView::VF_POPUP_ZOOM)!=0) {
-				if (MoveMousePointerBackIntoView(&mx,&my)) {
-					rwstate.SetMouse(mx,my);
-				}
+			UpdateWheelZoomSpeed(
+				event.GetKey()==EM_KEY_WHEEL_DOWN,
+				rwstate.GetShift() || rwstate.Get(EM_KEY_MIDDLE_BUTTON)
+			);
+			ZoomFixX=mx;
+			ZoomFixY=my;
+			if (MouseAnim.IsActive() && MouseAnim.IsGripped()) {
+				MouseAnim.MoveGrip(2,WheelZoomSpeed/GetView().GetZoomFactorLogarithmPerPixel());
+				MouseAnim.SetZoomFixPoint(ZoomFixX,ZoomFixY);
+				SetMouseAnimParams();
+			}
+			else {
+				WheelAnim.Activate();
+				SetWheelAnimParams();
+				WheelAnim.SetDeactivateWhenIdle(false);
+				WakeUp();
+				WheelAnim.SetGripped(true);
+				WheelAnim.SetZoomFixPoint(ZoomFixX,ZoomFixY);
+				WheelAnim.MoveGrip(2,WheelZoomSpeed/GetView().GetZoomFactorLogarithmPerPixel());
 			}
 			event.Eat();
 		}
@@ -199,7 +228,23 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 
 bool emMouseZoomScrollVIF::Cycle()
 {
-	return false;
+	bool busy;
+
+	busy=false;
+
+	if (WheelAnim.IsActive() && WheelAnim.IsGripped()) {
+		if (
+			WheelAnim.GetAbsVelocity()<10.0 &&
+			WheelAnim.GetAbsSpringExtension()<0.5
+		) {
+			GetView().ActivateMagneticViewAnimator();
+		}
+		else {
+			busy=true;
+		}
+	}
+
+	return busy;
 }
 
 
@@ -235,6 +280,7 @@ void emMouseZoomScrollVIF::EmulateMiddleButton(emInputEvent & event, emInputStat
 
 bool emMouseZoomScrollVIF::MoveMousePointerBackIntoView(double * pmx, double * pmy)
 {
+	//??? This is no longer called :-( (mouse wheel zoom-out on pop-up)
 	double cx,cy,cw,ch,mx,my,safety,s;
 	bool doMove;
 
@@ -289,34 +335,115 @@ void emMouseZoomScrollVIF::MoveMousePointer(double dx, double dy)
 }
 
 
-double emMouseZoomScrollVIF::GetMouseZoomSpeed(bool fine) const
+double emMouseZoomScrollVIF::GetMouseZoomSpeed(bool fine)
 {
 	double f;
 
-	if (fine) f=CoreConfig->MouseFineZoomSpeedFactor*0.1;
-	else      f=CoreConfig->MouseZoomSpeedFactor;
-	return pow(1.0625,f);
+	f=CoreConfig->MouseZoomSpeed;
+	if (fine) f*=0.1;
+	return f*6.0;
 }
 
 
-double emMouseZoomScrollVIF::GetMouseScrollSpeed(bool fine) const
+double emMouseZoomScrollVIF::GetMouseScrollSpeed(bool fine)
 {
 	double f;
 
-	if (fine) f=CoreConfig->MouseFineScrollSpeedFactor*0.1;
-	else      f=CoreConfig->MouseScrollSpeedFactor;
+	f=CoreConfig->MouseScrollSpeed;
+	if (fine) f*=0.1;
 	if (CoreConfig->PanFunction) f=-f; else f=6.0*f;
 	return f;
 }
 
 
-double emMouseZoomScrollVIF::GetWheelZoomSpeed(bool fine) const
+void emMouseZoomScrollVIF::UpdateWheelZoomSpeed(bool down, bool fine)
 {
-	double f;
+	double dt,newSpeed,a,aMin,t1,t2,f1,f2;
+	emUInt64 clk;
 
-	if (fine) f=CoreConfig->WheelFineZoomSpeedFactor*0.1;
-	else      f=CoreConfig->WheelZoomSpeedFactor;
-	return pow(2.0,f);
+	clk=GetView().GetInputClockMS();
+	dt=(clk-WheelZoomTime)*0.001;
+	WheelZoomTime=clk;
+
+	newSpeed=CoreConfig->MouseWheelZoomSpeed * log(sqrt(2.0));
+	if (fine) newSpeed*=0.1;
+	if (down) newSpeed=-newSpeed;
+
+	a = CoreConfig->MouseWheelZoomAcceleration;
+	aMin = CoreConfig->MouseWheelZoomAcceleration.GetMinValue();
+	if (a>aMin*1.0001) {
+		t1 = 0.03;
+		t2 = 0.35;
+		f1 = pow(2.2,a);
+		f2 = pow(0.4,a);
+		if (newSpeed*WheelZoomSpeed<0.0) dt=t2;
+		if (dt<t1) dt=t1;
+		if (dt>t2) dt=t2;
+		newSpeed *= exp(log(f1) + (log(f2)-log(f1))*(dt-t1)/(t2-t1));
+	}
+
+	WheelZoomSpeed=newSpeed;
+}
+
+
+void emMouseZoomScrollVIF::SetMouseAnimParams()
+{
+	double k,kMin,zflpp;
+
+	k=CoreConfig->KineticZoomingAndScrolling;
+	kMin=CoreConfig->KineticZoomingAndScrolling.GetMinValue();
+	if (k<kMin*1.0001) {
+		k=0.001;
+	}
+	zflpp=GetView().GetZoomFactorLogarithmPerPixel();
+	MouseAnim.SetSpringConstant(2500.0/(k*k));
+	MouseAnim.SetFriction(2.0/zflpp/(k*k));
+	MouseAnim.SetFrictionEnabled(true);
+}
+
+
+void emMouseZoomScrollVIF::SetWheelAnimParams()
+{
+	double k,kMin,zflpp;
+
+	k=CoreConfig->KineticZoomingAndScrolling;
+	kMin=CoreConfig->KineticZoomingAndScrolling.GetMinValue();
+	if (k<kMin*1.0001) {
+		k=0.001;
+	}
+	zflpp=GetView().GetZoomFactorLogarithmPerPixel();
+	WheelAnim.SetSpringConstant(480.0/(k*k));
+	WheelAnim.SetFriction(2.0/zflpp/(k*k));
+	WheelAnim.SetFrictionEnabled(true);
+}
+
+
+void emMouseZoomScrollVIF::InitMagnetismAvoidance()
+{
+	MagAvMouseMoveX=0.0;
+	MagAvMouseMoveY=0.0;
+	MagAvTime=GetView().GetInputClockMS();
+	MagnetismAvoidance=false;
+}
+
+
+void emMouseZoomScrollVIF::UpdateMagnetismAvoidance(double dmx, double dmy)
+{
+	static const double MOUSE_HOLD_MAX_MOVE = 2.0;
+	static const emUInt64 MOUSE_HOLD_TIME = 750;
+	emUInt64 clk;
+	double r;
+
+	clk=GetView().GetInputClockMS();
+	MagAvMouseMoveX += dmx;
+	MagAvMouseMoveY += dmy;
+	r=sqrt(MagAvMouseMoveX*MagAvMouseMoveX+MagAvMouseMoveY*MagAvMouseMoveY);
+	if (r>MOUSE_HOLD_MAX_MOVE) {
+		MagAvMouseMoveX=0.0;
+		MagAvMouseMoveY=0.0;
+		MagAvTime=clk;
+	}
+	MagnetismAvoidance = (clk-MagAvTime>=MOUSE_HOLD_TIME);
 }
 
 
@@ -325,17 +452,11 @@ double emMouseZoomScrollVIF::GetWheelZoomSpeed(bool fine) const
 //==============================================================================
 
 emKeyboardZoomScrollVIF::emKeyboardZoomScrollVIF(emView & view, emViewInputFilter * next)
-	: emViewInputFilter(view,next)
+	: emViewInputFilter(view,next),
+	Animator(view)
 {
 	CoreConfig=emCoreConfig::Acquire(view.GetRootContext());
 	Active=false;
-	TargetVx=0.0;
-	TargetVy=0.0;
-	TargetVz=0.0;
-	CurrentVx=0.0;
-	CurrentVy=0.0;
-	CurrentVz=0.0;
-	LastClock=0;
 	NavByProgState=0;
 }
 
@@ -347,9 +468,10 @@ emKeyboardZoomScrollVIF::~emKeyboardZoomScrollVIF()
 
 void emKeyboardZoomScrollVIF::Input(emInputEvent & event, const emInputState & state)
 {
-	double vs,vz;
+	double vs,vz,tx,ty,tz;
 
 	if ((GetView().GetViewFlags()&emView::VF_NO_USER_NAVIGATION)!=0) {
+		if (Animator.IsActive()) Animator.Deactivate();
 		Active=false;
 		NavByProgState=0;
 		ForwardInput(event,state);
@@ -371,109 +493,42 @@ void emKeyboardZoomScrollVIF::Input(emInputEvent & event, const emInputState & s
 			event.GetKey()==EM_KEY_PAGE_UP
 		)
 	) {
-		if (!Active) {
-			Active=true;
-			CurrentVx=0.0;
-			CurrentVy=0.0;
-			CurrentVz=0.0;
-			LastClock=GetView().GetInputClockMS();
-			WakeUp();
+		Active=true;
+		if (!Animator.IsActive()) {
+			Animator.Activate();
+			Animator.SetDeactivateWhenIdle(false);
 		}
 	}
 
+	if (!Animator.IsActive()) {
+		Active=false;
+	}
+
 	if (Active) {
-		TargetVx=0.0;
-		TargetVy=0.0;
-		TargetVz=0.0;
-		if (state.Get(EM_KEY_ALT)) {
-			vs=GetKeyboardScrollSpeed(state.Get(EM_KEY_SHIFT));
-			vz=GetKeyboardZoomSpeed(state.Get(EM_KEY_SHIFT));
-			if (state.Get(EM_KEY_CURSOR_LEFT )) TargetVx-=vs;
-			if (state.Get(EM_KEY_CURSOR_RIGHT)) TargetVx+=vs;
-			if (state.Get(EM_KEY_CURSOR_UP   )) TargetVy-=vs;
-			if (state.Get(EM_KEY_CURSOR_DOWN )) TargetVy+=vs;
-			if (state.Get(EM_KEY_PAGE_DOWN   )) TargetVz-=vz;
-			if (state.Get(EM_KEY_PAGE_UP     )) TargetVz+=vz;
+		tx=0.0;
+		ty=0.0;
+		tz=0.0;
+		if (GetView().IsFocused() && state.Get(EM_KEY_ALT)) {
+			vs=GetScrollSpeed(state.Get(EM_KEY_SHIFT));
+			vz=GetZoomSpeed(state.Get(EM_KEY_SHIFT));
+			if (state.Get(EM_KEY_CURSOR_LEFT )) tx-=vs;
+			if (state.Get(EM_KEY_CURSOR_RIGHT)) tx+=vs;
+			if (state.Get(EM_KEY_CURSOR_UP   )) ty-=vs;
+			if (state.Get(EM_KEY_CURSOR_DOWN )) ty+=vs;
+			if (state.Get(EM_KEY_PAGE_DOWN   )) tz-=vz;
+			if (state.Get(EM_KEY_PAGE_UP     )) tz+=vz;
+		}
+		SetAnimatorParameters();
+		Animator.SetTargetVelocity(0,tx);
+		Animator.SetTargetVelocity(1,ty);
+		Animator.SetTargetVelocity(2,tz);
+		if (Animator.GetAbsTargetVelocity()<0.01) {
+			Animator.SetDeactivateWhenIdle(true);
+			Active=false;
 		}
 	}
 
 	ForwardInput(event,state);
-}
-
-
-bool emKeyboardZoomScrollVIF::Cycle()
-{
-	double dt,sx,sy,sw,sh,x1,y1,x2,y2,vs,vz;
-	emScreen * screen;
-	emUInt64 clk;
-
-	if (!GetView().IsFocused()) {
-		Active=false;
-		return false;
-	}
-
-	clk=GetView().GetInputClockMS();
-	dt=(clk-LastClock)*0.001;
-	LastClock=clk;
-	if (dt<=0.0) return true;
-	if (dt>1.0) dt=1.0;
-	vs=GetKeyboardScrollSpeed(false);
-	vz=GetKeyboardZoomSpeed(false);
-	CurrentVx=Impulse(CurrentVx,TargetVx,vs,dt);
-	CurrentVy=Impulse(CurrentVy,TargetVy,vs,dt);
-	CurrentVz=Impulse(CurrentVz,TargetVz,vz,dt);
-	Active=false;
-	if (fabs(TargetVx)>0.1 || fabs(TargetVy)>0.1 || fabs(TargetVz)>0.001) {
-		Active=true;
-	}
-	if (fabs(CurrentVx)>0.1 || fabs(CurrentVy)>0.1) {
-		GetView().Scroll(CurrentVx*dt,CurrentVy*dt);
-		Active=true;
-	}
-	if (fabs(CurrentVz)>0.001) {
-		x1=GetView().GetCurrentX();
-		y1=GetView().GetCurrentY();
-		x2=x1+GetView().GetCurrentWidth();
-		y2=y1+GetView().GetCurrentHeight();
-		if (GetView().IsPoppedUp()) {
-			screen=GetView().GetScreen();
-			if (screen) {
-				screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-				if (x1<sx) x1=sx;
-				if (y1<sy) y1=sy;
-				if (x2>sx+sw) x2=sx+sw;
-				if (y2>sy+sh) y2=sy+sh;
-			}
-		}
-		GetView().Zoom((x1+x2)*0.5,(y1+y2)*0.5,exp(CurrentVz*dt));
-		Active=true;
-	}
-	return Active;
-}
-
-
-double emKeyboardZoomScrollVIF::Impulse(double cv, double tv, double mv, double dt)
-{
-//???:
-#if 1
-	static const double tBrake=1E-10;
-	static const double tAccel=1E-10;
-#else
-	static const double tBrake=5.0;
-	static const double tAccel=1.0;
-#endif
-	double t;
-
-	if (fabs(cv)<fabs(tv) || cv*tv<0.0) t=tAccel; else t=tBrake;
-	if (cv>tv) {
-		cv-=mv*dt/t;
-		if (cv<tv) cv=tv;
-	}
-	else if (cv<tv) {
-		cv+=mv*dt/t;
-		if (cv>tv) cv=tv;
-	}
-	return cv;
 }
 
 
@@ -558,30 +613,48 @@ void emKeyboardZoomScrollVIF::NavigateByProgram(
 }
 
 
-double emKeyboardZoomScrollVIF::GetKeyboardZoomSpeed(bool fine)
+double emKeyboardZoomScrollVIF::GetZoomSpeed(bool fine)
 {
 	double f;
 
-	if (fine) f=CoreConfig->KeyboardFineZoomSpeedFactor*0.1;
-	else      f=CoreConfig->KeyboardZoomSpeedFactor;
-	return f*4.1;
+	f=CoreConfig->KeyboardZoomSpeed;
+	if (fine) f*=0.1;
+	f/=GetView().GetZoomFactorLogarithmPerPixel();
+	f*=2.0;
+	return f;
 }
 
 
-double emKeyboardZoomScrollVIF::GetKeyboardScrollSpeed(bool fine)
+double emKeyboardZoomScrollVIF::GetScrollSpeed(bool fine)
 {
-	emScreen * screen;
-	double sx,sy,sw,sh;
 	double f;
 
-	if (fine) f=CoreConfig->KeyboardFineScrollSpeedFactor*0.1;
-	else      f=CoreConfig->KeyboardScrollSpeedFactor;
-	screen=GetView().GetScreen();
-	if (screen) {
-		screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-		f*=(sw+sh)/(1024.0+768.0);
+	f=CoreConfig->KeyboardScrollSpeed;
+	if (fine) f*=0.1;
+	f/=GetView().GetZoomFactorLogarithmPerPixel();
+	f*=2.0;
+	return f;
+}
+
+
+void emKeyboardZoomScrollVIF::SetAnimatorParameters()
+{
+	static const double tFriction=1.6;
+	static const double tAccel=0.6;
+	static const double tReverse=0.2;
+	double v,k,kMin;
+
+	v=(GetScrollSpeed()+GetZoomSpeed())*0.5;
+	k=CoreConfig->KineticZoomingAndScrolling;
+	kMin=CoreConfig->KineticZoomingAndScrolling.GetMinValue();
+	if (k<kMin*1.0001) {
+		k=0.001;
 	}
-	return f*750;
+	Animator.CenterZoomFixPoint();
+	Animator.SetAcceleration(v/(k*tAccel));
+	Animator.SetReverseAcceleration(v/(k*tReverse));
+	Animator.SetFriction(v/(k*tFriction));
+	Animator.SetFrictionEnabled(true);
 }
 
 
@@ -684,11 +757,11 @@ void emCheatVIF::Input(emInputEvent & event, const emInputState & state)
 					&str
 				)
 			) {
-				throw str;
+				throw emException("%s",str.Get());
 			}
 		}
-		catch (emString errorMessage) {
-			emWarning("%s",errorMessage.Get());
+		catch (emException & exception) {
+			emWarning("%s",exception.GetText());
 		}
 		if (lib) emCloseLib(lib);
 	}

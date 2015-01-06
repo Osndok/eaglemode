@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,7 +90,7 @@ emWindow::~emWindow()
 		// Found a child window to delete, but popup windows of views
 		// must not be deleted directly (??? still a problem of emView).
 		vw=dynamic_cast<emView*>(win->GetParentContext());
-		if (vw && vw->IsPoppedUp()) vw->ZoomOut();
+		if (vw && vw->IsPoppedUp()) vw->RawZoomOut();
 		else delete win;
 	}
 

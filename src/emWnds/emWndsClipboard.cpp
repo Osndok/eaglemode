@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsClipboard.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -74,7 +74,7 @@ void emWndsClipboard::Clear(bool selection, emInt64 selectionId)
 {
 	if (selection) {
 		if (CurrentSelectionId==selectionId) {
-			SelectionText.Empty();
+			SelectionText.Clear();
 			CurrentSelectionId++;
 		}
 	}

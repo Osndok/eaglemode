@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,7 +62,7 @@ const char * emVirtualCosmosItemRec::GetFormatName() const
 
 void emVirtualCosmosItemRec::TryPrepareItemFile(
 	const emString & origDir, const emString & userDir
-) throw(emString)
+) throw(emException)
 {
 	emString srcPath,tgtDir;
 
@@ -153,8 +153,8 @@ void emVirtualCosmosModel::Reload()
 	try {
 		fileNames=emTryLoadDir(itemsDir);
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 	}
 	fileNames.Sort(emStdComparer<emString>::Compare);
 
@@ -169,8 +169,8 @@ void emVirtualCosmosModel::Reload()
 		try {
 			mt=emTryGetFileTime(path);
 		}
-		catch (emString errorMessage) {
-			emFatalError("%s",errorMessage.Get());
+		catch (emException & exception) {
+			emFatalError("%s",exception.GetText());
 			mt=0;
 		}
 		for (;;) {
@@ -201,8 +201,8 @@ void emVirtualCosmosModel::Reload()
 				Items[j].ItemRec->TryLoad(path);
 				Items[j].ItemRec->TryPrepareItemFile(itemFilesDir,itemFilesUserDir);
 			}
-			catch (emString errorMessage) {
-				emWarning("%s",errorMessage.Get());
+			catch (emException & exception) {
+				emWarning("%s",exception.GetText());
 				delete Items[j].ItemRec;
 				Items.Remove(j);
 				if (changed==1) changed=0; else changed=2;
@@ -217,7 +217,7 @@ void emVirtualCosmosModel::Reload()
 		Items.Remove(j);
 		changed=2;
 	}
-	fileNames.Empty(true);
+	fileNames.Clear(true);
 	if (changed) {
 		ItemRecs.SetCount(Items.GetCount());
 		for (i=Items.GetCount()-1; i>=0; i--) {
@@ -284,7 +284,7 @@ void emVirtualCosmosItemPanel::SetItemRec(emVirtualCosmosItemRec * itemRec)
 	if (GetItemRec()!=itemRec) {
 		SetListenedRec(itemRec);
 		UpdateFromRecNeeded=true;
-		WakeUp();
+		UpdateFromRec();
 	}
 }
 
@@ -420,10 +420,7 @@ void emVirtualCosmosItemPanel::AutoExpand()
 	fppl=emFpPluginList::Acquire(GetRootContext());
 	ContentPanel=fppl->CreateFilePanel(this,"",Path,Alt);
 	if (IsActive()) {
-		LayoutContentPanel();
-		if (ContentPanel->IsViewed()) {
-			GetView().VisitLazy(ContentPanel,GetView().IsVisitAdherent());
-		}
+		ContentPanel->Activate(IsActivatedAdherent());
 	}
 	SetFocusable(false);
 	if (!ItemFocusable) {

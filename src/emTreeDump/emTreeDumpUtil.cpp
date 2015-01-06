@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpUtil.cpp
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,7 +85,6 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 	emPanel * childPanel;
 	int i,n,commonCount,privateCount;
 	double d1,d2,d3,d4;
-	char tmp[64];
 
 	className=emTreeDump_GetClassName(typeid(*object));
 	title=className;
@@ -189,13 +188,13 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 		text+=asView->GetTitle();
 		text+=emString::Format(
 			"\nFocused: %s"
-			"\nVisit Adherent: %s"
+			"\nActivation Adherent: %s"
 			"\nPopped Up: %s"
 			"\nBackground Color: 0x%08X"
 			"\nHome XYWH: %.9G, %.9G, %.9G, %.9G"
 			"\nCurrent XYWH: %.9G, %.9G, %.9G, %.9G",
 			(asView->IsFocused() ? "yes" : "no"),
-			(asView->IsVisitAdherent() ? "yes" : "no"),
+			(asView->IsActivationAdherent() ? "yes" : "no"),
 			(asView->IsPoppedUp() ? "yes" : "no"),
 			(int)asView->GetBackgroundColor(),
 			asView->GetHomeX(),
@@ -252,13 +251,9 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 		else rec->BgColor=emColor(68,85,68);
 		if (asPanel->IsInFocusedPath()) rec->FgColor=emColor(238,238,68);
 		else if (asPanel->IsInActivePath()) rec->FgColor=emColor(238,238,136);
-		else if (asPanel->IsInVisitedPath()) rec->FgColor=emColor(238,170,170);
 		else rec->FgColor=emColor(238,238,238);
 		rec->Frame=emTreeDumpRec::FRAME_RECTANGLE;
 		text+="\nName: "; text+=asPanel->GetName();
-		text+="\nCreationNumber: ";
-		n=emUInt64ToStr(tmp,sizeof(tmp),asPanel->GetCreationNumber());
-		text+=emString(tmp,n);
 		text+="\nTitle: "; text+=asPanel->GetTitle();
 		text+=emString::Format(
 			"\nLayout XYWH: %.9G, %.9G, %.9G, %.9G",
@@ -304,8 +299,6 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 		text+=emString::Format("\nEnableSwitch: %s",asPanel->GetEnableSwitch()?"yes":"no");
 		text+=emString::Format("\nEnabled: %s",asPanel->IsEnabled()?"yes":"no");
 		text+=emString::Format("\nFocusable: %s",asPanel->IsFocusable()?"yes":"no");
-		text+=emString::Format("\nVisited: %s",asPanel->IsVisited()?"yes":"no");
-		text+=emString::Format("\nInVisitedPath: %s",asPanel->IsInVisitedPath()?"yes":"no");
 		text+=emString::Format("\nActive: %s",asPanel->IsActive()?"yes":"no");
 		text+=emString::Format("\nInActivePath: %s",asPanel->IsInActivePath()?"yes":"no");
 		text+=emString::Format("\nFocused: %s",asPanel->IsFocused()?"yes":"no");
@@ -422,7 +415,7 @@ void emTreeDumpFromRootContext(emRootContext * rootContext, emTreeDumpRec * rec)
 
 void emTryTreeDumpFileFromRootContext(
 	emRootContext * rootContext, const char * filename
-) throw(emString)
+) throw(emException)
 {
 	emTreeDumpRec rec;
 
@@ -440,11 +433,11 @@ extern "C" {
 		try {
 			emTryTreeDumpFileFromRootContext(rootContext,filename);
 		}
-		catch (emString errorMessage) {
-			*errorBuf=errorMessage;
+		catch (emException & exception) {
+			*errorBuf=exception.GetText();
 			return false;
 		}
-		errorBuf->Empty();
+		errorBuf->Clear();
 		return true;
 	}
 }

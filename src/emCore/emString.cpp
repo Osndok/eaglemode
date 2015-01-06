@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.cpp
 //
-// Copyright (C) 2004-2008,2011 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -463,7 +463,7 @@ void emString::Remove(int index, int len)
 
 
 #ifdef EM_NO_DATA_EXPORT
-void emString::Empty()
+void emString::Clear()
 {
 	if (!--Data->RefCount) FreeData();
 	Data=&EmptyData;
@@ -475,13 +475,6 @@ unsigned int emString::GetDataRefCount() const
 {
 	return Data==&EmptyData ? UINT_MAX/2 : Data->RefCount;
 }
-
-
-#if defined(ANDROID)
-void emString::VirtualDummyMethod()
-{
-}
-#endif
 
 
 void emString::FreeData()

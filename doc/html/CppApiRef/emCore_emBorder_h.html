@@ -1,0 +1,439 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emBorder.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emBorder_h
+#define emBorder_h
+
+#ifndef emVarModel_h
+#include &lt;<A CLASS=f HREF="emCore_emVarModel_h.html">emCore/emVarModel.h</A>&gt;
+#endif
+
+#ifndef emLook_h
+#include &lt;<A CLASS=f HREF="emCore_emLook_h.html">emCore/emLook.h</A>&gt;
+#endif
+
+
+<A NAME="emBorder"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This is the base class of all toolkit panels. A panel of this class
+        // can have a border, a label, a how-to text and an auxiliary area. And
+        // it has a content area. The label can consist of a caption, a
+        // description and an icon. The how-to text describes how to use the
+        // type of panel in general, and maybe something about its state. The
+        // auxiliary area is for showing a custom panel with additional things
+        // like a configuration or an extended help text. The label, the how-to
+        // text and the auxiliary area are shown in the border. Alternatively, a
+        // derived class can manage to move the label into the content area.
+
+        </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetCaption() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetCaption(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption);
+                <SPAN CLASS=c>// The caption to be shown in the label.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetDescription() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDescription(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description);
+                <SPAN CLASS=c>// The description to be shown in the label.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetIcon() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetIcon(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon);
+                <SPAN CLASS=c>// The icon to be shown in the label.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetLabel(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Set all three things which are making up the label.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetLabelAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetLabelAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> labelAlignment);
+                <SPAN CLASS=c>// Alignment of the label as a whole within its available space.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetCaptionAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetCaptionAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> captionAlignment);
+                <SPAN CLASS=c>// Horizontal alignment of lines within the caption text of the
+                // label. The top and bottom flags are ignored.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetDescriptionAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDescriptionAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> descriptionAlignment);
+                <SPAN CLASS=c>// Horizontal alignment of lines within the description text of
+                // the label. The top and bottom flags are ignored.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>OuterBorderType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possibles types for the outer border line. This even
+                // specifies whether the background of the panel should be
+                // filled or not.
+                </SPAN>OBT_NONE,
+                        <SPAN CLASS=c>// Do not have an outer border line, do not have a
+                        // margin and do not fill the background.
+                </SPAN>OBT_FILLED,
+                        <SPAN CLASS=c>// Like OBT_NONE, but fill the whole background with
+                        // background color.
+                </SPAN>OBT_MARGIN,
+                        <SPAN CLASS=c>// Like OBT_NONE, but have a small margin (for example,
+                        // this is used by <A CLASS=m HREF="emCore_emLabel_h.html#emLabel">emLabel</A> and <A CLASS=m HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A>). Larger
+                        // margins should be solved through the parent panel,
+                        // e.g. see <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::SetSpace.
+                </SPAN>OBT_MARGIN_FILLED,
+                        <SPAN CLASS=c>// Like OBT_MARGIN, but fill the whole background.
+                </SPAN>OBT_RECT,
+                        <SPAN CLASS=c>// Have a rectangular outer border line and fill the
+                        // rectangle with background color. Have a small margin.
+                </SPAN>OBT_ROUND_RECT,
+                        <SPAN CLASS=c>// Like OBT_RECT but with round corners.
+                </SPAN>OBT_GROUP,
+                        <SPAN CLASS=c>// Have a small special outer border for groups (used by
+                        // <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A>).
+                </SPAN>OBT_INSTRUMENT,
+                        <SPAN CLASS=c>// Like OBT_GROUP, but the border line is thicker (for
+                        // example, this is used by <A CLASS=m HREF="emCore_emTextField_h.html#emTextField">emTextField</A>).
+                </SPAN>OBT_INSTRUMENT_MORE_ROUND,
+                        <SPAN CLASS=c>// Like OBT_INSTRUMENT, but with a larger corner radius
+                        // (this is used by <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A>).
+                </SPAN>OBT_POPUP_ROOT
+                        <SPAN CLASS=c>// Have a special border for root panels of views which
+                        // have the VF_POPUP_ZOOM flag set (should not be used
+                        // for something else).
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>InnerBorderType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possibles types for the inner border line.
+                </SPAN>IBT_NONE,
+                        <SPAN CLASS=c>// Do not have an inner border line.
+                </SPAN>IBT_GROUP,
+                        <SPAN CLASS=c>// Have a special round inner border line for groups.
+                </SPAN>IBT_INPUT_FIELD,
+                        <SPAN CLASS=c>// Have a special round inner border and background for
+                        // editable fields.
+                </SPAN>IBT_OUTPUT_FIELD,
+                        <SPAN CLASS=c>// Have a special round inner border and background for
+                        // non-editable fields.
+                </SPAN>IBT_CUSTOM_RECT
+                        <SPAN CLASS=c>// Have a special rectangular inner border for custom
+                        // stuff. Herewith, the content rectangle never has
+                        // round corners.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        OuterBorderType GetOuterBorderType() <SPAN CLASS=t>const</SPAN>;
+        InnerBorderType GetInnerBorderType() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetOuterBorderType(OuterBorderType obt);
+        <SPAN CLASS=t>void </SPAN>SetInnerBorderType(InnerBorderType ibt);
+        <SPAN CLASS=t>void </SPAN>SetBorderType(OuterBorderType obt, InnerBorderType ibt);
+                <SPAN CLASS=c>// Outer and inner border types. The default is OBT_NONE and
+                // IBT_NONE.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetBorderScaling() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetBorderScaling(<SPAN CLASS=t>double </SPAN>borderScaling);
+                <SPAN CLASS=c>// Scale factor for the size of the border. The default is 1.0.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; GetLook() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>SetLook(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look, <SPAN CLASS=t>bool </SPAN>recursively=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Look of this toolkit panel. At construction of a panel, the
+                // look is copied from the parent panel (if the parent is not
+                // <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>, the grand parent is asked, and so on). When
+                // setting the look with the argument recursively=true, all
+                // descendant panels of class <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A> are even set through
+                // calling <A CLASS=m HREF="emCore_emLook_h.html#emLook">emLook</A>::Apply for every child panel.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>HaveAux(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; panelName, <SPAN CLASS=t>double </SPAN>tallness);
+                <SPAN CLASS=c>// Make this border having a rectangular area for auxiliary
+                // stuff. It could be a user interface for configuring this
+                // panel, or an extended function, or some additional help or
+                // what ever you want. Either you could show the things through
+                // a child panel or through custom painting, but doing it with a
+                // child panel is easier. Whenever you create that panel. It is
+                // laid out automatically into the auxiliary area.
+                // Arguments:
+                //   panelName - Name of the child panel to be laid out in the
+                //               auxiliary area.
+                //   tallness  - Height/width ratio of the auxiliary area.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveAux();
+                <SPAN CLASS=c>// Inversion of HaveAux (does not delete the auxiliary panel).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>HasAux() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether this border has an area for auxiliary stuff.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetAuxPanelName() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetAuxTallness() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Properties of the auxiliary area set with HaveAux. Valid only
+                // if HasAux()==true.
+
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetAuxPanel();
+                <SPAN CLASS=c>// Returns the auxiliary child panel, or NULL if not present.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>GetAuxRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get the coordinates and canvas color of the auxiliary area.
+                // Valid only if HasAux()==true.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get the coordinates and canvas color of the content area as a
+                // rectangle. If the inner border has round corners, the
+                // rectangle returned here is smaller than with
+                // GetContentRoundRect, so that it fits completely into the
+                // content area.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRoundRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get the coordinates and canvas color of the content area as a
+                // round rectangle (argument pR is for returning the radius of
+                // the corners).
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>. Hint: For painting the content area, please
+                // overload PaintContent instead of Paint, because with certain
+                // border types, a shadow is painted over the content area.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+                <SPAN CLASS=c>// This is about a text describing how to use this panel. If
+                // HasHowTo()==true, the text returned by GetHowTo() is shown
+                // very small in the center of the left edge of the border. When
+                // overloading GetHowTo(), please do not forget to call the
+                // original version and to include that text at the beginning.
+                // The default implementation of GetHowTo() returns a preface,
+                // and optionally a description of the disable state (if
+                // disabled) and optionally a description of the keyboard focus
+                // (if focusable). The default implementation of HasHowTo()
+                // return false, because the default text alone is not so
+                // helpful, and because the text would disturb some panel types.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+                <SPAN CLASS=c>// This can be overloaded for painting the content area. The
+                // default implementation does nothing. The coordinates x,y,w,h
+                // are like from GetContentRect, but you could even use the
+                // coordinates returned by GetContentRoundRect.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasLabel();
+                <SPAN CLASS=c>// Whether this panel has a label. The default implementation
+                // checks whether at least one of caption, description and icon
+                // is not empty.
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetBestLabelTallness();
+                <SPAN CLASS=c>// Get the ideal tallness for the label area. The default
+                // implementation calculates this for the default implementation
+                // of PaintLabel.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>PaintLabel(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+                <SPAN CLASS=c>// Paint the label. The default implementation paints the
+                // caption, description and icon. This could be overloaded to
+                // paint something else for the label.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsLabelInBorder() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetLabelInBorder(<SPAN CLASS=t>bool </SPAN>labelInBorder);
+                <SPAN CLASS=c>// Whether to show the label as part of the border. The default
+                // is true. If a derived class wants to have the label as part
+                // of the content, it should set false here and call PaintLabel
+                // itself.
+
+        </SPAN><SPAN CLASS=t>struct </SPAN>TkResources <SPAN CLASS=b>{
+                </SPAN>TkResources();
+                ~TkResources();
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButton;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButtonBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButtonChecked;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgButtonPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgCheckBox;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgCheckBoxPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgCustomRectBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgGroupBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgGroupInnerBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgIOField;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgPopupBorder;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgRadioBox;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgRadioBoxPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgSplitter;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgSplitterPressed;
+                <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> ImgTunnel;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>const </SPAN>TkResources &amp; GetTkResources() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Shared resources used by the toolkit panel implementations.
+                // This is more or less private stuff - do not use in custom
+                // classes.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoBorderFunc <SPAN CLASS=b>{
+                </SPAN>BORDER_FUNC_PAINT,
+                BORDER_FUNC_CONTENT_RECT,
+                BORDER_FUNC_CONTENT_ROUND_RECT,
+                BORDER_FUNC_AUX_RECT
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoBorder(
+                DoBorderFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
+                <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor
+        );
+
+        <SPAN CLASS=t>enum </SPAN>DoLabelFunc <SPAN CLASS=b>{
+                </SPAN>LABEL_FUNC_PAINT,
+                LABEL_FUNC_GET_BEST_TALLNESS
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoLabel(
+                DoLabelFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y,
+                <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>* pBestTallness
+        );
+
+        <SPAN CLASS=t>struct </SPAN>AuxData <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> PanelName;
+                <SPAN CLASS=t>double </SPAN>Tallness;
+                <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>&gt; PanelPointerCache;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emVarModel_h.html#emVarModel">emVarModel</A>&lt;TkResources&gt; &gt; TkResVarModel;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Caption;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Description;
+        <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> Icon;
+        AuxData * Aux;
+        <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> Look;
+        <SPAN CLASS=t>double </SPAN>BorderScaling;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> LabelAlignment;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> CaptionAlignment;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> DescriptionAlignment;
+        emByte OuterBorder;
+        emByte InnerBorder;
+        <SPAN CLASS=t>bool </SPAN>LabelInBorder;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToPreface;
+        <SPAN CLASS=t>static const char </SPAN>* HowToDisabled;
+        <SPAN CLASS=t>static const char </SPAN>* HowToFocus;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetCaption() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Caption;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetDescription() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Description;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetIcon() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Icon;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetLabelAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LabelAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetCaptionAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CaptionAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetDescriptionAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DescriptionAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::OuterBorderType <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetOuterBorderType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(OuterBorderType)OuterBorder;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::InnerBorderType <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetInnerBorderType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(InnerBorderType)InnerBorder;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetBorderScaling() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>BorderScaling;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetLook() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Look;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::HasAux() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Aux!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::IsLabelInBorder() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LabelInBorder;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::TkResources &amp; <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetTkResources() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TkResVarModel-&gt;Var;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

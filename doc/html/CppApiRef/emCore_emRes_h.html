@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emRes.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@
 </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emGetResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath,
                       <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>);
 <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emTryGetResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath,
-                         <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                         <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Get a resource image. An image file is loaded and cached in the root
         // context for quick shared re-use. This means, if the image is already
         // cached, it is not loaded again and a shallow copy of that image is
@@ -67,7 +67,7 @@
                          <SPAN CLASS=t>const char </SPAN>* subPath, <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>);
 <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> emTryGetInsResImage(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* prj,
                             <SPAN CLASS=t>const char </SPAN>* subPath,
-                            <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                            <SPAN CLASS=t>int </SPAN>channelCount=-<SPAN CLASS=u>1</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Get an installed resource image. This is like
         // em[Try]GetResImage(
         //   rootContext,
@@ -121,7 +121,7 @@
 
         <SPAN CLASS=t>const </SPAN>CLS &amp; Get();
         <SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN>CLS &amp; res);
-                <SPAN CLASS=c>// Both methods are reseting the auto-delete mechanism.
+                <SPAN CLASS=c>// Both methods are resetting the auto-delete mechanism.
                 // (Therefore the Get method is non-const)
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:

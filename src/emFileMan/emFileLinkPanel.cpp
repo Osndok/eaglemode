@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkPanel.cpp
 //
-// Copyright (C) 2007-2008,2010 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -67,7 +67,7 @@ void emFileLinkPanel::SetFileModel(
 	Model=dynamic_cast<emFileLinkModel*>(fileModel);
 	emFilePanel::SetFileModel(Model,updateFileModel);
 	if (Model) AddWakeUpSignal(Model->GetChangeSignal());
-	CachedFullPath.Empty();
+	CachedFullPath.Clear();
 	DirEntryUpToDate=false;
 	InvalidatePainting();
 	UpdateChildPanel(true);
@@ -100,7 +100,7 @@ bool emFileLinkPanel::Cycle()
 	}
 
 	if (Model && IsSignaled(Model->GetChangeSignal())) {
-		CachedFullPath.Empty();
+		CachedFullPath.Clear();
 		DirEntryUpToDate=false;
 		doUpdate=true;
 		fromScratch=true;
@@ -282,8 +282,7 @@ void emFileLinkPanel::UpdateChildPanel(bool forceRecreation)
 		}
 		if (!HaveBorder) {
 			if (IsActive()) {
-				LayoutChildPanel();
-				GetView().VisitLazy(ChildPanel,GetView().IsVisitAdherent());
+				ChildPanel->Activate(IsActivatedAdherent());
 			}
 			SetFocusable(false);
 		}

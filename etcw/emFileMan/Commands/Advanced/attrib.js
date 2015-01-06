@@ -25,7 +25,7 @@ incFile.Close();
 
 ErrorIfNoTargets();
 
-ConfirmIfTargetsAccrossDirs();
+ConfirmIfTargetsAcrossDirs();
 
 var oldAttr=-1;
 

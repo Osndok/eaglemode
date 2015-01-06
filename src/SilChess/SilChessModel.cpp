@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessModel.cpp
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,20 +81,20 @@ void SilChessModel::ResetData()
 }
 
 
-void SilChessModel::TryStartLoading() throw(emString)
+void SilChessModel::TryStartLoading() throw(emException)
 {
 	Machine=new SilChessMachine();
 	errno=0;
 	if (!Machine->Load(GetFilePath())) {
-		if (errno) throw emGetErrorText(errno);
-		else throw emString("file format error");
+		if (errno) throw emException("%s",emGetErrorText(errno).Get());
+		else throw emException("file format error");
 	}
 	Signal(ChangeSignal);
 	ResetSearching();
 }
 
 
-bool SilChessModel::TryContinueLoading() throw(emString)
+bool SilChessModel::TryContinueLoading() throw(emException)
 {
 	return true;
 }
@@ -105,17 +105,17 @@ void SilChessModel::QuitLoading()
 }
 
 
-void SilChessModel::TryStartSaving() throw(emString)
+void SilChessModel::TryStartSaving() throw(emException)
 {
 	errno=0;
 	if (!Machine->Save(GetFilePath())) {
-		if (errno) throw emGetErrorText(errno);
-		else throw emString("unknown error");
+		if (errno) throw emException("%s",emGetErrorText(errno).Get());
+		else throw emException("unknown error");
 	}
 }
 
 
-bool SilChessModel::TryContinueSaving() throw(emString)
+bool SilChessModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

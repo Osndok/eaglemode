@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.h
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,7 +51,7 @@ public:
 	void InsertNewBookmark(int index, emView * contentView);
 	void InsertNewGroup(int index);
 	void CopyToClipboard(int index, emClipboard & clipboard);
-	void TryInsertFromClipboard(int index, emClipboard & clipboard) throw(emString);
+	void TryInsertFromClipboard(int index, emClipboard & clipboard) throw(emException);
 
 	emBookmarkRec * SearchBookmarkByHotkey(const emInputHotkey & hotkey);
 
@@ -63,6 +63,7 @@ public:
 
 private:
 
+	static emString BookmarkNameFromPanelTitle(const emString & title);
 	static emRec * AllocateUnion();
 
 };
@@ -91,7 +92,7 @@ public:
 	emBookmarksRec * GetBookmarksRec();
 	int GetIndexInBookmarksRec();
 
-	void TryPasteColorsFromClipboard(emClipboard & clipboard) throw(emString);
+	void TryPasteColorsFromClipboard(emClipboard & clipboard) throw(emException);
 };
 
 
@@ -153,7 +154,7 @@ protected:
 //========================== emBookmarkEntryAuxPanel ===========================
 //==============================================================================
 
-class emBookmarkEntryAuxPanel : public emTkGroup, private emRecListener {
+class emBookmarkEntryAuxPanel : public emGroup, private emRecListener {
 
 public:
 
@@ -163,7 +164,7 @@ public:
 	);
 	virtual ~emBookmarkEntryAuxPanel();
 
-	virtual void SetLook(const emTkLook & look, bool recursively=false);
+	virtual void SetLook(const emLook & look, bool recursively=false);
 
 protected:
 
@@ -181,27 +182,27 @@ private:
 	emCrossPtr<emView> ContentView;
 	emRef<emBookmarksModel> Model;
 	bool UpToDate;
-	emTkButton * BtNewBookmarkBefore;
-	emTkButton * BtNewGroupBefore;
-	emTkButton * BtPasteBefore;
-	emTkButton * BtCut;
-	emTkButton * BtCopy;
-	emTkTextField * TfName;
-	emTkTextField * TfDescription;
-	emTkTextField * TfIcon;
-	emTkColorField * CfBgColor;
-	emTkColorField * CfFgColor;
-	emTkButton * BtPasteColors;
-	emTkTextField * TfLocationIdentity;
-	emTkTextField * TfLocationRelX;
-	emTkTextField * TfLocationRelY;
-	emTkTextField * TfLocationRelA;
-	emTkButton * BtSetLocation;
-	emTkTextField * TfHotkey;
-	emTkRadioButton * RbVisitAtProgramStart;
-	emTkButton * BtNewBookmarkAfter;
-	emTkButton * BtNewGroupAfter;
-	emTkButton * BtPasteAfter;
+	emButton * BtNewBookmarkBefore;
+	emButton * BtNewGroupBefore;
+	emButton * BtPasteBefore;
+	emButton * BtCut;
+	emButton * BtCopy;
+	emTextField * TfName;
+	emTextField * TfDescription;
+	emTextField * TfIcon;
+	emColorField * CfBgColor;
+	emColorField * CfFgColor;
+	emButton * BtPasteColors;
+	emTextField * TfLocationIdentity;
+	emTextField * TfLocationRelX;
+	emTextField * TfLocationRelY;
+	emTextField * TfLocationRelA;
+	emButton * BtSetLocation;
+	emTextField * TfHotkey;
+	emRadioButton * RbVisitAtProgramStart;
+	emButton * BtNewBookmarkAfter;
+	emButton * BtNewGroupAfter;
+	emButton * BtPasteAfter;
 };
 
 
@@ -209,7 +210,7 @@ private:
 //============================ emBookmarksAuxPanel =============================
 //==============================================================================
 
-class emBookmarksAuxPanel : public emTkGroup, private emRecListener {
+class emBookmarksAuxPanel : public emGroup, private emRecListener {
 
 public:
 
@@ -219,7 +220,7 @@ public:
 	);
 	virtual ~emBookmarksAuxPanel();
 
-	virtual void SetLook(const emTkLook & look, bool recursively=false);
+	virtual void SetLook(const emLook & look, bool recursively=false);
 
 protected:
 
@@ -235,9 +236,9 @@ private:
 	emCrossPtr<emView> ContentView;
 	emRef<emBookmarksModel> Model;
 
-	emTkButton * BtNewBookmark;
-	emTkButton * BtNewGroup;
-	emTkButton * BtPaste;
+	emButton * BtNewBookmark;
+	emButton * BtNewGroup;
+	emButton * BtPaste;
 };
 
 
@@ -245,7 +246,7 @@ private:
 //============================== emBookmarkButton ==============================
 //==============================================================================
 
-class emBookmarkButton : public emTkButton, private emRecListener {
+class emBookmarkButton : public emButton, private emRecListener {
 
 public:
 
@@ -257,7 +258,7 @@ public:
 
 	emBookmarkRec * GetRec();
 
-	virtual void SetLook(const emTkLook & look, bool recursively=false);
+	virtual void SetLook(const emLook & look, bool recursively=false);
 
 protected:
 
@@ -286,7 +287,7 @@ inline emBookmarkRec * emBookmarkButton::GetRec()
 //============================== emBookmarksPanel ==============================
 //==============================================================================
 
-class emBookmarksPanel : public emTkGroup, private emRecListener {
+class emBookmarksPanel : public emGroup, private emRecListener {
 
 public:
 
@@ -302,7 +303,7 @@ public:
 
 	emRec * GetRec();
 
-	virtual void SetLook(const emTkLook & look, bool recursively=false);
+	virtual void SetLook(const emLook & look, bool recursively=false);
 
 protected:
 
@@ -320,7 +321,7 @@ private:
 	emRef<emBookmarksModel> Model;
 	emCrossPtr<emView> ContentView;
 	bool UpToDate;
-	emTkTiling * Tiling;
+	emTiling * Tiling;
 };
 
 inline emRec * emBookmarksPanel::GetRec()

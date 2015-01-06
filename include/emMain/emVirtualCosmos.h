@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -66,7 +66,7 @@ public:
 
 	void TryPrepareItemFile(
 		const emString & origDir, const emString & userDir
-	) throw(emString);
+	) throw(emException);
 		// Sets the item file path, and if CopyToUser is true, that copy
 		// is made if necessary. This is called by emVirtualCosmosModel
 		// when loading.

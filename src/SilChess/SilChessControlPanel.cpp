@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessControlPanel.cpp
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,15 +24,15 @@
 SilChessControlPanel::SilChessControlPanel(
 	ParentArg parent, const emString & name, SilChessModel * model
 )
-	: emTkGroup(parent,name,"SilChess")
+	: emGroup(parent,name,"SilChess")
 {
-	emTkTiling * t1, * t2;
+	emTiling * t1, * t2;
 
 	Mdl=model;
 	LastOutputDepth=0;
 
-	GrAbout=new emTkGroup(this,"about","About SilChess");
-	LbAbout=new emTkLabel(
+	GrAbout=new emGroup(this,"about","About SilChess");
+	LbAbout=new emLabel(
 		GrAbout,
 		"label",
 		"SilChess is an easy-to-use chess program for playing human versus computer.\n"
@@ -53,9 +53,9 @@ SilChessControlPanel::SilChessControlPanel(
 		"converted to queens when they reach the opposite end."
 	);
 
-	t1=new emTkTiling(this,"t");
-		t2=new emTkTiling(t1,"t");
-			BtNew=new emTkButton(
+	t1=new emTiling(this,"t");
+		t2=new emTiling(t1,"t");
+			BtNew=new emButton(
 				t2,
 				"new",
 				"New",
@@ -63,7 +63,7 @@ SilChessControlPanel::SilChessControlPanel(
 				"\n"
 				"Hotkey: Ctrl+N"
 			);
-			BtFlip=new emTkButton(
+			BtFlip=new emButton(
 				t2,
 				"flip",
 				"Flip",
@@ -71,7 +71,7 @@ SilChessControlPanel::SilChessControlPanel(
 				"\n"
 				"Hotkey: Ctrl+F"
 			);
-			BtUndo=new emTkButton(
+			BtUndo=new emButton(
 				t2,
 				"undo",
 				"Undo",
@@ -79,7 +79,7 @@ SilChessControlPanel::SilChessControlPanel(
 				"\n"
 				"Hotkey: Ctrl+Z"
 			);
-			BtHint=new emTkButton(
+			BtHint=new emButton(
 				t2,
 				"hint",
 				"Hint",
@@ -87,7 +87,7 @@ SilChessControlPanel::SilChessControlPanel(
 				"\n"
 				"Hotkey: Ctrl+H"
 			);
-			SfDepth=new emTkScalarField(
+			SfDepth=new emScalarField(
 				t2,
 				"depth",
 				"Search Depth",
@@ -101,7 +101,7 @@ SilChessControlPanel::SilChessControlPanel(
 				LastOutputDepth,
 				true
 			);
-		TfStatus=new emTkTextField(
+		TfStatus=new emTextField(
 			t1,
 			"status",
 			"Status",
@@ -171,7 +171,7 @@ bool SilChessControlPanel::Cycle()
 		}
 	}
 
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 

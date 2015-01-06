@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012 Oliver Hamann.
+// Copyright (C) 2005-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -375,7 +375,7 @@ void emX11WindowPort::PreConstruct()
 	SizeForced=false;
 	SizePending=false;
 	InvalidRects.Set(PaneX,PaneY,PaneX+PaneW,PaneY+PaneH);
-	Title.Empty();
+	Title.Clear();
 	TitlePending=true;
 	IconPending=true;
 	Cursor=-1;
@@ -1189,7 +1189,7 @@ void emX11WindowPort::UpdatePainting()
 			Screen.WaitBufs();
 		}
 	}
-	InvalidRects.Empty();
+	InvalidRects.Clear();
 }
 
 

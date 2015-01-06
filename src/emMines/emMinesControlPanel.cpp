@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,15 +24,15 @@
 emMinesControlPanel::emMinesControlPanel(
 	ParentArg parent, const emString & name, emMinesFileModel * fileModel
 )
-	: emTkTiling(parent,name)
+	: emTiling(parent,name)
 {
 	Mdl=fileModel;
 
-	GrMines=new emTkGroup(this,"","emMines");
-		GrHelp=new emTkGroup(GrMines,"help","How to play the game");
-			LbHelp=new emTkLabel(GrHelp,"text",HelpText);
-		GrStartGame=new emTkGroup(GrMines,"start","New Game");
-			SfLevel=new emTkScalarField(
+	GrMines=new emGroup(this,"","emMines");
+		GrHelp=new emGroup(GrMines,"help","How to play the game");
+			LbHelp=new emLabel(GrHelp,"text",HelpText);
+		GrStartGame=new emGroup(GrMines,"start","New Game");
+			SfLevel=new emScalarField(
 				GrStartGame,
 				"sf",
 				"Level of Difficulty",
@@ -43,7 +43,7 @@ emMinesControlPanel::emMinesControlPanel(
 				1,5,Mdl->DetectLevel(),
 				true
 			);
-			BtStartGame=new emTkButton(
+			BtStartGame=new emButton(
 				GrStartGame,
 				"bt",
 				"Start",
@@ -90,7 +90,7 @@ bool emMinesControlPanel::Cycle()
 	if (IsSignaled(Mdl->GetChangeSignal())) {
 		SfLevel->SetValue(Mdl->DetectLevel());
 	}
-	return emTkTiling::Cycle();
+	return emTiling::Cycle();
 }
 
 

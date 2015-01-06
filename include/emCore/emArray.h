@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArray.h
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -292,7 +292,7 @@ public:
 		//   count   - Number of elements to be removed.
 		//   compact - Whether to minimize the capacity.
 
-	void Empty(bool compact=false);
+	void Clear(bool compact=false);
 		// Remove all elements (set zero count).
 		// Arguments:
 		//   compact - Whether to minimize the capacity.
@@ -911,7 +911,7 @@ template <class OBJ> inline void emArray<OBJ>::Remove(
 	PrivRep(index,count,NULL,false,0,compact);
 }
 
-template <class OBJ> inline void emArray<OBJ>::Empty(bool compact)
+template <class OBJ> inline void emArray<OBJ>::Clear(bool compact)
 {
 	PrivRep(0,Data->Count,NULL,false,0,compact);
 }

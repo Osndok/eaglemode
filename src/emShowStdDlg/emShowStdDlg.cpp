@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emShowStdDlg.cpp
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,7 +23,7 @@
 #include <emCore/emGUIFramework.h>
 
 
-class emStdDlg : public emTkDialog {
+class emStdDlg : public emDialog {
 
 public:
 
@@ -37,15 +37,15 @@ private:
 
 	void PrintHelp();
 
-	emTkLabel * Label;
-	emTkTextField * TextField;
+	emLabel * Label;
+	emTextField * TextField;
 };
 
 
 emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
-	: emTkDialog(parentContext)
+	: emDialog(parentContext)
 {
-	emTkTiling * t;
+	emTiling * t;
 	int i;
 
 	Label=NULL;
@@ -63,12 +63,12 @@ emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
 
 	if (i+3==argc && strcmp(argv[i],"message")==0) {
 		SetRootTitle(argv[i+1]);
-		Label=new emTkLabel(GetContentTiling(),"l",argv[i+2]);
+		Label=new emLabel(GetContentTiling(),"l",argv[i+2]);
 		AddOKButton();
 	}
 	else if (i+3==argc && strcmp(argv[i],"confirm")==0) {
 		SetRootTitle(argv[i+1]);
-		Label=new emTkLabel(GetContentTiling(),"l",argv[i+2]);
+		Label=new emLabel(GetContentTiling(),"l",argv[i+2]);
 		AddOKCancelButtons();
 	}
 	else if (
@@ -77,14 +77,14 @@ emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
 	) {
 		SetRootTitle(argv[i+1]);
 		AddOKCancelButtons();
-		Label=new emTkLabel(GetContentTiling(),"l",argv[i+2]);
-		t=new emTkTiling(GetContentTiling(),"t");
+		Label=new emLabel(GetContentTiling(),"l",argv[i+2]);
+		t=new emTiling(GetContentTiling(),"t");
 		t->SetOuterSpace(0.05,0.4,0.05,0.4);
-		TextField=new emTkTextField(t,"e");
+		TextField=new emTextField(t,"e");
 		TextField->SetEditable();
 		TextField->SetText(argv[i+3]);
 		TextField->SelectAll(false);
-		TextField->ActivateLater();
+		TextField->Activate();
 		if (strcmp(argv[i],"pwedit")==0) TextField->SetPasswordMode();
 	}
 	else {

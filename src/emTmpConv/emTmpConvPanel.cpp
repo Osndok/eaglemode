@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -255,7 +255,7 @@ void emTmpConvPanel::UpdateModelClientAndChildPanel()
 			);
 			if (IsActive()) {
 				ChildPanel->Layout(0.0,0.0,1.0,GetHeight(),GetCanvasColor());
-				GetView().VisitLazy(ChildPanel,GetView().IsVisitAdherent());
+				ChildPanel->Activate(IsActivatedAdherent());
 			}
 			SetFocusable(false);
 		}

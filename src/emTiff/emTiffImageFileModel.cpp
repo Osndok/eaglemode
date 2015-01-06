@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,7 @@ emTiffImageFileModel::~emTiffImageFileModel()
 }
 
 
-void emTiffImageFileModel::TryStartLoading() throw(emString)
+void emTiffImageFileModel::TryStartLoading() throw(emException)
 {
 	int samplesPerPixel,bitsPerSample,compression,photometric;
 	emString compStr;
@@ -132,7 +132,7 @@ void emTiffImageFileModel::TryStartLoading() throw(emString)
 		L->PartH=(int)u32;
 	}
 	if (L->ImgW<L->PartW || L->ImgH<L->PartH || L->PartW<1 || L->PartH<1) {
-		throw emString("Unsupported TIFF file format.");
+		throw emException("Unsupported TIFF file format.");
 	}
 
 	if (samplesPerPixel==1) {
@@ -179,7 +179,7 @@ void emTiffImageFileModel::TryStartLoading() throw(emString)
 }
 
 
-bool emTiffImageFileModel::TryContinueLoading() throw(emString)
+bool emTiffImageFileModel::TryContinueLoading() throw(emException)
 {
 	TIFF * t;
 	unsigned char * map, * tgt;
@@ -286,13 +286,13 @@ void emTiffImageFileModel::QuitLoading()
 }
 
 
-void emTiffImageFileModel::TryStartSaving() throw(emString)
+void emTiffImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emTiffImageFileModel: Saving not implemented.");
+	throw emException("emTiffImageFileModel: Saving not implemented.");
 }
 
 
-bool emTiffImageFileModel::TryContinueSaving() throw(emString)
+bool emTiffImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }
@@ -337,7 +337,7 @@ double emTiffImageFileModel::CalcFileProgress()
 }
 
 
-void emTiffImageFileModel::ThrowTiffError() throw(emString)
+void emTiffImageFileModel::ThrowTiffError() throw(emException)
 {
 	emString str;
 
@@ -345,5 +345,5 @@ void emTiffImageFileModel::ThrowTiffError() throw(emString)
 	if (emTiff_ErrorThread==emThread::GetCurrentThreadId()) str=emTiff_Error;
 	else str="unknown TIFF error";
 	emTiff_ErrorMutex.Unlock();
-	throw str;
+	throw emException("%s",str.Get());
 }

@@ -53,27 +53,27 @@ MyModel::MyModel(emContext & context, const emString & name)
 
 //================================== MyPanel ===================================
 
-class MyPanel : public emTkGroup {
+class MyPanel : public emGroup {
 public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
 	virtual bool Cycle();
 private:
 	emRef<MyModel> Model;
-	emTkButton * BtNewWin;
-	emTkScalarField * SField;
+	emButton * BtNewWin;
+	emScalarField * SField;
 };
 
 MyPanel::MyPanel(ParentArg parent, const emString & name)
-	: emTkGroup(parent,name,"Model Example")
+	: emGroup(parent,name,"Model Example")
 {
 	Model=MyModel::Acquire(GetRootContext(),"test");
 	AddWakeUpSignal(Model->GetChangeSignal());
 
-	BtNewWin=new emTkButton(this,"bnw","New Window");
+	BtNewWin=new emButton(this,"bnw","New Window");
 	AddWakeUpSignal(BtNewWin->GetClickSignal());
 
-	SField=new emTkScalarField(this,"sf","Data");
+	SField=new emScalarField(this,"sf","Data");
 	SField->SetEditable();
 	SField->SetValue(Model->GetData());
 	AddWakeUpSignal(SField->GetValueSignal());
@@ -95,7 +95,7 @@ bool MyPanel::Cycle()
 	if (IsSignaled(SField->GetValueSignal())) {
 		Model->SetData((int)SField->GetValue());
 	}
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 

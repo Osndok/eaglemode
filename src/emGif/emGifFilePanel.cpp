@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFilePanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,10 +108,10 @@ bool emGifFilePanel::Cycle()
 	oldPlaying=Playing;
 	if (IsSignaled(GetVirFileStateSignal()) || GetVirFileState()!=VFS_LOADED) {
 		if (!Image.IsEmpty()) {
-			Image.Empty();
+			Image.Clear();
 			InvalidatePainting();
 		}
-		UndoImage.Empty();
+		UndoImage.Clear();
 		RIndex=-1;
 		Playing=false;
 		Timer.Stop(true);
@@ -177,7 +177,7 @@ bool emGifFilePanel::Cycle()
 				UndoImage.Copy(-x,-y,Image);
 			}
 			else {
-				UndoImage.Empty();
+				UndoImage.Clear();
 			}
 			gfm->RenderImage(RIndex,&Image);
 			InvalidatePerImage(x,y,w,h);
@@ -247,13 +247,13 @@ emPanel * emGifFilePanel::CreateControlPanel(
 )
 {
 	emGifFileModel * gfm;
-	emTkGroup * grp;
-	emTkTextField * tf;
+	emGroup * grp;
+	emTextField * tf;
 	emString str;
 
 	gfm=(emGifFileModel *)GetFileModel();
 	if (gfm && IsVFSGood()) {
-		grp=new emTkGroup(
+		grp=new emGroup(
 			parent,
 			name,
 			"GIF File Info"
@@ -268,7 +268,7 @@ emPanel * emGifFilePanel::CreateControlPanel(
 		else {
 			str="GIF";
 		}
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"format",
 			"File Format",
@@ -276,7 +276,7 @@ emPanel * emGifFilePanel::CreateControlPanel(
 			emImage(),
 			str
 		);
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"size",
 			"Size",
@@ -288,7 +288,7 @@ emPanel * emGifFilePanel::CreateControlPanel(
 				gfm->GetHeight()
 			)
 		);
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,
 			"comment",
 			"Comment",

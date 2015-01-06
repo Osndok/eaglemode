@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -109,7 +109,7 @@ void emImage::SetUserMap(int width, int height, int channelCount, emByte * map)
 
 void emImage::TryParseXpm(
 	const char * const * xpm, int channelCount
-) throw(emString)
+) throw(emException)
 {
 	char tmp[256];
 	const char * s, * s2, * s3, * s4, * s5;
@@ -197,7 +197,7 @@ void emImage::TryParseXpm(
 							col.TryParse(tmp);
 							colFound=true;
 						}
-						catch (emString) {
+						catch (emException &) {
 						}
 					}
 				}
@@ -279,14 +279,14 @@ void emImage::TryParseXpm(
 L_Error:
 	if (cols) delete [] cols;
 	if (syms) delete [] syms;
-	Empty();
-	throw emString("Unsupported XPM format");
+	Clear();
+	throw emException("Unsupported XPM format");
 }
 
 
 void emImage::TryParseTga(
 	const unsigned char * tgaData, int tgaSize, int channelCount
-) throw(emString)
+) throw(emException)
 {
 	const unsigned char * tgaEnd, * p;
 	emColor * palette;
@@ -463,13 +463,13 @@ void emImage::TryParseTga(
 
 L_Error:
 	if (palette) delete [] palette;
-	Empty();
-	throw emString("Unsupported TGA format");
+	Clear();
+	throw emException("Unsupported TGA format");
 }
 
 
 #ifdef EM_NO_DATA_EXPORT
-void emImage::Empty()
+void emImage::Clear()
 {
 	if (!--Data->RefCount) FreeData();
 	Data=&EmptyData;

@@ -29,7 +29,7 @@ incFile.Close();
 ErrorIfNoTargets();
 ErrorIfRootTargets();
 
-ConfirmIfTargetsAccrossDirs();
+ConfirmIfTargetsAcrossDirs();
 
 var message="Are you sure to remove definitively";
 for (var i=0; i<Tgt.length; i++) {

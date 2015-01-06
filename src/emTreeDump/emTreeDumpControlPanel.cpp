@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpControlPanel.cpp
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,7 @@ emTreeDumpControlPanel::emTreeDumpControlPanel(
 	ParentArg parent, const emString & name, emView & contentView,
 	emTreeDumpRec * rec, const emString & dir
 )
-	: emTkGroup(parent,name,"emTreeDump"),
+	: emGroup(parent,name,"emTreeDump"),
 	ContentView(contentView)
 {
 	Rec=rec;
@@ -44,15 +44,15 @@ emTreeDumpControlPanel::~emTreeDumpControlPanel()
 bool emTreeDumpControlPanel::Cycle()
 {
 	emPanel * p;
-	emTkButton * b;
+	emButton * b;
 	bool busy;
 	int i;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 
 	if (Rec) {
 		for (p=GetFirstChild(); p; p=p->GetNext()) {
-			b=dynamic_cast<emTkButton*>(p);
+			b=dynamic_cast<emButton*>(p);
 			if (b && IsSignaled(b->GetClickSignal())) {
 				i=atoi(b->GetName());
 				if (i>=0 && i<Rec->Commands.GetCount()) {
@@ -68,12 +68,12 @@ bool emTreeDumpControlPanel::Cycle()
 
 void emTreeDumpControlPanel::AutoExpand()
 {
-	emTkButton * b;
+	emButton * b;
 	int i;
 
 	if (Rec) {
 		for (i=0; i<Rec->Commands.GetCount(); i++) {
-			b=new emTkButton(
+			b=new emButton(
 				this,
 				emString::Format("%d",i),
 				Rec->Commands[i].Caption
@@ -98,8 +98,8 @@ void emTreeDumpControlPanel::RunCommand(int index)
 		try {
 			emProcess::TryStartUnmanaged(args,emArray<emString>(),Dir);
 		}
-		catch (emString errorMessage) {
-			emTkDialog::ShowMessage(ContentView,"Error",errorMessage);
+		catch (emException & exception) {
+			emDialog::ShowMessage(ContentView,"Error",exception.GetText());
 		}
 	}
 }

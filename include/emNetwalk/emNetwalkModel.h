@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.h
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,7 +69,7 @@ public:
 	void TrySetup(
 		int width, int height, bool borderless, bool noFourWayJunctions,
 		int complexity, bool digMode, bool autoMark, bool saveFile=true
-	) throw(emString);
+	) throw(emException);
 
 	void MarkOrUnmark(int x, int y, bool saveFile=true);
 	void UnmarkAll(bool saveFile=true);
@@ -85,7 +85,7 @@ protected:
 	emNetwalkModel(emContext & context, const emString & name);
 	virtual ~emNetwalkModel();
 
-	virtual bool TryContinueLoading() throw(emString);
+	virtual bool TryContinueLoading() throw(emException);
 
 	virtual bool Cycle();
 
@@ -97,7 +97,7 @@ private:
 	void OrPiece(int index, int flags);
 	void AndPiece(int index, int flags);
 
-	int GetNeigborIndex(int index, int angle) const;
+	int GetNeighborIndex(int index, int angle) const;
 	bool IsConnected(int index, int angle) const;
 	void Connect(int index, int angle);
 

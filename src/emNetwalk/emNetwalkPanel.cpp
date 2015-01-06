@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.cpp
 //
-// Copyright (C) 2010-2012 Oliver Hamann.
+// Copyright (C) 2010-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -158,8 +158,8 @@ void emNetwalkPanel::Input(
 				Mdl->IsDigMode(),Mdl->IsAutoMark()
 			);
 		}
-		catch (emString errorMessage) {
-			emTkDialog::ShowMessage(GetViewContext(),"Error",errorMessage);
+		catch (emException & exception) {
+			emDialog::ShowMessage(GetViewContext(),"Error",exception.GetText());
 		}
 		event.Eat();
 	}
@@ -209,8 +209,8 @@ void emNetwalkPanel::Paint(const emPainter & painter, emColor canvasColor)
 			ImgPipes     =emTryGetInsResImage(GetRootContext(),"emNetwalk","Pipes.tga");
 			ImgSymbols   =emTryGetInsResImage(GetRootContext(),"emNetwalk","Symbols.tga");
 		}
-		catch (emString errorMessage) {
-			SetCustomError(errorMessage);
+		catch (emException & exception) {
+			SetCustomError(exception.GetText());
 			return;
 		}
 	}

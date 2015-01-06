@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipRects.h
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -145,7 +145,7 @@ public:
 		// Sort the list of rectangles primarily by Y1 and secondarily
 		// by X1.
 
-	void Empty();
+	void Clear();
 		// Empty the set of clip rectangles.
 
 	bool IsEmpty() const;
@@ -344,7 +344,7 @@ emClipRects<NUM> & emClipRects<NUM>::operator -= (const emClipRects & clipRects)
 }
 
 
-template <class NUM> inline void emClipRects<NUM>::Empty()
+template <class NUM> inline void emClipRects<NUM>::Clear()
 {
 	if (!--Data->RefCount) DeleteData();
 	Data=&EmptyData;
@@ -535,7 +535,7 @@ void emClipRects<NUM>::Intersect(NUM x1, NUM y1, NUM x2, NUM y2)
 	Rect * r;
 
 	if (x1>=x2 || y1>=y2) {
-		Empty();
+		Clear();
 		return;
 	}
 	MakeNonShared();
@@ -569,7 +569,7 @@ void emClipRects<NUM>::Intersect(const emClipRects & clipRects)
 		if (r1) {
 			r2=clipRects.Data->List;
 			if (!r2) {
-				Empty();
+				Clear();
 			}
 			else if (!r2->Next) {
 				Intersect(r2->X1,r2->Y1,r2->X2,r2->Y2);
@@ -674,7 +674,7 @@ void emClipRects<NUM>::Subtract(const emClipRects & clipRects)
 	const Rect * r;
 
 	if (Data==clipRects.Data) {
-		Empty();
+		Clear();
 		return;
 	}
 	for (r=clipRects.Data->List; r; r=r->Next) {

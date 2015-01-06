@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.cpp
 //
-// Copyright (C) 2005-2008,2011 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,15 +77,15 @@ void emAvFileModel::SetPlayState(PlayStateType playState)
 		CloseStream();
 		PlayPos=0;
 		Signal(PlayPosSignal);
-		Image.Empty();
+		Image.Clear();
 		Signal(ImageSignal);
 	}
 	else {
 		AddToActiveList();
 		if (GetStreamState()!=STREAM_OPENING && GetStreamState()!=STREAM_OPENED) {
 			if (!WarningText.IsEmpty() || !ErrorText.IsEmpty()) {
-				WarningText.Empty();
-				ErrorText.Empty();
+				WarningText.Clear();
+				ErrorText.Clear();
 				Signal(InfoSignal);
 			}
 			OpenStream("auto","emAv",GetFilePath());
@@ -285,12 +285,12 @@ void emAvFileModel::ResetData()
 
 	Video=false;
 	PlayLength=0;
-	InfoText.Empty();
-	WarningText.Empty();
-	ErrorText.Empty();
-	AudioVisus.Empty(true);
-	AudioChannels.Empty(true);
-	SpuChannels.Empty(true);
+	InfoText.Clear();
+	WarningText.Clear();
+	ErrorText.Clear();
+	AudioVisus.Clear(true);
+	AudioChannels.Clear(true);
+	SpuChannels.Clear(true);
 	Signal(InfoSignal);
 
 	PlayState=PS_STOPPED;
@@ -307,18 +307,18 @@ void emAvFileModel::ResetData()
 	SpuChannel=0;
 	Signal(AdjustmentSignal);
 
-	Image.Empty();
+	Image.Clear();
 	Tallness=1.0;
 	Signal(ImageSignal);
 }
 
 
-void emAvFileModel::TryStartLoading() throw(emString)
+void emAvFileModel::TryStartLoading() throw(emException)
 {
 }
 
 
-bool emAvFileModel::TryContinueLoading() throw(emString)
+bool emAvFileModel::TryContinueLoading() throw(emException)
 {
 	switch (GetStreamState()) {
 	case STREAM_CLOSED:
@@ -334,7 +334,7 @@ bool emAvFileModel::TryContinueLoading() throw(emString)
 		LoadFileState();
 		return true;
 	case STREAM_ERRORED:
-		throw emString(GetStreamErrorText());
+		throw emException("%s",GetStreamErrorText().Get());
 	default:
 		emSleepMS(10);
 		return false;
@@ -347,13 +347,13 @@ void emAvFileModel::QuitLoading()
 }
 
 
-void emAvFileModel::TryStartSaving() throw(emString)
+void emAvFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emAvFileModel: Saving not possible.");
+	throw emException("emAvFileModel: Saving not possible.");
 }
 
 
-bool emAvFileModel::TryContinueSaving() throw(emString)
+bool emAvFileModel::TryContinueSaving() throw(emException)
 {
 	return false;
 }
@@ -396,7 +396,7 @@ void emAvFileModel::StreamStateChanged(StreamStateType streamState)
 			Signal(PlayPosSignal);
 		}
 		if (!Image.IsEmpty()) {
-			Image.Empty();
+			Image.Clear();
 			Signal(ImageSignal);
 		}
 		SaveFileState();
@@ -494,7 +494,7 @@ void emAvFileModel::PropertyChanged(const emString & name, const emString & valu
 				CloseStream();
 				PlayPos=0;
 				Signal(PlayPosSignal);
-				Image.Empty();
+				Image.Clear();
 				Signal(ImageSignal);
 			}
 		}

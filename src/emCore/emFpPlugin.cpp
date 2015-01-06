@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009,2011 Oliver Hamann.
+// Copyright (C) 2006-2009,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,7 +70,7 @@ emFpPlugin::PropertyRec * emFpPlugin::GetProperty(const char * name)
 
 emPanel * emFpPlugin::TryCreateFilePanel(
 	emPanel::ParentArg parent, const emString & name, const emString & path
-) throw(emString)
+) throw(emException)
 {
 	emString errorBuf;
 	emPanel * panel;
@@ -80,7 +80,7 @@ emPanel * emFpPlugin::TryCreateFilePanel(
 		CachedFuncLib=Library;
 		CachedFuncName=Function;
 	}
-	errorBuf.Empty();
+	errorBuf.Clear();
 	panel=((emFpPluginFunc)CachedFunc)(
 		parent,name,path,this,&errorBuf
 	);
@@ -92,7 +92,7 @@ emPanel * emFpPlugin::TryCreateFilePanel(
 				Library.Get().Get()
 			);
 		}
-		throw errorBuf;
+		throw emException("%s",errorBuf.Get());
 	}
 	return panel;
 }
@@ -184,8 +184,8 @@ emPanel * emFpPluginList::CreateFilePanel(
 		try {
 			return found->TryCreateFilePanel(parent,name,absolutePath);
 		}
-		catch (emString errorMessage) {
-			return new emErrorPanel(parent,name,errorMessage);
+		catch (emException & exception) {
+			return new emErrorPanel(parent,name,exception.GetText());
 		}
 	}
 }
@@ -208,8 +208,8 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 	try {
 		dirList=emTryLoadDir(dirPath);
 	}
-	catch (emString errorMessage) {
-		emFatalError("emFpPluginList: %s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("emFpPluginList: %s",exception.GetText());
 	}
 	dirList.Sort(emStdComparer<emString>::Compare);
 
@@ -220,9 +220,9 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 			try {
 				plugin->TryLoad(pluginPath);
 			}
-			catch (emString errorMessage) {
+			catch (emException & exception) {
 				delete plugin;
-				emFatalError("emFpPluginList: %s",errorMessage.Get());
+				emFatalError("emFpPluginList: %s",exception.GetText());
 			}
 			Plugins.Add(plugin);
 		}

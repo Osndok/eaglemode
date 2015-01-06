@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -112,11 +112,11 @@ bool emTmpConvModel::Cycle()
 					Signal(ChangeSignal);
 				}
 			}
-			catch (emString) {
+			catch (emException &) {
 			}
 			break;
 		case CS_ERROR:
-			ErrorText.Empty();
+			ErrorText.Clear();
 			State=CS_DOWN;
 			Signal(ChangeSignal);
 			break;
@@ -137,7 +137,7 @@ bool emTmpConvModel::Cycle()
 	) {
 		EndPSAgent();
 		Process.Terminate();
-		ErrPipeBuf.Empty(true);
+		ErrPipeBuf.Clear(true);
 		TmpFile.Discard();
 		TmpSelected=false;
 		State=CS_DOWN;
@@ -160,13 +160,13 @@ bool emTmpConvModel::Cycle()
 		try {
 			TryStepConversion();
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			EndPSAgent();
 			Process.Terminate();
-			ErrPipeBuf.Empty(true);
+			ErrPipeBuf.Clear(true);
 			TmpFile.Discard();
 			TmpSelected=false;
-			ErrorText=errorMessage;
+			ErrorText=exception.GetText();
 			State=CS_ERROR;
 			Signal(ChangeSignal);
 		}
@@ -223,14 +223,14 @@ void emTmpConvModel::TryStepConversion()
 		} while (!IsTimeSliceAtEnd());
 		if (l<0 && !Process.IsRunning()) {
 			if (Process.GetExitStatus()!=0) {
-				throw
-					emString("Child process returned bad status:\n\n") +
-					emString(ErrPipeBuf.Get(),ErrPipeBuf.GetCount())
-				;
+				throw emException(
+					"Child process returned bad status:\n\n%s",
+					emString(ErrPipeBuf.Get(),ErrPipeBuf.GetCount()).Get()
+				);
 			}
 			EndPSAgent();
 			Process.Terminate();
-			ErrPipeBuf.Empty(true);
+			ErrPipeBuf.Clear(true);
 			State=CS_UP;
 			Signal(ChangeSignal);
 		}

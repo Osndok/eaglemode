@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.h
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,19 +98,19 @@ private:
 	Instance * TryOpenInstance(
 		const char * audioDrv, const char * videoDrv,
 		const char * filePath
-	) throw(emString);
+	) throw(emException);
 
 	void DeleteInstance(int index);
 
 	void SendMessage(Instance * inst, const char * tag, const char * data);
 
-	void TryDoPipeIO() throw(emString);
+	void TryDoPipeIO() throw(emException);
 
 	void HandleMessage(int instIndex, const char * tag, const char * data);
 
 	void UpdateShm(Instance * inst);
 
-	void TryCreateShm(Instance * inst) throw(emString);
+	void TryCreateShm(Instance * inst) throw(emException);
 	void DeleteShm(Instance * inst);
 
 	void TransferFrames();

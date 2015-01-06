@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,7 +104,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 	ParentArg parent, const emString & name
 )
 {
-	emTkGroup * grp;
+	emGroup * grp;
 	const char * p;
 
 	if (
@@ -113,7 +113,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 		!AlternativeView
 	) {
 
-		grp=new emTkGroup(
+		grp=new emGroup(
 			parent,
 			name,
 			"Text File Info"
@@ -130,7 +130,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 			case emTextFileModel::CE_UTF16BE: p="UTF-16BE" ; break;
 			default                         : p="Binary"   ;
 		}
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"enc",
 			"Character Encoding",
@@ -146,7 +146,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 			case emTextFileModel::LBE_MIXED: p="Mixed"     ; break;
 			default                        : p="None"      ;
 		}
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"lbenc",
 			"Line Break Encoding",
@@ -155,7 +155,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 			p
 		);
 
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"lines",
 			"Number of Lines",
@@ -164,7 +164,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 			emString::Format("%d",Model->GetLineCount())
 		);
 
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"columns",
 			"Number of Columns",

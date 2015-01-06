@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStopwatchPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,9 +63,9 @@ private:
 
 	emRef<emClockFileModel> FileModel;
 	emColor FgColor;
-	emTkTextField * TimeField;
-	emTkButton * StartStopButton;
-	emTkButton * ClearButton;
+	emTextField * TimeField;
+	emButton * StartStopButton;
+	emButton * ClearButton;
 };
 
 

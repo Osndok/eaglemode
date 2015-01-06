@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPcxImageFileModel.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2009,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,9 +45,9 @@ emPcxImageFileModel::~emPcxImageFileModel()
 }
 
 
-void emPcxImageFileModel::TryStartLoading() throw(emString)
+void emPcxImageFileModel::TryStartLoading() throw(emException)
 {
-	int manufactor,version,encoding;
+	int manufacturer,version,encoding;
 
 	errno=0;
 
@@ -67,7 +67,7 @@ void emPcxImageFileModel::TryStartLoading() throw(emString)
 	L->File=fopen(GetFilePath(),"rb");
 	if (!L->File) goto Err;
 
-	manufactor=Read8();
+	manufacturer=Read8();
 	version=Read8();
 	encoding=Read8();
 	L->PlanePixBits=Read8();
@@ -80,7 +80,7 @@ void emPcxImageFileModel::TryStartLoading() throw(emString)
 	L->BytesPerLine=Read16();
 	if (ferror(L->File) || feof(L->File)) goto Err;
 
-	if (manufactor!=0x0a) goto Err;
+	if (manufacturer!=0x0a) goto Err;
 	if (version<1 || version>5) goto Err;
 	if (encoding!=1) goto Err;
 	if (L->PlanePixBits!=1 && L->PlanePixBits!=2 &&
@@ -104,12 +104,12 @@ void emPcxImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("PCX format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("PCX format error");
 }
 
 
-bool emPcxImageFileModel::TryContinueLoading() throw(emString)
+bool emPcxImageFileModel::TryContinueLoading() throw(emException)
 {
 	unsigned char * map;
 	unsigned int val;
@@ -200,8 +200,8 @@ bool emPcxImageFileModel::TryContinueLoading() throw(emString)
 
 	return true;
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("PCX format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("PCX format error");
 }
 
 
@@ -217,13 +217,13 @@ void emPcxImageFileModel::QuitLoading()
 }
 
 
-void emPcxImageFileModel::TryStartSaving() throw(emString)
+void emPcxImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emPcxImageFileModel: Saving not implemented.");
+	throw emException("emPcxImageFileModel: Saving not implemented.");
 }
 
 
-bool emPcxImageFileModel::TryContinueSaving() throw(emString)
+bool emPcxImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

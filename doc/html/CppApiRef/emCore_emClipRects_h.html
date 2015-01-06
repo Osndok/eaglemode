@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>.h
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -154,7 +154,7 @@
                 <SPAN CLASS=c>// Sort the list of rectangles primarily by Y1 and secondarily
                 // by X1.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Empty();
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear();
                 <SPAN CLASS=c>// Empty the set of clip rectangles.
 
         </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
@@ -353,7 +353,7 @@ void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects<
 <SPAN CLASS=b>}
 
 
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Empty()
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>NUM&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;NUM&gt;::Clear()
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
         Data=&amp;EmptyData;
@@ -544,7 +544,7 @@ typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRe
         Rect * r;
 
         <SPAN CLASS=k>if </SPAN>(x1&gt;=x2 || y1&gt;=y2) <SPAN CLASS=b>{
-                </SPAN>Empty();
+                </SPAN>Clear();
                 <SPAN CLASS=k>return</SPAN>;
         <SPAN CLASS=b>}
         </SPAN>MakeNonShared();
@@ -578,7 +578,7 @@ typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRe
                 <SPAN CLASS=k>if </SPAN>(r1) <SPAN CLASS=b>{
                         </SPAN>r2=clipRects.Data-&gt;List;
                         <SPAN CLASS=k>if </SPAN>(!r2) <SPAN CLASS=b>{
-                                </SPAN>Empty();
+                                </SPAN>Clear();
                         <SPAN CLASS=b>}
                         </SPAN><SPAN CLASS=k>else if </SPAN>(!r2-&gt;Next) <SPAN CLASS=b>{
                                 </SPAN>Intersect(r2-&gt;X1,r2-&gt;Y1,r2-&gt;X2,r2-&gt;Y2);
@@ -683,7 +683,7 @@ typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRe
         </SPAN><SPAN CLASS=t>const </SPAN>Rect * r;
 
         <SPAN CLASS=k>if </SPAN>(Data==clipRects.Data) <SPAN CLASS=b>{
-                </SPAN>Empty();
+                </SPAN>Clear();
                 <SPAN CLASS=k>return</SPAN>;
         <SPAN CLASS=b>}
         </SPAN><SPAN CLASS=k>for </SPAN>(r=clipRects.Data-&gt;List; r; r=r-&gt;Next) <SPAN CLASS=b>{

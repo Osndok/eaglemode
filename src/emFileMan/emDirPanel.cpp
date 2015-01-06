@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -285,7 +285,7 @@ void emDirPanel::UpdateChildren()
 	else {
 		for (p=GetFirstChild(); p; ) {
 			np=p->GetNext();
-			if (!p->IsInVisitedPath()) delete p;
+			if (!p->IsInActivePath() && (!p->IsInViewedPath() || IsViewed())) delete p;
 			p=np;
 		}
 		ContentComplete=false;

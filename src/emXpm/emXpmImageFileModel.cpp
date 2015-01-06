@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXpmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emXpmImageFileModel::~emXpmImageFileModel()
 }
 
 
-void emXpmImageFileModel::TryStartLoading() throw(emString)
+void emXpmImageFileModel::TryStartLoading() throw(emException)
 {
 	emInt64 l;
 
@@ -56,17 +56,17 @@ void emXpmImageFileModel::TryStartLoading() throw(emString)
 	if (fseek(L->File,0,SEEK_END)) goto Err;
 	l=ftell(L->File);
 	if (l<0) goto Err;
-	if (l>INT_MAX) throw emString("File too large.");
+	if (l>INT_MAX) throw emException("File too large.");
 	L->FileSize=(int)l;
 	if (L->FileSize<0) goto Err;
 	if (fseek(L->File,0,SEEK_SET)) goto Err;
 	return;
 Err:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 }
 
 
-bool emXpmImageFileModel::TryContinueLoading() throw(emString)
+bool emXpmImageFileModel::TryContinueLoading() throw(emException)
 {
 	int i,pos,len;
 
@@ -85,7 +85,7 @@ bool emXpmImageFileModel::TryContinueLoading() throw(emString)
 	}
 	else if (!L->StringArray) {
 		if (L->BufferFill<9 || memcmp(L->Buffer,"/* XPM */",9)!=0) {
-			throw emString("Not an XPM file.");
+			throw emException("Not an XPM file.");
 		}
 		for (i=0, pos=0; FindCString(pos,&pos,&len); i++) pos+=len+1;
 		L->StringArray=new char*[i+1];
@@ -119,13 +119,13 @@ void emXpmImageFileModel::QuitLoading()
 }
 
 
-void emXpmImageFileModel::TryStartSaving() throw(emString)
+void emXpmImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emXpmImageFileModel: Saving not implemented.");
+	throw emException("emXpmImageFileModel: Saving not implemented.");
 }
 
 
-bool emXpmImageFileModel::TryContinueSaving() throw(emString)
+bool emXpmImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

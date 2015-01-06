@@ -77,7 +77,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Tutorial</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2011 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2011,2014 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -179,7 +179,7 @@ derived from
 It overloads the constructor and two methods: <TT CLASS=c>GetTitle</TT> and
 <TT CLASS=c>Paint</TT>. The result of <TT CLASS=c>GetTitle</TT> is a character
 string which is shown in the title bar of the window when the panel is active or
-focussed. The example has only one panel and therefore that panel is always the
+focused. The example has only one panel and therefore that panel is always the
 active one. The <TT CLASS=c>Paint</TT> method is overloaded in order to fill the
 background of the panel with black and to write "Hello World!" in red letters on
 it. More about painting is described in a later chapter.
@@ -272,7 +272,7 @@ Before continuing with more fun, some words about error handling:
 <P>
 Every method and function of the API which could fail, fails by throwing an
 exception. The exception is always an
-<TT><A CLASS=c HREF="CppApiRef/emCore_emString_h.html#emString">emString</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emStd1_h.html#emException">emException</A></TT>
 which contains a human-readable error message. In addition, the name of the
 method or function contains the word "Try" at the beginning, in order to make
 clear that it could fail and throw an exception. Examples are:
@@ -920,93 +920,92 @@ MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="C
 
 
 <H1><A NAME="9"></A>9 The toolkit panels</H1>
-There is a set of toolkit classes ("emTk" classes) for frequently needed user
-interface components like buttons, text fields and so on. Most of them are panel
-classes, but not all. Here is a class hierarchy diagram of all the toolkit
-classes:
+There is a set of toolkit classes for frequently needed user interface
+components like buttons, text fields and so on. Most of them are panel classes,
+but not all. Here is a class hierarchy diagram of all the toolkit classes:
 <P>
 <CENTER>
 <IMG SRC="images/ToolkitClasses.png" BORDER=0 WIDTH=637 HEIGHT=390 USEMAP="#tkcmap">
 <MAP NAME="tkcmap">
 <AREA COORDS="63,3,147,28" HREF="CppApiRef/emCore_emWindow_h.html#emWindow">
 <AREA COORDS="287,2,354,28" HREF="CppApiRef/emCore_emPanel_h.html#emPanel">
-<AREA COORDS="372,42,453,67" HREF="CppApiRef/emCore_emToolkit_h.html#emTkLook">
-<AREA COORDS="274,84,367,110" HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">
-<AREA COORDS="8,132,92,158" HREF="CppApiRef/emCore_emToolkit_h.html#emTkLabel">
-<AREA COORDS="63,172,147,197" HREF="CppApiRef/emCore_emToolkit_h.html#emTkTiling">
-<AREA COORDS="4,250,93,276" HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">
-<AREA COORDS="129,210,222,236" HREF="CppApiRef/emCore_emToolkit_h.html#emTkTunnel">
-<AREA COORDS="206,248,297,272" HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">
-<AREA COORDS="199,316,335,341" HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">
-<AREA COORDS="203,362,335,387" HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">
-<AREA COORDS="360,317,477,342" HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckBox">
-<AREA COORDS="360,361,474,387" HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">
-<AREA COORDS="313,254,422,280" HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">
-<AREA COORDS="407,217,530,243" HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">
-<AREA COORDS="497,180,615,207" HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">
-<AREA COORDS="538,142,634,168" HREF="CppApiRef/emCore_emToolkit_h.html#emTkSplitter">
-<AREA COORDS="60,59,150,84" HREF="CppApiRef/emCore_emToolkit_h.html#emTkDialog">
+<AREA COORDS="372,42,453,67" HREF="CppApiRef/emCore_emLook_h.html#emLook">
+<AREA COORDS="274,84,367,110" HREF="CppApiRef/emCore_emBorder_h.html#emBorder">
+<AREA COORDS="8,132,92,158" HREF="CppApiRef/emCore_emLabel_h.html#emLabel">
+<AREA COORDS="63,172,147,197" HREF="CppApiRef/emCore_emTiling_h.html#emTiling">
+<AREA COORDS="4,250,93,276" HREF="CppApiRef/emCore_emGroup_h.html#emGroup">
+<AREA COORDS="129,210,222,236" HREF="CppApiRef/emCore_emTunnel_h.html#emTunnel">
+<AREA COORDS="206,248,297,272" HREF="CppApiRef/emCore_emButton_h.html#emButton">
+<AREA COORDS="199,316,335,341" HREF="CppApiRef/emCore_emCheckButton_h.html#emCheckButton">
+<AREA COORDS="203,362,335,387" HREF="CppApiRef/emCore_emRadioButton_h.html#emRadioButton">
+<AREA COORDS="360,317,477,342" HREF="CppApiRef/emCore_emCheckBox_h.html#emCheckBox">
+<AREA COORDS="360,361,474,387" HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">
+<AREA COORDS="313,254,422,280" HREF="CppApiRef/emCore_emTextField_h.html#emTextField">
+<AREA COORDS="407,217,530,243" HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">
+<AREA COORDS="497,180,615,207" HREF="CppApiRef/emCore_emColorField_h.html#emColorField">
+<AREA COORDS="538,142,634,168" HREF="CppApiRef/emCore_emSplitter_h.html#emSplitter">
+<AREA COORDS="60,59,150,84" HREF="CppApiRef/emCore_emDialog_h.html#emDialog">
 </MAP>
 <P>
 <I>Class chart of the toolkit classes.</I>
 </CENTER>
 <P>
 As you see, the class
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">emTkBorder</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emBorder_h.html#emBorder">emBorder</A></TT>
 is the super class of all the other toolkit
 panels. It has lots of common properties: the look, the border, the label
 (caption + description + icon), the how-to text, and the auxiliary area. The
 look is expressed as an instance of
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkLook">emTkLook</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emLook_h.html#emLook">emLook</A></TT>,
 which allows to configure the colors.
 There is a simple derivative of
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">emTkBorder</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emBorder_h.html#emBorder">emBorder</A></TT>
 which shows the label as the content instead of in the border:
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkLabel">emTkLabel</A></TT>.
+<TT><A CLASS=c HREF="CppApiRef/emCore_emLabel_h.html#emLabel">emLabel</A></TT>.
 <P>
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkTiling">emTkTiling</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emTiling_h.html#emTiling">emTiling</A></TT>
 acts as a container and is able to layout its child panels automatically. It is
 borderless and unfocusable by default and so is meant for solving layout
 problems only. But its derivative
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A></TT>
 is focusable and shows a group border by default, so that it can easily be
 used for grouping things visually together. A complete different container is
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emTunnel_h.html#emTunnel">emTunnel</A></TT>
 which just shows a "tunnel" with one custom child panel at the end.
 And another one is
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkSplitter">emTkSplitter</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emSplitter_h.html#emSplitter">emSplitter</A></TT>
 which allows to have two custom child panels separated by a draggable bar, either
 horizontally or vertically.
 <P>
 The classes
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A></TT>,
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A></TT>,
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A></TT>,
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckBox">emTkCheckBox</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A></TT>,
+<TT><A CLASS=c HREF="CppApiRef/emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A></TT>,
 and
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">emRadioBox</A></TT>
 may not need much explanation. A button receives mouse clicks to trigger
 something, a check button receives mouse clicks to switch something on or off,
 and a radio button is similar but the idea is to have always exactly one radio
 button on in a group. Boxes are like buttons, but they look different.
 <P>
 Finally there are panel classes for data fields. An
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emTextField_h.html#emTextField">emTextField</A></TT>
 can be used for viewing or editing a plain text, either single- or multi-line. An
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A></TT>
 can be used for viewing or editing a scalar value or number, or a one-of-many
 choice with individual texts.
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">emTkColorField</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emColorField_h.html#emColorField">emColorField</A></TT>
 is for viewing or editing colors.
 <P>
-<TT><A CLASS=c HREF="CppApiRef/emCore_emToolkit_h.html#emTkDialog">emTkDialog</A></TT>
+<TT><A CLASS=c HREF="CppApiRef/emCore_emDialog_h.html#emDialog">emDialog</A></TT>
 is not a panel but an
 <TT><A CLASS=c HREF="CppApiRef/emCore_emWindow_h.html#emWindow">emWindow</A></TT>.
 You can use it to create a typical popup dialog with OK and Cancel buttons, or
 with custom buttons. It also provides a function for creating a simple popup
 dialog which just shows a message. Example:
 <BLOCKQUOTE>
-<TT>emTkDialog::ShowMessage(GetViewContext(),"Message","Hello World!");</TT>
+<TT>emDialog::ShowMessage(GetViewContext(),"Message","Hello World!");</TT>
 </BLOCKQUOTE>
 Note that each window requires a parent context (contexts are explained in a later
 chapter). That could also be a window, or a view of a window, or the root
@@ -1021,7 +1020,7 @@ the first chapter if you do not yet know how to run the examples.)
 <CENTER><TABLE BORDER=1 CELLSPACING=0 CELLPADDING=4>
 <TR><TD BGCOLOR="#D8D8D8"><SMALL><TT><B>ToolkitExample.cpp</B> (essential part)</TT></SMALL></TD></TR>
 <TR><TD><PRE><TT><SPAN CLASS=d>
-<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> <SPAN CLASS=b>{
+<SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A> <SPAN CLASS=b>{
 </SPAN><SPAN CLASS=t>public</SPAN>:
         MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
 <SPAN CLASS=t>protected</SPAN>:
@@ -1031,46 +1030,46 @@ the first chapter if you do not yet know how to run the examples.)
                 <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
                 <SPAN CLASS=t>void </SPAN>* context
         );
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> * Message;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A> * Button;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A> * CheckButton;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Group * RadioGroup;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A> * TextField;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * ScalarField1;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * ScalarField2;
+        <A CLASS=l HREF="CppApiRef/emCore_emTextField_h.html#emTextField">emTextField</A> * Message;
+        <A CLASS=l HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A> * Button;
+        <A CLASS=l HREF="CppApiRef/emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A> * CheckButton;
+        <A CLASS=l HREF="CppApiRef/emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Group * RadioGroup;
+        <A CLASS=l HREF="CppApiRef/emCore_emTextField_h.html#emTextField">emTextField</A> * TextField;
+        <A CLASS=l HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A> * ScalarField1;
+        <A CLASS=l HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A> * ScalarField2;
 <SPAN CLASS=b>}</SPAN>;
 
 MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
-        : <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(parent,name,<SPAN CLASS=v>"Toolkit Example"</SPAN>)
+        : <A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>(parent,name,<SPAN CLASS=v>"Toolkit Example"</SPAN>)
 <SPAN CLASS=b>{
-        </SPAN>Message=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"msg"</SPAN>,<SPAN CLASS=v>"Message"</SPAN>);
+        </SPAN>Message=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emTextField_h.html#emTextField">emTextField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"msg"</SPAN>,<SPAN CLASS=v>"Message"</SPAN>);
         Message-&gt;SetDescription(<SPAN CLASS=v>"This text field shows messages about your input."</SPAN>);
 
-        Button=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"b"</SPAN>,<SPAN CLASS=v>"Button"</SPAN>);
+        Button=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"b"</SPAN>,<SPAN CLASS=v>"Button"</SPAN>);
         AddWakeUpSignal(Button-&gt;GetClickSignal());
 
-        CheckButton=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkCheckButton">emTkCheckButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"cb"</SPAN>,<SPAN CLASS=v>"Check Button"</SPAN>);
+        CheckButton=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"cb"</SPAN>,<SPAN CLASS=v>"Check Button"</SPAN>);
         AddWakeUpSignal(CheckButton-&gt;GetCheckSignal());
 
-        RadioGroup=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioButton">emTkRadioButton</A>::Group(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"rg"</SPAN>,<SPAN CLASS=v>"Radio Group"</SPAN>);
+        RadioGroup=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Group(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"rg"</SPAN>,<SPAN CLASS=v>"Radio Group"</SPAN>);
         RadioGroup-&gt;SetBorderScaling(<SPAN CLASS=u>4.0</SPAN>);
-        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb1"</SPAN>,<SPAN CLASS=v>"Radio Box 1"</SPAN>);
-        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb2"</SPAN>,<SPAN CLASS=v>"Radio Box 2"</SPAN>);
-        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkRadioBox">emTkRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb3"</SPAN>,<SPAN CLASS=v>"Radio Box 3"</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">emRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb1"</SPAN>,<SPAN CLASS=v>"Radio Box 1"</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">emRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb2"</SPAN>,<SPAN CLASS=v>"Radio Box 2"</SPAN>);
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">emRadioBox</A>(RadioGroup,<SPAN CLASS=v>"rb3"</SPAN>,<SPAN CLASS=v>"Radio Box 3"</SPAN>);
         AddWakeUpSignal(RadioGroup-&gt;GetCheckSignal());
 
-        TextField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTextField">emTkTextField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"tf"</SPAN>,<SPAN CLASS=v>"Text Field"</SPAN>);
+        TextField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emTextField_h.html#emTextField">emTextField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"tf"</SPAN>,<SPAN CLASS=v>"Text Field"</SPAN>);
         TextField-&gt;SetEditable();
         TextField-&gt;SetMultiLineMode();
         AddWakeUpSignal(TextField-&gt;GetTextSignal());
 
-        ScalarField1=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf1"</SPAN>,<SPAN CLASS=v>"Scalar Field 1"</SPAN>);
+        ScalarField1=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf1"</SPAN>,<SPAN CLASS=v>"Scalar Field 1"</SPAN>);
         ScalarField1-&gt;SetEditable();
         ScalarField1-&gt;SetMinMaxValues(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>100</SPAN>);
         ScalarField1-&gt;SetScaleMarkIntervals(<SPAN CLASS=u>50</SPAN>,<SPAN CLASS=u>10</SPAN>,<SPAN CLASS=u>5</SPAN>,<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>0</SPAN>);
         AddWakeUpSignal(ScalarField1-&gt;GetValueSignal());
 
-        ScalarField2=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf2"</SPAN>,<SPAN CLASS=v>"Scalar Field 2"</SPAN>);
+        ScalarField2=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf2"</SPAN>,<SPAN CLASS=v>"Scalar Field 2"</SPAN>);
         ScalarField2-&gt;SetEditable();
         ScalarField2-&gt;SetMinMaxValues(-<SPAN CLASS=u>1</SPAN>,<SPAN CLASS=u>1</SPAN>);
         ScalarField2-&gt;SetTextOfValueFunc(ScalarField2_TextOfValue);
@@ -1112,7 +1111,7 @@ MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="C
                         (<SPAN CLASS=t>int</SPAN>)ScalarField2-&gt;GetValue()
                 ));
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>::Cycle();
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>::Cycle();
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>void </SPAN>MyPanel::ScalarField2_TextOfValue(
@@ -1289,7 +1288,7 @@ and it completes the hierarchy of
 <AREA COORDS="432,110,540,132" HREF="CppApiRef/emCore_emSubViewPanel_h.html#emSubViewPanel">
 <AREA COORDS="502,270,580,291" HREF="CppApiRef/emCore_emFilePanel_h.html#emFilePanel">
 <AREA COORDS="480,350,595,372" HREF="CppApiRef/emCore_emImageFile_h.html#emImageFilePanel">
-<AREA COORDS="609,207,688,229" HREF="CppApiRef/emCore_emToolkit_h.html#emTkBorder">
+<AREA COORDS="609,207,688,229" HREF="CppApiRef/emCore_emBorder_h.html#emBorder">
 <AREA COORDS="610,115,698,137" HREF="CppApiRef/emCore_emErrorPanel_h.html#emErrorPanel">
 </MAP>
 <P>
@@ -1375,27 +1374,27 @@ instead, but only as long as the data is just a single variable.
 
 </SPAN><SPAN CLASS=c>//================================== MyPanel ===================================
 
-</SPAN><SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>class </SPAN>MyPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A> <SPAN CLASS=b>{
 </SPAN><SPAN CLASS=t>public</SPAN>:
         MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name);
 <SPAN CLASS=t>protected</SPAN>:
         <SPAN CLASS=t>virtual bool </SPAN>Cycle();
 <SPAN CLASS=t>private</SPAN>:
         <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;MyModel&gt; Model;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A> * BtNewWin;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A> * SField;
+        <A CLASS=l HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A> * BtNewWin;
+        <A CLASS=l HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SField;
 <SPAN CLASS=b>}</SPAN>;
 
 MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name)
-        : <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(parent,name,<SPAN CLASS=v>"Model Example"</SPAN>)
+        : <A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>(parent,name,<SPAN CLASS=v>"Model Example"</SPAN>)
 <SPAN CLASS=b>{
         </SPAN>Model=MyModel::Acquire(GetRootContext(),<SPAN CLASS=v>"test"</SPAN>);
         AddWakeUpSignal(Model-&gt;GetChangeSignal());
 
-        BtNewWin=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"bnw"</SPAN>,<SPAN CLASS=v>"New Window"</SPAN>);
+        BtNewWin=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"bnw"</SPAN>,<SPAN CLASS=v>"New Window"</SPAN>);
         AddWakeUpSignal(BtNewWin-&gt;GetClickSignal());
 
-        SField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkScalarField">emTkScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf"</SPAN>,<SPAN CLASS=v>"Data"</SPAN>);
+        SField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">emScalarField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"sf"</SPAN>,<SPAN CLASS=v>"Data"</SPAN>);
         SField-&gt;SetEditable();
         SField-&gt;SetValue(Model-&gt;GetData());
         AddWakeUpSignal(SField-&gt;GetValueSignal());
@@ -1417,7 +1416,7 @@ MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="C
         </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(SField-&gt;GetValueSignal())) <SPAN CLASS=b>{
                 </SPAN>Model-&gt;SetData((<SPAN CLASS=t>int</SPAN>)SField-&gt;GetValue());
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>::Cycle();
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>::Cycle();
 <SPAN CLASS=b>}
 </SPAN></SPAN></TT></PRE></TD></TR></TABLE></CENTER>
 
@@ -1717,7 +1716,7 @@ that model.
 
 </SPAN><SPAN CLASS=c>//============================== PlExControlPanel ==============================
 
-</SPAN><SPAN CLASS=t>class </SPAN>PlExControlPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>class </SPAN>PlExControlPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A> <SPAN CLASS=b>{
 </SPAN><SPAN CLASS=t>public</SPAN>:
         PlExControlPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name,
                          <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; model);
@@ -1725,30 +1724,30 @@ that model.
         <SPAN CLASS=t>virtual bool </SPAN>Cycle();
 <SPAN CLASS=t>private</SPAN>:
         <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; Model;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">emTkColorField</A> * ColorField;
-        <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A> * ClearButton;
+        <A CLASS=l HREF="CppApiRef/emCore_emColorField_h.html#emColorField">emColorField</A> * ColorField;
+        <A CLASS=l HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A> * ClearButton;
 <SPAN CLASS=b>}</SPAN>;
 
 PlExControlPanel::PlExControlPanel(
         ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="CppApiRef/emCore_emString_h.html#emString">emString</A> &amp; name, <A CLASS=l HREF="CppApiRef/emCore_emRef_h.html#emRef">emRef</A>&lt;PlExFileModel&gt; model
 )
-        : <A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(parent,name,<SPAN CLASS=v>"PlEx"</SPAN>)
+        : <A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>(parent,name,<SPAN CLASS=v>"PlEx"</SPAN>)
 <SPAN CLASS=b>{
         </SPAN>Model=model;
         SetPrefChildTallness(<SPAN CLASS=u>0.2</SPAN>);
         SetPrefChildTallness(<SPAN CLASS=u>0.4</SPAN>,<SPAN CLASS=u>1</SPAN>);
-        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkLabel">emTkLabel</A>(
-                <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"about"</SPAN>,<SPAN CLASS=v>"About"</SPAN>),
+        <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emLabel_h.html#emLabel">emLabel</A>(
+                <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"about"</SPAN>,<SPAN CLASS=v>"About"</SPAN>),
                 <SPAN CLASS=v>"about"</SPAN>,
                 <SPAN CLASS=v>"This is PlEx - a plugin example.\n"
                 "It allows to draw lines with the\n"
                 "left mouse button.\n"
         </SPAN>);
-        ColorField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkColorField">emTkColorField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"color"</SPAN>,<SPAN CLASS=v>"Color"</SPAN>);
+        ColorField=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emColorField_h.html#emColorField">emColorField</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"color"</SPAN>,<SPAN CLASS=v>"Color"</SPAN>);
         ColorField-&gt;SetColor(Model-&gt;CurrentColor);
         ColorField-&gt;SetEditable();
-        ClearButton=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkButton">emTkButton</A>(
-                <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkTunnel">emTkTunnel</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"tunnel"</SPAN>,<SPAN CLASS=v>"Clear"</SPAN>),
+        ClearButton=<SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emButton_h.html#emButton">emButton</A>(
+                <SPAN CLASS=k>new </SPAN><A CLASS=l HREF="CppApiRef/emCore_emTunnel_h.html#emTunnel">emTunnel</A>(<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=v>"tunnel"</SPAN>,<SPAN CLASS=v>"Clear"</SPAN>),
                 <SPAN CLASS=v>"clear"</SPAN>,<SPAN CLASS=v>"Clear"
         </SPAN>);
         AddWakeUpSignal(ColorField-&gt;GetColorSignal());
@@ -1769,7 +1768,7 @@ PlExControlPanel::PlExControlPanel(
         </SPAN><SPAN CLASS=k>if </SPAN>(IsSignaled(Model-&gt;GetChangeSignal())) <SPAN CLASS=b>{
                 </SPAN>ColorField-&gt;SetColor(Model-&gt;CurrentColor);
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emToolkit_h.html#emTkGroup">emTkGroup</A>::Cycle();
+        </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="CppApiRef/emCore_emGroup_h.html#emGroup">emGroup</A>::Cycle();
 <SPAN CLASS=b>}
 
 

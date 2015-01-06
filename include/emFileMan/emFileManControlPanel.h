@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emFileManControlPanel : public emTkGroup {
+class emFileManControlPanel : public emGroup {
 
 public:
 
@@ -47,7 +47,7 @@ private:
 
 	void UpdateButtonStates();
 
-	class Group : public emTkGroup {
+	class Group : public emGroup {
 	public:
 		Group(ParentArg parent, const emString & name,
 		      emView & contentView, emFileManModel * fmModel,
@@ -57,7 +57,7 @@ private:
 		virtual bool Cycle();
 		virtual void AutoExpand();
 	private:
-		class Button : public emTkButton {
+		class Button : public emButton {
 		public:
 			Button(ParentArg parent, const emString & name,
 			       emView & contentView, emFileManModel * fmModel,
@@ -79,30 +79,30 @@ private:
 	emRef<emFileManModel> FMModel;
 	emRef<emFileManViewConfig> FMVConfig;
 
-	emTkGroup * GrView;
-		emTkRadioButton * RbSortByName;
-		emTkRadioButton * RbSortByEnding;
-		emTkRadioButton * RbSortByClass;
-		emTkRadioButton * RbSortByVersion;
-		emTkRadioButton * RbSortByDate;
-		emTkRadioButton * RbSortBySize;
-		emTkRadioButton * RbPerLocale;
-		emTkRadioButton * RbCaseSensitive;
-		emTkRadioButton * RbCaseInsensitive;
-		emTkCheckButton * CbSortDirectoriesFirst;
-		emTkCheckButton * CbShowHiddenFiles;
-		emTkRadioButton::Group * RbgTheme;
-		emTkCheckButton * CbAutosave;
-		emTkButton * BtSaveAsDefault;
-	emTkGroup * GrSelection;
-		emTkButton * BtSelectAll;
-		emTkButton * BtClearSelection;
-		emTkButton * BtSwapSelection;
-		emTkButton * BtPaths2Clipboard;
-		emTkButton * BtNames2Clipboard;
-		emTkGroup * GrSelInfo;
+	emGroup * GrView;
+		emRadioButton * RbSortByName;
+		emRadioButton * RbSortByEnding;
+		emRadioButton * RbSortByClass;
+		emRadioButton * RbSortByVersion;
+		emRadioButton * RbSortByDate;
+		emRadioButton * RbSortBySize;
+		emRadioButton * RbPerLocale;
+		emRadioButton * RbCaseSensitive;
+		emRadioButton * RbCaseInsensitive;
+		emCheckButton * CbSortDirectoriesFirst;
+		emCheckButton * CbShowHiddenFiles;
+		emRadioButton::Group * RbgTheme;
+		emCheckButton * CbAutosave;
+		emButton * BtSaveAsDefault;
+	emGroup * GrSelection;
+		emButton * BtSelectAll;
+		emButton * BtClearSelection;
+		emButton * BtSwapSelection;
+		emButton * BtPaths2Clipboard;
+		emButton * BtNames2Clipboard;
+		emGroup * GrSelInfo;
 			emPanel * SelInfo;
-	emTkGroup * GrCommand;
+	emGroup * GrCommand;
 };
 
 

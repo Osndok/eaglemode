@@ -26,7 +26,7 @@ if (IsFirstPass()) {
 	ErrorIfNoTargets();
 	ErrorIfRootTargets();
 
-	ConfirmIfTargetsAccrossDirs();
+	ConfirmIfTargetsAcrossDirs();
 
 	my $message="Are you sure to remove definitively";
 	foreach my $t (GetTgt()) {

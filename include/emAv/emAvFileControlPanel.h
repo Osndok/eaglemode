@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileControlPanel.h
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emAvFileControlPanel : public emTkGroup {
+class emAvFileControlPanel : public emGroup {
 
 public:
 
@@ -70,23 +70,23 @@ private:
 
 	emRef<emAvFileModel> Mdl;
 
-	emTkTextField * TfInfo;
-	emTkTextField * TfWarning;
+	emTextField * TfInfo;
+	emTextField * TfWarning;
 
-	emTkScalarField * SfPlayPos;
+	emScalarField * SfPlayPos;
 
-	emTkRadioButton::Group * RgPlayState;
-	emTkRadioButton * RbStop;
-	emTkRadioButton * RbPause;
-	emTkRadioButton * RbSlow;
-	emTkRadioButton * RbPlay;
-	emTkRadioButton * RbFast;
+	emRadioButton::Group * RgPlayState;
+	emRadioButton * RbStop;
+	emRadioButton * RbPause;
+	emRadioButton * RbSlow;
+	emRadioButton * RbPlay;
+	emRadioButton * RbFast;
 
-	emTkCheckButton * CbAudioMute;
-	emTkScalarField * SfAudioVolume;
-	emTkScalarField * SfAudioVisu;
-	emTkScalarField * SfAudioChannel;
-	emTkScalarField * SfSpuChannel;
+	emCheckButton * CbAudioMute;
+	emScalarField * SfAudioVolume;
+	emScalarField * SfAudioVisu;
+	emScalarField * SfAudioChannel;
+	emScalarField * SfSpuChannel;
 };
 
 

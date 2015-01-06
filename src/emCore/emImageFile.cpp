@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImageFile.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,9 +69,9 @@ emImageFileModel::~emImageFileModel()
 
 void emImageFileModel::ResetData()
 {
-	Image.Empty();
-	Comment.Empty();
-	FileFormatInfo.Empty();
+	Image.Clear();
+	Comment.Clear();
+	FileFormatInfo.Clear();
 	Signal(ChangeSignal);
 }
 
@@ -231,18 +231,18 @@ emPanel * emImageFilePanel::CreateControlPanel(
 )
 {
 	emImageFileModel * fm;
-	emTkGroup * grp;
-	emTkTextField * tf;
+	emGroup * grp;
+	emTextField * tf;
 
 	if (IsVFSGood()) {
 		fm=(emImageFileModel*)GetFileModel();
-		grp=new emTkGroup(
+		grp=new emGroup(
 			parent,
 			name,
 			"Image File Info"
 		);
 		grp->SetFixedColumnCount(1);
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"format",
 			"File Format",
@@ -250,7 +250,7 @@ emPanel * emImageFilePanel::CreateControlPanel(
 			emImage(),
 			fm->GetFileFormatInfo()
 		);
-		new emTkTextField(
+		new emTextField(
 			grp,
 			"size",
 			"Size",
@@ -262,7 +262,7 @@ emPanel * emImageFilePanel::CreateControlPanel(
 				fm->GetImage().GetHeight()
 			)
 		);
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,
 			"comment",
 			"Comment",

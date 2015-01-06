@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>.h
 //
-// Copyright (C) 2004-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -111,7 +111,7 @@
                 //            panel or a view. If it is a view, this panel will
                 //            be the root panel of that view. Otherwise it will
                 //            be the last child of the parent panel. Note that
-                //            the type ParentArg can be casted implicitly from:
+                //            the type ParentArg can be cast implicitly from:
                 //            <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>&amp;, <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>*, <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>&amp; and <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>*. But the
                 //            pointer must never be NULL.
                 //   name   - The name for this panel. There must not be any
@@ -133,12 +133,6 @@
                 // the path from the root panel down to the identified panel.
                 // They are delimited by colons, while colons and backslashes in
                 // the names are quoted by backslashes.
-
-        </SPAN>emUInt64 GetCreationNumber() <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// This is a generic consecutive identification number for this
-                // panel. It is unique within the view. Whenever a panel is
-                // created, a private counter in the view is incremented by one,
-                // and the panel gets that number as its creation number.
 
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
                 <SPAN CLASS=c>// Get the title of this panel. Normally, the title of the
@@ -267,8 +261,9 @@
                 <SPAN CLASS=c>// A panel is viewed if it is painted to the view. And a panel
                 // is in viewed path if itself or a descendant is viewed. There
                 // is always exactly one viewed panel within the whole tree of
-                // panels, whose parent is not viewed. It is called the supreme
-                // viewed panel. Thus, the viewed panels are making up a tree.
+                // panels, whose parent is not viewed (or which does not have a
+                // parent). It is called the supreme viewed panel. The viewed
+                // panels are making up a tree.
 
         </SPAN><SPAN CLASS=t>double </SPAN>GetViewedPixelTallness() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Same as GetView().GetCurrentPixelTallness()
@@ -385,15 +380,6 @@
                 // non-focusable panels. They are just additional possible start
                 // points for the search.
 
-        </SPAN><SPAN CLASS=t>bool </SPAN>IsVisited() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>bool </SPAN>IsInVisitedPath() <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// There is always exactly one viewed panel which is called the
-                // visited panel. It is the anchor for the view within the panel
-                // tree. That means, if the layout of any panel is modified, the
-                // visited panel keeps its position and size within the view. A
-                // panel is in visited path if itself or any descendant is
-                // visited.
-
         </SPAN><SPAN CLASS=t>bool </SPAN>IsActive() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsInActivePath() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// There is always exactly one panel, which is called the active
@@ -403,29 +389,16 @@
                 // focused panel (see IsFocused()). A panel cannot be active if
                 // it is not focusable (see SetFocusable()). A panel is in
                 // active path if itself or any descendant is the active panel.
-                //
-                // Why is there a difference between visited and active? Indeed,
-                // normally the active panel is even the visited panel. But the
-                // visited panel must be a viewed panel, and the active panel
-                // must be focusable. On the other hand, the supreme viewed
-                // panel is chosen for optimum performance and for avoiding
-                // over/under-flows of floating point numbers. So there can be
-                // one special case where the visited panel and the active panel
-                // are not the same: The visited panel is the supreme viewed
-                // panel, and it is not focusable, and the active panel is the
-                // nearest focusable ancestor of the visited panel.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Activate();
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsActivatedAdherent() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this panel is activated adherent. "Adherent"
+                // usually means that the activation has been made by the user.
+                // An adherent activation is not so easy to change by zooming
+                // and scrolling like a non-adherent activation.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Activate(<SPAN CLASS=t>bool </SPAN>adherent=<SPAN CLASS=k>true</SPAN>);
                 <SPAN CLASS=c>// Make this the active panel, or if this panel is not
-                // focusable, make the nearest focusable ancestor active. This
-                // method is a short cut for: GetView().VisitLazy(this,true)
-
-        </SPAN><SPAN CLASS=t>void </SPAN>ActivateLater();
-                <SPAN CLASS=c>// Mark this panel for being activated at the end of the current
-                // time slice. This gives time for other things to come first,
-                // especially layout updates which may unhide this panel. If
-                // this is called on multiple panels of the same view within the
-                // same time slice, the last call counts.
+                // focusable, make the nearest focusable ancestor active.
 
         </SPAN><SPAN CLASS=t>bool </SPAN>IsFocused() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsInFocusedPath() <SPAN CLASS=t>const</SPAN>;
@@ -437,7 +410,7 @@
         </SPAN><SPAN CLASS=t>bool </SPAN>IsViewFocused() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Ask whether the view has the input focus.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Focus();
+        </SPAN><SPAN CLASS=t>void </SPAN>Focus(<SPAN CLASS=t>bool </SPAN>adherent=<SPAN CLASS=k>true</SPAN>);
                 <SPAN CLASS=c>// Make this the focused panel, or if this panel is not
                 // focusable, make the nearest focusable ancestor focused. This
                 // is like calling Activate() and GetView().Focus().
@@ -489,17 +462,16 @@
 
         </SPAN><SPAN CLASS=t>typedef </SPAN>emUInt16 NoticeFlags;
         <SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
-                </SPAN>NF_CHILD_LIST_CHANGED       = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>0</SPAN>),
-                NF_LAYOUT_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>1</SPAN>),
-                NF_VIEWING_CHANGED          = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>2</SPAN>),
-                NF_ENABLE_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>3</SPAN>),
-                NF_VISIT_CHANGED            = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>4</SPAN>),
-                NF_ACTIVE_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>5</SPAN>),
-                NF_FOCUS_CHANGED            = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>6</SPAN>),
-                NF_VIEW_FOCUS_CHANGED       = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>7</SPAN>),
-                NF_UPDATE_PRIORITY_CHANGED  = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>8</SPAN>),
-                NF_MEMORY_LIMIT_CHANGED     = (<SPAN CLASS=u>1</SPAN>&lt;&lt; <SPAN CLASS=u>9</SPAN>),
-                NF_SOUGHT_NAME_CHANGED      = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>10</SPAN>)
+                </SPAN>NF_CHILD_LIST_CHANGED       = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>),
+                NF_LAYOUT_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>),
+                NF_VIEWING_CHANGED          = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>),
+                NF_ENABLE_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>),
+                NF_ACTIVE_CHANGED           = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>),
+                NF_FOCUS_CHANGED            = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5</SPAN>),
+                NF_VIEW_FOCUS_CHANGED       = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>6</SPAN>),
+                NF_UPDATE_PRIORITY_CHANGED  = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>7</SPAN>),
+                NF_MEMORY_LIMIT_CHANGED     = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>8</SPAN>),
+                NF_SOUGHT_NAME_CHANGED      = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>9</SPAN>)
         <SPAN CLASS=b>}</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
                 <SPAN CLASS=c>// Called some time after this panel has possibly changed in
@@ -512,7 +484,6 @@
                 //                                GetViewed...(), GetClip...(),
                 //                                GetViewCondition(...)
                 //   NF_ENABLE_CHANGED          - IsEnabled()
-                //   NF_VISIT_CHANGED           - IsVisited(), IsInVisitedPath()
                 //   NF_ACTIVE_CHANGED          - IsActive(), IsInActivePath()
                 //   NF_FOCUS_CHANGED           - IsFocused(), IsInFocusedPath()
                 //   NF_VIEW_FOCUS_CHANGED      - IsViewFocused()
@@ -524,33 +495,33 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                            <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
                 <SPAN CLASS=c>// Process input form keyboard, mouse, and touch. This method is
-                // called on every panel which has IsInViewedPath()==true
-                // whenever there is a change in the input state or when there
-                // is an input event. The order of callings is from children to
-                // parents and from top to bottom (=last to first). The default
-                // implementation does this: First, if it is a mouse or touch
-                // event and if this panel is focusable, the focus is set to
-                // this panel and the event is eaten. And secondly, if this is
-                // the active panel, certain keyboard events are processed and
-                // eaten for switching the focus to another panel. Also see
-                // the methods GetInputClockMS and GetTouchEventPriority.
+                // called on every panel whenever there is a change in the input
+                // state or when there is an input event. The order of callings
+                // is from children to parents and from top to bottom (=last to
+                // first). The default implementation does this: First, if it is
+                // a mouse or touch event and if this panel is focusable, the
+                // focus is set to this panel and the event is eaten. And
+                // secondly, if this is the active panel, certain keyboard
+                // events are processed and eaten for switching the focus to
+                // another panel. Also see the methods GetInputClockMS and
+                // GetTouchEventPriority.
                 // Arguments:
                 //   event  - An input event. This is non-empty only if:
                 //            * It is a mouse button event, and the mouse
                 //              position lies within the panel and all its
                 //              ancestors, and the event has not been eaten by a
                 //              descendant panel or by an overlapping panel in
-                //              front, or by a view input filter.
+                //              front or by a view input filter.
                 //            * It is a touch event, and the first touch
                 //              position lies within the panel and all its
                 //              ancestors, and the event has not been eaten by a
                 //              descendant panel or by an overlapping panel in
-                //              front, or by a view input filter. Normally,
-                //              touch events are converted to mouse events by a
-                //              view input filter.
+                //              front or by a view input filter. Normally, touch
+                //              events are converted to mouse events by a view
+                //              input filter.
                 //            * It is a keyboard key event, and this panel is in
                 //              focused path, and the event has not been eaten
-                //              by a descendant panel, or by a view input filter.
+                //              by a descendant panel or by a view input filter.
                 //            The event can be eaten by calling event.Eat(). The
                 //            event reference is non-const only for that. Please
                 //            do not modify the event in any other way.
@@ -558,7 +529,7 @@
                 //            state.GetMouseX/Y are from the coordinate system
                 //            of the view (thus, they are in pixels).
                 //   mx, my - Position of the mouse in the coordinate system of
-                //            this panel.
+                //            this panel. Valid only if IsInViewedPath().
 
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
                 <SPAN CLASS=c>// Get the mouse cursor to be shown for this panel. The default
@@ -723,7 +694,6 @@
         <SPAN CLASS=t>double </SPAN>ViewedX, ViewedY, ViewedWidth, ViewedHeight;
         <SPAN CLASS=t>double </SPAN>ClipX1, ClipY1, ClipX2, ClipY2;
         <SPAN CLASS=t>double </SPAN>AEThresholdValue;
-        emUInt64 CreationNumber;
         <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> CanvasColor;
         NoticeFlags PendingNoticeFlags;
         <SPAN CLASS=t>unsigned </SPAN>Viewed : <SPAN CLASS=u>1</SPAN>;
@@ -731,8 +701,6 @@
         <SPAN CLASS=t>unsigned </SPAN>EnableSwitch : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>Enabled : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>Focusable : <SPAN CLASS=u>1</SPAN>;
-        <SPAN CLASS=t>unsigned </SPAN>Visited : <SPAN CLASS=u>1</SPAN>;
-        <SPAN CLASS=t>unsigned </SPAN>InVisitedPath : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>Active : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>InActivePath : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>PendingInput : <SPAN CLASS=u>1</SPAN>;
@@ -788,11 +756,6 @@
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetName() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Name;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetCreationNumber() <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>CreationNumber;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetView()
@@ -1005,16 +968,6 @@
         </SPAN><SPAN CLASS=k>return </SPAN>Focusable;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsVisited() <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Visited;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsInVisitedPath() <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>InVisitedPath;
-<SPAN CLASS=b>}
-
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsActive() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Active;
@@ -1023,6 +976,11 @@
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsInActivePath() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>InActivePath;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsActivatedAdherent() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Active &amp;&amp; View.IsActivationAdherent();
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::IsFocused() <SPAN CLASS=t>const

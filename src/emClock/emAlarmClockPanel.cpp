@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockPanel.cpp
 //
-// Copyright (C) 2006-2008,2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,28 +31,28 @@ emAlarmClockPanel::emAlarmClockPanel(
 	AlarmModel=emAlarmClockModel::Acquire(GetView(),FileModel->GetName());
 	FgColor=fgColor;
 
-	TimeField=new emTkScalarField(
+	TimeField=new emScalarField(
 		this,"time_field",emString(),emString(),emImage(),0,86400,0,true
 	);
 	TimeField->SetScaleMarkIntervals(6*3600,3600,900,300,60,10,1,0);
 	TimeField->SetTextOfValueFunc(TimeFieldTextOfValue,NULL);
 	TimeField->SetKeyboardInterval(300);
 
-	OnButton=new emTkRadioButton(
+	OnButton=new emRadioButton(
 		this,"on_button","On",
 		"Enable the alarm."
 	);
-	OffButton=new emTkRadioButton(
+	OffButton=new emRadioButton(
 		this,"off_button","Off",
 		"Disable the alarm."
 	);
-	TestButton=new emTkButton(
+	TestButton=new emButton(
 		this,"test_button","Test Beep",
 		"Play a single alarm beep sound for a test. If this\n"
 		"does not work, there is probably something wrong with\n"
 		"the hardware or with the operating system setup."
 	);
-	ConfirmButton=new emTkButton(
+	ConfirmButton=new emButton(
 		this,"confirm_button","Confirm",
 		"Confirm the alarm when it is running. Just\n"
 		"clicking this means to get the alarm again\n"

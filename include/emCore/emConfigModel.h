@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emConfigModel.h
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,7 +54,7 @@ public:
 		// Signaled on every modification of the record and even on
 		// change of IsUnsaved.
 
-	void TrySave(bool force=false) throw(emString);
+	void TrySave(bool force=false) throw(emException);
 	void Save(bool force=false);
 		// Save the record to the install path. On error, the first
 		// version throws the error message, and the second version
@@ -68,7 +68,7 @@ public:
 		// Delay in seconds after which the record is saved
 		// automatically when it was modified. The default is -1 which
 		// means to disable the auto-save feature. If you make use of
-		// this feature, remember to call Save in desctructors of
+		// this feature, remember to call Save in destructors of
 		// derived classes.
 
 protected:
@@ -89,7 +89,7 @@ protected:
 	virtual ~emConfigModel();
 		// Destructor.
 
-	void TryLoad() throw(emString);
+	void TryLoad() throw(emException);
 	void Load();
 		// Load the record from the install path. On error, the first
 		// version throws the error message, the second version calls
@@ -99,7 +99,7 @@ protected:
 		// its SetCustomError method, this is better than calling
 		// emFatalError.
 
-	void TryLoadOrInstall(const char * insSrcPath=NULL) throw(emString);
+	void TryLoadOrInstall(const char * insSrcPath=NULL) throw(emException);
 	void LoadOrInstall(const char * insSrcPath=NULL);
 		// Like above, but if the file does not yet exist, an
 		// installation is performed: If insSrcPath is not NULL, that

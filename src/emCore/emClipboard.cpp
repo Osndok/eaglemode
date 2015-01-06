@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipboard.cpp
 //
-// Copyright (C) 2005-2008,2011 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -89,12 +89,12 @@ void emPrivateClipboard::Clear(bool selection, emInt64 selectionId)
 {
 	if (selection) {
 		if (SelId==selectionId) {
-			SelText.Empty();
+			SelText.Clear();
 			SelId++;
 		}
 	}
 	else {
-		ClipText.Empty();
+		ClipText.Clear();
 	}
 }
 

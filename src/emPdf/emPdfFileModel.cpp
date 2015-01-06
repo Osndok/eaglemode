@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFileModel.cpp
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,13 +61,13 @@ void emPdfFileModel::ResetData()
 }
 
 
-void emPdfFileModel::TryStartLoading() throw(emString)
+void emPdfFileModel::TryStartLoading() throw(emException)
 {
 	FileSize=emTryGetFileSize(GetFilePath());
 }
 
 
-bool emPdfFileModel::TryContinueLoading() throw(emString)
+bool emPdfFileModel::TryContinueLoading() throw(emException)
 {
 	if (!JobHandle) {
 		JobHandle=ServerModel->StartOpenJob(GetFilePath(),&PdfHandle);
@@ -77,7 +77,7 @@ bool emPdfFileModel::TryContinueLoading() throw(emString)
 	ServerModel->Poll(10);
 	switch (ServerModel->GetJobState(JobHandle)) {
 	case emPdfServerModel::JS_ERROR:
-		throw emString(ServerModel->GetJobErrorText(JobHandle));
+		throw emException("%s",ServerModel->GetJobErrorText(JobHandle).Get());
 	case emPdfServerModel::JS_SUCCESS:
 		PageCount=ServerModel->GetPageCount(PdfHandle);
 		return true;
@@ -97,13 +97,13 @@ void emPdfFileModel::QuitLoading()
 }
 
 
-void emPdfFileModel::TryStartSaving() throw(emString)
+void emPdfFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emPdfFileModel: Saving not supported.");
+	throw emException("emPdfFileModel: Saving not supported.");
 }
 
 
-bool emPdfFileModel::TryContinueSaving() throw(emString)
+bool emPdfFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_gnu.pm
 #
-# Copyright (C) 2006-2011 Oliver Hamann.
+# Copyright (C) 2006-2011,2013 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -137,6 +137,7 @@ sub Compile
 			push(@args,"-Wsynth");
 			if ($GccVersion>=4.0) { push(@args,"-Wno-invalid-offsetof"); }
 		}
+		if ($GccVersion>=4.7) { push(@args,"-Wno-unused-but-set-variable"); }
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-I$s"); }
 		foreach my $s (@{GetDefines()}) { push(@args,"-D$s"); }
 		push(@args,"-c");

@@ -1,11 +1,6 @@
 #%rec:emFpPlugin%#
 
 FileTypes = {
- #".ai" # did not function
- ".cgm"
- #".cmx" # i had no sample files
- #".fig" # fig2dev did it better
- ".sk"
  ".wmf"
 }
 Priority = 0.5
@@ -18,6 +13,6 @@ Properties = {
  }
  {
   Name="Command"
-  Value="exec skconvert \"$INFILE\" \"$OUTFILE\""
+  Value="exec wmf2svg -o \"$OUTFILE\" \"$INFILE\""
  }
 }

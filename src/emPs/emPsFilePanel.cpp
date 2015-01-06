@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFilePanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -101,8 +101,7 @@ void emPsFilePanel::HaveDocPanel(bool haveIt)
 			fm=(emPsFileModel*)GetFileModel();
 			DocPanel=new emPsDocumentPanel(this,"doc",fm->GetDocument());
 			if (IsActive()) {
-				DocPanel->Layout(0,0,1,GetHeight(),GetCanvasColor());
-				GetView().VisitLazy(DocPanel,GetView().IsVisitAdherent());
+				DocPanel->Activate(IsActivatedAdherent());
 			}
 			SetFocusable(false);
 		}

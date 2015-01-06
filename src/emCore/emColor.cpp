@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.cpp
 //
-// Copyright (C) 2001,2003-2008 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -695,7 +695,7 @@ static const struct {
 };
 
 
-void emColor::TryParse(const char * str) throw(emString)
+void emColor::TryParse(const char * str) throw(emException)
 {
 	char buf[256];
 	int i,c,len,v,m,n;
@@ -755,7 +755,7 @@ void emColor::TryParse(const char * str) throw(emString)
 
 L_Error:
 	Packed=0x000000ff;
-	throw emString::Format("not a color: %s",str);
+	throw emException("not a color: %s",str);
 }
 
 

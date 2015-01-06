@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.cpp
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,7 @@
 
 #if defined(_WIN32)
 #	include <windows.h>
+#	include <aclapi.h>
 #else
 #	include <pwd.h>
 #	include <grp.h>
@@ -121,6 +122,11 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 {
 #if defined(_WIN32)
 	WIN32_FILE_ATTRIBUTE_DATA fad;
+	PSECURITY_DESCRIPTOR pSd;
+	PSID pOwnerSid, pGroupSid;
+	SID_NAME_USE snu;
+	CHAR str[256],str2[256];
+	DWORD sz,sz2;
 	BOOL b;
 
 	if (!--Data->RefCount) FreeData();
@@ -133,8 +139,27 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 		Data->StatErrNo=errno;
 		memset(&Data->Stat,0,sizeof(struct em_stat));
 	}
-	Data->Owner=emString::Format("%u",Data->Stat.st_uid);
-	Data->Group=emString::Format("%u",Data->Stat.st_gid);
+	Data->Owner="";
+	Data->Group="";
+	if (
+		GetNamedSecurityInfo(
+			(char*)Data->Path.Get(),SE_FILE_OBJECT,
+			OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION,
+			&pOwnerSid,&pGroupSid,NULL,NULL,&pSd
+		)==ERROR_SUCCESS
+	) {
+		sz=sizeof(str);
+		sz2=sizeof(str2);
+		if (LookupAccountSid(NULL,pOwnerSid,str,&sz,str2,&sz2,&snu)) {
+			Data->Owner=str;
+		}
+		sz=sizeof(str);
+		sz2=sizeof(str2);
+		if (LookupAccountSid(NULL,pGroupSid,str,&sz,str2,&sz2,&snu)) {
+			Data->Group=str;
+		}
+		LocalFree(pSd);
+	}
 	b=GetFileAttributesEx(Data->Path.Get(),GetFileExInfoStandard,&fad);
 	Data->WndsFileAttributes = b ? fad.dwFileAttributes : 0;
 	Data->Hidden=(Data->WndsFileAttributes&FILE_ATTRIBUTE_HIDDEN)!=0;

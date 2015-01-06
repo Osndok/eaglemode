@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.h
 //
-// Copyright (C) 2001,2003-2008,2010 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,7 +71,7 @@ public:
 		// Construct by copying a color, but override the alpha
 		// component.
 
-	void TryParse(const char * str) throw(emString);
+	void TryParse(const char * str) throw(emException);
 		// Try to set this color by interpreting the given string as a
 		// color. Throw an error message on failure. Currently, this
 		// tries to interpret only X11 color strings like "#f8a91c" or

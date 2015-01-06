@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -88,7 +88,7 @@ bool emDirEntryAltPanel::Cycle()
 
 void emDirEntryAltPanel::Notice(NoticeFlags flags)
 {
-	if ((flags&(NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED|NF_VISIT_CHANGED))!=0) {
+	if ((flags&(NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED|NF_ACTIVE_CHANGED))!=0) {
 		UpdateContentPanel();
 		UpdateAltPanel();
 	}
@@ -214,7 +214,7 @@ void emDirEntryAltPanel::UpdateContentPanel(bool forceRecreation, bool forceRela
 			forceRelayout=true;
 		}
 	}
-	else if (p && !p->IsInVisitedPath()) {
+	else if (p && !p->IsInActivePath() && (!p->IsInViewedPath() || IsViewed())) {
 		delete p;
 		p=NULL;
 	}
@@ -263,7 +263,7 @@ void emDirEntryAltPanel::UpdateAltPanel(bool forceRecreation, bool forceRelayout
 			forceRelayout=true;
 		}
 	}
-	else if (p && !p->IsInVisitedPath()) {
+	else if (p && !p->IsInActivePath() && (!p->IsInViewedPath() || IsViewed())) {
 		delete p;
 		p=NULL;
 	}

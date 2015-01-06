@@ -22,9 +22,9 @@ sub GetFileHandlingRules
 		'-clean-install-exec-private-nobackup:.*',
 
 		# Set the exec flag for all files ending with '.sh', '.pl',
-		# '.exe' or '.dll' (It's Cygwin which needs exec flags on
-		# DLLs).
-		'+exec:\.(sh|pl|exe|dll)$',
+		# '.py', '.exe' or '.dll' (It's Cygwin which needs exec flags
+		# on DLLs).
+		'+exec:\.(sh|pl|py|exe|dll)$',
 
 		# Set the exec flag for the 'bin' directory tree.
 		'+exec:^bin(/|$)',

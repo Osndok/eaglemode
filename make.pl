@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2011 Oliver Hamann.
+# Copyright (C) 2006-2011,2014 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -123,8 +123,8 @@ sub Help
 		"      deb    - Debian package.\n".
 		"      ebuild - Gentoo build file.\n".
 		"      exe    - Windows setup executable.\n".
-		"      lzm    - Slax package.\n".
 		"      rpm    - Red Hat package.\n".
+		"      sb     - Slax bundle.\n".
 		"      tgz    - Slackware package.\n".
 		"      tar.bz2, tar.gz or zip - Source package.\n".
 		"    The packages are created in a subdirectory named \"packages\".\n".

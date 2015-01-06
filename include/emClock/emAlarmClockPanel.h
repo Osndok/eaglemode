@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -74,11 +74,11 @@ private:
 	emRef<emAlarmClockModel> AlarmModel;
 
 	emColor FgColor;
-	emTkScalarField * TimeField;
-	emTkRadioButton * OnButton;
-	emTkRadioButton * OffButton;
-	emTkButton * TestButton;
-	emTkButton * ConfirmButton;
+	emScalarField * TimeField;
+	emRadioButton * OnButton;
+	emRadioButton * OffButton;
+	emButton * TestButton;
+	emButton * ConfirmButton;
 };
 
 

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>.h
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,16 +48,16 @@
         <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> StickMouseWhenNavigating;
         <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> EmulateMiddleButton;
         <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> PanFunction;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseZoomSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseFineZoomSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseScrollSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseFineScrollSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> WheelZoomSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> WheelFineZoomSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KeyboardZoomSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KeyboardFineZoomSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KeyboardScrollSpeedFactor;
-        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KeyboardFineScrollSpeedFactor;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseZoomSpeed;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseScrollSpeed;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseWheelZoomSpeed;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MouseWheelZoomAcceleration;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KeyboardZoomSpeed;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KeyboardScrollSpeed;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> KineticZoomingAndScrolling;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MagnetismRadius;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> MagnetismSpeed;
+        <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> VisitSpeed;
         <A CLASS=l HREF="emCore_emRec_h.html#emIntRec">emIntRec</A> MaxMegabytesPerView;
 
         <SPAN CLASS=t>virtual const char </SPAN>* GetFormatName() <SPAN CLASS=t>const</SPAN>;
@@ -66,6 +66,10 @@
 
         <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>TryLoadOldVersion() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
 <SPAN CLASS=b>}</SPAN>;
 
 

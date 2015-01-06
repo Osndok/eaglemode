@@ -16,8 +16,8 @@
 # Descr =
 # Descr =NOTE: At first, the target is moved to a temporary name in the form
 # Descr ="<name>.ex-tmp-<number>". Then the source path is moved to the target
-# Descr =path, and finally the temporary path is move to the source path. If one of
-# Descr =the movings fails, it is tried to restore the original state. But that
+# Descr =path, and finally the temporary path is moved to the source path. If one
+# Descr =of the moves fails, it is tried to restore the original state. But that
 # Descr =does not work in all cases. You may have to repair manually then.
 # ButtonBgColor = #99B
 # Hotkey = Ctrl+E

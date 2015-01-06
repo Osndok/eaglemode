@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.cpp
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,9 +29,10 @@ emPdfFilePanel::emPdfFilePanel(
 {
 	BGColor=emColor(0,0,0,0);
 	FGColor=emColor(0,0,0);
+	LayoutValid=false;
 	AddWakeUpSignal(GetVirFileStateSignal());
 	CalcLayout();
-	if (ArePagePanelsToBeShown()) CreatePagePanels();
+	UpdatePagePanels();
 }
 
 
@@ -48,10 +49,12 @@ void emPdfFilePanel::SetFileModel(
 	if (fileModel && (dynamic_cast<emPdfFileModel*>(fileModel))==NULL) {
 		fileModel=NULL;
 	}
-	emFilePanel::SetFileModel(fileModel,updateFileModel);
-	DestroyPagePanels();
-	CalcLayout();
-	if (ArePagePanelsToBeShown()) CreatePagePanels();
+	if (GetFileModel() != fileModel) {
+		DestroyPagePanels();
+		emFilePanel::SetFileModel(fileModel,updateFileModel);
+		CalcLayout();
+		UpdatePagePanels();
+	}
 }
 
 
@@ -78,16 +81,10 @@ void emPdfFilePanel::Notice(NoticeFlags flags)
 {
 	emFilePanel::Notice(flags);
 	if (flags&(NF_LAYOUT_CHANGED|NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED)) {
-		if (flags&NF_LAYOUT_CHANGED) {
+		if (LayoutValid && (flags&NF_LAYOUT_CHANGED)!=0) {
 			CalcLayout();
-			InvalidateChildrenLayout();
 		}
-		if (ArePagePanelsToBeShown()) {
-			if (!PagePanels) CreatePagePanels();
-		}
-		else {
-			if (PagePanels) DestroyPagePanels();
-		}
+		UpdatePagePanels();
 	}
 }
 
@@ -95,10 +92,8 @@ void emPdfFilePanel::Notice(NoticeFlags flags)
 bool emPdfFilePanel::Cycle()
 {
 	if (IsSignaled(GetVirFileStateSignal())) {
-		if (!IsVFSGood()) DestroyPagePanels();
 		CalcLayout();
-		if (ArePagePanelsToBeShown()) CreatePagePanels();
-		InvalidatePainting();
+		UpdatePagePanels();
 	}
 	return emFilePanel::Cycle();
 }
@@ -106,7 +101,7 @@ bool emPdfFilePanel::Cycle()
 
 bool emPdfFilePanel::IsOpaque()
 {
-	if (!IsVFSGood()) {
+	if (!IsVFSGood() || !LayoutValid) {
 		return emFilePanel::IsOpaque();
 	}
 	else {
@@ -122,7 +117,7 @@ void emPdfFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 	double cx,cy,tx,ty,tw,th,pw,ph;
 	int i,n;
 
-	if (!IsVFSGood()) {
+	if (!IsVFSGood() || !LayoutValid) {
 		emFilePanel::Paint(painter,canvasColor);
 		return;
 	}
@@ -190,7 +185,7 @@ void emPdfFilePanel::LayoutChildren()
 	emColor cc;
 	int i,n;
 
-	if (!IsVFSGood()) return;
+	if (!IsVFSGood() || !LayoutValid) return;
 	if (!BGColor.IsTotallyTransparent()) cc=BGColor;
 	else cc=GetCanvasColor();
 	fm=(emPdfFileModel*)GetFileModel();
@@ -223,7 +218,13 @@ void emPdfFilePanel::CalcLayout()
 	double w,h,bestf,f,pgW,pgH;
 	int i,n,nr,nc,bestnr;
 
-	if (!IsVFSGood()) return;
+	if (!IsVFSGood()) {
+		if (LayoutValid) {
+			LayoutValid=false;
+			InvalidatePainting();
+		}
+		return;
+	}
 
 	fm=(emPdfFileModel*)GetFileModel();
 	n=fm->GetPageCount();
@@ -283,6 +284,9 @@ void emPdfFilePanel::CalcLayout()
 	ShadowSize*=PerPoint;
 	CellX0=(1.0-CellW*Columns)*0.5;
 	CellY0=(GetHeight()-CellH*Rows)*0.5;
+	LayoutValid=true;
+	InvalidatePainting();
+	InvalidateChildrenLayout();
 }
 
 
@@ -292,11 +296,11 @@ void emPdfFilePanel::CreatePagePanels()
 	char name[256];
 	int i,n;
 
-	if (!IsVFSGood()) return;
+	if (!IsVFSGood() || !LayoutValid) return;
 
-	fm=(emPdfFileModel*)GetFileModel();
-	n=fm->GetPageCount();
-	if (PagePanels.GetCount()==0) {
+	if (PagePanels.IsEmpty()) {
+		fm=(emPdfFileModel*)GetFileModel();
+		n=fm->GetPageCount();
 		for (i=0; i<n; i++) {
 			sprintf(name,"%d",i);
 			PagePanels.Add(new emPdfPagePanel(this,name,fm,i));
@@ -309,10 +313,12 @@ void emPdfFilePanel::DestroyPagePanels()
 {
 	int i;
 
-	for (i=0; i<PagePanels.GetCount(); i++) {
-		if (PagePanels[i]) delete PagePanels[i];
+	if (!PagePanels.IsEmpty()) {
+		for (i=0; i<PagePanels.GetCount(); i++) {
+			if (PagePanels[i]) delete PagePanels[i];
+		}
+		PagePanels.Clear();
 	}
-	PagePanels.Empty();
 }
 
 
@@ -322,6 +328,7 @@ bool emPdfFilePanel::ArePagePanelsToBeShown()
 	double w,h;
 
 	if (!IsVFSGood()) return false;
+	if (!LayoutValid) return false;
 	fm=(emPdfFileModel*)GetFileModel();
 	if (fm->GetPageCount()<1) return false;
 	if (GetSoughtName()) return true;
@@ -330,4 +337,15 @@ bool emPdfFilePanel::ArePagePanelsToBeShown()
 	h=PanelToViewDeltaY(CellH);
 	if (w<5.0 || h<5.0 || w*h<36.0) return false;
 	return true;
+}
+
+
+void emPdfFilePanel::UpdatePagePanels()
+{
+	if (ArePagePanelsToBeShown()) {
+		CreatePagePanels();
+	}
+	else {
+		DestroyPagePanels();
+	}
 }

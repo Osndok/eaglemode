@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -151,20 +151,20 @@ public:
 		// the beginning of the file. The default implementation returns
 		// NULL which means to have no file format magic.
 
-	void TryLoad(const emString & filePath) throw(emString);
-	void TrySave(const emString & filePath) throw(emString);
+	void TryLoad(const emString & filePath) throw(emException);
+	void TrySave(const emString & filePath) throw(emException);
 		// Load or save this tree of records from or to a file.
 		// Arguments:
 		//   filePath - Path/name of the file.
 
-	void TryLoadFromMem(const char * buf, int len) throw(emString);
-	void TryLoadFromMem(const emArray<char> & buf) throw(emString);
+	void TryLoadFromMem(const char * buf, int len) throw(emException);
+	void TryLoadFromMem(const emArray<char> & buf) throw(emException);
 	void SaveToMem(emArray<char> & buf);
 		// Load or save this tree of records from or to memory.
 		// SaveToMem adds the data to the array without emptying it
 		// first.
 
-	void TryCopy(emRec & source) throw(emString);
+	void TryCopy(emRec & source) throw(emException);
 	void Copy(emRec & source);
 		// Copy the given tree of records to this tree of records via
 		// the SaveToMem and TryLoadFromMem methods. This is slow and
@@ -180,11 +180,11 @@ public:
 		// writing an emStructRec, members with default state may be
 		// omitted.
 
-	virtual void TryStartReading(emRecReader & reader) throw(emString) = 0;
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString) = 0;
+	virtual void TryStartReading(emRecReader & reader) throw(emException) = 0;
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException) = 0;
 	virtual void QuitReading() = 0;
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString) = 0;
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString) = 0;
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException) = 0;
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException) = 0;
 	virtual void QuitWriting() = 0;
 		// This is only to be called by emRecReader/Writer and through
 		// recursion in the tree. Try to read or write this tree of
@@ -337,11 +337,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -407,11 +407,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -490,11 +490,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -586,11 +586,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -683,11 +683,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -756,11 +756,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -821,11 +821,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -886,11 +886,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -969,11 +969,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -1086,11 +1086,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -1189,11 +1189,11 @@ public:
 
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
-	virtual void TryStartReading(emRecReader & reader) throw(emString);
-	virtual bool TryContinueReading(emRecReader & reader) throw(emString);
+	virtual void TryStartReading(emRecReader & reader) throw(emException);
+	virtual bool TryContinueReading(emRecReader & reader) throw(emException);
 	virtual void QuitReading();
-	virtual void TryStartWriting(emRecWriter & writer) throw(emString);
-	virtual bool TryContinueWriting(emRecWriter & writer) throw(emString);
+	virtual void TryStartWriting(emRecWriter & writer) throw(emException);
+	virtual bool TryContinueWriting(emRecWriter & writer) throw(emException);
 	virtual void QuitWriting();
 	virtual emUInt64 CalcRecMemNeed() const;
 		// See emRec.
@@ -1264,7 +1264,7 @@ public:
 	REC & Get(int index);
 	const REC & operator [] (int index) const;
 	REC & operator [] (int index);
-		// Like with emArrayRec, but the results are casted...
+		// Like with emArrayRec, but the results are cast to template type.
 };
 
 template <class REC> inline emTArrayRec<REC>::emTArrayRec(
@@ -1319,16 +1319,16 @@ public:
 	emRecReader();
 	virtual ~emRecReader();
 
-	void TryStartReading(emRec & root) throw(emString);
+	void TryStartReading(emRec & root) throw(emException);
 		// Start reading.
 		// Arguments:
 		//   root - The root of the records to filled.
 
-	bool TryContinueReading() throw(emString);
+	bool TryContinueReading() throw(emException);
 		// Continue reading. Returns true when ready, otherwise
 		// TryContinueReading has to be called again.
 
-	void TryFinishReading() throw(emString);
+	void TryFinishReading() throw(emException);
 		// Continue reading until ready.
 
 	void QuitReading();
@@ -1345,43 +1345,43 @@ public:
 		ET_END
 	};
 
-	ElementType TryPeekNext(char * pDelimiter=NULL) throw(emString);
+	ElementType TryPeekNext(char * pDelimiter=NULL) throw(emException);
 		// Peek for the type of the next syntactical element to be read.
 		// If it is ET_DELIMITER and if pDelimiter is not NULL,
 		// *pDelimiter is set to the delimiter character,
 
-	char TryReadDelimiter() throw(emString);
+	char TryReadDelimiter() throw(emException);
 		// Read the next syntactical element as a delimiter or throw an
 		// error. Currently, a delimiter can be any character except for
 		// white space, letters, digits, '#', '_' and '"'. The
 		// characters '.', '-' and '+' can be delimiters only if not
 		// confusable with numbers.
 
-	void TryReadCertainDelimiter(char delimiter) throw(emString);
+	void TryReadCertainDelimiter(char delimiter) throw(emException);
 		// Read the next syntactical element as the given delimiter or
 		// throw an error.
 
-	const char * TryReadIdentifier() throw(emString);
+	const char * TryReadIdentifier() throw(emException);
 		// Read the next syntactical element as an identifier or throw
 		// an error.
 
-	int TryReadInt() throw(emString);
+	int TryReadInt() throw(emException);
 		// Read the next syntactical element as an integer value or
 		// throw an error.
 
-	double TryReadDouble() throw(emString);
+	double TryReadDouble() throw(emException);
 		// Read the next syntactical element as a double value or throw
 		// an error.
 
-	const char * TryReadQuoted() throw(emString);
+	const char * TryReadQuoted() throw(emException);
 		// Read and unquote the next syntactical element as a quoted
 		// string or throw an error.
 
-	void ThrowElemError(const char * text) const throw(emString);
+	void ThrowElemError(const char * text) const throw(emException);
 		// Throw an error containing the file name, the current line
 		// number and the given text.
 
-	void ThrowSyntaxError() const throw(emString);
+	void ThrowSyntaxError() const throw(emException);
 		// Like ThrowElemError("syntax error")
 
 	const emRec * GetRootRec() const;
@@ -1389,12 +1389,12 @@ public:
 
 protected:
 
-	virtual int TryRead(char * buf, int maxLen) throw(emString) = 0;
+	virtual int TryRead(char * buf, int maxLen) throw(emException) = 0;
 		// Read up to maxLen bytes from the source into the given
 		// buffer, or throw an error. Return the number of bytes read,
 		// or 0 if the end of source has been reached.
 
-	virtual void TryClose() throw(emString) = 0;
+	virtual void TryClose() throw(emException) = 0;
 		// Close the source, or throw an error.
 
 	virtual const char * GetSourceName() const = 0;
@@ -1404,8 +1404,8 @@ protected:
 private:
 
 	void SetMinNextBufSize(int minSize);
-	void TryNextChar() throw(emString);
-	void TryParseNext() throw(emString);
+	void TryNextChar() throw(emException);
+	void TryParseNext() throw(emException);
 
 	emRec * Root;
 	bool RootQuitPending;
@@ -1441,16 +1441,16 @@ public:
 	emRecWriter();
 	virtual ~emRecWriter();
 
-	void TryStartWriting(emRec & root) throw(emString);
+	void TryStartWriting(emRec & root) throw(emException);
 		// Start writing.
 		// Arguments:
 		//   root - The root of the records to be written.
 
-	bool TryContinueWriting() throw(emString);
+	bool TryContinueWriting() throw(emException);
 		// Continue writing. Returns true when ready, otherwise
 		// TryContinueWriting has to be called again.
 
-	void TryFinishWriting() throw(emString);
+	void TryFinishWriting() throw(emException);
 		// Continue writing until ready.
 
 	void QuitWriting();
@@ -1458,28 +1458,28 @@ public:
 
 	// - - The following things are for implementing emRec derivatives - -
 
-	void TryWriteDelimiter(char c) throw(emString);
+	void TryWriteDelimiter(char c) throw(emException);
 		// Write the given delimiter character.
 
-	void TryWriteIdentifier(const char * idf) throw(emString);
+	void TryWriteIdentifier(const char * idf) throw(emException);
 		// Write the given identifier.
 
-	void TryWriteInt(int i) throw(emString);
+	void TryWriteInt(int i) throw(emException);
 		// Write the given integer value.
 
-	void TryWriteDouble(double d) throw(emString);
+	void TryWriteDouble(double d) throw(emException);
 		// Write the given double value.
 
-	void TryWriteQuoted(const char * q) throw(emString);
+	void TryWriteQuoted(const char * q) throw(emException);
 		// Quote and write the given string.
 
-	void TryWriteSpace() throw(emString);
+	void TryWriteSpace() throw(emException);
 		// Write a space character.
 
-	void TryWriteNewLine() throw(emString);
+	void TryWriteNewLine() throw(emException);
 		// Write a new-line character.
 
-	void TryWriteIndent() throw(emString);
+	void TryWriteIndent() throw(emException);
 		// Write an indent (to be called only at beginning of a new
 		// line). It is a number of tabulator characters.
 
@@ -1493,11 +1493,11 @@ public:
 
 protected:
 
-	virtual void TryWrite(const char * buf, int len) throw(emString) = 0;
+	virtual void TryWrite(const char * buf, int len) throw(emException) = 0;
 		// Write len bytes from the given buffer to the target, or throw
 		// an error.
 
-	virtual void TryClose() throw(emString) = 0;
+	virtual void TryClose() throw(emException) = 0;
 		// Flush and close the target, or throw an error.
 
 private:
@@ -1541,7 +1541,7 @@ public:
 	virtual ~emRecFileReader();
 
 	void TryStartReading(emRec & root,
-	                     const emString & filePath) throw(emString);
+	                     const emString & filePath) throw(emException);
 		// Start reading.
 		// Arguments:
 		//   root     - The root of the tree of records to be read from
@@ -1559,8 +1559,8 @@ public:
 
 protected:
 
-	virtual int TryRead(char * buf, int maxLen) throw(emString);
-	virtual void TryClose() throw(emString);
+	virtual int TryRead(char * buf, int maxLen) throw(emException);
+	virtual void TryClose() throw(emException);
 	virtual const char * GetSourceName() const;
 
 private:
@@ -1595,7 +1595,7 @@ public:
 	virtual ~emRecFileWriter();
 
 	void TryStartWriting(emRec & root,
-	                     const emString & filePath) throw(emString);
+	                     const emString & filePath) throw(emException);
 		// Start writing.
 		// Arguments:
 		//   root     - The root of the tree of records to be written to
@@ -1604,8 +1604,8 @@ public:
 
 protected:
 
-	virtual void TryWrite(const char * buf, int len) throw(emString);
-	virtual void TryClose() throw(emString);
+	virtual void TryWrite(const char * buf, int len) throw(emException);
+	virtual void TryClose() throw(emException);
 
 private:
 
@@ -1627,7 +1627,7 @@ public:
 	emRecMemReader();
 
 	void TryStartReading(emRec & root, const char * buf,
-	                     int len) throw(emString);
+	                     int len) throw(emException);
 		// Start reading.
 		// Arguments:
 		//   root  - The root of the tree of records to be read from
@@ -1638,8 +1638,8 @@ public:
 
 protected:
 
-	virtual int TryRead(char * buf, int maxLen) throw(emString);
-	virtual void TryClose() throw(emString);
+	virtual int TryRead(char * buf, int maxLen) throw(emException);
+	virtual void TryClose() throw(emException);
 	virtual const char * GetSourceName() const;
 
 private:
@@ -1662,7 +1662,7 @@ public:
 	virtual ~emRecMemWriter();
 
 	void TryStartWriting(emRec & root,
-	                     emArray<char> & buf) throw(emString);
+	                     emArray<char> & buf) throw(emException);
 		// Start writing. This and the other Try methods should never
 		// fail.
 		// Arguments:
@@ -1674,8 +1674,8 @@ public:
 
 protected:
 
-	virtual void TryWrite(const char * buf, int len) throw(emString);
-	virtual void TryClose() throw(emString);
+	virtual void TryWrite(const char * buf, int len) throw(emException);
+	virtual void TryClose() throw(emException);
 
 private:
 

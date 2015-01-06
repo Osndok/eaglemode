@@ -49,6 +49,12 @@ public:
 
 	emMainWindow * Duplicate();
 
+	void ToggleFullscreen();
+	void ReloadFiles();
+	void ToggleControlView();
+	void Close();
+	void Quit();
+
 protected:
 
 	virtual bool Cycle();
@@ -60,37 +66,15 @@ protected:
 private:
 
 	static void RecreateContentPanels(emScreen & screen);
+	void CreateControlWindow();
 
-	void ToggleControlView();
-
-	class ControlPanelClass : public emTkGroup {
-	public:
-		ControlPanelClass(ParentArg parent, const emString & name,
-		                  emMainWindow & mainWin);
-	protected:
-		virtual void Input(emInputEvent & event, const emInputState & state,
-		                   double mx, double my);
-	private:
-		emMainWindow & MainWin;
-	};
-	friend class ControlPanelClass;
-
-	emRef<emMainConfig> MainConfig;
 	emRef<emBookmarksModel> BookmarksModel;
+	bool ToClose;
 
 	emMainPanel * MainPanel;
-	ControlPanelClass * ControlPanel;
+	emPanel * ControlPanel;
 	emPanel * ContentPanel;
-
-	emTkButton * BtNewWindow;
-	emTkCheckButton * BtFullscreen;
-	emTkCheckButton * BtAutoHideControlView;
-	emTkCheckButton * BtAutoHideSlider;
-	emTkButton * BtReload;
-	emTkButton * BtClose;
-	emTkButton * BtQuit;
-
-	emPanel * ContentControlPanel;
+	emCrossPtr<emWindow> ControlWindow;
 };
 
 inline emMainPanel & emMainWindow::GetMainPanel()

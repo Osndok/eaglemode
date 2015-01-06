@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009,2011 Oliver Hamann.
+// Copyright (C) 2005-2009,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -123,8 +123,6 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor)
 
 	if (IsFocused()) fgCol=emColor(255,136,136);
 	else if (IsInFocusedPath()) fgCol=emColor(187,136,136);
-	else if (IsVisited()) fgCol=emColor(255,255,136);
-	else if (IsInVisitedPath()) fgCol=emColor(187,187,136);
 	else fgCol=emColor(136,136,136);
 
 	h=GetHeight();
@@ -143,8 +141,6 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor)
 	str="State:";
 	if (IsFocused()) str+=" Focused";
 	if (IsInFocusedPath()) str+=" InFocusedPath";
-	if (IsVisited()) str+=" Visited";
-	if (IsInVisitedPath()) str+=" InVisitedPath";
 	if (IsViewFocused()) str+=" ViewFocused";
 	painter.PaintTextBoxed(0.05,0.4,0.9,0.05,str,0.05,fgCol,BgColor,EM_ALIGN_LEFT);
 
@@ -371,7 +367,7 @@ void emTestPanel::AutoExpand()
 	TP2=new emTestPanel(*this,"2");
 	TP3=new emTestPanel(*this,"3");
 	TP4=new emTestPanel(*this,"4");
-	BgColorField=new emTkColorField(
+	BgColorField=new emColorField(
 		*this,"BgColorField",
 		"Background Color",emString(),emImage(),
 		BgColor,true,true
@@ -395,7 +391,7 @@ emPanel * emTestPanel::CreateControlPanel(
 	ParentArg parent, const emString & name
 )
 {
-	ControlPanel=new emTkLabel(parent,name);
+	ControlPanel=new emLabel(parent,name);
 	UpdateControlPanel();
 	return ControlPanel;
 }
@@ -419,15 +415,15 @@ void emTestPanel::UpdateControlPanel()
 
 
 emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
-	: emTkGroup(parent,name)
+	: emGroup(parent,name)
 {
-	emTkGroup * grp;
-	emTkTiling * tlng;
-	emTkButton * bt;
-	emTkTextField * tf;
-	emTkColorField * cf;
-	emTkScalarField * sf;
-	emTkTunnel * tunnel;
+	emGroup * grp;
+	emTiling * tlng;
+	emButton * bt;
+	emTextField * tf;
+	emColorField * cf;
+	emScalarField * sf;
+	emTunnel * tunnel;
 	emString str;
 	int i;
 
@@ -435,83 +431,83 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 	SetPrefChildTallness(0.3);
 
 
-	grp=new emTkGroup(this,"buttons","Buttons");
+	grp=new emGroup(this,"buttons","Buttons");
 	grp->SetBorderScaling(2.5);
-		bt=new emTkButton(grp,"b1","Button");
-		bt=new emTkButton(grp,"b2","Long Desc");
+		bt=new emButton(grp,"b1","Button");
+		bt=new emButton(grp,"b2","Long Desc");
 		str="";
 		for (i=0; i<100; i++) {
 			str+="This is a looooooooooooooooooooooooooooooooooooooooooooooooooooooong description of the button.\n";
 		}
 		bt->SetDescription(str);
-		bt=new emTkButton(grp,"b3","NoEOI");
+		bt=new emButton(grp,"b3","NoEOI");
 		bt->SetNoEOI();
 
-	grp=new emTkGroup(this,"checkbuttons","Check Buttons and Boxes");
+	grp=new emGroup(this,"checkbuttons","Check Buttons and Boxes");
 	grp->SetBorderScaling(2.5);
-		new emTkCheckButton(grp,"c1","Check Button");
-		new emTkCheckButton(grp,"c2","Check Button");
-		new emTkCheckButton(grp,"c3","Check Button");
-		new emTkCheckBox(grp,"c4","Check Box");
-		new emTkCheckBox(grp,"c5","Check Box");
-		new emTkCheckBox(grp,"c6","Check Box");
+		new emCheckButton(grp,"c1","Check Button");
+		new emCheckButton(grp,"c2","Check Button");
+		new emCheckButton(grp,"c3","Check Button");
+		new emCheckBox(grp,"c4","Check Box");
+		new emCheckBox(grp,"c5","Check Box");
+		new emCheckBox(grp,"c6","Check Box");
 
-	grp=new emTkRadioButton::Group(this,"radiobuttons","Radio Buttons and Boxes");
+	grp=new emRadioButton::Group(this,"radiobuttons","Radio Buttons and Boxes");
 	grp->SetBorderScaling(2.5);
-		new emTkRadioButton(grp,"r1","Radio Button");
-		new emTkRadioButton(grp,"r2","Radio Button");
-		new emTkRadioButton(grp,"r3","Radio Button");
-		new emTkRadioBox(grp,"r4","Radio Box");
-		new emTkRadioBox(grp,"r5","Radio Box");
-		new emTkRadioBox(grp,"r6","Radio Box");
+		new emRadioButton(grp,"r1","Radio Button");
+		new emRadioButton(grp,"r2","Radio Button");
+		new emRadioButton(grp,"r3","Radio Button");
+		new emRadioBox(grp,"r4","Radio Box");
+		new emRadioBox(grp,"r5","Radio Box");
+		new emRadioBox(grp,"r6","Radio Box");
 
-	grp=new emTkGroup(this,"textfields","Text Fields");
+	grp=new emGroup(this,"textfields","Text Fields");
 	grp->SetBorderScaling(2.5);
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,"tf1",
 			"Read-Only","This is a read-only text field.",emImage(),
 			"Read-Only"
 		);
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,"tf2",
 			"Editable","This is an editable text field.",emImage(),
 			"Editable",true
 		);
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,"tf3",
 			"Password","This is an editable password text field.",emImage(),
 			"Password",true
 		);
 		tf->SetPasswordMode();
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,"mltf1",
 			"Multi-Line","This is an editable multi-line text field.",emImage(),
 			"first line\nsecond line\n...",true
 		);
 		tf->SetMultiLineMode();
 
-	grp=new emTkGroup(this,"scalarfields","Scalar Fields");
+	grp=new emGroup(this,"scalarfields","Scalar Fields");
 	grp->SetBorderScaling(2.5);
 	grp->SetPrefChildTallness(0.1);
 
-		sf=new emTkScalarField(grp,"sf1","Read-Only");
+		sf=new emScalarField(grp,"sf1","Read-Only");
 
-		sf=new emTkScalarField(grp,"sf2","Editable");
+		sf=new emScalarField(grp,"sf2","Editable");
 		sf->SetEditable();
 
-		sf=new emTkScalarField(grp,"sf3");
+		sf=new emScalarField(grp,"sf3");
 		sf->SetEditable();
 		sf->SetMinMaxValues(-1000,1000);
 		sf->SetScaleMarkIntervals(1000,100,10,5,1,0);
 
-		sf=new emTkScalarField(grp,"sf4","Level");
+		sf=new emScalarField(grp,"sf4","Level");
 		sf->SetEditable();
 		sf->SetTextBoxTallness(0.25);
 		sf->SetMinMaxValues(1,5);
 		sf->SetValue(3);
 		sf->SetTextOfValueFunc(TextOfLevelValue,NULL);
 
-		SFLen=new emTkScalarField(grp,"sf5","Play Length");
+		SFLen=new emScalarField(grp,"sf5","Play Length");
 		SFLen->SetEditable();
 		SFLen->SetMinMaxValues(0,24*3600*1000);
 		SFLen->SetValue(4*3600*1000);
@@ -519,62 +515,62 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		SFLen->SetTextOfValueFunc(TextOfTimeValue,NULL);
 		AddWakeUpSignal(SFLen->GetValueSignal());
 
-		SFPos=new emTkScalarField(grp,"sf6","Play Position");
+		SFPos=new emScalarField(grp,"sf6","Play Position");
 		SFPos->SetEditable();
 		SFPos->SetMinMaxValues(0,SFLen->GetValue());
 		SFPos->SetScaleMarkIntervals(60*60*1000,15*60*1000,5*60*1000,60*1000,10*1000,1000,100,10,1,0);
 		SFPos->SetTextOfValueFunc(TextOfTimeValue,NULL);
 
-	grp=new emTkGroup(this,"colorfields","Color Fields");
+	grp=new emGroup(this,"colorfields","Color Fields");
 	grp->SetBorderScaling(2.5);
 	grp->SetPrefChildTallness(0.4);
 
-		cf=new emTkColorField(grp,"cf1","Read-Only");
+		cf=new emColorField(grp,"cf1","Read-Only");
 		cf->SetColor(0xBB2222FF);
 
-		cf=new emTkColorField(grp,"cf2","Editable");
+		cf=new emColorField(grp,"cf2","Editable");
 		cf->SetColor(0x22BB22FF);
 		cf->SetEditable();
 
-		cf=new emTkColorField(grp,"cf3","Editable, Alpha Enabled");
+		cf=new emColorField(grp,"cf3","Editable, Alpha Enabled");
 		cf->SetColor(0x2222BBFF);
 		cf->SetEditable();
 		cf->SetAlphaEnabled();
 
-	grp=new emTkGroup(this,"tunnels","Tunnels");
+	grp=new emGroup(this,"tunnels","Tunnels");
 	grp->SetBorderScaling(2.5);
 	grp->SetPrefChildTallness(0.4);
 
-		tunnel=new emTkTunnel(grp,"t1","Tunnel");
-		new emTkButton(tunnel,"e","End Of Tunnel");
+		tunnel=new emTunnel(grp,"t1","Tunnel");
+		new emButton(tunnel,"e","End Of Tunnel");
 
-		tunnel=new emTkTunnel(grp,"t2","Deeper Tunnel");
+		tunnel=new emTunnel(grp,"t2","Deeper Tunnel");
 		tunnel->SetDepth(30.0);
-		new emTkGroup(tunnel,"e","End Of Tunnel");
+		new emGroup(tunnel,"e","End Of Tunnel");
 
-		tunnel=new emTkTunnel(grp,"t3","Square End");
+		tunnel=new emTunnel(grp,"t3","Square End");
 		tunnel->SetChildTallness(1.0);
-		new emTkGroup(tunnel,"e","End Of Tunnel");
+		new emGroup(tunnel,"e","End Of Tunnel");
 
-		tunnel=new emTkTunnel(grp,"t4","Square End, Zero Depth");
+		tunnel=new emTunnel(grp,"t4","Square End, Zero Depth");
 		tunnel->SetChildTallness(1.0);
 		tunnel->SetDepth(0.0);
-		new emTkGroup(tunnel,"e","End Of Tunnel");
+		new emGroup(tunnel,"e","End Of Tunnel");
 
-	grp=new emTkGroup(this,"dlgs","Dialogs");
+	grp=new emGroup(this,"dlgs","Dialogs");
 	grp->SetBorderScaling(2.5);
 	grp->SetFixedColumnCount(1);
-		tlng=new emTkTiling(grp,"tlng");
+		tlng=new emTiling(grp,"tlng");
 		tlng->SetPrefChildTallness(0.1);
-			CbTopLev=new emTkCheckBox(tlng,"tl","Top-Level");
-			CbPZoom=new emTkCheckBox(tlng,"VF_POPUP_ZOOM","VF_POPUP_ZOOM");
+			CbTopLev=new emCheckBox(tlng,"tl","Top-Level");
+			CbPZoom=new emCheckBox(tlng,"VF_POPUP_ZOOM","VF_POPUP_ZOOM");
 			CbPZoom->SetChecked();
-			CbModal=new emTkCheckBox(tlng,"WF_MODAL","WF_MODAL");
+			CbModal=new emCheckBox(tlng,"WF_MODAL","WF_MODAL");
 			CbModal->SetChecked();
-			CbUndec=new emTkCheckBox(tlng,"WF_UNDECORATED","WF_UNDECORATED");
-			CbPopup=new emTkCheckBox(tlng,"WF_POPUP","WF_POPUP");
-			CbFull=new emTkCheckBox(tlng,"WF_FULLSCREEN","WF_FULLSCREEN");
-		BtCreateDlg=new emTkButton(grp,"bt","Create Test Dialog");
+			CbUndec=new emCheckBox(tlng,"WF_UNDECORATED","WF_UNDECORATED");
+			CbPopup=new emCheckBox(tlng,"WF_POPUP","WF_POPUP");
+			CbFull=new emCheckBox(tlng,"WF_FULLSCREEN","WF_FULLSCREEN");
+		BtCreateDlg=new emButton(grp,"bt","Create Test Dialog");
 		AddWakeUpSignal(BtCreateDlg->GetClickSignal());
 }
 
@@ -587,7 +583,7 @@ emTestPanel::TkTest::~TkTest()
 bool emTestPanel::TkTest::Cycle()
 {
 	emContext * ctx;
-	emTkDialog * dlg;
+	emDialog * dlg;
 	emView::ViewFlags vFlags;
 	emWindow::WindowFlags wFlags;
 
@@ -604,7 +600,7 @@ bool emTestPanel::TkTest::Cycle()
 		if (CbUndec->IsChecked()) wFlags|=emWindow::WF_UNDECORATED;
 		if (CbPopup->IsChecked()) wFlags|=emWindow::WF_POPUP;
 		if (CbFull->IsChecked()) wFlags|=emWindow::WF_FULLSCREEN;
-		dlg=new emTkDialog(*ctx,vFlags,wFlags);
+		dlg=new emDialog(*ctx,vFlags,wFlags);
 		dlg->AddNegativeButton("Close");
 		dlg->EnableAutoDeletion();
 		dlg->SetRootTitle("Test Dialog");
@@ -653,7 +649,7 @@ void emTestPanel::TkTest::TextOfLevelValue(
 
 
 emTestPanel::TkTestGrp::TkTestGrp(ParentArg parent, const emString & name)
-	: emTkGroup(parent,name)
+	: emGroup(parent,name)
 {
 	SetCaption("Toolkit Test");
 	EnableAutoExpansion();
@@ -663,13 +659,13 @@ emTestPanel::TkTestGrp::TkTestGrp(ParentArg parent, const emString & name)
 
 void emTestPanel::TkTestGrp::AutoExpand()
 {
-	emTkSplitter * sp, * sp1, * sp2;
+	emSplitter * sp, * sp1, * sp2;
 	TkTest * t1a, * t1b, * t2a, * t2b;
 
-	sp=new emTkSplitter(this,"sp");
-	sp1=new emTkSplitter(sp,"sp1");
+	sp=new emSplitter(this,"sp");
+	sp1=new emSplitter(sp,"sp1");
 	sp1->SetVertical(true);
-	sp2=new emTkSplitter(sp,"sp2");
+	sp2=new emSplitter(sp,"sp2");
 	sp2->SetVertical(true);
 	sp->SetPos(0.8);
 	sp1->SetPos(0.8);

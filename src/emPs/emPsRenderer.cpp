@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2011 Oliver Hamann.
+// Copyright (C) 2006-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -114,7 +114,7 @@ bool emPsRenderer::Cycle()
 	switch (MainState) {
 
 L_ENTER_COLD_WAIT_JOB:
-		CurrentDocument.Empty();
+		CurrentDocument.Clear();
 		PSAgent.ReleaseAccess();
 		MainState=COLD_WAIT_JOB;
 	case COLD_WAIT_JOB:
@@ -138,8 +138,8 @@ L_ENTER_PREPARE_PROCESS:
 		try {
 			TryStartProcess();
 		}
-		catch (emString errorMessage) {
-			FailAllJobs(errorMessage);
+		catch (emException & exception) {
+			FailAllJobs(exception.GetText());
 			goto L_ENTER_COLD_WAIT_JOB;
 		}
 		PrepareWritingStartup();
@@ -155,8 +155,8 @@ L_ENTER_PREPARE_PROCESS:
 			TryRead();
 			TryWrite();
 		}
-		catch (emString errorMessage) {
-			FailDocJobs(errorMessage);
+		catch (emException & exception) {
+			FailDocJobs(exception.GetText());
 			goto L_ENTER_QUIT_PROCESS;
 		}
 		if (IsReadingFinished()) goto L_ENTER_RUN_JOB;
@@ -191,8 +191,8 @@ L_ENTER_RUN_JOB:
 				readProceeded=TryRead();
 				writeProceeded=TryWrite();
 			}
-			catch (emString errorMessage) {
-				FailDocJobs(errorMessage);
+			catch (emException & exception) {
+				FailDocJobs(exception.GetText());
 				goto L_ENTER_QUIT_PROCESS;
 			}
 			if (IsReadingFinished()) {
@@ -233,7 +233,7 @@ L_ENTER_HOT_WAIT_ACCESS:
 		break;
 
 L_ENTER_QUIT_PROCESS:
-		CurrentDocument.Empty();
+		CurrentDocument.Clear();
 		PSAgent.ReleaseAccess();
 		Process.CloseWriting();
 		Process.CloseReading();
@@ -394,11 +394,11 @@ void emPsRenderer::UpdatePSPriority()
 }
 
 
-void emPsRenderer::TryStartProcess() throw(emString)
+void emPsRenderer::TryStartProcess() throw(emException)
 {
 #if defined(_WIN32)
 
-	throw emString(
+	throw emException(
 		"Ghostscript probably not available on this system. As a precaution, execution is not tried."
 	);
 
@@ -437,7 +437,7 @@ void emPsRenderer::PrepareWritingStartup()
 {
 	WriterState=WRITING_STARTUP;
 	WriterPos=0;
-	WriteCommand.Empty();
+	WriteCommand.Clear();
 }
 
 
@@ -470,7 +470,7 @@ void emPsRenderer::PrepareWritingPage()
 }
 
 
-bool emPsRenderer::TryWrite() throw(emString)
+bool emPsRenderer::TryWrite() throw(emException)
 {
 	const char * buf;
 	int len;
@@ -517,7 +517,7 @@ L_ENTER_WRITING_SYNC:
 
 	len=Process.TryWrite(buf+WriterPos,len-WriterPos);
 	if (len<0) {
-		throw emString(
+		throw emException(
 			"PostScript interpretation failed: Interpreter closed STDIN or exited."
 		);
 	}
@@ -543,21 +543,21 @@ void emPsRenderer::PrepareReadingPage()
 }
 
 
-bool emPsRenderer::TryRead() throw(emString)
+bool emPsRenderer::TryRead() throw(emException)
 {
 	int len,syncLen,eat,r;
 	bool syncFound;
 	const char * p;
 
 	if (ReadBufferFill>=(int)sizeof(ReadBuffer)) {
-		throw emString("PostScript interpretation failed: Read buffer too small.");
+		throw emException("PostScript interpretation failed: Read buffer too small.");
 	}
 	len=Process.TryRead(
 		ReadBuffer+ReadBufferFill,
 		sizeof(ReadBuffer)-ReadBufferFill
 	);
 	if (len<0) {
-		throw emString(
+		throw emException(
 			"PostScript interpretation failed: Interpreter closed STDOUT or exited."
 		);
 	}
@@ -614,13 +614,13 @@ L_ENTER_READING_IMAGE_DATA:
 		while (len>0) {
 			r=ParseImageData(ReadBuffer+eat,len-eat);
 			if (r<0) {
-				throw emString(
+				throw emException(
 					"PostScript interpretation failed: Image data confusion."
 				);
 			}
 			else if (r==0) {
 				if (len-eat>1024) {
-					throw emString(
+					throw emException(
 						"PostScript interpretation failed: Image parser faulty."
 					);
 				}
@@ -651,7 +651,7 @@ L_ENTER_READING_SYNC:
 	}
 
 	if (syncFound && ReaderState!=READING_FINISHED) {
-		throw emString(
+		throw emException(
 			"PostScript interpretation failed: Unsupported document structure."
 		);
 	}

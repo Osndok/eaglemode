@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSendMiniIpc.cpp
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -40,8 +40,8 @@ int main(int argc, char * argv[])
 	try {
 		emMiniIpcClient::TrySend(argv[1],argc-2,argv+2);
 	}
-	catch (emString errorMessage) {
-		fprintf(stderr,"%s\n",errorMessage.Get());
+	catch (emException & exception) {
+		fprintf(stderr,"%s\n",exception.GetText());
 		return 1;
 	}
 	return 0;

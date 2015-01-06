@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTgaImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emTgaImageFileModel::~emTgaImageFileModel()
 }
 
 
-void emTgaImageFileModel::TryStartLoading() throw(emString)
+void emTgaImageFileModel::TryStartLoading() throw(emException)
 {
 	int i,c;
 
@@ -159,13 +159,13 @@ void emTgaImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 ErrFile:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
-	throw emString("TGA format error");
+	throw emException("TGA format error");
 }
 
 
-bool emTgaImageFileModel::TryContinueLoading() throw(emString)
+bool emTgaImageFileModel::TryContinueLoading() throw(emException)
 {
 	int i,x,c;
 
@@ -187,7 +187,7 @@ bool emTgaImageFileModel::TryContinueLoading() throw(emString)
 			L->RunLen--;
 			for (c=0, i=0; i<L->BitsPP; i+=8) c|=(Read8()&255)<<i;
 			if ((L->IMapType&~8)==1) {
-				if (c<0 || c>=L->CMapSize) throw emString("TGA format error");
+				if (c<0 || c>=L->CMapSize) throw emException("TGA format error");
 				L->RunCol=L->Palette[c];
 			}
 			else if ((L->IMapType&~8)==2) {
@@ -220,7 +220,7 @@ bool emTgaImageFileModel::TryContinueLoading() throw(emString)
 
 	Signal(ChangeSignal);
 
-	if (ferror(L->File)) throw emGetErrorText(errno);
+	if (ferror(L->File)) throw emException("%s",emGetErrorText(errno).Get());
 
 	L->NextY++;
 	if (L->NextY>=L->Height) {
@@ -241,13 +241,13 @@ void emTgaImageFileModel::QuitLoading()
 }
 
 
-void emTgaImageFileModel::TryStartSaving() throw(emString)
+void emTgaImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emTgaImageFileModel: Saving not implemented.");
+	throw emException("emTgaImageFileModel: Saving not implemented.");
 }
 
 
-bool emTgaImageFileModel::TryContinueSaving() throw(emString)
+bool emTgaImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

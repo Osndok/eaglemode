@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRgbImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emRgbImageFileModel::~emRgbImageFileModel()
 }
 
 
-void emRgbImageFileModel::TryStartLoading() throw(emString)
+void emRgbImageFileModel::TryStartLoading() throw(emException)
 {
 	int magic,dimension,colorMapId;
 
@@ -103,15 +103,15 @@ void emRgbImageFileModel::TryStartLoading() throw(emString)
 
 	return;
 ErrFile:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
-	throw emString("SGI image file format error.");
+	throw emException("SGI image file format error.");
 ErrUnsupported:
-	throw emString("Unsupported SGI image file format.");
+	throw emException("Unsupported SGI image file format.");
 }
 
 
-bool emRgbImageFileModel::TryContinueLoading() throw(emString)
+bool emRgbImageFileModel::TryContinueLoading() throw(emException)
 {
 	unsigned char * map;
 	int x,val,i,cnt,rpt;
@@ -187,9 +187,9 @@ bool emRgbImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 ErrFile:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
-	throw emString("SGI image file format error.");
+	throw emException("SGI image file format error.");
 }
 
 
@@ -204,13 +204,13 @@ void emRgbImageFileModel::QuitLoading()
 }
 
 
-void emRgbImageFileModel::TryStartSaving() throw(emString)
+void emRgbImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emRgbImageFileModel: Saving not implemented.");
+	throw emException("emRgbImageFileModel: Saving not implemented.");
 }
 
 
-bool emRgbImageFileModel::TryContinueSaving() throw(emString)
+bool emRgbImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

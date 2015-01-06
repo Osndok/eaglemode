@@ -27,7 +27,7 @@ if (IsFirstPass()) {
 	ErrorIfNoSources();
 	ErrorIfNotSingleTarget();
 
-	ConfirmIfSourcesAccrossDirs();
+	ConfirmIfSourcesAcrossDirs();
 
 	my $message=
 		"Are you sure to copy, overwriting any existing target files?\n".

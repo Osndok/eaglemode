@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>.h
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,8 +30,8 @@
 </SPAN><SPAN CLASS=p>#ifndef emViewInputFilter_h
 #define emViewInputFilter_h
 
-#ifndef emView_h
-#include &lt;<A CLASS=f HREF="emCore_emView_h.html">emCore/emView.h</A>&gt;
+#ifndef emViewAnimator_h
+#include &lt;emCore/emViewAnimator.h&gt;
 #endif
 
 
@@ -178,15 +178,25 @@
         <SPAN CLASS=t>void </SPAN>EmulateMiddleButton(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
         <SPAN CLASS=t>bool </SPAN>MoveMousePointerBackIntoView(<SPAN CLASS=t>double </SPAN>* pmx, <SPAN CLASS=t>double </SPAN>* pmy);
         <SPAN CLASS=t>void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy);
-        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>double </SPAN>GetWheelZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>UpdateWheelZoomSpeed(<SPAN CLASS=t>bool </SPAN>down, <SPAN CLASS=t>bool </SPAN>fine);
+        <SPAN CLASS=t>void </SPAN>SetMouseAnimParams();
+        <SPAN CLASS=t>void </SPAN>SetWheelAnimParams();
+        <SPAN CLASS=t>void </SPAN>InitMagnetismAvoidance();
+        <SPAN CLASS=t>void </SPAN>UpdateMagnetismAvoidance(<SPAN CLASS=t>double </SPAN>dmx, <SPAN CLASS=t>double </SPAN>dmy);
 
+        emSwipingViewAnimator MouseAnim;
+        emSwipingViewAnimator WheelAnim;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
         <SPAN CLASS=t>double </SPAN>LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
-        <SPAN CLASS=t>bool </SPAN>ZoomScrollInAction;
         emUInt64 EmuMidButtonTime;
         <SPAN CLASS=t>int </SPAN>EmuMidButtonRepeat;
+        <SPAN CLASS=t>double </SPAN>WheelZoomSpeed;
+        emUInt64 WheelZoomTime;
+        <SPAN CLASS=t>bool </SPAN>MagnetismAvoidance;
+        <SPAN CLASS=t>double </SPAN>MagAvMouseMoveX,MagAvMouseMoveY;
+        emUInt64 MagAvTime;
 <SPAN CLASS=b>}</SPAN>;
 
 
@@ -208,20 +218,16 @@
 
         <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
 
-        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
-
 <SPAN CLASS=t>private</SPAN>:
 
-        <SPAN CLASS=t>double </SPAN>Impulse(<SPAN CLASS=t>double </SPAN>cv, <SPAN CLASS=t>double </SPAN>tv, <SPAN CLASS=t>double </SPAN>mv, <SPAN CLASS=t>double </SPAN>dt);
         <SPAN CLASS=t>void </SPAN>NavigateByProgram(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-        <SPAN CLASS=t>double </SPAN>GetKeyboardZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine);
-        <SPAN CLASS=t>double </SPAN>GetKeyboardScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine);
+        <SPAN CLASS=t>double </SPAN>GetZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>double </SPAN>GetScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SetAnimatorParameters();
 
+        emSpeedingViewAnimator Animator;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
         <SPAN CLASS=t>bool </SPAN>Active;
-        <SPAN CLASS=t>double </SPAN>TargetVx,TargetVy,TargetVz;
-        <SPAN CLASS=t>double </SPAN>CurrentVx,CurrentVy,CurrentVz;
-        emUInt64 LastClock;
         <SPAN CLASS=t>int </SPAN>NavByProgState;
 <SPAN CLASS=b>}</SPAN>;
 

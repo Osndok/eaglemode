@@ -220,7 +220,7 @@ sub Link
 				$s eq "wsock32"
 				#??? to be continued...
 			) {
-				print(STDERR "WARNING: desperated hack: library '$s' ignored!\n");
+				print(STDERR "WARNING: desperate hack: library '$s' ignored!\n");
 				next;
 			}
 			push(@args,"$s.lib");

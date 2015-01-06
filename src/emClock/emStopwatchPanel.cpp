@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStopwatchPanel.cpp
 //
-// Copyright (C) 2006-2008,2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,14 +29,14 @@ emStopwatchPanel::emStopwatchPanel(
 {
 	FileModel=fileModel;
 	FgColor=fgColor;
-	TimeField=new emTkTextField(this,"time_field");
-	StartStopButton=new emTkButton(
+	TimeField=new emTextField(this,"time_field");
+	StartStopButton=new emButton(
 		this,"start_stop_button","Start/Stop",
 		"Start or stop the stopwatch.\n"
 		"Remember that the action is performed\n"
 		"at releasing of the mouse button."
 	);
-	ClearButton=new emTkButton(
+	ClearButton=new emButton(
 		this,"clear_button","Clear",
 		"Reset the stopwatch to zero time."
 	);

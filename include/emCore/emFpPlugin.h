@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -88,7 +88,7 @@ public:
 	emPanel * TryCreateFilePanel(
 		emPanel::ParentArg parent, const emString & name,
 		const emString & path
-	) throw(emString);
+	) throw(emException);
 		// Create a file panel via this plugin.
 		// Arguments:
 		//   parent - Parent of the panel.

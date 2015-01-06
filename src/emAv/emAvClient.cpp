@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvClient.cpp
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,8 +47,8 @@ void emAvClient::OpenStream(
 	try {
 		inst=ServerModel->TryOpenInstance(audioDrv,videoDrv,filePath);
 	}
-	catch (emString errorMessage) {
-		StreamErrorText=errorMessage;
+	catch (emException & exception) {
+		StreamErrorText=exception.GetText();
 		StreamState=STREAM_ERRORED;
 		StreamStateChanged(StreamState);
 		return;
@@ -81,9 +81,9 @@ void emAvClient::ResetAll()
 		Instance=NULL;
 	}
 	StreamState=STREAM_CLOSED;
-	StreamErrorText.Empty();
+	StreamErrorText.Clear();
 	for (i=Properties.GetCount()-1; i>=0; i--) delete Properties[i];
-	Properties.Empty(true);
+	Properties.Clear(true);
 }
 
 

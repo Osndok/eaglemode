@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.cpp
 //
-// Copyright (C) 2005-2012 Oliver Hamann.
+// Copyright (C) 2005-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -203,15 +203,9 @@ void emInputEvent::Setup(
 void emInputEvent::Eat()
 {
 	Key=EM_KEY_NONE;
-	Chars.Empty();
+	Chars.Clear();
 	Repeat=0;
 	Variant=0;
-}
-
-
-bool emInputEvent::IsKeyboardEvent() const
-{
-	return !IsEmpty() && !IsMouseEvent() && !IsTouchEvent();
 }
 
 
@@ -307,7 +301,7 @@ void emInputState::RemoveTouch(int index)
 
 void emInputState::ClearTouches()
 {
-	Touches.Empty();
+	Touches.Clear();
 }
 
 
@@ -598,7 +592,7 @@ emInputHotkey::emInputHotkey(
 }
 
 
-void emInputHotkey::TryParse(const char * str) throw(emString)
+void emInputHotkey::TryParse(const char * str) throw(emException)
 {
 	char tmp[256];
 	const char * p;
@@ -626,7 +620,7 @@ void emInputHotkey::TryParse(const char * str) throw(emString)
 
 L_ERROR:
 	Packed=0;
-	throw emString::Format("Not a valid hotkey: %s",str);
+	throw emException("Not a valid hotkey: %s",str);
 }
 
 

@@ -67,7 +67,7 @@ PlExFileModel::PlExFileModel(emContext & context, const emString & name)
 
 //============================== PlExControlPanel ==============================
 
-class PlExControlPanel : public emTkGroup {
+class PlExControlPanel : public emGroup {
 public:
 	PlExControlPanel(ParentArg parent, const emString & name,
 	                 emRef<PlExFileModel> model);
@@ -75,30 +75,30 @@ protected:
 	virtual bool Cycle();
 private:
 	emRef<PlExFileModel> Model;
-	emTkColorField * ColorField;
-	emTkButton * ClearButton;
+	emColorField * ColorField;
+	emButton * ClearButton;
 };
 
 PlExControlPanel::PlExControlPanel(
 	ParentArg parent, const emString & name, emRef<PlExFileModel> model
 )
-	: emTkGroup(parent,name,"PlEx")
+	: emGroup(parent,name,"PlEx")
 {
 	Model=model;
 	SetPrefChildTallness(0.2);
 	SetPrefChildTallness(0.4,1);
-	new emTkLabel(
-		new emTkGroup(this,"about","About"),
+	new emLabel(
+		new emGroup(this,"about","About"),
 		"about",
 		"This is PlEx - a plugin example.\n"
 		"It allows to draw lines with the\n"
 		"left mouse button.\n"
 	);
-	ColorField=new emTkColorField(this,"color","Color");
+	ColorField=new emColorField(this,"color","Color");
 	ColorField->SetColor(Model->CurrentColor);
 	ColorField->SetEditable();
-	ClearButton=new emTkButton(
-		new emTkTunnel(this,"tunnel","Clear"),
+	ClearButton=new emButton(
+		new emTunnel(this,"tunnel","Clear"),
 		"clear","Clear"
 	);
 	AddWakeUpSignal(ColorField->GetColorSignal());
@@ -119,7 +119,7 @@ bool PlExControlPanel::Cycle()
 	if (IsSignaled(Model->GetChangeSignal())) {
 		ColorField->SetColor(Model->CurrentColor);
 	}
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 

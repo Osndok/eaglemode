@@ -1,0 +1,204 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emRadioButton.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emRadioButton_h
+#define emRadioButton_h
+
+#ifndef emCheckButton_h
+#include &lt;<A CLASS=f HREF="emCore_emCheckButton_h.html">emCore/emCheckButton.h</A>&gt;
+#endif
+
+#ifndef emGroup_h
+#include &lt;<A CLASS=f HREF="emCore_emGroup_h.html">emCore/emGroup.h</A>&gt;
+#endif
+
+
+<A NAME="emRadioButton"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a radio button. This is similar to a check button, but in a
+        // set of radio buttons, only one button can have checked state, and the
+        // user can unchecked a button only by checking another. That is the
+        // usual behavior. Actually an <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> does not modify its check
+        // state on any click, as long as it is not a member of an
+        // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism or <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Group (it's not a must
+        // to use these helper classes).
+
+        </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>();
+                <SPAN CLASS=c>// Destructor. Removes the button from any Mechanism.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Mechanism : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for the mechanism of a set of radio buttons.
+
+                </SPAN>Mechanism();
+                <SPAN CLASS=t>virtual </SPAN>~Mechanism();
+
+                <SPAN CLASS=t>void </SPAN>Add(<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * radioButton);
+                        <SPAN CLASS=c>// Add a radio button to this mechanism. If the button
+                        // is already a member of another mechanism, it is
+                        // removed from that mechanism automatically.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>AddAll(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * parent);
+                        <SPAN CLASS=c>// Add all radio buttons which are children of the given
+                        // panel.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Remove(<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * radioButton);
+                <SPAN CLASS=t>void </SPAN>RemoveByIndex(<SPAN CLASS=t>int </SPAN>index);
+                        <SPAN CLASS=c>// Remove a radio button from this mechanism.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>RemoveAll();
+                        <SPAN CLASS=c>// Remove all radio buttons from this mechanism.
+
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCheckSignal() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// This signal is signaled whenever there was a change
+                        // in the result of GetChecked().
+
+                </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetChecked();
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetChecked() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>void </SPAN>SetChecked(<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * radioButton);
+                        <SPAN CLASS=c>// Get/set the member button which is currently checked.
+                        // NULL means to have no member button checked.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetCheckIndex();
+                <SPAN CLASS=t>void </SPAN>SetCheckIndex(<SPAN CLASS=t>int </SPAN>index);
+                        <SPAN CLASS=c>// Get/set the index of the member button which is
+                        // currently checked. -1 means to have no member button
+                        // checked.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetCount();
+                        <SPAN CLASS=c>// Get number of member buttons.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * button) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the index of a member button, or -1 if not found.
+
+        </SPAN><SPAN CLASS=t>protected</SPAN>:
+
+                <SPAN CLASS=t>virtual void </SPAN>CheckChanged();
+                        <SPAN CLASS=c>// Called whenever there was a change in the result of
+                        // GetChecked().
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+
+                <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> *&gt; Array;
+                <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CheckSignal;
+                <SPAN CLASS=t>int </SPAN>CheckIndex;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>Group : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emGroup_h.html#emGroup">emGroup</A>, <SPAN CLASS=t>public </SPAN>Mechanism <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Combination of <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A> and Mechanism. Any radio buttons
+                // created as children of such a group are added automatically
+                // to the mechanism (this magic happens in the constructor of
+                // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>).
+
+                </SPAN>Group(
+                        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+                );
+                        <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A>.
+
+                </SPAN><SPAN CLASS=t>virtual </SPAN>~Group();
+                        <SPAN CLASS=c>// Destructor.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Clicked();
+
+        <SPAN CLASS=t>virtual void </SPAN>CheckChanged();
+
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN>Mechanism;
+
+        Mechanism * Mech;
+        <SPAN CLASS=t>int </SPAN>MechIndex;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToRadioButton;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCheckSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * <A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetChecked()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * <A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCheckIndex()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCount()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array.GetCount();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetIndexOf(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * button
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>button &amp;&amp; button-&gt;Mech==<SPAN CLASS=k>this </SPAN>? button-&gt;MechIndex : -<SPAN CLASS=u>1</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

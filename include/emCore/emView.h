@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,6 +41,9 @@ class emPanel;
 class emViewPort;
 class emWindow;
 class emScreen;
+class emViewAnimator;
+class emMagneticViewAnimator;
+class emVisitingViewAnimator;
 class emViewInputFilter;
 class emCheatVIF;
 
@@ -221,7 +224,7 @@ public:
 	emViewInputFilter * GetFirstVIF();
 	emViewInputFilter * GetLastVIF();
 		// Get the first or last view input filter (VIF) in the chain of
-		// the VIFs of this view. The default chain (after contructing
+		// the VIFs of this view. The default chain (after constructing
 		// the view) contains emDefaultTouchVIF, emCheatVIF,
 		// emKeyboardZoomScrollVIF, and emMouseZoomScrollVIF in that
 		// order. This could change in future versions. You can modify
@@ -248,6 +251,21 @@ public:
 		// focused when the view is focused. Returns NULL when this view
 		// has no panels.
 
+	bool IsActivationAdherent() const;
+		// Whether the panel activation is adherent. It usually means
+		// that the activation has been made by the user.
+
+	void SetActivePanel(emPanel * panel, bool adherent=true);
+		// Make the given Panel the active panel, or if it is not
+		// focusable, make the nearest focusable ancestor active.
+		// The location of the view is not changed.
+
+	void SetActivePanelBestPossible();
+		// Search for a viewed panel whose position in the view is best
+		// for being the active panel, and activate it. But if the old
+		// activation is adherent, the activation is changed only if it
+		// is really too bad.
+
 	emPanel * GetPanelByIdentity(const char * identity);
 		// Search for a panel by identity (see emPanel::GetIdentity()).
 		// Returns NULL if not found.
@@ -259,60 +277,64 @@ public:
 		// Get the uppermost focusable panel at the given point.
 
 	emPanel * GetVisitedPanel(double * pRelX=NULL, double * pRelY=NULL,
-	                          double * pRelA=NULL, bool * pAdherent=NULL);
-		// Get the visited panel and optionally relative coordinates and
-		// the visit type. The visited panel is the one on which the
-		// view is currently anchored. That means, if any panel layout
-		// is changed, the visited panel keeps its position within the
-		// view.
+	                          double * pRelA=NULL);
+		// Get the visited panel and optionally relative coordinates.
+		// The visited panel is the one on which the view is currently
+		// anchored. That means, if any panel layout is changed, the
+		// visited panel keeps its position and size in the view.
+		// Normally, the visited panel is the active panel. But if the
+		// active panel is not viewed, the visited panel is the viewed
+		// panel which is (in the tree of panels) nearest to the active
+		// panel.
 		// Arguments:
 		//   pRelX, pRelY - Pointers for returning the distance vector
 		//                  between the center of the view and the
 		//                  center of the panel, measured in view widths
 		//                  and heights.
-		//   pRelA        - Pointer for returning the area size of view
-		//                  relative to the area size of the panel.
-		//   pAdherent    - Pointer for returning IsVisitAdherent().
+		//   pRelA        - Pointer for returning the area size of the
+		//                  view relative to the area size of the panel.
 		// Returns:
 		//   The visited panel, or NULL if this view has no panels.
 
-	bool IsVisitAdherent() const;
-		// Whether the visit is adherent. It usually means that the
-		// visit has been set by the user.
-
-	void Visit(emPanel * panel, bool adherent);
-		// Visit a panel. This makes sure that the given panel is
-		// visible and that is is shown not too large and not too small,
-		// and it makes the panel the visited panel.
-		// Arguments:
-		//   panel    - The panel to be visited.
-		//   adherent - Whether the visit shall be adherent.
-
 	void Visit(emPanel * panel, double relX, double relY, double relA,
 	           bool adherent);
-		// Visit a panel and position the view relative to it. The
-		// arguments are exactly the things which you can get with
-		// GetVisitedPanel(...) (read there). But if relA is less or
-		// equal 0.0, VisitFullsized(panel,adherent) is performed.
+	void Visit(const char * identity, double relX, double relY, double relA,
+	           bool adherent, const char * subject=NULL);
+		// Start to visit a panel. This means to position the view
+		// relative to the given panel and make that panel the active
+		// panel. The operation is animated and may take a long time.
+		// Arguments:
+		//   panel     - The panel to be visited.
+		//   identity  - Identity of the panel to be visited.
+		//   relX,relY - Desired distance vector between the center of
+		//               the view and the center of the panel, measured
+		//               in view widths and heights.
+		//   relA      - Desired area size of the view relative to the
+		//               area size of the panel.
+		//   adherent  - Whether the activation shall be adherent.
+		//   subject   - A subject text to be shown in an info box
+		//               for the case the operation takes much time.
+		//               Best is to give the title of the panel.
 
-	void VisitBy(emPanel * panel, double relX, double relY, double relA);
-		// Position the view relative to a panel and give the visit to
-		// any panel which is somehow shown centered and well-sized by
-		// the new position. The arguments are like with the Visit
-		// method above.
-
-	void VisitLazy(emPanel * panel, bool adherent);
-		// Visit a panel while being lazy in positioning the view.
+	void Visit(emPanel * panel, bool adherent);
+	void Visit(const char * identity, bool adherent,
+	           const char * subject=NULL);
+		// Like the Visit methods above, but automatically
+		// choose a good position for the panel in the view.
 
 	void VisitFullsized(emPanel * panel, bool adherent,
 	                    bool utilizeView=false);
-		// Visit a panel and position the view so that the panel is
-		// shown full-sized.
+	void VisitFullsized(const char * identity, bool adherent,
+	                    bool utilizeView=false, const char * subject=NULL);
+		// Like the Visit methods above, but position the view so that
+		// the panel is shown full-sized.
 
-	void VisitByFullsized(emPanel * panel);
-		// Position the view so that the given panel is shown full-sized
-		// and give the visit to any panel which is somehow shown
-		// centered and well-sized by the new position.
+	void RawVisit(emPanel * panel, double relX, double relY, double relA);
+	void RawVisit(emPanel * panel);
+	void RawVisitFullsized(emPanel * panel, bool utilizeView=false);
+		// Like the Visit methods above, but without animation (these
+		// methods act immediately), without aborting any active
+		// animation, and without changing the active panel.
 
 	void VisitNext();
 	void VisitPrev();
@@ -325,57 +347,73 @@ public:
 	void VisitNeighbour(int direction);
 	void VisitIn();
 	void VisitOut();
-		// Visit a sister, parent or child of the currently visited
-		// panel. This walks the tree of focusable panels only.
+		// Start to visit a sister, parent or child of the active panel.
+		// This walks the tree of focusable panels only.
 		// VisitNeighbour(0) is like VisitRight(), 1 like Down, 2 like
 		// Left and 3 like Up.
 
-	void Seek(const char * identity, bool adherent,
-	          const char * subject=NULL);
-	void Seek(const char * identity, double relX, double relY, double relA,
-	          bool adherent, const char * subject=NULL);
-	void SeekBy(const char * identity, double relX, double relY,
-	            double relA, const char * subject=NULL);
-	void SeekLazy(const char * identity, bool adherent,
-	              const char * subject=NULL);
-	void SeekFullsized(const char * identity, bool adherent,
-	                   const char * subject=NULL);
-	void SeekByFullsized(const char * identity, const char * subject=NULL);
-		// These methods are like Visit, VisitBy, VisitLazy and so on,
-		// but: The panel is referred by its identity instead of a
-		// pointer. And, if the panel cannot be found immediately, a
-		// seek algorithm is started which runs in a private engine
-		// possibly for long time. The algorithm visits panels on the
-		// path to the desired panel step by step, in the hope they are
-		// expanding the path accordingly. For the whole time, the view
-		// shows an info box and allows the user to abort the seeking by
-		// any input. The additional argument 'subject' can be set to
-		// give a nice name for the sought panel in the info box.
-
-	bool IsSeeking() const;
-		// Whether the view is currently seeking for a panel.
-
-	void AbortSeeking();
-		// Abort any seeking.
+	void Scroll(double deltaX, double deltaY);
+		// Scroll the view. This aborts any active animation and
+		// performs immediately without animation. The active panel is
+		// adapted.
+		// Arguments:
+		//   deltaX     - How many pixels to scroll in X direction.
+		//                A positive value means to scroll right.
+		//   deltaY     - How many pixels to scroll in Y direction.
+		//                A positive value means to scroll down.
 
 	void Zoom(double fixX, double fixY, double factor);
-		// Zoom the view.
+		// Zoom the view. This aborts any active animation and performs
+		// immediately without animation. The active panel is adapted.
 		// Arguments:
 		//   fixX, fixY - Fix point for the zooming.
 		//   factor     - Zoom factor. A value less than 1.0 means to
 		//                zoom out, and a value greater than 1.0 means
 		//                to zoom in.
 
-	void Scroll(double deltaX, double deltaY);
-		// Scroll the view.
+	void RawScrollAndZoom(
+		double fixX, double fixY,
+		double deltaX, double deltaY, double deltaZ,
+		emPanel * panel=NULL, double * pDeltaXDone=NULL,
+		double * pDeltaYDone=NULL, double * pDeltaZDone=NULL
+	);
+		// Scroll and zoom the view without aborting animations and
+		// without changing the active panel. The scrolling is performed
+		// before the zooming.
 		// Arguments:
-		//   deltaX - How much to scroll in X direction (positive value
-		//            means to scroll right).
-		//   deltaY - How much to scroll in Y direction (positive value
-		//            means to scroll down).
+		//   fixX, fixY  - Fix point for the zooming.
+		//   deltaX      - How many pixels to scroll in X direction.
+		//                 A positive value means to scroll right.
+		//   deltaY      - How many pixels to scroll in Y direction.
+		//                 A positive value means to scroll down.
+		//   deltaZ      - How many pixels to zoom. The zoom factor is:
+		//                 exp(deltaZ * GetZoomFactorLogarithmPerPixel())
+		//   panel       - A panel to be used for the calculations.
+		//                 It should be a panel which is also viewed
+		//                 after the operation. If NULL or not viewed,
+		//                 the visited panel is used.
+		//   pDeltaXDone - Pointer for returning the number of pixels by
+		//                 which the view actually has been scrolled in
+		//                 X.
+		//   pDeltaYDone - Pointer for returning the number of pixels by
+		//                 which the view actually has been scrolled in
+		//                 Y.
+		//   pDeltaZDone - Pointer for returning the number of pixels by
+		//                 which the view actually has been zoomed.
+
+	double GetZoomFactorLogarithmPerPixel();
+		// How much zooming feels the same amount of motion to the user
+		// as scrolling one pixel, returned as natural logarithm of zoom
+		// factor.
 
 	void ZoomOut();
-		// Zoom out the view completely.
+		// Zoom out the view completely. This aborts any active
+		// animation and performs immediately without animation. The
+		// active panel is adapted.
+
+	void RawZoomOut();
+		// Like ZoomOut(), but without aborting animations and without
+		// changing the active panel.
 
 	bool IsZoomedOut();
 		// Whether the view is currently zoomed out completely.
@@ -390,7 +428,7 @@ public:
 	const emSignal & GetEOISignal() const;
 		// Get the End-Of-Interaction signal. This signal indicates an
 		// end of a temporary user interaction. It has been invented for
-		// emTkButton (see emTkButton::IsNoEOI()). If the view has
+		// emButton (see emButton::IsNoEOI()). If the view has
 		// VF_POPUP_ZOOM set, the application should call ZoomOut() when
 		// an EOI has been signaled.
 
@@ -415,6 +453,15 @@ public:
 		//                    coordinates.
 		//   afterVIFs      - Whether to leave out the view input filters
 		//                    in the calculation.
+
+	emViewAnimator * GetActiveAnimator() const;
+		// Get the active view animator, or NULL if none is active.
+
+	void ActivateMagneticViewAnimator();
+		// Activate the magnetic view animator.
+
+	void AbortActiveAnimator();
+		// Abort any activate view animator.
 
 protected:
 
@@ -467,11 +514,13 @@ protected:
 		// codes. For example, if the user enters "chEat:abc!", this
 		// method is called with func="abc". The default implementation
 		// calls the ancestor view, if there. For the cheat codes
-		// implemented by emView itself, see the implementation of
-		// emView::DoCheats.
+		// implemented by default, see the implementation of
+		// emCheatVIF::Input.
 
 private:
 	friend class emViewPort;
+	friend class emViewAnimator;
+	friend class emVisitingViewAnimator;
 	friend class emViewInputFilter;
 	friend class emCheatVIF;
 	friend class emPanel;
@@ -490,17 +539,18 @@ private:
 
 	void Update();
 
+	void CalcVisitCoords(emPanel * panel, double * pRelX,
+	                     double * pRelY, double * pRelA);
+
 	void CalcVisitFullsizedCoords(emPanel * panel, double * pRelX,
 	                              double * pRelY, double * pRelA,
 	                              bool utilizeView=false);
 
-	void VisitRelBy(emPanel * panel, double relX, double relY, double relA,
-	                bool forceViewingUpdate);
-	void VisitRel(emPanel * panel, double relX, double relY, double relA,
-	              bool adherent, bool forceViewingUpdate);
-	void VisitAbs(emPanel * panel, double vx, double vy, double vw,
-	              bool adherent, bool forceViewingUpdate);
-	void VisitImmobile(emPanel * panel, bool adherent);
+	void RawVisit(emPanel * panel, double relX, double relY, double relA,
+	              bool forceViewingUpdate);
+	void RawVisitAbs(emPanel * panel, double vx, double vy, double vw,
+	                 bool forceViewingUpdate);
+	void RawZoomOut(bool forceViewingUpdate);
 
 	void FindBestSVP(emPanel * * pPanel, double * pVx, double * pVy,
 	                 double * pVw);
@@ -511,18 +561,14 @@ private:
 
 	void RecurseInput(emInputEvent & event,
 	                  const emInputState & state);
-	void RecurseChildrenInput(emPanel * parent, double mx, double my,
-	                          double tx, double ty,
-	                          emInputEvent & event,
-	                          const emInputState & state);
+	void RecurseInput(emPanel * parent, emInputEvent & event,
+	                  const emInputState & state);
 
 	void InvalidateHighlight();
 	void PaintHighlight(const emPainter & painter);
 
 	void SetSeekPos(emPanel * panel, const char * childName);
 	bool IsHopeForSeeking();
-
-	void SetActivationCandidate(emPanel * panel);
 
 	class UpdateEngineClass : public emEngine {
 	public:
@@ -534,16 +580,6 @@ private:
 	};
 	friend class UpdateEngineClass;
 
-	class ActivationEngineClass : public emEngine {
-	public:
-		ActivationEngineClass(emView & view);
-	protected:
-		virtual bool Cycle();
-	private:
-		emView & View;
-	};
-	friend class ActivationEngineClass;
-
 	class EOIEngineClass : public emEngine {
 	public:
 		EOIEngineClass(emView & view);
@@ -554,31 +590,6 @@ private:
 		int CountDown;
 	};
 	friend class EOIEngineClass;
-
-	class SeekEngineClass : public emEngine {
-	public:
-		SeekEngineClass(
-			emView & view, int seekType, const emString & identity,
-			double relX, double relY, double relA, bool adherent,
-			const emString & subject
-		);
-		virtual ~SeekEngineClass();
-		void Paint(const emPainter & painter);
-	protected:
-		virtual bool Cycle();
-	private:
-		emView & View;
-		int SeekType;
-		emString Identity;
-		double RelX,RelY,RelA;
-		bool Adherent;
-		emString Subject;
-		emArray<emString> Names;
-		int TimeSlicesWithoutHope;
-		bool GiveUp;
-		emUInt64 GiveUpClock;
-	};
-	friend class SeekEngineClass;
 
 	class StressTestClass : public emEngine {
 	public:
@@ -608,19 +619,19 @@ private:
 	emWindow * PopupWindow;
 	emViewInputFilter * FirstVIF;
 	emViewInputFilter * LastVIF;
+	emViewAnimator * ActiveAnimator;
+	emMagneticViewAnimator * MagneticVA;
+	emVisitingViewAnimator * VisitingVA;
 	emPanel * RootPanel;
 	emPanel * SupremeViewedPanel;
 	emPanel * MinSVP, * MaxSVP;
 	emPanel * ActivePanel;
-	emPanel * ActivationCandidate;
-	emPanel * VisitedPanel;
 	emSignal ViewFlagsSignal;
 	emSignal TitleSignal;
 	emSignal ControlPanelSignal;
 	emSignal FocusSignal;
 	emSignal GeometrySignal;
 	emSignal EOISignal;
-	emUInt64 PanelCreationNumber;
 	double HomeX,HomeY,HomeWidth,HomeHeight,HomePixelTallness;
 	double CurrentX,CurrentY,CurrentWidth,CurrentHeight,
 	       CurrentPixelTallness;
@@ -630,7 +641,7 @@ private:
 	emColor BackgroundColor;
 	ViewFlags VFlags;
 	bool Focused;
-	bool VisitAdherent;
+	bool ActivationAdherent;
 	bool ZoomScrollInAction;
 	bool TitleInvalid;
 	bool CursorInvalid;
@@ -645,10 +656,7 @@ private:
 	emInputEvent NoEvent;
 	PanelRingNode NoticeList;
 	UpdateEngineClass * UpdateEngine;
-	ActivationEngineClass * ActivationEngine;
 	EOIEngineClass * EOIEngine;
-	SeekEngineClass * SeekEngine;
-	int ProtectSeeking;
 	emPanel * SeekPosPanel;
 	emString SeekPosChildName;
 	StressTestClass * StressTest;
@@ -863,14 +871,9 @@ inline emPanel * emView::GetActivePanel()
 	return ActivePanel;
 }
 
-inline bool emView::IsVisitAdherent() const
+inline bool emView::IsActivationAdherent() const
 {
-	return VisitAdherent;
-}
-
-inline bool emView::IsSeeking() const
-{
-	return SeekEngine!=NULL;
+	return ActivationAdherent;
 }
 
 inline bool emView::IsPoppedUp() const
@@ -896,6 +899,11 @@ inline void emView::ShowSoftKeyboard(bool show)
 inline emUInt64 emView::GetInputClockMS() const
 {
 	return CurrentViewPort->GetInputClockMS();
+}
+
+inline emViewAnimator * emView::GetActiveAnimator() const
+{
+	return ActiveAnimator;
 }
 
 inline void emView::InvalidateCursor()

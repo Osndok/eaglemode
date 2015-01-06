@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.h
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -116,16 +116,16 @@ private:
 
 	void UpdatePSPriority();
 
-	void TryStartProcess() throw(emString);
+	void TryStartProcess() throw(emException);
 
 	void PrepareWritingStartup();
 	void PrepareWritingPage();
-	bool TryWrite() throw(emString);
+	bool TryWrite() throw(emException);
 	bool IsWritingFinished() const;
 
 	void PrepareReadingStartup();
 	void PrepareReadingPage();
-	bool TryRead() throw(emString);
+	bool TryRead() throw(emException);
 	int ParseImageHeader(const char * buf, int len);
 	static int ParseImageDecimal(const char * buf, int len, int * pNumber);
 	int ParseImageData(const char * buf, int len);

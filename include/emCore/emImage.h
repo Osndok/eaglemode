@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.h
 //
-// Copyright (C) 2001,2003-2010 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -114,7 +114,7 @@ public:
 		// dimensions of the image, will give up the user map feature
 		// and revert to the normal behavior. This means for example,
 		// calling Setup preserves the feature if the dimensions are not
-		// really changed. Call Empty or '=' if you want to revert to
+		// really changed. Call Clear or '=' if you want to revert to
 		// the normal behavior in any case.
 		// Arguments:
 		//   width        - Horizontal extent of the user map in pixels.
@@ -130,7 +130,7 @@ public:
 		// Ask whether this image interfaces a user allocated pixel map.
 
 	void TryParseXpm(const char * const * xpm,
-	                 int channelCount=-1) throw(emString);
+	                 int channelCount=-1) throw(emException);
 		// Set this image by parsing an X Pixmap (XPM). The idea is to
 		// include an XPM file in the C++ source, and to convert it to
 		// an emImage at run-time using this method.
@@ -142,7 +142,7 @@ public:
 		// Throws: An error message on failure.
 
 	void TryParseTga(const unsigned char * tgaData, int tgaSize,
-	                 int channelCount=-1) throw(emString);
+	                 int channelCount=-1) throw(emException);
 		// -------------------------------------------------------------
 		// This method is deprecated and should not be used any longer.
 		// -------------------------------------------------------------
@@ -158,8 +158,8 @@ public:
 		//                  the TGA image.
 		// Throws: An error message on failure.
 
-	void Empty();
-		// Like Setup(0,0,1).
+	void Clear();
+		// Empty this image. This is like Setup(0,0,1).
 
 	bool IsEmpty() const;
 		// Ask whether this image is empty. It is empty if at least one
@@ -410,7 +410,7 @@ inline bool emImage::HasUserMap() const
 }
 
 #ifndef EM_NO_DATA_EXPORT
-inline void emImage::Empty()
+inline void emImage::Clear()
 {
 	if (!--Data->RefCount) FreeData();
 	Data=&EmptyData;

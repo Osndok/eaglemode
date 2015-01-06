@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFileModel.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,11 +46,11 @@ emPsFileModel::~emPsFileModel()
 
 void emPsFileModel::ResetData()
 {
-	Document.Empty();
+	Document.Clear();
 }
 
 
-void emPsFileModel::TryStartLoading() throw(emString)
+void emPsFileModel::TryStartLoading() throw(emException)
 {
 	emInt64 l;
 
@@ -65,15 +65,15 @@ void emPsFileModel::TryStartLoading() throw(emString)
 		fseek(L->File,0,SEEK_END)!=0 ||
 		(l=ftell(L->File))<0 ||
 		fseek(L->File,0,SEEK_SET)!=0
-	) throw emGetErrorText(errno);
+	) throw emException("%s",emGetErrorText(errno).Get());
 
-	if (l>INT_MAX) throw emString("File too large.");
+	if (l>INT_MAX) throw emException("File too large.");
 
 	L->FileSize=(int)l;
 }
 
 
-bool emPsFileModel::TryContinueLoading() throw(emString)
+bool emPsFileModel::TryContinueLoading() throw(emException)
 {
 	int len;
 
@@ -82,7 +82,7 @@ bool emPsFileModel::TryContinueLoading() throw(emString)
 	if (len>4096) len=4096;
 	if (len>0) {
 		len=fread(L->Buffer.GetWritable()+L->FilePos,1,len,L->File);
-		if (ferror(L->File)) throw emGetErrorText(errno);
+		if (ferror(L->File)) throw emException("%s",emGetErrorText(errno).Get());
 		if (len>0) L->FilePos+=len;
 		if (!feof(L->File)) return false;
 	}
@@ -103,13 +103,13 @@ void emPsFileModel::QuitLoading()
 }
 
 
-void emPsFileModel::TryStartSaving() throw(emString)
+void emPsFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emPsFileModel: Saving not implemented.");
+	throw emException("emPsFileModel: Saving not implemented.");
 }
 
 
-bool emPsFileModel::TryContinueSaving() throw(emString)
+bool emPsFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocument.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -66,14 +66,14 @@ bool emPsDocument::operator == (const emPsDocument & doc) const
 }
 
 
-void emPsDocument::Empty()
+void emPsDocument::Clear()
 {
 	if (!--Data->RefCount) DeleteData();
 	Data=&EmptyData;
 }
 
 
-void emPsDocument::TrySetScript(const emArray<char> & script) throw(emString)
+void emPsDocument::TrySetScript(const emArray<char> & script) throw(emException)
 {
 	enum {
 		IN_STARTUP,
@@ -117,8 +117,8 @@ void emPsDocument::TrySetScript(const emArray<char> & script) throw(emString)
 		!ParseExactly(&p,end,"%!PS-Adobe-") ||
 		!ParseDoubleArg(&p,end,&version)
 	) {
-		Empty();
-		throw emString("Unsupported PostScript document format.");
+		Clear();
+		throw emException("Unsupported PostScript document format.");
 	}
 	ParseArgSpaces(&p,end);
 	isEps=ParseExactly(&p,end,"EPSF");
@@ -361,8 +361,8 @@ void emPsDocument::TrySetScript(const emArray<char> & script) throw(emString)
 
 	// Any pages?
 	if (Data->Pages.GetCount()<=0) {
-		Empty();
-		throw emString("Unsupported PostScript document structure.");
+		Clear();
+		throw emException("Unsupported PostScript document structure.");
 	}
 
 	// Calc script lengths.

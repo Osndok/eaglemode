@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.cpp
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emBmpImageFileModel::~emBmpImageFileModel()
 }
 
 
-void emBmpImageFileModel::TryStartLoading() throw(emString)
+void emBmpImageFileModel::TryStartLoading() throw(emException)
 {
 	int w,i,iconCnt,bestOffset,bihSize,bestSize,s,o;
 
@@ -179,12 +179,12 @@ void emBmpImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("BMP format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("BMP format error");
 }
 
 
-bool emBmpImageFileModel::TryContinueLoading() throw(emString)
+bool emBmpImageFileModel::TryContinueLoading() throw(emException)
 {
 	unsigned char * map;
 	emUInt32 msk;
@@ -414,8 +414,8 @@ bool emBmpImageFileModel::TryContinueLoading() throw(emString)
 	return true;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("BMP format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("BMP format error");
 }
 
 
@@ -430,13 +430,13 @@ void emBmpImageFileModel::QuitLoading()
 }
 
 
-void emBmpImageFileModel::TryStartSaving() throw(emString)
+void emBmpImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emBmpImageFileModel: Saving not implemented.");
+	throw emException("emBmpImageFileModel: Saving not implemented.");
 }
 
 
-bool emBmpImageFileModel::TryContinueSaving() throw(emString)
+bool emBmpImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

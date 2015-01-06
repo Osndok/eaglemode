@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>.h
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -301,7 +301,7 @@
                 //   count   - Number of elements to be removed.
                 //   compact - Whether to minimize the capacity.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Empty(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
                 <SPAN CLASS=c>// Remove all elements (set zero count).
                 // Arguments:
                 //   compact - Whether to minimize the capacity.
@@ -920,7 +920,7 @@
         </SPAN>PrivRep(index,count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Empty(<SPAN CLASS=t>bool </SPAN>compact)
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Clear(<SPAN CLASS=t>bool </SPAN>compact)
 <SPAN CLASS=b>{
         </SPAN>PrivRep(<SPAN CLASS=u>0</SPAN>,Data-&gt;Count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,<SPAN CLASS=u>0</SPAN>,compact);
 <SPAN CLASS=b>}

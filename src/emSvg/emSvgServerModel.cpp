@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -140,8 +140,8 @@ void emSvgServerModel::Poll(unsigned maxMilliSecs)
 		if (!Process.IsRunning()) {
 			ProcRunId++;
 			ProcSvgInstCount=0;
-			ReadBuf.Empty();
-			WriteBuf.Empty();
+			ReadBuf.Clear();
+			WriteBuf.Clear();
 			emDLog("emSvgServerModel: Starting server process");
 			Process.TryStart(
 				emArray<emString>(
@@ -175,9 +175,9 @@ void emSvgServerModel::Poll(unsigned maxMilliSecs)
 			Process.WaitPipes(flags,(unsigned)(endTime-now));
 		}
 	}
-	catch (emString errorMessage) {
-		if (!FirstRunningJob) FailAllJobs(errorMessage);
-		else FailAllRunningJobs(errorMessage);
+	catch (emException & exception) {
+		if (!FirstRunningJob) FailAllJobs(exception.GetText());
+		else FailAllRunningJobs(exception.GetText());
 		Process.SendTerminationSignal();
 		ProcTerminating=true;
 	}
@@ -320,7 +320,7 @@ emSvgServerModel::CloseJobStruct::~CloseJobStruct()
 }
 
 
-void emSvgServerModel::TryStartJobs() throw(emString)
+void emSvgServerModel::TryStartJobs() throw(emException)
 {
 	Job * job;
 
@@ -338,7 +338,7 @@ void emSvgServerModel::TryStartJobs() throw(emString)
 }
 
 
-void emSvgServerModel::TryStartOpenJob(OpenJob * openJob) throw(emString)
+void emSvgServerModel::TryStartOpenJob(OpenJob * openJob) throw(emException)
 {
 	if (openJob->Orphan) {
 		RemoveJobFromList(openJob);
@@ -358,7 +358,7 @@ void emSvgServerModel::TryStartOpenJob(OpenJob * openJob) throw(emString)
 }
 
 
-bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emString)
+bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emException)
 {
 	emByte * t, * e;
 	emUInt32 u;
@@ -425,7 +425,7 @@ bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emString)
 }
 
 
-void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emString)
+void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emException)
 {
 	if (closeJob->ProcRunId==ProcRunId) {
 		WriteLineToProc(emString::Format(
@@ -444,7 +444,7 @@ void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emStrin
 }
 
 
-void emSvgServerModel::TryFinishJobs() throw(emString)
+void emSvgServerModel::TryFinishJobs() throw(emException)
 {
 	emString cmd,args;
 	const char * p;
@@ -462,7 +462,7 @@ void emSvgServerModel::TryFinishJobs() throw(emString)
 		}
 		else {
 			cmd=args;
-			args.Empty();
+			args.Clear();
 		}
 		job=FirstRunningJob;
 		if (cmd=="error:" && job) {
@@ -479,7 +479,7 @@ void emSvgServerModel::TryFinishJobs() throw(emString)
 			TryFinishRenderJob((RenderJob*)job);
 		}
 		else {
-			throw emString("SVG server protocol error");
+			throw emException("SVG server protocol error");
 		}
 	}
 }
@@ -487,7 +487,7 @@ void emSvgServerModel::TryFinishJobs() throw(emString)
 
 void emSvgServerModel::TryFinishOpenJob(
 	OpenJob * openJob, const char * args
-) throw(emString)
+) throw(emException)
 {
 	int instId,pos,r;
 	double width,height;
@@ -498,14 +498,14 @@ void emSvgServerModel::TryFinishOpenJob(
 	pos=-1;
 	r=sscanf(args,"%d %lf %lf %n",&instId,&width,&height,&pos);
 	if (r<3 || pos<=0) {
-		throw emString("SVG server protocol error");
+		throw emException("SVG server protocol error");
 	}
 
 	args+=pos;
 	for (r=0; ; r++) {
 		do { c=*args++; } while (c && c!='"');
 		if (!c) break;
-		str.Empty();
+		str.Clear();
 		for (;;) {
 			c=*args++;
 			if (!c || c=='"') break;
@@ -546,7 +546,7 @@ void emSvgServerModel::TryFinishOpenJob(
 }
 
 
-void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob) throw(emString)
+void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob) throw(emException)
 {
 	emByte * s, * t, * e;
 	emImage * img;
@@ -581,7 +581,7 @@ void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob) throw(emString)
 }
 
 
-void emSvgServerModel::TryWriteAttachShm() throw(emString)
+void emSvgServerModel::TryWriteAttachShm() throw(emException)
 {
 	WriteLineToProc(emString::Format("attachshm %d",ShmId));
 }
@@ -647,7 +647,7 @@ emString emSvgServerModel::ReadLineFromProc()
 }
 
 
-bool emSvgServerModel::TryProcIO() throw(emString)
+bool emSvgServerModel::TryProcIO() throw(emException)
 {
 	char buf[256];
 	bool progress;
@@ -657,7 +657,7 @@ bool emSvgServerModel::TryProcIO() throw(emString)
 
 	if (!WriteBuf.IsEmpty()) {
 		r=Process.TryWrite(WriteBuf.Get(),WriteBuf.GetCount());
-		if (r<0) throw emString("SVG server process died unexpectedly.");
+		if (r<0) throw emException("SVG server process died unexpectedly.");
 		if (r>0) {
 			WriteBuf.Remove(0,r);
 			progress=true;
@@ -666,7 +666,7 @@ bool emSvgServerModel::TryProcIO() throw(emString)
 
 	for (;;) {
 		r=Process.TryRead(buf,sizeof(buf));
-		if (r<0) throw emString("SVG server process died unexpectedly.");
+		if (r<0) throw emException("SVG server process died unexpectedly.");
 		if (r==0) break;
 		ReadBuf.Add(buf,r);
 		progress=true;
@@ -676,15 +676,15 @@ bool emSvgServerModel::TryProcIO() throw(emString)
 }
 
 
-void emSvgServerModel::TryAllocShm(int size) throw(emString)
+void emSvgServerModel::TryAllocShm(int size) throw(emException)
 {
 	FreeShm();
 #if defined(__CYGWIN__)
-	throw emString("shmget not tried as cygwin may abort the process.");
+	throw emException("shmget not tried as cygwin may abort the process.");
 #endif
 	ShmId=shmget(IPC_PRIVATE,size,IPC_CREAT|0600);
 	if (ShmId==-1) {
-		throw emString::Format(
+		throw emException(
 			"Failed to create shared memory segment: %s",
 			emGetErrorText(errno).Get()
 		);
@@ -694,7 +694,7 @@ void emSvgServerModel::TryAllocShm(int size) throw(emString)
 		ShmPtr=NULL;
 		shmctl(ShmId,IPC_RMID,0);
 		ShmId=-1;
-		throw emString::Format(
+		throw emException(
 			"Failed to attach shared memory segment: %s",
 			emGetErrorText(errno).Get()
 		);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.cpp
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -91,7 +91,7 @@ void emFileManViewConfig::SetThemeName(const emString & themeName)
 			FileManConfig->Save();
 		}
 		Signal(ChangeSignal);
-		if (!RevisitEngine && !View.IsSeeking()) {
+		if (!RevisitEngine && !View.GetActiveAnimator()) {
 			// This solves the problem that the view sometimes loses
 			// the position and the focus, when the panels are
 			// changing their layout by the new theme.
@@ -321,18 +321,41 @@ emFileManViewConfig::RevisitEngineClass::RevisitEngineClass(
 	Config(config)
 {
 	emPanel * p;
-	p=Config.View.GetVisitedPanel(&VisRelX,&VisRelY,&VisRelA,&VisAdherent);
+	p=Config.View.GetVisitedPanel(&VisRelX,&VisRelY,&VisRelA);
+	VisAdherent=Config.View.IsActivationAdherent();
 	if (p) VisIdentity=p->GetIdentity();
-	SetEnginePriority(LOW_PRIORITY);
+	SetEnginePriority(VERY_LOW_PRIORITY);
 	WakeUp();
 }
 
 
 bool emFileManViewConfig::RevisitEngineClass::Cycle()
 {
+	emArray<emString> names;
+	emPanel * p, * c;
+	int i;
+
 	if (!VisIdentity.IsEmpty()) {
-		Config.View.Seek(VisIdentity,VisRelX,VisRelY,VisRelA,VisAdherent);
+		p=Config.View.GetPanelByIdentity(VisIdentity);
+		if (p) {
+			Config.View.RawVisit(p,VisRelX,VisRelY,VisRelA);
+			p->Activate(VisAdherent);
+		}
+		else {
+			names=emPanel::DecodeIdentity(VisIdentity);
+			p=Config.View.GetRootPanel();
+			if (p) {
+				for (i=1; i<names.GetCount(); i++) {
+					c=p->GetChild(names[i]);
+					if (!c) break;
+					p=c;
+				}
+				Config.View.RawVisitFullsized(p);
+			}
+			Config.View.Visit(VisIdentity,VisRelX,VisRelY,VisRelA,VisAdherent);
+		}
 	}
+
 	Config.RevisitEngine=NULL;
 	delete this;
 	return false;

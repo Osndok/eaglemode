@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRecFileModel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,16 +61,16 @@ void emRecFileModel::ResetData()
 }
 
 
-void emRecFileModel::TryStartLoading() throw(emString)
+void emRecFileModel::TryStartLoading() throw(emException)
 {
 	ProtectFileState++;
 	Reader=new emRecFileReader;
 	try {
 		Reader->TryStartReading(GetRec(),GetFilePath());
 	}
-	catch (emString errorMessage) {
+	catch (emException & exception) {
 		ProtectFileState--;
-		throw errorMessage;
+		throw exception;
 	}
 	ProtectFileState--;
 	ReadStep=1;
@@ -78,7 +78,7 @@ void emRecFileModel::TryStartLoading() throw(emString)
 }
 
 
-bool emRecFileModel::TryContinueLoading() throw(emString)
+bool emRecFileModel::TryContinueLoading() throw(emException)
 {
 	bool b;
 
@@ -86,9 +86,9 @@ bool emRecFileModel::TryContinueLoading() throw(emString)
 	try {
 		b=Reader->TryContinueReading();
 	}
-	catch (emString errorMessage) {
+	catch (emException & exception) {
 		ProtectFileState--;
-		throw errorMessage;
+		throw exception;
 	}
 	ProtectFileState--;
 
@@ -118,22 +118,22 @@ void emRecFileModel::QuitLoading()
 }
 
 
-void emRecFileModel::TryStartSaving() throw(emString)
+void emRecFileModel::TryStartSaving() throw(emException)
 {
 	ProtectFileState++;
 	Writer=new emRecFileWriter;
 	try {
 		Writer->TryStartWriting(GetRec(),GetFilePath());
 	}
-	catch (emString errorMessage) {
+	catch (emException & exception) {
 		ProtectFileState--;
-		throw errorMessage;
+		throw exception;
 	}
 	ProtectFileState--;
 }
 
 
-bool emRecFileModel::TryContinueSaving() throw(emString)
+bool emRecFileModel::TryContinueSaving() throw(emException)
 {
 	bool b;
 
@@ -141,9 +141,9 @@ bool emRecFileModel::TryContinueSaving() throw(emString)
 	try {
 		b=Writer->TryContinueWriting();
 	}
-	catch (emString errorMessage) {
+	catch (emException & exception) {
 		ProtectFileState--;
-		throw errorMessage;
+		throw exception;
 	}
 	ProtectFileState--;
 	return b;

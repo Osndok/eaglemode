@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,7 +85,7 @@ emProcess::~emProcess()
 void emProcess::TryStart(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emString)
+) throw(emException)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
@@ -226,7 +226,7 @@ void emProcess::TryStart(
 		CloseWriting();
 		CloseReading();
 		CloseReadingErr();
-		throw emString::Format(
+		throw emException(
 			"Failed to start process \"%s\": %s",
 			args[0].Get(),
 			emGetErrorText(d).Get()
@@ -246,7 +246,7 @@ void emProcess::TryStart(
 void emProcess::TryStartUnmanaged(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emString)
+) throw(emException)
 {
 	emProcess p;
 
@@ -264,7 +264,7 @@ void emProcess::TryStartUnmanaged(
 }
 
 
-int emProcess::TryWrite(const char * buf, int len) throw(emString)
+int emProcess::TryWrite(const char * buf, int len) throw(emException)
 {
 	emProcessPrivate::PipeStruct * pipe;
 	int done,l;
@@ -288,7 +288,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emString)
 	if (s==0 || s==ERROR_IO_PENDING || s==ERROR_IO_INCOMPLETE) return 0;
 	CloseWriting();
 	if (s==ERROR_HANDLE_EOF || s==ERROR_BROKEN_PIPE) return -1;
-	throw emString::Format(
+	throw emException(
 		"Failed to write to stdin pipe of child process \"%s\": %s",
 		P->Arg0.Get(),
 		emGetErrorText(s).Get()
@@ -296,7 +296,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emString)
 }
 
 
-int emProcess::TryRead(char * buf, int maxLen) throw(emString)
+int emProcess::TryRead(char * buf, int maxLen) throw(emException)
 {
 	emProcessPrivate::PipeStruct * pipe;
 	int done,l;
@@ -320,7 +320,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emString)
 	if (s==0 || s==ERROR_IO_PENDING || s==ERROR_IO_INCOMPLETE) return 0;
 	CloseReading();
 	if (s==ERROR_HANDLE_EOF || s==ERROR_BROKEN_PIPE) return -1;
-	throw emString::Format(
+	throw emException(
 		"Failed to read stdout pipe of child process \"%s\": %s",
 		P->Arg0.Get(),
 		emGetErrorText(s).Get()
@@ -328,7 +328,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emString)
 }
 
 
-int emProcess::TryReadErr(char * buf, int maxLen) throw(emString)
+int emProcess::TryReadErr(char * buf, int maxLen) throw(emException)
 {
 	emProcessPrivate::PipeStruct * pipe;
 	int done,l;
@@ -352,7 +352,7 @@ int emProcess::TryReadErr(char * buf, int maxLen) throw(emString)
 	if (s==0 || s==ERROR_IO_PENDING || s==ERROR_IO_INCOMPLETE) return 0;
 	CloseReadingErr();
 	if (s==ERROR_HANDLE_EOF || s==ERROR_BROKEN_PIPE) return -1;
-	throw emString::Format(
+	throw emException(
 		"Failed to read stderr pipe of child process \"%s\": %s",
 		P->Arg0.Get(),
 		emGetErrorText(s).Get()
@@ -386,7 +386,7 @@ void emProcess::WaitPipes(int waitFlags, unsigned timeoutMS)
 		timeoutMS==UINT_MAX ? INFINITE : (DWORD)timeoutMS
 	)==WAIT_FAILED) {
 		emFatalError(
-			"emProcess: WaitForMultipleObjects failed: %s\n",
+			"emProcess: WaitForMultipleObjects failed: %s",
 			emGetErrorText(GetLastError()).Get()
 		);
 	}
@@ -519,7 +519,7 @@ HANDLE emProcessPrivate::PreparePipe(int index)
 		if (h1!=INVALID_HANDLE_VALUE) break;
 		if (i>1000) {
 			emFatalError(
-				"emProcess: CreateNamedPipe failed: %s\n",
+				"emProcess: CreateNamedPipe failed: %s",
 				emGetErrorText(GetLastError()).Get()
 			);
 		}
@@ -541,7 +541,7 @@ HANDLE emProcessPrivate::PreparePipe(int index)
 	);
 	if (h2==INVALID_HANDLE_VALUE) {
 		emFatalError(
-			"emProcess: CreateFile on named pipe failed: %s\n",
+			"emProcess: CreateFile on named pipe failed: %s",
 			emGetErrorText(GetLastError()).Get()
 		);
 	}
@@ -681,7 +681,7 @@ struct emProcessPrivate {
 		const char * dirPath,
 		int flags,
 		emProcessPrivate * managed
-	) throw(emString);
+	) throw(emException);
 
 	emString Arg0;
 	pid_t Pid;
@@ -713,7 +713,7 @@ emProcess::~emProcess()
 void emProcess::TryStart(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emString)
+) throw(emException)
 {
 	emProcessPrivate::TryStart(args,extraEnv,dirPath,flags,P);
 }
@@ -722,14 +722,14 @@ void emProcess::TryStart(
 void emProcess::TryStartUnmanaged(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emString)
+) throw(emException)
 {
 	flags&=~(SF_PIPE_STDIN|SF_PIPE_STDOUT|SF_PIPE_STDERR);
 	emProcessPrivate::TryStart(args,extraEnv,dirPath,flags,NULL);
 }
 
 
-int emProcess::TryWrite(const char * buf, int len) throw(emString)
+int emProcess::TryWrite(const char * buf, int len) throw(emException)
 {
 	ssize_t r;
 	int e;
@@ -745,7 +745,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emString)
 	}
 	e=errno;
 	CloseWriting();
-	throw emString::Format(
+	throw emException(
 		"Failed to write to stdin pipe of child process \"%s\" (pid %d): %s",
 		P->Arg0.Get(),
 		(int)P->Pid,
@@ -754,7 +754,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emString)
 }
 
 
-int emProcess::TryRead(char * buf, int maxLen) throw(emString)
+int emProcess::TryRead(char * buf, int maxLen) throw(emException)
 {
 	ssize_t r;
 	int e;
@@ -770,7 +770,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emString)
 	if (errno==EAGAIN) return 0;
 	e=errno;
 	CloseReading();
-	throw emString::Format(
+	throw emException(
 		"Failed to read stdout pipe of child process \"%s\" (pid %d): %s",
 		P->Arg0.Get(),
 		(int)P->Pid,
@@ -779,7 +779,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emString)
 }
 
 
-int emProcess::TryReadErr(char * buf, int maxLen) throw(emString)
+int emProcess::TryReadErr(char * buf, int maxLen) throw(emException)
 {
 	ssize_t r;
 	int e;
@@ -795,7 +795,7 @@ int emProcess::TryReadErr(char * buf, int maxLen) throw(emString)
 	if (errno==EAGAIN) return 0;
 	e=errno;
 	CloseReadingErr();
-	throw emString::Format(
+	throw emException(
 		"Failed to read stderr pipe of child process \"%s\" (pid %d): %s",
 		P->Arg0.Get(),
 		(int)P->Pid,
@@ -840,7 +840,7 @@ void emProcess::WaitPipes(int waitFlags, unsigned timeoutMS)
 	if (select(fdMax+1,&rset,&wset,NULL,ptv)<0) {
 		if (errno!=EINTR) {
 			emFatalError(
-				"emProcess: select failed: %s\n",
+				"emProcess: select failed: %s",
 				emGetErrorText(errno).Get()
 			);
 		}
@@ -958,7 +958,7 @@ void emProcessPrivate::EmptySigHandler(int signum)
 void emProcessPrivate::TryStart(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags, emProcessPrivate * managed
-) throw(emString)
+) throw(emException)
 {
 	static emThreadInitMutex sigHandlersInitMutex;
 	struct sigaction sa;
@@ -1251,7 +1251,7 @@ L_Err:
 	if (pipeErr[1]!=-1) close(pipeErr[1]);
 	if (pipeTmp[0]!=-1) close(pipeTmp[0]);
 	if (pipeTmp[1]!=-1) close(pipeTmp[1]);
-	throw emString::Format(
+	throw emException(
 		"Failed to start process \"%s\": %s",
 		args[0].Get(),
 		msg.Get()

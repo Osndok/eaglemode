@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -207,20 +207,20 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 			Job=NULL;;
 		}
 		if (!JobImg.IsEmpty()) {
-			JobImg.Empty();
+			JobImg.Clear();
 		}
 		if (!Img.IsEmpty()) {
-			Img.Empty();
+			Img.Clear();
 			InvalidatePainting();
 		}
 		if (!PreImg.IsEmpty()) {
 			if (PageIndex<0 || PageIndex>=FileModel->GetPageCount()) {
-				PreImg.Empty();
+				PreImg.Clear();
 				InvalidatePainting();
 			}
 		}
 		if (JobErrorText.IsEmpty()) {
-			JobErrorText.Empty();
+			JobErrorText.Clear();
 			InvalidatePainting();
 		}
 		JobUpToDate=false;
@@ -246,9 +246,9 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 			if (JobErrorText.IsEmpty()) JobErrorText="unknown error";
 			Server->CloseJob(Job);
 			Job=NULL;;
-			JobImg.Empty();
-			Img.Empty();
-			PreImg.Empty();
+			JobImg.Clear();
+			Img.Clear();
+			PreImg.Clear();
 			JobUpToDate=false;
 			IconTimer.Stop(true);
 			ShowIcon=false;
@@ -266,7 +266,7 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 			SrcY=JobSrcY;
 			SrcW=JobSrcW;
 			SrcH=JobSrcH;
-			JobImg.Empty();
+			JobImg.Clear();
 			if (JobUpToDate) {
 				IconTimer.Stop(true);
 				ShowIcon=false;
@@ -308,7 +308,7 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 	}
 
 	if (iw<1.0 || ih<1.0 || iw/sw<=PreImg.GetWidth()/fw) {
-		Img.Empty();
+		Img.Clear();
 		SrcX=0.0;
 		SrcY=0.0;
 		SrcW=fw;

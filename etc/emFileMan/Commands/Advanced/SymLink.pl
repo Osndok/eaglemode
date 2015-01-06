@@ -28,7 +28,7 @@ if (IsFirstPass()) {
 	ErrorIfNotSingleTarget();
 	ErrorIfTargetsNotDirs();
 
-	ConfirmIfSourcesAccrossDirs();
+	ConfirmIfSourcesAcrossDirs();
 
 	my $message=
 		"Are you sure to create symbolic link(s):\n".

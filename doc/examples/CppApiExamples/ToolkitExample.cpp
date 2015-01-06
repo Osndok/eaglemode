@@ -2,7 +2,7 @@
 #include <emCore/emToolkit.h>
 
 
-class MyPanel : public emTkGroup {
+class MyPanel : public emGroup {
 public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
@@ -12,46 +12,46 @@ private:
 		char * buf, int bufSize, emInt64 value, emUInt64 markInterval,
 		void * context
 	);
-	emTkTextField * Message;
-	emTkButton * Button;
-	emTkCheckButton * CheckButton;
-	emTkRadioButton::Group * RadioGroup;
-	emTkTextField * TextField;
-	emTkScalarField * ScalarField1;
-	emTkScalarField * ScalarField2;
+	emTextField * Message;
+	emButton * Button;
+	emCheckButton * CheckButton;
+	emRadioButton::Group * RadioGroup;
+	emTextField * TextField;
+	emScalarField * ScalarField1;
+	emScalarField * ScalarField2;
 };
 
 MyPanel::MyPanel(ParentArg parent, const emString & name)
-	: emTkGroup(parent,name,"Toolkit Example")
+	: emGroup(parent,name,"Toolkit Example")
 {
-	Message=new emTkTextField(this,"msg","Message");
+	Message=new emTextField(this,"msg","Message");
 	Message->SetDescription("This text field shows messages about your input.");
 
-	Button=new emTkButton(this,"b","Button");
+	Button=new emButton(this,"b","Button");
 	AddWakeUpSignal(Button->GetClickSignal());
 
-	CheckButton=new emTkCheckButton(this,"cb","Check Button");
+	CheckButton=new emCheckButton(this,"cb","Check Button");
 	AddWakeUpSignal(CheckButton->GetCheckSignal());
 
-	RadioGroup=new emTkRadioButton::Group(this,"rg","Radio Group");
+	RadioGroup=new emRadioButton::Group(this,"rg","Radio Group");
 	RadioGroup->SetBorderScaling(4.0);
-	new emTkRadioBox(RadioGroup,"rb1","Radio Box 1");
-	new emTkRadioBox(RadioGroup,"rb2","Radio Box 2");
-	new emTkRadioBox(RadioGroup,"rb3","Radio Box 3");
+	new emRadioBox(RadioGroup,"rb1","Radio Box 1");
+	new emRadioBox(RadioGroup,"rb2","Radio Box 2");
+	new emRadioBox(RadioGroup,"rb3","Radio Box 3");
 	AddWakeUpSignal(RadioGroup->GetCheckSignal());
 
-	TextField=new emTkTextField(this,"tf","Text Field");
+	TextField=new emTextField(this,"tf","Text Field");
 	TextField->SetEditable();
 	TextField->SetMultiLineMode();
 	AddWakeUpSignal(TextField->GetTextSignal());
 
-	ScalarField1=new emTkScalarField(this,"sf1","Scalar Field 1");
+	ScalarField1=new emScalarField(this,"sf1","Scalar Field 1");
 	ScalarField1->SetEditable();
 	ScalarField1->SetMinMaxValues(0,100);
 	ScalarField1->SetScaleMarkIntervals(50,10,5,1,0);
 	AddWakeUpSignal(ScalarField1->GetValueSignal());
 
-	ScalarField2=new emTkScalarField(this,"sf2","Scalar Field 2");
+	ScalarField2=new emScalarField(this,"sf2","Scalar Field 2");
 	ScalarField2->SetEditable();
 	ScalarField2->SetMinMaxValues(-1,1);
 	ScalarField2->SetTextOfValueFunc(ScalarField2_TextOfValue);
@@ -93,7 +93,7 @@ bool MyPanel::Cycle()
 			(int)ScalarField2->GetValue()
 		));
 	}
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 void MyPanel::ScalarField2_TextOfValue(

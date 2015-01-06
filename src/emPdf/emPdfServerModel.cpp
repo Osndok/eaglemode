@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.cpp
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -154,8 +154,8 @@ void emPdfServerModel::Poll(unsigned maxMilliSecs)
 		if (!Process.IsRunning()) {
 			ProcRunId++;
 			ProcPdfInstCount=0;
-			ReadBuf.Empty();
-			WriteBuf.Empty();
+			ReadBuf.Clear();
+			WriteBuf.Clear();
 			emDLog("emPdfServerModel: Starting server process");
 			Process.TryStart(
 				emArray<emString>(
@@ -185,9 +185,9 @@ void emPdfServerModel::Poll(unsigned maxMilliSecs)
 			Process.WaitPipes(flags,(unsigned)(endTime-now));
 		}
 	}
-	catch (emString errorMessage) {
-		if (!FirstRunningJob) FailAllJobs(errorMessage);
-		else FailAllRunningJobs(errorMessage);
+	catch (emException & exception) {
+		if (!FirstRunningJob) FailAllJobs(exception.GetText());
+		else FailAllRunningJobs(exception.GetText());
 		Process.SendTerminationSignal();
 		ProcTerminating=true;
 	}
@@ -326,7 +326,7 @@ emPdfServerModel::CloseJobStruct::~CloseJobStruct()
 }
 
 
-void emPdfServerModel::TryStartJobs() throw(emString)
+void emPdfServerModel::TryStartJobs() throw(emException)
 {
 	Job * job;
 	int n;
@@ -353,7 +353,7 @@ void emPdfServerModel::TryStartJobs() throw(emString)
 }
 
 
-void emPdfServerModel::TryStartOpenJob(OpenJob * openJob) throw(emString)
+void emPdfServerModel::TryStartOpenJob(OpenJob * openJob) throw(emException)
 {
 	RemoveJobFromList(openJob);
 	if (openJob->Orphan) {
@@ -373,7 +373,7 @@ void emPdfServerModel::TryStartOpenJob(OpenJob * openJob) throw(emString)
 }
 
 
-void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emString)
+void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emException)
 {
 	RemoveJobFromList(renderJob);
 	if (renderJob->Orphan) {
@@ -403,7 +403,7 @@ void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emString)
 }
 
 
-void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emString)
+void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emException)
 {
 	RemoveJobFromList(closeJob);
 	if (closeJob->ProcRunId==ProcRunId) {
@@ -423,7 +423,7 @@ void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emStrin
 }
 
 
-void emPdfServerModel::TryFinishJobs() throw(emString)
+void emPdfServerModel::TryFinishJobs() throw(emException)
 {
 	Job * job;
 
@@ -443,7 +443,7 @@ void emPdfServerModel::TryFinishJobs() throw(emString)
 }
 
 
-bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emString)
+bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emException)
 {
 	emString cmd,args;
 	const char * p;
@@ -460,7 +460,7 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emString)
 	}
 	else {
 		cmd=args;
-		args.Empty();
+		args.Clear();
 	}
 
 	if (cmd=="error:") {
@@ -473,7 +473,7 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emString)
 	else if (cmd=="instance:") {
 		r=sscanf(args,"%d",&i1);
 		if (r<1) {
-			throw emString::Format("PDF server protocol error (%d)",__LINE__);
+			throw emException("PDF server protocol error (%d)",__LINE__);
 		}
 		job->Instance->ProcRunId=ProcRunId;
 		job->Instance->InstanceId=i1;
@@ -481,7 +481,7 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emString)
 	else if (cmd=="pages:") {
 		r=sscanf(args,"%d",&i1);
 		if (r<1) {
-			throw emString::Format("PDF server protocol error (%d)",__LINE__);
+			throw emException("PDF server protocol error (%d)",__LINE__);
 		}
 		job->Instance->Pages.SetCount(i1);
 	}
@@ -491,7 +491,7 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emString)
 			r<3 || pos<=0 || i1<0 ||
 			i1>=job->Instance->Pages.GetCount()
 		) {
-			throw emString::Format("PDF server protocol error (%d)",__LINE__);
+			throw emException("PDF server protocol error (%d)",__LINE__);
 		}
 		job->Instance->Pages.GetWritable(i1).Width=d1;
 		job->Instance->Pages.GetWritable(i1).Height=d2;
@@ -514,14 +514,14 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emString)
 		}
 	}
 	else {
-		throw emString::Format("PDF server protocol error (%d)",__LINE__);
+		throw emException("PDF server protocol error (%d)",__LINE__);
 	}
 
 	return true;
 }
 
 
-bool emPdfServerModel::TryFinishRenderJob(RenderJob * job) throw(emString)
+bool emPdfServerModel::TryFinishRenderJob(RenderJob * job) throw(emException)
 {
 	int len,total,type,width,height,maxColor;
 	emString line;
@@ -538,7 +538,7 @@ bool emPdfServerModel::TryFinishRenderJob(RenderJob * job) throw(emString)
 			p="error: ";
 			len=strlen(p);
 			if (line.GetSubString(0,len)!=p) {
-				throw emString::Format("PDF server protocol error (%d)",__LINE__);
+				throw emException("PDF server protocol error (%d)",__LINE__);
 			}
 			line.Remove(0,len);
 			RemoveJobFromList(job);
@@ -555,7 +555,7 @@ bool emPdfServerModel::TryFinishRenderJob(RenderJob * job) throw(emString)
 		emDLog("emPdfServerModel: Receiving: P%c %d %d %d ...",type,width,height,maxColor);
 		ReadBuf.Remove(0,len);
 		if (type!='6' || width!=job->TgtW || height!=job->TgtH || maxColor!=255) {
-			throw emString::Format("PDF server protocol error (%d)",__LINE__);
+			throw emException("PDF server protocol error (%d)",__LINE__);
 		}
 		job->ReadStage=1;
 		progress=true;
@@ -652,7 +652,7 @@ emString emPdfServerModel::ReadLineFromProc()
 }
 
 
-bool emPdfServerModel::TryProcIO() throw(emString)
+bool emPdfServerModel::TryProcIO() throw(emException)
 {
 	char buf[256];
 	bool progress;
@@ -662,7 +662,7 @@ bool emPdfServerModel::TryProcIO() throw(emString)
 
 	if (!WriteBuf.IsEmpty()) {
 		r=Process.TryWrite(WriteBuf.Get(),WriteBuf.GetCount());
-		if (r<0) throw emString("PDF server process died unexpectedly.");
+		if (r<0) throw emException("PDF server process died unexpectedly.");
 		if (r>0) {
 			WriteBuf.Remove(0,r);
 			progress=true;
@@ -671,7 +671,7 @@ bool emPdfServerModel::TryProcIO() throw(emString)
 
 	while (ReadBuf.GetCount()<65536) {
 		r=Process.TryRead(buf,sizeof(buf));
-		if (r<0) throw emString("PDF server process died unexpectedly.");
+		if (r<0) throw emException("PDF server process died unexpectedly.");
 		if (r==0) break;
 		ReadBuf.Add(buf,r);
 		progress=true;
@@ -771,7 +771,7 @@ int emPdfServerModel::TryParsePnmHeader(
 	*pMaxColor=0;
 	if (pos>=len) return 0;
 	if (src[pos++]!='P') {
-		throw emString::Format("PDF server protocol error (%d)",__LINE__);
+		throw emException("PDF server protocol error (%d)",__LINE__);
 	}
 	if (pos>=len) return 0;
 	*pType=(unsigned char)src[pos++];
@@ -784,7 +784,7 @@ int emPdfServerModel::TryParsePnmHeader(
 				while (pos<len && src[pos++]!='\n');
 			}
 			else if (c>32) {
-				throw emString::Format("PDF server protocol error (%d)",__LINE__);
+				throw emException("PDF server protocol error (%d)",__LINE__);
 			}
 		}
 		val[i]=c-'0';
@@ -796,7 +796,7 @@ int emPdfServerModel::TryParsePnmHeader(
 		}
 	}
 	if (c>32) {
-		throw emString::Format("PDF server protocol error (%d)",__LINE__);
+		throw emException("PDF server protocol error (%d)",__LINE__);
 	}
 	*pWidth=val[0];
 	*pHeight=val[1];

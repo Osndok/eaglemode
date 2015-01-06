@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emColor_h.html#emColor">emColor</A>.h
 //
-// Copyright (C) 2001,2003-2008,2010 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -80,7 +80,7 @@
                 <SPAN CLASS=c>// Construct by copying a color, but override the alpha
                 // component.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryParse(<SPAN CLASS=t>const char </SPAN>* str) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryParse(<SPAN CLASS=t>const char </SPAN>* str) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
                 <SPAN CLASS=c>// Try to set this color by interpreting the given string as a
                 // color. Throw an error message on failure. Currently, this
                 // tries to interpret only X11 color strings like "#f8a91c" or

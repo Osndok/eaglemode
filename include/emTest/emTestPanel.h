@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -64,7 +64,7 @@ private:
 
 	void UpdateControlPanel();
 
-	class TkTest : public emTkGroup {
+	class TkTest : public emGroup {
 
 	public:
 
@@ -86,12 +86,12 @@ private:
 			void * context
 		);
 
-		emTkScalarField * SFLen, * SFPos;
-		emTkCheckBox * CbTopLev, * CbPZoom, * CbModal, * CbUndec, * CbPopup, * CbFull;
-		emTkButton * BtCreateDlg;
+		emScalarField * SFLen, * SFPos;
+		emCheckBox * CbTopLev, * CbPZoom, * CbModal, * CbUndec, * CbPopup, * CbFull;
+		emButton * BtCreateDlg;
 	};
 
-	class TkTestGrp : public emTkGroup {
+	class TkTestGrp : public emGroup {
 	public:
 		TkTestGrp(ParentArg parent, const emString & name);
 	protected:
@@ -102,8 +102,8 @@ private:
 	emColor BgColor, DefaultBgColor;
 	emCrossPtr<TkTestGrp> TkT;
 	emCrossPtr<emTestPanel> TP1,TP2,TP3,TP4;
-	emCrossPtr<emTkColorField> BgColorField;
-	emCrossPtr<emTkLabel> ControlPanel;
+	emCrossPtr<emColorField> BgColorField;
+	emCrossPtr<emLabel> ControlPanel;
 };
 
 

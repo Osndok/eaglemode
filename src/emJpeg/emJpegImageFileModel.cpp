@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emJpegImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,7 +85,7 @@ emJpegImageFileModel::~emJpegImageFileModel()
 }
 
 
-void emJpegImageFileModel::TryStartLoading() throw(emString)
+void emJpegImageFileModel::TryStartLoading() throw(emException)
 {
 	jpeg_saved_marker_ptr smp;
 	const char * csstr;
@@ -94,9 +94,9 @@ void emJpegImageFileModel::TryStartLoading() throw(emString)
 	memset(L,0,sizeof(emJpegLoadingState));
 
 	L->file=fopen(GetFilePath(),"rb");
-	if (!L->file) throw emGetErrorText(errno);
+	if (!L->file) throw emException("%s",emGetErrorText(errno).Get());
 
-	if (setjmp(L->jmpbuffer)) throw emString(L->errorText);
+	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
 
 	L->cinfo.client_data=L;
 	L->cinfo.err=jpeg_std_error(&L->err);
@@ -161,12 +161,12 @@ void emJpegImageFileModel::TryStartLoading() throw(emString)
 
 	if (L->cinfo.output_components!=1 &&
 	    L->cinfo.output_components!=3) {
-		throw emString("Unsupported JPEG file format.");
+		throw emException("Unsupported JPEG file format.");
 	}
 }
 
 
-bool emJpegImageFileModel::TryContinueLoading() throw(emString)
+bool emJpegImageFileModel::TryContinueLoading() throw(emException)
 {
 	JSAMPROW row;
 
@@ -180,7 +180,7 @@ bool emJpegImageFileModel::TryContinueLoading() throw(emString)
 		Signal(ChangeSignal);
 	}
 
-	if (setjmp(L->jmpbuffer)) throw emString(L->errorText);
+	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
 
 	if (L->y<Image.GetHeight()) {
 		row=
@@ -216,13 +216,13 @@ void emJpegImageFileModel::QuitLoading()
 }
 
 
-void emJpegImageFileModel::TryStartSaving() throw(emString)
+void emJpegImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emJpegImageFileModel: Saving not implemented.");
+	throw emException("emJpegImageFileModel: Saving not implemented.");
 }
 
 
-bool emJpegImageFileModel::TryContinueSaving() throw(emString)
+bool emJpegImageFileModel::TryContinueSaving() throw(emException)
 {
 	return false;
 }

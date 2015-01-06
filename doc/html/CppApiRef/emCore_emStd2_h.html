@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -140,41 +140,41 @@
         <SPAN CLASS=c>// Ask whether the given file path exists, whether it is readable and so
         // on.
 
-</SPAN>emUInt64 emTryGetFileSize(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN>emUInt64 emTryGetFileSize(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Get the size of a file.
 
-</SPAN>time_t emTryGetFileTime(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN>time_t emTryGetFileTime(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Get the last modification time of a file.
 
 </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetCurrentDirectory();
         <SPAN CLASS=c>// Get the absolute path of the current working directory.
 
 </SPAN><SPAN CLASS=t>typedef void </SPAN>* emDirHandle;
-emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
-<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emTryReadDir(emDirHandle dirHandle) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emTryReadDir(emDirHandle dirHandle) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
 <SPAN CLASS=t>void </SPAN>emCloseDir(emDirHandle dirHandle);
         <SPAN CLASS=c>// Read a directory step by step. An empty string indicates the end.
 
-</SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; emTryLoadDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; emTryLoadDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Read a directory at once.
 
-</SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; emTryLoadFile(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; emTryLoadFile(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
 <SPAN CLASS=t>void </SPAN>emTrySaveFile(<SPAN CLASS=t>const char </SPAN>* path,
-                   <SPAN CLASS=t>const char </SPAN>* data, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                   <SPAN CLASS=t>const char </SPAN>* data, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
 <SPAN CLASS=t>void </SPAN>emTrySaveFile(<SPAN CLASS=t>const char </SPAN>* path,
-                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; data) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; data) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Read or write a file at once.
 
-</SPAN><SPAN CLASS=t>void </SPAN>emTryMakeDirectories(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>int </SPAN>mode=<SPAN CLASS=u>0777</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN><SPAN CLASS=t>void </SPAN>emTryMakeDirectories(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>int </SPAN>mode=<SPAN CLASS=u>0777</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Create a directory and its ancestors, as far as they do not exist.
         // On Windows, the mode argument is ignored.
 
-</SPAN><SPAN CLASS=t>void </SPAN>emTryRemoveFileOrTree(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN><SPAN CLASS=t>void </SPAN>emTryRemoveFileOrTree(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Delete a file or a directory recursively. force=true means to defeat
         // file permissions if possible.
 
 </SPAN><SPAN CLASS=t>void </SPAN>emTryCopyFileOrTree(<SPAN CLASS=t>const char </SPAN>* targetPath,
-                         <SPAN CLASS=t>const char </SPAN>* sourcePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                         <SPAN CLASS=t>const char </SPAN>* sourcePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Copy a file or a directory recursively. This does not copy any file
         // attributes (maybe a future version will do so).
 
@@ -186,7 +186,7 @@ emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>t
 </SPAN><SPAN CLASS=t>typedef void </SPAN>* emLibHandle;
         <SPAN CLASS=c>// Data type for a handle on an opened dynamic library.
 
-</SPAN>emLibHandle emTryOpenLib(<SPAN CLASS=t>const char </SPAN>* libName, <SPAN CLASS=t>bool </SPAN>isFilename) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+</SPAN>emLibHandle emTryOpenLib(<SPAN CLASS=t>const char </SPAN>* libName, <SPAN CLASS=t>bool </SPAN>isFilename) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Open a dynamic library.
         // Arguments:
         //   libName    - Name of the dynamic library.
@@ -198,7 +198,7 @@ emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>t
         //   An abstract handle for the opened library.
 
 </SPAN><SPAN CLASS=t>void </SPAN>* emTryResolveSymbolFromLib(emLibHandle handle,
-                                 <SPAN CLASS=t>const char </SPAN>* symbol) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                                 <SPAN CLASS=t>const char </SPAN>* symbol) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Get the address of a symbol in a dynamic library.
         // Hint: C++ symbols have a compiler specific encoding. Best is to use
         // C symbols only.
@@ -207,7 +207,7 @@ emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path) <SPAN CLASS=k>t
         <SPAN CLASS=c>// Close a dynamic library.
 
 </SPAN><SPAN CLASS=t>void </SPAN>* emTryResolveSymbol(<SPAN CLASS=t>const char </SPAN>* libName, <SPAN CLASS=t>bool </SPAN>isFilename,
-                          <SPAN CLASS=t>const char </SPAN>* symbol) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>);
+                          <SPAN CLASS=t>const char </SPAN>* symbol) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
         <SPAN CLASS=c>// Similar to emTryOpenLib plus emTryResolveSymbolFromLib, but the
         // library is never closed.
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.h
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2013 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -78,8 +78,11 @@ private:
 
 	bool ArePagePanelsToBeShown();
 
+	void UpdatePagePanels();
+
 	emColor BGColor;
 	emColor FGColor;
+	bool LayoutValid;
 	int Rows,Columns;
 	double CellX0,CellY0,CellW,CellH;
 	double PgX,PgY,PerPoint;

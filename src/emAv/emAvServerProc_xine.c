@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2012 Oliver Hamann.
+// Copyright (C) 2008,2010-2013 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,8 +28,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <xine.h>
-#include <xine/xine_internal.h>
 
 
 /*============================================================================*/
@@ -90,248 +90,124 @@ static const char * emAv_get_xine_error(xine_stream_t * stream)
 
 
 /*============================================================================*/
-/*============================== emAv_vo_frame_t =============================*/
+/*============================= emAv_raw_visual_t ============================*/
 /*============================================================================*/
 
 typedef struct {
-	vo_frame_t base;
-	char base_extra[256]; /* Improves binary compatibility a little. */
-	int width;
-	int height;
-	int format;
-	int aspect_ratio;
-	int min_shm_size;
-	int sizes[3];
-	uint8_t * mem[3];
-} emAv_vo_frame_t;
-
-
-static void emAv_vo_frame_field(vo_frame_t * vo_img, int which_field)
-{
-}
-
-
-static void emAv_vo_frame_dispose(vo_frame_t * vo_img)
-{
-	emAv_vo_frame_t * frame=(emAv_vo_frame_t*)vo_img;
-	int i;
-
-	for (i=0; i<3; i++) if (frame->mem[i]) free(frame->mem[i]);
-	pthread_mutex_destroy(&frame->base.mutex);
-	memset(frame,0,sizeof(emAv_vo_frame_t));
-	free(frame);
-}
-
-
-/*============================================================================*/
-/*============================== emAv_vo_driver_t ============================*/
-/*============================================================================*/
-
-typedef struct {
-	vo_driver_t base;
-	char base_extra[256]; /* Improves binary compatibility a little. */
-	alphablend_t ov_alphablend;
+	raw_visual_t base;
 	pthread_mutex_t mutex;
 	int min_shm_size;
 	int shm_size;
 	void volatile * shm_ptr;
-} emAv_vo_driver_t;
+} emAv_raw_visual_t;
 
 
-static uint32_t emAv_vo_driver_get_capabilities(vo_driver_t * self)
-{
-	return VO_CAP_YUY2|VO_CAP_YV12;
-}
-
-
-static vo_frame_t * emAv_vo_driver_alloc_frame(vo_driver_t * self)
-{
-	emAv_vo_frame_t * frame;
-
-	frame=(emAv_vo_frame_t*)calloc(1,sizeof(emAv_vo_frame_t));
-	pthread_mutex_init(&frame->base.mutex,NULL);
-	frame->base.driver=self;
-	frame->base.field=emAv_vo_frame_field;
-	frame->base.dispose=emAv_vo_frame_dispose;
-	return (vo_frame_t*)frame;
-}
-
-
-static void emAv_vo_driver_update_frame_format(
-	vo_driver_t * self, vo_frame_t * vo_img, uint32_t width, uint32_t height,
-	double ratio, int format, int flags
+static void emAv_raw_output_cb(
+	void * user_data, int frame_format, int frame_width, int frame_height,
+	double frame_aspect, void * data0, void * data1, void * data2
 )
 {
-	emAv_vo_driver_t * driver=(emAv_vo_driver_t*)self;
-	emAv_vo_frame_t * frame=(emAv_vo_frame_t*)vo_img;
-	int i;
-
-	if (
-		frame->width!=(int)width || frame->height!=(int)height ||
-		frame->format!=format
-	) {
-		frame->width=width;
-		frame->height=height;
-		frame->format=format;
-		if (format==XINE_IMGFMT_YV12) {
-			frame->base.pitches[0]=8*((width+7)/8);
-			frame->base.pitches[1]=8*((width+15)/16);
-			frame->base.pitches[2]=8*((width+15)/16);
-			frame->sizes[0]=frame->base.pitches[0]*height;
-			frame->sizes[1]=frame->base.pitches[1]*((height+1)/2);
-			frame->sizes[2]=frame->base.pitches[2]*((height+1)/2);
-			frame->min_shm_size=7*sizeof(int)+frame->sizes[0]+frame->sizes[1]+frame->sizes[2];
-		}
-		else { /* format==XINE_IMGFMT_YUY2 */
-			frame->base.pitches[0]=8*((width+3)/4);
-			frame->sizes[0]=frame->base.pitches[0]*height;
-			frame->sizes[1]=0;
-			frame->sizes[2]=0;
-			frame->min_shm_size=6*sizeof(int)+frame->sizes[0];
-		}
-		for (i=0; i<3; i++) {
-			frame->base.base[i]=NULL;
-			if (frame->mem[i]) {
-				free(frame->mem[i]);
-				frame->mem[i]=NULL;
-			}
-			if (frame->sizes[i]>0) {
-				frame->mem[i]=calloc(1,frame->sizes[i]+255);
-				frame->base.base[i]=(uint8_t*)frame->mem[i];
-				frame->base.base[i]+=(0-((size_t)frame->base.base[i]))&255;
-			}
-		}
-		pthread_mutex_lock(&driver->mutex);
-		if (driver->min_shm_size<frame->min_shm_size) driver->min_shm_size=frame->min_shm_size;
-		pthread_mutex_unlock(&driver->mutex);
-	}
-	frame->aspect_ratio=(int)(ratio*65536.0+0.5);
-}
-
-
-static void emAv_vo_driver_display_frame(
-	vo_driver_t * self, vo_frame_t * vo_img
-)
-{
-	emAv_vo_driver_t * driver=(emAv_vo_driver_t*)self;
-	emAv_vo_frame_t * frame=(emAv_vo_frame_t*)vo_img;
+	emAv_raw_visual_t * visual=(emAv_raw_visual_t*)user_data;
+	int pitch0,pitch1,pitch2,size0,size1,size2,headerSize,sz;
 	int volatile * pi;
 	char volatile * pc;
-	int i;
 
-	pthread_mutex_lock(&driver->mutex);
-	pi=(int volatile *)driver->shm_ptr;
-	if (pi && driver->shm_size>=frame->min_shm_size && !pi[0]) {
-		pi[1]=frame->width;
-		pi[2]=frame->height;
-		pi[3]=frame->aspect_ratio;
-		if (frame->format==XINE_IMGFMT_YV12) {
+	switch (frame_format) {
+	case XINE_VORAW_YV12:
+		pitch0=8*((frame_width+7)/8);
+		pitch1=8*((frame_width+15)/16);
+		pitch2=8*((frame_width+15)/16);
+		size0=pitch0*frame_height;
+		size1=pitch1*((frame_height+1)/2);
+		size2=pitch2*((frame_height+1)/2);
+		headerSize=7*sizeof(int);
+		break;
+	case XINE_VORAW_YUY2:
+		pitch0=8*((frame_width+3)/4);
+		pitch1=0;
+		pitch2=0;
+		size0=pitch0*frame_height;
+		size1=0;
+		size2=0;
+		headerSize=6*sizeof(int);
+		break;
+	case XINE_VORAW_RGB:
+		pitch0=3*frame_width;
+		pitch1=0;
+		pitch2=0;
+		size0=pitch0*frame_height;
+		size1=0;
+		size2=0;
+		headerSize=6*sizeof(int);
+		break;
+	default:
+		return;
+	}
+	sz=headerSize+size0+size1+size2;
+
+	pthread_mutex_lock(&visual->mutex);
+	if (visual->min_shm_size<sz) visual->min_shm_size=sz;
+	pi=(int volatile *)visual->shm_ptr;
+	if (pi && visual->shm_size>=sz && !pi[0]) {
+		pi[1]=frame_width;
+		pi[2]=frame_height;
+		pi[3]=(int)(frame_aspect*65536.0+0.5);
+		switch (frame_format) {
+		case XINE_VORAW_YV12:
 			pi[4]=1;
-			pi[5]=frame->base.pitches[0];
-			pi[6]=frame->base.pitches[1];
+			pi[5]=pitch0;
+			pi[6]=pitch1;
 			pc=(char volatile *)(pi+7);
-			for (i=0; i<3; i++) {
-				memcpy((void*)pc,frame->base.base[i],frame->sizes[i]);
-				pc+=frame->sizes[i];
-			}
-		}
-		else {
+			memcpy((void*)pc,data0,size0);
+			pc+=size0;
+			memcpy((void*)pc,data1,size1);
+			pc+=size1;
+			memcpy((void*)pc,data2,size2);
+			break;
+		case XINE_VORAW_YUY2:
 			pi[4]=2;
-			pi[5]=frame->base.pitches[0];
-			memcpy((void*)(pi+6),frame->base.base[0],frame->sizes[0]);
+			pi[5]=pitch0;
+			memcpy((void*)(pi+6),data0,size0);
+			break;
+		case XINE_VORAW_RGB:
+			pi[4]=0;
+			pi[5]=pitch0;
+			memcpy((void*)(pi+6),data0,size0);
+			break;
 		}
 		pi[0]=1;
 	}
-	pthread_mutex_unlock(&driver->mutex);
-
-	frame->base.free(&frame->base);
+	pthread_mutex_unlock(&visual->mutex);
 }
 
 
-static void emAv_vo_driver_overlay_blend(
-	vo_driver_t * self, vo_frame_t * vo_img, vo_overlay_t * overlay
+static void emAv_raw_overlay_cb(
+	void * user_data, int num_ovl, raw_overlay_t * overlays_array
 )
 {
-	emAv_vo_driver_t * driver=(emAv_vo_driver_t*)self;
-	emAv_vo_frame_t * frame=(emAv_vo_frame_t*)vo_img;
-
-	if (overlay->rle) {
-		driver->ov_alphablend.offset_x=vo_img->overlay_offset_x;
-		driver->ov_alphablend.offset_y=vo_img->overlay_offset_y;
-		if (frame->format==XINE_IMGFMT_YV12) {
-			_x_blend_yuv(
-				frame->base.base,overlay,frame->width,frame->height,
-				frame->base.pitches,&driver->ov_alphablend
-			);
-		}
-		else {
-			_x_blend_yuy2(
-				frame->base.base[0],overlay,frame->width,frame->height,
-				frame->base.pitches[0],&driver->ov_alphablend
-			);
-		}
-	}
 }
 
 
-static int emAv_vo_driver_get_property(vo_driver_t * self, int property)
+static emAv_raw_visual_t * emAv_raw_visual_create(xine_t * xine)
 {
-	return 0;
+	emAv_raw_visual_t * visual;
+
+	visual=(emAv_raw_visual_t*)calloc(1,sizeof(emAv_raw_visual_t));
+	visual->base.user_data=visual;
+	visual->base.supported_formats=XINE_VORAW_YV12|XINE_VORAW_YUY2|XINE_VORAW_RGB;
+	visual->base.raw_output_cb=emAv_raw_output_cb;
+	visual->base.raw_overlay_cb=emAv_raw_overlay_cb;
+	pthread_mutex_init(&visual->mutex,NULL);
+	return visual;
 }
 
 
-static int emAv_vo_driver_set_property(
-	vo_driver_t * self, int property, int value
-)
+static void emAv_raw_visual_dispose(emAv_raw_visual_t * visual)
 {
-	return value;
-}
-
-
-static int emAv_vo_driver_gui_data_exchange(
-	vo_driver_t * self, int data_type, void * data
-)
-{
-	return 0;
-}
-
-
-static int emAv_vo_driver_redraw_needed(vo_driver_t * self)
-{
-	return 0;
-}
-
-
-static void emAv_vo_driver_dispose(vo_driver_t * self)
-{
-	emAv_vo_driver_t * driver=(emAv_vo_driver_t*)self;
-
-	if (driver->shm_ptr) shmdt((const void*)driver->shm_ptr);
-	pthread_mutex_destroy(&driver->mutex);
-	_x_alphablend_free(&driver->ov_alphablend);
-	memset(driver,0,sizeof(emAv_vo_driver_t));
-	free(driver);
-}
-
-
-static emAv_vo_driver_t * emAv_vo_driver_create(xine_t * xine)
-{
-	emAv_vo_driver_t * driver;
-
-	driver=(emAv_vo_driver_t*)calloc(1,sizeof(emAv_vo_driver_t));
-	_x_alphablend_init(&driver->ov_alphablend,xine);
-	pthread_mutex_init(&driver->mutex,NULL);
-	driver->base.get_capabilities    =emAv_vo_driver_get_capabilities;
-	driver->base.alloc_frame         =emAv_vo_driver_alloc_frame;
-	driver->base.update_frame_format =emAv_vo_driver_update_frame_format;
-	driver->base.display_frame       =emAv_vo_driver_display_frame;
-	driver->base.overlay_blend       =emAv_vo_driver_overlay_blend;
-	driver->base.get_property        =emAv_vo_driver_get_property;
-	driver->base.set_property        =emAv_vo_driver_set_property;
-	driver->base.gui_data_exchange   =emAv_vo_driver_gui_data_exchange;
-	driver->base.redraw_needed       =emAv_vo_driver_redraw_needed;
-	driver->base.dispose             =emAv_vo_driver_dispose;
-	return driver;
+	if (visual->shm_ptr) shmdt((const void*)visual->shm_ptr);
+	pthread_mutex_destroy(&visual->mutex);
+	memset(visual,0,sizeof(emAv_raw_visual_t));
+	free(visual);
 }
 
 
@@ -560,7 +436,7 @@ typedef struct {
 	xine_t * Xine;
 	xine_audio_port_t * AudioPort;
 	xine_video_port_t * VideoPort;
-	emAv_vo_driver_t * MyVoDrv;
+	emAv_raw_visual_t * MyRawVisual;
 	xine_stream_t * Stream;
 	xine_post_t * CurrentAudioVisuPost;
 	int CurrentAudioVisu;
@@ -838,10 +714,10 @@ static void emAvPollProperties(int instIndex, int initialize)
 	inst=emAvInstances[instIndex];
 
 	/* minshmsize */
-	if (inst->MyVoDrv) {
-		pthread_mutex_lock(&inst->MyVoDrv->mutex);
-		sz=inst->MyVoDrv->min_shm_size;
-		pthread_mutex_unlock(&inst->MyVoDrv->mutex);
+	if (inst->MyRawVisual) {
+		pthread_mutex_lock(&inst->MyRawVisual->mutex);
+		sz=inst->MyRawVisual->min_shm_size;
+		pthread_mutex_unlock(&inst->MyRawVisual->mutex);
 	}
 	else {
 		sz=0;
@@ -1042,7 +918,7 @@ static void emAvSetAudioVisu(int instIndex, int audioVisu)
 	if (!inst->AudioPort) return;
 	if (!inst->VideoPort) return;
 	if (!inst->Stream) return;
-	if (!inst->MyVoDrv) return;
+	if (!inst->MyRawVisual) return;
 
 	audio_ports[0]=inst->AudioPort;
 	audio_ports[1]=NULL;
@@ -1160,14 +1036,14 @@ static void emAvDetachShm(int instIndex)
 	inst=emAvInstances[instIndex];
 	if (!inst) return;
 
-	if (!inst->MyVoDrv) return;
-	pthread_mutex_lock(&inst->MyVoDrv->mutex);
-	if (inst->MyVoDrv->shm_ptr) {
-		shmdt((const void*)inst->MyVoDrv->shm_ptr);
-		inst->MyVoDrv->shm_ptr=NULL;
-		inst->MyVoDrv->shm_size=0;
+	if (!inst->MyRawVisual) return;
+	pthread_mutex_lock(&inst->MyRawVisual->mutex);
+	if (inst->MyRawVisual->shm_ptr) {
+		shmdt((const void*)inst->MyRawVisual->shm_ptr);
+		inst->MyRawVisual->shm_ptr=NULL;
+		inst->MyRawVisual->shm_size=0;
 	}
-	pthread_mutex_unlock(&inst->MyVoDrv->mutex);
+	pthread_mutex_unlock(&inst->MyRawVisual->mutex);
 }
 
 
@@ -1179,18 +1055,18 @@ static const char * emAvAttachShm(int instIndex, int shmId, int shmSize)
 	inst=emAvInstances[instIndex];
 	if (!inst) return "Not an opened instance.";
 
-	if (!inst->MyVoDrv) return "No suitable video driver for shm.";
+	if (!inst->MyRawVisual) return "No suitable video driver for shm.";
 
 	if (shmId<0 || shmSize<=0) return "Illegal shm parameters.";
 
 	shmPtr=shmat(shmId,NULL,0);
 	if (shmPtr==(void*)-1) return "Failed to attach shm.";
 
-	pthread_mutex_lock(&inst->MyVoDrv->mutex);
-	if (inst->MyVoDrv->shm_ptr) shmdt((const void*)inst->MyVoDrv->shm_ptr);
-	inst->MyVoDrv->shm_ptr=shmPtr;
-	inst->MyVoDrv->shm_size=shmSize;
-	pthread_mutex_unlock(&inst->MyVoDrv->mutex);
+	pthread_mutex_lock(&inst->MyRawVisual->mutex);
+	if (inst->MyRawVisual->shm_ptr) shmdt((const void*)inst->MyRawVisual->shm_ptr);
+	inst->MyRawVisual->shm_ptr=shmPtr;
+	inst->MyRawVisual->shm_size=shmSize;
+	pthread_mutex_unlock(&inst->MyRawVisual->mutex);
 
 	return NULL;
 }
@@ -1215,9 +1091,8 @@ static void emAvCloseInstance(int instIndex)
 	}
 
 	if (inst->AudioPort) xine_close_audio_driver(inst->Xine,inst->AudioPort);
-
 	if (inst->VideoPort) xine_close_video_driver(inst->Xine,inst->VideoPort);
-	else if (inst->MyVoDrv) inst->MyVoDrv->base.dispose(&inst->MyVoDrv->base);
+	if (inst->MyRawVisual) emAv_raw_visual_dispose(inst->MyRawVisual);
 
 #ifdef HAVE_ONE_XINE_PER_STREAM
 	if (inst->Xine) xine_exit(inst->Xine);
@@ -1298,13 +1173,15 @@ static const char * emAvOpenInstance(
 		inst->AudioPort=xine_open_audio_driver(inst->Xine,"none",NULL);
 		if (!inst->AudioPort) {
 			emAvCloseInstance(instIndex);
-			return "Failed to prepare audio driver \"none\".";
+			return "Failed to prepare audio driver. Likely there are no xine plugins installed.";
 		}
 	}
 
 	if (strcmp(videoDrv,"emAv")==0) {
-		inst->MyVoDrv=emAv_vo_driver_create(inst->Xine);
-		inst->VideoPort=_x_vo_new_port(inst->Xine,&inst->MyVoDrv->base,0);
+		inst->MyRawVisual=emAv_raw_visual_create(inst->Xine);
+		inst->VideoPort=xine_open_video_driver(
+			inst->Xine,"raw",XINE_VISUAL_TYPE_RAW,inst->MyRawVisual
+		);
 		if (!inst->VideoPort) {
 			emAvCloseInstance(instIndex);
 			return "Failed to prepare video driver.";

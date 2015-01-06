@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -358,7 +358,7 @@
                 //           the last one of the range of elements to be
                 //           removed. If NULL, nothing is removed.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Empty(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
                 <SPAN CLASS=c>// Remove (and delete) all elements of this list.
                 // Arguments:
                 //   compact - true if you plan to keep this list empty for
@@ -1410,7 +1410,7 @@
         <SPAN CLASS=b>}
 }
 
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Empty(<SPAN CLASS=t>bool </SPAN>compact)
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Clear(<SPAN CLASS=t>bool </SPAN>compact)
 <SPAN CLASS=b>{
         </SPAN>OBJ * e1, * e2;
         Iterator * i;

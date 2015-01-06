@@ -27,7 +27,7 @@ eval(incFile.ReadAll());
 incFile.Close();
 
 ErrorIfNoSources();
-ErrorIfSourcesAccrossDirs();
+ErrorIfSourcesAcrossDirs();
 ErrorIfNotSingleTarget();
 ErrorIfTargetsNotDirs();
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestContainers.cpp
 //
-// Copyright (C) 2005-2009 Oliver Hamann.
+// Copyright (C) 2005-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -132,7 +132,7 @@ static void TestCharArray()
 
 	for (tuningLevel=0; tuningLevel<=4; tuningLevel++) {
 		a1.SetTuningLevel(tuningLevel);
-		a1.Empty();
+		a1.Clear();
 		a1+='a';
 		a1+=a1;
 		a1.Add("cd",2,true);
@@ -203,26 +203,65 @@ static void TestStringArray()
 static void TestAvlTree()
 {
 	printf("TestAvlTree...\n");
-	emAvlTreeExample<emString> t;
-	emAvlTreeExample<emString>::Iterator i;
-	emString str;
+	emAvlTreeMap<emString,emString> m,m2;
+	emAvlTreeMap<int,const char *> m3;
+	emAvlTreeMap<emString,emString>::Iterator i,i2;
 
-	t.Insert("the");
-	t.Insert("quick");
-	t.Insert("brown");
-	t.Insert("fox");
-	t.Insert("jumps");
-	t.Insert("over");
-	t.Insert("the");
-	t.Insert("crazy");
-	t.Insert("dog");
-	if (t.Search("mouse")) t.Insert("cat");
-	if (t.Search("crazy")) {
-		t.Remove("crazy");
-		t.Insert("lazy");
+	m["1"]="a";
+	MY_ASSERT(!m.IsEmpty());
+	i.SetFirst(m);
+	m.RemoveFirst();
+	MY_ASSERT(m.IsEmpty());
+	MY_ASSERT(i.Get()==NULL);
+	m["3"]="c";
+	i.SetFirst(m);
+	m["4"]="D";
+	i2.SetLast(m);
+	m2=m;
+	m["1b"]="N";
+	m["3"]="C";
+	MY_ASSERT((++i)->Key=="4");
+	MY_ASSERT(i->Key=="4");
+	MY_ASSERT(i2->Key=="4");
+	MY_ASSERT(i==i2);
+	MY_ASSERT((--i)->Key=="3");
+	MY_ASSERT(i!=i2);
+	MY_ASSERT((--i)->Key=="1b");
+	m["5"]="Q";
+	m["1"]="Z";
+	m.RemoveLast();
+	m["1"]="A";
+	MY_ASSERT(m.GetValueWritable("2",false)==NULL);
+	m.Remove("1b");
+	MY_ASSERT(m.GetCount()==3);
+	MY_ASSERT(m.GetValueWritable("2",true)->Get()==emString().Get());
+	*m.GetValueWritable("2",false)="B";
+	MY_ASSERT(m.GetCount()==4);
+	MY_ASSERT((--i)->Key=="2");
+	MY_ASSERT(m.GetFirst()->Key=="1");
+	MY_ASSERT(m.GetLast()->Value=="D");
+	MY_ASSERT(m.Get("B")==NULL);
+	MY_ASSERT(m.Get("3")->Value=="C");
+	MY_ASSERT((*m.GetValue("2"))=="B");
+	MY_ASSERT((*m.GetKey("2"))=="2");
+	i.Set(m2,"9");
+	MY_ASSERT(!i);
+	i.Set(m,"2");
+	i++;
+	MY_ASSERT(i);
+	MY_ASSERT(i->Key=="3");
+	MY_ASSERT(m2.GetCount()==2);
+	MY_ASSERT(*m2.GetValue("3")=="c");
+	MY_ASSERT(m2.Get("4")->Value=="D");
+	for (i.SetLast(m); i; --i) {
+		*m.GetValueWritable(i) = i->Value + m[i->Key];
 	}
-	for (str="", i.StartFirst(t); i.Get(); i.Next()) str+=*i.Get();
-	MY_ASSERT(str=="browndogfoxjumpslazyoverquickthe");
+	MY_ASSERT(m["3"]=="CC");
+	m.Clear();
+	MY_ASSERT(m.GetCount()==0);
+	m3[815]="foo";
+	MY_ASSERT(m3[4711]==NULL);
+	MY_ASSERT(strcmp(m3[815],"foo")==0);
 }
 
 

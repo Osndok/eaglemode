@@ -1,0 +1,151 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emSplitter.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emSplitter_h
+#define emSplitter_h
+
+#ifndef emBorder_h
+#include &lt;<A CLASS=f HREF="emCore_emBorder_h.html">emCore/emBorder.h</A>&gt;
+#endif
+
+
+<A NAME="emSplitter"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a splitter panel. Such a panel can get two child panels
+        // which are laid out automatically, either horizontally or vertically,
+        // filling the whole content area. Between the two child panels is a
+        // grip which can be dragged by the user, for making one of the panels
+        // larger while the other gets smaller.
+
+        </SPAN><A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                <SPAN CLASS=t>bool </SPAN>vertical=<SPAN CLASS=k>false</SPAN>, <SPAN CLASS=t>double </SPAN>minPos=<SPAN CLASS=u>0.0</SPAN>, <SPAN CLASS=t>double </SPAN>maxPos=<SPAN CLASS=u>1.0</SPAN>,
+                <SPAN CLASS=t>double </SPAN>pos=<SPAN CLASS=u>0.5
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+                //   vertical    - See SetVertical.
+                //   minPos      - See SetMinMaxPos.
+                //   maxPos      - See SetMinMaxPos.
+                //   pos         - See SetPos.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsVertical() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetVertical(<SPAN CLASS=t>bool </SPAN>vertical=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the child panels are laid out left-right (false) or
+                // on top of each other (true).
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMinPos() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMaxPos() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetPos() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinMaxPos(<SPAN CLASS=t>double </SPAN>minPos, <SPAN CLASS=t>double </SPAN>maxPos);
+        <SPAN CLASS=t>void </SPAN>SetPos(<SPAN CLASS=t>double </SPAN>pos);
+                <SPAN CLASS=c>// Get/set minimum, maximum and current position of the grip.
+                // The position ranges from 0.0 to 1.0 (0.0 = first child panel
+                // collapsed, 1.0 = second child panel collapsed).
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetPosSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled after each change of the grip
+                // position.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>CalcGripRect(
+                <SPAN CLASS=t>double </SPAN>contentX, <SPAN CLASS=t>double </SPAN>contentY, <SPAN CLASS=t>double </SPAN>contentW,
+                <SPAN CLASS=t>double </SPAN>contentH, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
+                <SPAN CLASS=t>double </SPAN>* pH
+        );
+
+        <SPAN CLASS=t>bool </SPAN>Vertical;
+        <SPAN CLASS=t>double </SPAN>MinPos;
+        <SPAN CLASS=t>double </SPAN>MaxPos;
+        <SPAN CLASS=t>double </SPAN>Pos;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> PosSignal;
+        <SPAN CLASS=t>bool </SPAN>Pressed;
+        <SPAN CLASS=t>double </SPAN>MousePosInGrip;
+        <SPAN CLASS=t>bool </SPAN>MouseInGrip;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>::IsVertical() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Vertical;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>::GetMinPos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinPos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>::GetMaxPos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxPos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>::GetPos() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emSplitter_h.html#emSplitter">emSplitter</A>::GetPosSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PosSignal;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

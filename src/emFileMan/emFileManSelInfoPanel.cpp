@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.cpp
 //
-// Copyright (C) 2007-2009 Oliver Hamann.
+// Copyright (C) 2007-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,7 +72,7 @@ void emFileManSelInfoPanel::Notice(NoticeFlags flags)
 		SetRectangles();
 	}
 
-	if (flags&(NF_VIEWING_CHANGED|NF_VISIT_CHANGED)) {
+	if (flags&NF_VIEWING_CHANGED) {
 		if (IsViewed()) {
 			x1=PanelToViewX(DetailsX);
 			y1=PanelToViewY(DetailsY);
@@ -409,13 +409,13 @@ void emFileManSelInfoPanel::SetRectangles()
 void emFileManSelInfoPanel::ResetDetails()
 {
 	DirectDetails.State=STATE_COSTLY;
-	DirectDetails.ErrorMessage.Empty();
+	DirectDetails.ErrorMessage.Clear();
 	RecursiveDetails.State=STATE_COSTLY;
-	RecursiveDetails.ErrorMessage.Empty();
-	DirStack.Empty();
-	InitialDirStack.Empty();
-	SelList.Empty();
-	DirPath.Empty();
+	RecursiveDetails.ErrorMessage.Clear();
+	DirStack.Clear();
+	InitialDirStack.Clear();
+	SelList.Clear();
+	DirPath.Clear();
 	if (DirHandle) {
 		emCloseDir(DirHandle);
 		DirHandle=NULL;
@@ -437,8 +437,8 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 			break;
 		case STATE_SCANNING:
 			DirectDetails.State=STATE_COSTLY;
-			DirStack.Empty();
-			SelList.Empty();
+			DirStack.Clear();
+			SelList.Clear();
 			InvalidatePainting();
 			break;
 		default:
@@ -451,8 +451,8 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 			break;
 		case STATE_SCANNING:
 			RecursiveDetails.State=STATE_COSTLY;
-			DirStack.Empty();
-			DirPath.Empty();
+			DirStack.Clear();
+			DirPath.Clear();
 			if (DirHandle) {
 				emCloseDir(DirHandle);
 				DirHandle=NULL;
@@ -469,7 +469,7 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 	case STATE_COSTLY:
 	case STATE_WAIT:
 		DirectDetails.State=STATE_SCANNING;
-		DirectDetails.ErrorMessage.Empty();
+		DirectDetails.ErrorMessage.Clear();
 		DirectDetails.Entries=0;
 		DirectDetails.HiddenEntries=0;
 		DirectDetails.SymbolicLinks=0;
@@ -485,16 +485,16 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 		for (i=0; i<cnt; i++) {
 			SelList.Set(i,FileMan->GetTargetSelection(i));
 		}
-		DirStack.Empty();
+		DirStack.Clear();
 		SelIndex=0;
 		InvalidatePainting();
 		return true;
 	case STATE_SCANNING:
 		if (SelIndex>=SelList.GetCount()) {
 			DirectDetails.State=STATE_SUCCESS;
-			SelList.Empty();
+			SelList.Clear();
 			InitialDirStack=DirStack;
-			DirStack.Empty();
+			DirStack.Clear();
 			InvalidatePainting();
 			return true;
 		}
@@ -503,8 +503,8 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 		if (DirectDetails.State==STATE_ERROR) {
 			RecursiveDetails.State=STATE_ERROR;
 			RecursiveDetails.ErrorMessage=DirectDetails.ErrorMessage;
-			SelList.Empty();
-			DirStack.Empty();
+			SelList.Clear();
+			DirStack.Clear();
 			InvalidatePainting();
 			return false;
 		}
@@ -517,7 +517,7 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 	case STATE_COSTLY:
 	case STATE_WAIT:
 		RecursiveDetails.State=STATE_SCANNING;
-		RecursiveDetails.ErrorMessage.Empty();
+		RecursiveDetails.ErrorMessage.Clear();
 		RecursiveDetails.Entries=DirectDetails.Entries;
 		RecursiveDetails.HiddenEntries=DirectDetails.HiddenEntries;
 		RecursiveDetails.SymbolicLinks=DirectDetails.SymbolicLinks;
@@ -535,7 +535,7 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 			cnt=DirStack.GetCount();
 			if (cnt<=0) {
 				RecursiveDetails.State=STATE_SUCCESS;
-				InitialDirStack.Empty();
+				InitialDirStack.Clear();
 				InvalidatePainting();
 				return false;
 			}
@@ -545,12 +545,12 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 			try {
 				DirHandle=emTryOpenDir(DirPath);
 			}
-			catch (emString errorMessage) {
+			catch (emException & exception) {
 				RecursiveDetails.State=STATE_ERROR;
-				RecursiveDetails.ErrorMessage=errorMessage;
-				DirStack.Empty();
-				InitialDirStack.Empty();
-				DirPath.Empty();
+				RecursiveDetails.ErrorMessage=exception.GetText();
+				DirStack.Clear();
+				InitialDirStack.Clear();
+				DirPath.Clear();
 				InvalidatePainting();
 				return false;
 			}
@@ -559,28 +559,28 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 		try {
 			name=emTryReadDir(DirHandle);
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			RecursiveDetails.State=STATE_ERROR;
-			RecursiveDetails.ErrorMessage=errorMessage;
-			DirStack.Empty();
-			InitialDirStack.Empty();
-			DirPath.Empty();
+			RecursiveDetails.ErrorMessage=exception.GetText();
+			DirStack.Clear();
+			InitialDirStack.Clear();
+			DirPath.Clear();
 			emCloseDir(DirHandle);
 			DirHandle=NULL;
 			InvalidatePainting();
 			return false;
 		}
 		if (name.IsEmpty()) {
-			DirPath.Empty();
+			DirPath.Clear();
 			emCloseDir(DirHandle);
 			DirHandle=NULL;
 			return true;
 		}
 		WorkOnDetailEntry(&RecursiveDetails,emDirEntry(DirPath,name));
 		if (RecursiveDetails.State==STATE_ERROR) {
-			DirStack.Empty();
-			InitialDirStack.Empty();
-			DirPath.Empty();
+			DirStack.Clear();
+			InitialDirStack.Clear();
+			DirPath.Clear();
 			emCloseDir(DirHandle);
 			DirHandle=NULL;
 			InvalidatePainting();

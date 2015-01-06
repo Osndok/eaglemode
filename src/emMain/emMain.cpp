@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -89,7 +89,7 @@ private:
 	emContext & Context;
 
 	bool FSDialogDone;
-	emTkDialog * FSDialog;
+	emDialog * FSDialog;
 	emArray<emString> FSArgs;
 };
 
@@ -216,10 +216,10 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		try {
 			col.TryParse(optCEColor);
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			emWarning(
 				"emMain::NewWindow: Could not interpret cecolor option value: %s",
-				errorMessage.Get()
+				exception.GetText()
 			);
 			col=0;
 		}
@@ -229,7 +229,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		w->SetWindowFlags(w->GetWindowFlags()|emWindow::WF_FULLSCREEN);
 	}
 	if (optVisit) {
-		w->GetContentView().SeekFullsized(optVisit,false);
+		w->GetContentView().VisitFullsized(optVisit,false);
 	}
 }
 
@@ -240,14 +240,14 @@ bool emMain::Cycle()
 	int i;
 
 	if (FSDialog && IsSignaled(FSDialog->GetFinishSignal())) {
-		if (FSDialog->GetResult()==emTkDialog::POSITIVE) {
+		if (FSDialog->GetResult()==emDialog::POSITIVE) {
 			delete FSDialog;
 			FSDialog=NULL;
 			SetFSDialogDone();
 			args.SetCount(FSArgs.GetCount(),true);
 			for (i=0; i<args.GetCount(); i++) args.Set(i,FSArgs[i].Get());
 			NewWindow(args.GetCount(),args.Get());
-			FSArgs.Empty(true);
+			FSArgs.Clear(true);
 		}
 		else {
 			emEngine::GetScheduler().InitiateTermination(-1);
@@ -269,7 +269,7 @@ void emMain::OnReception(int argc, const char * const argv[])
 		Signal(emFileModel::AcquireUpdateSignalModel(Context.GetRootContext())->Sig);
 	}
 	else {
-		str.Empty();
+		str.Clear();
 		for (i=0; i<argc; i++) { str+=" "; str+=argv[i]; }
 		emWarning("emMain: Illegal MiniIpc request:%s",str.Get());
 	}
@@ -297,7 +297,7 @@ void emMain::CreateFSDialog()
 		"\n"
 		"By continuing, you are accepting the license."
 	;
-	emTkLabel * label;
+	emLabel * label;
 	emString docIndexPath;
 	emString text;
 
@@ -309,7 +309,7 @@ void emMain::CreateFSDialog()
 	}
 	text=emString::Format(textFormat,docIndexPath.Get());
 
-	FSDialog=new emTkDialog(
+	FSDialog=new emDialog(
 		Context,
 		emView::VF_ROOT_SAME_TALLNESS|emView::VF_NO_ZOOM,
 		0
@@ -320,8 +320,8 @@ void emMain::CreateFSDialog()
 	);
 	FSDialog->AddPositiveButton("Continue");
 	FSDialog->AddNegativeButton("Exit");
-	FSDialog->GetButton(1)->ActivateLater();
-	label=new emTkLabel(FSDialog->GetContentTiling(),"text");
+	FSDialog->GetButton(1)->Activate();
+	label=new emLabel(FSDialog->GetContentTiling(),"text");
 	label->SetCaption(text);
 	AddWakeUpSignal(FSDialog->GetFinishSignal());
 }
@@ -335,7 +335,7 @@ bool emMain::IsFSDialogDone()
 	try {
 		buf=emTryLoadFile(GetLAPath());
 	}
-	catch (emString) {
+	catch (emException &) {
 		return false;
 	}
 	if (emString(buf.Get(),buf.GetCount())!="yes\n") {
@@ -353,8 +353,8 @@ void emMain::SetFSDialogDone()
 		emTryMakeDirectories(emGetParentPath(GetLAPath()));
 		emTrySaveFile(GetLAPath(),"yes\n",4);
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 	}
 	FSDialogDone=true;
 }
@@ -467,7 +467,7 @@ static int wrapped_main(int argc, char * argv[])
 				sendArgs.Get()
 			);
 		}
-		catch (emString) {
+		catch (emException &) {
 			fprintf(stderr,"Failed to find server process.\n");
 			return 1;
 		}
@@ -490,7 +490,7 @@ static int wrapped_main(int argc, char * argv[])
 			);
 			return 0;
 		}
-		catch (emString) {
+		catch (emException &) {
 		}
 	}
 

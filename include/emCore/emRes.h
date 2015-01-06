@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRes.h
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,7 +37,7 @@
 emImage emGetResImage(emRootContext & rootContext, const emString & filePath,
                       int channelCount=-1);
 emImage emTryGetResImage(emRootContext & rootContext, const emString & filePath,
-                         int channelCount=-1) throw(emString);
+                         int channelCount=-1) throw(emException);
 	// Get a resource image. An image file is loaded and cached in the root
 	// context for quick shared re-use. This means, if the image is already
 	// cached, it is not loaded again and a shallow copy of that image is
@@ -58,7 +58,7 @@ emImage emGetInsResImage(emRootContext & rootContext, const char * prj,
                          const char * subPath, int channelCount=-1);
 emImage emTryGetInsResImage(emRootContext & rootContext, const char * prj,
                             const char * subPath,
-                            int channelCount=-1) throw(emString);
+                            int channelCount=-1) throw(emException);
 	// Get an installed resource image. This is like
 	// em[Try]GetResImage(
 	//   rootContext,
@@ -112,7 +112,7 @@ public:
 
 	const CLS & Get();
 	void Set(const CLS & res);
-		// Both methods are reseting the auto-delete mechanism.
+		// Both methods are resetting the auto-delete mechanism.
 		// (Therefore the Get method is non-const)
 
 protected:

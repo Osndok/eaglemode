@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.h
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -208,7 +208,7 @@ public:
 	void Remove(int index, int len=1);
 		// Like Extract, but without returning the sub-string.
 
-	void Empty();
+	void Clear();
 		// Empty this string.
 
 	bool IsEmpty() const;
@@ -240,16 +240,6 @@ public:
 	void MakeNonShared();
 		// This must be called before handing the string to another
 		// thread.
-
-#if defined(ANDROID)
-	// ??? This is a workaround: On Android, the program crashes if an
-	// ??? exception is thrown with an instance of a non-polymorphic class
-	// ??? from within a shared library and caught in another shared
-	// ??? library. Therefore we make emString a polymorphic class for that
-	// ??? case here. It could be that this problem is not just Android
-	// ??? related.
-	virtual void VirtualDummyMethod();
-#endif
 
 private:
 
@@ -355,7 +345,7 @@ inline emString & emString::operator += (char c)
 }
 
 #ifndef EM_NO_DATA_EXPORT
-inline void emString::Empty()
+inline void emString::Clear()
 {
 	if (!--Data->RefCount) FreeData();
 	Data=&EmptyData;

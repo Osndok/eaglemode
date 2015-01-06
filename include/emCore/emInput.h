@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.h
 //
-// Copyright (C) 2005-2012 Oliver Hamann.
+// Copyright (C) 2005-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -371,7 +371,7 @@ public:
 	bool operator != (const emInputHotkey & hotkey) const;
 		// Comparison operators.
 
-	void TryParse(const char * str) throw(emString);
+	void TryParse(const char * str) throw(emException);
 		// Try to set this hotkey from a human-readable string
 		// representation (e.g. "Ctrl+C"). On failure, the hotkey is set
 		// invalid and an error message is thrown.
@@ -488,6 +488,11 @@ inline bool emInputEvent::IsMouseEvent() const
 inline bool emInputEvent::IsTouchEvent() const
 {
 	return emIsTouchInputKey(Key);
+}
+
+inline bool emInputEvent::IsKeyboardEvent() const
+{
+	return emIsKeyboardInputKey(Key) || !Chars.IsEmpty();
 }
 
 inline bool emInputEvent::IsKey(emInputKey key) const

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.h
 //
-// Copyright (C) 2004-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -102,7 +102,7 @@ public:
 		//            panel or a view. If it is a view, this panel will
 		//            be the root panel of that view. Otherwise it will
 		//            be the last child of the parent panel. Note that
-		//            the type ParentArg can be casted implicitly from:
+		//            the type ParentArg can be cast implicitly from:
 		//            emPanel&, emPanel*, emView& and emView*. But the
 		//            pointer must never be NULL.
 		//   name   - The name for this panel. There must not be any
@@ -124,12 +124,6 @@ public:
 		// the path from the root panel down to the identified panel.
 		// They are delimited by colons, while colons and backslashes in
 		// the names are quoted by backslashes.
-
-	emUInt64 GetCreationNumber() const;
-		// This is a generic consecutive identification number for this
-		// panel. It is unique within the view. Whenever a panel is
-		// created, a private counter in the view is incremented by one,
-		// and the panel gets that number as its creation number.
 
 	virtual emString GetTitle();
 		// Get the title of this panel. Normally, the title of the
@@ -258,8 +252,9 @@ public:
 		// A panel is viewed if it is painted to the view. And a panel
 		// is in viewed path if itself or a descendant is viewed. There
 		// is always exactly one viewed panel within the whole tree of
-		// panels, whose parent is not viewed. It is called the supreme
-		// viewed panel. Thus, the viewed panels are making up a tree.
+		// panels, whose parent is not viewed (or which does not have a
+		// parent). It is called the supreme viewed panel. The viewed
+		// panels are making up a tree.
 
 	double GetViewedPixelTallness() const;
 		// Same as GetView().GetCurrentPixelTallness()
@@ -376,15 +371,6 @@ public:
 		// non-focusable panels. They are just additional possible start
 		// points for the search.
 
-	bool IsVisited() const;
-	bool IsInVisitedPath() const;
-		// There is always exactly one viewed panel which is called the
-		// visited panel. It is the anchor for the view within the panel
-		// tree. That means, if the layout of any panel is modified, the
-		// visited panel keeps its position and size within the view. A
-		// panel is in visited path if itself or any descendant is
-		// visited.
-
 	bool IsActive() const;
 	bool IsInActivePath() const;
 		// There is always exactly one panel, which is called the active
@@ -394,29 +380,16 @@ public:
 		// focused panel (see IsFocused()). A panel cannot be active if
 		// it is not focusable (see SetFocusable()). A panel is in
 		// active path if itself or any descendant is the active panel.
-		//
-		// Why is there a difference between visited and active? Indeed,
-		// normally the active panel is even the visited panel. But the
-		// visited panel must be a viewed panel, and the active panel
-		// must be focusable. On the other hand, the supreme viewed
-		// panel is chosen for optimum performance and for avoiding
-		// over/under-flows of floating point numbers. So there can be
-		// one special case where the visited panel and the active panel
-		// are not the same: The visited panel is the supreme viewed
-		// panel, and it is not focusable, and the active panel is the
-		// nearest focusable ancestor of the visited panel.
 
-	void Activate();
+	bool IsActivatedAdherent() const;
+		// Ask whether this panel is activated adherent. "Adherent"
+		// usually means that the activation has been made by the user.
+		// An adherent activation is not so easy to change by zooming
+		// and scrolling like a non-adherent activation.
+
+	void Activate(bool adherent=true);
 		// Make this the active panel, or if this panel is not
-		// focusable, make the nearest focusable ancestor active. This
-		// method is a short cut for: GetView().VisitLazy(this,true)
-
-	void ActivateLater();
-		// Mark this panel for being activated at the end of the current
-		// time slice. This gives time for other things to come first,
-		// especially layout updates which may unhide this panel. If
-		// this is called on multiple panels of the same view within the
-		// same time slice, the last call counts.
+		// focusable, make the nearest focusable ancestor active.
 
 	bool IsFocused() const;
 	bool IsInFocusedPath() const;
@@ -428,7 +401,7 @@ public:
 	bool IsViewFocused() const;
 		// Ask whether the view has the input focus.
 
-	void Focus();
+	void Focus(bool adherent=true);
 		// Make this the focused panel, or if this panel is not
 		// focusable, make the nearest focusable ancestor focused. This
 		// is like calling Activate() and GetView().Focus().
@@ -480,17 +453,16 @@ protected:
 
 	typedef emUInt16 NoticeFlags;
 	enum {
-		NF_CHILD_LIST_CHANGED       = (1<< 0),
-		NF_LAYOUT_CHANGED           = (1<< 1),
-		NF_VIEWING_CHANGED          = (1<< 2),
-		NF_ENABLE_CHANGED           = (1<< 3),
-		NF_VISIT_CHANGED            = (1<< 4),
-		NF_ACTIVE_CHANGED           = (1<< 5),
-		NF_FOCUS_CHANGED            = (1<< 6),
-		NF_VIEW_FOCUS_CHANGED       = (1<< 7),
-		NF_UPDATE_PRIORITY_CHANGED  = (1<< 8),
-		NF_MEMORY_LIMIT_CHANGED     = (1<< 9),
-		NF_SOUGHT_NAME_CHANGED      = (1<<10)
+		NF_CHILD_LIST_CHANGED       = (1<<0),
+		NF_LAYOUT_CHANGED           = (1<<1),
+		NF_VIEWING_CHANGED          = (1<<2),
+		NF_ENABLE_CHANGED           = (1<<3),
+		NF_ACTIVE_CHANGED           = (1<<4),
+		NF_FOCUS_CHANGED            = (1<<5),
+		NF_VIEW_FOCUS_CHANGED       = (1<<6),
+		NF_UPDATE_PRIORITY_CHANGED  = (1<<7),
+		NF_MEMORY_LIMIT_CHANGED     = (1<<8),
+		NF_SOUGHT_NAME_CHANGED      = (1<<9)
 	};
 	virtual void Notice(NoticeFlags flags);
 		// Called some time after this panel has possibly changed in
@@ -503,7 +475,6 @@ protected:
 		//                                GetViewed...(), GetClip...(),
 		//                                GetViewCondition(...)
 		//   NF_ENABLE_CHANGED          - IsEnabled()
-		//   NF_VISIT_CHANGED           - IsVisited(), IsInVisitedPath()
 		//   NF_ACTIVE_CHANGED          - IsActive(), IsInActivePath()
 		//   NF_FOCUS_CHANGED           - IsFocused(), IsInFocusedPath()
 		//   NF_VIEW_FOCUS_CHANGED      - IsViewFocused()
@@ -515,33 +486,33 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 		// Process input form keyboard, mouse, and touch. This method is
-		// called on every panel which has IsInViewedPath()==true
-		// whenever there is a change in the input state or when there
-		// is an input event. The order of callings is from children to
-		// parents and from top to bottom (=last to first). The default
-		// implementation does this: First, if it is a mouse or touch
-		// event and if this panel is focusable, the focus is set to
-		// this panel and the event is eaten. And secondly, if this is
-		// the active panel, certain keyboard events are processed and
-		// eaten for switching the focus to another panel. Also see
-		// the methods GetInputClockMS and GetTouchEventPriority.
+		// called on every panel whenever there is a change in the input
+		// state or when there is an input event. The order of callings
+		// is from children to parents and from top to bottom (=last to
+		// first). The default implementation does this: First, if it is
+		// a mouse or touch event and if this panel is focusable, the
+		// focus is set to this panel and the event is eaten. And
+		// secondly, if this is the active panel, certain keyboard
+		// events are processed and eaten for switching the focus to
+		// another panel. Also see the methods GetInputClockMS and
+		// GetTouchEventPriority.
 		// Arguments:
 		//   event  - An input event. This is non-empty only if:
 		//            * It is a mouse button event, and the mouse
 		//              position lies within the panel and all its
 		//              ancestors, and the event has not been eaten by a
 		//              descendant panel or by an overlapping panel in
-		//              front, or by a view input filter.
+		//              front or by a view input filter.
 		//            * It is a touch event, and the first touch
 		//              position lies within the panel and all its
 		//              ancestors, and the event has not been eaten by a
 		//              descendant panel or by an overlapping panel in
-		//              front, or by a view input filter. Normally,
-		//              touch events are converted to mouse events by a
-		//              view input filter.
+		//              front or by a view input filter. Normally, touch
+		//              events are converted to mouse events by a view
+		//              input filter.
 		//            * It is a keyboard key event, and this panel is in
 		//              focused path, and the event has not been eaten
-		//              by a descendant panel, or by a view input filter.
+		//              by a descendant panel or by a view input filter.
 		//            The event can be eaten by calling event.Eat(). The
 		//            event reference is non-const only for that. Please
 		//            do not modify the event in any other way.
@@ -549,7 +520,7 @@ protected:
 		//            state.GetMouseX/Y are from the coordinate system
 		//            of the view (thus, they are in pixels).
 		//   mx, my - Position of the mouse in the coordinate system of
-		//            this panel.
+		//            this panel. Valid only if IsInViewedPath().
 
 	virtual emCursor GetCursor();
 		// Get the mouse cursor to be shown for this panel. The default
@@ -714,7 +685,6 @@ private:
 	double ViewedX, ViewedY, ViewedWidth, ViewedHeight;
 	double ClipX1, ClipY1, ClipX2, ClipY2;
 	double AEThresholdValue;
-	emUInt64 CreationNumber;
 	emColor CanvasColor;
 	NoticeFlags PendingNoticeFlags;
 	unsigned Viewed : 1;
@@ -722,8 +692,6 @@ private:
 	unsigned EnableSwitch : 1;
 	unsigned Enabled : 1;
 	unsigned Focusable : 1;
-	unsigned Visited : 1;
-	unsigned InVisitedPath : 1;
 	unsigned Active : 1;
 	unsigned InActivePath : 1;
 	unsigned PendingInput : 1;
@@ -779,11 +747,6 @@ inline void emPanel::LinkCrossPtr(emCrossPtrPrivate & crossPtr)
 inline const emString & emPanel::GetName() const
 {
 	return Name;
-}
-
-inline emUInt64 emPanel::GetCreationNumber() const
-{
-	return CreationNumber;
 }
 
 inline emView & emPanel::GetView()
@@ -996,16 +959,6 @@ inline bool emPanel::IsFocusable() const
 	return Focusable;
 }
 
-inline bool emPanel::IsVisited() const
-{
-	return Visited;
-}
-
-inline bool emPanel::IsInVisitedPath() const
-{
-	return InVisitedPath;
-}
-
 inline bool emPanel::IsActive() const
 {
 	return Active;
@@ -1014,6 +967,11 @@ inline bool emPanel::IsActive() const
 inline bool emPanel::IsInActivePath() const
 {
 	return InActivePath;
+}
+
+inline bool emPanel::IsActivatedAdherent() const
+{
+	return Active && View.IsActivationAdherent();
 }
 
 inline bool emPanel::IsFocused() const

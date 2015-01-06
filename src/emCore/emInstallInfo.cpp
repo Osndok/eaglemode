@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.cpp
 //
-// Copyright (C) 2006-2012 Oliver Hamann.
+// Copyright (C) 2006-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -174,8 +174,8 @@ emString emGetConfigDirOverloadable(
 	try {
 		hostVer.TryLoad(emGetChildPath(hostDir,"version"));
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 	}
 
 	result=hostDir;
@@ -184,11 +184,11 @@ emString emGetConfigDirOverloadable(
 		try {
 			userVer.TryLoad(emGetChildPath(userDir,"version"));
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			warning=emString::Format(
 				"The directory \"%s\" is not used, because of this error: %s",
 				userDir.Get(),
-				errorMessage.Get()
+				exception.GetText()
 			);
 		}
 		if (warning.IsEmpty() && hostVer.Get()!=userVer.Get()) {
@@ -221,7 +221,7 @@ emString emGetConfigDirOverloadable(
 			UINT_MAX
 		);
 		if (emScreen::LookupInherited(context).Get()!=NULL) {
-			emTkDialog::ShowMessage(context,"WARNING",warning);
+			emDialog::ShowMessage(context,"WARNING",warning);
 		}
 		else {
 			emWarning("%s",warning.Get());

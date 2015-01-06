@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_rpm.pl
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2010,2014 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -44,6 +44,7 @@ CreateFile(
 	'Summary: '.Var('SHORT_DESCRIPTION')."\n".
 	'Source: %{name}-%{version}.tar.bz2'."\n".
 	'BuildRoot: %{_tmppath}/%{name}-%{version}-build'."\n".
+	'AutoReqProv: no'."\n".
 	''."\n".
 	'%description'."\n".
 	Var('LONG_DESCRIPTION')."\n".

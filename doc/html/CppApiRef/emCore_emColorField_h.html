@@ -1,0 +1,179 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emColorField.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emColorField_h.html#emColorField">emColorField</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emColorField_h
+#define emColorField_h
+
+#ifndef emScalarField_h
+#include &lt;<A CLASS=f HREF="emCore_emScalarField_h.html">emCore/emScalarField.h</A>&gt;
+#endif
+
+#ifndef emTextField_h
+#include &lt;<A CLASS=f HREF="emCore_emTextField_h.html">emCore/emTextField.h</A>&gt;
+#endif
+
+#ifndef emTiling_h
+#include &lt;<A CLASS=f HREF="emCore_emTiling_h.html">emCore/emTiling.h</A>&gt;
+#endif
+
+
+<A NAME="emColorField"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emColorField_h.html#emColorField">emColorField</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a data field panel showing a color which can optionally be
+        // edited by the user.
+
+        </SPAN><A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<SPAN CLASS=u>0x000000ff</SPAN>, <SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>false</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>alphaEnabled=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent       - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name         - The name for this panel.
+                //   caption      - The label's caption, or empty.
+                //   description  - The label's description, or empty.
+                //   icon         - The label's icon, or empty.
+                //   color        - Initial color.
+                //   editable     - Whether the color can be edited by the user.
+                //   alphaEnabled - Whether the alpha channel of the color is
+                //                  relevant.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEditable() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetEditable(<SPAN CLASS=t>bool </SPAN>editable=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the color can be edited by the user.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsAlphaEnabled() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAlphaEnabled(<SPAN CLASS=t>bool </SPAN>alphaEnabled=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the alpha channel of the color is relevant.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetColorSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled after each change of the color.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> value);
+                <SPAN CLASS=c>// Get/set the color.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>ColorChanged();
+                <SPAN CLASS=c>// Called when the color has changed.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+        <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>UpdateRGBAOutput();
+        <SPAN CLASS=t>void </SPAN>UpdateHSVOutput(<SPAN CLASS=t>bool </SPAN>initial=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>void </SPAN>UpdateNameOutput();
+        <SPAN CLASS=t>void </SPAN>UpdateExpAppearance();
+
+        <SPAN CLASS=t>static void </SPAN>TextOfPercentValue(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+        <SPAN CLASS=t>static void </SPAN>TextOfHueValue(
+                <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value, emUInt64 markInterval,
+                <SPAN CLASS=t>void </SPAN>* context
+        );
+
+        <SPAN CLASS=t>struct </SPAN>Expansion <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * Tiling;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfRed;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfGreen;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfBlue;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfAlpha;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfHue;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfSat;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * SfVal;
+                <A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A> * TfName;
+                emInt64 RedOut,GreenOut,BlueOut,AlphaOut,HueOut,SatOut,ValOut;
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> NameOut;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ColorSignal;
+        Expansion * Exp;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color;
+        <SPAN CLASS=t>bool </SPAN>Editable;
+        <SPAN CLASS=t>bool </SPAN>AlphaEnabled;
+        <SPAN CLASS=t>bool </SPAN>Pressed;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToColorField;
+        <SPAN CLASS=t>static const char </SPAN>* HowToReadOnly;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A>::IsEditable() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Editable;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A>::IsAlphaEnabled() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>AlphaEnabled;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A>::GetColorSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ColorSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emColorField_h.html#emColorField">emColorField</A>::GetColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Color;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

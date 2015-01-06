@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.h
 //
-// Copyright (C) 2011-2012 Oliver Hamann.
+// Copyright (C) 2011-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,8 +21,8 @@
 #ifndef emViewInputFilter_h
 #define emViewInputFilter_h
 
-#ifndef emView_h
-#include <emCore/emView.h>
+#ifndef emViewAnimator_h
+#include <emCore/emViewAnimator.h>
 #endif
 
 
@@ -169,15 +169,25 @@ private:
 	void EmulateMiddleButton(emInputEvent & event, emInputState & state);
 	bool MoveMousePointerBackIntoView(double * pmx, double * pmy);
 	void MoveMousePointer(double dx, double dy);
-	double GetMouseZoomSpeed(bool fine) const;
-	double GetMouseScrollSpeed(bool fine) const;
-	double GetWheelZoomSpeed(bool fine) const;
+	double GetMouseZoomSpeed(bool fine=false);
+	double GetMouseScrollSpeed(bool fine=false);
+	void UpdateWheelZoomSpeed(bool down, bool fine);
+	void SetMouseAnimParams();
+	void SetWheelAnimParams();
+	void InitMagnetismAvoidance();
+	void UpdateMagnetismAvoidance(double dmx, double dmy);
 
+	emSwipingViewAnimator MouseAnim;
+	emSwipingViewAnimator WheelAnim;
 	emRef<emCoreConfig> CoreConfig;
 	double LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
-	bool ZoomScrollInAction;
 	emUInt64 EmuMidButtonTime;
 	int EmuMidButtonRepeat;
+	double WheelZoomSpeed;
+	emUInt64 WheelZoomTime;
+	bool MagnetismAvoidance;
+	double MagAvMouseMoveX,MagAvMouseMoveY;
+	emUInt64 MagAvTime;
 };
 
 
@@ -199,20 +209,16 @@ protected:
 
 	virtual void Input(emInputEvent & event, const emInputState & state);
 
-	virtual bool Cycle();
-
 private:
 
-	double Impulse(double cv, double tv, double mv, double dt);
 	void NavigateByProgram(emInputEvent & event, const emInputState & state);
-	double GetKeyboardZoomSpeed(bool fine);
-	double GetKeyboardScrollSpeed(bool fine);
+	double GetZoomSpeed(bool fine=false);
+	double GetScrollSpeed(bool fine=false);
+	void SetAnimatorParameters();
 
+	emSpeedingViewAnimator Animator;
 	emRef<emCoreConfig> CoreConfig;
 	bool Active;
-	double TargetVx,TargetVy,TargetVz;
-	double CurrentVx,CurrentVy,CurrentVz;
-	emUInt64 LastClock;
 	int NavByProgState;
 };
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkControlPanel.h
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emNetwalkControlPanel : public emTkGroup {
+class emNetwalkControlPanel : public emGroup {
 
 public:
 
@@ -51,19 +51,19 @@ private:
 
 	emRef<emNetwalkModel> Mdl;
 
-	emTkGroup * GrAbout;
-		emTkLabel * LbAbout;
-	emTkGroup * GrStart;
-		emTkScalarField * SfSize;
-		emTkScalarField * SfComplexity;
-		emTkCheckBox * CbBorderless;
-		emTkCheckBox * CbNoFourWayJunctions;
-		emTkCheckBox * CbDigMode;
-		emTkButton * BtStart;
-	emTkGroup * GrExtra;
-		emTkCheckBox * CbAutoMark;
-		emTkButton * BtUnmarkAll;
-	emTkTextField * TfPenalty;
+	emGroup * GrAbout;
+		emLabel * LbAbout;
+	emGroup * GrStart;
+		emScalarField * SfSize;
+		emScalarField * SfComplexity;
+		emCheckBox * CbBorderless;
+		emCheckBox * CbNoFourWayJunctions;
+		emCheckBox * CbDigMode;
+		emButton * BtStart;
+	emGroup * GrExtra;
+		emCheckBox * CbAutoMark;
+		emButton * BtUnmarkAll;
+	emTextField * TfPenalty;
 };
 
 

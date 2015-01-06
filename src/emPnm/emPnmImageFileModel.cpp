@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPnmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emPnmImageFileModel::~emPnmImageFileModel()
 }
 
 
-void emPnmImageFileModel::TryStartLoading() throw(emString)
+void emPnmImageFileModel::TryStartLoading() throw(emException)
 {
 	errno=0;
 
@@ -72,12 +72,12 @@ void emPnmImageFileModel::TryStartLoading() throw(emString)
 	return;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("PNM format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("PNM format error");
 }
 
 
-bool emPnmImageFileModel::TryContinueLoading() throw(emString)
+bool emPnmImageFileModel::TryContinueLoading() throw(emException)
 {
 	unsigned char * map, * mapEnd;
 	int i,n,v;
@@ -157,8 +157,8 @@ bool emPnmImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("PNM format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("PNM format error");
 }
 
 
@@ -172,13 +172,13 @@ void emPnmImageFileModel::QuitLoading()
 }
 
 
-void emPnmImageFileModel::TryStartSaving() throw(emString)
+void emPnmImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emPnmImageFileModel: Saving not implemented.");
+	throw emException("emPnmImageFileModel: Saving not implemented.");
 }
 
 
-bool emPnmImageFileModel::TryContinueSaving() throw(emString)
+bool emPnmImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

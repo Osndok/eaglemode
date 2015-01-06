@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emList.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -349,7 +349,7 @@ public:
 		//           the last one of the range of elements to be
 		//           removed. If NULL, nothing is removed.
 
-	void Empty(bool compact=false);
+	void Clear(bool compact=false);
 		// Remove (and delete) all elements of this list.
 		// Arguments:
 		//   compact - true if you plan to keep this list empty for
@@ -1401,7 +1401,7 @@ template <class OBJ> void emList<OBJ>::Remove(
 	}
 }
 
-template <class OBJ> void emList<OBJ>::Empty(bool compact)
+template <class OBJ> void emList<OBJ>::Clear(bool compact)
 {
 	OBJ * e1, * e2;
 	Iterator * i;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.h
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,16 +39,16 @@ public:
 	emBoolRec StickMouseWhenNavigating;
 	emBoolRec EmulateMiddleButton;
 	emBoolRec PanFunction;
-	emDoubleRec MouseZoomSpeedFactor;
-	emDoubleRec MouseFineZoomSpeedFactor;
-	emDoubleRec MouseScrollSpeedFactor;
-	emDoubleRec MouseFineScrollSpeedFactor;
-	emDoubleRec WheelZoomSpeedFactor;
-	emDoubleRec WheelFineZoomSpeedFactor;
-	emDoubleRec KeyboardZoomSpeedFactor;
-	emDoubleRec KeyboardFineZoomSpeedFactor;
-	emDoubleRec KeyboardScrollSpeedFactor;
-	emDoubleRec KeyboardFineScrollSpeedFactor;
+	emDoubleRec MouseZoomSpeed;
+	emDoubleRec MouseScrollSpeed;
+	emDoubleRec MouseWheelZoomSpeed;
+	emDoubleRec MouseWheelZoomAcceleration;
+	emDoubleRec KeyboardZoomSpeed;
+	emDoubleRec KeyboardScrollSpeed;
+	emDoubleRec KineticZoomingAndScrolling;
+	emDoubleRec MagnetismRadius;
+	emDoubleRec MagnetismSpeed;
+	emDoubleRec VisitSpeed;
 	emIntRec MaxMegabytesPerView;
 
 	virtual const char * GetFormatName() const;
@@ -57,6 +57,10 @@ protected:
 
 	emCoreConfig(emContext & context, const emString & name);
 	virtual ~emCoreConfig();
+
+private:
+
+	void TryLoadOldVersion() throw(emException);
 };
 
 

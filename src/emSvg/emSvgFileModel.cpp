@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFileModel.cpp
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,18 +58,18 @@ void emSvgFileModel::ResetData()
 	FileSize=0;
 	Width=0.0;
 	Height=0.0;
-	Title.Empty();
-	Description.Empty();
+	Title.Clear();
+	Description.Clear();
 }
 
 
-void emSvgFileModel::TryStartLoading() throw(emString)
+void emSvgFileModel::TryStartLoading() throw(emException)
 {
 	FileSize=emTryGetFileSize(GetFilePath());
 }
 
 
-bool emSvgFileModel::TryContinueLoading() throw(emString)
+bool emSvgFileModel::TryContinueLoading() throw(emException)
 {
 	if (!JobHandle) {
 		JobHandle=ServerModel->StartOpenJob(GetFilePath(),&SvgHandle);
@@ -78,7 +78,7 @@ bool emSvgFileModel::TryContinueLoading() throw(emString)
 	ServerModel->Poll(10);
 	switch (ServerModel->GetJobState(JobHandle)) {
 	case emSvgServerModel::JS_ERROR:
-		throw emString(ServerModel->GetJobErrorText(JobHandle));
+		throw emException("%s",ServerModel->GetJobErrorText(JobHandle).Get());
 	case emSvgServerModel::JS_SUCCESS:
 		Width=ServerModel->GetSvgWidth(SvgHandle);
 		Height=ServerModel->GetSvgHeight(SvgHandle);
@@ -101,13 +101,13 @@ void emSvgFileModel::QuitLoading()
 }
 
 
-void emSvgFileModel::TryStartSaving() throw(emString)
+void emSvgFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emSvgFileModel: Saving not supported.");
+	throw emException("emSvgFileModel: Saving not supported.");
 }
 
 
-bool emSvgFileModel::TryContinueSaving() throw(emString)
+bool emSvgFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

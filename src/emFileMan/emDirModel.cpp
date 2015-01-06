@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirModel.cpp
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,14 +77,14 @@ void emDirModel::ResetData()
 }
 
 
-void emDirModel::TryStartLoading() throw(emString)
+void emDirModel::TryStartLoading() throw(emException)
 {
 #if defined(__APPLE__)
 	char buf[PATH_MAX+1];
 	if (
 		realpath(GetFilePath().Get(),buf)!=NULL &&
 		strcmp(buf,"/net")==0
-	) throw emString(
+	) throw emException(
 		"Loading this directory would probably stall the process."
 	);
 #endif
@@ -92,7 +92,7 @@ void emDirModel::TryStartLoading() throw(emString)
 }
 
 
-bool emDirModel::TryContinueLoading() throw(emString)
+bool emDirModel::TryContinueLoading() throw(emException)
 {
 	NamesBlock * block;
 	NameNode * node;
@@ -167,13 +167,13 @@ void emDirModel::QuitLoading()
 }
 
 
-void emDirModel::TryStartSaving() throw(emString)
+void emDirModel::TryStartSaving() throw(emException)
 {
-	throw emString("Saving an emDirModel is impossible.");
+	throw emException("Saving an emDirModel is impossible.");
 }
 
 
-bool emDirModel::TryContinueSaving() throw(emString)
+bool emDirModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

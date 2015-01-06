@@ -131,7 +131,22 @@ Topics=[
 	),
 	Topic(text="Toolkit Panels",
 		files=[
-			AutoSectionsFile("emCore/emToolkit.h")
+			AutoSectionsFile("emCore/emLook.h"),
+			AutoSectionsFile("emCore/emBorder.h"),
+			AutoSectionsFile("emCore/emLabel.h"),
+			AutoSectionsFile("emCore/emTiling.h"),
+			AutoSectionsFile("emCore/emGroup.h"),
+			AutoSectionsFile("emCore/emTunnel.h"),
+			AutoSectionsFile("emCore/emButton.h"),
+			AutoSectionsFile("emCore/emCheckButton.h"),
+			AutoSectionsFile("emCore/emRadioButton.h"),
+			AutoSectionsFile("emCore/emCheckBox.h"),
+			AutoSectionsFile("emCore/emRadioBox.h"),
+			AutoSectionsFile("emCore/emTextField.h"),
+			AutoSectionsFile("emCore/emScalarField.h"),
+			AutoSectionsFile("emCore/emColorField.h"),
+			AutoSectionsFile("emCore/emSplitter.h"),
+			AutoSectionsFile("emCore/emDialog.h")
 		]
 	),
 	Topic(text="File Models & -Panels",

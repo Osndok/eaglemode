@@ -1,0 +1,103 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emCheckButton.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emCheckButton_h
+#define emCheckButton_h
+
+#ifndef emButton_h
+#include &lt;<A CLASS=f HREF="emCore_emButton_h.html">emCore/emButton.h</A>&gt;
+#endif
+
+
+<A NAME="emCheckButton"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a check button. This is like <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A>, but a check state
+        // is managed and shown. The check state toggles on every click of the
+        // button, for switching something on and off.
+
+        </SPAN><A CLASS=l HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A>. The initial check state is false.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCheckSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the check state has changed.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsChecked() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetChecked(<SPAN CLASS=t>bool </SPAN>checked=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Get/set the check state of this button.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Clicked();
+                <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A>. This implements the toggling of the check
+                // state.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>CheckChanged();
+                <SPAN CLASS=c>// Called when the check state has changed.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CheckSignal;
+        <SPAN CLASS=t>bool </SPAN>Checked;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToCheckButton;
+        <SPAN CLASS=t>static const char </SPAN>* HowToChecked;
+        <SPAN CLASS=t>static const char </SPAN>* HowToNotChecked;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>::GetCheckSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CheckSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>::IsChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Checked;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

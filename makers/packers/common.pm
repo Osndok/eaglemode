@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # common.pm
 #
-# Copyright (C) 2010-2012 Oliver Hamann.
+# Copyright (C) 2010-2014 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -76,33 +76,56 @@ if ($Config{'osname'} eq "linux") {
 	if (!defined($dist)) { $dist=''; }
 }
 $V{'DEB_BUILD_DEPENDS'}=
-	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, '.
-	($dist eq 'Ubuntu' ? 'libjpeg8-dev' : 'libjpeg62-dev').', '.
-	'libpng12-dev, libtiff4-dev, libxine-dev, librsvg2-dev, '.
-	'libpoppler-glib-dev, libfreetype6-dev';
+	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, libjpeg8-dev, '.
+	'libpng12-dev, libtiff5-dev, libxine2-dev, librsvg2-dev, '.
+	'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-	($dist eq 'Ubuntu' ? 'libjpeg8' : 'libjpeg62').', '.
-	'libpng12-0, libtiff4, libxine1, librsvg2-2, '.
-	($dist eq 'Ubuntu' ? 'libpoppler-glib8' : 'libpoppler-glib4').', '.
-	'libfreetype6';
+	'libjpeg8, libpng12-0, libtiff5, libxine2, librsvg2-2, '.
+	'libpoppler-glib8, libfreetype6';
 $V{'DEB_RECOMMENDS'}=
-	'abiword, genisoimage, htmldoc, netpbm, transfig, skencil';
+	'abiword, genisoimage, htmldoc, netpbm, transfig';
 
 $V{'RPM_PACKAGE_VERSION'}='1';
 $V{'RPM_GROUP'}='System/GUI/Other';
 $V{'RPM_BUILD_REQUIRES'}=
-	"gcc-c++ perl libjpeg-devel libpng-devel libtiff-devel\n".
+	"gcc-c++ perl\n".
 	"\%if 0\%{?suse_version}\n".
-	"BuildRequires: xorg-x11-libX11-devel libxine-devel librsvg-devel gtk2-devel libpoppler-glib-devel freetype2-devel\n".
+	"BuildRequires: libX11-devel libxine-devel libjpeg62-devel libpng12-devel libtiff-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype-devel\n".
 	"\%else\n".
-	"\%if 0\%{?mdkversion}\n".
-	"BuildRequires: libx11-devel libxine-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype2-devel\n".
-	"\%else\n".
-	"BuildRequires: libX11-devel xine-lib-devel librsvg2-devel gtk2-devel poppler-glib-devel freetype-devel\n".
-	"\%endif\n".
+	"BuildRequires: libX11-devel xine-lib-devel  libjpeg-devel libpng-devel libtiff-devel librsvg2-devel gtk2-devel poppler-glib-devel freetype-devel\n".
 	"\%endif\n";
-$V{'RPM_REQUIRES'}='perl xterm ghostscript';
+$V{'RPM_REQUIRES'}=
+	"perl xterm ghostscript\n".
+	"\%ifarch x86_64\n".
+	"Requires:".
+	" libc.so.6()(64bit)".
+	" libgcc_s.so.1()(64bit)".
+	" libstdc++.so.6()(64bit)".
+	" libX11.so.6()(64bit)".
+	" libjpeg.so.62()(64bit)".
+	" libpng12.so.0()(64bit)".
+	" libtiff.so.5()(64bit)".
+	" libxine.so.2()(64bit)".
+	" librsvg-2.so.2()(64bit)".
+	" libpoppler-glib.so.8()(64bit)".
+	" libfreetype.so.6()(64bit)".
+	"\n".
+	"\%else\n".
+	"Requires:".
+	" libc.so.6".
+	" libgcc_s.so.1".
+	" libstdc++.so.6".
+	" libX11.so.6".
+	" libjpeg.so.62".
+	" libpng12.so.0".
+	" libtiff.so.5".
+	" libxine.so.2".
+	" librsvg-2.so.2".
+	" libpoppler-glib.so.8".
+	" libfreetype.so.6".
+	"\n".
+	"\%endif\n";
 
 $V{'EBUILD_SRC_URI'}='http://prdownloads.sourceforge.net/${PN}/${P}.tar.bz2';
 $V{'EBUILD_KEYWORDS'}='~x86';

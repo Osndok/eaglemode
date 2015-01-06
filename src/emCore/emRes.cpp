@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRes.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,8 +33,8 @@ emImage emGetResImage(
 	try {
 		return emTryGetResImage(rootContext,filePath,channelCount);
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 		return emImage();
 	}
 }
@@ -42,7 +42,7 @@ emImage emGetResImage(
 
 emImage emTryGetResImage(
 	emRootContext & rootContext, const emString & filePath, int channelCount
-) throw(emString)
+) throw(emException)
 {
 	emRef<emResModel<emImage> > m;
 	emArray<char> buf;
@@ -64,20 +64,20 @@ emImage emTryGetResImage(
 				buf.GetCount()
 			);
 		}
-		catch (emString errorMessage) {
-			throw emString::Format(
+		catch (emException & exception) {
+			throw emException(
 				"Could not read image file \"%s\": %s",
 				absPath.Get(),
-				errorMessage.Get()
+				exception.GetText()
 			);
 		}
-		buf.Empty();
+		buf.Clear();
 		m=emResModel<emImage>::Acquire(rootContext,absPath);
 		m->Set(img);
 	}
 
 	if (channelCount>=0 && img.GetChannelCount()!=channelCount) {
-		throw emString::Format(
+		throw emException(
 			"Image file \"%s\" does not have %d channels",
 			absPath.Get(),
 			channelCount
@@ -104,7 +104,7 @@ emImage emGetInsResImage(
 emImage emTryGetInsResImage(
 	emRootContext & rootContext, const char * prj, const char * subPath,
 	int channelCount
-) throw(emString)
+) throw(emException)
 {
 	return emTryGetResImage(
 		rootContext,

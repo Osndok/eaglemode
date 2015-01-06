@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Clipboard.cpp
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ void emX11Clipboard::Clear(bool selection, emInt64 selectionId)
 	idx=selection?1:0;
 	if (selection) {
 		if (LocalSelectionId==selectionId) {
-			LocalText[idx].Empty();
+			LocalText[idx].Clear();
 			LocalSelectionId++;
 			XMutex->Lock();
 			if (XGetSelectionOwner(Disp,SelAtom[idx])==Win) {
@@ -76,7 +76,7 @@ void emX11Clipboard::Clear(bool selection, emInt64 selectionId)
 		}
 	}
 	else {
-		LocalText[idx].Empty();
+		LocalText[idx].Clear();
 		LocalTimestamp[idx]=Screen->LastKnownTime;
 		XMutex->Lock();
 		XSetSelectionOwner(Disp,SelAtom[idx],None,LocalTimestamp[idx]);
@@ -174,7 +174,7 @@ emString emX11Clipboard::GetText(bool selection)
 	);
 	if (format!=8) return emString();
 	str=emString((const char*)array.Get(),array.GetCount());
-	array.Empty();
+	array.Clear();
 	if (emIsUtf8System()) {
 		if (target==XA_STRING) str=Latin1ToUtf8(str);
 	}
@@ -286,12 +286,12 @@ void emX11Clipboard::HandleSelectionClear(XSelectionClearEvent & sce)
 {
 	if (sce.selection==SelAtom[0]) {
 		if (sce.time>=LocalTimestamp[0]) {
-			LocalText[0].Empty();
+			LocalText[0].Clear();
 		}
 	}
 	else if (sce.selection==SelAtom[1]) {
 		if (sce.time>=LocalTimestamp[1]) {
-			LocalText[1].Empty();
+			LocalText[1].Clear();
 			LocalSelectionId++;
 		}
 	}
@@ -474,7 +474,7 @@ L_Error:
 		XFree(buf);
 		XMutex->Unlock();
 	}
-	array.Empty();
+	array.Clear();
 	*nitems_return=0;
 	if (deleteProperty) {
 		XMutex->Lock();

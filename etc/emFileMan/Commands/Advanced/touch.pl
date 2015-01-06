@@ -24,7 +24,7 @@ if (IsFirstPass()) {
 
 	ErrorIfNoTargets();
 
-	ConfirmIfTargetsAccrossDirs();
+	ConfirmIfTargetsAcrossDirs();
 
 	my $tm=Edit(
 		"touch",

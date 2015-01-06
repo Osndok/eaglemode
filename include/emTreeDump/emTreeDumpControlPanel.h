@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpControlPanel.h
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emTreeDumpControlPanel : public emTkGroup {
+class emTreeDumpControlPanel : public emGroup {
 
 public:
 

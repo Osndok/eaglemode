@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emIlbmImageFileModel::~emIlbmImageFileModel()
 }
 
 
-void emIlbmImageFileModel::TryStartLoading() throw(emString)
+void emIlbmImageFileModel::TryStartLoading() throw(emException)
 {
 	int name;
 
@@ -60,21 +60,21 @@ void emIlbmImageFileModel::TryStartLoading() throw(emString)
 	L->Body=NULL;
 
 	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) throw emGetErrorText(errno);
+	if (!L->File) throw emException("%s",emGetErrorText(errno).Get());
 
 	Read32();
 	Read32();
 	name=Read32();
 
-	if (ferror(L->File)) throw emGetErrorText(errno);
+	if (ferror(L->File)) throw emException("%s",emGetErrorText(errno).Get());
 
 	if (feof(L->File) || name!=0x494C424D/*ILBM*/) {
-		throw emString("ILBM format error");
+		throw emException("ILBM format error");
 	}
 }
 
 
-bool emIlbmImageFileModel::TryContinueLoading() throw(emString)
+bool emIlbmImageFileModel::TryContinueLoading() throw(emException)
 {
 	unsigned char * map, * row, * bm, * p;
 	int name,size;
@@ -189,9 +189,9 @@ bool emIlbmImageFileModel::TryContinueLoading() throw(emString)
 	return true;
 
 ErrFile:
-	throw emGetErrorText(errno);
+	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
-	throw emString("ILBM format error");
+	throw emException("ILBM format error");
 }
 
 
@@ -207,13 +207,13 @@ void emIlbmImageFileModel::QuitLoading()
 }
 
 
-void emIlbmImageFileModel::TryStartSaving() throw(emString)
+void emIlbmImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emIlbmImageFileModel: Saving not implemented.");
+	throw emException("emIlbmImageFileModel: Saving not implemented.");
 }
 
 
-bool emIlbmImageFileModel::TryContinueSaving() throw(emString)
+bool emIlbmImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

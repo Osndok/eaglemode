@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.cpp
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,8 +57,8 @@ emGUIFramework::emGUIFramework()
 			lib,false,installDriversFuncName
 		);
 	}
-	catch (emString errorMessage) {
-		emFatalError("%s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("%s",exception.GetText());
 		exit(255); // Just to avoid compiler warnings (never executed).
 	}
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -115,7 +115,7 @@ bool emDirEntryPanel::Cycle()
 
 void emDirEntryPanel::Notice(NoticeFlags flags)
 {
-	if ((flags&(NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED|NF_VISIT_CHANGED))!=0) {
+	if ((flags&(NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED|NF_ACTIVE_CHANGED))!=0) {
 		UpdateContentPanel();
 		UpdateAltPanel();
 	}
@@ -565,6 +565,9 @@ void emDirEntryPanel::PaintInfo(
 		0.5,false
 	);
 
+#if defined(_WIN32)
+	if (!DirEntry.IsDirectory()) {
+#endif
 	len=emUInt64ToStr(tmp,sizeof(tmp),DirEntry.GetStat()->st_size);
 	cw=painter.GetTextSize("X",bh[4],false);
 	ws=bw[4]/(cw*len*16/15);
@@ -583,6 +586,9 @@ void emDirEntryPanel::PaintInfo(
 		}
 		x+=cw/5*ws;
 	}
+#if defined(_WIN32)
+	}
+#endif
 
 	FormatTime(DirEntry.GetStat()->st_mtime,tmp,bw[5]/bh[5]<6.0);
 	painter.PaintTextBoxed(
@@ -652,7 +658,7 @@ void emDirEntryPanel::UpdateContentPanel(bool forceRecreation, bool forceRelayou
 			forceRelayout=true;
 		}
 	}
-	else if (p && !p->IsInVisitedPath()) {
+	else if (p && !p->IsInActivePath() && (!p->IsInViewedPath() || IsViewed())) {
 		delete p;
 		p=NULL;
 	}
@@ -695,7 +701,7 @@ void emDirEntryPanel::UpdateAltPanel(bool forceRecreation, bool forceRelayout)
 			forceRelayout=true;
 		}
 	}
-	else if (p && !p->IsInVisitedPath()) {
+	else if (p && !p->IsInActivePath() && (!p->IsInViewedPath() || IsViewed())) {
 		delete p;
 		p=NULL;
 	}

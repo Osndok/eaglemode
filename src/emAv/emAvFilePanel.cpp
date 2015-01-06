@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -131,7 +131,7 @@ bool emAvFilePanel::Cycle()
 		IsSignaled(GetVirFileStateSignal()) ||
 		(loaded && IsSignaled(fm->GetInfoSignal()))
 	) {
-		if (!loaded) BgImage.Empty();
+		if (!loaded) BgImage.Clear();
 		else {
 			BgImage=emGetInsResImage(
 				GetRootContext(),"emAv",
@@ -194,7 +194,8 @@ void emAvFilePanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const int posStep=20000;
+	static const int posStepFast=20000;
+	static const int posStepSlow=1000;
 	static const int volStep=5;
 	emAvFileModel * fm;
 	bool adjustingEnabled;
@@ -317,9 +318,27 @@ void emAvFilePanel::Input(
 			event.Eat();
 		}
 		break;
+	case EM_KEY_C:
+		if (state.IsNoMod() || state.IsShiftMod()) {
+			emRef<emClipboard> clipboard=emClipboard::LookupInherited(GetView());
+			if (clipboard) {
+				int playPos = fm->GetPlayPos();
+				emString str = emString::Format(
+					"%02d:%02d:%02d",
+					playPos/3600000,
+					playPos/60000%60,
+					playPos/1000%60
+				);
+				clipboard->PutText(str);
+				clipboard->PutText(str,true);
+			}
+			event.Eat();
+		}
+		break;
 	case EM_KEY_D:
-		if (state.IsNoMod()) {
-			fm->SetPlayPos(fm->GetPlayPos()-posStep);
+	case EM_KEY_Y:
+		if (state.IsNoMod() || state.IsShiftMod()) {
+			fm->SetPlayPos(fm->GetPlayPos()-(state.IsShiftMod()?posStepSlow:posStepFast));
 			event.Eat();
 		}
 		break;
@@ -330,8 +349,9 @@ void emAvFilePanel::Input(
 		}
 		break;
 	case EM_KEY_I:
-		if (state.IsNoMod()) {
-			fm->SetPlayPos(fm->GetPlayPos()+posStep);
+	case EM_KEY_X:
+		if (state.IsNoMod() || state.IsShiftMod()) {
+			fm->SetPlayPos(fm->GetPlayPos()+(state.IsShiftMod()?posStepSlow:posStepFast));
 			event.Eat();
 		}
 		break;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2009,2011 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -204,7 +204,7 @@ static void emMiniIpc_CloseServer(emMiniIpc_ServerInstance * inst)
 
 static void emMiniIpc_TrySendAtomic(
 	const char * serverName, const char * data, int len
-) throw(emString)
+) throw(emException)
 {
 	emString pipePath;
 	HANDLE handle;
@@ -224,7 +224,7 @@ static void emMiniIpc_TrySendAtomic(
 		);
 		if (handle!=INVALID_HANDLE_VALUE) break;
 		if (GetLastError()!=ERROR_PIPE_BUSY) {
-			throw emString::Format(
+			throw emException(
 				"CreateFile with OPEN_EXISTING on \"%s\" failed: %s",
 				pipePath.Get(),
 				emGetErrorText(GetLastError()).Get()
@@ -237,7 +237,7 @@ static void emMiniIpc_TrySendAtomic(
 		if (!WriteFile(handle,data,len,&d,NULL)) {
 			d=GetLastError();
 			CloseHandle(handle);
-			throw emString::Format(
+			throw emException(
 				"Failed to write to \"%s\": %s",
 				pipePath.Get(),
 				emGetErrorText(d).Get()
@@ -245,7 +245,7 @@ static void emMiniIpc_TrySendAtomic(
 		}
 		if (d==0) {
 			CloseHandle(handle);
-			throw emString::Format(
+			throw emException(
 				"Failed to write to \"%s\": end of file",
 				pipePath.Get()
 			);
@@ -395,8 +395,8 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 	try {
 		emTryMakeDirectories(inst->FifoDir,0700);
 	}
-	catch (emString errorMessage) {
-		emFatalError("emMiniIpc_OpenServer: %s",errorMessage.Get());
+	catch (emException & exception) {
+		emFatalError("emMiniIpc_OpenServer: %s",exception.GetText());
 	}
 
 	lockHandle=emMiniIpc_Lock(inst->FifoCreationLockPath);
@@ -412,7 +412,7 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 			try {
 				emTryRemoveFileOrTree(inst->FifoPath);
 			}
-			catch (emString) {
+			catch (emException &) {
 				break;
 			}
 		}
@@ -473,7 +473,7 @@ static void emMiniIpc_CloseServer(emMiniIpc_ServerInstance * inst)
 		emTryRemoveFileOrTree(inst->FifoPath);
 		emTryRemoveFileOrTree(inst->FifoLockPath);
 	}
-	catch (emString) {
+	catch (emException &) {
 	}
 
 	emMiniIpc_Unlock(lockHandle);
@@ -484,7 +484,7 @@ static void emMiniIpc_CloseServer(emMiniIpc_ServerInstance * inst)
 
 static void emMiniIpc_TrySendAtomic(
 	const char * serverName, const char * data, int len
-) throw(emString)
+) throw(emException)
 {
 	emString fifoDir,fifoBaseName,fifoPath,fifoLockPath;
 	struct stat statbuf;
@@ -510,7 +510,7 @@ static void emMiniIpc_TrySendAtomic(
 
 	handle=open(fifoPath.Get(),O_WRONLY|O_NONBLOCK);
 	if (handle==-1) {
-		throw emString::Format(
+		throw emException(
 			"Failed to open \"%s\": %s",
 			fifoPath.Get(),
 			emGetErrorText(errno).Get()
@@ -523,7 +523,7 @@ static void emMiniIpc_TrySendAtomic(
 	) {
 		e=errno;
 		close(handle);
-		throw emString::Format(
+		throw emException(
 			"Failed to fcntl \"%s\": %s",
 			fifoPath.Get(),
 			emGetErrorText(e).Get()
@@ -533,7 +533,7 @@ static void emMiniIpc_TrySendAtomic(
 	if (fstat(handle,&statbuf)!=0) {
 		e=errno;
 		close(handle);
-		throw emString::Format(
+		throw emException(
 			"Failed to stat \"%s\": %s",
 			fifoPath.Get(),
 			emGetErrorText(e).Get()
@@ -542,7 +542,7 @@ static void emMiniIpc_TrySendAtomic(
 
 	if (!S_ISFIFO(statbuf.st_mode)) {
 		close(handle);
-		throw emString::Format(
+		throw emException(
 			"\"%s\" is not a fifo",
 			fifoPath.Get()
 		);
@@ -556,7 +556,7 @@ static void emMiniIpc_TrySendAtomic(
 			if (l==0) e=EINVAL; else e=errno;
 			close(handle);
 			emMiniIpc_Unlock(lockHandle);
-			throw emString::Format(
+			throw emException(
 				"Failed to write to \"%s\": %s",
 				fifoPath.Get(),
 				emGetErrorText(e).Get()
@@ -590,7 +590,7 @@ static void emMiniIpc_CleanUpFiles()
 	try {
 		list=emTryLoadDir(fifoDir);
 	}
-	catch (emString) {
+	catch (emException &) {
 		return;
 	}
 
@@ -612,7 +612,7 @@ static void emMiniIpc_CleanUpFiles()
 		try {
 			emTryRemoveFileOrTree(fifoPath);
 		}
-		catch (emString) {
+		catch (emException &) {
 		}
 	}
 
@@ -630,7 +630,7 @@ static void emMiniIpc_CleanUpFiles()
 		try {
 			emTryRemoveFileOrTree(fifoLockPath);
 		}
-		catch (emString) {
+		catch (emException &) {
 		}
 	}
 
@@ -647,7 +647,7 @@ static void emMiniIpc_CleanUpFiles()
 
 void emMiniIpcClient::TrySend(
 	const char * serverName, int argc, const char * const argv[]
-) throw(emString)
+) throw(emException)
 {
 	emArray<char> data;
 	char tmp[256];
@@ -661,11 +661,11 @@ void emMiniIpcClient::TrySend(
 	try {
 		emMiniIpc_TrySendAtomic(serverName,data.Get(),data.GetCount());
 	}
-	catch (emString errorMessage) {
-		throw emString::Format(
+	catch (emException & exception) {
+		throw emException(
 			"Failed to find or access emMiniIpc server \"%s\" (%s)",
 			serverName,
-			errorMessage.Get()
+			exception.GetText()
 		);
 	}
 }
@@ -742,12 +742,12 @@ void emMiniIpcServer::StopServing()
 		delete ServerEngine;
 		ServerEngine=NULL;
 	}
-	Buffer.Empty();
+	Buffer.Clear();
 	if (Instance) {
 		emMiniIpc_CloseServer((emMiniIpc_ServerInstance*)Instance);
 		Instance=NULL;
 	}
-	ServerName.Empty();
+	ServerName.Clear();
 }
 
 

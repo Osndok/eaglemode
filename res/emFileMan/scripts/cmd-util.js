@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2011 Oliver Hamann.
+// Copyright (C) 2008-2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -567,7 +567,7 @@ function ErrorIfTargetsNotFiles()
 }
 
 
-function ErrorIfSourcesAccrossDirs()
+function ErrorIfSourcesAcrossDirs()
 {
 	var d,i;
 
@@ -584,7 +584,7 @@ function ErrorIfSourcesAccrossDirs()
 }
 
 
-function ErrorIfTargetsAccrossDirs()
+function ErrorIfTargetsAcrossDirs()
 {
 	var d,i;
 
@@ -623,7 +623,7 @@ function ErrorIfRootTargets()
 
 //========================== Selection confirmations ===========================
 
-function ConfirmIfSourcesAccrossDirs()
+function ConfirmIfSourcesAcrossDirs()
 {
 	var d,i;
 
@@ -642,7 +642,7 @@ function ConfirmIfSourcesAccrossDirs()
 }
 
 
-function ConfirmIfTargetsAccrossDirs()
+function ConfirmIfTargetsAcrossDirs()
 {
 	var d,i;
 
@@ -1171,7 +1171,7 @@ function OpenTargetsWith(argsArray)
 function PackType(type)
 {
 	ErrorIfNoSources();
-	ErrorIfSourcesAccrossDirs();
+	ErrorIfSourcesAcrossDirs();
 	ErrorIfNotSingleTarget();
 	ErrorIfTargetsNotDirs();
 

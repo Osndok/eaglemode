@@ -54,6 +54,7 @@ sub Build
 		"src/emMain/emMain.cpp",
 		"src/emMain/emMainConfig.cpp",
 		"src/emMain/emMainContentPanel.cpp",
+		"src/emMain/emMainControlPanel.cpp",
 		"src/emMain/emMainPanel.cpp",
 		"src/emMain/emMainWindow.cpp",
 		"src/emMain/emStarFieldPanel.cpp",

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,11 +42,11 @@ protected:
 
 	emPngImageFileModel(emContext & context, const emString & name);
 	virtual ~emPngImageFileModel();
-	virtual void TryStartLoading() throw(emString);
-	virtual bool TryContinueLoading() throw(emString);
+	virtual void TryStartLoading() throw(emException);
+	virtual bool TryContinueLoading() throw(emException);
 	virtual void QuitLoading();
-	virtual void TryStartSaving() throw(emString);
-	virtual bool TryContinueSaving() throw(emString);
+	virtual void TryStartSaving() throw(emException);
+	virtual bool TryContinueSaving() throw(emException);
 	virtual void QuitSaving();
 	virtual emUInt64 CalcMemoryNeed();
 	virtual double CalcFileProgress();

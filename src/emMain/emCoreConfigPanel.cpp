@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,7 +24,7 @@
 emCoreConfigPanel::emCoreConfigPanel(
 	ParentArg parent, const emString & name
 )
-	: emTkGroup(parent,name,
+	: emGroup(parent,name,
 			"Preferences",
 			"This panel provides some user settings. Internally, this\n"
 			"is also called the emCore Configuration."
@@ -45,7 +45,7 @@ bool emCoreConfigPanel::Cycle()
 {
 	bool busy;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 	if (ResetButton && IsSignaled(ResetButton->GetClickSignal())) {
 		Config->SetToDefault();
 		Config->Save();
@@ -56,29 +56,30 @@ bool emCoreConfigPanel::Cycle()
 
 void emCoreConfigPanel::AutoExpand()
 {
-	emTkTiling * tl1, * tl2, * tl3;
+	emTiling * tl1, * tl2, * tl3;
 
-	emTkGroup::AutoExpand();
+	emGroup::AutoExpand();
 
 	SetFixedRowCount(2);
 	SetPrefChildTallness(0.6);
 	SetPrefChildTallness(0.05,-1);
 	SetSpace(0.01,0.1,0.01,0.1,0.01,0.0);
 
-	tl1=new emTkTiling(this,"tl1");
+	tl1=new emTiling(this,"tl1");
 	tl1->SetPrefChildTallness(0.8);
 	tl1->SetInnerSpace(0.06,0.1);
 
 	new MouseGroup(tl1,"mouse",Config);
-	tl2=new emTkTiling(tl1,"tl2");
+	tl2=new emTiling(tl1,"tl2");
 	tl2->SetInnerSpace(0.1,0.2);
 	new KBGroup(tl2,"keyboard",Config);
+	new KineticGroup(tl2,"kinetic",Config);
 	new MaxMemTunnel(tl2,"maxmem",Config);
 
-	tl3=new emTkTiling(this,"tl3");
+	tl3=new emTiling(this,"tl3");
 	tl3->SetChildTallness(0.2);
 	tl3->SetAlignment(EM_ALIGN_BOTTOM_RIGHT);
-	ResetButton=new emTkButton(tl3,"reset","Reset To Defaults");
+	ResetButton=new emButton(tl3,"reset","Reset To Defaults");
 	ResetButton->SetNoEOI();
 	AddWakeUpSignal(ResetButton->GetClickSignal());
 }
@@ -86,36 +87,39 @@ void emCoreConfigPanel::AutoExpand()
 
 void emCoreConfigPanel::AutoShrink()
 {
-	emTkGroup::AutoShrink();
+	emGroup::AutoShrink();
 	ResetButton=NULL;
 }
 
 
-emCoreConfigPanel::SpeedFacField::SpeedFacField(
+emCoreConfigPanel::FactorField::FactorField(
 	ParentArg parent, const emString & name,
 	const emString & caption, const emString & description,
-	const emImage & icon, emCoreConfig * config, emDoubleRec * rec
+	const emImage & icon, emCoreConfig * config, emDoubleRec * rec,
+	bool minimumMeansDisabled
 )
-	: emTkScalarField(
+	: emScalarField(
 		parent,name,caption,description,icon,
 		-200,200,0,true
 	),
 	emRecListener(rec),
 	Config(config)
 {
+	MinimumMeansDisabled=minimumMeansDisabled;
 	ValOut=0;
 	SetScaleMarkIntervals(100,10,0);
 	SetBorderScaling(1.5);
+	SetTextBoxTallness(0.3);
 	UpdateValue();
 }
 
 
-emCoreConfigPanel::SpeedFacField::~SpeedFacField()
+emCoreConfigPanel::FactorField::~FactorField()
 {
 }
 
 
-void emCoreConfigPanel::SpeedFacField::TextOfValue(
+void emCoreConfigPanel::FactorField::TextOfValue(
 		char * buf, int bufSize, emInt64 value, emUInt64 markInterval
 ) const
 {
@@ -123,25 +127,25 @@ void emCoreConfigPanel::SpeedFacField::TextOfValue(
 
 	if (markInterval>=100) {
 		switch ((int)value) {
-			case -200: str="1/4"; break;
-			case -100: str="1/2"; break;
-			case    0: str="1"; break;
-			case  100: str="2"; break;
-			case  200: str="4"; break;
+			case -200: str=MinimumMeansDisabled ? "Disabled" : "Minimal"; break;
+			case -100: str="Reduced"; break;
+			case    0: str="Default"; break;
+			case  100: str="Increased"; break;
+			case  200: str="Extreme"; break;
 			default: str="?";
 		}
 		snprintf(buf,bufSize,"%s",str);
 	}
 	else if (markInterval>=10) {
-		snprintf(buf,bufSize,"%.2f",pow(2.0,value/100.0));
+		snprintf(buf,bufSize,"%.2f",Val2Cfg(value));
 	}
 	else {
-		snprintf(buf,bufSize,"%.3f",pow(2.0,value/100.0));
+		snprintf(buf,bufSize,"%.3f",Val2Cfg(value));
 	}
 }
 
 
-void emCoreConfigPanel::SpeedFacField::ValueChanged()
+void emCoreConfigPanel::FactorField::ValueChanged()
 {
 	emDoubleRec * rec;
 	double d;
@@ -152,7 +156,7 @@ void emCoreConfigPanel::SpeedFacField::ValueChanged()
 	ValOut=val;
 	rec=(emDoubleRec*)GetListenedRec();
 	if (!rec) return;
-	d=pow(2.0,val/100.0);
+	d=Val2Cfg(val);
 	if (rec->Get()!=d) {
 		rec->Set(d);
 		if (Config) Config->Save();
@@ -160,68 +164,63 @@ void emCoreConfigPanel::SpeedFacField::ValueChanged()
 }
 
 
-void emCoreConfigPanel::SpeedFacField::OnRecChanged()
+void emCoreConfigPanel::FactorField::OnRecChanged()
 {
 	UpdateValue();
 }
 
 
-void emCoreConfigPanel::SpeedFacField::UpdateValue()
+void emCoreConfigPanel::FactorField::UpdateValue()
 {
-	emDoubleRec * rec;
-	double d;
+	const emDoubleRec * rec;
 
-	rec=(emDoubleRec*)GetListenedRec();
+	rec=(const emDoubleRec*)GetListenedRec();
 	if (!rec) return;
-	d=log(rec->Get())/log(2.0)*100.0;
-	if (d>=0.0) d+=0.5; else d-=0.5;
-	ValOut=(emInt64)d;
+	ValOut=Cfg2Val(rec->Get());
 	SetValue(ValOut);
 }
 
 
-emCoreConfigPanel::SpeedFacGroup::SpeedFacGroup(
-	ParentArg parent, const emString & name,
-	const emString & caption, emCoreConfig * config,
-	emDoubleRec * normalRec, const emString & normalCaption,
-	emDoubleRec * fineRec, const emString & fineCaption
-)
-	: emTkGroup(parent,name,caption),
-	Config(config)
+double emCoreConfigPanel::FactorField::Val2Cfg(emInt64 value) const
 {
-	NormalRec=normalRec;
-	NormalCaption=normalCaption;
-	FineRec=fineRec;
-	FineCaption=fineCaption;
-	EnableAutoExpansion();
-	SetFixedColumnCount(1);
-	SetBorderScaling(4.0);
+	const emDoubleRec * rec;
+	double m;
+
+	rec=(const emDoubleRec*)GetListenedRec();
+	if (!rec) return 1.0;
+	if (value>=0) {
+		m=rec->GetMaxValue();
+	}
+	else {
+		m=1.0/rec->GetMinValue();
+	}
+	return pow(sqrt(m),value/100.0);
 }
 
 
-emCoreConfigPanel::SpeedFacGroup::~SpeedFacGroup()
+emInt64 emCoreConfigPanel::FactorField::Cfg2Val(double d) const
 {
-}
+	const emDoubleRec * rec;
+	double m,v;
 
-
-void emCoreConfigPanel::SpeedFacGroup::AutoExpand()
-{
-	emTkGroup::AutoExpand();
-	new SpeedFacField(
-		this,"normal",NormalCaption,emString(),emImage(),
-		Config,NormalRec
-	);
-	new SpeedFacField(
-		this,"fine",FineCaption,emString(),emImage(),
-		Config,FineRec
-	);
+	rec=(const emDoubleRec*)GetListenedRec();
+	if (!rec) return 0;
+	if (d>=1.0) {
+		m=rec->GetMaxValue();
+	}
+	else {
+		m=1.0/rec->GetMinValue();
+	}
+	v=log(d)/log(sqrt(m))*100.0;
+	if (v>=0.0) v+=0.5; else v-=0.5;
+	return (emInt64)v;
 }
 
 
 emCoreConfigPanel::MouseMiscGroup::MouseMiscGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emTkGroup(parent,name,"Miscellaneous Mouse Settings"),
+	: emGroup(parent,name,"Miscellaneous Mouse Settings"),
 	emRecListener(config),
 	Config(config)
 {
@@ -249,7 +248,7 @@ bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 {
 	bool busy;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 
 	if (StickBox && IsSignaled(StickBox->GetClickSignal())) {
 		Config->StickMouseWhenNavigating.Invert();
@@ -272,17 +271,17 @@ bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 
 void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 {
-	emTkGroup::AutoExpand();
-	StickBox=new emTkCheckBox(
+	emGroup::AutoExpand();
+	StickBox=new emCheckBox(
 		this,"stick","Stick Mouse When Navigating",
 		"Whether to keep the mouse pointer at its place while zooming\n"
 		"or scrolling with the mouse (except for pan function)."
 	);
-	EmuBox=new emTkCheckBox(
+	EmuBox=new emCheckBox(
 		this,"emu","Alt Key As Middle Button",
 		"Whether to emulate the middle button by the ALT key."
 	);
-	PanBox=new emTkCheckBox(
+	PanBox=new emCheckBox(
 		this,"pan","Reverse Scrolling (Pan)",
 		"Whether to reverse the direction of scrolling with the\n"
 		"mouse. It's the pan function: drag and drop the canvas."
@@ -299,7 +298,7 @@ void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 
 void emCoreConfigPanel::MouseMiscGroup::AutoShrink()
 {
-	emTkGroup::AutoShrink();
+	emGroup::AutoShrink();
 	StickBox=NULL;
 	EmuBox=NULL;
 	PanBox=NULL;
@@ -317,7 +316,7 @@ void emCoreConfigPanel::MouseMiscGroup::UpdateOutput()
 emCoreConfigPanel::MouseGroup::MouseGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emTkGroup(parent,name,"Mouse Navigation"),
+	: emGroup(parent,name,"Mouse Navigation"),
 	Config(config)
 {
 	EnableAutoExpansion();
@@ -334,30 +333,34 @@ emCoreConfigPanel::MouseGroup::~MouseGroup()
 
 void emCoreConfigPanel::MouseGroup::AutoExpand()
 {
-	emTkGroup::AutoExpand();
-	new SpeedFacGroup(
-		this,"wheelzoom","Zooming By Mouse Wheel",
-		Config,
-		&Config->WheelZoomSpeedFactor,
-		"Speed factor for normal zooming by mouse wheel",
-		&Config->WheelFineZoomSpeedFactor,
-		"Speed factor for fine zooming by mouse wheel"
+	emGroup::AutoExpand();
+	new FactorField(
+		this,"wheelzoom",
+		"Speed of zooming by mouse wheel",
+		emString(),emImage(),
+		Config,&Config->MouseWheelZoomSpeed
 	);
-	new SpeedFacGroup(
-		this,"zoom","Zooming By Mouse",
-		Config,
-		&Config->MouseZoomSpeedFactor,
-		"Speed factor for normal zooming by mouse",
-		&Config->MouseFineZoomSpeedFactor,
-		"Speed factor for fine zooming by mouse"
+	new FactorField(
+		this,"wheelaccel",
+		"Acceleration of zooming by mouse wheel",
+		"Acceleration means: If you move the wheel quickly, the among\n"
+		"of movement is more than when moving the wheel the same\n"
+		"distance slowly. Here you can set the strength of that effect.",
+		emImage(),
+		Config,&Config->MouseWheelZoomAcceleration,
+		true
 	);
-	new SpeedFacGroup(
-		this,"scroll","Scrolling By Mouse",
-		Config,
-		&Config->MouseScrollSpeedFactor,
-		"Speed factor for normal scrolling by mouse",
-		&Config->MouseFineScrollSpeedFactor,
-		"Speed factor for fine scrolling by mouse"
+	new FactorField(
+		this,"zoom",
+		"Speed of zooming by mouse",
+		emString(),emImage(),
+		Config,&Config->MouseZoomSpeed
+	);
+	new FactorField(
+		this,"scroll",
+		"Speed of scrolling by mouse",
+		emString(),emImage(),
+		Config,&Config->MouseScrollSpeed
 	);
 	new MouseMiscGroup(this,"misc",Config);
 }
@@ -366,7 +369,7 @@ void emCoreConfigPanel::MouseGroup::AutoExpand()
 emCoreConfigPanel::KBGroup::KBGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emTkGroup(parent,name,"Keyboard Navigation"),
+	: emGroup(parent,name,"Keyboard Navigation"),
 	Config(config)
 {
 	EnableAutoExpansion();
@@ -383,22 +386,76 @@ emCoreConfigPanel::KBGroup::~KBGroup()
 
 void emCoreConfigPanel::KBGroup::AutoExpand()
 {
-	emTkGroup::AutoExpand();
-	new SpeedFacGroup(
-		this,"zoom","Zooming By Keyboard",
-		Config,
-		&Config->KeyboardZoomSpeedFactor,
-		"Speed factor for normal zooming by keyboard",
-		&Config->KeyboardFineZoomSpeedFactor,
-		"Speed factor for fine zooming by keyboard"
+	emGroup::AutoExpand();
+	new FactorField(
+		this,"zoom",
+		"Speed of zooming by keyboard",
+		emString(),emImage(),
+		Config,&Config->KeyboardZoomSpeed
 	);
-	new SpeedFacGroup(
-		this,"scroll","Scrolling By Keyboard",
-		Config,
-		&Config->KeyboardScrollSpeedFactor,
-		"Speed factor for normal scrolling by keyboard",
-		&Config->KeyboardFineScrollSpeedFactor,
-		"Speed factor for fine scrolling by keyboard"
+	new FactorField(
+		this,"scroll",
+		"Speed of scrolling by keyboard",
+		emString(),emImage(),
+		Config,&Config->KeyboardScrollSpeed
+	);
+}
+
+
+emCoreConfigPanel::KineticGroup::KineticGroup(
+	ParentArg parent, const emString & name, emCoreConfig * config
+)
+	: emGroup(parent,name,"Kinetic Effects"),
+	Config(config)
+{
+	EnableAutoExpansion();
+	SetPrefChildTallness(0.4);
+	SetBorderScaling(4.0);
+	SetSpace(0.05,0.1,0.05,0.1);
+}
+
+
+emCoreConfigPanel::KineticGroup::~KineticGroup()
+{
+}
+
+
+void emCoreConfigPanel::KineticGroup::AutoExpand()
+{
+	emGroup::AutoExpand();
+	new FactorField(
+		this,"KineticZoomingAndScrolling",
+		"Kinetic zooming and scrolling",
+		"This controls the effects of inertia and friction when\n"
+		"zooming and scrolling by mouse, keyboard or touch.",
+		emImage(),
+		Config,&Config->KineticZoomingAndScrolling,
+		true
+	);
+	new FactorField(
+		this,"MagnetismRadius",
+		"Radius of magnetism",
+		"The magnetism zooms and scrolls automatically for showing a\n"
+		"content full-sized. It gets active after zooming or scrolling\n"
+		"by mouse, but only when a content is not to far from being\n"
+		"shown full-sized. That \"to far\" can be set here. The higher\n"
+		"the value, the longer the way the magnetism may accept.",
+		emImage(),
+		Config,&Config->MagnetismRadius,
+		true
+	);
+	new FactorField(
+		this,"MagnetismSpeed",
+		"Speed of magnetism",
+		emString(),emImage(),
+		Config,&Config->MagnetismSpeed
+	);
+	new FactorField(
+		this,"VisitSpeed",
+		"Speed of changing location",
+		"This controls the speed of animations for logical position\n"
+		"changes by keys and bookmarks.",emImage(),
+		Config,&Config->VisitSpeed
 	);
 }
 
@@ -406,7 +463,7 @@ void emCoreConfigPanel::KBGroup::AutoExpand()
 emCoreConfigPanel::MaxMemGroup::MaxMemGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emTkGroup(parent,name,"Max Megabytes Per View"),
+	: emGroup(parent,name,"Max Megabytes Per View"),
 	emRecListener(&config->MaxMegabytesPerView),
 	Config(config)
 {
@@ -436,7 +493,7 @@ bool emCoreConfigPanel::MaxMemGroup::Cycle()
 	double d;
 	bool busy;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 	if (MemField && IsSignaled(MemField->GetValueSignal())) {
 		v=MemField->GetValue();
 		if (ValOut!=v) {
@@ -451,11 +508,11 @@ bool emCoreConfigPanel::MaxMemGroup::Cycle()
 
 void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 {
-	emTkTiling * tiling;
+	emTiling * tiling;
 
-	emTkGroup::AutoExpand();
+	emGroup::AutoExpand();
 
-	new emTkLabel(
+	new emLabel(
 		this,"label",
 		"Here you can set the maximum allowed memory consumption per view (or window) in\n"
 		"megabytes. This mainly plays a role when viewing extravagant files like\n"
@@ -480,9 +537,9 @@ void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 		"NOTE: After changing the value, you may have to restart the program for the\n"
 		"change to take effect. Or zoom out from all panels once."
 	);
-	tiling=new emTkTiling(this,"tiling");
+	tiling=new emTiling(this,"tiling");
 	tiling->SetOuterSpace(0.02,0.05,0.05,0.0);
-	MemField=new emTkScalarField(
+	MemField=new emScalarField(
 		tiling,"field",
 		emString(),
 		emString(),
@@ -498,7 +555,7 @@ void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 
 void emCoreConfigPanel::MaxMemGroup::AutoShrink()
 {
-	emTkGroup::AutoShrink();
+	emGroup::AutoShrink();
 	MemField=NULL;
 }
 
@@ -536,7 +593,7 @@ void emCoreConfigPanel::MaxMemGroup::TextOfMemValue(
 emCoreConfigPanel::MaxMemTunnel::MaxMemTunnel(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emTkTunnel(parent,name,"Max Megabytes Per View"),
+	: emTunnel(parent,name,"Max Megabytes Per View"),
 	Config(config)
 {
 	SetChildTallness(0.3);
@@ -551,11 +608,11 @@ emCoreConfigPanel::MaxMemTunnel::~MaxMemTunnel()
 
 void emCoreConfigPanel::MaxMemTunnel::AutoExpand()
 {
-	emTkTunnel * tunnel;
+	emTunnel * tunnel;
 
-	emTkTunnel::AutoExpand();
+	emTunnel::AutoExpand();
 
-	tunnel=new emTkTunnel(
+	tunnel=new emTunnel(
 		this,"tunnel",
 		"Please read all text herein before making a change!"
 	);

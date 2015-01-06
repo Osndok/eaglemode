@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocument.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,9 +39,9 @@ public:
 	bool operator == (const emPsDocument & doc) const;
 	bool operator != (const emPsDocument & doc) const;
 
-	void Empty();
+	void Clear();
 
-	void TrySetScript(const emArray<char> & script) throw(emString);
+	void TrySetScript(const emArray<char> & script) throw(emException);
 		// Set up the document from the given content of a PostScript
 		// file. It must follow the PostScript Document Structuring
 		// Conventions (the DSC comments are parsed by this method).

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasImageFileModel.cpp
 //
-// Copyright (C) 2004-2009 Oliver Hamann.
+// Copyright (C) 2004-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emRasImageFileModel::~emRasImageFileModel()
 }
 
 
-void emRasImageFileModel::TryStartLoading() throw(emString)
+void emRasImageFileModel::TryStartLoading() throw(emException)
 {
 	errno=0;
 
@@ -91,12 +91,12 @@ void emRasImageFileModel::TryStartLoading() throw(emString)
 
 	return;
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("RAS format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("RAS format error");
 }
 
 
-bool emRasImageFileModel::TryContinueLoading() throw(emString)
+bool emRasImageFileModel::TryContinueLoading() throw(emException)
 {
 	unsigned char * map;
 	int x,n;
@@ -193,8 +193,8 @@ bool emRasImageFileModel::TryContinueLoading() throw(emString)
 	return false;
 
 Err:
-	if (errno) throw emGetErrorText(errno);
-	else throw emString("RAS format error");
+	if (errno) throw emException("%s",emGetErrorText(errno).Get());
+	else throw emException("RAS format error");
 }
 
 
@@ -210,13 +210,13 @@ void emRasImageFileModel::QuitLoading()
 }
 
 
-void emRasImageFileModel::TryStartSaving() throw(emString)
+void emRasImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emRasImageFileModel: Saving not implemented.");
+	throw emException("emRasImageFileModel: Saving not implemented.");
 }
 
 
-bool emRasImageFileModel::TryContinueSaving() throw(emString)
+bool emRasImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

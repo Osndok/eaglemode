@@ -1,0 +1,236 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emDialog.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emDialog_h.html#emDialog">emDialog</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emDialog_h
+#define emDialog_h
+
+#ifndef emButton_h
+#include &lt;<A CLASS=f HREF="emCore_emButton_h.html">emCore/emButton.h</A>&gt;
+#endif
+
+#ifndef emTiling_h
+#include &lt;<A CLASS=f HREF="emCore_emTiling_h.html">emCore/emTiling.h</A>&gt;
+#endif
+
+
+<A NAME="emDialog"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emDialog_h.html#emDialog">emDialog</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a dialog window. Such a dialog has a content area and a
+        // button area. The content area is an <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A> which can be given
+        // individual child panels. The button area can have buttons like "OK"
+        // and "Cancel" for finishing the dialog.
+
+        </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext,
+                ViewFlags viewFlags=VF_POPUP_ZOOM|VF_ROOT_SAME_TALLNESS,
+                WindowFlags windowFlags=WF_MODAL,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; wmResName=<SPAN CLASS=v>"emDialog"
+        </SPAN>);
+                <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>, but see that the default
+                // argument values are different (it's a modal dialog with
+                // popup-zoom by default).
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetRootTitle(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title);
+                <SPAN CLASS=c>// Set the title for this dialog. More precise, set the title
+                // for the private root panel of this view. If you create some
+                // content panel with another title, and if it gets focus, that
+                // title is shown. The default title is an empty string.
+
+        </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * GetContentTiling();
+                <SPAN CLASS=c>// This panel makes up the content area of the dialog, not
+                // including the buttons. For convenience, it is an <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A>
+                // with default properties, except that the inner border is set
+                // to <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::IBT_CUSTOM_RECT. You may change the properties
+                // as you wish, and you should give it one or more child panels
+                // as the content.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddPositiveButton(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+        <SPAN CLASS=t>void </SPAN>AddNegativeButton(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+        <SPAN CLASS=t>void </SPAN>AddCustomButton(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Add a button to the button area. These buttons are finishing
+                // the dialog. For the meaning of "Positive", "Negative" and
+                // "Custom", please see GetResult().
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddOKButton();
+        <SPAN CLASS=t>void </SPAN>AddCancelButton();
+        <SPAN CLASS=t>void </SPAN>AddOKCancelButtons();
+                <SPAN CLASS=c>// AddOKButton() is like AddPositiveButton("OK").
+                // AddCancelButton() is like AddNegativeButton("Cancel").
+                // AddOKCancelButtons() is like AddOKButton() plus
+                // AddCancelButton().
+
+        </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get a button. The index is: 0 for the first added button, 1
+                // for the second added button, and so on.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetFinishSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled when any of the buttons has been triggered, or by
+                // pressing the Enter key or the Escape key, or by the window
+                // close signal. It is okay not to destruct the dialog and to
+                // wait for another finish signal.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Possible results:
+                </SPAN>POSITIVE=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=c>// Positive button triggered or Enter key pressed.
+                </SPAN>NEGATIVE=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=c>// Negative button triggered or Escape key pressed
+                            // or window-closing commanded (see GetCloseSignal).
+                </SPAN>CUSTOM1 =<SPAN CLASS=u>2</SPAN>, <SPAN CLASS=c>// First custom button triggered.
+                </SPAN>CUSTOM2 =<SPAN CLASS=u>3</SPAN>, <SPAN CLASS=c>// Second custom button triggered.
+                </SPAN>CUSTOM3 =<SPAN CLASS=u>4  </SPAN><SPAN CLASS=c>// ...
+                // Continued (customIndex=result+1-CUSTOM1)
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetResult() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// The result should be asked after the finish signal has been
+                // signaled. Before that, the result is not valid.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Finish(<SPAN CLASS=t>int </SPAN>result);
+                <SPAN CLASS=c>// Finish this dialog with the given result programmatically.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoDeletion(<SPAN CLASS=t>bool </SPAN>autoDelete=<SPAN CLASS=k>true</SPAN>);
+        <SPAN CLASS=t>bool </SPAN>IsAutoDeletionEnabled();
+                <SPAN CLASS=c>// Whether to delete this object automatically a few time slices
+                // after the dialog has finished.
+
+        </SPAN><SPAN CLASS=t>static void </SPAN>ShowMessage(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; message,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// This function creates a modal dialog with an <A CLASS=m HREF="emCore_emLabel_h.html#emLabel">emLabel</A> as the
+                // content, and with an OK button. The dialog deletes itself
+                // when finished. The argument 'message' is the caption of the
+                // label.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Finished(<SPAN CLASS=t>int </SPAN>result);
+                <SPAN CLASS=c>// Like the finish signal. Default implementation does nothing.
+                // It's allowed to delete (destruct) this dialog herein.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>bool </SPAN>PrivateCycle();
+
+        <SPAN CLASS=t>class </SPAN>DlgButton : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                DlgButton(
+                        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon,
+                        <SPAN CLASS=t>int </SPAN>result
+                );
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>Clicked();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>int </SPAN>Result;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>DlgPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                DlgPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=t>virtual </SPAN>~DlgPanel();
+                <SPAN CLASS=t>void </SPAN>SetTitle(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title);
+                <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Title;
+                <A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * ContentTiling;
+                <A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * ButtonTiling;
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>Input(
+                        <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                        <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my
+                );
+                <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>PrivateEngineClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                PrivateEngineClass(<A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A> &amp; dlg);
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A> &amp; Dlg;
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>friend class </SPAN>PrivateEngineClass;
+
+        PrivateEngineClass PrivateEngine;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> FinishSignal;
+        <SPAN CLASS=t>int </SPAN>Result;
+        <SPAN CLASS=t>int </SPAN>ButtonNum,CustomRes;
+        <SPAN CLASS=t>int </SPAN>FinishState;
+        <SPAN CLASS=t>bool </SPAN>ADEnabled;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetContentTiling()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>((DlgPanel*)GetRootPanel())-&gt;ContentTiling;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetFinishSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FinishSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetResult() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::IsAutoDeletionEnabled()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ADEnabled;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #-------------------------------------------------------------------------------
-# pack_lzm.pl
+# pack_sb.pl
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2014 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -22,6 +22,7 @@
 use strict;
 use warnings;
 use File::Basename;
+use POSIX qw(uname);
 BEGIN { require (dirname($0).'/common.pm'); }
 
 # Dependencies
@@ -29,7 +30,7 @@ my $tbzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2');
 if (!-e $tbzFile) { system('perl','pack_tar-bz2.pl')==0 || exit(1); }
 
 # Have an empty temporary directory.
-my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-lzm-packing-'.$>);
+my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-sb-packing-'.$>);
 if (-e $tmpDir) { RemoveTree($tmpDir); }
 CreateDirPath($tmpDir);
 
@@ -50,15 +51,15 @@ system(
 )==0 || exit 1;
 
 # Have a temporary root directory.
-my $lzmRoot=catfile($tmpDir,'lzm-root');
-CreateDirPath($lzmRoot);
+my $sbRoot=catfile($tmpDir,'sb-root');
+CreateDirPath($sbRoot);
 
 # Install it
 system(
 	'perl',
 	catfile($srcDir,'make.pl'),
 	'install',
-	'root='.$lzmRoot,
+	'root='.$sbRoot,
 	'dir='.Var('INSTALL_DIR'),
 	'menu=yes',
 	'bin=yes'
@@ -67,13 +68,16 @@ system(
 # Remove temporary source directory.
 RemoveTree($srcDir);
 
-# Create LZM archive
-my $lzmFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.lzm');
-print("Creating $lzmFile\n");
+# Get machine type name.
+my $machine = (uname())[4];
+
+# Create Slax Bundle
+my $sbFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'-'.$machine.'.sb');
+print("Creating $sbFile\n");
 system(
-	'dir2lzm',
-	$lzmRoot,
-	$lzmFile
+	'dir2sb',
+	$sbRoot,
+	$sbFile
 )==0 || exit 1;
 
 # Remove temporary directory.

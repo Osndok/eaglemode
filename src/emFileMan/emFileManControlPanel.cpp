@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,16 +26,16 @@
 emFileManControlPanel::emFileManControlPanel(
 	ParentArg parent, const emString & name, emView & contentView
 )
-	: emTkGroup(
+	: emGroup(
 		parent,name,
 		"emFileMan",
 		"The Eagle Mode File Manager"
 	),
 	ContentView(contentView)
 {
-	emTkTunnel * tunnel;
-	emTkTiling * t, * t2, * t3;
-	emTkGroup * g;
+	emTunnel * tunnel;
+	emTiling * t, * t2, * t3;
+	emGroup * g;
 	emRef<emFileManThemeNames> themeNames;
 	int i;
 
@@ -46,20 +46,20 @@ emFileManControlPanel::emFileManControlPanel(
 	SetPrefChildTallness(0.97,1);
 	SetPrefChildTallness(0.195,2);
 
-	GrView=new emTkGroup(this,"view","View Settings");
+	GrView=new emGroup(this,"view","View Settings");
 	GrView->SetPrefChildTallness(0.5);
 	GrView->SetPrefChildTallness(0.2,-1);
-		g=new emTkGroup(GrView,"sort","Sort By");
+		g=new emGroup(GrView,"sort","Sort By");
 		g->SetBorderScaling(1.7);
 		g->SetPrefChildTallness(0.2);
-			RbSortByName=new emTkRadioButton(
+			RbSortByName=new emRadioButton(
 				g,"sort by name",
 				"Name",
 				"Sort by file name.\n"
 				"\n"
 				"Hotkey: Shift+Alt+N"
 			);
-			RbSortByEnding=new emTkRadioButton(
+			RbSortByEnding=new emRadioButton(
 				g,"sort by ending",
 				"Ending",
 				"Sort by file name ending. It's the part after the last dot.\n"
@@ -67,7 +67,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"\n"
 				"Hotkey: Shift+Alt+E"
 			);
-			RbSortByClass=new emTkRadioButton(
+			RbSortByClass=new emRadioButton(
 				g,"sort by class",
 				"Class",
 				"Sort by class names in the file names. This sorting algorithm\n"
@@ -76,7 +76,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"\n"
 				"Hotkey: Shift+Alt+C"
 			);
-			RbSortByVersion=new emTkRadioButton(
+			RbSortByVersion=new emRadioButton(
 				g,"sort by version",
 				"Version",
 				"Sort by version number. This is like sorting by name, but\n"
@@ -85,7 +85,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"\n"
 				"Hotkey: Shift+Alt+V"
 			);
-			RbSortByDate=new emTkRadioButton(
+			RbSortByDate=new emRadioButton(
 				g,"sort by date",
 				"Date",
 				"Sort primarily by date and time of last modification,\n"
@@ -93,88 +93,88 @@ emFileManControlPanel::emFileManControlPanel(
 				"\n"
 				"Hotkey: Shift+Alt+D"
 			);
-			RbSortBySize=new emTkRadioButton(
+			RbSortBySize=new emRadioButton(
 				g,"sort by size",
 				"Size",
 				"Sort primarily by file size, secondarily by name.\n"
 				"\n"
 				"Hotkey: Shift+Alt+S"
 			);
-		t=new emTkTiling(GrView,"more");
+		t=new emTiling(GrView,"more");
 		t->SetPrefChildTallness(0.8);
 		t->SetPrefChildTallness(0.3,1);
 		t->SetPrefChildTallness(0.8,2);
-			RbgTheme=new emTkRadioButton::Group(
+			RbgTheme=new emRadioButton::Group(
 				t,"theme","Theme",
 				"Here you can choose the look of directory entry panels."
 			);
 			RbgTheme->SetPrefChildTallness(0.2);
 			themeNames=emFileManThemeNames::Acquire(GetRootContext());
 			for (i=0; i<themeNames->GetThemeCount(); i++) {
-				new emTkRadioButton(
+				new emRadioButton(
 					RbgTheme,
 					themeNames->GetThemeName(i),
 					themeNames->GetThemeDisplayName(i)
 				);
 			}
-			t2=new emTkTiling(t,"left");
+			t2=new emTiling(t,"left");
 			t2->SetPrefChildTallness(0.15);
-				CbSortDirectoriesFirst=new emTkCheckButton(
+				CbSortDirectoriesFirst=new emCheckButton(
 					t2,"sort directories first",
 					"Directories First",
 					"Always have directories at the beginning, regardless of\n"
 					"the other sort criterions."
 				);
-				CbShowHiddenFiles=new emTkCheckButton(
+				CbShowHiddenFiles=new emCheckButton(
 					t2,"show hidden files",
 					"Show Hidden Files",
 					"Hotkey: Shift+Alt+H"
 				);
-			t2=new emTkTiling(t,"right");
+			t2=new emTiling(t,"right");
 			t2->SetPrefChildTallness(0.4);
-				g=new emTkGroup(
+				g=new emGroup(
 					t2,"nameSortingStyle",
 					"Name Sorting Style (Order of Characters)"
 				);
 				g->SetBorderScaling(2.0);
 				g->SetPrefChildTallness(0.05);
-					RbPerLocale=new emTkRadioButton(
+					RbPerLocale=new emRadioButton(
 						g,"per locale",
 						"Per Locale",
 						"Sort names depending on the user's current locale.\n"
 						"Technically, names are compared through \"strcoll\"."
 					);
-					RbCaseSensitive=new emTkRadioButton(
+					RbCaseSensitive=new emRadioButton(
 						g,"case-sensitive",
 						"Classic Case-Sensitive",
 						"Sort names by the ASCII code of characters.\n"
 						"Technically, names are compared through \"strcmp\"."
 					);
-					RbCaseInsensitive=new emTkRadioButton(
+					RbCaseInsensitive=new emRadioButton(
 						g,"case-insensitive",
 						"Classic Case-Insensitive",
 						"Sort names by the ASCII code of characters, but ignore the\n"
 						"letter case. This may be correct for English letters only.\n"
 						"Technically, names are compared through \"strcasecmp\"."
 					);
-				tunnel=new emTkTunnel(t2,"tunnel","Save");
-					t3=new emTkGroup(tunnel,"save");
-						CbAutosave=new emTkCheckBox(
+				tunnel=new emTunnel(t2,"tunnel","Save");
+					t3=new emGroup(tunnel,"save");
+						CbAutosave=new emCheckBox(
 							t3,"autosave",
 							"Save Automatically",
 							"Automatically save changes of the view settings as the default for new windows."
 						);
 						CbAutosave->SetNoEOI();
-						BtSaveAsDefault=new emTkButton(
+						BtSaveAsDefault=new emButton(
 							t3,"save",
 							"Save",
 							"Save the current view settings as the default for new windows."
 						);
 
-	GrSelection=new emTkGroup(this,"selection","Selection");
+	GrSelection=new emGroup(this,"selection","Selection");
 	GrSelection->SetPrefChildTallness(0.17);
 	GrSelection->SetPrefChildTallness(0.28,-5);
-		BtSelectAll=new emTkButton(
+		BtSelectAll=new emButton(
 			GrSelection,"select all",
 			"Select All",
 			"Select all entries in the directory content panel which is active\n"
@@ -184,21 +184,21 @@ emFileManControlPanel::emFileManControlPanel(
 			"\n"
 			"Hotkey: Alt+A"
 		);
-		BtClearSelection=new emTkButton(
+		BtClearSelection=new emButton(
 			GrSelection,"clear selection",
 			"Clear Selection",
 			"Clear the source and target selections.\n"
 			"\n"
 			"Hotkey: Alt+E"
 		);
-		BtSwapSelection=new emTkButton(
+		BtSwapSelection=new emButton(
 			GrSelection,"swap selection",
 			"Swap Selection",
 			"Exchange the source selection for the target selection.\n"
 			"\n"
 			"Hotkey: Alt+Z"
 		);
-		BtPaths2Clipboard=new emTkButton(
+		BtPaths2Clipboard=new emButton(
 			GrSelection,"paths2clipboard",
 			"Copy Paths",
 			"Copy the full file path(s) of the target selection to the clipboard.\n"
@@ -206,7 +206,7 @@ emFileManControlPanel::emFileManControlPanel(
 			"\n"
 			"Hotkey: Alt+P"
 		);
-		BtNames2Clipboard=new emTkButton(
+		BtNames2Clipboard=new emButton(
 			GrSelection,"names2clipboard",
 			"Copy Names",
 			"Copy the file name(s) of the target selection to the clipboard.\n"
@@ -214,7 +214,7 @@ emFileManControlPanel::emFileManControlPanel(
 			"\n"
 			"Hotkey: Alt+N"
 		);
-		GrSelInfo=new emTkGroup(GrSelection,"stat","Selection Statistics");
+		GrSelInfo=new emGroup(GrSelection,"stat","Selection Statistics");
 		GrSelInfo->SetBorderType(OBT_INSTRUMENT,IBT_OUTPUT_FIELD);
 			SelInfo=new emFileManSelInfoPanel(GrSelInfo,"info");
 			SelInfo->SetFocusable(false);
@@ -255,7 +255,7 @@ emFileManControlPanel::~emFileManControlPanel()
 
 bool emFileManControlPanel::Cycle()
 {
-	const emTkRadioButton * rb;
+	const emRadioButton * rb;
 	emScreen * screen;
 	emDirPanel * dp;
 	emPanel * p;
@@ -336,7 +336,7 @@ bool emFileManControlPanel::Cycle()
 	if (IsSignaled(BtNames2Clipboard->GetClickSignal())) {
 		FMModel->SelectionToClipboard(ContentView,false,true);
 	}
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 
@@ -359,7 +359,7 @@ void emFileManControlPanel::UpdateButtonStates()
 	CbShowHiddenFiles->SetChecked(FMVConfig->GetShowHiddenFiles());
 
 	p=RbgTheme->GetChild(FMVConfig->GetThemeName());
-	RbgTheme->SetChecked(p ? dynamic_cast<emTkRadioButton*>(p) : NULL);
+	RbgTheme->SetChecked(p ? dynamic_cast<emRadioButton*>(p) : NULL);
 
 	CbAutosave->SetChecked(FMVConfig->GetAutosave());
 	BtSaveAsDefault->SetEnableSwitch(FMVConfig->IsUnsaved());
@@ -381,7 +381,7 @@ emFileManControlPanel::Group::Group(
 	ParentArg parent, const emString & name, emView & contentView,
 	emFileManModel * fmModel, const emFileManModel::CommandNode * cmd
 )
-	: emTkGroup(parent,name,cmd->Caption,cmd->Description,cmd->Icon),
+	: emGroup(parent,name,cmd->Caption,cmd->Description,cmd->Icon),
 	ContentView(contentView)
 {
 	SetLook(cmd->Look);
@@ -408,7 +408,7 @@ bool emFileManControlPanel::Group::Cycle()
 	if (IsSignaled(FMModel->GetCommandsSignal())) {
 		InvalidateAutoExpansion();
 	}
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 
@@ -444,7 +444,7 @@ emFileManControlPanel::Group::Button::Button(
 	ParentArg parent, const emString & name, emView & contentView,
 	emFileManModel * fmModel, const emFileManModel::CommandNode * cmd
 )
-	: emTkButton(parent,name,cmd->Caption,cmd->Description,cmd->Icon),
+	: emButton(parent,name,cmd->Caption,cmd->Description,cmd->Icon),
 	ContentView(contentView)
 {
 	SetLook(cmd->Look);

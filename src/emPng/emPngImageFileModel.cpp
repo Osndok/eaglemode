@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2011 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,7 +79,7 @@ emPngImageFileModel::~emPngImageFileModel()
 }
 
 
-void emPngImageFileModel::TryStartLoading() throw(emString)
+void emPngImageFileModel::TryStartLoading() throw(emException)
 {
 	emString colTypeStr;
 	int rowbytes,originalPixelSize;
@@ -88,9 +88,9 @@ void emPngImageFileModel::TryStartLoading() throw(emString)
 	memset(L,0,sizeof(emPngLoadingState));
 
 	L->file=fopen(GetFilePath(),"rb");
-	if (!L->file) throw emGetErrorText(errno);
+	if (!L->file) throw emException("%s",emGetErrorText(errno).Get());
 
-	if (setjmp(L->jmpbuffer)) throw emString(L->errorText);
+	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
 
 	L->png_ptr=png_create_read_struct(
 		PNG_LIBPNG_VER_STRING,
@@ -98,13 +98,13 @@ void emPngImageFileModel::TryStartLoading() throw(emString)
 		emPng_error_fn,
 		emPng_warning_fn
 	);
-	if (!L->png_ptr) throw emString("PNG lib failed.");
+	if (!L->png_ptr) throw emException("PNG lib failed.");
 
 	L->info_ptr=png_create_info_struct(L->png_ptr);
-	if (!L->info_ptr) throw emString("PNG lib failed.");
+	if (!L->info_ptr) throw emException("PNG lib failed.");
 
 	L->end_info_ptr=png_create_info_struct(L->png_ptr);
-	if (!L->end_info_ptr) throw emString("PNG lib failed.");
+	if (!L->end_info_ptr) throw emException("PNG lib failed.");
 
 	png_init_io(L->png_ptr, L->file);
 
@@ -148,7 +148,7 @@ void emPngImageFileModel::TryStartLoading() throw(emString)
 	rowbytes=png_get_rowbytes(L->png_ptr,L->info_ptr);
 	L->bytes_per_pixel=rowbytes/L->width;
 	if (rowbytes%L->width!=0 || L->bytes_per_pixel<1 || L->bytes_per_pixel>4) {
-		throw emString("Unsupported PNG format.");
+		throw emException("Unsupported PNG format.");
 	}
 
 	FileFormatInfo=emString::Format(
@@ -161,7 +161,7 @@ void emPngImageFileModel::TryStartLoading() throw(emString)
 }
 
 
-bool emPngImageFileModel::TryContinueLoading() throw(emString)
+bool emPngImageFileModel::TryContinueLoading() throw(emException)
 {
 	png_textp t;
 	int e,i,n;
@@ -177,7 +177,7 @@ bool emPngImageFileModel::TryContinueLoading() throw(emString)
 		return false;
 	}
 
-	if (setjmp(L->jmpbuffer)) throw emString(L->errorText);
+	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
 
 	if (L->y<(int)L->height && L->pass<L->number_of_passes) {
 		png_read_row(
@@ -238,13 +238,13 @@ void emPngImageFileModel::QuitLoading()
 }
 
 
-void emPngImageFileModel::TryStartSaving() throw(emString)
+void emPngImageFileModel::TryStartSaving() throw(emException)
 {
-	throw emString("emPngImageFileModel: Saving not implemented.");
+	throw emException("emPngImageFileModel: Saving not implemented.");
 }
 
 
-bool emPngImageFileModel::TryContinueSaving() throw(emString)
+bool emPngImageFileModel::TryContinueSaving() throw(emException)
 {
 	return true;
 }

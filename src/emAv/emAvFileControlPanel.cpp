@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileControlPanel.cpp
 //
-// Copyright (C) 2008,2011 Oliver Hamann.
+// Copyright (C) 2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,33 +25,33 @@
 emAvFileControlPanel::emAvFileControlPanel(
 	ParentArg parent, const emString & name, emAvFileModel * fileModel
 )
-	: emTkGroup(parent,name,"emAv - Audio & Video Player")
+	: emGroup(parent,name,"emAv - Audio & Video Player")
 {
-	emTkTiling * left, * right, * vol, * inf;
-	emTkLook look;
+	emTiling * left, * right, * vol, * inf;
+	emLook look;
 
 	Mdl=fileModel;
 
 	SetPrefChildTallness(0.2);
 	SetPrefChildTallness(0.4,1);
 
-	left=new emTkTiling(this,"left");
+	left=new emTiling(this,"left");
 	left->SetPrefChildTallness(0.05);
 	left->SetPrefChildTallness(0.065,-1);
 	left->SetPrefChildTallness(0.08,-2);
 
-		inf=new emTkTiling(left,"inf");
+		inf=new emTiling(left,"inf");
 		inf->SetPrefChildTallness(0.4);
 		inf->SetPrefChildTallness(0.05,1);
-		TfInfo=new emTkTextField(inf,"info","File Info");
+		TfInfo=new emTextField(inf,"info","File Info");
 		TfInfo->SetMultiLineMode();
-		TfWarning=new emTkTextField(inf,"warning","Player Warnings");
+		TfWarning=new emTextField(inf,"warning","Player Warnings");
 		TfWarning->SetMultiLineMode();
 		look=TfWarning->GetLook();
 		look.SetOutputFgColor(0xFF0000FF);
 		TfWarning->SetLook(look);
 
-		SfPlayPos=new emTkScalarField(
+		SfPlayPos=new emScalarField(
 			left,"pos",
 			"Position",
 			"Hotkeys:\n"
@@ -72,13 +72,13 @@ emAvFileControlPanel::emAvFileControlPanel(
 		SfPlayPos->SetTextBoxTallness(0.3);
 		SfPlayPos->SetEditable(true);
 
-		RgPlayState=new emTkRadioButton::Group(left,"play_state");
+		RgPlayState=new emRadioButton::Group(left,"play_state");
 		RgPlayState->SetBorderType(OBT_NONE,IBT_NONE);
 		RgPlayState->SetFocusable(false);
 		RgPlayState->SetPrefChildTallness(0.3);
 		RgPlayState->SetPrefChildTallness(1.0,2,false);
 		RgPlayState->SetPrefChildTallness(1.0,4,false);
-		RbStop=new emTkRadioButton(
+		RbStop=new emRadioButton(
 			RgPlayState,"stop",
 			emString(),
 			"Stop playing.\n"
@@ -86,7 +86,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 			"Hotkey: 0",
 			emGetInsResImage(GetRootContext(),"emAv","Stop.tga")
 		);
-		RbPause=new emTkRadioButton(
+		RbPause=new emRadioButton(
 			RgPlayState,
 			"pause",
 			emString(),
@@ -95,7 +95,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 			"Hotkey: P or Space",
 			emGetInsResImage(GetRootContext(),"emAv","Pause.tga")
 		);
-		RbSlow=new emTkRadioButton(
+		RbSlow=new emRadioButton(
 			RgPlayState,
 			"slow",
 			emString(),
@@ -104,7 +104,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 			"Hotkey: S",
 			emGetInsResImage(GetRootContext(),"emAv","PlaySlow.tga")
 		);
-		RbPlay=new emTkRadioButton(
+		RbPlay=new emRadioButton(
 			RgPlayState,
 			"play",
 			emString(),
@@ -113,7 +113,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 			"Hotkey: N or Space",
 			emGetInsResImage(GetRootContext(),"emAv","Play.tga")
 		);
-		RbFast=new emTkRadioButton(
+		RbFast=new emRadioButton(
 			RgPlayState,
 			"fast",
 			emString(),
@@ -123,18 +123,18 @@ emAvFileControlPanel::emAvFileControlPanel(
 			emGetInsResImage(GetRootContext(),"emAv","PlayFast.tga")
 		);
 
-	right=new emTkTiling(this,"right");
+	right=new emTiling(this,"right");
 	right->SetPrefChildTallness(0.1);
 
-		vol=new emTkTiling(right,"audio_volume");
+		vol=new emTiling(right,"audio_volume");
 		vol->SetPrefChildTallness(0.5);
 		vol->SetPrefChildTallness(0.12,1);
-		CbAudioMute=new emTkCheckButton(
+		CbAudioMute=new emCheckButton(
 			vol,"mute",
 			"Mute",
 			"Hotkey: U"
 		);
-		SfAudioVolume=new emTkScalarField(
+		SfAudioVolume=new emScalarField(
 			vol,"audio_volume",
 			"Audio Volume",
 			"Hotkeys:\n"
@@ -147,7 +147,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 		SfAudioVolume->SetEditable(true);
 		SfAudioVolume->SetMaxValue(100);
 
-		SfAudioVisu=new emTkScalarField(
+		SfAudioVisu=new emScalarField(
 			right,"audio_visu",
 			"Audio Visualization",
 			"Hotkeys:\n"
@@ -158,7 +158,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 		SfAudioVisu->SetTextBoxTallness(0.3);
 		SfAudioVisu->SetEditable(true);
 
-		SfAudioChannel=new emTkScalarField(
+		SfAudioChannel=new emScalarField(
 			right,"audio_channel",
 			"Audio Channel",
 			"Hotkeys:\n"
@@ -169,7 +169,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 		SfAudioChannel->SetTextBoxTallness(0.3);
 		SfAudioChannel->SetEditable(true);
 
-		SfSpuChannel=new emTkScalarField(
+		SfSpuChannel=new emScalarField(
 			right,"spu_channel",
 			"Subtitles",
 			"Hotkeys:\n"
@@ -205,7 +205,7 @@ bool emAvFileControlPanel::Cycle()
 {
 	bool busy;
 
-	busy=emTkGroup::Cycle();
+	busy=emGroup::Cycle();
 
 	if (
 		IsSignaled(Mdl->GetInfoSignal()) ||
@@ -250,7 +250,7 @@ bool emAvFileControlPanel::Cycle()
 
 void emAvFileControlPanel::UpdateControls()
 {
-	emTkRadioButton * rb;
+	emRadioButton * rb;
 	bool adjustingEnabled;
 	int n;
 

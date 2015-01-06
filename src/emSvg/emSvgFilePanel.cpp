@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -235,18 +235,18 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 )
 {
 	emSvgFileModel * fm;
-	emTkGroup * grp;
-	emTkTextField * tf;
+	emGroup * grp;
+	emTextField * tf;
 
 	if (IsVFSGood()) {
 		fm=(emSvgFileModel*)GetFileModel();
-		grp=new emTkGroup(
+		grp=new emGroup(
 			parent,
 			name,
 			"SVG File Info"
 		);
 		grp->SetFixedColumnCount(1);
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,
 			"title",
 			"Title",
@@ -255,7 +255,7 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 			fm->GetTitle()
 		);
 		tf->SetMultiLineMode();
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,
 			"desc",
 			"Description",
@@ -264,7 +264,7 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 			fm->GetDescription()
 		);
 		tf->SetMultiLineMode();
-		tf=new emTkTextField(
+		tf=new emTextField(
 			grp,
 			"size",
 			"Default Size (Pixels)",
@@ -328,14 +328,14 @@ void emSvgFilePanel::ClearSvgDisplay()
 		Job=NULL;
 	}
 	if (!JobImg.IsEmpty()) {
-		JobImg.Empty();
+		JobImg.Clear();
 	}
 	if (!Img.IsEmpty()) {
-		Img.Empty();
+		Img.Clear();
 		InvalidatePainting();
 	}
 	if (!RenderError.IsEmpty()) {
-		RenderError.Empty();
+		RenderError.Clear();
 		InvalidatePainting();
 	}
 	JobUpToDate=false;
@@ -371,8 +371,8 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 			if (RenderError.IsEmpty()) RenderError="unknown error";
 			ServerModel->CloseJob(Job);
 			Job=NULL;
-			JobImg.Empty();
-			Img.Empty();
+			JobImg.Clear();
+			Img.Clear();
 			JobUpToDate=false;
 			IconTimer.Stop(true);
 			ShowIcon=false;
@@ -386,7 +386,7 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 			SrcY=JobSrcY;
 			SrcW=JobSrcW;
 			SrcH=JobSrcH;
-			JobImg.Empty();
+			JobImg.Clear();
 			if (JobUpToDate) {
 				IconTimer.Stop(true);
 				ShowIcon=false;
@@ -420,7 +420,7 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 	sh=ih*fh/oh;
 
 	if (iw<1.0 || ih<1.0) {
-		Img.Empty();
+		Img.Clear();
 		SrcX=sx;
 		SrcY=sy;
 		SrcW=sw;

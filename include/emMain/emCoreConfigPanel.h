@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.h
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emCoreConfigPanel : public emTkGroup {
+class emCoreConfigPanel : public emGroup {
 
 public:
 
@@ -48,20 +48,21 @@ private:
 	// --- member variables ---
 
 	emRef<emCoreConfig> Config;
-	emTkButton * ResetButton;
+	emButton * ResetButton;
 
 
 	// --- sub-classes ---
 
-	class SpeedFacField : public emTkScalarField, private emRecListener {
+	class FactorField : public emScalarField, private emRecListener {
 	public:
-		SpeedFacField(
+		FactorField(
 			ParentArg parent, const emString & name,
 			const emString & caption, const emString & description,
 			const emImage & icon,
-			emCoreConfig * config, emDoubleRec * rec
+			emCoreConfig * config, emDoubleRec * rec,
+			bool minimumMeansDisabled=false
 		);
-		virtual ~SpeedFacField();
+		virtual ~FactorField();
 		virtual void TextOfValue(
 			char * buf, int bufSize, emInt64 value,
 			emUInt64 markInterval
@@ -71,29 +72,14 @@ private:
 		virtual void OnRecChanged();
 	private:
 		void UpdateValue();
+		double Val2Cfg(emInt64 value) const;
+		emInt64 Cfg2Val(double d) const;
 		emRef<emCoreConfig> Config;
+		bool MinimumMeansDisabled;
 		emInt64 ValOut;
 	};
 
-	class SpeedFacGroup : public emTkGroup {
-	public:
-		SpeedFacGroup(
-			ParentArg parent, const emString & name,
-			const emString & caption,
-			emCoreConfig * config,
-			emDoubleRec * normalRec, const emString & normalCaption,
-			emDoubleRec * fineRec, const emString & fineCaption
-		);
-		virtual ~SpeedFacGroup();
-	protected:
-		virtual void AutoExpand();
-	private:
-		emRef<emCoreConfig> Config;
-		emDoubleRec * NormalRec, * FineRec;
-		emString NormalCaption, FineCaption;
-	};
-
-	class MouseMiscGroup : public emTkGroup, private emRecListener {
+	class MouseMiscGroup : public emGroup, private emRecListener {
 	public:
 		MouseMiscGroup(ParentArg parent, const emString & name,
 		                emCoreConfig * config);
@@ -106,12 +92,12 @@ private:
 	private:
 		void UpdateOutput();
 		emRef<emCoreConfig> Config;
-		emTkCheckBox * StickBox;
-		emTkCheckBox * EmuBox;
-		emTkCheckBox * PanBox;
+		emCheckBox * StickBox;
+		emCheckBox * EmuBox;
+		emCheckBox * PanBox;
 	};
 
-	class MouseGroup : public emTkGroup {
+	class MouseGroup : public emGroup {
 	public:
 		MouseGroup(ParentArg parent, const emString & name,
 		           emCoreConfig * config);
@@ -122,7 +108,7 @@ private:
 		emRef<emCoreConfig> Config;
 	};
 
-	class KBGroup : public emTkGroup {
+	class KBGroup : public emGroup {
 	public:
 		KBGroup(ParentArg parent, const emString & name,
 		        emCoreConfig * config);
@@ -133,7 +119,18 @@ private:
 		emRef<emCoreConfig> Config;
 	};
 
-	class MaxMemGroup : public emTkGroup, private emRecListener {
+	class KineticGroup : public emGroup {
+	public:
+		KineticGroup(ParentArg parent, const emString & name,
+		             emCoreConfig * config);
+		virtual ~KineticGroup();
+	protected:
+		virtual void AutoExpand();
+	private:
+		emRef<emCoreConfig> Config;
+	};
+
+	class MaxMemGroup : public emGroup, private emRecListener {
 	public:
 		MaxMemGroup(ParentArg parent, const emString & name,
 		            emCoreConfig * config);
@@ -150,11 +147,11 @@ private:
 			emUInt64 markInterval, void * context
 		);
 		emRef<emCoreConfig> Config;
-		emTkScalarField * MemField;
+		emScalarField * MemField;
 		emInt64 ValOut;
 	};
 
-	class MaxMemTunnel : public emTkTunnel {
+	class MaxMemTunnel : public emTunnel {
 	public:
 		MaxMemTunnel(ParentArg parent, const emString & name,
 		             emCoreConfig * config);

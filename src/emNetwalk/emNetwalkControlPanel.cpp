@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkControlPanel.cpp
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,18 +25,18 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	ParentArg parent, const emString & name, emView & contentView,
 	emNetwalkModel * fileModel
 )
-	: emTkGroup(parent,name,"emNetwalk"),
+	: emGroup(parent,name,"emNetwalk"),
 	ContentView(contentView)
 {
-	emTkTiling * t1, * t2, * t3, * t4;
+	emTiling * t1, * t2, * t3, * t4;
 	Mdl=fileModel;
 
 	SetPrefChildTallness(1.0);
 	SetPrefChildTallness(0.3,1);
 	SetPrefChildTallness(0.5,2);
 
-	GrAbout=new emTkGroup(this,"about","About emNetwalk");
-	LbAbout=new emTkLabel(GrAbout,"text",
+	GrAbout=new emGroup(this,"about","About emNetwalk");
+	LbAbout=new emLabel(GrAbout,"text",
 		"emNetwalk is a clone of the addictive Netwalk puzzle game where pieces of a\n"
 		"computer network have to be rotated in order to connect terminals to a server.\n"
 		"In contrast to other implementations, emNetwalk has a very sophisticated random\n"
@@ -76,17 +76,17 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"segments have different orientations."
 	);
 
-	GrStart=new emTkGroup(this,"start","New Game");
+	GrStart=new emGroup(this,"start","New Game");
 	GrStart->SetFixedColumnCount(1);
 	GrStart->SetPrefChildTallness(0.2);
 	GrStart->SetPrefChildTallness(0.12,-1);
-	t1=new emTkTiling(GrStart,"t1");
+	t1=new emTiling(GrStart,"t1");
 	t1->SetPrefChildTallness(0.2);
-	t2=new emTkTiling(t1,"t2");
+	t2=new emTiling(t1,"t2");
 	t2->SetPrefChildTallness(0.1);
-	t3=new emTkTiling(t1,"t3");
+	t3=new emTiling(t1,"t3");
 	t3->SetPrefChildTallness(0.1);
-	SfSize=new emTkScalarField(
+	SfSize=new emScalarField(
 		t2,"size","Size",
 		"Here you can set the size of the board as the number\n"
 		"of pieces in horizontal and vertical direction."
@@ -94,7 +94,7 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	SfSize->SetMinMaxValues(5,25);
 	SfSize->SetScaleMarkIntervals(5,1,0);
 	SfSize->SetEditable();
-	SfComplexity=new emTkScalarField(
+	SfComplexity=new emScalarField(
 		t2,"complexity","Complexity",
 		"This is the difficulty of the network. The higher the value,\n"
 		"the more junctions and terminals are generated per area."
@@ -102,7 +102,7 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	SfComplexity->SetMinMaxValues(1,5);
 	SfComplexity->SetScaleMarkIntervals(1,0);
 	SfComplexity->SetEditable();
-	CbBorderless=new emTkCheckBox(
+	CbBorderless=new emCheckBox(
 		t3,"borderless","Borderless",
 		"If this is enabled, connections can wrap from one edge to the\n"
 		"opposite edge so that there are no borders. This makes the game\n"
@@ -110,13 +110,13 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"with Ctrl + left mouse button + mouse movement."
 	);
 	CbBorderless->SetNoEOI();
-	CbNoFourWayJunctions=new emTkCheckBox(
+	CbNoFourWayJunctions=new emCheckBox(
 		t3,"no4wayjunctions","No 4-Way Junctions",
 		"If this is enabled, the network will not contain any 4-way\n"
 		"junctions. This makes the game more difficult."
 	);
 	CbNoFourWayJunctions->SetNoEOI();
-	CbDigMode=new emTkCheckBox(
+	CbDigMode=new emCheckBox(
 		t3,"digmode","Dig Mode",
 		"If this is enabled, pieces that are not near a server connection\n"
 		"are dug in and cannot be rotated, so that the puzzle has to be\n"
@@ -124,30 +124,30 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"game more difficult."
 	);
 	CbDigMode->SetNoEOI();
-	BtStart=new emTkButton(
+	BtStart=new emButton(
 		GrStart,"start","Start New Game",
 		"Start a new game with the given settings.\n"
 		"\n"
 		"Hotkey: Ctrl+N"
 	);
 
-	t4=new emTkTiling(this,"t4");
+	t4=new emTiling(this,"t4");
 	t4->SetPrefChildTallness(0.07);
 	t4->SetPrefChildTallness(0.33,-1);
-	GrExtra=new emTkGroup(t4,"extra","Extra");
+	GrExtra=new emGroup(t4,"extra","Extra");
 	GrExtra->SetBorderScaling(2.0);
-	CbAutoMark=new emTkCheckBox(
+	CbAutoMark=new emCheckBox(
 		GrExtra,"automark","Auto Mark",
 		"Whether to mark pieces automatically after rotating them."
 	);
 	CbAutoMark->SetNoEOI();
-	BtUnmarkAll=new emTkButton(
+	BtUnmarkAll=new emButton(
 		GrExtra,"unmarkall","Unmark All",
 		"Unmark all pieces.\n"
 		"\n"
 		"Hotkey: Ctrl+U"
 	);
-	TfPenalty=new emTkTextField(
+	TfPenalty=new emTextField(
 		t4,"penalty","Penalty Points",
 		"A penalty point is given whenever you rotate a piece once again\n"
 		"after rotating at least one other piece in between. Advanced players\n"
@@ -190,8 +190,8 @@ bool emNetwalkControlPanel::Cycle()
 					CbAutoMark->IsChecked()
 				);
 			}
-			catch (emString errorMessage) {
-				emTkDialog::ShowMessage(ContentView,"Error",errorMessage);
+			catch (emException & exception) {
+				emDialog::ShowMessage(ContentView,"Error",exception.GetText());
 			}
 		}
 	}
@@ -204,7 +204,7 @@ bool emNetwalkControlPanel::Cycle()
 		Mdl->UnmarkAll();
 	}
 
-	return emTkGroup::Cycle();
+	return emGroup::Cycle();
 }
 
 

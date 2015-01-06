@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,14 +61,14 @@ double emTimeZonesModel::GetCityLongitude(int cityIndex) const
 void emTimeZonesModel::TryGetZoneTime(
 	time_t time, ZoneId zoneId, int * pYear, int * pMonth, int * pDay,
 	int * pDayOfWeek, int * pHour, int * pMinute, int * pSecond
-) throw(emString)
+) throw(emException)
 {
 	struct tm tmbuf;
 	struct tm * ptm;
 	City * city;
 
 	if (zoneId>=0 && zoneId<Cities.GetCount()) {
-		if (ChildProcState==CP_ERRORED) throw ChildProcError;
+		if (ChildProcState==CP_ERRORED) throw emException("%s",ChildProcError.Get());
 		city=Cities[zoneId];
 		if (!city->TzFileChecked) {
 			city->TzFileExists=emIsRegularFile(
@@ -77,12 +77,12 @@ void emTimeZonesModel::TryGetZoneTime(
 			city->TzFileChecked=true;
 		}
 		if (!city->TzFileExists) {
-			throw emString("TZ file not found.");
+			throw emException("TZ file not found.");
 		}
 		city->TimeNeeded=3;
 		if (!city->TimeValid) {
 			RequestCityTime(city);
-			throw emString("wait");
+			throw emException("wait");
 		}
 		if (pYear     ) *pYear     =city->Year     ;
 		if (pMonth    ) *pMonth    =city->Month    ;
@@ -100,10 +100,10 @@ void emTimeZonesModel::TryGetZoneTime(
 			ptm=gmtime_r(&time,&tmbuf);
 		}
 		else {
-			throw emString("Illegal time zone ID.");
+			throw emException("Illegal time zone ID.");
 		}
 		if (!ptm) {
-			throw emString("Time not available.");
+			throw emException("Time not available.");
 		}
 		if (pYear     ) *pYear     =(int)ptm->tm_year+1900;
 		if (pMonth    ) *pMonth    =(int)ptm->tm_mon+1;
@@ -128,7 +128,7 @@ double emTimeZonesModel::GetJulianDate(time_t time)
 			time,UTC_ZONE_ID,&year,&month,&day,NULL,&hour,&minute,&second
 		);
 	}
-	catch (emString) {
+	catch (emException &) {
 		return 0.0;
 	}
 	if(month<=2) {
@@ -173,9 +173,9 @@ emTimeZonesModel::~emTimeZonesModel()
 	int i;
 
 	ChildProc.Terminate();
-	Requests.Empty();
+	Requests.Clear();
 	for (i=0; i<Cities.GetCount(); i++) delete Cities[i];
-	Cities.Empty();
+	Cities.Clear();
 	free(ReadBuf);
 	free(WriteBuf);
 }
@@ -279,10 +279,11 @@ void emTimeZonesModel::InitCities()
 	bufSize=65536;
 	buf=new char[bufSize];
 
+	city=NULL;
+
 	f=fopen(zoneTabPath.Get(),"r");
 	if (!f) goto L_FileError;
 
-	city=NULL;
 	for (;;) {
 		if (!fgets(buf,bufSize,f)) {
 			if (ferror(f)) goto L_FileError;
@@ -382,7 +383,7 @@ L_FileError:
 	if (city) delete city;
 	if (f) fclose(f);
 	delete [] buf;
-	Cities.Empty(true);
+	Cities.Clear(true);
 #endif
 }
 
@@ -480,10 +481,10 @@ void emTimeZonesModel::ManageChildProc()
 			);
 			ChildProcState=CP_RUNNING;
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			ChildProc.Terminate();
 			ChildProcState=CP_ERRORED;
-			ChildProcError=errorMessage;
+			ChildProcError=exception.GetText();
 		}
 	}
 
@@ -508,10 +509,10 @@ void emTimeZonesModel::ManageChildProc()
 				ReadBuf=(char*)realloc(ReadBuf,ReadBufSize);
 			}
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			ChildProc.Terminate();
 			ChildProcState=CP_ERRORED;
-			ChildProcError=errorMessage;
+			ChildProcError=exception.GetText();
 		}
 
 		if (ChildProcState==CP_RUNNING && clk-ChildProcIdleClock>10000) {

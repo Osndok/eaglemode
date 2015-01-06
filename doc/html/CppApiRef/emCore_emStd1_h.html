@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2012 Oliver Hamann.
+// Copyright (C) 2004-2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@
 //==============================================================================
 
 </SPAN><SPAN CLASS=p>#define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 84
+#define EM_MINOR_VERSION 87
 #define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
         </SPAN><SPAN CLASS=c>// Version numbers and postfix. Postfix is a string like ".rc1" or "".
@@ -349,7 +349,35 @@
         <SPAN CLASS=c>// Whether to show the fatal error message in a dialog (default: false).
 
 
-<A NAME="emUncopyable"></A>//==============================================================================
+<A NAME="emException"></A>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emStd1_h.html#emException">emException</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for an exception.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>();
+                <SPAN CLASS=c>// Construct an exception with an empty text.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>2</SPAN>);
+                <SPAN CLASS=c>// Construct an exception with a formatted text.
+                // The arguments are like with printf.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetText() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the text.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>char </SPAN>Text[<SPAN CLASS=u>256</SPAN>];
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emUncopyable"></A><SPAN CLASS=c>//==============================================================================
 //================================ <A CLASS=m HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> ================================
 //==============================================================================
 
@@ -431,6 +459,21 @@
 </SPAN><SPAN CLASS=t>const char </SPAN>* emAlignmentToString(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> alignment);
 <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> emStringToAlignment(<SPAN CLASS=t>const char </SPAN>* str);
         <SPAN CLASS=c>// Convert an alignment to and from string representation.
+
+
+//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>::<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>()
+<SPAN CLASS=b>{
+        </SPAN>Text[<SPAN CLASS=u>0</SPAN>]=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const char </SPAN>* <A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>::GetText() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Text;
+<SPAN CLASS=b>}
 
 
 </SPAN><SPAN CLASS=p>#endif

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -213,8 +213,8 @@ protected:
 		// Called for unloading the file. The implementation may free
 		// allocated memory or set the data to a default state.
 
-	virtual void TryStartLoading() throw(emString) = 0;
-	virtual bool TryContinueLoading() throw(emString) = 0;
+	virtual void TryStartLoading() throw(emException) = 0;
+	virtual bool TryContinueLoading() throw(emException) = 0;
 	virtual void QuitLoading() = 0;
 		// Called for loading the file. First, TryStartLoading is
 		// called, and then TryContinueLoading is called again and again
@@ -241,8 +241,8 @@ protected:
 		// through the destructor of emFileModel (=> prepare the
 		// destructor of the derived class accordingly).
 
-	virtual void TryStartSaving() throw(emString) = 0;
-	virtual bool TryContinueSaving() throw(emString) = 0;
+	virtual void TryStartSaving() throw(emException) = 0;
+	virtual bool TryContinueSaving() throw(emException) = 0;
 	virtual void QuitSaving() = 0;
 		// This is just like above, but for saving. The memory need is
 		// not relevant here.

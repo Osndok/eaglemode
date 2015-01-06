@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2012 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,13 +68,13 @@ emContext::~emContext()
 
 	if (ModelCount) {
 		emFatalError(
-			"emContext: Remaining private models after destruction.\n"
+			"emContext: Remaining private models after destruction."
 		);
 	}
 
 	if (LastChildContext) {
 		emFatalError(
-			"emContext: Remaining child contexts after destruction (constructed by model destructor?).\n"
+			"emContext: Remaining child contexts after destruction (constructed by model destructor?)."
 		);
 	}
 

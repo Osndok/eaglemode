@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,7 +99,7 @@ public:
 		emString Caption;
 		emString Description;
 		emImage Icon;
-		emTkLook Look;
+		emLook Look;
 		emInputHotkey Hotkey;
 		double BorderScaling;
 		double PrefChildTallness;

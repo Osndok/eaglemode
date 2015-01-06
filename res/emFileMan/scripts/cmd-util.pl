@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # cmd-util.pl
 #
-# Copyright (C) 2007-2008,2010 Oliver Hamann.
+# Copyright (C) 2007-2008,2010,2012,2014 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -243,19 +243,24 @@ sub SendSelectCS
 sub Dlg
 	# Low-level function for calling emShowStdDlg.
 {
+	my $p=catfile($ENV{'EM_DIR'},"bin","emShowStdDlg");
+
 	my $w=400;
 	my $h=300;
 	my $x=int($ENV{'EM_X'}+($ENV{'EM_WIDTH'}-$w)/2);
 	my $y=int($ENV{'EM_Y'}+($ENV{'EM_HEIGHT'}-$h)/2);
 	if ($x < 0) { $x=0; }
 	if ($y < 0) { $y=0; }
+	my $g="${w}x${h}+${x}+${y}";
 
-	my $e=system(
-		catfile($ENV{'EM_DIR'},"bin","emShowStdDlg"),
-		'-geometry',
-		"${w}x${h}+${x}+${y}",
-		@_
-	);
+	my $e=system($p,'-geometry',$g,@_);
+	if ($e==-1) {
+		# The error is printed to the console automatically, but try to
+		# show it in a dialog too (this is helpful if the argument list
+		# was too long).
+		system($p,'-geometry',$g,'message','Error',"Could not execute $p:\n$!");
+		return 0;
+	}
 	return $e==0 ? 1 : 0;
 }
 
@@ -410,7 +415,7 @@ sub ErrorIfTargetsNotFiles
 }
 
 
-sub ErrorIfSourcesAccrossDirs
+sub ErrorIfSourcesAcrossDirs
 {
 	if (@Src>1) {
 		my ($f0,$d0)=fileparse($Src[0]);
@@ -426,7 +431,7 @@ sub ErrorIfSourcesAccrossDirs
 }
 
 
-sub ErrorIfTargetsAccrossDirs
+sub ErrorIfTargetsAcrossDirs
 {
 	if (@Tgt>1) {
 		my ($f0,$d0)=fileparse($Tgt[0]);
@@ -460,7 +465,7 @@ sub ErrorIfRootTargets
 
 #=========================== Selection confirmations ===========================
 
-sub ConfirmIfSourcesAccrossDirs
+sub ConfirmIfSourcesAcrossDirs
 {
 	if (@Src>1) {
 		my ($f0,$d0)=fileparse($Src[0]);
@@ -478,7 +483,7 @@ sub ConfirmIfSourcesAccrossDirs
 }
 
 
-sub ConfirmIfTargetsAccrossDirs
+sub ConfirmIfTargetsAcrossDirs
 {
 	if (@Tgt>1) {
 		my ($f0,$d0)=fileparse($Tgt[0]);
@@ -534,11 +539,7 @@ sub TermRun
 	# Print and run a program, return the exit status (non-zero on error).
 	# Arguments: <program> [,<arguments>...]
 {
-	print("\n${TCInfo}Running: ");
-	for (my $i=0; $i<@_; $i++) {
-		print("$_[$i] ");
-	}
-	print("${TCNormal}\n\n");
+	print("\n${TCInfo}Running: ".join(' ',@_)."${TCNormal}\n\n");
 	return system({$_[0]} @_);
 }
 
@@ -696,7 +697,7 @@ sub PackType
 	if (IsFirstPass()) {
 
 		ErrorIfNoSources();
-		ErrorIfSourcesAccrossDirs();
+		ErrorIfSourcesAcrossDirs();
 		ErrorIfNotSingleTarget();
 		ErrorIfTargetsNotDirs();
 

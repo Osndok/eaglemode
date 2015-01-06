@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,14 +42,14 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	PopupWindow=NULL;
 	FirstVIF=NULL;
 	LastVIF=NULL;
+	ActiveAnimator=NULL;
+	MagneticVA=NULL;
+	VisitingVA=NULL;
 	RootPanel=NULL;
 	SupremeViewedPanel=NULL;
 	MinSVP=NULL;
 	MaxSVP=NULL;
 	ActivePanel=NULL;
-	ActivationCandidate=NULL;
-	VisitedPanel=NULL;
-	PanelCreationNumber=0;
 	HomeX=0.0;
 	HomeY=0.0;
 	HomeWidth=1.0;
@@ -67,7 +67,7 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	BackgroundColor=0x808080FF;
 	VFlags=0;
 	Focused=false;
-	VisitAdherent=false;
+	ActivationAdherent=false;
 	TitleInvalid=false;
 	CursorInvalid=false;
 	SVPChoiceInvalid=false;
@@ -81,16 +81,16 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	NoticeList.Prev=&NoticeList;
 	NoticeList.Next=&NoticeList;
 	UpdateEngine=new UpdateEngineClass(*this);
-	ActivationEngine=NULL;
 	EOIEngine=NULL;
-	SeekEngine=NULL;
-	ProtectSeeking=0;
 	SeekPosPanel=NULL;
 	StressTest=NULL;
 
 	UpdateEngine->WakeUp();
 
 	SetViewFlags(viewFlags);
+
+	MagneticVA=new emMagneticViewAnimator(*this);
+	VisitingVA=new emVisitingViewAnimator(*this);
 
 	new emDefaultTouchVIF(*this);
 	new emCheatVIF(*this);
@@ -101,7 +101,7 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 
 emView::~emView()
 {
-	AbortSeeking();
+	AbortActiveAnimator();
 	CrossPtrList.BreakCrossPtrs();
 	//??? Should we delete child views here like emWindow deletes its child
 	//??? windows? If so, remember to adapt emSubViewPanel. (No panic,
@@ -110,8 +110,9 @@ emView::~emView()
 	if (StressTest) delete StressTest;
 	while (LastVIF) delete LastVIF;
 	if (EOIEngine) delete EOIEngine;
-	if (ActivationEngine) delete ActivationEngine;
 	delete UpdateEngine;
+	if (VisitingVA) { delete VisitingVA; VisitingVA=NULL; }
+	if (MagneticVA) { delete MagneticVA; MagneticVA=NULL; }
 	if (HomeViewPort!=DummyViewPort) {
 		emFatalError("emView::~emView: View port must be destructed first.");
 	}
@@ -135,7 +136,7 @@ void emView::SetViewFlags(ViewFlags viewFlags)
 			(viewFlags&VF_POPUP_ZOOM)!=0 &&
 			(oldFlags&VF_POPUP_ZOOM)==0
 		) {
-			ZoomOut();
+			RawZoomOut();
 		}
 		VFlags=viewFlags;
 		if (
@@ -149,7 +150,7 @@ void emView::SetViewFlags(ViewFlags viewFlags)
 			(viewFlags&VF_NO_ZOOM)!=0 &&
 			(oldFlags&VF_NO_ZOOM)==0
 		) {
-			ZoomOut();
+			RawZoomOut();
 		}
 		if ((viewFlags&VF_EGO_MODE)!=(oldFlags&VF_EGO_MODE)) {
 			CursorInvalid=true;
@@ -233,6 +234,121 @@ emScreen * emView::GetScreen()
 }
 
 
+void emView::SetActivePanel(emPanel * panel, bool adherent)
+{
+	emPanel::NoticeFlags flags;
+	emPanel * p;
+
+	if (!panel) return;
+
+	while (!panel->Focusable) panel=panel->Parent;
+
+	if (ActivePanel!=panel) {
+		if (emIsDLogEnabled()) {
+			emDLog("emView %p: Active=\"%s\"",this,panel->GetIdentity().Get());
+		}
+		if (ActivePanel) InvalidateHighlight();
+		flags=emPanel::NF_ACTIVE_CHANGED;
+		if (Focused) flags|=emPanel::NF_FOCUS_CHANGED;
+		if (ActivePanel) {
+			p=ActivePanel;
+			p->Active=0;
+			do {
+				p->InActivePath=0;
+				p->AddPendingNotice(flags);
+				p=p->Parent;
+			} while (p);
+		}
+		p=panel;
+		p->Active=1;
+		do {
+			p->InActivePath=1;
+			p->AddPendingNotice(flags);
+			p=p->Parent;
+		} while (p);
+		ActivePanel=panel;
+		ActivationAdherent=adherent;
+		InvalidateHighlight();
+		TitleInvalid=true;
+		UpdateEngine->WakeUp();
+		Signal(ControlPanelSignal);
+	}
+	else if (ActivationAdherent!=adherent) {
+		ActivationAdherent=adherent;
+		InvalidateHighlight();
+	}
+}
+
+
+void emView::SetActivePanelBestPossible()
+{
+	emPanel * best, * p;
+	double cx,cy,cw,ch,ex,ey,ew,eh,minW,minH,minA;
+	bool adherent;
+
+	cx=CurrentX;
+	cy=CurrentY;
+	cw=CurrentWidth;
+	ch=CurrentHeight;
+	if (PopupWindow) {
+		PopupWindow->GetScreen().GetVisibleRect(&ex,&ey,&ew,&eh);
+		if (ex<cx) { ew-=cx-ex; ex=cx; }
+		if (ey<cy) { eh-=cy-ey; ey=cy; }
+		if (ew>cx+cw-ex) { ew=cx+cw-ex; }
+		if (eh>cy+ch-ey) { eh=cy+ch-ey; }
+		if (ew>=10.0 && eh>=10.0) {
+			cx=ex; cy=ey;
+			cw=ew; ch=eh;
+		}
+	}
+	minW=cw*0.99;
+	minH=ch*0.99;
+	minA=cw*ch*0.33;
+	cx+=cw*0.5;
+	cy+=ch*0.5;
+	best=SupremeViewedPanel;
+	if (!best) {
+		return;
+	}
+	for (;;) {
+		p=best->GetFocusableLastChild();
+		if (!p) break;
+		do {
+			if (
+				p->Viewed &&
+				p->ClipX1<=cx && p->ClipX2>cx &&
+				p->ClipY1<=cy && p->ClipY2>cy
+			) break;
+			p=p->GetFocusablePrev();
+		} while(p);
+		if (!p) break;
+		if (
+			p->ClipX2-p->ClipX1<minW &&
+			p->ClipY2-p->ClipY1<minH &&
+			(p->ClipX2-p->ClipX1)*(p->ClipY2-p->ClipY1)<minA
+		) break;
+		best=p;
+	}
+
+	while (!best->Focusable) best=best->Parent;
+
+	adherent=false;
+	if (
+		ActivationAdherent &&
+		ActivePanel &&
+		ActivePanel->Viewed &&
+		ActivePanel->ViewedWidth>=4 &&
+		ActivePanel->ViewedHeight>=4 &&
+		best->InActivePath
+	) {
+		best=ActivePanel;
+		adherent=true;
+	}
+
+	SetActivePanel(best,adherent);
+}
+
+
 emPanel * emView::GetPanelByIdentity(const char * identity)
 {
 	emArray<emString> a;
@@ -306,142 +422,26 @@ emPanel * emView::GetFocusablePanelAt(double x, double y)
 
 
 emPanel * emView::GetVisitedPanel(
-	double * pRelX, double * pRelY, double * pRelA, bool * pAdherent
+	double * pRelX, double * pRelY, double * pRelA
 )
 {
 	emPanel * p;
 
-	p=VisitedPanel;
+	p=ActivePanel;
+	while (p && !p->InViewedPath) p=p->Parent;
+	if (!p || !p->Viewed) p=SupremeViewedPanel;
+
 	if (p) {
 		if (pRelX) *pRelX=(HomeX+HomeWidth*0.5-p->ViewedX)/p->ViewedWidth-0.5;
 		if (pRelY) *pRelY=(HomeY+HomeHeight*0.5-p->ViewedY)/p->ViewedHeight-0.5;
 		if (pRelA) *pRelA=(HomeWidth*HomeHeight)/(p->ViewedWidth*p->ViewedHeight);
-		if (pAdherent) *pAdherent=VisitAdherent;
 	}
 	else {
 		if (pRelX) *pRelX=0.0;
 		if (pRelY) *pRelY=0.0;
 		if (pRelA) *pRelA=0.0;
-		if (pAdherent) *pAdherent=false;
 	}
 	return p;
-}
-
-
-void emView::Visit(emPanel * panel, bool adherent)
-{
-	static const double MIN_REL_DISTANCE=0.03;
-	static const double MIN_REL_CIRCUMFERENCE=0.05;
-	emScreen * screen;
-	emPanel * p, * cp;
-	double ph,dx,dy,sx,sy,sw,sh,minvw,maxvw,vx,vy,vw,vh;
-	double ctx,cty,ctw,cth,csx,csy,csw,csh;
-
-	if (!panel) return;
-
-	if (!ProtectSeeking) AbortSeeking();
-
-	ph=panel->GetHeight();
-
-	sx=CurrentX;
-	sy=CurrentY;
-	sw=CurrentWidth;
-	sh=CurrentHeight;
-	if ((VFlags&VF_POPUP_ZOOM)!=0) {
-		screen=GetScreen();
-		if (screen) {
-			screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-		}
-	}
-
-	dx=emMin(
-		CurrentWidth*MIN_REL_DISTANCE,
-		CurrentHeight*MIN_REL_DISTANCE*CurrentPixelTallness
-	);
-	dy=dx/CurrentPixelTallness;
-	sx+=dx;
-	sy+=dy;
-	sw-=2*dx;
-	sh-=2*dy;
-
-	maxvw=emMin(sw,sh/ph*CurrentPixelTallness);
-	minvw=emMin(
-		(CurrentWidth+CurrentHeight)*MIN_REL_CIRCUMFERENCE/
-			(1.0+ph/CurrentPixelTallness),
-		maxvw*0.999
-	);
-
-	if (
-		panel->Viewed &&
-		panel->ViewedWidth>=minvw &&
-		panel->ViewedWidth<=maxvw &&
-		panel->ViewedX>=sx &&
-		panel->ViewedX+panel->ViewedWidth<=sx+sw &&
-		panel->ViewedY>=sy &&
-		panel->ViewedY+panel->ViewedHeight<=sy+sh
-	) {
-		VisitImmobile(panel,adherent);
-		return;
-	}
-
-	cp=panel;
-	ctx=0.0;
-	cty=0.0;
-	ctw=1.0;
-	cth=ph;
-	while (cp!=SupremeViewedPanel && (cp->Viewed || !cp->InViewedPath)) {
-		ctx=cp->LayoutX+ctx*cp->LayoutWidth;
-		cty=cp->LayoutY+cty*cp->LayoutWidth;
-		ctw*=cp->LayoutWidth;
-		cth*=cp->LayoutWidth;
-		cp=cp->Parent;
-	}
-
-	p=SupremeViewedPanel;
-	csx=(sx-p->ViewedX)/p->ViewedWidth;
-	csy=(sy-p->ViewedY)*CurrentPixelTallness/p->ViewedWidth;
-	csw=sw/p->ViewedWidth;
-	csh=sh*CurrentPixelTallness/p->ViewedWidth;
-	while (p!=cp) {
-		csx=p->LayoutX+csx*p->LayoutWidth;
-		csy=p->LayoutY+csy*p->LayoutWidth;
-		csw*=p->LayoutWidth;
-		csh*=p->LayoutWidth;
-		p=p->Parent;
-	}
-
-	if (ctw*sw>=maxvw*csw) vw=maxvw;
-	else if (ctw*sw<=minvw*csw) vw=minvw;
-	else vw=ctw/csw*sw;
-	vh=vw*ph/CurrentPixelTallness;
-
-	if (ctw>csw) {
-		vx=-(csx+csw*0.5-ctx)*vw;
-		if (vx<=(-sw*0.5)*ctw) vx=sx;
-		else if (vx>=(sw*0.5-vw)*ctw) vx=sx+sw-vw;
-		else vx=vx/ctw+sx+sw*0.5;
-	}
-	else {
-		vx=(ctx+ctw*0.5-csx)*sw;
-		if (vx<=vw*0.5*csw) vx=sx;
-		else if (vx>=(sw-vw*0.5)*csw) vx=sx+sw-vw;
-		else vx=vx/csw+sx-vw*0.5;
-	}
-
-	if (cth>csh) {
-		vy=-(csy+csh*0.5-cty)*vh;
-		if (vy<=(-sh*0.5)*cth) vy=sy;
-		else if (vy>=(sh*0.5-vh)*cth) vy=sy+sh-vh;
-		else vy=vy/cth+sy+sh*0.5;
-	}
-	else {
-		vy=(cty+cth*0.5-csy)*sh;
-		if (vy<=vh*0.5*csh) vy=sy;
-		else if (vy>=(sh-vh*0.5)*csh) vy=sy+sh-vh;
-		else vy=vy/csh+sy-vh*0.5;
-	}
-
-	VisitAbs(panel,vx,vy,vw,adherent,false);
 }
 
 
@@ -449,50 +449,71 @@ void emView::Visit(
 	emPanel * panel, double relX, double relY, double relA, bool adherent
 )
 {
-	if (!ProtectSeeking) AbortSeeking();
-	VisitRel(panel,relX,relY,relA,adherent,false);
+	Visit(panel->GetIdentity(), relX, relY, relA, adherent, panel->GetTitle());
 }
 
 
-void emView::VisitBy(emPanel * panel, double relX, double relY, double relA)
+void emView::Visit(
+	const char * identity, double relX, double relY, double relA,
+	bool adherent, const char * subject
+)
 {
-	if (!ProtectSeeking) AbortSeeking();
-	VisitRelBy(panel,relX,relY,relA,false);
+	VisitingVA->SetAnimParamsByCoreConfig(*CoreConfig);
+	VisitingVA->SetGoal(identity, relX, relY, relA, adherent, subject);
+	VisitingVA->Activate();
 }
 
 
-void emView::VisitLazy(emPanel * panel, bool adherent)
+void emView::Visit(emPanel * panel, bool adherent)
 {
-	if (!panel) return;
-	while (!panel->Focusable) panel=panel->Parent;
-	if (
-		panel->Viewed || (
-			!SupremeViewedPanel->Focusable &&
-			SupremeViewedPanel->GetFocusableParent()==panel
-		)
-	) {
-		if (!panel->Active || (adherent && !VisitAdherent)) {
-			VisitImmobile(panel,adherent);
-		}
-	}
-	else {
-		if (!ProtectSeeking) AbortSeeking();
-		Visit(panel,adherent);
-	}
+	Visit(panel->GetIdentity(), adherent, panel->GetTitle());
+}
+
+
+void emView::Visit(const char * identity, bool adherent, const char * subject)
+{
+	VisitingVA->SetAnimParamsByCoreConfig(*CoreConfig);
+	VisitingVA->SetGoal(identity, adherent, subject);
+	VisitingVA->Activate();
 }
 
 
 void emView::VisitFullsized(emPanel * panel, bool adherent, bool utilizeView)
 {
-	if (!ProtectSeeking) AbortSeeking();
-	VisitRel(panel,0.0,0.0,utilizeView?-1.0:0.0,adherent,false);
+	VisitFullsized(panel->GetIdentity(), adherent, utilizeView, panel->GetTitle());
 }
 
 
-void emView::VisitByFullsized(emPanel * panel)
+void emView::VisitFullsized(
+	const char * identity, bool adherent, bool utilizeView,
+	const char * subject
+)
 {
-	if (!ProtectSeeking) AbortSeeking();
-	VisitRelBy(panel,0.0,0.0,0.0,false);
+	VisitingVA->SetAnimParamsByCoreConfig(*CoreConfig);
+	VisitingVA->SetGoalFullsized(identity, adherent, utilizeView, subject);
+	VisitingVA->Activate();
+}
+
+
+void emView::RawVisit(emPanel * panel, double relX, double relY, double relA)
+{
+	RawVisit(panel,relX,relY,relA,false);
+}
+
+
+void emView::RawVisit(emPanel * panel)
+{
+	double relX,relY,relA;
+
+	if (!panel) return;
+	CalcVisitCoords(panel,&relX,&relY,&relA);
+	RawVisit(panel,relX,relY,relA);
+}
+
+
+void emView::RawVisitFullsized(emPanel * panel, bool utilizeView)
+{
+	RawVisit(panel,0.0,0.0,utilizeView?-1.0:0.0);
 }
 
 
@@ -500,7 +521,6 @@ void emView::VisitNext()
 {
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
 	p=ActivePanel;
 	if (p) {
 		p=p->GetFocusableNext();
@@ -518,7 +538,6 @@ void emView::VisitPrev()
 {
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
 	p=ActivePanel;
 	if (p) {
 		p=p->GetFocusablePrev();
@@ -536,7 +555,6 @@ void emView::VisitFirst()
 {
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
 	if (ActivePanel) {
 		p=ActivePanel->GetFocusableParent();
 		if (p) p=p->GetFocusableFirstChild();
@@ -550,7 +568,6 @@ void emView::VisitLast()
 {
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
 	if (ActivePanel) {
 		p=ActivePanel->GetFocusableParent();
 		if (p) p=p->GetFocusableLastChild();
@@ -589,7 +606,6 @@ void emView::VisitNeighbour(int direction)
 	emPanel * p, * n, * current, * parent, * best;
 	double cx1,cy1,cx2,cy2,nx1,ny1,nx2,ny2,dx,dy,d,e,fx,fy,f,bestVal,val,defdx;
 
-	if (!ProtectSeeking) AbortSeeking();
 	direction&=3;
 	current=ActivePanel;
 	if (!current) return;
@@ -679,7 +695,6 @@ void emView::VisitIn()
 {
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
 	if (!ActivePanel) return;
 	p=ActivePanel->GetFocusableFirstChild();
 	if (p) Visit(p,true);
@@ -689,146 +704,17 @@ void emView::VisitIn()
 
 void emView::VisitOut()
 {
+	double relA,relA2;
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
 	if (!ActivePanel) return;
 	p=ActivePanel->GetFocusableParent();
 	if (p) Visit(p,true);
-	else {
-		ZoomOut();
-		VisitImmobile(RootPanel,true);
-	}
-}
-
-
-void emView::Seek(const char * identity, bool adherent, const char * subject)
-{
-	emPanel * p;
-
-	AbortSeeking();
-	p=GetPanelByIdentity(identity);
-	if (p) {
-		Visit(p,adherent);
-		return;
-	}
-	if (!subject) subject="";
-	SeekEngine=new SeekEngineClass(*this,1,identity,0.0,0.0,0.0,adherent,subject);
-}
-
-
-void emView::Seek(
-	const char * identity, double relX, double relY, double relA,
-	bool adherent, const char * subject
-)
-{
-	emPanel * p;
-
-	AbortSeeking();
-	p=GetPanelByIdentity(identity);
-	if (p) {
-		Visit(p,relX,relY,relA,adherent);
-		return;
-	}
-	if (!subject) subject="";
-	SeekEngine=new SeekEngineClass(*this,2,identity,relX,relY,relA,adherent,subject);
-}
-
-
-void emView::SeekBy(
-	const char * identity, double relX, double relY, double relA,
-	const char * subject
-)
-{
-	emPanel * p;
-
-	AbortSeeking();
-	p=GetPanelByIdentity(identity);
-	if (p) {
-		VisitBy(p,relX,relY,relA);
-		return;
-	}
-	if (!subject) subject="";
-	SeekEngine=new SeekEngineClass(*this,3,identity,relX,relY,relA,false,subject);
-}
-
-
-void emView::SeekLazy(
-	const char * identity, bool adherent, const char * subject
-)
-{
-	emPanel * p;
-
-	AbortSeeking();
-	p=GetPanelByIdentity(identity);
-	if (p) {
-		VisitLazy(p,adherent);
-		return;
-	}
-	if (!subject) subject="";
-	SeekEngine=new SeekEngineClass(*this,4,identity,0.0,0.0,0.0,adherent,subject);
-}
-
-
-void emView::SeekFullsized(
-	const char * identity, bool adherent, const char * subject
-)
-{
-	emPanel * p;
-
-	AbortSeeking();
-	p=GetPanelByIdentity(identity);
-	if (p) {
-		VisitFullsized(p,adherent);
-		return;
-	}
-	if (!subject) subject="";
-	SeekEngine=new SeekEngineClass(*this,5,identity,0.0,0.0,0.0,adherent,subject);
-}
-
-
-void emView::SeekByFullsized(const char * identity, const char * subject)
-{
-	emPanel * p;
-
-	AbortSeeking();
-	p=GetPanelByIdentity(identity);
-	if (p) {
-		VisitByFullsized(p);
-		return;
-	}
-	if (!subject) subject="";
-	SeekEngine=new SeekEngineClass(*this,6,identity,0.0,0.0,0.0,false,subject);
-}
-
-
-void emView::AbortSeeking()
-{
-	if (SeekEngine) {
-		delete SeekEngine;
-		SeekEngine=NULL;
-		ProtectSeeking=0;
-		SetSeekPos(NULL,NULL);
-		InvalidatePainting();
-	}
-}
-
-
-void emView::Zoom(double fixX, double fixY, double factor)
-{
-	double rx,ry,ra,reFac;
-	emPanel * p;
-
-	if (!ProtectSeeking) AbortSeeking();
-	if (factor!=1.0 && factor>0.0) {
-		p=GetVisitedPanel(&rx,&ry,&ra);
-		if (p) {
-			reFac=1.0/factor;
-			rx+=(fixX-(HomeX+HomeWidth*0.5))*(1.0-reFac)/p->ViewedWidth;
-			ry+=(fixY-(HomeY+HomeHeight*0.5))*(1.0-reFac)/p->ViewedHeight;
-			ra*=reFac*reFac;
-			VisitRelBy(p,rx,ry,ra,true);
-		}
+	else if (RootPanel) {
+		relA=HomeWidth*RootPanel->GetHeight()/HomePixelTallness/HomeHeight;
+		relA2=HomeHeight/RootPanel->GetHeight()*HomePixelTallness/HomeWidth;
+		if (relA<relA2) relA=relA2;
+		Visit(RootPanel,0.0,0.0,relA,true);
 	}
 }
 
@@ -838,34 +724,143 @@ void emView::Scroll(double deltaX, double deltaY)
 	double rx,ry,ra;
 	emPanel * p;
 
-	if (!ProtectSeeking) AbortSeeking();
+	AbortActiveAnimator();
 	if (deltaX!=0.0 || deltaY!=0.0) {
 		p=GetVisitedPanel(&rx,&ry,&ra);
 		if (p) {
 			rx+=deltaX/p->ViewedWidth;
 			ry+=deltaY/p->ViewedHeight;
-			VisitRelBy(p,rx,ry,ra,true);
+			RawVisit(p,rx,ry,ra,true);
 		}
 	}
+	SetActivePanelBestPossible();
+}
+
+
+void emView::Zoom(double fixX, double fixY, double factor)
+{
+	double rx,ry,ra,reFac;
+	emPanel * p;
+
+	AbortActiveAnimator();
+	if (factor!=1.0 && factor>0.0) {
+		p=GetVisitedPanel(&rx,&ry,&ra);
+		if (p) {
+			reFac=1.0/factor;
+			rx+=(fixX-(HomeX+HomeWidth*0.5))*(1.0-reFac)/p->ViewedWidth;
+			ry+=(fixY-(HomeY+HomeHeight*0.5))*(1.0-reFac)/p->ViewedHeight;
+			ra*=reFac*reFac;
+			RawVisit(p,rx,ry,ra,true);
+		}
+	}
+	SetActivePanelBestPossible();
+}
+
+
+void emView::RawScrollAndZoom(
+	double fixX, double fixY,
+	double deltaX, double deltaY, double deltaZ,
+	emPanel * panel, double * pDeltaXDone,
+	double * pDeltaYDone, double * pDeltaZDone
+)
+{
+	double zflpp,hx,hy,hw,hh,hmx,hmy,pvx,pvy,pvw,pvh;
+	double rx,ry,ra,rx2,ry2,ra2,reFac;
+
+	zflpp=GetZoomFactorLogarithmPerPixel();
+
+	hx=GetHomeX();
+	hy=GetHomeY();
+	hw=GetHomeWidth();
+	hh=GetHomeHeight();
+	hmx=hx+hw*0.5;
+	hmy=hy+hh*0.5;
+
+	if (panel && panel->IsViewed()) {
+		pvx=panel->GetViewedX();
+		pvy=panel->GetViewedY();
+		pvw=panel->GetViewedWidth();
+		pvh=panel->GetViewedHeight();
+		rx = (hmx-pvx) / pvw - 0.5;
+		ry = (hmy-pvy) / pvh - 0.5;
+		ra = (hw*hh) / (pvw*pvh);
+	}
+	else {
+		panel = GetVisitedPanel(&rx,&ry,&ra);
+		if (!panel) {
+			if (pDeltaXDone) *pDeltaXDone=0.0;
+			if (pDeltaYDone) *pDeltaYDone=0.0;
+			if (pDeltaZDone) *pDeltaZDone=0.0;
+			return;
+		}
+		pvw=panel->GetViewedWidth();
+		pvh=panel->GetViewedHeight();
+	}
+
+	reFac=exp(-deltaZ*zflpp);
+	rx2 = rx + ((fixX-hmx)*(1.0-reFac) + deltaX)/pvw;
+	ry2 = ry + ((fixY-hmy)*(1.0-reFac) + deltaY)/pvh;
+	ra2 = ra * reFac*reFac;
+
+	RawVisit(panel,rx2,ry2,ra2);
+
+	if (panel->IsViewed()) {
+		pvx=panel->GetViewedX();
+		pvy=panel->GetViewedY();
+		pvw=panel->GetViewedWidth();
+		pvh=panel->GetViewedHeight();
+
+		rx2 = (hmx-pvx) / pvw - 0.5;
+		ry2 = (hmy-pvy) / pvh - 0.5;
+		ra2 = (hw*hh) / (pvw*pvh);
+		reFac = sqrt(ra2/ra);
+
+		if (pDeltaXDone) {
+			*pDeltaXDone = (rx2-rx)*pvw*reFac - (fixX-hmx)*(1.0-reFac);
+		}
+		if (pDeltaYDone) {
+			*pDeltaYDone = (ry2-ry)*pvh*reFac - (fixY-hmy)*(1.0-reFac);
+		}
+		if (pDeltaZDone) {
+			*pDeltaZDone = -log(reFac)/zflpp;
+		}
+	}
+	else {
+		if (pDeltaXDone) *pDeltaXDone = deltaX;
+		if (pDeltaYDone) *pDeltaYDone = deltaY;
+		if (pDeltaZDone) *pDeltaZDone = deltaZ;
+	}
+}
+
+
+double emView::GetZoomFactorLogarithmPerPixel()
+{
+	double x,y,w,h,r;
+	emScreen * screen;
+
+	w=GetCurrentWidth();
+	h=GetCurrentHeight();
+	if ((GetViewFlags()&emView::VF_POPUP_ZOOM)!=0) {
+		screen=GetScreen();
+		if (screen) screen->GetVisibleRect(&x,&y,&w,&h);
+	}
+	r=(w+h)*0.25;
+	if (r<1.0) r=1.0;
+	return 1.33/r;
 }
 
 
 void emView::ZoomOut()
 {
-	double relA,relA2;
+	AbortActiveAnimator();
+	RawZoomOut();
+	SetActivePanelBestPossible();
+}
 
-	if (!ProtectSeeking) AbortSeeking();
 
-	if (RootPanel) {
-		relA=HomeWidth*RootPanel->GetHeight()/HomePixelTallness/HomeHeight;
-		relA2=HomeHeight/RootPanel->GetHeight()*HomePixelTallness/HomeWidth;
-		if (relA<relA2) relA=relA2;
-		VisitRelBy(RootPanel,0.0,0.0,relA,true);
-	}
-
-	if (IsPoppedUp()) {
-		emFatalError("emView::ZoomOut: Inconsistent algorithms.");
-	}
+void emView::RawZoomOut()
+{
+	RawZoomOut(false);
 }
 
 
@@ -946,14 +941,23 @@ double emView::GetTouchEventPriority(
 }
 
 
+void emView::ActivateMagneticViewAnimator()
+{
+	if (MagneticVA) MagneticVA->Activate();
+}
+
+
+void emView::AbortActiveAnimator()
+{
+	if (ActiveAnimator) ActiveAnimator->Deactivate();
+}
+
+
 void emView::Input(emInputEvent & event, const emInputState & state)
 {
 	emPanel * p;
 
-	if (SeekEngine && !event.IsEmpty()) {
-		event.Eat();
-		AbortSeeking();
-	}
+	if (ActiveAnimator) ActiveAnimator->Input(event,state);
 
 	if (
 		fabs(state.GetMouseX()-LastMouseX)>0.1 ||
@@ -968,7 +972,7 @@ void emView::Input(emInputEvent & event, const emInputState & state)
 	p=RootPanel;
 	if (p) {
 		for (;;) {
-			p->PendingInput=p->InViewedPath;
+			p->PendingInput=true;
 			if (p->FirstChild) p=p->FirstChild;
 			else if (p->Next) p=p->Next;
 			else {
@@ -1084,7 +1088,7 @@ void emView::Paint(const emPainter & painter, emColor canvasColor)
 		PaintHighlight(painter);
 	}
 
-	if (SeekEngine) SeekEngine->Paint(painter);
+	if (ActiveAnimator) ActiveAnimator->Paint(painter);
 	if (StressTest) StressTest->PaintInfo(painter);
 }
 
@@ -1147,9 +1151,8 @@ void emView::SetGeometry(
 	double x, double y, double width, double height, double pixelTallness
 )
 {
-	double rx,ry,ra,ra2;
+	double rx,ry,ra;
 	emPanel * p;
-	bool adherent;
 
 	if (width<0.0001) width=0.0001;
 	if (height<0.0001) height=0.0001;
@@ -1162,7 +1165,7 @@ void emView::SetGeometry(
 
 	ZoomedOutBeforeSG=IsZoomedOut();
 	SettingGeometry++;
-	p=GetVisitedPanel(&rx,&ry,&ra,&adherent);
+	p=GetVisitedPanel(&rx,&ry,&ra);
 	CurrentViewPort->HomeView->HomeX=x;
 	CurrentViewPort->HomeView->HomeY=y;
 	CurrentViewPort->HomeView->HomeWidth=width;
@@ -1179,15 +1182,10 @@ void emView::SetGeometry(
 		RootPanel->Layout(0,0,1,GetHomeTallness());
 	}
 	if (ZoomedOutBeforeSG) {
-		if (RootPanel) {
-			ra=HomeWidth*RootPanel->GetHeight()/HomePixelTallness/HomeHeight;
-			ra2=HomeHeight/RootPanel->GetHeight()*HomePixelTallness/HomeWidth;
-			if (ra<ra2) ra=ra2;
-			VisitRelBy(RootPanel,0.0,0.0,ra,true);
-		}
+		RawZoomOut(true);
 	}
 	else if (p) {
-		VisitRel(p,rx,ry,ra,adherent,true);
+		RawVisit(p,rx,ry,ra,true);
 	}
 	SettingGeometry--;
 }
@@ -1242,13 +1240,13 @@ void emView::Update()
 		}
 		else if (SVPChoiceInvalid) {
 			SVPChoiceInvalid=false;
-			if (VisitedPanel) {
-				VisitAbs(
-					VisitedPanel,
-					VisitedPanel->ViewedX,
-					VisitedPanel->ViewedY,
-					VisitedPanel->ViewedWidth,
-					VisitAdherent,
+			p=GetVisitedPanel();
+			if (p) {
+				RawVisitAbs(
+					p,
+					p->ViewedX,
+					p->ViewedY,
+					p->ViewedWidth,
 					false
 				);
 			}
@@ -1279,6 +1277,125 @@ void emView::Update()
 			break;
 		}
 	}
+}
+
+
+void emView::CalcVisitCoords(
+	emPanel * panel, double * pRelX, double * pRelY, double * pRelA
+)
+{
+	static const double MIN_REL_DISTANCE=0.03;
+	static const double MIN_REL_CIRCUMFERENCE=0.05;
+	emScreen * screen;
+	emPanel * p, * cp;
+	double ph,dx,dy,sx,sy,sw,sh,minvw,maxvw,vx,vy,vw,vh;
+	double ctx,cty,ctw,cth,csx,csy,csw,csh;
+
+	ph=panel->GetHeight();
+
+	sx=CurrentX;
+	sy=CurrentY;
+	sw=CurrentWidth;
+	sh=CurrentHeight;
+	if ((VFlags&VF_POPUP_ZOOM)!=0) {
+		screen=GetScreen();
+		if (screen) {
+			screen->GetVisibleRect(&sx,&sy,&sw,&sh);
+		}
+	}
+
+	dx=emMin(
+		CurrentWidth*MIN_REL_DISTANCE,
+		CurrentHeight*MIN_REL_DISTANCE*CurrentPixelTallness
+	);
+	dy=dx/CurrentPixelTallness;
+	sx+=dx;
+	sy+=dy;
+	sw-=2*dx;
+	sh-=2*dy;
+
+	maxvw=emMin(sw,sh/ph*CurrentPixelTallness);
+	minvw=emMin(
+		(CurrentWidth+CurrentHeight)*MIN_REL_CIRCUMFERENCE/
+			(1.0+ph/CurrentPixelTallness),
+		maxvw*0.999
+	);
+
+	if (
+		panel->Viewed &&
+		panel->ViewedWidth>=minvw &&
+		panel->ViewedWidth<=maxvw &&
+		panel->ViewedX>=sx &&
+		panel->ViewedX+panel->ViewedWidth<=sx+sw &&
+		panel->ViewedY>=sy &&
+		panel->ViewedY+panel->ViewedHeight<=sy+sh
+	) {
+		if (pRelX) *pRelX=(HomeX+HomeWidth*0.5-panel->ViewedX)/panel->ViewedWidth-0.5;
+		if (pRelY) *pRelY=(HomeY+HomeHeight*0.5-panel->ViewedY)/panel->ViewedHeight-0.5;
+		if (pRelA) *pRelA=(HomeWidth*HomeHeight)/(panel->ViewedWidth*panel->ViewedHeight);
+		return;
+	}
+
+	cp=panel;
+	ctx=0.0;
+	cty=0.0;
+	ctw=1.0;
+	cth=ph;
+	while (cp!=SupremeViewedPanel && (cp->Viewed || !cp->InViewedPath)) {
+		ctx=cp->LayoutX+ctx*cp->LayoutWidth;
+		cty=cp->LayoutY+cty*cp->LayoutWidth;
+		ctw*=cp->LayoutWidth;
+		cth*=cp->LayoutWidth;
+		cp=cp->Parent;
+	}
+
+	p=SupremeViewedPanel;
+	csx=(sx-p->ViewedX)/p->ViewedWidth;
+	csy=(sy-p->ViewedY)*CurrentPixelTallness/p->ViewedWidth;
+	csw=sw/p->ViewedWidth;
+	csh=sh*CurrentPixelTallness/p->ViewedWidth;
+	while (p!=cp) {
+		csx=p->LayoutX+csx*p->LayoutWidth;
+		csy=p->LayoutY+csy*p->LayoutWidth;
+		csw*=p->LayoutWidth;
+		csh*=p->LayoutWidth;
+		p=p->Parent;
+	}
+
+	if (ctw*sw>=maxvw*csw) vw=maxvw;
+	else if (ctw*sw<=minvw*csw) vw=minvw;
+	else vw=ctw/csw*sw;
+	vh=vw*ph/CurrentPixelTallness;
+
+	if (ctw>csw) {
+		vx=-(csx+csw*0.5-ctx)*vw;
+		if (vx<=(-sw*0.5)*ctw) vx=sx;
+		else if (vx>=(sw*0.5-vw)*ctw) vx=sx+sw-vw;
+		else vx=vx/ctw+sx+sw*0.5;
+	}
+	else {
+		vx=(ctx+ctw*0.5-csx)*sw;
+		if (vx<=vw*0.5*csw) vx=sx;
+		else if (vx>=(sw-vw*0.5)*csw) vx=sx+sw-vw;
+		else vx=vx/csw+sx-vw*0.5;
+	}
+
+	if (cth>csh) {
+		vy=-(csy+csh*0.5-cty)*vh;
+		if (vy<=(-sh*0.5)*cth) vy=sy;
+		else if (vy>=(sh*0.5-vh)*cth) vy=sy+sh-vh;
+		else vy=vy/cth+sy+sh*0.5;
+	}
+	else {
+		vy=(cty+cth*0.5-csy)*sh;
+		if (vy<=vh*0.5*csh) vy=sy;
+		else if (vy>=(sh-vh*0.5)*csh) vy=sy+sh-vh;
+		else vy=vy/csh+sy-vh*0.5;
+	}
+
+	if (pRelX) *pRelX=(HomeX+HomeWidth*0.5-vx)/vw-0.5;
+	if (pRelY) *pRelY=(HomeY+HomeHeight*0.5-vy)/vh-0.5;
+	if (pRelA) *pRelA=(HomeWidth*HomeHeight)/(vw*vh);
 }
 
 
@@ -1318,85 +1435,8 @@ void emView::CalcVisitFullsizedCoords(
 }
 
 
-void emView::VisitRelBy(
+void emView::RawVisit(
 	emPanel * panel, double relX, double relY, double relA,
-	bool forceViewingUpdate
-)
-{
-	emPanel * best, * p, * oldActive;
-	double cx,cy,cw,ch,ex,ey,ew,eh,minW,minH,minA;
-	bool adherent,oldAdherent;
-
-	if (!panel) return;
-
-	oldActive=ActivePanel;
-	oldAdherent=VisitAdherent;
-	VisitRel(panel,relX,relY,relA,false,forceViewingUpdate);
-
-	cx=CurrentX;
-	cy=CurrentY;
-	cw=CurrentWidth;
-	ch=CurrentHeight;
-	if (PopupWindow) {
-		PopupWindow->GetScreen().GetVisibleRect(&ex,&ey,&ew,&eh);
-		if (ex<cx) { ew-=cx-ex; ex=cx; }
-		if (ey<cy) { eh-=cy-ey; ey=cy; }
-		if (ew>cx+cw-ex) { ew=cx+cw-ex; }
-		if (eh>cy+ch-ey) { eh=cy+ch-ey; }
-		if (ew>=10.0 && eh>=10.0) {
-			cx=ex; cy=ey;
-			cw=ew; ch=eh;
-		}
-	}
-	minW=cw*0.99;
-	minH=ch*0.99;
-	minA=cw*ch*0.33;
-	cx+=cw*0.5;
-	cy+=ch*0.5;
-	best=SupremeViewedPanel;
-	for (;;) {
-		p=best->GetFocusableLastChild();
-		if (!p) break;
-		do {
-			if (
-				p->Viewed &&
-				p->ClipX1<=cx && p->ClipX2>cx &&
-				p->ClipY1<=cy && p->ClipY2>cy
-			) break;
-			p=p->GetFocusablePrev();
-		} while(p);
-		if (!p) break;
-		if (
-			p->ClipX2-p->ClipX1<minW &&
-			p->ClipY2-p->ClipY1<minH &&
-			(p->ClipX2-p->ClipX1)*(p->ClipY2-p->ClipY1)<minA
-		) break;
-		best=p;
-	}
-	while (!best->Focusable) best=best->Parent;
-	adherent=false;
-	if (
-		oldAdherent &&
-		oldActive &&
-		oldActive->Viewed &&
-		oldActive->ViewedWidth>=4 &&
-		oldActive->ViewedHeight>=4
-	) {
-		for (p=oldActive; p; p=p->Parent) {
-			if (p==best) {
-				best=oldActive;
-				adherent=true;
-				break;
-			}
-		}
-	}
-
-	VisitImmobile(best,adherent);
-}
-
-
-void emView::VisitRel(
-	emPanel * panel, double relX, double relY, double relA, bool adherent,
 	bool forceViewingUpdate
 )
 {
@@ -1408,12 +1448,12 @@ void emView::VisitRel(
 	vh=vw*panel->GetHeight()/HomePixelTallness;
 	vx=HomeX+HomeWidth*0.5-(relX+0.5)*vw;
 	vy=HomeY+HomeHeight*0.5-(relY+0.5)*vh;
-	VisitAbs(panel,vx,vy,vw,adherent,forceViewingUpdate);
+	RawVisitAbs(panel,vx,vy,vw,forceViewingUpdate);
 }
 
 
-void emView::VisitAbs(
-	emPanel * panel, double vx, double vy, double vw, bool adherent,
+void emView::RawVisitAbs(
+	emPanel * panel, double vx, double vy, double vw,
 	bool forceViewingUpdate
 )
 {
@@ -1455,8 +1495,9 @@ void emView::VisitAbs(
 		vp=p;
 	}
 
+	vh=vp->GetHeight()*vw/HomePixelTallness;
+
 	if (vp==RootPanel) {
-		vh=vp->GetHeight()*vw/HomePixelTallness;
 		if (vw<HomeWidth && vh<HomeHeight) {
 			vx=(HomeX+HomeWidth*0.5-vx)/vw;
 			vy=(HomeY+HomeHeight*0.5-vy)/vh;
@@ -1494,26 +1535,31 @@ void emView::VisitAbs(
 		if (vx<x2-vw) vx=x2-vw;
 		if (vy>y1) vy=y1;
 		if (vy<y2-vh) vy=y2-vh;
+	}
 
-		if ((VFlags&VF_POPUP_ZOOM)!=0) {
-			if (vx<HomeX-0.1 || vx+vw>HomeX+HomeWidth+0.1 ||
-			    vy<HomeY-0.1 || vy+vh>HomeY+HomeHeight+0.1) {
-				if (!PopupWindow) {
-					wasFocused=Focused;
-					PopupWindow=new emWindow(
-						*this,
-						0,
-						emWindow::WF_POPUP,
-						"emViewPopup"
-					);
-					GotPopupWindowCloseSignal=false;
-					UpdateEngine->AddWakeUpSignal(PopupWindow->GetCloseSignal());
-					PopupWindow->SetBackgroundColor(GetBackgroundColor());
-					SwapViewPorts(true);
-					if (wasFocused && !Focused) CurrentViewPort->RequestFocus();
-				}
-				sw=PopupWindow->GetScreen().GetWidth();
-				sh=PopupWindow->GetScreen().GetHeight();
+	if ((VFlags&VF_POPUP_ZOOM)!=0) {
+		if (
+			vp!=RootPanel ||
+			vx<HomeX-0.1 || vx+vw>HomeX+HomeWidth+0.1 ||
+			vy<HomeY-0.1 || vy+vh>HomeY+HomeHeight+0.1
+		) {
+			if (!PopupWindow) {
+				wasFocused=Focused;
+				PopupWindow=new emWindow(
+					*this,
+					0,
+					emWindow::WF_POPUP,
+					"emViewPopup"
+				);
+				GotPopupWindowCloseSignal=false;
+				UpdateEngine->AddWakeUpSignal(PopupWindow->GetCloseSignal());
+				PopupWindow->SetBackgroundColor(GetBackgroundColor());
+				SwapViewPorts(true);
+				if (wasFocused && !Focused) CurrentViewPort->RequestFocus();
+			}
+			sw=PopupWindow->GetScreen().GetWidth();
+			sh=PopupWindow->GetScreen().GetHeight();
+			if (vp==RootPanel) {
 				x1=floor(vx);
 				y1=floor(vy);
 				x2=ceil(vx+vw);
@@ -1524,24 +1570,32 @@ void emView::VisitAbs(
 				if (y2>sh) y2=sh;
 				if (x2<x1+1.0) x2=x1+1.0;
 				if (y2<y1+1.0) y2=y1+1.0;
-				if (fabs(x1-CurrentX)>0.01 || fabs(x2-CurrentX-CurrentWidth)>0.01 ||
-				    fabs(y1-CurrentY)>0.01 || fabs(y2-CurrentY-CurrentHeight)>0.01) {
-					SwapViewPorts(false);
-					PopupWindow->SetViewPosSize(x1,y1,x2-x1,y2-y1);
-					SwapViewPorts(false);
-					forceViewingUpdate=true;
-				}
 			}
-			else if (PopupWindow) {
-				wasFocused=Focused;
-				SwapViewPorts(true);
-				delete PopupWindow;
-				PopupWindow=NULL;
-				Signal(GeometrySignal);
+			else {
+				x1=0.0;
+				y1=0.0;
+				x2=sw;
+				y2=sh;
+			}
+			if (
+				fabs(x1-CurrentX)>0.01 || fabs(x2-CurrentX-CurrentWidth)>0.01 ||
+				fabs(y1-CurrentY)>0.01 || fabs(y2-CurrentY-CurrentHeight)>0.01
+			) {
+				SwapViewPorts(false);
+				PopupWindow->SetViewPosSize(x1,y1,x2-x1,y2-y1);
+				SwapViewPorts(false);
 				forceViewingUpdate=true;
-				if (wasFocused && !Focused && !GotPopupWindowCloseSignal) {
-					CurrentViewPort->RequestFocus();
-				}
+			}
+		}
+		else if (PopupWindow) {
+			wasFocused=Focused;
+			SwapViewPorts(true);
+			delete PopupWindow;
+			PopupWindow=NULL;
+			Signal(GeometrySignal);
+			forceViewingUpdate=true;
+			if (wasFocused && !Focused && !GotPopupWindowCloseSignal) {
+				CurrentViewPort->RequestFocus();
 			}
 		}
 	}
@@ -1671,109 +1725,22 @@ void emView::VisitAbs(
 		UpdateEngine->WakeUp();
 		InvalidatePainting();
 	}
-
-	VisitImmobile(panel,adherent);
 }
 
 
-void emView::VisitImmobile(emPanel * panel, bool adherent)
+void emView::RawZoomOut(bool forceViewingUpdate)
 {
-	emPanel::NoticeFlags flags;
-	emPanel * p, * vp, * ap;
-	bool apChanged,vpChanged,adherentChanged;
+	double relA,relA2;
 
-	if (!panel) return;
-
-	while (!panel->Focusable) panel=panel->Parent;
-	if (panel->Viewed) {
-		ap=panel;
-		vp=panel;
-	}
-	else if (panel->InViewedPath) {
-		vp=SupremeViewedPanel;
-		ap=vp;
-		while (!ap->Focusable) ap=ap->Parent;
-		if (panel!=ap) adherent=false;
-	}
-	else {
-		for (;;) {
-			panel=panel->Parent;
-			if (!panel) {
-				vp=SupremeViewedPanel;
-				ap=vp;
-				while (!ap->Focusable) ap=ap->Parent;
-				break;
-			}
-			if (panel->Viewed && panel->Focusable) {
-				ap=panel;
-				vp=panel;
-				break;
-			}
-		}
-		adherent=false;
+	if (RootPanel) {
+		relA=HomeWidth*RootPanel->GetHeight()/HomePixelTallness/HomeHeight;
+		relA2=HomeHeight/RootPanel->GetHeight()*HomePixelTallness/HomeWidth;
+		if (relA<relA2) relA=relA2;
+		RawVisit(RootPanel,0.0,0.0,relA,forceViewingUpdate);
 	}
 
-	vpChanged = (VisitedPanel!=vp);
-	apChanged = (ActivePanel!=ap);
-	adherentChanged = (VisitAdherent!=adherent);
-
-	if (apChanged && ActivePanel) InvalidateHighlight();
-
-	if (vpChanged) {
-		if (VisitedPanel) {
-			p=VisitedPanel;
-			p->Visited=0;
-			do {
-				p->InVisitedPath=0;
-				p->AddPendingNotice(emPanel::NF_VISIT_CHANGED);
-				p=p->Parent;
-			} while (p);
-		}
-		VisitedPanel=p=vp;
-		p->Visited=1;
-		do {
-			p->InVisitedPath=1;
-			p->AddPendingNotice(emPanel::NF_VISIT_CHANGED);
-			p=p->Parent;
-		} while (p);
-	}
-
-	if (apChanged) {
-		if (emIsDLogEnabled()) {
-			emDLog("emView %p: Active=\"%s\"",this,ap->GetIdentity().Get());
-		}
-		flags=emPanel::NF_ACTIVE_CHANGED;
-		if (Focused) flags|=emPanel::NF_FOCUS_CHANGED;
-		if (ActivePanel) {
-			p=ActivePanel;
-			p->Active=0;
-			do {
-				p->InActivePath=0;
-				p->AddPendingNotice(flags);
-				p=p->Parent;
-			} while (p);
-		}
-		ActivePanel=p=ap;
-		p->Active=1;
-		do {
-			p->InActivePath=1;
-			p->AddPendingNotice(flags);
-			p=p->Parent;
-		} while (p);
-	}
-
-	if (adherentChanged) {
-		VisitAdherent=adherent;
-	}
-
-	if (apChanged || adherentChanged) {
-		InvalidateHighlight();
-	}
-
-	if (apChanged) {
-		TitleInvalid=true;
-		UpdateEngine->WakeUp();
-		Signal(ControlPanelSignal);
+	if (IsPoppedUp()) {
+		emFatalError("emView::RawZoomOut: Inconsistent algorithms.");
 	}
 }
 
@@ -1951,29 +1918,27 @@ void emView::SwapViewPorts(bool swapFocus)
 }
 
 
-void emView::RecurseInput(
-	emInputEvent & event, const emInputState & state
-)
+void emView::RecurseInput(emInputEvent & event, const emInputState & state)
 {
-	emPanel * p;
-	emInputEvent * e;
-	double mx, my, tx, ty;
+	double mx,my,tx,ty;
+	emInputEvent * ebase, * e;
+	emPanel * panel, * child;
 
-	p=SupremeViewedPanel;
-	if (!p) return;
+	panel=SupremeViewedPanel;
+	if (!panel) return;
 
 	NoEvent.Eat();
 
-	e=&event;
+	ebase=&event;
 
 	mx=state.GetMouseX();
 	my=state.GetMouseY();
-	if (e->IsMouseEvent()) {
-		if (mx<p->ClipX1 || mx>=p->ClipX2 ||
-		    my<p->ClipY1 || my>=p->ClipY2) e=&NoEvent;
+	if (ebase->IsMouseEvent()) {
+		if (mx<panel->ClipX1 || mx>=panel->ClipX2 ||
+		    my<panel->ClipY1 || my>=panel->ClipY2) ebase=&NoEvent;
 	}
-	mx=(mx-p->ViewedX)/p->ViewedWidth;
-	my=(my-p->ViewedY)/p->ViewedWidth*CurrentPixelTallness;
+	mx=(mx-panel->ViewedX)/panel->ViewedWidth;
+	my=(my-panel->ViewedY)/panel->ViewedWidth*CurrentPixelTallness;
 
 	if (state.GetTouchCount()>0) {
 		tx=state.GetTouchX(0);
@@ -1983,92 +1948,106 @@ void emView::RecurseInput(
 		tx=state.GetMouseX();
 		ty=state.GetMouseY();
 	}
-	if (e->IsTouchEvent()) {
-		if (tx<p->ClipX1 || tx>=p->ClipX2 ||
-		    ty<p->ClipY1 || ty>=p->ClipY2) e=&NoEvent;
+	if (ebase->IsTouchEvent()) {
+		if (tx<panel->ClipX1 || tx>=panel->ClipX2 ||
+		    ty<panel->ClipY1 || ty>=panel->ClipY2) ebase=&NoEvent;
 	}
-	tx=(tx-p->ViewedX)/p->ViewedWidth;
-	ty=(ty-p->ViewedY)/p->ViewedWidth*CurrentPixelTallness;
-
-	if (p->PendingInput && p->LastChild) {
-		RecurseChildrenInput(p,mx,my,tx,ty,*e,state);
-		if (RestartInputRecursion) return;
-	}
+	tx=(tx-panel->ViewedX)/panel->ViewedWidth;
+	ty=(ty-panel->ViewedY)/panel->ViewedWidth*CurrentPixelTallness;
 
 	for (;;) {
-		if (p->PendingInput) {
-			p->PendingInput=0;
-			if (
-				(
-					e->IsMouseEvent() &&
-					mx>=0.0 && mx<1.0 && my>=0.0 && my<p->GetHeight()
-				) ||
-				(
-					e->IsTouchEvent() &&
-					tx>=0.0 && tx<1.0 && ty>=0.0 && ty<p->GetHeight()
-				) ||
-				(
-					p->InActivePath && e->IsKeyboardEvent()
-				)
-			) {
-				p->Input(*e,state,mx,my);
+		if (panel->PendingInput) {
+			e=ebase;
+			if (!e->IsEmpty()) {
+				if (e->IsMouseEvent()) {
+					if (mx<0.0 || mx>=1.0 || my<0.0 || my>=panel->GetHeight()) {
+						e=&NoEvent;
+					}
+				}
+				else if (e->IsTouchEvent()) {
+					if (tx<0.0 || tx>=1.0 || ty<0.0 || ty>=panel->GetHeight()) {
+						e=&NoEvent;
+					}
+				}
+				else if (e->IsKeyboardEvent()) {
+					if (!panel->InActivePath) {
+						e=&NoEvent;
+					}
+				}
 			}
-			else {
-				p->Input(NoEvent,state,mx,my);
+			for (child=panel->LastChild; child; child=child->Prev) {
+				RecurseInput(child,*e,state);
+				if (RestartInputRecursion) return;
 			}
+			panel->PendingInput=0;
+			panel->Input(*e,state,mx,my);
 			if (RestartInputRecursion) return;
 		}
-		if (!p->Parent) break;
-		mx=mx*p->LayoutWidth+p->LayoutX;
-		my=my*p->LayoutWidth+p->LayoutY;
-		tx=tx*p->LayoutWidth+p->LayoutX;
-		ty=ty*p->LayoutWidth+p->LayoutY;
-		p=p->Parent;
+		if (!panel->Parent) break;
+		mx=mx*panel->LayoutWidth+panel->LayoutX;
+		my=my*panel->LayoutWidth+panel->LayoutY;
+		tx=tx*panel->LayoutWidth+panel->LayoutX;
+		ty=ty*panel->LayoutWidth+panel->LayoutY;
+		panel=panel->Parent;
 	}
 }
 
 
-void emView::RecurseChildrenInput(
-	emPanel * parent, double mx, double my, double tx, double ty,
-	emInputEvent & event, const emInputState & state
+void emView::RecurseInput(
+	emPanel * panel, emInputEvent & event, const emInputState & state
 )
 {
-	emPanel * p;
+	double mx,my,tx,ty;
 	emInputEvent * e;
-	double cmx,cmy,ctx,cty;
+	emPanel * child;
 
-	for (p=parent->LastChild; p; p=p->Prev) {
-		if (!p->PendingInput || !p->InViewedPath) continue;
-		cmx=(mx-p->LayoutX)/p->LayoutWidth;
-		cmy=(my-p->LayoutY)/p->LayoutWidth;
-		ctx=(tx-p->LayoutX)/p->LayoutWidth;
-		cty=(ty-p->LayoutY)/p->LayoutWidth;
-		if (
-			(
-				event.IsMouseEvent() &&
-				cmx>=0.0 && cmx<1.0 && cmy>=0.0 && cmy<p->GetHeight()
-			) ||
-			(
-				event.IsTouchEvent() &&
-				ctx>=0.0 && ctx<1.0 && cty>=0.0 && cty<p->GetHeight()
-			) ||
-			(
-				p->InActivePath && event.IsKeyboardEvent()
-			)
-		) {
-			e=&event;
+	if (!panel->PendingInput) return;
+
+	if (panel->Viewed) {
+		mx=(state.GetMouseX()-panel->ViewedX)/panel->ViewedWidth;
+		my=(state.GetMouseY()-panel->ViewedY)/panel->ViewedWidth*CurrentPixelTallness;
+		if (state.GetTouchCount()>0) {
+			tx=(state.GetTouchX(0)-panel->ViewedX)/panel->ViewedWidth;
+			ty=(state.GetTouchY(0)-panel->ViewedY)/panel->ViewedWidth*CurrentPixelTallness;
 		}
 		else {
-			e=&NoEvent;
+			tx=mx;
+			ty=my;
 		}
-		if (p->LastChild) {
-			RecurseChildrenInput(p,cmx,cmy,ctx,cty,*e,state);
-			if (RestartInputRecursion) return;
+	}
+	else {
+		mx=-1.0;
+		my=-1.0;
+		tx=-1.0;
+		ty=-1.0;
+	}
+
+	e=&event;
+	if (!e->IsEmpty()) {
+		if (e->IsMouseEvent()) {
+			if (mx<0.0 || mx>=1.0 || my<0.0 || my>=panel->GetHeight()) {
+				e=&NoEvent;
+			}
 		}
-		p->PendingInput=0;
-		p->Input(*e,state,cmx,cmy);
+		else if (e->IsTouchEvent()) {
+			if (tx<0.0 || tx>=1.0 || ty<0.0 || ty>=panel->GetHeight()) {
+				e=&NoEvent;
+			}
+		}
+		else if (e->IsKeyboardEvent()) {
+			if (!panel->InActivePath) {
+				e=&NoEvent;
+			}
+		}
+	}
+
+	for (child=panel->LastChild; child; child=child->Prev) {
+		RecurseInput(child,*e,state);
 		if (RestartInputRecursion) return;
 	}
+
+	panel->PendingInput=0;
+	panel->Input(*e,state,mx,my);
 }
 
 
@@ -2122,7 +2101,7 @@ void emView::PaintHighlight(const emPainter & painter)
 	if (x1>=cx2 || x2<=cx1 || y1>=cy2 || y2<=cy1) return;
 
 	shadowColor=emColor(0,0,0,192);
-	if (VisitAdherent) arrowColor=adherentHighlightColor;
+	if (ActivationAdherent) arrowColor=adherentHighlightColor;
 	else arrowColor=highlightColor;
 	if (!Focused || (VFlags&VF_NO_FOCUS_HIGHLIGHT)!=0) {
 		shadowColor.SetAlpha((emByte)(shadowColor.GetAlpha()/3));
@@ -2243,15 +2222,6 @@ bool emView::IsHopeForSeeking()
 }
 
 
-void emView::SetActivationCandidate(emPanel * panel)
-{
-	if (ActivationCandidate==panel) return;
-	ActivationCandidate=panel;
-	if (!ActivationEngine) ActivationEngine=new ActivationEngineClass(*this);
-	ActivationEngine->WakeUp();
-}
-
-
 emView::UpdateEngineClass::UpdateEngineClass(emView & view)
 	: emEngine(view.GetScheduler()), View(view)
 {
@@ -2262,22 +2232,6 @@ emView::UpdateEngineClass::UpdateEngineClass(emView & view)
 bool emView::UpdateEngineClass::Cycle()
 {
 	View.Update();
-	return false;
-}
-
-
-emView::ActivationEngineClass::ActivationEngineClass(emView & view)
-	: emEngine(view.GetScheduler()), View(view)
-{
-	SetEnginePriority(emEngine::VERY_LOW_PRIORITY);
-}
-
-
-bool emView::ActivationEngineClass::Cycle()
-{
-	if (View.ActivationCandidate) {
-		View.VisitLazy(View.ActivationCandidate,true);
-	}
 	return false;
 }
 
@@ -2298,214 +2252,6 @@ bool emView::EOIEngineClass::Cycle()
 	View.EOIEngine=NULL;
 	delete this;
 	return false;
-}
-
-
-emView::SeekEngineClass::SeekEngineClass(
-	emView & view, int seekType, const emString & identity,
-	double relX, double relY, double relA, bool adherent,
-	const emString & subject
-)
-	: emEngine(view.GetScheduler()), View(view)
-{
-	SeekType=seekType;
-	Identity=identity;
-	RelX=relX;
-	RelY=relY;
-	RelA=relA;
-	Adherent=adherent;
-	Subject=subject;
-	Names=emPanel::DecodeIdentity(Identity);
-	TimeSlicesWithoutHope=0;
-	GiveUp=false;
-	GiveUpClock=0;
-	WakeUp();
-}
-
-
-emView::SeekEngineClass::~SeekEngineClass()
-{
-}
-
-
-void emView::SeekEngineClass::Paint(const emPainter & painter)
-{
-	double f,x,y,w,h,ws,tw,ch;
-	emString str;
-	int l1,l2;
-
-	w=emMin(emMax(View.CurrentWidth,View.CurrentHeight)*0.6,View.CurrentWidth);
-	h=w*0.25;
-	f=View.CurrentHeight*0.8/h;
-	if (f<1.0) { w*=f; h*=f; }
-	x=View.CurrentX+(View.CurrentWidth-w)*0.5;
-	y=emMax(View.CurrentY+View.CurrentHeight*0.5-h*1.25,View.CurrentY);
-
-	painter.PaintRoundRect(
-		x+w*0.03,y+w*0.03,
-		w,h,
-		h*0.2,h*0.2,
-		emColor(0,0,0,160)
-	);
-	painter.PaintRoundRect(
-		x,y,
-		w,h,
-		h*0.2,h*0.2,
-		emColor(34,102,153,208)
-	);
-	painter.PaintRoundRectOutline(
-		x+h*0.03,y+h*0.03,
-		w-h*0.06,h-h*0.06,
-		h*0.2-h*0.06*0.5,h*0.2-h*0.06*0.5,
-		h*0.02,
-		emColor(221,221,221)
-	);
-
-	x+=h*0.2;
-	y+=h*0.1;
-	w-=h*0.4;
-	h-=h*0.2;
-
-	if (GiveUp) {
-		painter.PaintTextBoxed(
-			x,y,w,h,
-			"Not found",
-			h*0.6,
-			emColor(255,136,136),
-			0,
-			EM_ALIGN_CENTER,
-			EM_ALIGN_LEFT,
-			0.8
-		);
-		return;
-	}
-
-	str="Seeking";
-	if (!Subject.IsEmpty()) {
-		str+=" for ";
-		str+=Subject;
-	}
-	painter.PaintTextBoxed(
-		x,y,w,h*0.4,
-		str,
-		h,
-		emColor(221,221,221),
-		0,
-		EM_ALIGN_CENTER,
-		EM_ALIGN_LEFT,
-		0.8
-	);
-
-	painter.PaintTextBoxed(
-		x,y+h*0.8,w,h*0.2,
-		"Press any keyboard key or mouse button to abort.",
-		h,
-		emColor(221,221,221),
-		0,
-		EM_ALIGN_CENTER,
-		EM_ALIGN_LEFT,
-		0.8
-	);
-
-	y+=h*0.5;
-	h*=0.2;
-	if (View.SeekPosPanel) str=View.SeekPosPanel->GetIdentity();
-	else str="";
-	l1=strlen(str);
-	l2=strlen(Identity);
-	if (l1>l2) l1=l2;
-	tw=painter.GetTextSize(Identity,h,false);
-	ws=1.0;
-	if (tw>w) { ws=w/tw; tw=w; }
-	ch=h;
-	if (ws<0.5) { ch*=ws/0.5; ws=0.5; }
-	painter.PaintRect(
-		x+(w-tw)*0.5,y,tw*l1/l2,h,
-		emColor(136,255,136,80)
-	);
-	painter.PaintRect(
-		x+(w-tw)*0.5+tw*l1/l2,y,tw*(l2-l1)/l2,h,
-		emColor(136,136,136,80)
-	);
-	painter.PaintText(
-		x+(w-tw)*0.5,y+(h-ch)*0.5,
-		Identity,ch,ws,emColor(136,255,136),0,l1
-	);
-	painter.PaintText(
-		x+(w-tw)*0.5+tw*l1/l2,y+(h-ch)*0.5,
-		Identity.Get()+l1,ch,ws,emColor(136,136,136),0,l2-l1
-	);
-}
-
-
-bool emView::SeekEngineClass::Cycle()
-{
-	emPanel * p, * c;
-	int i;
-
-	if (GiveUp) {
-		if (emGetClockMS()<GiveUpClock+1500) return true;
-		View.AbortSeeking(); // deletes this
-		return false;
-	}
-	p=View.RootPanel;
-	if (!p || Names.GetCount()<1 || Names[0]!=p->GetName()) {
-		GiveUp=true;
-		GiveUpClock=emGetClockMS();
-		View.InvalidatePainting();
-		return true;
-	}
-	for (i=1; i<Names.GetCount(); i++) {
-		c=p->GetChild(Names[i]);
-		if (!c) break;
-		p=c;
-	}
-	if (i>=Names.GetCount()) {
-		View.ProtectSeeking++;
-		switch (SeekType) {
-		case 1:
-			View.Visit(p,Adherent);
-			break;
-		case 2:
-			View.Visit(p,RelX,RelY,RelA,Adherent);
-			break;
-		case 3:
-			View.VisitBy(p,RelX,RelY,RelA);
-			break;
-		case 4:
-			View.VisitLazy(p,Adherent);
-			break;
-		case 5:
-			View.VisitFullsized(p,Adherent);
-			break;
-		case 6:
-			View.VisitByFullsized(p);
-			break;
-		}
-		View.ProtectSeeking--;
-		View.AbortSeeking(); // deletes this
-		return false;
-	}
-	else if (View.SeekPosPanel!=p) {
-		View.ProtectSeeking++;
-		View.SetSeekPos(p,Names[i]);
-		View.VisitFullsized(p,false);
-		View.InvalidatePainting();
-		View.ProtectSeeking--;
-		TimeSlicesWithoutHope=4;
-	}
-	else if (View.IsHopeForSeeking()) {
-		TimeSlicesWithoutHope=0;
-	}
-	else {
-		TimeSlicesWithoutHope++;
-		if (TimeSlicesWithoutHope>10) {
-			GiveUp=true;
-			GiveUpClock=emGetClockMS();
-			View.InvalidatePainting();
-		}
-	}
-	return true;
 }
 
 
@@ -2607,7 +2353,7 @@ emViewPort::~emViewPort()
 		}
 		if (HomeView!=CurrentView) {
 			if (HomeView->PopupWindow) {
-				HomeView->ZoomOut();
+				HomeView->RawZoomOut();
 			}
 			else {
 				emFatalError(

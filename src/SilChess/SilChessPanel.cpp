@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -377,7 +377,7 @@ void SilChessPanel::PrepareRendering(bool viewingChanged)
 	ImgY2=GetClipY2();
 
 	if (!IsViewed() || !IsVFSGood() || ImgX1>=ImgX2-2 || ImgY1>=ImgY2-2) {
-		Image.Empty();
+		Image.Clear();
 		ImageGood=false;
 		EssenceX=0.0;
 		EssenceY=0.0;

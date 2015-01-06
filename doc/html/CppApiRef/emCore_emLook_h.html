@@ -1,0 +1,230 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emLook.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emLook_h.html#emLook">emLook</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emLook_h
+#define emLook_h
+
+#ifndef emPanel_h
+#include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
+#endif
+
+
+<A NAME="emLook"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=================================== <A CLASS=m HREF="emCore_emLook_h.html#emLook">emLook</A> ===================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for the look of toolkit panels. Currently, the look consists of
+        // a set of colors only. Objects of this class have copy-on-write
+        // behavior.
+
+        </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>();
+                <SPAN CLASS=c>// Construct a default look.
+
+        </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look);
+                <SPAN CLASS=c>// Construct a copied look.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look);
+                <SPAN CLASS=c>// Copy a look.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compare two looks.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Apply(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>bool </SPAN>recursively) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Apply this look to a panel or to all panels in a sub-tree.
+                // Applying actually works for panels of class <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A> and
+                // its derivatives only, but the recursion is not stopped by
+                // other panel classes. However, the recursion can be stopped by
+                // an overloaded implementation of <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::SetLook.
+                // Arguments:
+                //   panel       - The panel.
+                //   recursively - Whether to recurse ancestor panels.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetFgColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> bgColor);
+        <SPAN CLASS=t>void </SPAN>SetFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> fgColor);
+                <SPAN CLASS=c>// Get/set back- and foreground colors of borders, labels,
+                // groups and similar things.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetButtonBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetButtonFgColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetButtonBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> buttonBgColor);
+        <SPAN CLASS=t>void </SPAN>SetButtonFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> buttonFgColor);
+                <SPAN CLASS=c>// Get/set back- and foreground colors of button faces.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInputBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInputFgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInputHlColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetInputBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> inputBgColor);
+        <SPAN CLASS=t>void </SPAN>SetInputFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> inputFgColor);
+        <SPAN CLASS=t>void </SPAN>SetInputHlColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> inputHlColor);
+                <SPAN CLASS=c>// Get/set background, foreground and highlight (=selection)
+                // colors of editable data fields.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetOutputBgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetOutputFgColor() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetOutputHlColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetOutputBgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> outputBgColor);
+        <SPAN CLASS=t>void </SPAN>SetOutputFgColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> outputFgColor);
+        <SPAN CLASS=t>void </SPAN>SetOutputHlColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> outputHlColor);
+                <SPAN CLASS=c>// Get/set background, foreground and highlight (=selection)
+                // colors of read-only data fields.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the internal data of this object.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the look to another
+                // thread.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>DeleteData();
+        <SPAN CLASS=t>void </SPAN>MakeWritable();
+
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN>SharedData();
+                SharedData(<SPAN CLASS=t>const </SPAN>SharedData &amp; sd);
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> BgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> FgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> ButtonBgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> ButtonFgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InputBgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InputFgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InputHlColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> OutputBgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> OutputFgColor;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> OutputHlColor;
+        <SPAN CLASS=b>}</SPAN>;
+
+        SharedData * Data;
+
+        <SPAN CLASS=t>static </SPAN>SharedData DefaultData;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::<A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>()
+<SPAN CLASS=b>{
+        </SPAN>Data=&amp;DefaultData;
+<SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#endif
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::<A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look)
+<SPAN CLASS=b>{
+        </SPAN>Data=look.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::~<A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look)
+<SPAN CLASS=b>{
+        </SPAN>look.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=look.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> &amp; look) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!(*<SPAN CLASS=k>this</SPAN>==look);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;BgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;FgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetButtonBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;ButtonBgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetButtonFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;ButtonFgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetInputBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;InputBgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetInputFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;InputFgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetInputHlColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;InputHlColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetOutputBgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;OutputBgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetOutputFgColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;OutputFgColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::GetOutputHlColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;OutputHlColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A>::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

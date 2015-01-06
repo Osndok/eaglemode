@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockModel.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -123,7 +123,7 @@ bool emAlarmClockModel::Cycle()
 		window=View->GetWindow();
 		if (window) window->Raise();
 		View->Focus();
-		View->SeekFullsized(PanelIdentity,true,"Alarm Clock");
+		View->VisitFullsized(PanelIdentity,true,false,"Alarm Clock");
 	}
 
 	if (IsSignaled(TimeZonesModel->GetTimeSignal())) {
@@ -135,7 +135,7 @@ bool emAlarmClockModel::Cycle()
 					&hour,&minute,&second
 				);
 			}
-			catch (emString) {
+			catch (emException &) {
 				hour=minute=second=0;
 			}
 			d=hour*3600+minute*60+second-AlarmSecOfDay;

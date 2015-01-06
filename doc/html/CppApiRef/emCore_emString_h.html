@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>.h
 //
-// Copyright (C) 2004-2011 Oliver Hamann.
+// Copyright (C) 2004-2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -217,7 +217,7 @@
         </SPAN><SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>len=<SPAN CLASS=u>1</SPAN>);
                 <SPAN CLASS=c>// Like Extract, but without returning the sub-string.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Empty();
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear();
                 <SPAN CLASS=c>// Empty this string.
 
         </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
@@ -249,16 +249,6 @@
         </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
                 <SPAN CLASS=c>// This must be called before handing the string to another
                 // thread.
-
-</SPAN><SPAN CLASS=p>#if defined(ANDROID)
-        </SPAN><SPAN CLASS=c>// ??? This is a workaround: On Android, the program crashes if an
-        // ??? exception is thrown with an instance of a non-polymorphic class
-        // ??? from within a shared library and caught in another shared
-        // ??? library. Therefore we make <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A> a polymorphic class for that
-        // ??? case here. It could be that this problem is not just Android
-        // ??? related.
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>VirtualDummyMethod();
-<SPAN CLASS=p>#endif
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
@@ -364,7 +354,7 @@
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=p>#ifndef EM_NO_DATA_EXPORT
-</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::Empty()
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>::Clear()
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) FreeData();
         Data=&amp;EmptyData;

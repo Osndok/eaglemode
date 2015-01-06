@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012 Oliver Hamann.
+// Copyright (C) 2004-2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -555,12 +555,12 @@ bool emIsSymLinkPath(const char * path)
 }
 
 
-emUInt64 emTryGetFileSize(const char * path) throw(emString)
+emUInt64 emTryGetFileSize(const char * path) throw(emException)
 {
 	struct em_stat st;
 
 	if (em_stat(path,&st)!=0) {
-		throw emString::Format(
+		throw emException(
 			"Failed to get size of \"%s\": %s",
 			path,
 			emGetErrorText(errno).Get()
@@ -570,12 +570,12 @@ emUInt64 emTryGetFileSize(const char * path) throw(emString)
 }
 
 
-time_t emTryGetFileTime(const char * path) throw(emString)
+time_t emTryGetFileTime(const char * path) throw(emException)
 {
 	struct em_stat st;
 
 	if (em_stat(path,&st)!=0) {
-		throw emString::Format(
+		throw emException(
 			"Failed to get modification time of \"%s\": %s",
 			path,
 			emGetErrorText(errno).Get()
@@ -605,7 +605,7 @@ struct emWndsDirHandleContent {
 #endif
 
 
-emDirHandle emTryOpenDir(const char * path) throw(emString)
+emDirHandle emTryOpenDir(const char * path) throw(emException)
 {
 #if defined(_WIN32)
 	emWndsDirHandleContent * hc;
@@ -620,7 +620,7 @@ emDirHandle emTryOpenDir(const char * path) throw(emString)
 		d=GetLastError();
 		if (d!=ERROR_NO_MORE_FILES) {
 			delete hc;
-			throw emString::Format(
+			throw emException(
 				"Failed to read directory \"%s\": %s",
 				path,
 				emGetErrorText(d).Get()
@@ -634,7 +634,7 @@ emDirHandle emTryOpenDir(const char * path) throw(emString)
 
 	dir=opendir(path);
 	if (!dir) {
-		throw emString::Format(
+		throw emException(
 			"Failed to read directory \"%s\": %s",
 			path,
 			emGetErrorText(errno).Get()
@@ -645,7 +645,7 @@ emDirHandle emTryOpenDir(const char * path) throw(emString)
 }
 
 
-emString emTryReadDir(emDirHandle dirHandle) throw(emString)
+emString emTryReadDir(emDirHandle dirHandle) throw(emException)
 {
 #if defined(_WIN32)
 	emWndsDirHandleContent * hc;
@@ -659,7 +659,7 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emString)
 		else {
 			if (!FindNextFile(hc->handle,&hc->data)) {
 				if (GetLastError()!=ERROR_NO_MORE_FILES) {
-					throw emString::Format(
+					throw emException(
 						"Failed to read directory: %s",
 						emGetErrorText(GetLastError()).Get()
 					);
@@ -687,7 +687,7 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emString)
 	for (;;) {
 		if (readdir_r(dir,buf,&de)!=0) {
 			free(buf);
-			throw emString::Format(
+			throw emException(
 				"Failed to read directory: %s",
 				emGetErrorText(errno).Get()
 			);
@@ -724,7 +724,7 @@ void emCloseDir(emDirHandle dirHandle)
 }
 
 
-emArray<emString> emTryLoadDir(const char * path) throw(emString)
+emArray<emString> emTryLoadDir(const char * path) throw(emException)
 {
 	emDirHandle dirHandle;
 	emArray<emString> names;
@@ -736,9 +736,9 @@ emArray<emString> emTryLoadDir(const char * path) throw(emString)
 		try {
 			name=emTryReadDir(dirHandle);
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			emCloseDir(dirHandle);
-			throw errorMessage;
+			throw exception;
 		}
 		if (name.IsEmpty()) break;
 		names+=name;
@@ -749,7 +749,7 @@ emArray<emString> emTryLoadDir(const char * path) throw(emString)
 }
 
 
-emArray<char> emTryLoadFile(const char * path) throw(emString)
+emArray<char> emTryLoadFile(const char * path) throw(emException)
 {
 	emArray<char> buf;
 	FILE * f;
@@ -773,7 +773,7 @@ emArray<char> emTryLoadFile(const char * path) throw(emString)
 	return buf;
 L_Err:
 	if (f) fclose(f);
-	throw emString::Format(
+	throw emException(
 		"Failed to read file \"%s\": %s",
 		path,
 		emGetErrorText(errno).Get()
@@ -783,7 +783,7 @@ L_Err:
 
 void emTrySaveFile(
 	const char * path, const char * data, int len
-) throw(emString)
+) throw(emException)
 {
 	FILE * f;
 	int i;
@@ -800,7 +800,7 @@ void emTrySaveFile(
 	return;
 L_Err:
 	if (f) fclose(f);
-	throw emString::Format(
+	throw emException(
 		"Failed to write file \"%s\": %s",
 		path,
 		emGetErrorText(errno).Get()
@@ -810,13 +810,13 @@ L_Err:
 
 void emTrySaveFile(
 	const char * path, const emArray<char> & data
-) throw(emString)
+) throw(emException)
 {
 	emTrySaveFile(path,data,data.GetCount());
 }
 
 
-void emTryMakeDirectories(const char * path, int mode) throw(emString)
+void emTryMakeDirectories(const char * path, int mode) throw(emException)
 {
 	emString parentPath;
 
@@ -828,7 +828,7 @@ void emTryMakeDirectories(const char * path, int mode) throw(emString)
 #else
 		if (mkdir(path,mode)!=0) {
 #endif
-			throw emString::Format(
+			throw emException(
 				"Failed to create directory \"%s\": %s",
 				path,
 				emGetErrorText(errno).Get()
@@ -838,7 +838,7 @@ void emTryMakeDirectories(const char * path, int mode) throw(emString)
 }
 
 
-void emTryRemoveFileOrTree(const char * path, bool force) throw(emString)
+void emTryRemoveFileOrTree(const char * path, bool force) throw(emException)
 {
 	emArray<emString> list;
 	struct em_stat st;
@@ -858,7 +858,7 @@ L_TryIt:
 				emTryRemoveFileOrTree(emGetChildPath(path,list[i]),force);
 			}
 			if (rmdir(path)!=0) {
-				throw emString::Format(
+				throw emException(
 					"Failed to remove directory \"%s\": %s",
 					path,
 					emGetErrorText(errno).Get()
@@ -867,7 +867,7 @@ L_TryIt:
 		}
 		else {
 			if (remove(path)!=0) {
-				throw emString::Format(
+				throw emException(
 					"Failed to remove \"%s\": %s",
 					path,
 					emGetErrorText(errno).Get()
@@ -875,14 +875,14 @@ L_TryIt:
 			}
 		}
 	}
-	catch (emString errorMessage) {
+	catch (emException & exception) {
 		if (
 			!force ||
 			chmodDone ||
 			emIsSymLinkPath(path) ||
 			em_stat(path,&st)!=0
 		) {
-			throw errorMessage;
+			throw exception;
 		}
 		chmod(path,(st.st_mode&07777)|0700);
 		chmodDone=true;
@@ -893,7 +893,7 @@ L_TryIt:
 
 void emTryCopyFileOrTree(
 	const char * targetPath, const char * sourcePath
-) throw(emString)
+) throw(emException)
 {
 	emDirHandle dh;
 	emString nm;
@@ -914,9 +914,9 @@ void emTryCopyFileOrTree(
 				);
 			}
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			emCloseDir(dh);
-			throw errorMessage;
+			throw exception;
 		}
 		emCloseDir(dh);
 	}
@@ -968,7 +968,7 @@ void emTryCopyFileOrTree(
 	return;
 
 L_Throw_per_errno:
-	throw emString::Format(
+	throw emException(
 		"Failed to copy \"%s\" to \"%s\": %s",
 		sourcePath,
 		targetPath,
@@ -1003,7 +1003,7 @@ static int emCompareLibEntryFilename(
 }
 
 
-emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
+emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emException)
 {
 	emLibTableEntry * e;
 	emString filename;
@@ -1043,7 +1043,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 	hModule=LoadLibrary(filename.Get());
 	if (!hModule) {
 		emLibTableMutex.Unlock();
-		throw emString::Format(
+		throw emException(
 			"Failed to load library \"%s\": %s",
 			filename.Get(),
 			emGetErrorText(GetLastError()).Get()
@@ -1054,9 +1054,9 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 	if (!dlHandle) {
 		emLibTableMutex.Unlock();
 #		if defined(__linux__) || defined(__sun__) || defined(__FreeBSD__)
-			throw emString(dlerror());
+			throw emException("%s",dlerror());
 #		else
-			throw emString::Format(
+			throw emException(
 				"Failed to load library \"%s\": %s",
 				filename.Get(),
 				dlerror()
@@ -1074,7 +1074,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 #endif
 	emLibTable.Insert(~idx,e);
 
-	filename.Empty();
+	filename.Clear();
 	e->Filename.MakeNonShared();
 
 	emLibTableMutex.Unlock();
@@ -1084,7 +1084,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emString)
 
 void * emTryResolveSymbolFromLib(
 	emLibHandle handle, const char * symbol
-) throw(emString)
+) throw(emException)
 {
 	emLibTableEntry * e;
 	void * r;
@@ -1097,7 +1097,7 @@ void * emTryResolveSymbolFromLib(
 #if defined(_WIN32)
 	r=(void*)GetProcAddress(e->HModule,symbol);
 	if (!r) {
-		throw emString::Format(
+		throw emException(
 			"Failed to get address of \"%s\" in \"%s\": %s",
 			symbol,
 			e->Filename.Get(),
@@ -1110,15 +1110,15 @@ void * emTryResolveSymbolFromLib(
 	err=dlerror();
 	if (err) {
 #		if defined(ANDROID)
-			throw emString::Format(
+			throw emException(
 				"Failed to get address of \"%s\" in \"%s\".",
 				symbol,
 				e->Filename.Get()
 			);
 #		elif defined(__linux__) || defined(__sun__) || defined(__FreeBSD__)
-			throw emString(err);
+			throw emException("%s",err);
 #		else
-			throw emString::Format(
+			throw emException(
 				"Failed to get address of \"%s\" in \"%s\": %s",
 				symbol,
 				e->Filename.Get(),
@@ -1157,7 +1157,7 @@ void emCloseLib(emLibHandle handle)
 
 void * emTryResolveSymbol(
 	const char * libName, bool isFilename, const char * symbol
-) throw(emString)
+) throw(emException)
 {
 	emLibTableEntry * e;
 	void * r;

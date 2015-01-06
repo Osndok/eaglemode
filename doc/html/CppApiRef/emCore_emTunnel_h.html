@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emTunnel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emTunnel_h
+#define emTunnel_h
+
+#ifndef emBorder_h
+#include &lt;<A CLASS=f HREF="emCore_emBorder_h.html">emCore/emBorder.h</A>&gt;
+#endif
+
+
+<A NAME="emTunnel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// This panel shows a single child panel very small. Around that, a
+        // decoration is painted which looks like a tunnel. Therefore the name
+        // of this class. The single child panel is laid out automatically
+        // whenever it is created by the user of this class.
+
+        </SPAN><A CLASS=l HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetChildTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>childTallness);
+                <SPAN CLASS=c>// Tallness for the child panel (end of tunnel). A value &lt;=0.0
+                // means to take the tallness of the content rectangle. That is
+                // the default.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetDepth() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDepth(<SPAN CLASS=t>double </SPAN>depth);
+                <SPAN CLASS=c>// Depth of the tunnel. The formula is more or less:
+                //   AreaOfEnd = AreaOfEntrance/((Depth+1)*(Depth+1))
+                // The default is 10.0.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetChildRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Get coordinates and canvas color of the end of the tunnel.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoTunnelFunc <SPAN CLASS=b>{
+                </SPAN>TUNNEL_FUNC_PAINT,
+                TUNNEL_FUNC_CHILD_RECT
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoTunnel(
+                DoTunnelFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
+                <SPAN CLASS=t>double </SPAN>* pH, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor
+        );
+
+        <SPAN CLASS=t>double </SPAN>ChildTallness,Depth;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A>::GetChildTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ChildTallness;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A>::GetDepth() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Depth;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWorldClockPanel.cpp
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -391,7 +391,7 @@ void emWorldClockPanel::PrepareWaterPolygon(int n)
 	int i;
 
 	if (!IsVFSGood() || !IsViewed()) {
-		WaterPolygon.Empty(true);
+		WaterPolygon.Clear(true);
 		return;
 	}
 
@@ -424,7 +424,7 @@ void emWorldClockPanel::PrepareLandPolygons()
 	int i,j,n;
 
 	if (!IsVFSGood() || !IsViewed()) {
-		LandPolygons.Empty(true);
+		LandPolygons.Clear(true);
 		return;
 	}
 
@@ -458,7 +458,7 @@ void emWorldClockPanel::PrepareShadowPolygon(int n)
 	int i,i1,i2,j,k;
 
 	if (!IsVFSGood() || !IsViewed()) {
-		ShadowPolygon.Empty(true);
+		ShadowPolygon.Clear(true);
 		return;
 	}
 

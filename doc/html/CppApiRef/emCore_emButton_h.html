@@ -1,0 +1,183 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emButton.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A>.h
+//
+// Copyright (C) 2005-2010,2014 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emButton_h
+#define emButton_h
+
+#ifndef emBorder_h
+#include &lt;<A CLASS=f HREF="emCore_emBorder_h.html">emCore/emBorder.h</A>&gt;
+#endif
+
+
+<A NAME="emButton"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a button. Buttons can be triggered (clicked) by the user to
+        // perform a function. The label is shown in the button face.
+
+        </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsNoEOI() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetNoEOI(<SPAN CLASS=t>bool </SPAN>noEOI=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether clicking this button is not an "End Of Interaction".
+                // If false (the default), GetView().SignalEOIDelayed() is
+                // called on every click.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetClickSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the button has been clicked.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetPressStateSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the press state has changed (see
+                // IsPressed()).
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsPressed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the button is currently pressed or not.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Click(<SPAN CLASS=t>bool </SPAN>shift=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Perform a button click programmatically.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>Clicked();
+                <SPAN CLASS=c>// Called when the button has been clicked.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>PressStateChanged();
+                <SPAN CLASS=c>// Called when the press state has changed.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual void </SPAN>PaintBoxSymbol(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        );
+
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>bool </SPAN>IsShownChecked() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShownBoxed() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>IsShownRadioed() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetShownChecked(<SPAN CLASS=t>bool </SPAN>shownChecked);
+        <SPAN CLASS=t>void </SPAN>SetShownBoxed(<SPAN CLASS=t>bool </SPAN>shownBoxed);
+        <SPAN CLASS=t>void </SPAN>SetShownRadioed(<SPAN CLASS=t>bool </SPAN>shownRadioed);
+                <SPAN CLASS=c>// Yes, this class has the ability to paint all our button
+                // types.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>DoButtonFunc <SPAN CLASS=b>{
+                </SPAN>BUTTON_FUNC_PAINT,
+                BUTTON_FUNC_CHECK_MOUSE
+        <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>void </SPAN>DoButton(
+                DoButtonFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>bool </SPAN>* pHit
+        );
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ClickSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> PressStateSignal;
+        <SPAN CLASS=t>unsigned </SPAN>Pressed : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>NoEOI : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ShownChecked : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ShownBoxed : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>ShownRadioed : <SPAN CLASS=u>1</SPAN>;
+
+        <SPAN CLASS=t>static const char </SPAN>* HowToButton;
+        <SPAN CLASS=t>static const char </SPAN>* HowToEOIButton;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::IsNoEOI() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>NoEOI;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::GetClickSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ClickSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::GetPressStateSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>PressStateSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::IsPressed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pressed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::IsShownChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ShownChecked;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::IsShownBoxed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ShownBoxed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A>::IsShownRadioed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ShownRadioed;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

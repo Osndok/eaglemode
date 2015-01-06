@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,7 +54,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		ClipX2=0;
 		ClipY2=0;
 		AEThresholdValue=EM_PANEL_DEFAULT_AE_THRESHOLD;
-		CreationNumber=++View.PanelCreationNumber;
 		CanvasColor=0;
 		PendingNoticeFlags=0;
 		Viewed=0;
@@ -62,8 +61,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		EnableSwitch=1;
 		Enabled=Parent->Enabled;
 		Focusable=1;
-		Visited=0;
-		InVisitedPath=0;
 		Active=0;
 		InActivePath=0;
 		PendingInput=0;
@@ -81,7 +78,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 			NF_LAYOUT_CHANGED |
 			NF_VIEWING_CHANGED |
 			NF_ENABLE_CHANGED |
-			NF_VISIT_CHANGED |
 			NF_ACTIVE_CHANGED |
 			NF_FOCUS_CHANGED |
 			NF_VIEW_FOCUS_CHANGED |
@@ -100,7 +96,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		View.SupremeViewedPanel=this;
 		View.MinSVP=this;
 		View.MaxSVP=this;
-		View.VisitedPanel=this;
 		View.ActivePanel=this;
 		AvlTree=NULL;
 		Parent=NULL;
@@ -123,7 +118,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		ClipX2=ViewedX+ViewedWidth;
 		ClipY2=ViewedY+ViewedHeight;
 		AEThresholdValue=EM_PANEL_DEFAULT_AE_THRESHOLD;
-		CreationNumber=++View.PanelCreationNumber;
 		CanvasColor=0;
 		PendingNoticeFlags=0;
 		Viewed=1;
@@ -131,8 +125,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		EnableSwitch=1;
 		Enabled=1;
 		Focusable=1;
-		Visited=1;
-		InVisitedPath=1;
 		Active=1;
 		InActivePath=1;
 		PendingInput=0;
@@ -149,7 +141,6 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 			NF_LAYOUT_CHANGED |
 			NF_VIEWING_CHANGED |
 			NF_ENABLE_CHANGED |
-			NF_VISIT_CHANGED |
 			NF_ACTIVE_CHANGED |
 			NF_FOCUS_CHANGED |
 			NF_VIEW_FOCUS_CHANGED |
@@ -170,38 +161,39 @@ emPanel::~emPanel()
 	if (View.SeekPosPanel==this) View.SetSeekPos(NULL,NULL);
 	DeleteAllChildren();
 	if (!Parent) {
-		if (View.IsPoppedUp()) View.ZoomOut();
+		if (View.IsPoppedUp()) View.RawZoomOut();
 		View.RootPanel=NULL;
 		View.SupremeViewedPanel=NULL;
 		View.MinSVP=NULL;
 		View.MaxSVP=NULL;
-		View.VisitedPanel=NULL;
 		View.ActivePanel=NULL;
-		View.VisitAdherent=false;
+		View.ActivationAdherent=false;
 		View.TitleInvalid=true;
 		View.CursorInvalid=true;
 		View.UpdateEngine->WakeUp();
 	}
 	else {
-		if (InVisitedPath) {
-			if (Parent->Viewed) {
-				Focusable=true;
-				View.VisitImmobile(Parent,false);
-			}
-			else {
+		if (InActivePath || View.SupremeViewedPanel==this) {
+			SetFocusable(false);
+			if (View.SupremeViewedPanel==this) {
 				LayoutX=-2.0;
 				LayoutY=-2.0;
 				LayoutWidth=1.0;
 				LayoutHeight=1.0;
 				CanvasColor=0;
-				Focusable=true;
-				View.ProtectSeeking++;
-				View.VisitFullsized(Parent,!InActivePath && View.VisitAdherent);
-				View.ProtectSeeking--;
+				if ((View.GetViewFlags()&emView::VF_POPUP_ZOOM)!=0 && !View.IsPoppedUp()) {
+					View.RawZoomOut();
+				}
+				else {
+					View.RawVisitFullsized(Parent);
+				}
 			}
-			if (InVisitedPath) {
-				emFatalError("emPanel::~emPanel: Could not to get rid of the visit.");
+			if (InActivePath || View.SupremeViewedPanel==this) {
+				emFatalError("emPanel::~emPanel: Could not to get rid of activation or SVP status.");
 			}
+		}
+		if (View.MinSVP==this) {
+			View.MinSVP=Parent;
 		}
 		View.RestartInputRecursion=true;
 		if (InViewedPath) {
@@ -224,9 +216,6 @@ emPanel::~emPanel()
 		NoticeNode.Prev->Next=NoticeNode.Next;
 		NoticeNode.Next=NULL;
 		NoticeNode.Prev=NULL;
-	}
-	if (View.ActivationCandidate==this) {
-		View.SetActivationCandidate(NULL);
 	}
 }
 
@@ -484,8 +473,8 @@ void emPanel::Layout(
 )
 {
 	emPanel * p;
-	double x1,y1,x2,y2,rx,ry,ra,ra2;
-	bool adherent,zoomedOut;
+	double x1,y1,x2,y2,rx,ry,ra;
+	bool zoomedOut;
 
 	if (LayoutWidth<1E-100) LayoutWidth=1E-100;
 	if (LayoutHeight<1E-100) LayoutHeight=1E-100;
@@ -525,7 +514,7 @@ void emPanel::Layout(
 
 	if (!Parent) {
 		zoomedOut=View.IsZoomedOut();
-		p=View.GetVisitedPanel(&rx,&ry,&ra,&adherent);
+		p=View.GetVisitedPanel(&rx,&ry,&ra);
 		LayoutX=layoutX;
 		LayoutY=layoutY;
 		LayoutWidth=layoutWidth;
@@ -533,24 +522,26 @@ void emPanel::Layout(
 		CanvasColor=canvasColor;
 		if (!View.SettingGeometry) {
 			if (zoomedOut) {
-				ra=View.HomeWidth*GetHeight()/View.HomePixelTallness/View.HomeHeight;
-				ra2=View.HomeHeight/GetHeight()*View.HomePixelTallness/View.HomeWidth;
-				if (ra<ra2) ra=ra2;
-				View.VisitRelBy(this,0.0,0.0,ra,true);
+				View.RawZoomOut(true);
 			}
 			else if (p) {
-				View.VisitRel(p,rx,ry,ra,adherent,true);
+				View.RawVisit(p,rx,ry,ra,true);
 			}
 		}
 	}
-	else if (InVisitedPath && !View.SettingGeometry && !View.IsZoomedOut()) {
-		p=View.GetVisitedPanel(&rx,&ry,&ra,&adherent);
+	else if (
+		InViewedPath &&
+		(InActivePath || !Parent->Viewed) &&
+		!View.SettingGeometry &&
+		!View.IsZoomedOut()
+	) {
+		p=View.GetVisitedPanel(&rx,&ry,&ra);
 		LayoutX=layoutX;
 		LayoutY=layoutY;
 		LayoutWidth=layoutWidth;
 		LayoutHeight=layoutHeight;
 		CanvasColor=canvasColor;
-		View.VisitRel(p,rx,ry,ra,adherent,true);
+		View.RawVisit(p,rx,ry,ra,true);
 	}
 	else if (Parent->Viewed) {
 		LayoutX=layoutX;
@@ -706,17 +697,14 @@ void emPanel::SetEnableSwitch(bool enableSwitch)
 
 void emPanel::SetFocusable(bool focusable)
 {
-	if (Parent && ((bool)Focusable)!=focusable) {
-		Focusable=focusable;
-		if (Focusable) {
-			if (InVisitedPath && !InActivePath) {
-				View.VisitImmobile(View.ActivePanel,View.VisitAdherent);
-			}
+	if (((bool)Focusable)!=focusable) {
+		if (!Parent && !focusable) {
+			emDLog("emPanel::SetFocusable: a root panel cannot be set unfocusable");
+			return;
 		}
-		else {
-			if (Active) {
-				View.VisitImmobile(Parent,false);
-			}
+		Focusable=focusable;
+		if (!Focusable && Active) {
+			View.SetActivePanel(Parent,false);
 		}
 	}
 }
@@ -812,22 +800,16 @@ emPanel * emPanel::GetFocusableNext()
 }
 
 
-void emPanel::Activate()
+void emPanel::Activate(bool adherent)
 {
-	View.VisitLazy(this,true);
+	View.SetActivePanel(this,adherent);
 }
 
 
-void emPanel::ActivateLater()
-{
-	View.SetActivationCandidate(this);
-}
-
-
-void emPanel::Focus()
+void emPanel::Focus(bool adherent)
 {
 	View.Focus();
-	View.VisitLazy(this,true);
+	View.SetActivePanel(this,adherent);
 }
 
 
@@ -1098,11 +1080,11 @@ void emPanel::Input(
 				event.Eat();
 			}
 			else if (state.IsAltMod()) {
-				View.VisitFullsized(this,View.IsVisitAdherent());
+				View.VisitFullsized(this,View.IsActivationAdherent());
 				event.Eat();
 			}
 			else if (state.IsShiftAltMod()) {
-				View.VisitFullsized(this,View.IsVisitAdherent(),true);
+				View.VisitFullsized(this,View.IsActivationAdherent(),true);
 				event.Eat();
 			}
 			break;

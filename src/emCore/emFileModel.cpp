@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ void emFileModel::Update()
 			break;
 		case FS_LOAD_ERROR:
 			State=FS_TOO_COSTLY;
-			ErrorText.Empty();
+			ErrorText.Clear();
 			MemoryNeed=1;
 			if (ClientList) {
 				State=FS_WAITING;
@@ -144,7 +144,7 @@ void emFileModel::ClearSaveError()
 {
 	if (State==FS_SAVE_ERROR) {
 		State=FS_UNSAVED;
-		ErrorText.Empty();
+		ErrorText.Clear();
 		Signal(FileStateSignal);
 	}
 }
@@ -173,7 +173,7 @@ void emFileModel::HardResetFileState()
 	State=FS_TOO_COSTLY;
 	MemoryNeed=1;
 	FileProgress=0.0;
-	ErrorText.Empty();
+	ErrorText.Clear();
 	if (ClientList && MemoryLimit>=MemoryNeed) {
 		State=FS_WAITING;
 		StartPSAgent();
@@ -258,7 +258,7 @@ void emFileModel::SetUnsavedState()
 		}
 		State=FS_UNSAVED;
 		FileProgress=0.0;
-		ErrorText.Empty();
+		ErrorText.Clear();
 		Signal(FileStateSignal);
 	}
 }
@@ -269,7 +269,7 @@ bool emFileModel::IsOutOfDate()
 	try {
 		if (FileTime==emTryGetFileTime(GetFilePath())) return false;
 	}
-	catch (emString) {
+	catch (emException &) {
 		return true;
 	}
 	return true;
@@ -345,12 +345,12 @@ bool emFileModel::StepLoading()
 		try {
 			ready=TryContinueLoading();
 		}
-		catch (emString errorText) {
+		catch (emException & exception) {
 			EndPSAgent();
 			QuitLoading();
 			ResetData();
 			State=FS_LOAD_ERROR;
-			ErrorText=errorText;
+			ErrorText=exception.GetText();
 			return true;
 		}
 		stateChanged=false;
@@ -359,10 +359,10 @@ bool emFileModel::StepLoading()
 		try {
 			FileTime=emTryGetFileTime(GetFilePath());
 		}
-		catch (emString errorMessage) {
+		catch (emException & exception) {
 			EndPSAgent();
 			State=FS_LOAD_ERROR;
-			ErrorText=errorMessage;
+			ErrorText=exception.GetText();
 			return true;
 		}
 		ResetData();
@@ -370,12 +370,12 @@ bool emFileModel::StepLoading()
 		try {
 			TryStartLoading();
 		}
-		catch (emString errorText) {
+		catch (emException & exception) {
 			EndPSAgent();
 			QuitLoading();
 			ResetData();
 			State=FS_LOAD_ERROR;
-			ErrorText=errorText;
+			ErrorText=exception.GetText();
 			return true;
 		}
 		ready=false;
@@ -410,26 +410,26 @@ bool emFileModel::StepSaving()
 		try {
 			ready=TryContinueSaving();
 		}
-		catch (emString errorText) {
+		catch (emException & exception) {
 			EndPSAgent();
 			QuitSaving();
 			State=FS_SAVE_ERROR;
-			ErrorText=errorText;
+			ErrorText=exception.GetText();
 			return true;
 		}
 		if (!ready) return false;
 	}
 	else if (State==FS_UNSAVED) {
 		State=FS_SAVING;
-		ErrorText.Empty();
+		ErrorText.Clear();
 		try {
 			TryStartSaving();
 		}
-		catch (emString errorText) {
+		catch (emException & exception) {
 			EndPSAgent();
 			QuitSaving();
 			State=FS_SAVE_ERROR;
-			ErrorText=errorText;
+			ErrorText=exception.GetText();
 			return true;
 		}
 		return true;
@@ -443,9 +443,9 @@ bool emFileModel::StepSaving()
 	try {
 		FileTime=emTryGetFileTime(GetFilePath());
 	}
-	catch (emString errorMessage) {
+	catch (emException & exception) {
 		State=FS_SAVE_ERROR;
-		ErrorText=errorMessage;
+		ErrorText=exception.GetText();
 		return true;
 	}
 	State=FS_LOADED;

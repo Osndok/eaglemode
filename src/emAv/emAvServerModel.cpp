@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008-2010 Oliver Hamann.
+// Copyright (C) 2008-2010,2012,2014 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -64,7 +64,7 @@ emAvServerModel::~emAvServerModel()
 			try {
 				r=ServerProc.TryRead(buf,sizeof(buf));
 			}
-			catch (emString) {
+			catch (emException &) {
 				break;
 			}
 			if (r>0) continue;
@@ -106,8 +106,8 @@ L_ENTER_IDLE:
 					emProcess::SF_SHARE_STDERR
 				);
 			}
-			catch (emString errorMessage) {
-				termProcReason=errorMessage;
+			catch (emException & exception) {
+				termProcReason=exception.GetText();
 				goto L_ENTER_TERM_PROC;
 			}
 			goto L_ENTER_BUSY;
@@ -128,8 +128,8 @@ L_ENTER_BUSY:
 		try {
 			TryDoPipeIO();
 		}
-		catch (emString errorMessage) {
-			termProcReason=errorMessage;
+		catch (emException & exception) {
+			termProcReason=exception.GetText();
 			goto L_ENTER_TERM_PROC;
 		}
 		if (InstanceCount<=0 && OutBufFill<=0) {
@@ -158,8 +158,8 @@ L_ENTER_TERM_PROC:
 				Instances[i]->OldProc=true;
 			}
 		}
-		InBuf.Empty(true);
-		OutBuf.Empty(true);
+		InBuf.Clear(true);
+		OutBuf.Clear(true);
 		InBufFill=0;
 		OutBufFill=0;
 		OutBufOverflowed=false;
@@ -171,7 +171,7 @@ L_ENTER_TERM_PROC:
 			try {
 				r=ServerProc.TryRead(buf,sizeof(buf));
 			}
-			catch (emString) {
+			catch (emException &) {
 				break;
 			}
 			if (r<=0) break;
@@ -202,14 +202,14 @@ L_ENTER_TERM_PROC:
 
 emAvServerModel::Instance * emAvServerModel::TryOpenInstance(
 	const char * audioDrv, const char * videoDrv, const char * filePath
-) throw(emString)
+) throw(emException)
 {
 	Instance * inst;
 	int i;
 
 	for (i=0; ; i++) {
 		if (i>=MAX_INSTANCES) {
-			throw emString("Too many emAvServer clients.");
+			throw emException("Too many emAvServer clients.");
 		}
 		if (!Instances[i]) break;
 	}
@@ -292,7 +292,7 @@ void emAvServerModel::SendMessage(
 }
 
 
-void emAvServerModel::TryDoPipeIO() throw(emString)
+void emAvServerModel::TryDoPipeIO() throw(emException)
 {
 	char * p, * p2, * p3, * p4, * pb, * pe;
 	bool progress;
@@ -309,7 +309,7 @@ void emAvServerModel::TryDoPipeIO() throw(emString)
 			r=ServerProc.TryRead(p,l);
 			if (r) {
 				if (r<0) {
-					throw emString(
+					throw emException(
 						"Server process died unexpectedly or closed STDOUT."
 					);
 				}
@@ -335,7 +335,7 @@ void emAvServerModel::TryDoPipeIO() throw(emString)
 					break;
 				}
 				p2=(char*)memchr(p,':',p4-p);
-				if (!p2) throw emString("emAvServerModel: Protocol error.\n");
+				if (!p2) throw emException("emAvServerModel: Protocol error.");
 				*p2++=0;
 				p3=(char*)memchr(p2,':',p4-p2);
 				if (p3) *p3++=0; else p3=p4;
@@ -355,7 +355,7 @@ void emAvServerModel::TryDoPipeIO() throw(emString)
 			r=ServerProc.TryWrite(p,l);
 			if (r) {
 				if (r<0) {
-					throw emString(
+					throw emException(
 						"Server process died unexpectedly or closed STDIN."
 					);
 				}
@@ -451,8 +451,8 @@ void emAvServerModel::UpdateShm(Instance * inst)
 			try {
 				TryCreateShm(inst);
 			}
-			catch (emString errorMessage) {
-				if (inst->Client) inst->Client->SetStreamErrored(errorMessage);
+			catch (emException & exception) {
+				if (inst->Client) inst->Client->SetStreamErrored(exception.GetText());
 				return;
 			}
 			SendMessage(
@@ -471,14 +471,14 @@ void emAvServerModel::UpdateShm(Instance * inst)
 }
 
 
-void emAvServerModel::TryCreateShm(Instance * inst) throw(emString)
+void emAvServerModel::TryCreateShm(Instance * inst) throw(emException)
 {
 #if defined(__CYGWIN__)
-	throw emString("shmget not tried as cygwin may abort the process.");
+	throw emException("shmget not tried as cygwin may abort the process.");
 #endif
 	inst->ShmId=shmget(IPC_PRIVATE,inst->ShmSize,IPC_CREAT|0600);
 	if (inst->ShmId==-1) {
-		throw emString::Format(
+		throw emException(
 			"Failed to create shared memory segment: %s",
 			emGetErrorText(errno).Get()
 		);
@@ -488,7 +488,7 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emString)
 		inst->ShmAddr=NULL;
 		shmctl(inst->ShmId,IPC_RMID,0);
 		inst->ShmId=-1;
-		throw emString::Format(
+		throw emException(
 			"Failed to attach shared memory segment: %s",
 			emGetErrorText(errno).Get()
 		);
@@ -755,7 +755,7 @@ void emAvServerModel::TransferFrame(Instance * inst)
 	return;
 
 L_BAD_DATA:
-	emDLog("emAvServerModel::TransferFrame: Bad data!\n");
-	inst->Image.Empty();
+	emDLog("emAvServerModel::TransferFrame: Bad data!");
+	inst->Image.Clear();
 	if (inst->Client) inst->Client->ShowFrame(inst->Image,3.0/4.0);
 }
