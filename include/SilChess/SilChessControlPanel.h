@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessControlPanel.h
 //
-// Copyright (C) 2007-2008,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class SilChessControlPanel : public emGroup {
+class SilChessControlPanel : public emLinearLayout {
 
 public:
 
@@ -47,7 +47,7 @@ private:
 
 	emRef<SilChessModel> Mdl;
 
-	emGroup * GrAbout;
+	emLinearGroup * GrAbout;
 	emLabel * LbAbout;
 	emButton * BtNew;
 	emButton * BtFlip;

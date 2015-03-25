@@ -76,6 +76,20 @@ sub Build
 			"--obj-dir"       , "obj",
 			"--inc-search-dir", "include",
 			"--link"          , "emCore",
+			"--type"          , "wexe",
+			"--name"          , "emTestPackLayout",
+			"src/emTest/emTestPackLayout.cpp"
+		)==0 or return 0;
+		system(
+			@{$options{'unicc_call'}},
+			"--math",
+			"--rtti",
+			"--exceptions",
+			"--bin-dir"       , "bin",
+			"--lib-dir"       , "lib",
+			"--obj-dir"       , "obj",
+			"--inc-search-dir", "include",
+			"--link"          , "emCore",
 			"--type"          , "cexe",
 			"--name"          , "emTestThreads",
 			"src/emTest/emTestThreads.cpp"

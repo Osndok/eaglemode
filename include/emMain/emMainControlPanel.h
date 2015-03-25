@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainControlPanel.h
 //
-// Copyright (C) 2014 Oliver Hamann.
+// Copyright (C) 2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,7 +36,7 @@
 class emMainWindow;
 
 
-class emMainControlPanel : public emGroup {
+class emMainControlPanel : public emLinearGroup {
 
 public:
 

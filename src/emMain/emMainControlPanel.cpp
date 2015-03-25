@@ -28,7 +28,7 @@ emMainControlPanel::emMainControlPanel(
 	ParentArg parent, const emString & name, emMainWindow & mainWin,
 	emView & contentView
 )
-	: emGroup(parent,name),
+	: emLinearGroup(parent,name),
 	MainWin(mainWin),
 	ContentView(contentView)
 {
@@ -51,8 +51,9 @@ emMainControlPanel::emMainControlPanel(
 		"You should have received a copy of the GNU General Public License version 3\n"
 		"along with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 	;
-	emGroup * grMain, * grCommands, * grAbout, * grFullscreenPrefs;
-	emTiling * tlLeft, * tlTop, * tlClose;
+	emLinearGroup * grMain, * grAbout;
+	emRasterGroup * grCommands, * grFullscreenPrefs;
+	emLinearLayout * lLeft, * lTop, * lClose;
 	emCoreConfigPanel * coreConfigPanel;
 	emLabel * iconLabel, * textLabel;
 	emLook look;
@@ -65,29 +66,33 @@ emMainControlPanel::emMainControlPanel(
 	SetOuterBorderType(emBorder::OBT_POPUP_ROOT);
 	SetInnerBorderType(emBorder::IBT_NONE);
 	SetMinCellCount(2);
-	SetFixedRowCount(1);
-	SetPrefChildTallness(1.0/3.0);
-	SetPrefChildTallness(1.0/7.0,1);
+	SetOrientationThresholdTallness(1.0);
+	SetChildWeight(0,3.0);
+	SetChildWeight(1,7.0);
 
-	grMain=new emGroup(this,"general","General");
-	grMain->SetPrefChildTallness(1.0/0.9);
-	grMain->SetPrefChildTallness(1.0/2.2,1);
-		tlLeft=new emTiling(grMain,"l");
-		tlLeft->SetPrefChildTallness(0.2);
-		tlLeft->SetPrefChildTallness(0.9,-1);
+	grMain=new emLinearGroup(this,"general","General");
+	grMain->SetOrientationThresholdTallness(1.0);
+	grMain->SetChildWeight(0,0.9);
+	grMain->SetChildWeight(1,2.2);
+		lLeft=new emLinearLayout(grMain,"l");
+		lLeft->SetOrientationThresholdTallness(0.5);
+		lLeft->SetChildWeight(0,0.2);
+		lLeft->SetChildWeight(1,0.9);
 		new emBookmarksPanel(
 			grMain,"bookmarks",
 			&MainWin.GetContentView(),
 			BookmarksModel
 		);
 
-	tlTop=new emTiling(tlLeft,"t");
-		tlTop->SetPrefChildTallness(0.5);
-		tlTop->SetPrefChildTallness(0.6,1);
-		grAbout=new emGroup(tlTop,"about","About");
+	lTop=new emLinearLayout(lLeft,"t");
+		lTop->SetOrientationThresholdTallness(0.5);
+		lTop->SetChildWeight(0,1.2);
+		lTop->SetChildWeight(1,1.0);
+		grAbout=new emLinearGroup(lTop,"about","About");
+		grAbout->SetOrientationThresholdTallness(1.0);
 		grAbout->SetBorderScaling(4.0);
-		grAbout->SetPrefChildTallness(1.0);
-		grAbout->SetPrefChildTallness(0.5,1);
+		grAbout->SetChildWeight(0,1.0);
+		grAbout->SetChildWeight(1,2.0);
 			iconLabel=new emLabel(grAbout,"icon",
 				emString(),
 				emString(),
@@ -98,11 +103,12 @@ emMainControlPanel::emMainControlPanel(
 				emString::Format(aboutTextFormat,emGetVersion())
 			);
 		coreConfigPanel=new emCoreConfigPanel(
-			tlTop,"core config"
+			lTop,"core config"
 		);
 		coreConfigPanel->SetBorderScaling(4.0);
 
-	grCommands=new emGroup(tlLeft,"commands","Commands");
+	grCommands=new emRasterGroup(lLeft,"commands","Commands");
+		grCommands->SetPrefChildTallness(0.2);
 		BtNewWindow=new emButton(
 			grCommands,"new window",
 			"New Window",
@@ -119,7 +125,7 @@ emMainControlPanel::emMainControlPanel(
 		);
 		BtFullscreen->SetChecked((MainWin.GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0);
 		BtFullscreen->HaveAux("aux",0.4);
-			grFullscreenPrefs=new emGroup(
+			grFullscreenPrefs=new emRasterGroup(
 				BtFullscreen,"aux",
 				"Preferences For Fullscreen Mode"
 			);
@@ -155,18 +161,19 @@ emMainControlPanel::emMainControlPanel(
 			"\n"
 			"Hotkey: F5"
 		);
-		tlClose=new emTiling(grCommands,"close");
-			tlClose->SetPrefChildTallness(0.33);
-			tlClose->SetPrefChildTallness(0.5,1);
+		lClose=new emLinearLayout(grCommands,"close");
+			lClose->SetOrientationThresholdTallness(0.4);
+			lClose->SetChildWeight(0,1.0);
+			lClose->SetChildWeight(1,0.66);
 			BtClose=new emButton(
-				tlClose,"close",
+				lClose,"close",
 				"Close",
 				"Close this window.\n"
 				"\n"
 				"Hotkey: Alt+F4"
 			);
 			BtQuit=new emButton(
-				tlClose,"quit",
+				lClose,"quit",
 				"Quit",
 				"Close all windows of this process (and terminate this process).\n"
 				"\n"
@@ -286,7 +293,7 @@ void emMainControlPanel::Input(
 	default:
 		break;
 	}
-	emGroup::Input(event,state,mx,my);
+	emLinearGroup::Input(event,state,mx,my);
 }
 
 

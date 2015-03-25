@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emList.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1489,11 +1489,7 @@ template <class OBJ> inline emList<OBJ>::Iterator::Iterator()
 }
 
 template <class OBJ> emList<OBJ>::Iterator::Iterator(
-#	if defined(__WATCOMC__)
-		const emList<OBJ>::Iterator & iter
-#	else
-		const Iterator & iter
-#	endif
+	const typename emList<OBJ>::Iterator & iter
 )
 {
 	Pos=iter.Pos;

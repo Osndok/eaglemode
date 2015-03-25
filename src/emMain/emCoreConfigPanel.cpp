@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2010,2014 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,7 +24,7 @@
 emCoreConfigPanel::emCoreConfigPanel(
 	ParentArg parent, const emString & name
 )
-	: emGroup(parent,name,
+	: emLinearGroup(parent,name,
 			"Preferences",
 			"This panel provides some user settings. Internally, this\n"
 			"is also called the emCore Configuration."
@@ -45,7 +45,7 @@ bool emCoreConfigPanel::Cycle()
 {
 	bool busy;
 
-	busy=emGroup::Cycle();
+	busy=emLinearGroup::Cycle();
 	if (ResetButton && IsSignaled(ResetButton->GetClickSignal())) {
 		Config->SetToDefault();
 		Config->Save();
@@ -56,30 +56,28 @@ bool emCoreConfigPanel::Cycle()
 
 void emCoreConfigPanel::AutoExpand()
 {
-	emTiling * tl1, * tl2, * tl3;
+	emRasterLayout * content;
+	emLinearLayout * buttons;
 
-	emGroup::AutoExpand();
+	emLinearGroup::AutoExpand();
 
-	SetFixedRowCount(2);
-	SetPrefChildTallness(0.6);
-	SetPrefChildTallness(0.05,-1);
+	SetVertical();
+	SetChildWeight(0,12.0);
+	SetChildWeight(1,1.0);
 	SetSpace(0.01,0.1,0.01,0.1,0.01,0.0);
 
-	tl1=new emTiling(this,"tl1");
-	tl1->SetPrefChildTallness(0.8);
-	tl1->SetInnerSpace(0.06,0.1);
+	content=new emRasterLayout(this,"content");
+	content->SetPrefChildTallness(0.5);
+	content->SetInnerSpace(0.1,0.2);
+	new MouseGroup(content,"mouse",Config);
+	new KBGroup(content,"keyboard",Config);
+	new KineticGroup(content,"kinetic",Config);
+	new MaxMemTunnel(content,"maxmem",Config);
 
-	new MouseGroup(tl1,"mouse",Config);
-	tl2=new emTiling(tl1,"tl2");
-	tl2->SetInnerSpace(0.1,0.2);
-	new KBGroup(tl2,"keyboard",Config);
-	new KineticGroup(tl2,"kinetic",Config);
-	new MaxMemTunnel(tl2,"maxmem",Config);
-
-	tl3=new emTiling(this,"tl3");
-	tl3->SetChildTallness(0.2);
-	tl3->SetAlignment(EM_ALIGN_BOTTOM_RIGHT);
-	ResetButton=new emButton(tl3,"reset","Reset To Defaults");
+	buttons=new emLinearLayout(this,"buttons");
+	buttons->SetChildTallness(0.2);
+	buttons->SetAlignment(EM_ALIGN_BOTTOM_RIGHT);
+	ResetButton=new emButton(buttons,"reset","Reset To Defaults");
 	ResetButton->SetNoEOI();
 	AddWakeUpSignal(ResetButton->GetClickSignal());
 }
@@ -87,7 +85,7 @@ void emCoreConfigPanel::AutoExpand()
 
 void emCoreConfigPanel::AutoShrink()
 {
-	emGroup::AutoShrink();
+	emLinearGroup::AutoShrink();
 	ResetButton=NULL;
 }
 
@@ -220,7 +218,7 @@ emInt64 emCoreConfigPanel::FactorField::Cfg2Val(double d) const
 emCoreConfigPanel::MouseMiscGroup::MouseMiscGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emGroup(parent,name,"Miscellaneous Mouse Settings"),
+	: emRasterGroup(parent,name,"Miscellaneous Mouse Settings"),
 	emRecListener(config),
 	Config(config)
 {
@@ -248,7 +246,7 @@ bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 {
 	bool busy;
 
-	busy=emGroup::Cycle();
+	busy=emRasterGroup::Cycle();
 
 	if (StickBox && IsSignaled(StickBox->GetClickSignal())) {
 		Config->StickMouseWhenNavigating.Invert();
@@ -271,7 +269,7 @@ bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 
 void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 {
-	emGroup::AutoExpand();
+	emRasterGroup::AutoExpand();
 	StickBox=new emCheckBox(
 		this,"stick","Stick Mouse When Navigating",
 		"Whether to keep the mouse pointer at its place while zooming\n"
@@ -298,7 +296,7 @@ void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 
 void emCoreConfigPanel::MouseMiscGroup::AutoShrink()
 {
-	emGroup::AutoShrink();
+	emRasterGroup::AutoShrink();
 	StickBox=NULL;
 	EmuBox=NULL;
 	PanBox=NULL;
@@ -316,12 +314,12 @@ void emCoreConfigPanel::MouseMiscGroup::UpdateOutput()
 emCoreConfigPanel::MouseGroup::MouseGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emGroup(parent,name,"Mouse Navigation"),
+	: emRasterGroup(parent,name,"Mouse Navigation"),
 	Config(config)
 {
 	EnableAutoExpansion();
 	SetPrefChildTallness(0.4);
-	SetBorderScaling(2.0);
+	SetBorderScaling(4.0);
 	SetSpace(0.05,0.1,0.05,0.1);
 }
 
@@ -333,7 +331,7 @@ emCoreConfigPanel::MouseGroup::~MouseGroup()
 
 void emCoreConfigPanel::MouseGroup::AutoExpand()
 {
-	emGroup::AutoExpand();
+	emRasterGroup::AutoExpand();
 	new FactorField(
 		this,"wheelzoom",
 		"Speed of zooming by mouse wheel",
@@ -369,7 +367,7 @@ void emCoreConfigPanel::MouseGroup::AutoExpand()
 emCoreConfigPanel::KBGroup::KBGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emGroup(parent,name,"Keyboard Navigation"),
+	: emRasterGroup(parent,name,"Keyboard Navigation"),
 	Config(config)
 {
 	EnableAutoExpansion();
@@ -386,7 +384,7 @@ emCoreConfigPanel::KBGroup::~KBGroup()
 
 void emCoreConfigPanel::KBGroup::AutoExpand()
 {
-	emGroup::AutoExpand();
+	emRasterGroup::AutoExpand();
 	new FactorField(
 		this,"zoom",
 		"Speed of zooming by keyboard",
@@ -405,7 +403,7 @@ void emCoreConfigPanel::KBGroup::AutoExpand()
 emCoreConfigPanel::KineticGroup::KineticGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emGroup(parent,name,"Kinetic Effects"),
+	: emRasterGroup(parent,name,"Kinetic Effects"),
 	Config(config)
 {
 	EnableAutoExpansion();
@@ -422,7 +420,7 @@ emCoreConfigPanel::KineticGroup::~KineticGroup()
 
 void emCoreConfigPanel::KineticGroup::AutoExpand()
 {
-	emGroup::AutoExpand();
+	emRasterGroup::AutoExpand();
 	new FactorField(
 		this,"KineticZoomingAndScrolling",
 		"Kinetic zooming and scrolling",
@@ -463,16 +461,16 @@ void emCoreConfigPanel::KineticGroup::AutoExpand()
 emCoreConfigPanel::MaxMemGroup::MaxMemGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emGroup(parent,name,"Max Megabytes Per View"),
+	: emLinearGroup(parent,name,"Max Megabytes Per View"),
 	emRecListener(&config->MaxMegabytesPerView),
 	Config(config)
 {
 	MemField=NULL;
 	ValOut=0;
 	EnableAutoExpansion();
-	SetFixedColumnCount(1);
-	SetPrefChildTallness(0.5);
-	SetPrefChildTallness(0.1,-1);
+	SetVertical();
+	SetChildWeight(0,5.0);
+	SetChildWeight(1,1.0);
 }
 
 
@@ -493,7 +491,7 @@ bool emCoreConfigPanel::MaxMemGroup::Cycle()
 	double d;
 	bool busy;
 
-	busy=emGroup::Cycle();
+	busy=emLinearGroup::Cycle();
 	if (MemField && IsSignaled(MemField->GetValueSignal())) {
 		v=MemField->GetValue();
 		if (ValOut!=v) {
@@ -508,9 +506,9 @@ bool emCoreConfigPanel::MaxMemGroup::Cycle()
 
 void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 {
-	emTiling * tiling;
+	emLinearLayout * linearLayout;
 
-	emGroup::AutoExpand();
+	emLinearGroup::AutoExpand();
 
 	new emLabel(
 		this,"label",
@@ -537,10 +535,10 @@ void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 		"NOTE: After changing the value, you may have to restart the program for the\n"
 		"change to take effect. Or zoom out from all panels once."
 	);
-	tiling=new emTiling(this,"tiling");
-	tiling->SetOuterSpace(0.02,0.05,0.05,0.0);
+	linearLayout=new emLinearLayout(this,"layout");
+	linearLayout->SetOuterSpace(0.02,0.05,0.05,0.0);
 	MemField=new emScalarField(
-		tiling,"field",
+		linearLayout,"field",
 		emString(),
 		emString(),
 		emImage(),
@@ -555,7 +553,7 @@ void emCoreConfigPanel::MaxMemGroup::AutoExpand()
 
 void emCoreConfigPanel::MaxMemGroup::AutoShrink()
 {
-	emGroup::AutoShrink();
+	emLinearGroup::AutoShrink();
 	MemField=NULL;
 }
 

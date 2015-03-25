@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGroup.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,15 +34,34 @@ class emGroup : public emTiling {
 
 public:
 
+	// *********************************************************************
+	// *                             WARNING!!!                            *
+	// *                                                                   *
+	// * This class is deprecated and will be removed in a future version. *
+	// * Please use emLinearGroup, emRasterGroup or emPackGroup instead.   *
+	// *********************************************************************
+	//
 	// Class for a group of panels. Any user-created child panels are laid
 	// out automatically. This is just like emTiling, but it has a group
 	// border and it is focusable.
 
+	EM_DEPRECATED( // Because the whole class is deprecated!
+		emGroup(
+			ParentArg parent, const emString & name,
+			const emString & caption=emString(),
+			const emString & description=emString(),
+			const emImage & icon=emImage()
+		)
+	);
+
+protected:
+	// Only for emRadioButton::Group:
 	emGroup(
 		ParentArg parent, const emString & name,
-		const emString & caption=emString(),
-		const emString & description=emString(),
-		const emImage & icon=emImage()
+		const emString & caption,
+		const emString & description,
+		const emImage & icon,
+		int notWarningDeprecatedForInternalUse
 	);
 };
 

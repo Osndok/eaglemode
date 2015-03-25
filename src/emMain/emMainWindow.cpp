@@ -69,7 +69,7 @@ emMainWindow::emMainWindow(emContext & parentContext)
 
 emMainWindow::~emMainWindow()
 {
-	if (ControlWindow) delete ControlWindow;
+	if (ControlWindow.Get()) delete ControlWindow.Get();
 	delete ControlPanel;
 	delete ContentPanel;
 	delete MainPanel;

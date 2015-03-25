@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,6 +98,22 @@ public:
 		// Horizontal alignment of lines within the description text of
 		// the label. The top and bottom flags are ignored.
 
+	bool IsIconAboveCaption() const;
+	void SetIconAboveCaption(bool iconAboveCaption=true);
+		// Whether the icon is shown above the caption (true), or if it
+		// is shown to the left of the caption (false, the default).
+
+	double GetMaxIconAreaTallness() const;
+	void SetMaxIconAreaTallness(double maxIconAreaTallness);
+		// Maximum tallness (height/width ratio) of the area in the
+		// label preserved for the icon (if the label has an icon). The
+		// default is 1.0. If you have a group of elements (e.g.
+		// buttons) which show icons and captions, and if the icon
+		// images have different tallnesses, then it is a good idea to
+		// set this parameter to the minimum(!) tallness of all the icon
+		// images. Thereby, the icons and captions of all the elements
+		// will be aligned pretty equal.
+
 	enum OuterBorderType {
 		// Possibles types for the outer border line. This even
 		// specifies whether the background of the panel should be
@@ -112,7 +128,7 @@ public:
 			// Like OBT_NONE, but have a small margin (for example,
 			// this is used by emLabel and emCheckBox). Larger
 			// margins should be solved through the parent panel,
-			// e.g. see emTiling::SetSpace.
+			// e.g. see emLinearLayout::SetSpace.
 		OBT_MARGIN_FILLED,
 			// Like OBT_MARGIN, but fill the whole background.
 		OBT_RECT,
@@ -122,7 +138,7 @@ public:
 			// Like OBT_RECT but with round corners.
 		OBT_GROUP,
 			// Have a small special outer border for groups (used by
-			// emGroup).
+			// group panels like emLinearGroup and so on).
 		OBT_INSTRUMENT,
 			// Like OBT_GROUP, but the border line is thicker (for
 			// example, this is used by emTextField).
@@ -345,12 +361,14 @@ private:
 	emImage Icon;
 	AuxData * Aux;
 	emLook Look;
+	double MaxIconAreaTallness;
 	double BorderScaling;
 	emAlignment LabelAlignment;
 	emAlignment CaptionAlignment;
 	emAlignment DescriptionAlignment;
 	emByte OuterBorder;
 	emByte InnerBorder;
+	bool IconAboveCaption;
 	bool LabelInBorder;
 
 	static const char * HowToPreface;
@@ -386,6 +404,16 @@ inline emAlignment emBorder::GetCaptionAlignment() const
 inline emAlignment emBorder::GetDescriptionAlignment() const
 {
 	return DescriptionAlignment;
+}
+
+inline bool emBorder::IsIconAboveCaption() const
+{
+	return IconAboveCaption;
+}
+
+inline double emBorder::GetMaxIconAreaTallness() const
+{
+	return MaxIconAreaTallness;
 }
 
 inline emBorder::OuterBorderType emBorder::GetOuterBorderType() const

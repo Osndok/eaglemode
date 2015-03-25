@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -107,6 +107,22 @@
                 <SPAN CLASS=c>// Horizontal alignment of lines within the description text of
                 // the label. The top and bottom flags are ignored.
 
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsIconAboveCaption() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetIconAboveCaption(<SPAN CLASS=t>bool </SPAN>iconAboveCaption=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether the icon is shown above the caption (true), or if it
+                // is shown to the left of the caption (false, the default).
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMaxIconAreaTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMaxIconAreaTallness(<SPAN CLASS=t>double </SPAN>maxIconAreaTallness);
+                <SPAN CLASS=c>// Maximum tallness (height/width ratio) of the area in the
+                // label preserved for the icon (if the label has an icon). The
+                // default is 1.0. If you have a group of elements (e.g.
+                // buttons) which show icons and captions, and if the icon
+                // images have different tallnesses, then it is a good idea to
+                // set this parameter to the minimum(!) tallness of all the icon
+                // images. Thereby, the icons and captions of all the elements
+                // will be aligned pretty equal.
+
         </SPAN><SPAN CLASS=t>enum </SPAN>OuterBorderType <SPAN CLASS=b>{
                 </SPAN><SPAN CLASS=c>// Possibles types for the outer border line. This even
                 // specifies whether the background of the panel should be
@@ -121,7 +137,7 @@
                         <SPAN CLASS=c>// Like OBT_NONE, but have a small margin (for example,
                         // this is used by <A CLASS=m HREF="emCore_emLabel_h.html#emLabel">emLabel</A> and <A CLASS=m HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A>). Larger
                         // margins should be solved through the parent panel,
-                        // e.g. see <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::SetSpace.
+                        // e.g. see <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::SetSpace.
                 </SPAN>OBT_MARGIN_FILLED,
                         <SPAN CLASS=c>// Like OBT_MARGIN, but fill the whole background.
                 </SPAN>OBT_RECT,
@@ -131,7 +147,7 @@
                         <SPAN CLASS=c>// Like OBT_RECT but with round corners.
                 </SPAN>OBT_GROUP,
                         <SPAN CLASS=c>// Have a small special outer border for groups (used by
-                        // <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A>).
+                        // group panels like <A CLASS=m HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A> and so on).
                 </SPAN>OBT_INSTRUMENT,
                         <SPAN CLASS=c>// Like OBT_GROUP, but the border line is thicker (for
                         // example, this is used by <A CLASS=m HREF="emCore_emTextField_h.html#emTextField">emTextField</A>).
@@ -354,12 +370,14 @@
         <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> Icon;
         AuxData * Aux;
         <A CLASS=l HREF="emCore_emLook_h.html#emLook">emLook</A> Look;
+        <SPAN CLASS=t>double </SPAN>MaxIconAreaTallness;
         <SPAN CLASS=t>double </SPAN>BorderScaling;
         <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> LabelAlignment;
         <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> CaptionAlignment;
         <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> DescriptionAlignment;
         emByte OuterBorder;
         emByte InnerBorder;
+        <SPAN CLASS=t>bool </SPAN>IconAboveCaption;
         <SPAN CLASS=t>bool </SPAN>LabelInBorder;
 
         <SPAN CLASS=t>static const char </SPAN>* HowToPreface;
@@ -395,6 +413,16 @@
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetDescriptionAlignment() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>DescriptionAlignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::IsIconAboveCaption() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>IconAboveCaption;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetMaxIconAreaTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxIconAreaTallness;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::OuterBorderType <A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::GetOuterBorderType() <SPAN CLASS=t>const

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpControlPanel.cpp
 //
-// Copyright (C) 2011,2014 Oliver Hamann.
+// Copyright (C) 2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,7 @@ emTreeDumpControlPanel::emTreeDumpControlPanel(
 	ParentArg parent, const emString & name, emView & contentView,
 	emTreeDumpRec * rec, const emString & dir
 )
-	: emGroup(parent,name,"emTreeDump"),
+	: emRasterGroup(parent,name,"emTreeDump"),
 	ContentView(contentView)
 {
 	Rec=rec;
@@ -48,7 +48,7 @@ bool emTreeDumpControlPanel::Cycle()
 	bool busy;
 	int i;
 
-	busy=emGroup::Cycle();
+	busy=emRasterGroup::Cycle();
 
 	if (Rec) {
 		for (p=GetFirstChild(); p; p=p->GetNext()) {

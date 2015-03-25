@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.h
 //
-// Copyright (C) 2007-2010,2014 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emCoreConfigPanel : public emGroup {
+class emCoreConfigPanel : public emLinearGroup {
 
 public:
 
@@ -79,7 +79,7 @@ private:
 		emInt64 ValOut;
 	};
 
-	class MouseMiscGroup : public emGroup, private emRecListener {
+	class MouseMiscGroup : public emRasterGroup, private emRecListener {
 	public:
 		MouseMiscGroup(ParentArg parent, const emString & name,
 		                emCoreConfig * config);
@@ -97,7 +97,7 @@ private:
 		emCheckBox * PanBox;
 	};
 
-	class MouseGroup : public emGroup {
+	class MouseGroup : public emRasterGroup {
 	public:
 		MouseGroup(ParentArg parent, const emString & name,
 		           emCoreConfig * config);
@@ -108,7 +108,7 @@ private:
 		emRef<emCoreConfig> Config;
 	};
 
-	class KBGroup : public emGroup {
+	class KBGroup : public emRasterGroup {
 	public:
 		KBGroup(ParentArg parent, const emString & name,
 		        emCoreConfig * config);
@@ -119,7 +119,7 @@ private:
 		emRef<emCoreConfig> Config;
 	};
 
-	class KineticGroup : public emGroup {
+	class KineticGroup : public emRasterGroup {
 	public:
 		KineticGroup(ParentArg parent, const emString & name,
 		             emCoreConfig * config);
@@ -130,7 +130,7 @@ private:
 		emRef<emCoreConfig> Config;
 	};
 
-	class MaxMemGroup : public emGroup, private emRecListener {
+	class MaxMemGroup : public emLinearGroup, private emRecListener {
 	public:
 		MaxMemGroup(ParentArg parent, const emString & name,
 		            emCoreConfig * config);

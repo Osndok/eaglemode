@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010-2011,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,14 +24,25 @@
 emMinesControlPanel::emMinesControlPanel(
 	ParentArg parent, const emString & name, emMinesFileModel * fileModel
 )
-	: emTiling(parent,name)
+	: emLinearLayout(parent,name)
 {
 	Mdl=fileModel;
 
-	GrMines=new emGroup(this,"","emMines");
-		GrHelp=new emGroup(GrMines,"help","How to play the game");
+	SetMinChildTallness(0.26);
+	SetMaxChildTallness(1.5);
+	SetAlignment(EM_ALIGN_TOP_LEFT);
+
+	GrMines=new emPackGroup(this,"","emMines");
+	GrMines->SetPrefChildTallness(0, 0.6);
+	GrMines->SetPrefChildTallness(1, 0.4);
+	GrMines->SetChildWeight(0,0.4);
+	GrMines->SetChildWeight(1,0.6);
+		GrHelp=new emLinearGroup(GrMines,"help","How to play the game");
+		GrHelp->SetBorderScaling(2.0);
 			LbHelp=new emLabel(GrHelp,"text",HelpText);
-		GrStartGame=new emGroup(GrMines,"start","New Game");
+		GrStartGame=new emRasterGroup(GrMines,"start","New Game");
+		GrStartGame->SetPrefChildTallness(0.2);
+		GrStartGame->SetBorderScaling(2.0);
 			SfLevel=new emScalarField(
 				GrStartGame,
 				"sf",
@@ -43,6 +54,7 @@ emMinesControlPanel::emMinesControlPanel(
 				1,5,Mdl->DetectLevel(),
 				true
 			);
+			SfLevel->SetBorderScaling(1.1);
 			BtStartGame=new emButton(
 				GrStartGame,
 				"bt",
@@ -57,15 +69,6 @@ emMinesControlPanel::emMinesControlPanel(
 				"  ...\n"
 				"  Ctrl+5  Start new game of level 5.\n"
 			);
-
-	GrHelp->SetBorderScaling(2.0);
-	GrStartGame->SetBorderScaling(2.0);
-	SfLevel->SetBorderScaling(1.1);
-	GrMines->SetPrefChildTallness(0.6);
-	GrMines->SetPrefChildTallness(0.4,1);
-
-	SetChildTallness(0.26);
-	SetAlignment(EM_ALIGN_LEFT);
 
 	AddWakeUpSignal(BtStartGame->GetClickSignal());
 	AddWakeUpSignal(Mdl->GetChangeSignal());
@@ -90,7 +93,7 @@ bool emMinesControlPanel::Cycle()
 	if (IsSignaled(Mdl->GetChangeSignal())) {
 		SfLevel->SetValue(Mdl->DetectLevel());
 	}
-	return emTiling::Cycle();
+	return emLinearLayout::Cycle();
 }
 
 

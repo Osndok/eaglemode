@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emToolkit.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,6 +39,30 @@
 
 #ifndef emGroup_h
 #include <emCore/emGroup.h>
+#endif
+
+#ifndef emLinearLayout_h
+#include <emCore/emLinearLayout.h>
+#endif
+
+#ifndef emLinearGroup_h
+#include <emCore/emLinearGroup.h>
+#endif
+
+#ifndef emRasterLayout_h
+#include <emCore/emRasterLayout.h>
+#endif
+
+#ifndef emRasterGroup_h
+#include <emCore/emRasterGroup.h>
+#endif
+
+#ifndef emPackLayout_h
+#include <emCore/emPackLayout.h>
+#endif
+
+#ifndef emPackGroup_h
+#include <emCore/emPackGroup.h>
 #endif
 
 #ifndef emTunnel_h

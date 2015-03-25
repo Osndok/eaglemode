@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDialog.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,8 +25,8 @@
 #include <emCore/emButton.h>
 #endif
 
-#ifndef emTiling_h
-#include <emCore/emTiling.h>
+#ifndef emLinearLayout_h
+#include <emCore/emLinearLayout.h>
 #endif
 
 
@@ -39,7 +39,7 @@ class emDialog : public emWindow {
 public:
 
 	// Class for a dialog window. Such a dialog has a content area and a
-	// button area. The content area is an emTiling which can be given
+	// button area. The content area is an emLinearLayout which can be given
 	// individual child panels. The button area can have buttons like "OK"
 	// and "Cancel" for finishing the dialog.
 
@@ -62,9 +62,9 @@ public:
 		// content panel with another title, and if it gets focus, that
 		// title is shown. The default title is an empty string.
 
-	emTiling * GetContentTiling();
+	emLinearLayout * GetContentPanel();
 		// This panel makes up the content area of the dialog, not
-		// including the buttons. For convenience, it is an emTiling
+		// including the buttons. For convenience, it is an emLinearLayout
 		// with default properties, except that the inner border is set
 		// to emBorder::IBT_CUSTOM_RECT. You may change the properties
 		// as you wish, and you should give it one or more child panels
@@ -173,8 +173,8 @@ private:
 		void SetTitle(const emString & title);
 		virtual emString GetTitle();
 		emString Title;
-		emTiling * ContentTiling;
-		emTiling * ButtonTiling;
+		emLinearLayout * ContentPanel;
+		emLinearLayout * ButtonsPanel;
 	protected:
 		virtual void Input(
 			emInputEvent & event, const emInputState & state,
@@ -200,9 +200,9 @@ private:
 	bool ADEnabled;
 };
 
-inline emTiling * emDialog::GetContentTiling()
+inline emLinearLayout * emDialog::GetContentPanel()
 {
-	return ((DlgPanel*)GetRootPanel())->ContentTiling;
+	return ((DlgPanel*)GetRootPanel())->ContentPanel;
 }
 
 inline const emSignal & emDialog::GetFinishSignal() const

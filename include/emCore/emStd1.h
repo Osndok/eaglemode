@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2014 Oliver Hamann.
+// Copyright (C) 2004-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,7 +37,7 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 87
+#define EM_MINOR_VERSION 88
 #define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
@@ -136,6 +136,14 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 #	define EM_FUNC_ATTR_PRINTF(pos) __attribute__((format(__printf__,pos,pos+1)))
 #else
 #	define EM_FUNC_ATTR_PRINTF(pos)
+#endif
+
+#if defined(__GNUC__)
+#	define EM_DEPRECATED(decl) decl __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#	define EM_DEPRECATED(decl) __declspec(deprecated) decl
+#else
+#	define EM_DEPRECATED(decl) decl
 #endif
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.cpp
 //
-// Copyright (C) 2014 Oliver Hamann.
+// Copyright (C) 2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -489,6 +489,9 @@ emSwipingViewAnimator::emSwipingViewAnimator(emView & view)
 	SpringExtension[0]=0.0;
 	SpringExtension[1]=0.0;
 	SpringExtension[2]=0.0;
+	InstantaneousVelocity[0]=GetVelocity(0);
+	InstantaneousVelocity[1]=GetVelocity(1);
+	InstantaneousVelocity[2]=GetVelocity(2);
 	SpringConstant=1.0;
 	Busy=false;
 }
@@ -506,6 +509,9 @@ void emSwipingViewAnimator::Activate()
 		SpringExtension[0]=0.0;
 		SpringExtension[1]=0.0;
 		SpringExtension[2]=0.0;
+		InstantaneousVelocity[0]=GetVelocity(0);
+		InstantaneousVelocity[1]=GetVelocity(1);
+		InstantaneousVelocity[2]=GetVelocity(2);
 		UpdateBusyState();
 	}
 }
@@ -530,6 +536,9 @@ void emSwipingViewAnimator::SetGripped(bool gripped)
 			SpringExtension[0]=0.0;
 			SpringExtension[1]=0.0;
 			SpringExtension[2]=0.0;
+			InstantaneousVelocity[0]=GetVelocity(0);
+			InstantaneousVelocity[1]=GetVelocity(1);
+			InstantaneousVelocity[2]=GetVelocity(2);
 		}
 	}
 }
@@ -568,23 +577,21 @@ bool emSwipingViewAnimator::CycleAnimation(double dt)
 
 	if (Busy && Gripped) {
 		for (i=0; i<3; i++) {
+			e1=SpringExtension[i];
+			v1=InstantaneousVelocity[i];
 			if (SpringConstant<1E5 && fabs(SpringExtension[i]/dt)>20.0) {
 				// Critically damped spring.
-				e1=SpringExtension[i];
-				v1=GetVelocity(i);
 				w=sqrt(SpringConstant);
 				e2=(e1+(e1*w-v1)*dt)*exp(-w*dt);
 				v2=(v1+(e1*w-v1)*dt*w)*exp(-w*dt);
-				// But v is constant for t=t0 to t=t0+dt.
-				v2=(v2+(e1-e2)/dt)*0.5;
-				e2=e1-v2*dt;
 			}
 			else {
-				v2=SpringExtension[i]/dt;
+				v2=0.0;
 				e2=0.0;
 			}
 			SpringExtension[i]=e2;
-			SetVelocity(i,v2);
+			InstantaneousVelocity[i]=v2;
+			SetVelocity(i,(e1-e2)/dt);
 		}
 		frictionEnabled=IsFrictionEnabled();
 		SetFrictionEnabled(false);
@@ -749,7 +756,7 @@ bool emMagneticViewAnimator::CycleAnimation(double dt)
 
 	frictionEnabled=IsFrictionEnabled();
 	SetFrictionEnabled(frictionEnabled && !MagnetismActive);
-	busy |= emKineticViewAnimator::CycleAnimation(dt);
+	if (emKineticViewAnimator::CycleAnimation(dt)) busy=true;
 	SetFrictionEnabled(frictionEnabled);
 
 	return busy;

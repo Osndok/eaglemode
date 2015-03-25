@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010-2011,2014 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -235,17 +235,22 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 )
 {
 	emSvgFileModel * fm;
-	emGroup * grp;
+	emLinearLayout * mainLayout;
+	emLinearGroup * grp;
 	emTextField * tf;
 
 	if (IsVFSGood()) {
 		fm=(emSvgFileModel*)GetFileModel();
-		grp=new emGroup(
-			parent,
-			name,
+		mainLayout=new emLinearLayout(parent,name);
+		mainLayout->SetMinChildTallness(0.03);
+		mainLayout->SetMaxChildTallness(0.6);
+		mainLayout->SetAlignment(EM_ALIGN_TOP_LEFT);
+		grp=new emLinearGroup(
+			mainLayout,
+			"",
 			"SVG File Info"
 		);
-		grp->SetFixedColumnCount(1);
+		grp->SetOrientationThresholdTallness(0.07);
 		tf=new emTextField(
 			grp,
 			"title",
@@ -276,7 +281,7 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 				fm->GetHeight()
 			)
 		);
-		return grp;
+		return mainLayout;
 	}
 	else {
 		return emFilePanel::CreateControlPanel(parent,name);

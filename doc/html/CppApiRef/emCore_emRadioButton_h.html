@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,15 @@
 #endif
 
 #ifndef emGroup_h
-#include &lt;<A CLASS=f HREF="emCore_emGroup_h.html">emCore/emGroup.h</A>&gt;
+#include &lt;emCore/emGroup.h&gt;
+#endif
+
+#ifndef emLinearGroup_h
+#include &lt;<A CLASS=f HREF="emCore_emLinearGroup_h.html">emCore/emLinearGroup.h</A>&gt;
+#endif
+
+#ifndef emRasterGroup_h
+#include &lt;<A CLASS=f HREF="emCore_emRasterGroup_h.html">emCore/emRasterGroup.h</A>&gt;
 #endif
 
 
@@ -52,8 +60,9 @@
         // user can unchecked a button only by checking another. That is the
         // usual behavior. Actually an <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> does not modify its check
         // state on any click, as long as it is not a member of an
-        // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism or <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Group (it's not a must
-        // to use these helper classes).
+        // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism, or an <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::LinearGroup, or an
+        // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::RasterGroup (it's not a must to use these helper
+        // classes).
 
         </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>(
                 ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
@@ -61,7 +70,9 @@
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
         );
-                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>.
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emCheckButton_h.html#emCheckButton">emCheckButton</A>, but if the parent panel is also derived
+                // from <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism, this radio button is added
+                // automatically to that Mechanism.
 
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>();
                 <SPAN CLASS=c>// Destructor. Removes the button from any Mechanism.
@@ -126,22 +137,73 @@
                 <SPAN CLASS=t>int </SPAN>CheckIndex;
         <SPAN CLASS=b>}</SPAN>;
 
-        <SPAN CLASS=t>class </SPAN>Group : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emGroup_h.html#emGroup">emGroup</A>, <SPAN CLASS=t>public </SPAN>Mechanism <SPAN CLASS=b>{
+        <SPAN CLASS=t>class </SPAN>LinearGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A>, <SPAN CLASS=t>public </SPAN>Mechanism <SPAN CLASS=b>{
 
         </SPAN><SPAN CLASS=t>public</SPAN>:
 
-                <SPAN CLASS=c>// Combination of <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A> and Mechanism. Any radio buttons
+                <SPAN CLASS=c>// Combination of <A CLASS=m HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A> and Mechanism. Any radio buttons
                 // created as children of such a group are added automatically
                 // to the mechanism (this magic happens in the constructor of
                 // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>).
 
-                </SPAN>Group(
+                </SPAN>LinearGroup(
                         ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
                         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
                         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
                         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
                 );
-                        <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A>.
+                        <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A>.
+
+                </SPAN><SPAN CLASS=t>virtual </SPAN>~LinearGroup();
+                        <SPAN CLASS=c>// Destructor.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>RasterGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>, <SPAN CLASS=t>public </SPAN>Mechanism <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Combination of <A CLASS=m HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> and Mechanism. Any radio buttons
+                // created as children of such a group are added automatically
+                // to the mechanism (this magic happens in the constructor of
+                // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>).
+
+                </SPAN>RasterGroup(
+                        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+                );
+                        <SPAN CLASS=c>// Like the constructor of <A CLASS=m HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>.
+
+                </SPAN><SPAN CLASS=t>virtual </SPAN>~RasterGroup();
+                        <SPAN CLASS=c>// Destructor.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>Group : <SPAN CLASS=t>public </SPAN>emGroup, <SPAN CLASS=t>public </SPAN>Mechanism <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// ************************************************************
+                // *                        WARNING!!!                        *
+                // *                                                          *
+                // * This class is deprecated and will be removed in a future *
+                // * version. Please use LinearGroup or RasterGroup instead.  *
+                // ************************************************************
+                //
+                // Combination of emGroup and Mechanism. Any radio buttons
+                // created as children of such a group are added automatically
+                // to the mechanism (this magic happens in the constructor of
+                // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>).
+
+                </SPAN>EM_DEPRECATED( <SPAN CLASS=c>// Because the whole class is deprecated!
+                        </SPAN>Group(
+                                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+                        )
+                );
+                        <SPAN CLASS=c>// Like the constructor of emGroup.
 
                 </SPAN><SPAN CLASS=t>virtual </SPAN>~Group();
                         <SPAN CLASS=c>// Destructor.

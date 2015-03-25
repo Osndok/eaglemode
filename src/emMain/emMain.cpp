@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -321,7 +321,7 @@ void emMain::CreateFSDialog()
 	FSDialog->AddPositiveButton("Continue");
 	FSDialog->AddNegativeButton("Exit");
 	FSDialog->GetButton(1)->Activate();
-	label=new emLabel(FSDialog->GetContentTiling(),"text");
+	label=new emLabel(FSDialog->GetContentPanel(),"text");
 	label->SetCaption(text);
 	AddWakeUpSignal(FSDialog->GetFinishSignal());
 }

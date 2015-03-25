@@ -44,6 +44,9 @@ sub Build
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
 		"--link"          , "emCore",
+		$Config{'osname'} eq 'MSWin32' ? (
+			"--link", "advapi32"
+		) : (),
 		"--type"          , "dynlib",
 		"--name"          , "emFileMan",
 		"src/emFileMan/emDirEntry.cpp",

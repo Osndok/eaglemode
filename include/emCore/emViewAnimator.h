@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.h
 //
-// Copyright (C) 2014 Oliver Hamann.
+// Copyright (C) 2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -236,6 +236,7 @@ private:
 
 	bool Gripped;
 	double SpringExtension[3];
+	double InstantaneousVelocity[3];
 	double SpringConstant;
 	bool Busy;
 };

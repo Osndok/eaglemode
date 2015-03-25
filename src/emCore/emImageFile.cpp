@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImageFile.cpp
 //
-// Copyright (C) 2004-2008,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -231,17 +231,22 @@ emPanel * emImageFilePanel::CreateControlPanel(
 )
 {
 	emImageFileModel * fm;
-	emGroup * grp;
+	emLinearLayout * mainLayout;
+	emLinearGroup * grp;
 	emTextField * tf;
 
 	if (IsVFSGood()) {
 		fm=(emImageFileModel*)GetFileModel();
-		grp=new emGroup(
-			parent,
-			name,
+		mainLayout=new emLinearLayout(parent,name);
+		mainLayout->SetMinChildTallness(0.03);
+		mainLayout->SetMaxChildTallness(0.6);
+		mainLayout->SetAlignment(EM_ALIGN_TOP_LEFT);
+		grp=new emLinearGroup(
+			mainLayout,
+			"",
 			"Image File Info"
 		);
-		grp->SetFixedColumnCount(1);
+		grp->SetOrientationThresholdTallness(0.07);
 		new emTextField(
 			grp,
 			"format",
@@ -271,7 +276,7 @@ emPanel * emImageFilePanel::CreateControlPanel(
 			fm->GetComment()
 		);
 		tf->SetMultiLineMode();
-		return grp;
+		return mainLayout;
 	}
 	else {
 		return emFilePanel::CreateControlPanel(parent,name);

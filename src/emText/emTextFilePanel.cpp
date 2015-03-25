@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,7 +104,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 	ParentArg parent, const emString & name
 )
 {
-	emGroup * grp;
+	emRasterGroup * grp;
 	const char * p;
 
 	if (
@@ -113,7 +113,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 		!AlternativeView
 	) {
 
-		grp=new emGroup(
+		grp=new emRasterGroup(
 			parent,
 			name,
 			"Text File Info"

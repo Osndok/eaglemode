@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioButton.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,14 +27,14 @@ emRadioButton::emRadioButton(
 )
 	: emCheckButton(parent,name,caption,description,icon)
 {
-	Group * grp;
+	Mechanism * mechanism;
 
 	SetShownRadioed(true);
 	Mech=NULL;
 	MechIndex=-1;
 	if (GetParent()) {
-		grp=dynamic_cast<emRadioButton::Group*>(GetParent());
-		if (grp) grp->Add(this);
+		mechanism=dynamic_cast<emRadioButton::Mechanism*>(GetParent());
+		if (mechanism) mechanism->Add(this);
 	}
 }
 
@@ -180,11 +180,39 @@ void emRadioButton::Mechanism::CheckChanged()
 }
 
 
+emRadioButton::LinearGroup::LinearGroup(
+	ParentArg parent, const emString & name, const emString & caption,
+	const emString & description, const emImage & icon
+)
+	: emLinearGroup(parent,name,caption,description,icon)
+{
+}
+
+
+emRadioButton::LinearGroup::~LinearGroup()
+{
+}
+
+
+emRadioButton::RasterGroup::RasterGroup(
+	ParentArg parent, const emString & name, const emString & caption,
+	const emString & description, const emImage & icon
+)
+	: emRasterGroup(parent,name,caption,description,icon)
+{
+}
+
+
+emRadioButton::RasterGroup::~RasterGroup()
+{
+}
+
+
 emRadioButton::Group::Group(
 	ParentArg parent, const emString & name, const emString & caption,
 	const emString & description, const emImage & icon
 )
-	: emGroup(parent,name,caption,description,icon)
+	: emGroup(parent,name,caption,description,icon,0)
 {
 }
 

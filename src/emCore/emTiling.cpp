@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiling.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,6 +24,33 @@
 emTiling::emTiling(
 	ParentArg parent, const emString & name, const emString & caption,
 	const emString & description, const emImage & icon
+)
+	: emBorder(parent,name,caption,description,icon)
+{
+	SpaceL=0.0;
+	SpaceT=0.0;
+	SpaceH=0.0;
+	SpaceV=0.0;
+	SpaceR=0.0;
+	SpaceB=0.0;
+	PCT=0.2;
+	PCTPos.SetTuningLevel(4);
+	PCTNeg.SetTuningLevel(4);
+	FixedColumnCount=0;
+	FixedRowCount=0;
+	MinCellCount=0;
+	FCTColumn=-1;
+	FCTRow=-1;
+	Alignment=EM_ALIGN_CENTER;
+	RowByRow=0;
+	SetFocusable(false);
+}
+
+
+emTiling::emTiling(
+	ParentArg parent, const emString & name, const emString & caption,
+	const emString & description, const emImage & icon,
+	int notWarningDeprecatedForInternalUse
 )
 	: emBorder(parent,name,caption,description,icon)
 {

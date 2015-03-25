@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,41 +26,53 @@
 emFileManControlPanel::emFileManControlPanel(
 	ParentArg parent, const emString & name, emView & contentView
 )
-	: emGroup(
+	: emPackGroup(
 		parent,name,
 		"emFileMan",
 		"The Eagle Mode File Manager"
 	),
 	ContentView(contentView)
 {
+	emRasterGroup * sortByGroup, * nameSortingStyleGroup;
+	emLinearGroup * saveGroup;
+	emRasterLayout * sortOptLayout;
 	emTunnel * tunnel;
-	emTiling * t, * t2, * t3;
-	emGroup * g;
 	emRef<emFileManThemeNames> themeNames;
 	int i;
 
 	FMModel=emFileManModel::Acquire(GetRootContext());
 	FMVConfig=emFileManViewConfig::Acquire(contentView);
 
-	SetPrefChildTallness(0.66);
-	SetPrefChildTallness(0.97,1);
-	SetPrefChildTallness(0.195,2);
+	SetPrefChildTallness(0, 0.66);
+	SetPrefChildTallness(1, 0.97);
+	SetPrefChildTallness(2, 0.195);
+	SetChildWeight(0, 1.0/0.66);
+	SetChildWeight(1, 1.0/0.97);
+	SetChildWeight(2, 1.0/0.195);
 
-	GrView=new emGroup(this,"view","View Settings");
-	GrView->SetPrefChildTallness(0.5);
-	GrView->SetPrefChildTallness(0.2,-1);
-		g=new emGroup(GrView,"sort","Sort By");
-		g->SetBorderScaling(1.7);
-		g->SetPrefChildTallness(0.2);
+	GrView=new emPackGroup(this,"view","View Settings");
+	GrView->SetPrefChildTallness(0, 0.4);
+	GrView->SetPrefChildTallness(1, 0.8);
+	GrView->SetPrefChildTallness(2, 0.3);
+	GrView->SetPrefChildTallness(3, 0.4);
+	GrView->SetPrefChildTallness(4, 0.4);
+	GrView->SetChildWeight(0, 70.0);
+	GrView->SetChildWeight(1,  6.0);
+	GrView->SetChildWeight(2, 16.0);
+	GrView->SetChildWeight(3,  3.0);
+	GrView->SetChildWeight(4,  3.0);
+		sortByGroup=new emRasterGroup(GrView,"sort","Sort By");
+		sortByGroup->SetBorderScaling(1.7);
+		sortByGroup->SetPrefChildTallness(0.2);
 			RbSortByName=new emRadioButton(
-				g,"sort by name",
+				sortByGroup,"sort by name",
 				"Name",
 				"Sort by file name.\n"
 				"\n"
 				"Hotkey: Shift+Alt+N"
 			);
 			RbSortByEnding=new emRadioButton(
-				g,"sort by ending",
+				sortByGroup,"sort by ending",
 				"Ending",
 				"Sort by file name ending. It's the part after the last dot.\n"
 				"Files with equal endings are sorted by name.\n"
@@ -68,7 +80,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"Hotkey: Shift+Alt+E"
 			);
 			RbSortByClass=new emRadioButton(
-				g,"sort by class",
+				sortByGroup,"sort by class",
 				"Class",
 				"Sort by class names in the file names. This sorting algorithm\n"
 				"splits each file name into words and sorts primarily by the\n"
@@ -77,7 +89,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"Hotkey: Shift+Alt+C"
 			);
 			RbSortByVersion=new emRadioButton(
-				g,"sort by version",
+				sortByGroup,"sort by version",
 				"Version",
 				"Sort by version number. This is like sorting by name, but\n"
 				"decimal numbers are recognized and compared. For example,\n"
@@ -86,7 +98,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"Hotkey: Shift+Alt+V"
 			);
 			RbSortByDate=new emRadioButton(
-				g,"sort by date",
+				sortByGroup,"sort by date",
 				"Date",
 				"Sort primarily by date and time of last modification,\n"
 				"secondarily by name.\n"
@@ -94,86 +106,82 @@ emFileManControlPanel::emFileManControlPanel(
 				"Hotkey: Shift+Alt+D"
 			);
 			RbSortBySize=new emRadioButton(
-				g,"sort by size",
+				sortByGroup,"sort by size",
 				"Size",
 				"Sort primarily by file size, secondarily by name.\n"
 				"\n"
 				"Hotkey: Shift+Alt+S"
 			);
-		t=new emTiling(GrView,"more");
-		t->SetPrefChildTallness(0.8);
-		t->SetPrefChildTallness(0.3,1);
-		t->SetPrefChildTallness(0.8,2);
-			RbgTheme=new emRadioButton::Group(
-				t,"theme","Theme",
-				"Here you can choose the look of directory entry panels."
+		RbgTheme=new emRadioButton::RasterGroup(
+			GrView,"theme","Theme",
+			"Here you can choose the look of directory entry panels."
+		);
+		RbgTheme->SetPrefChildTallness(0.2);
+		themeNames=emFileManThemeNames::Acquire(GetRootContext());
+		for (i=0; i<themeNames->GetThemeCount(); i++) {
+			new emRadioButton(
+				RbgTheme,
+				themeNames->GetThemeName(i),
+				themeNames->GetThemeDisplayName(i)
 			);
-			RbgTheme->SetPrefChildTallness(0.2);
-			themeNames=emFileManThemeNames::Acquire(GetRootContext());
-			for (i=0; i<themeNames->GetThemeCount(); i++) {
-				new emRadioButton(
-					RbgTheme,
-					themeNames->GetThemeName(i),
-					themeNames->GetThemeDisplayName(i)
+		}
+		sortOptLayout=new emRasterLayout(GrView,"left");
+		sortOptLayout->SetPrefChildTallness(0.15);
+			CbSortDirectoriesFirst=new emCheckButton(
+				sortOptLayout,"sort directories first",
+				"Directories First",
+				"Always have directories at the beginning, regardless of\n"
+				"the other sort criterions."
+			);
+			CbShowHiddenFiles=new emCheckButton(
+				sortOptLayout,"show hidden files",
+				"Show Hidden Files",
+				"Hotkey: Shift+Alt+H"
+			);
+		nameSortingStyleGroup=new emRasterGroup(
+			GrView,"nameSortingStyle",
+			"Name Sorting Style (Order of Characters)"
+		);
+		nameSortingStyleGroup->SetBorderScaling(2.0);
+		nameSortingStyleGroup->SetPrefChildTallness(0.05);
+			RbPerLocale=new emRadioButton(
+				nameSortingStyleGroup,"per locale",
+				"Per Locale",
+				"Sort names depending on the user's current locale.\n"
+				"Technically, names are compared through \"strcoll\"."
+			);
+			RbCaseSensitive=new emRadioButton(
+				nameSortingStyleGroup,"case-sensitive",
+				"Classic Case-Sensitive",
+				"Sort names by the ASCII code of characters.\n"
+				"Technically, names are compared through \"strcmp\"."
+			);
+			RbCaseInsensitive=new emRadioButton(
+				nameSortingStyleGroup,"case-insensitive",
+				"Classic Case-Insensitive",
+				"Sort names by the ASCII code of characters, but ignore the\n"
+				"letter case. This may be correct for English letters only.\n"
+				"Technically, names are compared through \"strcasecmp\"."
+			);
+		tunnel=new emTunnel(GrView,"tunnel","Save");
+			saveGroup=new emLinearGroup(tunnel,"save");
+			saveGroup->SetVertical();
+				CbAutosave=new emCheckBox(
+					saveGroup,"autosave",
+					"Save Automatically",
+					"Automatically save changes of the view settings as the default for new windows."
 				);
-			}
-			t2=new emTiling(t,"left");
-			t2->SetPrefChildTallness(0.15);
-				CbSortDirectoriesFirst=new emCheckButton(
-					t2,"sort directories first",
-					"Directories First",
-					"Always have directories at the beginning, regardless of\n"
-					"the other sort criterions."
+				CbAutosave->SetNoEOI();
+				BtSaveAsDefault=new emButton(
+					saveGroup,"save",
+					"Save",
+					"Save the current view settings as the default for new windows."
 				);
-				CbShowHiddenFiles=new emCheckButton(
-					t2,"show hidden files",
-					"Show Hidden Files",
-					"Hotkey: Shift+Alt+H"
-				);
-			t2=new emTiling(t,"right");
-			t2->SetPrefChildTallness(0.4);
-				g=new emGroup(
-					t2,"nameSortingStyle",
-					"Name Sorting Style (Order of Characters)"
-				);
-				g->SetBorderScaling(2.0);
-				g->SetPrefChildTallness(0.05);
-					RbPerLocale=new emRadioButton(
-						g,"per locale",
-						"Per Locale",
-						"Sort names depending on the user's current locale.\n"
-						"Technically, names are compared through \"strcoll\"."
-					);
-					RbCaseSensitive=new emRadioButton(
-						g,"case-sensitive",
-						"Classic Case-Sensitive",
-						"Sort names by the ASCII code of characters.\n"
-						"Technically, names are compared through \"strcmp\"."
-					);
-					RbCaseInsensitive=new emRadioButton(
-						g,"case-insensitive",
-						"Classic Case-Insensitive",
-						"Sort names by the ASCII code of characters, but ignore the\n"
-						"letter case. This may be correct for English letters only.\n"
-						"Technically, names are compared through \"strcasecmp\"."
-					);
-				tunnel=new emTunnel(t2,"tunnel","Save");
-					t3=new emGroup(tunnel,"save");
-						CbAutosave=new emCheckBox(
-							t3,"autosave",
-							"Save Automatically",
-							"Automatically save changes of the view settings as the default for new windows."
-						);
-						CbAutosave->SetNoEOI();
-						BtSaveAsDefault=new emButton(
-							t3,"save",
-							"Save",
-							"Save the current view settings as the default for new windows."
-						);
 
-	GrSelection=new emGroup(this,"selection","Selection");
-	GrSelection->SetPrefChildTallness(0.17);
-	GrSelection->SetPrefChildTallness(0.28,-5);
+	GrSelection=new emLinearGroup(this,"selection","Selection");
+	GrSelection->SetVertical();
+	GrSelection->SetChildWeight(0.17);
+	GrSelection->SetChildWeight(5,0.28);
 		BtSelectAll=new emButton(
 			GrSelection,"select all",
 			"Select All",
@@ -214,7 +222,7 @@ emFileManControlPanel::emFileManControlPanel(
 			"\n"
 			"Hotkey: Alt+N"
 		);
-		GrSelInfo=new emGroup(GrSelection,"stat","Selection Statistics");
+		GrSelInfo=new emLinearGroup(GrSelection,"stat","Selection Statistics");
 		GrSelInfo->SetBorderType(OBT_INSTRUMENT,IBT_OUTPUT_FIELD);
 			SelInfo=new emFileManSelInfoPanel(GrSelInfo,"info");
 			SelInfo->SetFocusable(false);
@@ -336,7 +344,7 @@ bool emFileManControlPanel::Cycle()
 	if (IsSignaled(BtNames2Clipboard->GetClickSignal())) {
 		FMModel->SelectionToClipboard(ContentView,false,true);
 	}
-	return emGroup::Cycle();
+	return emPackGroup::Cycle();
 }
 
 
@@ -381,7 +389,7 @@ emFileManControlPanel::Group::Group(
 	ParentArg parent, const emString & name, emView & contentView,
 	emFileManModel * fmModel, const emFileManModel::CommandNode * cmd
 )
-	: emGroup(parent,name,cmd->Caption,cmd->Description,cmd->Icon),
+	: emRasterGroup(parent,name,cmd->Caption,cmd->Description,cmd->Icon),
 	ContentView(contentView)
 {
 	SetLook(cmd->Look);
@@ -391,6 +399,8 @@ emFileManControlPanel::Group::Group(
 		SetFocusable(false);
 	}
 	SetPrefChildTallness(cmd->PrefChildTallness);
+	SetStrictRaster(true);
+	SetAlignment(EM_ALIGN_TOP_LEFT);
 	FMModel=fmModel;
 	CmdPath=cmd->CmdPath;
 	EnableAutoExpansion();
@@ -408,7 +418,7 @@ bool emFileManControlPanel::Group::Cycle()
 	if (IsSignaled(FMModel->GetCommandsSignal())) {
 		InvalidateAutoExpansion();
 	}
-	return emGroup::Cycle();
+	return emRasterGroup::Cycle();
 }
 
 

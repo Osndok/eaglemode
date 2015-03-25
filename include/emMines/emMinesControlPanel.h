@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.h
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emMinesControlPanel : public emTiling {
+class emMinesControlPanel : public emLinearLayout {
 
 public:
 
@@ -48,10 +48,10 @@ private:
 
 	emRef<emMinesFileModel> Mdl;
 
-	emGroup * GrMines;
-		emGroup * GrHelp;
+	emPackGroup * GrMines;
+		emLinearGroup * GrHelp;
 			emLabel * LbHelp;
-		emGroup * GrStartGame;
+		emRasterGroup * GrStartGame;
 			emScalarField * SfLevel;
 			emButton * BtStartGame;
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileControlPanel.cpp
 //
-// Copyright (C) 2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2008,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,24 +25,34 @@
 emAvFileControlPanel::emAvFileControlPanel(
 	ParentArg parent, const emString & name, emAvFileModel * fileModel
 )
-	: emGroup(parent,name,"emAv - Audio & Video Player")
+	: emLinearLayout(parent,name)
 {
-	emTiling * left, * right, * vol, * inf;
+	emPackGroup * mainGroup;
+	emLinearLayout * left, * inf, * vol;
+	emRasterLayout * right;
 	emLook look;
 
 	Mdl=fileModel;
 
-	SetPrefChildTallness(0.2);
-	SetPrefChildTallness(0.4,1);
+	SetMinChildTallness(0.1);
+	SetMaxChildTallness(0.5);
+	SetAlignment(EM_ALIGN_TOP_LEFT);
 
-	left=new emTiling(this,"left");
-	left->SetPrefChildTallness(0.05);
-	left->SetPrefChildTallness(0.065,-1);
-	left->SetPrefChildTallness(0.08,-2);
+	mainGroup=new emPackGroup(this,"","emAv - Audio & Video Player");
+	mainGroup->SetPrefChildTallness(0,0.1);
+	mainGroup->SetPrefChildTallness(1,0.2);
+	mainGroup->SetChildWeight(0,2.0);
+	mainGroup->SetChildWeight(1,1.0);
 
-		inf=new emTiling(left,"inf");
-		inf->SetPrefChildTallness(0.4);
-		inf->SetPrefChildTallness(0.05,1);
+	left=new emLinearLayout(mainGroup,"left");
+	left->SetVertical();
+	left->SetChildWeight(0,1.0);
+	left->SetChildWeight(1,1.3);
+	left->SetChildWeight(2,1.6);
+
+		inf=new emLinearLayout(left,"inf");
+		inf->SetHorizontal();
+		inf->SetMinChildTallness(0,0.45);
 		TfInfo=new emTextField(inf,"info","File Info");
 		TfInfo->SetMultiLineMode();
 		TfWarning=new emTextField(inf,"warning","Player Warnings");
@@ -72,12 +82,12 @@ emAvFileControlPanel::emAvFileControlPanel(
 		SfPlayPos->SetTextBoxTallness(0.3);
 		SfPlayPos->SetEditable(true);
 
-		RgPlayState=new emRadioButton::Group(left,"play_state");
+		RgPlayState=new emRadioButton::LinearGroup(left,"play_state");
 		RgPlayState->SetBorderType(OBT_NONE,IBT_NONE);
 		RgPlayState->SetFocusable(false);
-		RgPlayState->SetPrefChildTallness(0.3);
-		RgPlayState->SetPrefChildTallness(1.0,2,false);
-		RgPlayState->SetPrefChildTallness(1.0,4,false);
+		RgPlayState->SetHorizontal();
+		RgPlayState->SetChildWeight(2,0.3);
+		RgPlayState->SetChildWeight(4,0.3);
 		RbStop=new emRadioButton(
 			RgPlayState,"stop",
 			emString(),
@@ -123,12 +133,12 @@ emAvFileControlPanel::emAvFileControlPanel(
 			emGetInsResImage(GetRootContext(),"emAv","PlayFast.tga")
 		);
 
-	right=new emTiling(this,"right");
-	right->SetPrefChildTallness(0.1);
+	right=new emRasterLayout(mainGroup,"right");
+	right->SetPrefChildTallness(0.12);
 
-		vol=new emTiling(right,"audio_volume");
-		vol->SetPrefChildTallness(0.5);
-		vol->SetPrefChildTallness(0.12,1);
+		vol=new emLinearLayout(right,"audio_volume");
+		vol->SetHorizontal();
+		vol->SetMinChildTallness(0,0.5);
 		CbAudioMute=new emCheckButton(
 			vol,"mute",
 			"Mute",
@@ -205,7 +215,7 @@ bool emAvFileControlPanel::Cycle()
 {
 	bool busy;
 
-	busy=emGroup::Cycle();
+	busy=emLinearLayout::Cycle();
 
 	if (
 		IsSignaled(Mdl->GetInfoSignal()) ||

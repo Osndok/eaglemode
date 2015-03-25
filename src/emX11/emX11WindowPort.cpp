@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012,2014 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1366,6 +1366,8 @@ void emX11WindowPort::SendLaunchFeedback()
 {
 	const char * id;
 	Atom _NET_STARTUP_INFO_BEGIN, _NET_STARTUP_INFO;
+	XSetWindowAttributes xswa;
+	::Window senderWin;
 	XEvent xevent;
 	emString msg;
 	int i,sz;
@@ -1374,16 +1376,27 @@ void emX11WindowPort::SendLaunchFeedback()
 	if (!id || !*id) return;
 	msg=emString::Format("remove: ID=%s",id);
 	unsetenv("DESKTOP_STARTUP_ID");
-	sz=msg.GetLen()+1;
+
+	memset(&xswa,0,sizeof(xswa));
+	xswa.override_redirect=True;
+	XMutex.Lock();
+	senderWin=XCreateWindow(
+		Disp,Screen.RootWin,-100,-100,1,1,0,CopyFromParent,
+		InputOnly,CopyFromParent,CWOverrideRedirect,&xswa
+	);
+	XMutex.Unlock();
+
 	XMutex.Lock();
 	_NET_STARTUP_INFO_BEGIN=XInternAtom(Disp,"_NET_STARTUP_INFO_BEGIN",False);
 	_NET_STARTUP_INFO=XInternAtom(Disp,"_NET_STARTUP_INFO",False);
 	XMutex.Unlock();
+
+	sz=msg.GetLen()+1;
 	for (i=0; i<sz; i+=20) {
 		memset(&xevent,0,sizeof(xevent));
 		xevent.xclient.type=ClientMessage;
 		xevent.xclient.display=Disp;
-		xevent.xclient.window=Win;
+		xevent.xclient.window=senderWin;
 		if (i==0) xevent.xclient.message_type=_NET_STARTUP_INFO_BEGIN;
 		else xevent.xclient.message_type=_NET_STARTUP_INFO;
 		xevent.xclient.format=8;
@@ -1392,6 +1405,10 @@ void emX11WindowPort::SendLaunchFeedback()
 		XSendEvent(Disp,Screen.RootWin,False,PropertyChangeMask,&xevent);
 		XMutex.Unlock();
 	}
+
+	XMutex.Lock();
+	XDestroyWindow(Disp,senderWin);
+	XMutex.Unlock();
 }
 
 

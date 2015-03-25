@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioButton.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,14 @@
 #include <emCore/emGroup.h>
 #endif
 
+#ifndef emLinearGroup_h
+#include <emCore/emLinearGroup.h>
+#endif
+
+#ifndef emRasterGroup_h
+#include <emCore/emRasterGroup.h>
+#endif
+
 
 //==============================================================================
 //=============================== emRadioButton ================================
@@ -43,8 +51,9 @@ public:
 	// user can unchecked a button only by checking another. That is the
 	// usual behavior. Actually an emRadioButton does not modify its check
 	// state on any click, as long as it is not a member of an
-	// emRadioButton::Mechanism or emRadioButton::Group (it's not a must
-	// to use these helper classes).
+	// emRadioButton::Mechanism, or an emRadioButton::LinearGroup, or an
+	// emRadioButton::RasterGroup (it's not a must to use these helper
+	// classes).
 
 	emRadioButton(
 		ParentArg parent, const emString & name,
@@ -52,7 +61,9 @@ public:
 		const emString & description=emString(),
 		const emImage & icon=emImage()
 	);
-		// Like emCheckButton.
+		// Like emCheckButton, but if the parent panel is also derived
+		// from emRadioButton::Mechanism, this radio button is added
+		// automatically to that Mechanism.
 
 	virtual ~emRadioButton();
 		// Destructor. Removes the button from any Mechanism.
@@ -117,20 +128,71 @@ public:
 		int CheckIndex;
 	};
 
+	class LinearGroup : public emLinearGroup, public Mechanism {
+
+	public:
+
+		// Combination of emLinearGroup and Mechanism. Any radio buttons
+		// created as children of such a group are added automatically
+		// to the mechanism (this magic happens in the constructor of
+		// emRadioButton).
+
+		LinearGroup(
+			ParentArg parent, const emString & name,
+			const emString & caption=emString(),
+			const emString & description=emString(),
+			const emImage & icon=emImage()
+		);
+			// Like the constructor of emLinearGroup.
+
+		virtual ~LinearGroup();
+			// Destructor.
+	};
+
+	class RasterGroup : public emRasterGroup, public Mechanism {
+
+	public:
+
+		// Combination of emRasterGroup and Mechanism. Any radio buttons
+		// created as children of such a group are added automatically
+		// to the mechanism (this magic happens in the constructor of
+		// emRadioButton).
+
+		RasterGroup(
+			ParentArg parent, const emString & name,
+			const emString & caption=emString(),
+			const emString & description=emString(),
+			const emImage & icon=emImage()
+		);
+			// Like the constructor of emRasterGroup.
+
+		virtual ~RasterGroup();
+			// Destructor.
+	};
+
 	class Group : public emGroup, public Mechanism {
 
 	public:
 
+		// ************************************************************
+		// *                        WARNING!!!                        *
+		// *                                                          *
+		// * This class is deprecated and will be removed in a future *
+		// * version. Please use LinearGroup or RasterGroup instead.  *
+		// ************************************************************
+		//
 		// Combination of emGroup and Mechanism. Any radio buttons
 		// created as children of such a group are added automatically
 		// to the mechanism (this magic happens in the constructor of
 		// emRadioButton).
 
-		Group(
-			ParentArg parent, const emString & name,
-			const emString & caption=emString(),
-			const emString & description=emString(),
-			const emImage & icon=emImage()
+		EM_DEPRECATED( // Because the whole class is deprecated!
+			Group(
+				ParentArg parent, const emString & name,
+				const emString & caption=emString(),
+				const emString & description=emString(),
+				const emImage & icon=emImage()
+			)
 		);
 			// Like the constructor of emGroup.
 

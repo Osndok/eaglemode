@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-	<TITLE>emCore/emTiling.h</TITLE>
+	<TITLE>emCore/emRasterLayout.h</TITLE>
 	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
 	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
 </HEAD>
@@ -8,9 +8,9 @@
 
 <SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
-// <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A>.h
+// <A CLASS=m HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,29 +27,49 @@
 // along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 //------------------------------------------------------------------------------
 
-</SPAN><SPAN CLASS=p>#ifndef emTiling_h
-#define emTiling_h
+</SPAN><SPAN CLASS=p>#ifndef emRasterLayout_h
+#define emRasterLayout_h
 
 #ifndef emBorder_h
 #include &lt;<A CLASS=f HREF="emCore_emBorder_h.html">emCore/emBorder.h</A>&gt;
 #endif
 
 
-<A NAME="emTiling"></A></SPAN><SPAN CLASS=c>//==============================================================================
-//================================== <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A> ==================================
+<A NAME="emRasterLayout"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A> ===============================
 //==============================================================================
 
-</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
 
 </SPAN><SPAN CLASS=t>public</SPAN>:
 
-        <SPAN CLASS=c>// A panel of this class automatically lays out any child panels within
-        // the content area, just like in a rectangular tiling. By default, the
-        // panel itself is not focusable and has no border, because it is meant
-        // as a pure layout programming tool. For other use, see the derived
-        // class <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A>.
+        <SPAN CLASS=c>// A panel of this class automatically lays out its child panels within
+        // the content area, so that they have the same size and are arranged in
+        // a rectangular raster.
+        //
+        //                    Raster layout
+        //   +---------------------------------------------+
+        //   | +-------+  +-------+  +-------+  +-------+  |
+        //   | |       |  |       |  |       |  |       |  |
+        //   | |       |  |       |  |       |  |       |  |
+        //   | +-------+  +-------+  +-------+  +-------+  |
+        //   |                                             |
+        //   | +-------+  +-------+  +-------+  +-------+  |
+        //   | |       |  |       |  |       |  |       |  |
+        //   | |       |  |       |  |       |  |       |  |
+        //   | +-------+  +-------+  +-------+  +-------+  |
+        //   |                                             |
+        //   | +-------+  +-------+  +-------+             |
+        //   | |       |  |       |  |       |             |
+        //   | |       |  |       |  |       |             |
+        //   | +-------+  +-------+  +-------+             |
+        //   +---------------------------------------------+
+        //
+        // By default, a panel of this class is not focusable and has no border,
+        // because it is meant as a pure layout programming tool. For other use,
+        // please see the derived class <A CLASS=m HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>.
 
-        </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>(
+        </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>(
                 ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
@@ -57,14 +77,14 @@
         );
                 <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>, but sets non-focusable.
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>();
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>();
                 <SPAN CLASS=c>// Destructor.
 
         </SPAN><SPAN CLASS=t>bool </SPAN>IsRowByRow() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetRowByRow(<SPAN CLASS=t>bool </SPAN>rowByRow=<SPAN CLASS=k>true</SPAN>);
                 <SPAN CLASS=c>// Whether to layout the child panels column-by-column (false,
                 // the default) or row-by-row (true). Here is an example for the
-                // order of 10 panels in a 4x3 grid:
+                // order of 10 panels in a 4x3 raster:
                 //   column-by-column      row-by-row
                 //      1  4  7 10         1  2  3  4
                 //      2  5  8            5  6  7  8
@@ -88,82 +108,45 @@
                 // panels. The additional cells are simply making up unused
                 // space. The default is zero.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>ct);
-                <SPAN CLASS=c>// Set the demanded tallness of child panels (height/width
-                // ratio). This method is a short cut for:
-                //   SetPrefChildTallness(ct);
-                //   SetChildTallnessForced();
+        </SPAN><SPAN CLASS=t>double </SPAN>GetPrefChildTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>double </SPAN>prefCT);
+                <SPAN CLASS=c>// Preferred tallness of child panels (height/width ratio). The
+                // child panels may get another tallness, for filling the
+                // available space best possible. The default is 0.1
 
-        </SPAN><SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>double </SPAN>pct);
-                <SPAN CLASS=c>// Set the preferred tallness of child panels (height/width
-                // ratio). The child panels may get another tallness, for
-                // filling the available space best possible. This method is a
-                // short cut for: SetPrefChildTallness(pct,0,true);
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMinChildTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinChildTallness(<SPAN CLASS=t>double </SPAN>minCT);
+                <SPAN CLASS=c>// Minimum tallness of child panels. The default is 0.0.
 
-        </SPAN><SPAN CLASS=t>double </SPAN>GetPrefChildTallness(<SPAN CLASS=t>int </SPAN>idx) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>double </SPAN>pct, <SPAN CLASS=t>int </SPAN>idx, <SPAN CLASS=t>bool </SPAN>allFurther=<SPAN CLASS=k>true</SPAN>);
-                <SPAN CLASS=c>// Preferred tallness of child panels in the first row and in
-                // the first column. The index idx denotes a cell. It is a cell
-                // in the first row (idx&gt;0) or in the first column (idx&lt;0), or
-                // both (idx==0). Other cells cannot be set, because they are
-                // sized implicitly by the first row and column. Here is a chart
-                // showing the meaning of idx, and the effect of different
-                // tallnesses:
-                //
-                //   +--------+-------+-------------+-----+----
-                //   | idx  0 | idx 1 |    idx 2    |idx 3| ...
-                //   +--------+-------+-------------+-----+----
-                //   |        |       |             |     |
-                //   | idx -1 |       |             |     |
-                //   |        |       |             |     |
-                //   +--------+-------+-------------+-----+----
-                //   | idx -2 |       |             |     |
-                //   +--------+-------+-------------+-----+----
-                //   |        |       |             |     |
-                //   |        |       |             |     |
-                //   | idx -3 |       |             |     |
-                //   |        |       |             |     |
-                //   |        |       |             |     |
-                //   +--------+-------+-------------+-----+----
-                //   | ...    |       |             |     |
-                //
-                // Now to the important trick argument "allFurther": If true
-                // (the default), all further cells in the row and/or column are
-                // even set. For example, SetPrefChildTallness(1.0,3) means to
-                // set the cells 3, 4, 5, ... INT_MAX. And
-                // SetPrefChildTallness(1.0,-2) means to set the cells -2, -3,
-                // -4, ... INT_MIN. And SetPrefChildTallness(1.0,-3,false) means
-                // to set cell -3 only. And SetPrefChildTallness(1.0,0) means to
-                // set all cells at once.
-                //
-                // There is no limit for idx except through the memory required
-                // by internal arrays.
-                //
-                // The default preferred child tallness is: 0.2
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMaxChildTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMaxChildTallness(<SPAN CLASS=t>double </SPAN>maxCT);
+                <SPAN CLASS=c>// Maximum tallness of child panels. The default is 1E100.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallnessForced(<SPAN CLASS=t>bool </SPAN>forced=<SPAN CLASS=k>true</SPAN>);
-                <SPAN CLASS=c>// Whether the preferred child tallness has to be applied in any
-                // case, instead of deviating for filling the whole available
-                // space. This method is a short cut for:
-                //   SetForcedChildTallnessColumn(forced ? 0 : -1);
-                //   SetForcedChildTallnessRow(forced ? 0 : -1);
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>tallness);
+                <SPAN CLASS=c>// Set preferred, minimum and maximum child tallness to
+                // the given value.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetForcedChildTallnessColumn() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetForcedChildTallnessRow() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>SetForcedChildTallnessColumn(<SPAN CLASS=t>int </SPAN>column);
-        <SPAN CLASS=t>void </SPAN>SetForcedChildTallnessRow(<SPAN CLASS=t>int </SPAN>row);
-                <SPAN CLASS=c>// Index of a single column or row, in which the preferred child
-                // tallness has to be applied in any case. -1 means to have no
-                // such column or row (this is the default). Understand that if
-                // both a row and a column are forced, all cells of the whole
-                // grid are forced implicitly.
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsStrictRaster() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetStrictRaster(<SPAN CLASS=t>bool </SPAN>strictRaster=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Whether to make the raster layout more strict. The default is
+                // false. Normally, the layout algorithm chooses the number of
+                // rows and columns so that the child panels are shown as large
+                // as possible. Depending on minimum and maximum tallness, the
+                // available space may not be filled completely either
+                // horizontally or vertically - more or less by random. With
+                // "strict raster", the available space is always filled
+                // vertically in a column-by-column layout or horizontally in a
+                // row-by-row layout, respectively. This may result in more rows
+                // or columns than originally needed, but it may look better or
+                // cleaner, especially when the set of child panels is
+                // extensible.
 
         </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetAlignment() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> alignment);
                 <SPAN CLASS=c>// Alignment of the child panels as a whole within the available
                 // space. This applies only if the available space cannot be
-                // filled completely, with respect to forced child tallness. The
-                // default is EM_ALIGN_CENTER.
+                // filled completely because of a minimum, maximum or fixed
+                // tallness of the child panels. The default is EM_ALIGN_CENTER.
 
         </SPAN><SPAN CLASS=t>double </SPAN>GetSpaceL() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>double </SPAN>GetSpaceT() <SPAN CLASS=t>const</SPAN>;
@@ -191,11 +174,11 @@
                 //   +-------------------- border -------------------+
                 //   |         t             t             t         |
                 //   |     +-------+     +-------+     +-------+     |
-                //   |  l  + panel +  h  + panel +  h  + panel +  r  |
+                //   |  l  | panel |  h  | panel |  h  | panel |  r  |
                 //   |     +-------+     +-------+     +-------+     |
                 //   |         v             v             v         |
                 //   |     +-------+     +-------+     +-------+     |
-                //   |  l  + panel +  h  + panel +  h  + panel +  r  |
+                //   |  l  | panel |  h  | panel |  h  | panel |  r  |
                 //   |     +-------+     +-------+     +-------+     |
                 //   |         b             b             b         |
                 //   +-----------------------------------------------+
@@ -211,80 +194,90 @@
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
-                <SPAN CLASS=c>// Tiles all child panels in the content area (except for an
+                <SPAN CLASS=c>// Lays out all child panels in the content area (except for an
                 // auxiliary panel, which is laid out in the border).
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
+        <SPAN CLASS=t>double </SPAN>PrefCT,MinCT,MaxCT;
         <SPAN CLASS=t>double </SPAN>SpaceL,SpaceT,SpaceH,SpaceV,SpaceR,SpaceB;
-        <SPAN CLASS=t>double </SPAN>PCT;
-        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; PCTPos, PCTNeg;
-        <SPAN CLASS=t>int </SPAN>FixedColumnCount,FixedRowCount,MinCellCount,FCTColumn,FCTRow;
+        <SPAN CLASS=t>int </SPAN>FixedColumnCount,FixedRowCount,MinCellCount;
         <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> Alignment;
+        <SPAN CLASS=t>bool </SPAN>StrictRaster;
         <SPAN CLASS=t>bool </SPAN>RowByRow;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::IsRowByRow() <SPAN CLASS=t>const
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::IsRowByRow() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>RowByRow;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetFixedColumnCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetFixedColumnCount() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>FixedColumnCount;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetFixedRowCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetFixedRowCount() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>FixedRowCount;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetMinCellCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetMinCellCount() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>MinCellCount;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetForcedChildTallnessColumn() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetPrefChildTallness() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>FCTColumn;
+        </SPAN><SPAN CLASS=k>return </SPAN>PrefCT;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetForcedChildTallnessRow() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetMinChildTallness() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>FCTRow;
+        </SPAN><SPAN CLASS=k>return </SPAN>MinCT;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetMaxChildTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxCT;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::IsStrictRaster() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>StrictRaster;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetAlignment() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Alignment;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetSpaceL() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetSpaceL() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>SpaceL;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetSpaceT() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetSpaceT() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>SpaceT;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetSpaceH() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetSpaceH() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>SpaceH;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetSpaceV() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetSpaceV() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>SpaceV;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetSpaceR() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetSpaceR() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>SpaceR;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A>::GetSpaceB() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>::GetSpaceB() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>SpaceB;
 <SPAN CLASS=b>}

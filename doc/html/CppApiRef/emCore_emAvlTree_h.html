@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emAvlTree.h
 //
-// Copyright (C) 2005-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,8 @@
 
 </SPAN><SPAN CLASS=p>#ifndef emAvlTree_h
 #define emAvlTree_h
+
+#include &lt;new&gt;
 
 #ifndef emStd1_h
 #include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
@@ -1186,7 +1188,7 @@ void </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap<
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
 <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Iterator(
-        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator &amp; iter
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator &amp; iter
 )
 <SPAN CLASS=b>{
         </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
@@ -1207,7 +1209,7 @@ void </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap<
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
 <A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Iterator(
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map,
-        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element * elem
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element * elem
 )
 <SPAN CLASS=b>{
         </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
@@ -1235,7 +1237,7 @@ typename </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTree
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
-</SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator const </SPAN>Element * () <SPAN CLASS=t>const
+</SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator const typename </SPAN><A CLASS=l HREF="emCore_emAvlTree_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element * () <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Pos;
 <SPAN CLASS=b>}

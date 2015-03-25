@@ -1,0 +1,211 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emPackLayout.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emPackLayout_h.html#emPackLayout">emPackLayout</A>.h
+//
+// Copyright (C) 2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emPackLayout_h
+#define emPackLayout_h
+
+#ifndef emBorder_h
+#include &lt;<A CLASS=f HREF="emCore_emBorder_h.html">emCore/emBorder.h</A>&gt;
+#endif
+
+
+<A NAME="emPackLayout"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emPackLayout_h.html#emPackLayout">emPackLayout</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emPackLayout_h.html#emPackLayout">emPackLayout</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// A panel of this class automatically lays out its child panels within
+        // the content area by a special "pack" algorithm, which allows to give
+        // each child panel a weight (area proportion) and a preferred tallness
+        // (height/width ratio). This should be used only for up to about seven
+        // child panels. With more, the algorithm may not find an optimal
+        // layout.
+        //
+        //                    Pack layout
+        //   +---------------------------------------------+
+        //   | +------------------+  +---------+  +-----+  |
+        //   | |                  |  |         |  |     |  |
+        //   | |                  |  |         |  |     |  |
+        //   | |                  |  |         |  |     |  |
+        //   | |                  |  |         |  +-----+  |
+        //   | |                  |  |         |           |
+        //   | |                  |  |         |  +-----+  |
+        //   | |                  |  |         |  |     |  |
+        //   | +------------------+  |         |  |     |  |
+        //   |                       |         |  |     |  |
+        //   | +------------------+  |         |  |     |  |
+        //   | |                  |  |         |  |     |  |
+        //   | |                  |  |         |  |     |  |
+        //   | +------------------+  +---------+  +-----+  |
+        //   +---------------------------------------------+
+        //
+        // The algorithm recursively divides the available area and the child
+        // panel set into two areas and two child panel sets until each area has
+        // only one panel. Thereby, the order of child panels is kept. The area
+        // proportions are calculated from the given weights. The decision where
+        // (at which child panel) and how (horizontally or vertically) the
+        // dividing in each recursive step is made, is determined by iterating
+        // multiple possibilities until a solution is found which satisfies the
+        // preferred tallnesses best possible. Because this would be too time
+        // consuming for large sets, the algorithm reduces the number of
+        // iterations in a recursive step depending on the size of the set (down
+        // to zero for large sets). This way, an optimum is guaranteed only for
+        // up to seven child panels.
+        //
+        // By default, a panel of this class is not focusable and has no border,
+        // because it is meant as a pure layout programming tool. For other use,
+        // please see the derived class <A CLASS=m HREF="emCore_emPackGroup_h.html#emPackGroup">emPackGroup</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emPackLayout_h.html#emPackLayout">emPackLayout</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>, but sets non-focusable.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emPackLayout_h.html#emPackLayout">emPackLayout</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMinCellCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinCellCount(<SPAN CLASS=t>int </SPAN>minCellCount);
+                <SPAN CLASS=c>// Minimum number of cells to be generated. The layout algorithm
+                // behaves like if there were at least this number of child
+                // panels. The additional cells are simply making up unused
+                // space. The default is zero.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetChildWeight(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetChildWeight(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>weight);
+                <SPAN CLASS=c>// Get or set the weight of a child panel. The bigger the weight
+                // of a child panel, the bigger is the proportion of the
+                // available area given to that panel by the layout algorithm.
+                // It is a simple linear relation. The index argument denotes a
+                // child panel. Zero means first child, one means second, and so
+                // on. The default weight is 1.0.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildWeight(<SPAN CLASS=t>double </SPAN>weight);
+                <SPAN CLASS=c>// Set the weight of all child panels to the given value.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetPrefChildTallness(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>pct);
+                <SPAN CLASS=c>// Get or set the preferred tallness (height/width ratio) of a
+                // child panel. The index argument denotes a child panel. Zero
+                // means first child, one means second, and so on. The default
+                // preferred tallness is 0.2.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetPrefChildTallness(<SPAN CLASS=t>double </SPAN>pct);
+                <SPAN CLASS=c>// Set the preferred tallness of all child panels to the given
+                // value.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=c>// Lays out all child panels in the content area (except for an
+                // auxiliary panel, which is laid out in the border).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>TmpPanelInfo <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>double </SPAN>PCT;
+                <SPAN CLASS=t>double </SPAN>CumulativeWeight;
+                <SPAN CLASS=t>double </SPAN>CumulativeLogPCT;
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * Panel;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>TmpInfo <SPAN CLASS=b>{
+                </SPAN>TmpPanelInfo * TPIs;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> CanvasColor;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>int </SPAN>CountCells();
+        <SPAN CLASS=t>void </SPAN>FillTPIs(<SPAN CLASS=t>int </SPAN>count);
+        <SPAN CLASS=t>double </SPAN>GetTPIWeightSum(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTPILogPCTSum(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>double </SPAN>RateCell(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h);
+
+        <SPAN CLASS=t>double </SPAN>Pack1(
+                <SPAN CLASS=t>int </SPAN>index,
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>bool </SPAN>execute
+        );
+
+        <SPAN CLASS=t>double </SPAN>Pack2(
+                <SPAN CLASS=t>int </SPAN>index,
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>double </SPAN>bestError, <SPAN CLASS=t>bool </SPAN>execute
+        );
+
+        <SPAN CLASS=t>double </SPAN>Pack3(
+                <SPAN CLASS=t>int </SPAN>index,
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>double </SPAN>bestError, <SPAN CLASS=t>bool </SPAN>execute
+        );
+
+        <SPAN CLASS=t>double </SPAN>PackN(
+                <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count,
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>double </SPAN>bestError, <SPAN CLASS=t>bool </SPAN>execute
+        );
+
+        <SPAN CLASS=t>double </SPAN>RateHorizontally(
+                <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>int </SPAN>div,
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w1, <SPAN CLASS=t>double </SPAN>w2, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>double </SPAN>bestError
+        );
+
+        <SPAN CLASS=t>double </SPAN>RateVertically(
+                <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>int </SPAN>div,
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h1, <SPAN CLASS=t>double </SPAN>h2,
+                <SPAN CLASS=t>double </SPAN>bestError
+        );
+
+        <SPAN CLASS=t>double </SPAN>DefaultWeight;
+        <SPAN CLASS=t>double </SPAN>DefaultPCT;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; WeightArray;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; PCTArray;
+        <SPAN CLASS=t>int </SPAN>MinCellCount;
+        TmpInfo * TI;
+        <SPAN CLASS=t>int </SPAN>Ratings;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emPackLayout_h.html#emPackLayout">emPackLayout</A>::GetMinCellCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinCellCount;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

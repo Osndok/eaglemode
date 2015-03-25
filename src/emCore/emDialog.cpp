@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDialog.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,7 +59,7 @@ void emDialog::AddPositiveButton(
 	DlgButton * bt;
 
 	bt=new DlgButton(
-		((DlgPanel*)GetRootPanel())->ButtonTiling,
+		((DlgPanel*)GetRootPanel())->ButtonsPanel,
 		emString::Format("%d",ButtonNum),
 		caption,description,icon,
 		POSITIVE
@@ -74,7 +74,7 @@ void emDialog::AddNegativeButton(
 )
 {
 	new DlgButton(
-		((DlgPanel*)GetRootPanel())->ButtonTiling,
+		((DlgPanel*)GetRootPanel())->ButtonsPanel,
 		emString::Format("%d",ButtonNum),
 		caption,description,icon,
 		NEGATIVE
@@ -88,7 +88,7 @@ void emDialog::AddCustomButton(
 )
 {
 	new DlgButton(
-		((DlgPanel*)GetRootPanel())->ButtonTiling,
+		((DlgPanel*)GetRootPanel())->ButtonsPanel,
 		emString::Format("%d",ButtonNum),
 		caption,description,icon,
 		CustomRes
@@ -120,7 +120,7 @@ void emDialog::AddOKCancelButtons()
 emButton * emDialog::GetButton(int index)
 {
 	return dynamic_cast<emButton*>(
-		((DlgPanel*)GetRootPanel())->ButtonTiling->GetChild(
+		((DlgPanel*)GetRootPanel())->ButtonsPanel->GetChild(
 			emString::Format("%d",index)
 		)
 	);
@@ -152,7 +152,7 @@ void emDialog::ShowMessage(
 	d->SetRootTitle(title);
 	d->AddOKButton();
 	new emLabel(
-		d->GetContentTiling(),
+		d->GetContentPanel(),
 		"l",
 		message,
 		description,
@@ -216,11 +216,11 @@ void emDialog::DlgButton::Clicked()
 emDialog::DlgPanel::DlgPanel(ParentArg parent, const emString & name)
 	: emBorder(parent,name)
 {
-	ContentTiling=new emTiling(this,"content");
-	ContentTiling->SetInnerBorderType(IBT_CUSTOM_RECT);
-	ButtonTiling=new emTiling(this,"buttons");
-	ButtonTiling->SetChildTallness(0.3);
-	ButtonTiling->SetInnerSpace(0.1,0.1);
+	ContentPanel=new emLinearLayout(this,"content");
+	ContentPanel->SetInnerBorderType(IBT_CUSTOM_RECT);
+	ButtonsPanel=new emLinearLayout(this,"buttons");
+	ButtonsPanel->SetChildTallness(0.3);
+	ButtonsPanel->SetInnerSpace(0.1,0.1);
 	if ((GetView().GetViewFlags())&emView::VF_POPUP_ZOOM) {
 		SetOuterBorderType(OBT_POPUP_ROOT);
 	}
@@ -289,10 +289,10 @@ void emDialog::DlgPanel::LayoutChildren()
 	y+=sp;
 	w-=2*sp;
 	h-=2*sp;
-	ContentTiling->Layout(
+	ContentPanel->Layout(
 		x,y,w,h-sp-bh,cc
 	);
-	ButtonTiling->Layout(
+	ButtonsPanel->Layout(
 		x,y+h-bh,w,bh,cc
 	);
 }

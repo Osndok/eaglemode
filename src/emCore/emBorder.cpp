@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,12 +71,14 @@ emBorder::emBorder(
 		}
 	}
 
+	MaxIconAreaTallness=1.0;
 	BorderScaling=1.0;
 	LabelAlignment=EM_ALIGN_LEFT;
 	CaptionAlignment=EM_ALIGN_LEFT;
 	DescriptionAlignment=EM_ALIGN_LEFT;
 	OuterBorder=OBT_NONE;
 	InnerBorder=IBT_NONE;
+	IconAboveCaption=false;
 	LabelInBorder=true;
 }
 
@@ -152,6 +154,27 @@ void emBorder::SetDescriptionAlignment(emAlignment descriptionAlignment)
 {
 	if (DescriptionAlignment!=descriptionAlignment) {
 		DescriptionAlignment=descriptionAlignment;
+		InvalidatePainting();
+		InvalidateChildrenLayout();
+	}
+}
+
+
+void emBorder::SetIconAboveCaption(bool iconAboveCaption)
+{
+	if (IconAboveCaption!=iconAboveCaption) {
+		IconAboveCaption=iconAboveCaption;
+		InvalidatePainting();
+		InvalidateChildrenLayout();
+	}
+}
+
+
+void emBorder::SetMaxIconAreaTallness(double maxIconAreaTallness)
+{
+	if (maxIconAreaTallness<1E-10) maxIconAreaTallness=1E-10;
+	if (MaxIconAreaTallness!=maxIconAreaTallness) {
+		MaxIconAreaTallness=maxIconAreaTallness;
 		InvalidatePainting();
 		InvalidateChildrenLayout();
 	}
@@ -997,52 +1020,87 @@ void emBorder::DoLabel(
 	double * pBestTallness
 )
 {
-	double iconW,capW,capAndIconH,descW,descH,hGap,vGap,totalW,totalH;
-	double minTotalW,minWS,f,w2,h2;
+	double iconX,iconY,iconW,iconH,capX,capY,capW,capH,descX,descY,descW,descH;
+	double gap1,gap2,totalW,totalH,minTotalW,minWS,f,w2,h2;
 
-	iconW=0.0;
-	capW=0.0;
-	capAndIconH=0.0;
-	descW=0.0;
-	descH=0.0;
-	hGap=0.0;
-	vGap=0.0;
-	if (!Icon.IsEmpty()) {
-		capAndIconH=1.0;
-		iconW=((double)Icon.GetWidth())/Icon.GetHeight();
-		if (!Caption.IsEmpty()) hGap=0.1;
-	}
+	totalW=1.0;
+	totalH=1.0;
+
 	if (!Caption.IsEmpty()) {
-		capAndIconH=1.0;
-		capW=emPainter::GetTextSize(Caption,1.0,true,0.0,&f);
-		capW/=f;
+		capW=emPainter::GetTextSize(Caption,1.0,true,0.0,&capH);
+		totalW=capW;
+		totalH=capH;
 	}
+	else {
+		capW=0.0;
+		capH=0.0;
+	}
+
+	if (!Icon.IsEmpty()) {
+		iconW=Icon.GetWidth();
+		iconH=Icon.GetHeight();
+		if (iconH > iconW*MaxIconAreaTallness) {
+			iconH = iconW*MaxIconAreaTallness;
+		}
+		if (!Caption.IsEmpty()) {
+			if (IconAboveCaption) {
+				f=capH*3.0;
+				iconW*=f/iconH;
+				iconH=f;
+				gap1=capH*0.1;
+				totalW=emMax(iconW,capW);
+				totalH=iconH+gap1+capH;
+			}
+			else {
+				iconW*=capH/iconH;
+				iconH=capH;
+				gap1=capH*0.1;
+				totalW=iconW+gap1+capW;
+				totalH=capH;
+			}
+		}
+		else {
+			totalW=iconW;
+			totalH=iconH;
+			gap1=0.0;
+		}
+	}
+	else {
+		iconW=0.0;
+		iconH=0.0;
+		gap1=0.0;
+	}
+
 	if (!Description.IsEmpty()) {
-		descH=1.0;
-		descW=emPainter::GetTextSize(Description,1.0,true,0.0,&f);
-		descW/=f;
+		descW=emPainter::GetTextSize(Description,1.0,true,0.0,&descH);
 		if (!Icon.IsEmpty() || !Caption.IsEmpty()) {
-			totalW=iconW+hGap+capW;
-			f=emMin(totalW/descW,0.15);
-			descW*=f;
-			descH*=f;
-			vGap=descH*0.05;
-			totalH=capAndIconH+vGap+descH;
+			if (!Caption.IsEmpty()) {
+				f=capH*0.15;
+				descW=f/descH;
+				descH=f;
+			}
+			else {
+				f=iconH*0.05;
+				descW=f/descH;
+				descH=f;
+			}
+			if (descW>totalW) {
+				descH*=totalW/descW;
+				descW=totalW;
+			}
+			gap2=descH*0.05;
+			totalH=totalH+gap2+descH;
 		}
 		else {
 			totalW=descW;
 			totalH=descH;
+			gap2=0.0;
 		}
 	}
 	else {
-		if (!Icon.IsEmpty() || !Caption.IsEmpty()) {
-			totalW=iconW+hGap+capW;
-			totalH=capAndIconH;
-		}
-		else {
-			totalW=1.0;
-			totalH=1.0;
-		}
+		descW=0.0;
+		descH=0.0;
+		gap2=0.0;
 	}
 
 	if (func==LABEL_FUNC_GET_BEST_TALLNESS) {
@@ -1066,9 +1124,17 @@ void emBorder::DoLabel(
 		w=w2;
 	}
 	else {
-		if (!Caption.IsEmpty()) minTotalW=iconW+hGap+capW*minWS;
-		else if (!Icon.IsEmpty()) minTotalW=totalW;
-		else minTotalW=descW*minWS;
+		if (!Icon.IsEmpty()) {
+			if (IconAboveCaption) {
+				minTotalW=iconW;
+			}
+			else {
+				minTotalW=iconW+gap1+capW*minWS;
+			}
+		}
+		else {
+			minTotalW=totalW*minWS;
+		}
 		w2=f*minTotalW;
 		if (w2>w) {
 			f=w/minTotalW;
@@ -1085,13 +1151,39 @@ void emBorder::DoLabel(
 		}
 	}
 
+	iconW*=f;
+	iconH*=f;
+	gap1*=f;
+	iconY=y;
+	capH*=f;
+	if (IconAboveCaption) {
+		iconX=x+(w-iconW)*0.5;
+		capX=x;
+		capY=iconY+iconH+gap1;
+		capW=w;
+	}
+	else {
+		iconX=x;
+		capX=iconX+iconW+gap1;
+		capY=y;
+		capW=x+w-capX;
+	}
+	gap2*=f;
+	descX=x;
+	descY=emMax(iconY+iconH,capY+capH)+gap2;
+	descW=w;
+	descH*=f;
+
 	if (!Icon.IsEmpty()) {
+		f=iconH*Icon.GetWidth()/Icon.GetHeight();
+		iconX+=(iconW-f)*0.5;
+		iconW=f;
 		if (Icon.GetChannelCount()==1) {
 			painter->PaintShape(
-				x,
-				y,
-				iconW*f,
-				capAndIconH*f,
+				iconX,
+				iconY,
+				iconW,
+				iconH,
 				Icon,
 				0,
 				color,
@@ -1100,10 +1192,10 @@ void emBorder::DoLabel(
 		}
 		else {
 			painter->PaintImage(
-				x,
-				y,
-				iconW*f,
-				capAndIconH*f,
+				iconX,
+				iconY,
+				iconW,
+				iconH,
 				Icon,
 				color.GetAlpha(),
 				canvasColor
@@ -1112,12 +1204,12 @@ void emBorder::DoLabel(
 	}
 	if (!Caption.IsEmpty()) {
 		painter->PaintTextBoxed(
-			x+(iconW+hGap)*f,
-			y,
-			w-(iconW+hGap)*f,
-			capAndIconH*f,
+			capX,
+			capY,
+			capW,
+			capH,
 			Caption,
-			capAndIconH*f,
+			capH,
 			color,
 			canvasColor,
 			EM_ALIGN_CENTER,
@@ -1127,15 +1219,15 @@ void emBorder::DoLabel(
 	}
 	if (!Description.IsEmpty()) {
 		painter->PaintTextBoxed(
-			x,
-			y+(capAndIconH+vGap)*f,
-			w,
-			h-(capAndIconH+vGap)*f,
+			descX,
+			descY,
+			descW,
+			descH,
 			Description,
-			h-(capAndIconH+vGap)*f,
+			descH,
 			color,
 			canvasColor,
-			EM_ALIGN_CENTER, //???LabelAlignment&~(EM_ALIGN_TOP|EM_ALIGN_BOTTOM),
+			EM_ALIGN_CENTER,
 			DescriptionAlignment,
 			minWS
 		);

@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2012 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2015 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -134,8 +134,12 @@ Topics=[
 			AutoSectionsFile("emCore/emLook.h"),
 			AutoSectionsFile("emCore/emBorder.h"),
 			AutoSectionsFile("emCore/emLabel.h"),
-			AutoSectionsFile("emCore/emTiling.h"),
-			AutoSectionsFile("emCore/emGroup.h"),
+			AutoSectionsFile("emCore/emLinearLayout.h"),
+			AutoSectionsFile("emCore/emLinearGroup.h"),
+			AutoSectionsFile("emCore/emRasterLayout.h"),
+			AutoSectionsFile("emCore/emRasterGroup.h"),
+			AutoSectionsFile("emCore/emPackLayout.h"),
+			AutoSectionsFile("emCore/emPackGroup.h"),
 			AutoSectionsFile("emCore/emTunnel.h"),
 			AutoSectionsFile("emCore/emButton.h"),
 			AutoSectionsFile("emCore/emCheckButton.h"),

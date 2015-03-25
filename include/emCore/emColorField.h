@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,8 +29,8 @@
 #include <emCore/emTextField.h>
 #endif
 
-#ifndef emTiling_h
-#include <emCore/emTiling.h>
+#ifndef emRasterLayout_h
+#include <emCore/emRasterLayout.h>
 #endif
 
 
@@ -119,7 +119,7 @@ private:
 	);
 
 	struct Expansion {
-		emTiling * Tiling;
+		emRasterLayout * Layout;
 		emScalarField * SfRed;
 		emScalarField * SfGreen;
 		emScalarField * SfBlue;

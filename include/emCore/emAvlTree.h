@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTree.h
 //
-// Copyright (C) 2005-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,8 @@
 
 #ifndef emAvlTree_h
 #define emAvlTree_h
+
+#include <new>
 
 #ifndef emStd1_h
 #include <emCore/emStd1.h>
@@ -1177,7 +1179,7 @@ emAvlTreeMap<KEY,VALUE>::Iterator::Iterator()
 
 template <class KEY, class VALUE>
 emAvlTreeMap<KEY,VALUE>::Iterator::Iterator(
-	const emAvlTreeMap<KEY,VALUE>::Iterator & iter
+	const typename emAvlTreeMap<KEY,VALUE>::Iterator & iter
 )
 {
 	Pos=NULL;
@@ -1198,7 +1200,7 @@ emAvlTreeMap<KEY,VALUE>::Iterator::Iterator(
 template <class KEY, class VALUE>
 emAvlTreeMap<KEY,VALUE>::Iterator::Iterator(
 	const emAvlTreeMap<KEY,VALUE> & map,
-	const emAvlTreeMap<KEY,VALUE>::Element * elem
+	const typename emAvlTreeMap<KEY,VALUE>::Element * elem
 )
 {
 	Pos=NULL;
@@ -1226,7 +1228,7 @@ typename emAvlTreeMap<KEY,VALUE>::Iterator &
 }
 
 template <class KEY, class VALUE> inline
-emAvlTreeMap<KEY,VALUE>::Iterator::operator const Element * () const
+emAvlTreeMap<KEY,VALUE>::Iterator::operator const typename emAvlTreeMap<KEY,VALUE>::Element * () const
 {
 	return Pos;
 }

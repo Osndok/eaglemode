@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiling.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,17 +34,26 @@ class emTiling : public emBorder {
 
 public:
 
+	// *********************************************************************
+	// *                             WARNING!!!                            *
+	// *                                                                   *
+	// * This class is deprecated and will be removed in a future version. *
+	// * Please use emLinearLayout, emRasterLayout or emPackLayout instead.*
+	// *********************************************************************
+	//
 	// A panel of this class automatically lays out any child panels within
 	// the content area, just like in a rectangular tiling. By default, the
 	// panel itself is not focusable and has no border, because it is meant
 	// as a pure layout programming tool. For other use, see the derived
 	// class emGroup.
 
-	emTiling(
-		ParentArg parent, const emString & name,
-		const emString & caption=emString(),
-		const emString & description=emString(),
-		const emImage & icon=emImage()
+	EM_DEPRECATED( // Because the whole class is deprecated!
+		emTiling(
+			ParentArg parent, const emString & name,
+			const emString & caption=emString(),
+			const emString & description=emString(),
+			const emImage & icon=emImage()
+		)
 	);
 		// Like emBorder, but sets non-focusable.
 
@@ -213,6 +222,15 @@ private:
 	int FixedColumnCount,FixedRowCount,MinCellCount,FCTColumn,FCTRow;
 	emAlignment Alignment;
 	bool RowByRow;
+
+	friend class emGroup;
+	emTiling(
+		ParentArg parent, const emString & name,
+		const emString & caption,
+		const emString & description,
+		const emImage & icon,
+		int notWarningDeprecatedForInternalUse
+	);
 };
 
 inline bool emTiling::IsRowByRow() const

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-	<TITLE>emCore/emGroup.h</TITLE>
+	<TITLE>emCore/emRasterGroup.h</TITLE>
 	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
 	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
 </HEAD>
@@ -8,9 +8,9 @@
 
 <SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
-// <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A>.h
+// <A CLASS=m HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,27 +27,27 @@
 // along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 //------------------------------------------------------------------------------
 
-</SPAN><SPAN CLASS=p>#ifndef emGroup_h
-#define emGroup_h
+</SPAN><SPAN CLASS=p>#ifndef emRasterGroup_h
+#define emRasterGroup_h
 
-#ifndef emTiling_h
-#include &lt;<A CLASS=f HREF="emCore_emTiling_h.html">emCore/emTiling.h</A>&gt;
+#ifndef emRasterLayout_h
+#include &lt;<A CLASS=f HREF="emCore_emRasterLayout_h.html">emCore/emRasterLayout.h</A>&gt;
 #endif
 
 
-<A NAME="emGroup"></A></SPAN><SPAN CLASS=c>//==============================================================================
-//================================== <A CLASS=m HREF="emCore_emGroup_h.html#emGroup">emGroup</A> ===================================
+<A NAME="emRasterGroup"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> ================================
 //==============================================================================
 
-</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emGroup_h.html#emGroup">emGroup</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A> <SPAN CLASS=b>{
 
 </SPAN><SPAN CLASS=t>public</SPAN>:
 
-        <SPAN CLASS=c>// Class for a group of panels. Any user-created child panels are laid
-        // out automatically. This is just like <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A>, but it has a group
-        // border and it is focusable.
+        <SPAN CLASS=c>// Class for a group of panels which are laid out in a raster. This is
+        // just like <A CLASS=m HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>, but it has a group border and it is
+        // focusable.
 
-        </SPAN><A CLASS=l HREF="emCore_emGroup_h.html#emGroup">emGroup</A>(
+        </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>(
                 ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),

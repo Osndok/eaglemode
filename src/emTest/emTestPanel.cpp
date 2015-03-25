@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009,2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2009,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -415,10 +415,10 @@ void emTestPanel::UpdateControlPanel()
 
 
 emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
-	: emGroup(parent,name)
+	: emRasterGroup(parent,name)
 {
-	emGroup * grp;
-	emTiling * tlng;
+	emRasterGroup * grp;
+	emRasterLayout * rl;
 	emButton * bt;
 	emTextField * tf;
 	emColorField * cf;
@@ -430,8 +430,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 	SetCaption("Toolkit Test");
 	SetPrefChildTallness(0.3);
 
-
-	grp=new emGroup(this,"buttons","Buttons");
+	grp=new emRasterGroup(this,"buttons","Buttons");
 	grp->SetBorderScaling(2.5);
 		bt=new emButton(grp,"b1","Button");
 		bt=new emButton(grp,"b2","Long Desc");
@@ -443,7 +442,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		bt=new emButton(grp,"b3","NoEOI");
 		bt->SetNoEOI();
 
-	grp=new emGroup(this,"checkbuttons","Check Buttons and Boxes");
+	grp=new emRasterGroup(this,"checkbuttons","Check Buttons and Boxes");
 	grp->SetBorderScaling(2.5);
 		new emCheckButton(grp,"c1","Check Button");
 		new emCheckButton(grp,"c2","Check Button");
@@ -452,7 +451,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		new emCheckBox(grp,"c5","Check Box");
 		new emCheckBox(grp,"c6","Check Box");
 
-	grp=new emRadioButton::Group(this,"radiobuttons","Radio Buttons and Boxes");
+	grp=new emRadioButton::RasterGroup(this,"radiobuttons","Radio Buttons and Boxes");
 	grp->SetBorderScaling(2.5);
 		new emRadioButton(grp,"r1","Radio Button");
 		new emRadioButton(grp,"r2","Radio Button");
@@ -461,7 +460,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		new emRadioBox(grp,"r5","Radio Box");
 		new emRadioBox(grp,"r6","Radio Box");
 
-	grp=new emGroup(this,"textfields","Text Fields");
+	grp=new emRasterGroup(this,"textfields","Text Fields");
 	grp->SetBorderScaling(2.5);
 		tf=new emTextField(
 			grp,"tf1",
@@ -486,7 +485,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		);
 		tf->SetMultiLineMode();
 
-	grp=new emGroup(this,"scalarfields","Scalar Fields");
+	grp=new emRasterGroup(this,"scalarfields","Scalar Fields");
 	grp->SetBorderScaling(2.5);
 	grp->SetPrefChildTallness(0.1);
 
@@ -521,7 +520,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		SFPos->SetScaleMarkIntervals(60*60*1000,15*60*1000,5*60*1000,60*1000,10*1000,1000,100,10,1,0);
 		SFPos->SetTextOfValueFunc(TextOfTimeValue,NULL);
 
-	grp=new emGroup(this,"colorfields","Color Fields");
+	grp=new emRasterGroup(this,"colorfields","Color Fields");
 	grp->SetBorderScaling(2.5);
 	grp->SetPrefChildTallness(0.4);
 
@@ -537,7 +536,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		cf->SetEditable();
 		cf->SetAlphaEnabled();
 
-	grp=new emGroup(this,"tunnels","Tunnels");
+	grp=new emRasterGroup(this,"tunnels","Tunnels");
 	grp->SetBorderScaling(2.5);
 	grp->SetPrefChildTallness(0.4);
 
@@ -546,30 +545,30 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 
 		tunnel=new emTunnel(grp,"t2","Deeper Tunnel");
 		tunnel->SetDepth(30.0);
-		new emGroup(tunnel,"e","End Of Tunnel");
+		new emRasterGroup(tunnel,"e","End Of Tunnel");
 
 		tunnel=new emTunnel(grp,"t3","Square End");
 		tunnel->SetChildTallness(1.0);
-		new emGroup(tunnel,"e","End Of Tunnel");
+		new emRasterGroup(tunnel,"e","End Of Tunnel");
 
 		tunnel=new emTunnel(grp,"t4","Square End, Zero Depth");
 		tunnel->SetChildTallness(1.0);
 		tunnel->SetDepth(0.0);
-		new emGroup(tunnel,"e","End Of Tunnel");
+		new emRasterGroup(tunnel,"e","End Of Tunnel");
 
-	grp=new emGroup(this,"dlgs","Dialogs");
+	grp=new emRasterGroup(this,"dlgs","Dialogs");
 	grp->SetBorderScaling(2.5);
 	grp->SetFixedColumnCount(1);
-		tlng=new emTiling(grp,"tlng");
-		tlng->SetPrefChildTallness(0.1);
-			CbTopLev=new emCheckBox(tlng,"tl","Top-Level");
-			CbPZoom=new emCheckBox(tlng,"VF_POPUP_ZOOM","VF_POPUP_ZOOM");
+		rl=new emRasterLayout(grp,"rl");
+		rl->SetPrefChildTallness(0.1);
+			CbTopLev=new emCheckBox(rl,"tl","Top-Level");
+			CbPZoom=new emCheckBox(rl,"VF_POPUP_ZOOM","VF_POPUP_ZOOM");
 			CbPZoom->SetChecked();
-			CbModal=new emCheckBox(tlng,"WF_MODAL","WF_MODAL");
+			CbModal=new emCheckBox(rl,"WF_MODAL","WF_MODAL");
 			CbModal->SetChecked();
-			CbUndec=new emCheckBox(tlng,"WF_UNDECORATED","WF_UNDECORATED");
-			CbPopup=new emCheckBox(tlng,"WF_POPUP","WF_POPUP");
-			CbFull=new emCheckBox(tlng,"WF_FULLSCREEN","WF_FULLSCREEN");
+			CbUndec=new emCheckBox(rl,"WF_UNDECORATED","WF_UNDECORATED");
+			CbPopup=new emCheckBox(rl,"WF_POPUP","WF_POPUP");
+			CbFull=new emCheckBox(rl,"WF_FULLSCREEN","WF_FULLSCREEN");
 		BtCreateDlg=new emButton(grp,"bt","Create Test Dialog");
 		AddWakeUpSignal(BtCreateDlg->GetClickSignal());
 }
@@ -604,7 +603,7 @@ bool emTestPanel::TkTest::Cycle()
 		dlg->AddNegativeButton("Close");
 		dlg->EnableAutoDeletion();
 		dlg->SetRootTitle("Test Dialog");
-		new TkTest(dlg->GetContentTiling(),"test");
+		new TkTest(dlg->GetContentPanel(),"test");
 	}
 	return false;
 }
@@ -649,7 +648,7 @@ void emTestPanel::TkTest::TextOfLevelValue(
 
 
 emTestPanel::TkTestGrp::TkTestGrp(ParentArg parent, const emString & name)
-	: emGroup(parent,name)
+	: emRasterGroup(parent,name)
 {
 	SetCaption("Toolkit Test");
 	EnableAutoExpansion();

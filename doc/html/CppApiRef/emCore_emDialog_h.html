@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emDialog_h.html#emDialog">emDialog</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,8 +34,8 @@
 #include &lt;<A CLASS=f HREF="emCore_emButton_h.html">emCore/emButton.h</A>&gt;
 #endif
 
-#ifndef emTiling_h
-#include &lt;<A CLASS=f HREF="emCore_emTiling_h.html">emCore/emTiling.h</A>&gt;
+#ifndef emLinearLayout_h
+#include &lt;<A CLASS=f HREF="emCore_emLinearLayout_h.html">emCore/emLinearLayout.h</A>&gt;
 #endif
 
 
@@ -48,7 +48,7 @@
 </SPAN><SPAN CLASS=t>public</SPAN>:
 
         <SPAN CLASS=c>// Class for a dialog window. Such a dialog has a content area and a
-        // button area. The content area is an <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A> which can be given
+        // button area. The content area is an <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> which can be given
         // individual child panels. The button area can have buttons like "OK"
         // and "Cancel" for finishing the dialog.
 
@@ -71,9 +71,9 @@
                 // content panel with another title, and if it gets focus, that
                 // title is shown. The default title is an empty string.
 
-        </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * GetContentTiling();
+        </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> * GetContentPanel();
                 <SPAN CLASS=c>// This panel makes up the content area of the dialog, not
-                // including the buttons. For convenience, it is an <A CLASS=m HREF="emCore_emTiling_h.html#emTiling">emTiling</A>
+                // including the buttons. For convenience, it is an <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>
                 // with default properties, except that the inner border is set
                 // to <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>::IBT_CUSTOM_RECT. You may change the properties
                 // as you wish, and you should give it one or more child panels
@@ -182,8 +182,8 @@
                 <SPAN CLASS=t>void </SPAN>SetTitle(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; title);
                 <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
                 <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Title;
-                <A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * ContentTiling;
-                <A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * ButtonTiling;
+                <A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> * ContentPanel;
+                <A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> * ButtonsPanel;
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual void </SPAN>Input(
                         <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
@@ -209,9 +209,9 @@
         <SPAN CLASS=t>bool </SPAN>ADEnabled;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTiling_h.html#emTiling">emTiling</A> * <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetContentTiling()
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> * <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetContentPanel()
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>((DlgPanel*)GetRootPanel())-&gt;ContentTiling;
+        </SPAN><SPAN CLASS=k>return </SPAN>((DlgPanel*)GetRootPanel())-&gt;ContentPanel;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetFinishSignal() <SPAN CLASS=t>const

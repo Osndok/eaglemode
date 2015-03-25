@@ -2,7 +2,7 @@
 #include <emCore/emToolkit.h>
 
 
-class MyPanel : public emGroup {
+class MyPanel : public emRasterGroup {
 public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
@@ -15,14 +15,14 @@ private:
 	emTextField * Message;
 	emButton * Button;
 	emCheckButton * CheckButton;
-	emRadioButton::Group * RadioGroup;
+	emRadioButton::RasterGroup * RadioGroup;
 	emTextField * TextField;
 	emScalarField * ScalarField1;
 	emScalarField * ScalarField2;
 };
 
 MyPanel::MyPanel(ParentArg parent, const emString & name)
-	: emGroup(parent,name,"Toolkit Example")
+	: emRasterGroup(parent,name,"Toolkit Example")
 {
 	Message=new emTextField(this,"msg","Message");
 	Message->SetDescription("This text field shows messages about your input.");
@@ -33,7 +33,7 @@ MyPanel::MyPanel(ParentArg parent, const emString & name)
 	CheckButton=new emCheckButton(this,"cb","Check Button");
 	AddWakeUpSignal(CheckButton->GetCheckSignal());
 
-	RadioGroup=new emRadioButton::Group(this,"rg","Radio Group");
+	RadioGroup=new emRadioButton::RasterGroup(this,"rg","Radio Group");
 	RadioGroup->SetBorderScaling(4.0);
 	new emRadioBox(RadioGroup,"rb1","Radio Box 1");
 	new emRadioBox(RadioGroup,"rb2","Radio Box 2");
@@ -93,7 +93,7 @@ bool MyPanel::Cycle()
 			(int)ScalarField2->GetValue()
 		));
 	}
-	return emGroup::Cycle();
+	return emRasterGroup::Cycle();
 }
 
 void MyPanel::ScalarField2_TextOfValue(

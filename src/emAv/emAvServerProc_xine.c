@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2013 Oliver Hamann.
+// Copyright (C) 2008,2010-2013,2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,6 +99,10 @@ typedef struct {
 	int min_shm_size;
 	int shm_size;
 	void volatile * shm_ptr;
+	int crop_left;
+	int crop_right;
+	int crop_top;
+	int crop_bottom;
 } emAv_raw_visual_t;
 
 
@@ -108,25 +112,51 @@ static void emAv_raw_output_cb(
 )
 {
 	emAv_raw_visual_t * visual=(emAv_raw_visual_t*)user_data;
-	int pitch0,pitch1,pitch2,size0,size1,size2,headerSize,sz;
+	int x1,y1,x2,y2,pitch0,pitch1,pitch2,size0,size1,size2,headerSize,sz;
 	int volatile * pi;
 	char volatile * pc;
+
+	pthread_mutex_lock(&visual->mutex);
+
+	x1=visual->crop_left;
+	y1=visual->crop_top;
+	x2=frame_width-visual->crop_right;
+	y2=frame_height-visual->crop_bottom;
+	if (x1<0) x1=0;
+	if (y1<0) y1=0;
+	if (x2>frame_width) x2=frame_width;
+	if (y2>frame_height) y2=frame_height;
+	if (x2-x1 < frame_width/2) {
+		x1=0;
+		x2=frame_width;
+	}
+	if (y2-y1 < frame_height/2) {
+		y1=0;
+		y2=frame_height;
+	}
 
 	switch (frame_format) {
 	case XINE_VORAW_YV12:
 		pitch0=8*((frame_width+7)/8);
 		pitch1=8*((frame_width+15)/16);
 		pitch2=8*((frame_width+15)/16);
-		size0=pitch0*frame_height;
-		size1=pitch1*((frame_height+1)/2);
-		size2=pitch2*((frame_height+1)/2);
+		x1&=~15;
+		y1&=~1;
+		data0=((char*)data0)+pitch0*y1+x1;
+		data1=((char*)data1)+(pitch1*y1+x1)/2;
+		data2=((char*)data2)+(pitch2*y1+x1)/2;
+		size0=pitch0*(y2-y1);
+		size1=pitch1*((y2-y1+1)/2);
+		size2=pitch2*((y2-y1+1)/2);
 		headerSize=7*sizeof(int);
 		break;
 	case XINE_VORAW_YUY2:
 		pitch0=8*((frame_width+3)/4);
 		pitch1=0;
 		pitch2=0;
-		size0=pitch0*frame_height;
+		x1&=~3;
+		data0=((char*)data0)+pitch0*y1+2*x1;
+		size0=pitch0*(y2-y1);
 		size1=0;
 		size2=0;
 		headerSize=6*sizeof(int);
@@ -135,7 +165,8 @@ static void emAv_raw_output_cb(
 		pitch0=3*frame_width;
 		pitch1=0;
 		pitch2=0;
-		size0=pitch0*frame_height;
+		data0=((char*)data0)+pitch0*y1+3*x1;
+		size0=pitch0*(y2-y1);
 		size1=0;
 		size2=0;
 		headerSize=6*sizeof(int);
@@ -145,12 +176,11 @@ static void emAv_raw_output_cb(
 	}
 	sz=headerSize+size0+size1+size2;
 
-	pthread_mutex_lock(&visual->mutex);
 	if (visual->min_shm_size<sz) visual->min_shm_size=sz;
 	pi=(int volatile *)visual->shm_ptr;
 	if (pi && visual->shm_size>=sz && !pi[0]) {
-		pi[1]=frame_width;
-		pi[2]=frame_height;
+		pi[1]=x2-x1;
+		pi[2]=y2-y1;
 		pi[3]=(int)(frame_aspect*65536.0+0.5);
 		switch (frame_format) {
 		case XINE_VORAW_YV12:
@@ -177,6 +207,7 @@ static void emAv_raw_output_cb(
 		}
 		pi[0]=1;
 	}
+
 	pthread_mutex_unlock(&visual->mutex);
 }
 
@@ -208,6 +239,32 @@ static void emAv_raw_visual_dispose(emAv_raw_visual_t * visual)
 	pthread_mutex_destroy(&visual->mutex);
 	memset(visual,0,sizeof(emAv_raw_visual_t));
 	free(visual);
+}
+
+
+static void emAv_raw_visual_update_out_params(
+	emAv_raw_visual_t * visual, xine_stream_t * stream
+)
+{
+	xine_current_frame_data_t data;
+
+	/*
+		This is a workaround for the problem that xine does not give us
+		per-frame crop information anyhow via raw_visual_t. See
+		xine-lib-1.2.6/src/video_out/video_out_raw.c: It ignores
+		frame->vo_frame.crop_* in raw_frame_proc_slice(...), though it
+		sets VO_CAP_CROP in raw_get_capabilities(...).
+	*/
+	if (visual && stream) {
+		memset(&data,0,sizeof(data));
+		xine_get_current_frame_data(stream,&data,0);
+		pthread_mutex_lock(&visual->mutex);
+		visual->crop_left  =data.crop_left;
+		visual->crop_right =data.crop_right;
+		visual->crop_top   =data.crop_top;
+		visual->crop_bottom=data.crop_bottom;
+		pthread_mutex_unlock(&visual->mutex);
+	}
 }
 
 
@@ -1357,6 +1414,14 @@ int main(int argc, char * argv[])
 			if (dt>dtMax) dt=dtMax;
 			usleep(dt);
 			t+=dt;
+		}
+		for (i=0; i<EM_AV_MAX_INSTANCES; i++) {
+			if (emAvInstances[i]) {
+				emAv_raw_visual_update_out_params(
+					emAvInstances[i]->MyRawVisual,
+					emAvInstances[i]->Stream
+				);
+			}
 		}
 	}
 	for (i=0; i<EM_AV_MAX_INSTANCES; i++) {

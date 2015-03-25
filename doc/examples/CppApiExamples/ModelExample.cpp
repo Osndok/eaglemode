@@ -53,7 +53,7 @@ MyModel::MyModel(emContext & context, const emString & name)
 
 //================================== MyPanel ===================================
 
-class MyPanel : public emGroup {
+class MyPanel : public emLinearGroup {
 public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
@@ -65,7 +65,7 @@ private:
 };
 
 MyPanel::MyPanel(ParentArg parent, const emString & name)
-	: emGroup(parent,name,"Model Example")
+	: emLinearGroup(parent,name,"Model Example")
 {
 	Model=MyModel::Acquire(GetRootContext(),"test");
 	AddWakeUpSignal(Model->GetChangeSignal());
@@ -95,7 +95,7 @@ bool MyPanel::Cycle()
 	if (IsSignaled(SField->GetValueSignal())) {
 		Model->SetData((int)SField->GetValue());
 	}
-	return emGroup::Cycle();
+	return emLinearGroup::Cycle();
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileControlPanel.h
 //
-// Copyright (C) 2008,2014 Oliver Hamann.
+// Copyright (C) 2008,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emAvFileControlPanel : public emGroup {
+class emAvFileControlPanel : public emLinearLayout {
 
 public:
 
@@ -75,7 +75,7 @@ private:
 
 	emScalarField * SfPlayPos;
 
-	emRadioButton::Group * RgPlayState;
+	emRadioButton::LinearGroup * RgPlayState;
 	emRadioButton * RbStop;
 	emRadioButton * RbPause;
 	emRadioButton * RbSlow;

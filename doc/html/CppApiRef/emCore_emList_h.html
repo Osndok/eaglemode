@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emList_h.html#emList">emList</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1498,12 +1498,8 @@
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator::Iterator(
-<SPAN CLASS=p>#       if defined(__WATCOMC__)
-                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator &amp; iter
-<SPAN CLASS=p>#       else
-                </SPAN><SPAN CLASS=t>const </SPAN>Iterator &amp; iter
-<SPAN CLASS=p>#       endif
-</SPAN>)
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emList_h.html#emList">emList</A>&lt;OBJ&gt;::Iterator &amp; iter
+)
 <SPAN CLASS=b>{
         </SPAN>Pos=iter.Pos;
         <SPAN CLASS=k>if </SPAN>((List=iter.List)!=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=b>{

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestContainers.cpp
 //
-// Copyright (C) 2005-2009,2014 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -260,7 +260,6 @@ static void TestAvlTree()
 	m.Clear();
 	MY_ASSERT(m.GetCount()==0);
 	m3[815]="foo";
-	MY_ASSERT(m3[4711]==NULL);
 	MY_ASSERT(strcmp(m3[815],"foo")==0);
 }
 

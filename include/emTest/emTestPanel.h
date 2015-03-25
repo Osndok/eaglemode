@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.h
 //
-// Copyright (C) 2005-2008,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -64,7 +64,7 @@ private:
 
 	void UpdateControlPanel();
 
-	class TkTest : public emGroup {
+	class TkTest : public emRasterGroup {
 
 	public:
 
@@ -91,7 +91,7 @@ private:
 		emButton * BtCreateDlg;
 	};
 
-	class TkTestGrp : public emGroup {
+	class TkTestGrp : public emRasterGroup {
 	public:
 		TkTestGrp(ParentArg parent, const emString & name);
 	protected:

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -469,7 +469,7 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emBookmarkEntryRec * rec
 )
-	: emGroup(parent,name)
+	: emLinearGroup(parent,name)
 {
 	emLook look;
 
@@ -501,15 +501,14 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
 	SetBorderType(OBT_NONE,IBT_NONE);
-	SetFixedColumnCount(1);
-	SetPrefChildTallness(0.6,0);
-	SetPrefChildTallness(2.2,-1);
-	SetPrefChildTallness(0.6,-2);
-	SetChildTallnessForced(true);
+	SetVertical();
+	SetChildTallness(0,0.6);
+	SetChildTallness(1,2.2);
+	SetChildTallness(2,0.6);
 	SetAlignment(EM_ALIGN_CENTER);
 	SetInnerSpace(0.0,1.2);
 	SetFocusable(false);
-	emGroup::SetLook(look);
+	emLinearGroup::SetLook(look);
 	WakeUp();
 }
 
@@ -544,7 +543,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 	bool busy,modified,zoomOut;
 	int index;
 
-	busy=emGroup::Cycle();
+	busy=emLinearGroup::Cycle();
 
 	if (!UpToDate) {
 		Update();
@@ -731,9 +730,10 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	emBookmarkRec * bmRec;
 	emBookmarkGroupRec * grpRec;
 	emBookmarksRec * bmsParentRec;
-	emGroup * g, * g2;
+	emLinearGroup * g;
+	emRasterGroup * g2;
 
-	emGroup::AutoExpand();
+	emLinearGroup::AutoExpand();
 
 	bmRec=NULL;
 	bmsParentRec=NULL;
@@ -745,11 +745,12 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	}
 
 	if (bmsParentRec) {
-		g=new emGroup(
+		g=new emLinearGroup(
 			this,
 			"before",
 			bmRec ? "Before This Bookmark" : "Before This Group"
 		);
+		g->SetVertical();
 		BtNewBookmarkBefore=new emButton(
 			g,
 			"nb",
@@ -777,11 +778,12 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	}
 
 	if (entryRec) {
-		g=new emGroup(
+		g=new emLinearGroup(
 			this,
 			"entry",
 			bmRec ? "This Bookmark" : "This Group"
 		);
+		g->SetVertical();
 		g->SetMinCellCount(12);
 		BtCut=new emButton(
 			g,
@@ -877,7 +879,8 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		BtPasteColors->SetNoEOI();
 		AddWakeUpSignal(BtPasteColors->GetClickSignal());
 		if (bmRec) {
-			g2=new emGroup(g,"loc","Location");
+			g2=new emRasterGroup(g,"loc","Location");
+			g2->SetPrefChildTallness(0.2);
 			g2->SetOuterBorderType(OBT_INSTRUMENT);
 			TfLocationIdentity=new emTextField(g2,"Identity","Panel Identity");
 			TfLocationRelX=new emTextField(g2,"RelX","Relative X-Position");
@@ -914,11 +917,12 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	}
 
 	if (bmsParentRec) {
-		g=new emGroup(
+		g=new emLinearGroup(
 			this,
 			"after",
 			bmRec ? "After This Bookmark" : "After This Group"
 		);
+		g->SetVertical();
 		BtNewBookmarkAfter=new emButton(
 			g,
 			"nb",
@@ -952,7 +956,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 
 void emBookmarkEntryAuxPanel::AutoShrink()
 {
-	emGroup::AutoShrink();
+	emLinearGroup::AutoShrink();
 
 	BtNewBookmarkBefore=NULL;
 	BtNewGroupBefore=NULL;
@@ -1030,7 +1034,7 @@ emBookmarksAuxPanel::emBookmarksAuxPanel(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emBookmarksRec * rec
 )
-	: emGroup(parent,name)
+	: emLinearGroup(parent,name)
 {
 	ContentView=contentView;
 	Model=model;
@@ -1040,7 +1044,8 @@ emBookmarksAuxPanel::emBookmarksAuxPanel(
 	SetListenedRec(rec);
 	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
-	emGroup::SetLook(emLook());
+	SetVertical();
+	emLinearGroup::SetLook(emLook());
 	SetCaption("In This Empty Group");
 }
 
@@ -1068,7 +1073,7 @@ bool emBookmarksAuxPanel::Cycle()
 	emPanel * p;
 	bool busy,modified,zoomOut;
 
-	busy=emGroup::Cycle();
+	busy=emLinearGroup::Cycle();
 
 	modified=false;
 	zoomOut=false;
@@ -1116,7 +1121,7 @@ bool emBookmarksAuxPanel::Cycle()
 
 void emBookmarksAuxPanel::AutoExpand()
 {
-	emGroup::AutoExpand();
+	emLinearGroup::AutoExpand();
 
 	BtNewBookmark=new emButton(
 		this,
@@ -1147,7 +1152,7 @@ void emBookmarksAuxPanel::AutoExpand()
 
 void emBookmarksAuxPanel::AutoShrink()
 {
-	emGroup::AutoShrink();
+	emLinearGroup::AutoShrink();
 	BtNewBookmark=NULL;
 	BtNewGroup=NULL;
 	BtPaste=NULL;
@@ -1300,13 +1305,13 @@ emBookmarksPanel::emBookmarksPanel(
 	ParentArg parent, const emString & name, emView * contentView,
 	emBookmarksModel * model, emRec * rec
 )
-	: emGroup(parent,name)
+	: emRasterGroup(parent,name)
 {
 	if (!rec) rec=model;
 	ContentView=contentView;
 	Model=model;
 	UpToDate=false;
-	Tiling=NULL;
+	RasterLayout=NULL;
 	SetListenedRec(rec);
 	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
@@ -1340,7 +1345,7 @@ void emBookmarksPanel::SetLook(const emLook & look, bool recursively)
 			newLook.SetFgColor(grpRec->FgColor);
 		}
 	}
-	emGroup::SetLook(newLook,recursively);
+	emRasterGroup::SetLook(newLook,recursively);
 }
 
 
@@ -1355,7 +1360,7 @@ bool emBookmarksPanel::Cycle()
 {
 	bool busy;
 
-	busy=emGroup::Cycle();
+	busy=emRasterGroup::Cycle();
 
 	if (!UpToDate) {
 		Update();
@@ -1375,7 +1380,7 @@ void emBookmarksPanel::AutoExpand()
 	char name[256];
 	int idx,cnt;
 
-	emGroup::AutoExpand();
+	emRasterGroup::AutoExpand();
 
 	rec=GetListenedRec();
 	if (!rec) return;
@@ -1386,38 +1391,40 @@ void emBookmarksPanel::AutoExpand()
 	if (!bmsRec) return;
 
 	if (grpRec) {
-		Tiling=new emTiling(this,"t");
-		Tiling->HaveAux("aux",11.0);
-		new emBookmarkEntryAuxPanel(Tiling,"aux",ContentView,Model,grpRec);
-		Tiling->SetBorderType(OBT_NONE,IBT_GROUP);
+		RasterLayout=new emRasterLayout(this,"t");
+		RasterLayout->HaveAux("aux",11.0);
+		new emBookmarkEntryAuxPanel(RasterLayout,"aux",ContentView,Model,grpRec);
+		RasterLayout->SetBorderType(OBT_NONE,IBT_GROUP);
 		SetInnerBorderType(IBT_NONE);
 	}
 	else {
-		Tiling=this;
+		RasterLayout=this;
 	}
 
 	cnt=bmsRec->GetCount();
 	if (cnt<=0) {
-		Tiling->SetMinCellCount(1);
-		Tiling->SetOuterSpace(1.0,1.0);
-		Tiling->SetPrefChildTallness(0.6);
-		Tiling->SetChildTallnessForced(true);
-		Tiling->SetAlignment(EM_ALIGN_CENTER);
-		new emBookmarksAuxPanel(Tiling,"empty",ContentView,Model,bmsRec);
+		RasterLayout->SetMinCellCount(1);
+		RasterLayout->SetOuterSpace(1.0,1.0);
+		RasterLayout->SetChildTallness(0.6);
+		RasterLayout->SetStrictRaster(false);
+		RasterLayout->SetAlignment(EM_ALIGN_CENTER);
+		new emBookmarksAuxPanel(RasterLayout,"empty",ContentView,Model,bmsRec);
 	}
 	else {
-		Tiling->SetMinCellCount(4);
-		Tiling->SetOuterSpace(0.0,0.0);
-		Tiling->SetPrefChildTallness(0.2);
-		Tiling->SetChildTallnessForced(false);
-		Tiling->SetAlignment(EM_ALIGN_CENTER);
+		RasterLayout->SetMinCellCount(4);
+		RasterLayout->SetOuterSpace(0.0,0.0);
+		RasterLayout->SetPrefChildTallness(0.2);
+		RasterLayout->SetMinChildTallness(0.0);
+		RasterLayout->SetMaxChildTallness(1E100);
+		RasterLayout->SetStrictRaster(true);
+		RasterLayout->SetAlignment(EM_ALIGN_TOP_LEFT);
 		for (idx=0; idx<cnt; idx++) {
 			unionRec=(emUnionRec*)&bmsRec->Get(idx);
 			sprintf(name,"%d",idx);
 			switch (unionRec->GetVariant()) {
 			case emBookmarksRec::BOOKMARK:
 				new emBookmarkButton(
-					Tiling,
+					RasterLayout,
 					name,
 					ContentView,
 					Model,
@@ -1426,7 +1433,7 @@ void emBookmarksPanel::AutoExpand()
 				break;
 			case emBookmarksRec::GROUP:
 				new emBookmarksPanel(
-					Tiling,
+					RasterLayout,
 					name,
 					ContentView,
 					Model,
@@ -1441,8 +1448,8 @@ void emBookmarksPanel::AutoExpand()
 
 void emBookmarksPanel::AutoShrink()
 {
-	emGroup::AutoShrink();
-	Tiling=NULL;
+	emRasterGroup::AutoShrink();
+	RasterLayout=NULL;
 }
 
 
@@ -1496,12 +1503,12 @@ void emBookmarksPanel::Update()
 		look=GetLook();
 		look.SetBgColor(grpRec->BgColor);
 		look.SetFgColor(grpRec->FgColor);
-		emGroup::SetLook(look,true);
+		emRasterGroup::SetLook(look,true);
 	}
 
-	if (bmsRec && Tiling) {
-		aux=Tiling->GetAuxPanel();
-		for (idx=0, p=Tiling->GetFirstChild(); ; p=p->GetNext()) {
+	if (bmsRec && RasterLayout) {
+		aux=RasterLayout->GetAuxPanel();
+		for (idx=0, p=RasterLayout->GetFirstChild(); ; p=p->GetNext()) {
 			if (!p) {
 				if (idx!=bmsRec->GetCount()) InvalidateAutoExpansion();
 				break;

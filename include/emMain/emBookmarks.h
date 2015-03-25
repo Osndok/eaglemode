@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.h
 //
-// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -154,7 +154,7 @@ protected:
 //========================== emBookmarkEntryAuxPanel ===========================
 //==============================================================================
 
-class emBookmarkEntryAuxPanel : public emGroup, private emRecListener {
+class emBookmarkEntryAuxPanel : public emLinearGroup, private emRecListener {
 
 public:
 
@@ -210,7 +210,7 @@ private:
 //============================ emBookmarksAuxPanel =============================
 //==============================================================================
 
-class emBookmarksAuxPanel : public emGroup, private emRecListener {
+class emBookmarksAuxPanel : public emLinearGroup, private emRecListener {
 
 public:
 
@@ -287,7 +287,7 @@ inline emBookmarkRec * emBookmarkButton::GetRec()
 //============================== emBookmarksPanel ==============================
 //==============================================================================
 
-class emBookmarksPanel : public emGroup, private emRecListener {
+class emBookmarksPanel : public emRasterGroup, private emRecListener {
 
 public:
 
@@ -321,7 +321,7 @@ private:
 	emRef<emBookmarksModel> Model;
 	emCrossPtr<emView> ContentView;
 	bool UpToDate;
-	emTiling * Tiling;
+	emRasterLayout * RasterLayout;
 };
 
 inline emRec * emBookmarksPanel::GetRec()

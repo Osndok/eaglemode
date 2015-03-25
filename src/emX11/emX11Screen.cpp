@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -582,8 +582,11 @@ bool emX11Screen::Cycle()
 				}
 			}
 			XMutex.Lock();
-			if (event.type==ButtonPress || event.type==ButtonRelease) {
-				XAllowEvents(Disp,SyncPointer,CurrentTime);
+			if (GrabbingWinPort) {
+				if (event.type==ButtonPress || event.type==ButtonRelease) {
+					XAllowEvents(Disp,SyncPointer,CurrentTime);
+					XSync(Disp,False);
+				}
 			}
 		}
 	}

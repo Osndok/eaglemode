@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGroup.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,7 +25,19 @@ emGroup::emGroup(
 	ParentArg parent, const emString & name, const emString & caption,
 	const emString & description, const emImage & icon
 )
-	: emTiling(parent,name,caption,description,icon)
+	: emTiling(parent,name,caption,description,icon,0)
+{
+	SetFocusable(true);
+	SetBorderType(OBT_GROUP,IBT_GROUP);
+}
+
+
+emGroup::emGroup(
+	ParentArg parent, const emString & name, const emString & caption,
+	const emString & description, const emImage & icon,
+	int notWarningDeprecatedForInternalUse
+)
+	: emTiling(parent,name,caption,description,icon,0)
 {
 	SetFocusable(true);
 	SetBorderType(OBT_GROUP,IBT_GROUP);

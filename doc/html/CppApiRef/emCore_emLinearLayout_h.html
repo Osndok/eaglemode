@@ -1,0 +1,285 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emLinearLayout.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>.h
+//
+// Copyright (C) 2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emLinearLayout_h
+#define emLinearLayout_h
+
+#ifndef emBorder_h
+#include &lt;<A CLASS=f HREF="emCore_emBorder_h.html">emCore/emBorder.h</A>&gt;
+#endif
+
+
+<A NAME="emLinearLayout"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// A panel of this class automatically lays out its child panels within
+        // the content area, either horizontally or vertically. The child panels
+        // can get different sizes by applying weights, minimums, maximums or
+        // fixed tallnesses to the panels.
+        //
+        //                   Horizontal layout
+        //   +---------------------------------------------+
+        //   | +---+  +------------+  +-----+  +--------+  |
+        //   | |   |  |            |  |     |  |        |  |
+        //   | |   |  |            |  |     |  |        |  |
+        //   | +---+  +------------+  +-----+  +--------+  |
+        //   +---------------------------------------------+
+        //
+        //                   Vertical layout
+        //                  +---------------+
+        //                  | +-----------+ |
+        //                  | |           | |
+        //                  | |           | |
+        //                  | |           | |
+        //                  | |           | |
+        //                  | +-----------+ |
+        //                  |               |
+        //                  | +-----------+ |
+        //                  | |           | |
+        //                  | +-----------+ |
+        //                  |               |
+        //                  | +-----------+ |
+        //                  | |           | |
+        //                  | |           | |
+        //                  | +-----------+ |
+        //                  +---------------+
+        //
+        // By default, a panel of this class is not focusable and has no border,
+        // because it is meant as a pure layout programming tool. For other use,
+        // please see the derived class <A CLASS=m HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>, but sets non-focusable.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetHorizontal();
+                <SPAN CLASS=c>// Set horizontal layout.
+                // (This is a short cut for SetOrientationThresholdTallness(1E100).)
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetVertical();
+                <SPAN CLASS=c>// Set vertical layout.
+                // (This is a short cut for SetOrientationThresholdTallness(0.0).)
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetOrientationThresholdTallness() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetOrientationThresholdTallness(<SPAN CLASS=t>double </SPAN>tallness);
+
+        <SPAN CLASS=t>int </SPAN>GetMinCellCount() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinCellCount(<SPAN CLASS=t>int </SPAN>minCellCount);
+                <SPAN CLASS=c>// Minimum number of cells to be generated. The layout algorithm
+                // behaves like if there were at least this number of child
+                // panels. The additional cells are simply making up unused
+                // space. The default is zero.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetChildWeight(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetChildWeight(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>weight);
+                <SPAN CLASS=c>// Get or set the weight of a child panel. The bigger the weight
+                // of a child panel, the bigger is the proportion of the
+                // available area given to that panel by the layout algorithm.
+                // It is a simple linear relation. The index argument denotes a
+                // child panel. Zero means first child, one means second, and so
+                // on. The default weight is 1.0.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildWeight(<SPAN CLASS=t>double </SPAN>weight);
+                <SPAN CLASS=c>// Set the weight of all child panels to the given value.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMinChildTallness(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMinChildTallness(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>minCT);
+                <SPAN CLASS=c>// Get or set the minimum tallness (height/width ratio) of a
+                // child panel. The index argument denotes a child panel. Zero
+                // means first child, one means second, and so on. The default
+                // minimum tallness is 0.0.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetMinChildTallness(<SPAN CLASS=t>double </SPAN>minCT);
+                <SPAN CLASS=c>// Set the minimum tallness of all child panels to the given
+                // value.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetMaxChildTallness(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetMaxChildTallness(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>maxCT);
+                <SPAN CLASS=c>// Get or set the maximum tallness (height/width ratio) of a
+                // child panel. The index argument denotes a child panel. Zero
+                // means first child, one means second, and so on. The default
+                // maximum tallness is 1E100.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetMaxChildTallness(<SPAN CLASS=t>double </SPAN>maxCT);
+                <SPAN CLASS=c>// Set the maximum tallness of all child panels to the given
+                // value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>tallness);
+                <SPAN CLASS=c>// Set a fixed tallness for a child panel. This actually sets
+                // the minimum and maximum tallness to the given value.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>tallness);
+                <SPAN CLASS=c>// Set a fixed tallness for all child panels.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> GetAlignment() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAlignment(<A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> alignment);
+                <SPAN CLASS=c>// Alignment of the child panels as a whole within the available
+                // space. This applies only if the available space cannot be
+                // filled completely because of minimum, maximum or fixed
+                // tallnesses of the child panels. The default is
+                // EM_ALIGN_CENTER.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetSpaceL() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceT() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceH() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceV() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceR() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetSpaceB() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSpaceL(<SPAN CLASS=t>double </SPAN>l);
+        <SPAN CLASS=t>void </SPAN>SetSpaceT(<SPAN CLASS=t>double </SPAN>t);
+        <SPAN CLASS=t>void </SPAN>SetSpaceH(<SPAN CLASS=t>double </SPAN>h);
+        <SPAN CLASS=t>void </SPAN>SetSpaceV(<SPAN CLASS=t>double </SPAN>v);
+        <SPAN CLASS=t>void </SPAN>SetSpaceR(<SPAN CLASS=t>double </SPAN>r);
+        <SPAN CLASS=t>void </SPAN>SetSpaceB(<SPAN CLASS=t>double </SPAN>b);
+        <SPAN CLASS=t>void </SPAN>SetSpace(<SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>v, <SPAN CLASS=t>double </SPAN>r,
+                      <SPAN CLASS=t>double </SPAN>b);
+        <SPAN CLASS=t>void </SPAN>SetSpace(<SPAN CLASS=t>double </SPAN>lr, <SPAN CLASS=t>double </SPAN>tb, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>v);
+        <SPAN CLASS=t>void </SPAN>SetInnerSpace(<SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>v);
+        <SPAN CLASS=t>void </SPAN>SetOuterSpace(<SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b);
+        <SPAN CLASS=t>void </SPAN>SetOuterSpace(<SPAN CLASS=t>double </SPAN>lr, <SPAN CLASS=t>double </SPAN>tb);
+                <SPAN CLASS=c>// Left, top, horizontal, vertical, right and bottom space (l,
+                // t, h, v, r, b). This defines space between child panels, and
+                // between child panels and borders. Here is a chart showing the
+                // meaning of the six parameters:
+                //
+                //   +-------------------- border -------------------+
+                //   |         t             t             t         |
+                //   |     +-------+     +-------+     +-------+     |
+                //   |  l  | panel |  h  | panel |  h  | panel |  r  |
+                //   |     +-------+     +-------+     +-------+     |
+                //   |         b             b             b         |
+                //   +-----------------------------------------------+
+                //
+                //
+                //   +------ border -----+
+                //   |         t         |
+                //   |     +-------+     |
+                //   |  l  | panel |  r  |
+                //   |     +-------+     |
+                //   |         v         |
+                //   |     +-------+     |
+                //   |  l  | panel |  r  |
+                //   |     +-------+     |
+                //   |         v         |
+                //   |     +-------+     |
+                //   |  l  | panel |  r  |
+                //   |     +-------+     |
+                //   |         b         |
+                //   +-------------------+
+                //
+                // The method argument lr means to set l and r to the same
+                // value, same with tb for t and b.
+                //
+                // The values are relative to the average size of the child
+                // panels. For example, v=0.5 means that the vertical space
+                // between child panels gets half as tall as an average child
+                // panel. The default is zero for all parameters.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=c>// Lays out all child panels in the content area (except for an
+                // auxiliary panel, which is laid out in the border).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>double </SPAN>CalculateForce(<SPAN CLASS=t>int </SPAN>cells, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>bool </SPAN>horizontal);
+
+        <SPAN CLASS=t>double </SPAN>OrientationThreshold;
+        <SPAN CLASS=t>double </SPAN>DefaultWeight,DefaultMinTallness,DefaultMaxTallness;
+        <SPAN CLASS=t>double </SPAN>SpaceL,SpaceT,SpaceH,SpaceV,SpaceR,SpaceB;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; WeightArray;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; MinCTArray;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>double</SPAN>&gt; MaxCTArray;
+        <SPAN CLASS=t>int </SPAN>MinCellCount;
+        <A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> Alignment;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetOrientationThresholdTallness() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>OrientationThreshold;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetMinCellCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MinCellCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emAlignment">emAlignment</A> <A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetAlignment() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Alignment;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetSpaceL() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceL;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetSpaceT() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceT;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetSpaceH() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceH;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetSpaceV() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceV;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetSpaceR() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceR;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>::GetSpaceB() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpaceB;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

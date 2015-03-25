@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -247,18 +247,23 @@ emPanel * emGifFilePanel::CreateControlPanel(
 )
 {
 	emGifFileModel * gfm;
-	emGroup * grp;
+	emLinearLayout * mainLayout;
+	emLinearGroup * grp;
 	emTextField * tf;
 	emString str;
 
 	gfm=(emGifFileModel *)GetFileModel();
 	if (gfm && IsVFSGood()) {
-		grp=new emGroup(
-			parent,
-			name,
+		mainLayout=new emLinearLayout(parent,name);
+		mainLayout->SetMinChildTallness(0.03);
+		mainLayout->SetMaxChildTallness(0.6);
+		mainLayout->SetAlignment(EM_ALIGN_TOP_LEFT);
+		grp=new emLinearGroup(
+			mainLayout,
+			"",
 			"GIF File Info"
 		);
-		grp->SetFixedColumnCount(1);
+		grp->SetOrientationThresholdTallness(0.07);
 		if (gfm->IsAnimated()) {
 			str=emString::Format(
 				"Animated GIF (%d frames)",
@@ -297,7 +302,7 @@ emPanel * emGifFilePanel::CreateControlPanel(
 			gfm->GetComment()
 		);
 		tf->SetMultiLineMode();
-		return grp;
+		return mainLayout;
 	}
 	else {
 		return emFilePanel::CreateControlPanel(parent,name);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessControlPanel.cpp
 //
-// Copyright (C) 2007-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,14 +24,31 @@
 SilChessControlPanel::SilChessControlPanel(
 	ParentArg parent, const emString & name, SilChessModel * model
 )
-	: emGroup(parent,name,"SilChess")
+	: emLinearLayout(parent,name)
 {
-	emTiling * t1, * t2;
+	emPackGroup * mainGroup;
+	emRasterLayout * buttons;
 
 	Mdl=model;
 	LastOutputDepth=0;
 
-	GrAbout=new emGroup(this,"about","About SilChess");
+	SetMinChildTallness(0.1);
+	SetMaxChildTallness(1.5);
+	SetAlignment(EM_ALIGN_TOP_LEFT);
+
+	mainGroup=new emPackGroup(this,"","SilChess");
+
+	mainGroup->SetPrefChildTallness(0, 0.6);
+	mainGroup->SetPrefChildTallness(1, 0.1);
+	mainGroup->SetPrefChildTallness(2, 0.2);
+	mainGroup->SetPrefChildTallness(3, 0.1);
+	mainGroup->SetChildWeight(0, 1.0);
+	mainGroup->SetChildWeight(1, 0.8);
+	mainGroup->SetChildWeight(2, 0.4);
+	mainGroup->SetChildWeight(3, 1.8);
+
+	GrAbout=new emLinearGroup(mainGroup,"about","About SilChess");
+	GrAbout->SetBorderScaling(2.0);
 	LbAbout=new emLabel(
 		GrAbout,
 		"label",
@@ -53,71 +70,64 @@ SilChessControlPanel::SilChessControlPanel(
 		"converted to queens when they reach the opposite end."
 	);
 
-	t1=new emTiling(this,"t");
-		t2=new emTiling(t1,"t");
-			BtNew=new emButton(
-				t2,
-				"new",
-				"New",
-				"Start a new game.\n"
-				"\n"
-				"Hotkey: Ctrl+N"
-			);
-			BtFlip=new emButton(
-				t2,
-				"flip",
-				"Flip",
-				"Exchange sides.\n"
-				"\n"
-				"Hotkey: Ctrl+F"
-			);
-			BtUndo=new emButton(
-				t2,
-				"undo",
-				"Undo",
-				"Take back your last move.\n"
-				"\n"
-				"Hotkey: Ctrl+Z"
-			);
-			BtHint=new emButton(
-				t2,
-				"hint",
-				"Hint",
-				"Let the computer search a move for you and show it as a hint.\n"
-				"\n"
-				"Hotkey: Ctrl+H"
-			);
-			SfDepth=new emScalarField(
-				t2,
-				"depth",
-				"Search Depth",
-				"How hard the computer is searching for good moves.\n"
-				"Zero means to find random moves.\n"
-				"\n"
-				"Hotkeys: Ctrl+0, Ctrl+1, Ctrl+2, ...",
-				emImage(),
-				0,
-				SilChessMachine::MAX_SEARCH_DEPTH,
-				LastOutputDepth,
-				true
-			);
-		TfStatus=new emTextField(
-			t1,
-			"status",
-			"Status",
-			"This status field shows the last move, the check state, who is on, and\n"
-			"more. The number enclosed in < > is the level-one computer evaluation\n"
-			"of the chances of the one who is on (it's a debug info, originally)."
-		);
+	buttons=new emRasterLayout(mainGroup,"buttons");
+	buttons->SetPrefChildTallness(0.3);
+	BtNew=new emButton(
+		buttons,
+		"new",
+		"New",
+		"Start a new game.\n"
+		"\n"
+		"Hotkey: Ctrl+N"
+	);
+	BtFlip=new emButton(
+		buttons,
+		"flip",
+		"Flip",
+		"Exchange sides.\n"
+		"\n"
+		"Hotkey: Ctrl+F"
+	);
+	BtUndo=new emButton(
+		buttons,
+		"undo",
+		"Undo",
+		"Take back your last move.\n"
+		"\n"
+		"Hotkey: Ctrl+Z"
+	);
+	BtHint=new emButton(
+		buttons,
+		"hint",
+		"Hint",
+		"Let the computer search a move for you and show it as a hint.\n"
+		"\n"
+		"Hotkey: Ctrl+H"
+	);
 
+	SfDepth=new emScalarField(
+		mainGroup,
+		"depth",
+		"Search Depth",
+		"How hard the computer is searching for good moves.\n"
+		"Zero means to find random moves.\n"
+		"\n"
+		"Hotkeys: Ctrl+0, Ctrl+1, Ctrl+2, ...",
+		emImage(),
+		0,
+		SilChessMachine::MAX_SEARCH_DEPTH,
+		LastOutputDepth,
+		true
+	);
 
-	GrAbout->SetBorderScaling(2.0);
-	t1->SetPrefChildTallness(0.1);
-	t1->SetPrefChildTallness(0.15,-1);
-	t2->SetPrefChildTallness(0.4);
-	t2->SetPrefChildTallness(0.2,4);
-	SetPrefChildTallness(0.6);
-	SetPrefChildTallness(0.2,1);
+	TfStatus=new emTextField(
+		mainGroup,
+		"status",
+		"Status",
+		"This status field shows the last move, the check state, who is on, and\n"
+		"more. The number enclosed in < > is the level-one computer evaluation\n"
+		"of the chances of the one who is on (it's a debug info, originally)."
+	);
 
 	UpdateControls();
 
@@ -171,7 +181,7 @@ bool SilChessControlPanel::Cycle()
 		}
 	}
 
-	return emGroup::Cycle();
+	return emLinearLayout::Cycle();
 }
 
 

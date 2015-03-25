@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkControlPanel.cpp
 //
-// Copyright (C) 2010-2011,2014 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,17 +25,30 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	ParentArg parent, const emString & name, emView & contentView,
 	emNetwalkModel * fileModel
 )
-	: emGroup(parent,name,"emNetwalk"),
+	: emLinearLayout(parent,name),
 	ContentView(contentView)
 {
-	emTiling * t1, * t2, * t3, * t4;
+	emPackGroup * mainGroup;
+	emRasterLayout * l1, * l2, * l3;
+
 	Mdl=fileModel;
 
-	SetPrefChildTallness(1.0);
-	SetPrefChildTallness(0.3,1);
-	SetPrefChildTallness(0.5,2);
+	SetMinChildTallness(0.06);
+	SetMaxChildTallness(2.0);
+	SetAlignment(EM_ALIGN_TOP_LEFT);
 
-	GrAbout=new emGroup(this,"about","About emNetwalk");
+	mainGroup=new emPackGroup(this,"","emNetwalk");
+
+	mainGroup->SetPrefChildTallness(0, 1.0);
+	mainGroup->SetPrefChildTallness(1, 0.3);
+	mainGroup->SetPrefChildTallness(2, 0.07);
+	mainGroup->SetPrefChildTallness(3, 0.33);
+	mainGroup->SetChildWeight(0, 0.3);
+	mainGroup->SetChildWeight(1, 1.0);
+	mainGroup->SetChildWeight(2, 0.105);
+	mainGroup->SetChildWeight(3, 0.495);
+
+	GrAbout=new emLinearGroup(mainGroup,"about","About emNetwalk");
 	LbAbout=new emLabel(GrAbout,"text",
 		"emNetwalk is a clone of the addictive Netwalk puzzle game where pieces of a\n"
 		"computer network have to be rotated in order to connect terminals to a server.\n"
@@ -75,19 +88,20 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"An arc segment between two straight segments requires that the straight\n"
 		"segments have different orientations."
 	);
+	LbAbout->SetLabelAlignment(EM_ALIGN_TOP_LEFT);
 
-	GrStart=new emGroup(this,"start","New Game");
-	GrStart->SetFixedColumnCount(1);
-	GrStart->SetPrefChildTallness(0.2);
-	GrStart->SetPrefChildTallness(0.12,-1);
-	t1=new emTiling(GrStart,"t1");
-	t1->SetPrefChildTallness(0.2);
-	t2=new emTiling(t1,"t2");
-	t2->SetPrefChildTallness(0.1);
-	t3=new emTiling(t1,"t3");
-	t3->SetPrefChildTallness(0.1);
+	GrStart=new emLinearGroup(mainGroup,"start","New Game");
+	GrStart->SetOrientationThresholdTallness(0.16);
+	GrStart->SetChildWeight(0,1.0);
+	GrStart->SetChildWeight(1,0.6);
+	l1=new emRasterLayout(GrStart,"l1");
+	l1->SetPrefChildTallness(0.26);
+	l2=new emRasterLayout(l1,"l2");
+	l2->SetPrefChildTallness(0.15);
+	l3=new emRasterLayout(l1,"l3");
+	l3->SetPrefChildTallness(0.11);
 	SfSize=new emScalarField(
-		t2,"size","Size",
+		l2,"size","Size",
 		"Here you can set the size of the board as the number\n"
 		"of pieces in horizontal and vertical direction."
 	);
@@ -95,7 +109,7 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	SfSize->SetScaleMarkIntervals(5,1,0);
 	SfSize->SetEditable();
 	SfComplexity=new emScalarField(
-		t2,"complexity","Complexity",
+		l2,"complexity","Complexity",
 		"This is the difficulty of the network. The higher the value,\n"
 		"the more junctions and terminals are generated per area."
 	);
@@ -103,7 +117,7 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	SfComplexity->SetScaleMarkIntervals(1,0);
 	SfComplexity->SetEditable();
 	CbBorderless=new emCheckBox(
-		t3,"borderless","Borderless",
+		l3,"borderless","Borderless",
 		"If this is enabled, connections can wrap from one edge to the\n"
 		"opposite edge so that there are no borders. This makes the game\n"
 		"more difficult. Remember that you can scroll the whole board\n"
@@ -111,13 +125,13 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 	);
 	CbBorderless->SetNoEOI();
 	CbNoFourWayJunctions=new emCheckBox(
-		t3,"no4wayjunctions","No 4-Way Junctions",
+		l3,"no4wayjunctions","No 4-Way Junctions",
 		"If this is enabled, the network will not contain any 4-way\n"
 		"junctions. This makes the game more difficult."
 	);
 	CbNoFourWayJunctions->SetNoEOI();
 	CbDigMode=new emCheckBox(
-		t3,"digmode","Dig Mode",
+		l3,"digmode","Dig Mode",
 		"If this is enabled, pieces that are not near a server connection\n"
 		"are dug in and cannot be rotated, so that the puzzle has to be\n"
 		"solved by \"digging\" from server to terminals. This makes the\n"
@@ -131,10 +145,10 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"Hotkey: Ctrl+N"
 	);
 
-	t4=new emTiling(this,"t4");
-	t4->SetPrefChildTallness(0.07);
-	t4->SetPrefChildTallness(0.33,-1);
-	GrExtra=new emGroup(t4,"extra","Extra");
+	GrExtra=new emRasterGroup(mainGroup,"extra","Extra");
+	GrExtra->SetPrefChildTallness(0.2);
+	GrExtra->SetMinChildTallness(0.12);
+	GrExtra->SetAlignment(EM_ALIGN_TOP_LEFT);
 	GrExtra->SetBorderScaling(2.0);
 	CbAutoMark=new emCheckBox(
 		GrExtra,"automark","Auto Mark",
@@ -148,7 +162,7 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 		"Hotkey: Ctrl+U"
 	);
 	TfPenalty=new emTextField(
-		t4,"penalty","Penalty Points",
+		mainGroup,"penalty","Penalty Points",
 		"A penalty point is given whenever you rotate a piece once again\n"
 		"after rotating at least one other piece in between. Advanced players\n"
 		"should try to solve the puzzle without getting any penalty points."
@@ -204,7 +218,7 @@ bool emNetwalkControlPanel::Cycle()
 		Mdl->UnmarkAll();
 	}
 
-	return emGroup::Cycle();
+	return emLinearLayout::Cycle();
 }
 
 

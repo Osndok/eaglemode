@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.h
 //
-// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emFileManControlPanel : public emGroup {
+class emFileManControlPanel : public emPackGroup {
 
 public:
 
@@ -47,7 +47,7 @@ private:
 
 	void UpdateButtonStates();
 
-	class Group : public emGroup {
+	class Group : public emRasterGroup {
 	public:
 		Group(ParentArg parent, const emString & name,
 		      emView & contentView, emFileManModel * fmModel,
@@ -79,7 +79,7 @@ private:
 	emRef<emFileManModel> FMModel;
 	emRef<emFileManViewConfig> FMVConfig;
 
-	emGroup * GrView;
+	emPackGroup * GrView;
 		emRadioButton * RbSortByName;
 		emRadioButton * RbSortByEnding;
 		emRadioButton * RbSortByClass;
@@ -91,18 +91,18 @@ private:
 		emRadioButton * RbCaseInsensitive;
 		emCheckButton * CbSortDirectoriesFirst;
 		emCheckButton * CbShowHiddenFiles;
-		emRadioButton::Group * RbgTheme;
+		emRadioButton::RasterGroup * RbgTheme;
 		emCheckButton * CbAutosave;
 		emButton * BtSaveAsDefault;
-	emGroup * GrSelection;
+	emLinearGroup * GrSelection;
 		emButton * BtSelectAll;
 		emButton * BtClearSelection;
 		emButton * BtSwapSelection;
 		emButton * BtPaths2Clipboard;
 		emButton * BtNames2Clipboard;
-		emGroup * GrSelInfo;
+		emLinearGroup * GrSelInfo;
 			emPanel * SelInfo;
-	emGroup * GrCommand;
+	emRasterGroup * GrCommand;
 };
 
 

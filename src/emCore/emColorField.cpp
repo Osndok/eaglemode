@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -218,7 +218,7 @@ bool emColorField::Cycle()
 void emColorField::AutoExpand()
 {
 	emArray<emUInt64> percentIntervals;
-	emTiling * ti;
+	emRasterLayout * rl;
 	emScalarField * sf;
 	emTextField * tf;
 
@@ -226,20 +226,20 @@ void emColorField::AutoExpand()
 
 	Exp=new Expansion;
 
-	ti=new emTiling(this,"emColorField::InnerStuff");
-	ti->BeFirst();
-	ti->SetSpace(0.08,0.2,0.04,0.1);
-	ti->SetFixedColumnCount(2);
-	ti->SetChildTallness(0.2);
-	ti->SetAlignment(EM_ALIGN_RIGHT);
-	Exp->Tiling=ti;
+	rl=new emRasterLayout(this,"emColorField::InnerStuff");
+	rl->BeFirst();
+	rl->SetSpace(0.08,0.2,0.04,0.1);
+	rl->SetFixedColumnCount(2);
+	rl->SetChildTallness(0.2);
+	rl->SetAlignment(EM_ALIGN_RIGHT);
+	Exp->Layout=rl;
 
 	percentIntervals.Add(2500);
 	percentIntervals.Add(500);
 	percentIntervals.Add(100);
 
 	sf=new emScalarField(
-		ti,"r","Red",emString(),emImage(),0,10000,0,true
+		rl,"r","Red",emString(),emImage(),0,10000,0,true
 	);
 	sf->SetScaleMarkIntervals(percentIntervals);
 	sf->SetTextOfValueFunc(&TextOfPercentValue);
@@ -249,7 +249,7 @@ void emColorField::AutoExpand()
 	Exp->SfRed=sf;
 
 	sf=new emScalarField(
-		ti,"g","Green",emString(),emImage(),0,10000,0,true
+		rl,"g","Green",emString(),emImage(),0,10000,0,true
 	);
 	sf->SetScaleMarkIntervals(percentIntervals);
 	sf->SetTextOfValueFunc(&TextOfPercentValue);
@@ -259,7 +259,7 @@ void emColorField::AutoExpand()
 	Exp->SfGreen=sf;
 
 	sf=new emScalarField(
-		ti,"b","Blue",emString(),emImage(),0,10000,0,true
+		rl,"b","Blue",emString(),emImage(),0,10000,0,true
 	);
 	sf->SetScaleMarkIntervals(percentIntervals);
 	sf->SetTextOfValueFunc(&TextOfPercentValue);
@@ -269,7 +269,7 @@ void emColorField::AutoExpand()
 	Exp->SfBlue=sf;
 
 	sf=new emScalarField(
-		ti,"a","Alpha",
+		rl,"a","Alpha",
 		"The lower the more transparent."
 		,emImage(),0,10000,0,true
 	);
@@ -281,7 +281,7 @@ void emColorField::AutoExpand()
 	Exp->SfAlpha=sf;
 
 	sf=new emScalarField(
-		ti,"h","Hue",emString(),emImage(),0,36000,0,true
+		rl,"h","Hue",emString(),emImage(),0,36000,0,true
 	);
 	sf->SetScaleMarkIntervals(6000,1500,500,100,0);
 	sf->SetTextOfValueFunc(&TextOfHueValue);
@@ -292,7 +292,7 @@ void emColorField::AutoExpand()
 	Exp->SfHue=sf;
 
 	sf=new emScalarField(
-		ti,"s","Saturation",emString(),emImage(),0,10000,0,true
+		rl,"s","Saturation",emString(),emImage(),0,10000,0,true
 	);
 	sf->SetScaleMarkIntervals(percentIntervals);
 	sf->SetTextOfValueFunc(&TextOfPercentValue);
@@ -302,7 +302,7 @@ void emColorField::AutoExpand()
 	Exp->SfSat=sf;
 
 	sf=new emScalarField(
-		ti,"v","Value (brightness)",emString(),emImage(),0,10000,0,true
+		rl,"v","Value (brightness)",emString(),emImage(),0,10000,0,true
 	);
 	sf->SetScaleMarkIntervals(percentIntervals);
 	sf->SetTextOfValueFunc(&TextOfPercentValue);
@@ -312,7 +312,7 @@ void emColorField::AutoExpand()
 	Exp->SfVal=sf;
 
 	tf=new emTextField(
-		ti,"n",
+		rl,"n",
 		"Name",
 		"Here you can enter a color name like 'powder blue',\n"
 		"or a hexadecimal RGB value like '#c88' or '#73c81D'.",
@@ -350,7 +350,7 @@ void emColorField::LayoutChildren()
 		y+=d;
 		w-=2*d;
 		h-=2*d;
-		Exp->Tiling->Layout(x+w*0.5,y,w*0.5,h);
+		Exp->Layout->Layout(x+w*0.5,y,w*0.5,h);
 	}
 }
 
@@ -483,7 +483,7 @@ void emColorField::UpdateExpAppearance()
 		look.SetBgColor(bg);
 		look.SetFgColor(fg);
 	}
-	Exp->Tiling->SetLook(look,true);
+	Exp->Layout->SetLook(look,true);
 
 	Exp->SfRed  ->SetEditable(Editable);
 	Exp->SfGreen->SetEditable(Editable);

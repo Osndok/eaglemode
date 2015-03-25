@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emShowStdDlg.cpp
 //
-// Copyright (C) 2006-2010,2014 Oliver Hamann.
+// Copyright (C) 2006-2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ private:
 emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
 	: emDialog(parentContext)
 {
-	emTiling * t;
+	emLinearLayout * ll;
 	int i;
 
 	Label=NULL;
@@ -57,18 +57,18 @@ emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
 		i+=2;
 	}
 
-	GetContentTiling()->SetFixedColumnCount(1);
-	GetContentTiling()->SetPrefChildTallness(0.4);
-	GetContentTiling()->SetPrefChildTallness(0.2,-1);
+	GetContentPanel()->SetVertical();
+	GetContentPanel()->SetChildWeight(0,2.0);
+	GetContentPanel()->SetChildWeight(1,1.0);
 
 	if (i+3==argc && strcmp(argv[i],"message")==0) {
 		SetRootTitle(argv[i+1]);
-		Label=new emLabel(GetContentTiling(),"l",argv[i+2]);
+		Label=new emLabel(GetContentPanel(),"l",argv[i+2]);
 		AddOKButton();
 	}
 	else if (i+3==argc && strcmp(argv[i],"confirm")==0) {
 		SetRootTitle(argv[i+1]);
-		Label=new emLabel(GetContentTiling(),"l",argv[i+2]);
+		Label=new emLabel(GetContentPanel(),"l",argv[i+2]);
 		AddOKCancelButtons();
 	}
 	else if (
@@ -77,10 +77,10 @@ emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
 	) {
 		SetRootTitle(argv[i+1]);
 		AddOKCancelButtons();
-		Label=new emLabel(GetContentTiling(),"l",argv[i+2]);
-		t=new emTiling(GetContentTiling(),"t");
-		t->SetOuterSpace(0.05,0.4,0.05,0.4);
-		TextField=new emTextField(t,"e");
+		Label=new emLabel(GetContentPanel(),"l",argv[i+2]);
+		ll=new emLinearLayout(GetContentPanel(),"t");
+		ll->SetOuterSpace(0.05,0.4,0.05,0.4);
+		TextField=new emTextField(ll,"e");
 		TextField->SetEditable();
 		TextField->SetText(argv[i+3]);
 		TextField->SelectAll(false);

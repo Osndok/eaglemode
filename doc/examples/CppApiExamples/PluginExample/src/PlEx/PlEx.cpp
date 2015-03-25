@@ -67,7 +67,7 @@ PlExFileModel::PlExFileModel(emContext & context, const emString & name)
 
 //============================== PlExControlPanel ==============================
 
-class PlExControlPanel : public emGroup {
+class PlExControlPanel : public emRasterGroup {
 public:
 	PlExControlPanel(ParentArg parent, const emString & name,
 	                 emRef<PlExFileModel> model);
@@ -82,13 +82,12 @@ private:
 PlExControlPanel::PlExControlPanel(
 	ParentArg parent, const emString & name, emRef<PlExFileModel> model
 )
-	: emGroup(parent,name,"PlEx")
+	: emRasterGroup(parent,name,"PlEx")
 {
 	Model=model;
-	SetPrefChildTallness(0.2);
-	SetPrefChildTallness(0.4,1);
+	SetPrefChildTallness(0.3);
 	new emLabel(
-		new emGroup(this,"about","About"),
+		new emLinearGroup(this,"about","About"),
 		"about",
 		"This is PlEx - a plugin example.\n"
 		"It allows to draw lines with the\n"
@@ -119,7 +118,7 @@ bool PlExControlPanel::Cycle()
 	if (IsSignaled(Model->GetChangeSignal())) {
 		ColorField->SetColor(Model->CurrentColor);
 	}
-	return emGroup::Cycle();
+	return emRasterGroup::Cycle();
 }
 
 
