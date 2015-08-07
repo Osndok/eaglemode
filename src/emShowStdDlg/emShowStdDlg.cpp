@@ -96,7 +96,7 @@ emStdDlg::emStdDlg(emContext & parentContext, int argc, char * argv[])
 }
 
 
-void emStdDlg:: Finished(int result)
+void emStdDlg::Finished(int result)
 {
 	if (result==POSITIVE) {
 		if (TextField) printf("%s\n",TextField->GetText().Get());

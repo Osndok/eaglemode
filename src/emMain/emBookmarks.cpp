@@ -405,7 +405,7 @@ emRef<emBookmarksModel> emBookmarksModel::Acquire(emRootContext & rootContext)
 }
 
 
-emString emBookmarksModel::GetIconDir()
+emString emBookmarksModel::GetDefaultIconDir()
 {
 	return emGetInstallPath(EM_IDT_RES,"icons");
 }
@@ -483,7 +483,7 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	BtCopy=NULL;
 	TfName=NULL;
 	TfDescription=NULL;
-	TfIcon=NULL;
+	FlbIcon=NULL;
 	CfBgColor=NULL;
 	CfFgColor=NULL;
 	BtPasteColors=NULL;
@@ -498,7 +498,6 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	BtNewGroupAfter=NULL;
 	BtPasteAfter=NULL;
 	SetListenedRec(rec);
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
 	SetBorderType(OBT_NONE,IBT_NONE);
 	SetVertical();
@@ -539,9 +538,10 @@ bool emBookmarkEntryAuxPanel::Cycle()
 	emBookmarksRec * bmsParentRec;
 	emClipboard * clipboard;
 	emPanel * p;
+	emString path1,path2,icon;
 	double x,y,a;
 	bool busy,modified,zoomOut;
-	int index;
+	int index,l1,l2;
 
 	busy=emLinearGroup::Cycle();
 
@@ -622,11 +622,42 @@ bool emBookmarkEntryAuxPanel::Cycle()
 			}
 		}
 	}
-	if (TfIcon && IsSignaled(TfIcon->GetTextSignal())) {
+	if (FlbIcon && IsSignaled(FlbIcon->GetSelectionSignal())) {
 		if (entryRec) {
-			if (entryRec->Icon.Get()!=TfIcon->GetText()) {
-				entryRec->Icon.Set(TfIcon->GetText());
-				modified=true;
+			if (FlbIcon->GetSelectedNames().IsEmpty()) {
+				if (!entryRec->Icon.Get().IsEmpty()) {
+					entryRec->Icon.Set(emString());
+					modified=true;
+				}
+			}
+			else {
+				path1=emBookmarksModel::GetDefaultIconDir();
+				path2=FlbIcon->GetSelectedPath();
+				l1=path1.GetLen();
+				l2=path2.GetLen();
+				if (
+					l1+1<l2 &&
+#if defined(_WIN32)
+					(path2[l1]=='\\' || path2[l1]=='/') &&
+#else
+					path2[l1]=='/' &&
+#endif
+					path2.GetSubString(0,l1)==path1
+				) {
+					icon=path2.GetSubString(l1+1,l2-l1-1);
+				}
+				else {
+					icon=path2;
+				}
+				if (entryRec->Icon.Get()!=icon) {
+					if (emIsDirectory(path2)) {
+						icon.Clear();
+					}
+					if (entryRec->Icon.Get()!=icon) {
+						entryRec->Icon.Set(icon);
+						modified=true;
+					}
+				}
 			}
 		}
 	}
@@ -732,6 +763,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 	emBookmarksRec * bmsParentRec;
 	emLinearGroup * g;
 	emRasterGroup * g2;
+	emArray<emString> filters;
 
 	emLinearGroup::AutoExpand();
 
@@ -831,18 +863,22 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		TfDescription->SetEditable();
 		TfDescription->SetMultiLineMode();
 		AddWakeUpSignal(TfDescription->GetTextSignal());
-		TfIcon=new emTextField(
+		FlbIcon=new emFileSelectionBox(
 			g,
 			"icon",
 			"Icon",
 			emString::Format(
 				"An icon to be shown in this bookmark %s.\n"
-				"It must be the name of a TGA file in the directory:\n",
+				"It must be the name of a TGA file",
 				bmRec ? "button" : "group border"
-			) + emBookmarksModel::GetIconDir()
+			)
 		);
-		TfIcon->SetEditable();
-		AddWakeUpSignal(TfIcon->GetTextSignal());
+		FlbIcon->SetBorderType(OBT_INSTRUMENT,IBT_NONE);
+		filters.Clear();
+		filters.Add("Targa Files (*.tga)");
+		FlbIcon->SetFilters(filters);
+		FlbIcon->SetParentDirectory(emBookmarksModel::GetDefaultIconDir());
+		AddWakeUpSignal(FlbIcon->GetSelectionSignal());
 		CfBgColor=new emColorField(
 			g,
 			"bgcol",
@@ -965,7 +1001,7 @@ void emBookmarkEntryAuxPanel::AutoShrink()
 	BtCopy=NULL;
 	TfName=NULL;
 	TfDescription=NULL;
-	TfIcon=NULL;
+	FlbIcon=NULL;
 	CfBgColor=NULL;
 	CfFgColor=NULL;
 	BtPasteColors=NULL;
@@ -992,7 +1028,27 @@ void emBookmarkEntryAuxPanel::Update()
 
 	if (TfName) TfName->SetText(entryRec->Name.Get());
 	if (TfDescription) TfDescription->SetText(entryRec->Description.Get());
-	if (TfIcon) TfIcon->SetText(entryRec->Icon.Get());
+
+	if (FlbIcon) {
+		if (entryRec->Icon.Get().IsEmpty()) {
+			if (
+				!FlbIcon->GetSelectedNames().IsEmpty() &&
+				!emIsDirectory(FlbIcon->GetSelectedPath())
+			) {
+				FlbIcon->SetParentDirectory(emBookmarksModel::GetDefaultIconDir());
+				FlbIcon->ClearSelection();
+			}
+		}
+		else {
+			FlbIcon->SetSelectedPath(
+				emGetAbsolutePath(
+					entryRec->Icon.Get(),
+					emBookmarksModel::GetDefaultIconDir()
+				)
+			);
+		}
+	}
+
 	if (CfBgColor) CfBgColor->SetColor(entryRec->BgColor.Get());
 	if (CfFgColor) CfFgColor->SetColor(entryRec->FgColor.Get());
 
@@ -1042,7 +1098,6 @@ emBookmarksAuxPanel::emBookmarksAuxPanel(
 	BtNewGroup=NULL;
 	BtPaste=NULL;
 	SetListenedRec(rec);
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
 	SetVertical();
 	emLinearGroup::SetLook(emLook());
@@ -1174,7 +1229,6 @@ emBookmarkButton::emBookmarkButton(
 	UpToDate=false;
 	SetListenedRec(rec);
 	HaveAux("aux",6.0);
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
 	AddWakeUpSignal(GetClickSignal());
 	WakeUp();
@@ -1268,20 +1322,16 @@ void emBookmarkButton::Update()
 		try {
 			img=emTryGetResImage(
 				GetRootContext(),
-				emGetChildPath(
-					emBookmarksModel::GetIconDir(),
-					bmRec->Icon.Get()
+				emGetAbsolutePath(
+					bmRec->Icon.Get(),
+					emBookmarksModel::GetDefaultIconDir()
 				)
 			);
 		}
 		catch (emException &) {
 			try {
-				img=emTryGetResImage(
-					GetRootContext(),
-					emGetChildPath(
-						emBookmarksModel::GetIconDir(),
-						"em-error-unknown-icon.tga"
-					)
+				img=emTryGetInsResImage(
+					GetRootContext(),"icons","em-error-unknown-icon.tga"
 				);
 			}
 			catch (emException &) {
@@ -1313,7 +1363,6 @@ emBookmarksPanel::emBookmarksPanel(
 	UpToDate=false;
 	RasterLayout=NULL;
 	SetListenedRec(rec);
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
 	WakeUp();
 	SetCaption("Bookmarks");
@@ -1478,20 +1527,16 @@ void emBookmarksPanel::Update()
 			try {
 				img=emTryGetResImage(
 					GetRootContext(),
-					emGetChildPath(
-						emBookmarksModel::GetIconDir(),
-						grpRec->Icon.Get()
+					emGetAbsolutePath(
+						grpRec->Icon.Get(),
+						emBookmarksModel::GetDefaultIconDir()
 					)
 				);
 			}
 			catch (emException &) {
 				try {
-					img=emTryGetResImage(
-						GetRootContext(),
-						emGetChildPath(
-							emBookmarksModel::GetIconDir(),
-							"em-error-unknown-icon.tga"
-						)
+					img=emTryGetInsResImage(
+						GetRootContext(),"icons","em-error-unknown-icon.tga"
 					);
 				}
 				catch (emException &) {

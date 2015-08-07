@@ -1,0 +1,322 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emFileDialog.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>.h
+//
+// Copyright (C) 2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emFileDialog_h
+#define emFileDialog_h
+
+#ifndef emDialog_h
+#include &lt;<A CLASS=f HREF="emCore_emDialog_h.html">emCore/emDialog.h</A>&gt;
+#endif
+
+#ifndef emFileSelectionBox_h
+#include &lt;<A CLASS=f HREF="emCore_emFileSelectionBox_h.html">emCore/emFileSelectionBox.h</A>&gt;
+#endif
+
+
+<A NAME="emFileDialog"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a dialog which allows the user to choose a file (or
+        // optionally multiple files). This is an <A CLASS=m HREF="emCore_emDialog_h.html#emDialog">emDialog</A> with an
+        // <A CLASS=m HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> as the content panel, and with OK and Cancel
+        // buttons. Most of the public methods of <A CLASS=m HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> are copied
+        // here with forwarding implementations. Additional features are for the
+        // dialog aspects. Especially see ModeType:
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>ModeType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for the general mode of the file dialog.
+
+                </SPAN>M_SELECT,
+                        <SPAN CLASS=c>// The dialog is for selecting a file without popping up
+                        // any child dialogs like "file not existing" or "are
+                        // you sure to overwrite". The title is set to "Files",
+                        // and the button are "OK" and "Cancel"
+
+                </SPAN>M_OPEN,
+                        <SPAN CLASS=c>// The dialog is for opening (reading) a file. If the
+                        // user tries to open a file that does not exist, an
+                        // error message is shown in a child dialog. The title
+                        // is set to "Open", and the buttons are "Open" and
+                        // "Cancel"
+
+                </SPAN>M_SAVE
+                        <SPAN CLASS=c>// The dialog is for saving (writing) a file. If the
+                        // user tries to save a file which already exists, a
+                        // child dialog is shown which asks the user if he
+                        // really wants to overwrite that file. The title is set
+                        // to "Save As", and the buttons are "Save" and "Cancel"
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; parentContext,
+                ModeType mode=M_SELECT,
+                ViewFlags viewFlags=VF_POPUP_ZOOM|VF_ROOT_SAME_TALLNESS,
+                WindowFlags windowFlags=WF_MODAL,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; wmResName=<SPAN CLASS=v>"emDialog"
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parentContext - Parent context(/window/dialog) for this
+                //                   dialog.
+                //   mode          - Mode of the file dialog.
+                //   viewFlags     - View features.
+                //   windowFlags   - Window features.
+                //   wmResName     - A resource name for the dialog. This is
+                //                   reported to the window manager.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN>ModeType GetMode() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the file dialog mode.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetMode(ModeType mode);
+                <SPAN CLASS=c>// Set the file dialog mode. This also sets the dialog title and
+                // the button texts accordingly.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsDirectoryResultAllowed() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether it is allowed to open/save a directory.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetDirectoryResultAllowed(<SPAN CLASS=t>bool </SPAN>dirAllowed=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether it is allowed to open/save a directory. If false
+                // (the default), pressing "OK" while a directory is selected
+                // has the effect of entering that directory instead of
+                // finishing the dialog.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsMultiSelectionEnabled() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the user is allowed to select multiple entries.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetMultiSelectionEnabled(<SPAN CLASS=t>bool </SPAN>enabled=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether the user is allowed to select multiple entries.
+                // The default is false.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetParentDirectory() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the absolute path of the parent directory.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetParentDirectory(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; parentDirectory);
+                <SPAN CLASS=c>// Set the parent directory.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetSelectedName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the name of the selected entry. If nothing is selected,
+                // an empty string is returned. If multiple entries are
+                // selected, the first one is returned.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; GetSelectedNames() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get an array with the names of all the selected entries.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedName(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; selectedName);
+                <SPAN CLASS=c>// Select a single entry. An empty string means to clear the
+                // selection.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedNames(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; selectedNames);
+                <SPAN CLASS=c>// Select any number of entries.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearSelection();
+                <SPAN CLASS=c>// Clear the selection.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetSelectedPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the absolute path of the selected entry. If nothing is
+                // selected, the absolute path of the parent directory is
+                // returned. If multiple entries are selected, the absolute path
+                // of the first selected one is returned.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedPath(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; selectedPath);
+                <SPAN CLASS=c>// Change the parent directory and the selection in one call. If
+                // the given path is a directory, the parent directory is set to
+                // that directory, and the selection is cleared. Otherwise the
+                // parent directory is set to the parent path of the given path,
+                // and the selection is set to the final name in the given path.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSelectionSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled when the selection or the parent directory has
+                // changed.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; GetFilters() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the file type filters. See SetFilters for more.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetFilters(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; filters);
+                <SPAN CLASS=c>// Set the file type filters, from which the user can choose
+                // one. The default is to have no filters, which means to show
+                // all entries. If no filter is selected at the time of calling
+                // SetFilters with a non-empty array, the first filter is
+                // selected automatically. Each filter is a string of the form:
+                //   &lt;description&gt;'('&lt;pattern&gt;[&lt;separator&gt;&lt;pattern&gt;...]')'
+                // With:
+                //   &lt;description&gt; = Any text.
+                //   &lt;pattern&gt;     = A pattern for the file name. The only supported
+                //                   meta character is an asterisk ('*'). It
+                //                   means to match any sequence (including the
+                //                   empty sequence). Everything else is taken
+                //                   literal, but case-insensitive.
+                //   &lt;separator&gt;   = A space char, a semicolon, a comma, or a
+                //                   vertical bar.
+                // Examples:
+                //   "All files (*)"
+                //   "Targa files (*.tga)"
+                //   "HTML files (*.htm *.html)"
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSelectedFilterIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the selected filter, or -1 if none is
+                // selected.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedFilterIndex(<SPAN CLASS=t>int </SPAN>selectedFilterIndex);
+                <SPAN CLASS=c>// Set the index of the selected filter. -1 means to select none.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>AreHiddenFilesShown() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether hidden files are shown.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetHiddenFilesShown(<SPAN CLASS=t>bool </SPAN>hiddenFilesShown=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether hidden files are shown. The default is false.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual bool </SPAN>CheckFinish(<SPAN CLASS=t>int </SPAN>result);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> * Fsb;
+        ModeType Mode;
+        <SPAN CLASS=t>bool </SPAN>DirAllowed;
+
+        <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>&gt; OverwriteDialog;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> OverwriteAsked;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> OverwriteConfirmed;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::ModeType <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetMode() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Mode;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::IsDirectoryResultAllowed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DirAllowed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::IsMultiSelectionEnabled() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;IsMultiSelectionEnabled();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetMultiSelectionEnabled(<SPAN CLASS=t>bool </SPAN>enabled)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetMultiSelectionEnabled(enabled);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetParentDirectory() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetParentDirectory();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetParentDirectory(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; parentDirectory)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetParentDirectory(parentDirectory);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetSelectedName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetSelectedName();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetSelectedNames() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetSelectedNames();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetSelectedName(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; selectedName)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetSelectedName(selectedName);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetSelectedNames(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; selectedNames)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetSelectedNames(selectedNames);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::ClearSelection()
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;ClearSelection();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetSelectedPath() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetSelectedPath();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetSelectedPath(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; selectedPath)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetSelectedPath(selectedPath);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetSelectionSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetSelectionSignal();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; <A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetFilters() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetFilters();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetFilters(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; filters)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetFilters(filters);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::GetSelectedFilterIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;GetSelectedFilterIndex();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetSelectedFilterIndex(<SPAN CLASS=t>int </SPAN>selectedFilterIndex)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetSelectedFilterIndex(selectedFilterIndex);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::AreHiddenFilesShown() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Fsb-&gt;AreHiddenFilesShown();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileDialog_h.html#emFileDialog">emFileDialog</A>::SetHiddenFilesShown(<SPAN CLASS=t>bool </SPAN>hiddenFilesShown)
+<SPAN CLASS=b>{
+        </SPAN>Fsb-&gt;SetHiddenFilesShown(hiddenFilesShown);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

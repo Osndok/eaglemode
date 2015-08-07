@@ -34,7 +34,6 @@ emColorField::emColorField(
 	AlphaEnabled=alphaEnabled;
 	Pressed=false;
 	SetBorderType(OBT_INSTRUMENT,Editable?IBT_INPUT_FIELD:IBT_OUTPUT_FIELD);
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(9,VCT_MIN_EXT);
 }
 
@@ -344,8 +343,8 @@ void emColorField::LayoutChildren()
 
 	emBorder::LayoutChildren();
 	if (Exp) {
-		GetContentRect(&x,&y,&w,&h);
-		d=emMin(w,h)*0.1;
+		GetContentRectUnobscured(&x,&y,&w,&h);
+		d=emMin(w,h)*0.05;
 		x+=d;
 		y+=d;
 		w-=2*d;
@@ -381,13 +380,6 @@ void emColorField::PaintContent(
 
 	GetContentRoundRect(&x,&y,&w,&h,&r);
 	d=emMin(w,h)*0.1;
-	if (!IsEnabled()) {
-		painter.PaintRoundRect(
-			x,y,w,h,r,r,
-			GetLook().GetBgColor().GetTransparented(20.0F)
-		);
-		canvasColor=0;
-	}
 	if (!Color.IsOpaque()) {
 		painter.PaintTextBoxed(
 			x+d,y+d,w-2*d,h-2*d,

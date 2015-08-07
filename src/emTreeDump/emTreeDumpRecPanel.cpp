@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRecPanel.cpp
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,7 +33,6 @@ emTreeDumpRecPanel::emTreeDumpRecPanel(
 	Dir=dir;
 	if (Rec) BgColor=Rec->BgColor;
 	else BgColor=0;
-	EnableAutoExpansion();
 }
 
 

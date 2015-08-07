@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -825,6 +825,12 @@ void emTextField::DoTextField(
 		hlColor=GetLook().GetOutputHlColor();
 	}
 
+	if (!IsEnabled()) {
+		bgColor=bgColor.GetBlended(GetLook().GetBgColor(),80.0F);
+		fgColor=fgColor.GetBlended(GetLook().GetBgColor(),80.0F);
+		hlColor=hlColor.GetBlended(GetLook().GetBgColor(),80.0F);
+	}
+
 	selColor=hlColor;
 	selIdx=GetSelectionStartIndex();
 	selEnd=GetSelectionEndIndex();
@@ -942,13 +948,6 @@ void emTextField::DoTextField(
 			xy[14]=cx-d1; xy[15]=cy;
 			painter->PaintPolygon(xy,8,curColor);
 		}
-	}
-
-	if (!IsEnabled()) {
-		painter->PaintRoundRect(
-			x,y,w,h,r,r,
-			GetLook().GetBgColor().GetTransparented(20.0F)
-		);
 	}
 }
 

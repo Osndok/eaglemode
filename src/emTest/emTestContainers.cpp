@@ -21,6 +21,7 @@
 #include <emCore/emStd2.h>
 #include <emCore/emList.h>
 #include <emCore/emAvlTree.h>
+#include <emCore/emAnything.h>
 
 #define MY_ASSERT(c) \
 	if (!(c)) emFatalError("%s, %d: assertion failed: %s",__FILE__,__LINE__,#c)
@@ -288,6 +289,21 @@ static void TestUtf8()
 }
 
 
+static void TestAnything()
+{
+	emAnything a1,a2;
+
+	MY_ASSERT(!emCastAnything<int>(a1));
+	a1=emCastAnything<int>(4711);
+	a2=a1;
+	a1=emCastAnything<const char*>("Hello");
+	MY_ASSERT(!emCastAnything<int>(a1));
+	MY_ASSERT(!emCastAnything<const char*>(a2));
+	MY_ASSERT(emCastAnything<const char*>(a1) && strcmp(*emCastAnything<const char*>(a1),"Hello")==0);
+	MY_ASSERT(emCastAnything<int>(a2) && *emCastAnything<int>(a2)==4711);
+}
+
+
 int main(int argc, char * argv[])
 {
 	emInitLocale();
@@ -300,6 +316,7 @@ int main(int argc, char * argv[])
 	TestStringArray();
 	TestAvlTree();
 	TestUtf8();
+	TestAnything();
 
 	printf("Success\n");
 	return 0;

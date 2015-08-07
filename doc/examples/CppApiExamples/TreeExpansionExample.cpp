@@ -19,7 +19,6 @@ MyPanel::MyPanel(ParentArg parent, const emString & name, emColor bgcolor)
 	: emPanel(parent,name)
 {
 	BackgroundColor=bgcolor;
-	EnableAutoExpansion(); // Don't forget this one!!!
 }
 
 bool MyPanel::IsOpaque()

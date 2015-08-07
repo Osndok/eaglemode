@@ -141,7 +141,7 @@ public:
 
 	static emRef<emBookmarksModel> Acquire(emRootContext & rootContext);
 
-	static emString GetIconDir();
+	static emString GetDefaultIconDir();
 
 protected:
 
@@ -189,7 +189,7 @@ private:
 	emButton * BtCopy;
 	emTextField * TfName;
 	emTextField * TfDescription;
-	emTextField * TfIcon;
+	emFileSelectionBox * FlbIcon;
 	emColorField * CfBgColor;
 	emColorField * CfFgColor;
 	emButton * BtPasteColors;

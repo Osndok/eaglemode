@@ -88,7 +88,8 @@ private:
 
 		emScalarField * SFLen, * SFPos;
 		emCheckBox * CbTopLev, * CbPZoom, * CbModal, * CbUndec, * CbPopup, * CbFull;
-		emButton * BtCreateDlg;
+		emButton * BtCreateDlg, * BtOpenFile, * BtOpenFiles, * BtSaveFile;
+		emFileDialog * FileDlg;
 	};
 
 	class TkTestGrp : public emRasterGroup {
@@ -96,6 +97,35 @@ private:
 		TkTestGrp(ParentArg parent, const emString & name);
 	protected:
 		virtual void AutoExpand();
+	};
+
+	class CustomItemPanel :
+		public emLinearGroup,
+		public emListBox::ItemPanelInterface
+	{
+	public:
+		CustomItemPanel(emListBox & listBox, const emString & name, int itemIndex);
+		virtual ~CustomItemPanel();
+	protected:
+		virtual void Input(emInputEvent & event, const emInputState & state,
+		                   double mx, double my);
+		virtual void AutoExpand();
+		virtual void ItemTextChanged();
+		virtual void ItemDataChanged();
+		virtual void ItemSelectionChanged();
+	};
+
+	class CustomListBox : public emListBox {
+	public:
+		CustomListBox(
+			ParentArg parent, const emString & name,
+			const emString & caption=emString(),
+			const emString & description=emString(),
+			const emImage & icon=emImage(),
+			SelectionType selType=SINGLE_SELECTION
+		);
+	protected:
+		virtual void CreateItemPanel(const emString & name, int itemIndex);
 	};
 
 	emList<emString> InputLog;

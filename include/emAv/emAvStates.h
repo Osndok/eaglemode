@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvStates.h
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,7 @@ public:
 	class FileStateRec : public emStructRec {
 	public:
 		FileStateRec();
-		~FileStateRec();
+		virtual ~FileStateRec();
 		emStringRec FilePath;
 		emIntRec PlayLength;
 		emIntRec PlayPos;

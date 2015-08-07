@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2012,2014 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ emMainWindow::emMainWindow(emContext & parentContext)
 
 	SetWindowIcon(emGetInsResImage(GetRootContext(),"icons","eaglemode48.tga"));
 
-	MainPanel=new emMainPanel(this,"main",1.0/10.0);
+	MainPanel=new emMainPanel(this,"main",1.0/10.86);
 
 	ControlPanel=new emMainControlPanel(
 		GetControlView(),"ctrl",*this,GetContentView()

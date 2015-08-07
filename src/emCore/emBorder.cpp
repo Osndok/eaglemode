@@ -50,6 +50,8 @@ emBorder::emBorder(
 		r->ImgCheckBox=emGetResImage(*rc,emGetChildPath(resDir,"CheckBox.tga"));
 		r->ImgCheckBoxPressed=emGetResImage(*rc,emGetChildPath(resDir,"CheckBoxPressed.tga"));
 		r->ImgCustomRectBorder=emGetResImage(*rc,emGetChildPath(resDir,"CustomRectBorder.tga"));
+		r->ImgDir=emGetResImage(*rc,emGetChildPath(resDir,"Dir.tga"));
+		r->ImgDirUp=emGetResImage(*rc,emGetChildPath(resDir,"DirUp.tga"));
 		r->ImgGroupBorder=emGetResImage(*rc,emGetChildPath(resDir,"GroupBorder.tga"));
 		r->ImgGroupInnerBorder=emGetResImage(*rc,emGetChildPath(resDir,"GroupInnerBorder.tga"));
 		r->ImgIOField=emGetResImage(*rc,emGetChildPath(resDir,"IOField.tga"));
@@ -326,18 +328,6 @@ void emBorder::GetAuxRect(
 }
 
 
-void emBorder::GetContentRect(
-	double * pX, double * pY, double * pW, double * pH,
-	emColor * pCanvasColor
-)
-{
-	DoBorder(
-		BORDER_FUNC_CONTENT_RECT,NULL,GetCanvasColor(),
-		pX,pY,pW,pH,NULL,pCanvasColor
-	);
-}
-
-
 void emBorder::GetContentRoundRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR,
 	emColor * pCanvasColor
@@ -350,10 +340,39 @@ void emBorder::GetContentRoundRect(
 }
 
 
+void emBorder::GetContentRect(
+	double * pX, double * pY, double * pW, double * pH,
+	emColor * pCanvasColor
+)
+{
+	DoBorder(
+		BORDER_FUNC_CONTENT_RECT,NULL,GetCanvasColor(),
+		pX,pY,pW,pH,NULL,pCanvasColor
+	);
+}
+
+
+void emBorder::GetContentRectUnobscured(
+	double * pX, double * pY, double * pW, double * pH,
+	emColor * pCanvasColor
+)
+{
+	DoBorder(
+		BORDER_FUNC_CONTENT_RECT_UNOBSCURED,NULL,GetCanvasColor(),
+		pX,pY,pW,pH,NULL,pCanvasColor
+	);
+}
+
+
 void emBorder::Notice(NoticeFlags flags)
 {
 	if ((flags&(NF_ENABLE_CHANGED|NF_ACTIVE_CHANGED|NF_FOCUS_CHANGED))!=0) {
 		InvalidatePainting();
+	}
+	if ((flags&NF_ENABLE_CHANGED)!=0) {
+		if (InnerBorder==(emByte)IBT_INPUT_FIELD || InnerBorder==(emByte)IBT_OUTPUT_FIELD) {
+			InvalidateChildrenLayout();
+		}
 	}
 	emPanel::Notice(flags);
 }
@@ -940,6 +959,7 @@ void emBorder::DoBorder(
 		recH=th-tr;
 		if ((InnerBorderType)InnerBorder==IBT_INPUT_FIELD) color=Look.GetInputBgColor();
 		else color=Look.GetOutputBgColor();
+		if (!IsEnabled()) color=color.GetBlended(Look.GetBgColor(),80.0F);
 		if (func==BORDER_FUNC_PAINT) {
 			painter->PaintRoundRect(tx,ty,tw,th,tr,tr,color,canvasColor);
 			canvasColor=color;
@@ -951,6 +971,15 @@ void emBorder::DoBorder(
 				171.0,197.0,120.0,120.0,
 				255,0,0757
 			);
+			return;
+		}
+		if (func==BORDER_FUNC_CONTENT_RECT_UNOBSCURED) {
+			d=114.0/119.0*rndR;
+			if (pX) *pX=rndX+d;
+			if (pY) *pY=rndY+d;
+			if (pW) *pW=rndW-2*d;
+			if (pH) *pH=rndH-2*d;
+			if (pCanvasColor) *pCanvasColor=color;
 			return;
 		}
 		rndX=tx;
@@ -1001,7 +1030,10 @@ void emBorder::DoBorder(
 		if (pR) *pR=rndR;
 		if (pCanvasColor) *pCanvasColor=canvasColor;
 	}
-	else if (func==BORDER_FUNC_CONTENT_RECT) {
+	else if (
+		func==BORDER_FUNC_CONTENT_RECT ||
+		func==BORDER_FUNC_CONTENT_RECT_UNOBSCURED
+	) {
 		if (pX) *pX=recX;
 		if (pY) *pY=recY;
 		if (pW) *pW=recW;

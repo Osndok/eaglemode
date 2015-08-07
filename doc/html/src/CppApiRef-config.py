@@ -70,7 +70,8 @@ Topics=[
 			AutoSectionsFile("emCore/emString.h"),
 			AutoSectionsFile("emCore/emArray.h"),
 			AutoSectionsFile("emCore/emList.h"),
-			AutoSectionsFile("emCore/emAvlTree.h")
+			AutoSectionsFile("emCore/emAvlTree.h"),
+			AutoSectionsFile("emCore/emAnything.h")
 		]
 	),
 	Topic(text="Smart Pointers",
@@ -149,8 +150,11 @@ Topics=[
 			AutoSectionsFile("emCore/emTextField.h"),
 			AutoSectionsFile("emCore/emScalarField.h"),
 			AutoSectionsFile("emCore/emColorField.h"),
+			AutoSectionsFile("emCore/emListBox.h"),
+			AutoSectionsFile("emCore/emFileSelectionBox.h"),
 			AutoSectionsFile("emCore/emSplitter.h"),
-			AutoSectionsFile("emCore/emDialog.h")
+			AutoSectionsFile("emCore/emDialog.h"),
+			AutoSectionsFile("emCore/emFileDialog.h")
 		]
 	),
 	Topic(text="File Models & -Panels",

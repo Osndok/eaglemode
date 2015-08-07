@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -373,6 +373,7 @@ emString emGetChildPath(const char * path, const char * name)
 #if defined(_WIN32)
 	if (pathLen>0 && (path[pathLen-1]=='\\' || path[pathLen-1]=='/')) pathLen--;
 	if (name[0]=='\\' || name[0]=='/') name++;
+	if (pathLen==0 && name[0]!=0 && name[1]==':') return emString(name);
 #else
 	if (pathLen>0 && path[pathLen-1]=='/') pathLen--;
 	if (name[0]=='/') name++;
@@ -525,6 +526,17 @@ bool emIsDirectory(const char * path)
 {
 	struct em_stat st;
 
+#if defined(_WIN32)
+	int i=strlen(path);
+	while (i>0 && (path[i-1]=='\\' || path[i-1]=='/')) i--;
+	if (
+		i==2 && path[1]==':' && (
+			(path[0]>='A' && path[0]<='Z') ||
+			(path[0]>='a' && path[0]<='z')
+		)
+	) return true;
+#endif
+
 	if (em_stat(path,&st)!=0) return false;
 	if ((st.st_mode&S_IFMT)!=S_IFDIR)  return false;
 	return true;
@@ -551,6 +563,19 @@ bool emIsSymLinkPath(const char * path)
 	if (em_lstat(path,&st)!=0) return false;
 	if ((st.st_mode&S_IFMT)!=S_IFLNK)  return false;
 	return true;
+#endif
+}
+
+
+bool emIsHiddenPath(const char * path)
+{
+#if defined(_WIN32)
+	DWORD d;
+
+	d=GetFileAttributes(path);
+	return d!=0xFFFFFFFF && (d&FILE_ATTRIBUTE_HIDDEN)!=0;
+#else
+	return emGetNameInPath(path)[0] == '.';
 #endif
 }
 
@@ -820,7 +845,7 @@ void emTryMakeDirectories(const char * path, int mode) throw(emException)
 {
 	emString parentPath;
 
-	if (access(path,F_OK)!=0) {
+	if (*path && access(path,F_OK)!=0) {
 		parentPath=emGetParentPath(path);
 		if (parentPath!=path) emTryMakeDirectories(parentPath,mode);
 #if defined(_WIN32)
@@ -1201,11 +1226,14 @@ emUInt64 emGetUInt64Random(emUInt64 minimum, emUInt64 maximum)
 	static emUInt32 seedLo=0x302D9934U;
 	static emUInt32 seedHi=0xD5441C6EU;
 	static emUInt32 count=0;
-	emUInt64 r;
+	emUInt64 r,a,b,c;
 
 	if (!count) {
-		seedLo^=((emUInt32)emGetClockMS())*0x106F68F6U+0x0723BF76U;
-		seedHi^=((emUInt32)time(NULL))*0xA0ECFAC5U+0x1840E54BU;
+		a=(emUInt32)time(NULL);
+		b=(emUInt32)emGetClockMS();
+		c=(emUInt32)emGetProcessId();
+		seedLo^=(a+b*1321+c*1231277)*0x106F68F6U+0x0723BF76U;
+		seedHi^=(a*9601769+b*5099+c)*0xA0ECFAC5U+0x1840E54BU;
 	}
 	count++;
 	seedLo=seedLo*0xC78D632DU+0xBDFAAE3BU;

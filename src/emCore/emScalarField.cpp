@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -403,6 +403,11 @@ void emScalarField::DoScalarField(
 		fgCol=GetLook().GetFgColor();
 	}
 
+	if (!IsEnabled()) {
+		bgCol=bgCol.GetBlended(GetLook().GetBgColor(),80.0F);
+		fgCol=fgCol.GetBlended(GetLook().GetBgColor(),80.0F);
+	}
+
 	col=bgCol.GetBlended(fgCol,25);
 	painter->PaintRect(rx,ry,ax-rx,rh,col,canvasColor);
 	painter->PaintRect(ax+aw,ry,rx+rw-ax-aw,rh,col,canvasColor);
@@ -457,13 +462,6 @@ void emScalarField::DoScalarField(
 			}
 			ty+=th;
 		}
-	}
-
-	if (!IsEnabled()) {
-		painter->PaintRoundRect(
-			x,y,w,h,r,r,
-			GetLook().GetBgColor().GetTransparented(20.0F)
-		);
 	}
 }
 

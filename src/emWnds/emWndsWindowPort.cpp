@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2012,2014 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,11 +20,44 @@
 
 #include <emWnds/emWndsWindowPort.h>
 
+#ifndef WM_UNICHAR
+#	define WM_UNICHAR 0x0109
+#endif
+
 #ifndef WM_MOUSEWHEEL
 #	define WM_MOUSEWHEEL 0x020A
 #endif
-#ifndef WM_UNICHAR
-#	define WM_UNICHAR 0x0109
+
+#ifndef WM_MOUSEHWHEEL
+#	define WM_MOUSEHWHEEL 0x020E
+#endif
+
+#ifndef WM_XBUTTONDOWN
+#	define WM_XBUTTONDOWN 0x020B
+#endif
+
+#ifndef WM_XBUTTONUP
+#	define WM_XBUTTONUP 0x020C
+#endif
+
+#ifndef WM_XBUTTONDBLCLK
+#	define WM_XBUTTONDBLCLK 0x020D
+#endif
+
+#ifndef MK_XBUTTON1
+#	define MK_XBUTTON1 0x0020
+#endif
+
+#ifndef MK_XBUTTON2
+#	define MK_XBUTTON2 0x0040
+#endif
+
+#ifndef XBUTTON1
+#	define XBUTTON1 0x0001
+#endif
+
+#ifndef XBUTTON2
+#	define XBUTTON2 0x0002
 #endif
 
 
@@ -250,6 +283,7 @@ emWndsWindowPort::emWndsWindowPort(emWindow & window)
 	RepeatKey=EM_KEY_NONE;
 	KeyRepeat=0;
 	MouseWheelRemainder=0;
+	MouseHWheelRemainder=0;
 	ModalState=false;
 	ModalDescendants=0;
 	BigIcon=NULL;
@@ -351,6 +385,7 @@ void emWndsWindowPort::PreConstruct()
 	LastButtonPress=EM_KEY_NONE;
 	RepeatKey=EM_KEY_NONE;
 	MouseWheelRemainder=0;
+	MouseHWheelRemainder=0;
 
 	if (haveBorder) {
 		if (Owner) {
@@ -459,9 +494,11 @@ LRESULT emWndsWindowPort::WindowProc(
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
+	case WM_XBUTTONDOWN:
 	case WM_LBUTTONDBLCLK:
 	case WM_MBUTTONDBLCLK:
 	case WM_RBUTTONDBLCLK:
+	case WM_XBUTTONDBLCLK:
 		mx=PaneX+((short)LOWORD(lParam))+Screen.MouseWarpX;
 		my=PaneY+((short)HIWORD(lParam))+Screen.MouseWarpY;
 		if (
@@ -472,19 +509,54 @@ LRESULT emWndsWindowPort::WindowProc(
 			Screen.InputStateClock++;
 		}
 		switch (uMsg) {
-		case WM_LBUTTONDOWN  : key=EM_KEY_LEFT_BUTTON  ; dblClick=false; break;
-		case WM_MBUTTONDOWN  : key=EM_KEY_MIDDLE_BUTTON; dblClick=false; break;
-		case WM_RBUTTONDOWN  : key=EM_KEY_RIGHT_BUTTON ; dblClick=false; break;
-		case WM_LBUTTONDBLCLK: key=EM_KEY_LEFT_BUTTON  ; dblClick=true ; break;
-		case WM_MBUTTONDBLCLK: key=EM_KEY_MIDDLE_BUTTON; dblClick=true ; break;
-		case WM_RBUTTONDBLCLK: key=EM_KEY_RIGHT_BUTTON ; dblClick=true ; break;
-		default              : key=EM_KEY_NONE         ; dblClick=false; break;
+		case WM_LBUTTONDOWN:
+			key=EM_KEY_LEFT_BUTTON;
+			dblClick=false;
+			break;
+		case WM_MBUTTONDOWN:
+			key=EM_KEY_MIDDLE_BUTTON;
+			dblClick=false;
+			break;
+		case WM_RBUTTONDOWN:
+			key=EM_KEY_RIGHT_BUTTON;
+			dblClick=false;
+			break;
+		case WM_XBUTTONDOWN:
+			if (HIWORD(wParam)==XBUTTON1) key=EM_KEY_BACK_BUTTON;
+			else if (HIWORD(wParam)==XBUTTON2) key=EM_KEY_FORWARD_BUTTON;
+			else key=EM_KEY_NONE;
+			dblClick=false;
+			break;
+		case WM_LBUTTONDBLCLK:
+			key=EM_KEY_LEFT_BUTTON;
+			dblClick=true;
+			break;
+		case WM_MBUTTONDBLCLK:
+			key=EM_KEY_MIDDLE_BUTTON;
+			dblClick=true;
+			break;
+		case WM_RBUTTONDBLCLK:
+			key=EM_KEY_RIGHT_BUTTON;
+			dblClick=true;
+			break;
+		case WM_XBUTTONDBLCLK:
+			if (HIWORD(wParam)==XBUTTON1) key=EM_KEY_BACK_BUTTON;
+			else if (HIWORD(wParam)==XBUTTON2) key=EM_KEY_FORWARD_BUTTON;
+			else key=EM_KEY_NONE;
+			dblClick=true;
+			break;
+		default:
+			key=EM_KEY_NONE;
+			dblClick=false;
+			break;
 		}
 		if (key==EM_KEY_NONE) {
-			for (i=0; i<3; i++) {
-				if      (i==0) { key=EM_KEY_LEFT_BUTTON  ; mask=MK_LBUTTON; }
-				else if (i==1) { key=EM_KEY_MIDDLE_BUTTON; mask=MK_MBUTTON; }
-				else           { key=EM_KEY_RIGHT_BUTTON ; mask=MK_RBUTTON; }
+			for (i=0; i<5; i++) {
+				if      (i==0) { key=EM_KEY_LEFT_BUTTON   ; mask=MK_LBUTTON;  }
+				else if (i==1) { key=EM_KEY_MIDDLE_BUTTON ; mask=MK_MBUTTON;  }
+				else if (i==2) { key=EM_KEY_RIGHT_BUTTON  ; mask=MK_RBUTTON;  }
+				else if (i==3) { key=EM_KEY_BACK_BUTTON   ; mask=MK_XBUTTON1; }
+				else           { key=EM_KEY_FORWARD_BUTTON; mask=MK_XBUTTON2; }
 				if (Screen.InputState.Get(key) && (wParam&mask)==0) {
 					Screen.InputState.Set(key,false);
 					Screen.InputStateClock++;
@@ -549,6 +621,7 @@ LRESULT emWndsWindowPort::WindowProc(
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
+	case WM_XBUTTONUP:
 		mx=PaneX+((short)LOWORD(lParam))+Screen.MouseWarpX;
 		my=PaneY+((short)HIWORD(lParam))+Screen.MouseWarpY;
 		if (
@@ -558,9 +631,15 @@ LRESULT emWndsWindowPort::WindowProc(
 			Screen.InputState.SetMouse(mx,my);
 			Screen.InputStateClock++;
 		}
-		if (uMsg==WM_LBUTTONUP)      key=EM_KEY_LEFT_BUTTON;
-		else if (uMsg==WM_MBUTTONUP) key=EM_KEY_MIDDLE_BUTTON;
-		else                         key=EM_KEY_RIGHT_BUTTON;
+		if (uMsg==WM_LBUTTONUP)            key=EM_KEY_LEFT_BUTTON;
+		else if (uMsg==WM_MBUTTONUP)       key=EM_KEY_MIDDLE_BUTTON;
+		else if (uMsg==WM_RBUTTONUP)       key=EM_KEY_RIGHT_BUTTON;
+		else if (HIWORD(wParam)==XBUTTON1) key=EM_KEY_BACK_BUTTON;
+		else if (HIWORD(wParam)==XBUTTON2) key=EM_KEY_FORWARD_BUTTON;
+		else                               key=EM_KEY_NONE;
+		if (key==EM_KEY_NONE) {
+			return 0;
+		}
 		if (Screen.InputState.Get(key)) {
 			Screen.InputState.Set(key,false);
 			Screen.InputStateClock++;
@@ -573,7 +652,9 @@ LRESULT emWndsWindowPort::WindowProc(
 			GetCapture()==HWnd &&
 			!Screen.InputState.Get(EM_KEY_LEFT_BUTTON) &&
 			!Screen.InputState.Get(EM_KEY_MIDDLE_BUTTON) &&
-			!Screen.InputState.Get(EM_KEY_RIGHT_BUTTON)
+			!Screen.InputState.Get(EM_KEY_RIGHT_BUTTON) &&
+			!Screen.InputState.Get(EM_KEY_BACK_BUTTON) &&
+			!Screen.InputState.Get(EM_KEY_FORWARD_BUTTON)
 		) {
 			ReleaseCapture();
 		}
@@ -585,6 +666,7 @@ LRESULT emWndsWindowPort::WindowProc(
 		}
 		return 0;
 	case WM_MOUSEWHEEL:
+	case WM_MOUSEHWHEEL:
 		mx=((short)LOWORD(lParam))+Screen.MouseWarpX;
 		my=((short)HIWORD(lParam))+Screen.MouseWarpY;
 		if (
@@ -620,16 +702,31 @@ LRESULT emWndsWindowPort::WindowProc(
 					Screen.UpdateKeymapAndInputState();
 				}
 				if (mx>=PaneX && mx<PaneX+PaneW && my>=PaneY && my<PaneY+PaneH) {
-					MouseWheelRemainder+=(short)HIWORD(wParam);
-					y=MouseWheelRemainder/120;
-					MouseWheelRemainder-=y*120;
-					if (y!=0) {
-						if (y>0) key=EM_KEY_WHEEL_UP;
-						else key=EM_KEY_WHEEL_DOWN;
-						inputEvent.Setup(key,"",0,0);
-						InputStateClock=Screen.InputStateClock;
-						InputToView(inputEvent,Screen.InputState);
-						return 0;
+					if (uMsg==WM_MOUSEWHEEL) {
+						MouseWheelRemainder+=(short)HIWORD(wParam);
+						y=MouseWheelRemainder/120;
+						MouseWheelRemainder-=y*120;
+						if (y!=0) {
+							if (y>0) key=EM_KEY_WHEEL_UP;
+							else key=EM_KEY_WHEEL_DOWN;
+							inputEvent.Setup(key,"",0,0);
+							InputStateClock=Screen.InputStateClock;
+							InputToView(inputEvent,Screen.InputState);
+							return 0;
+						}
+					}
+					else {
+						MouseHWheelRemainder+=(short)HIWORD(wParam);
+						x=MouseHWheelRemainder/120;
+						MouseHWheelRemainder-=x*120;
+						if (x!=0) {
+							if (x>0) key=EM_KEY_WHEEL_RIGHT;
+							else key=EM_KEY_WHEEL_LEFT;
+							inputEvent.Setup(key,"",0,0);
+							InputStateClock=Screen.InputStateClock;
+							InputToView(inputEvent,Screen.InputState);
+							return 0;
+						}
 					}
 				}
 			}
@@ -718,6 +815,7 @@ LRESULT emWndsWindowPort::WindowProc(
 		Screen.UpdateKeymapAndInputState();
 		RepeatKey=EM_KEY_NONE;
 		MouseWheelRemainder=0;
+		MouseHWheelRemainder=0;
 		if (!Focused) {
 			Focused=true;
 			SetViewFocused(true);
@@ -733,6 +831,7 @@ LRESULT emWndsWindowPort::WindowProc(
 		LastButtonPress=EM_KEY_NONE;
 		RepeatKey=EM_KEY_NONE;
 		MouseWheelRemainder=0;
+		MouseHWheelRemainder=0;
 		return 0;
 	case WM_SETCURSOR:
 		if ((HWND)wParam!=HWnd || LOWORD(lParam)!=1) {

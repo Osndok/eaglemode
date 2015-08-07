@@ -33,7 +33,6 @@ emTestPanel::emTestPanel(ParentArg parent, const emString & name)
 		DefaultBgColor
 	);
 
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(900.0);
 }
 
@@ -424,6 +423,8 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 	emColorField * cf;
 	emScalarField * sf;
 	emTunnel * tunnel;
+	emListBox * listBox;
+	emFileSelectionBox * fsb;
 	emString str;
 	int i;
 
@@ -556,7 +557,46 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		tunnel->SetDepth(0.0);
 		new emRasterGroup(tunnel,"e","End Of Tunnel");
 
-	grp=new emRasterGroup(this,"dlgs","Dialogs");
+	grp=new emRasterGroup(this,"listboxes","List Boxes");
+	grp->SetBorderScaling(2.5);
+	grp->SetPrefChildTallness(0.4);
+
+		listBox=new emListBox(grp,"l1","Empty");
+
+		listBox=new emListBox(grp,"l2","Single-Selection");
+		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->SetSelectedIndex(0);
+
+		listBox=new emListBox(grp,"l3","Read-Only");
+		listBox->SetSelectionType(emListBox::READY_ONLY_SELECTION);
+		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->SetSelectedIndex(2);
+
+		listBox=new emListBox(grp,"l4","Multi-Selection");
+		listBox->SetSelectionType(emListBox::MULTI_SELECTION);
+		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->Select(1);
+		listBox->Select(2);
+		listBox->Select(3);
+		listBox->Select(4);
+
+		listBox=new emListBox(grp,"l5","Toggle-Selection");
+		listBox->SetSelectionType(emListBox::TOGGLE_SELECTION);
+		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->Select(2);
+		listBox->Select(4);
+
+		listBox=new emListBox(grp,"l6","Single Column");
+		listBox->SetFixedColumnCount(1);
+		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->SetSelectedIndex(0);
+
+		listBox=new CustomListBox(grp,"l7","Custom List Box");
+		listBox->SetSelectionType(emListBox::MULTI_SELECTION);
+		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->SetSelectedIndex(0);
+
+	grp=new emRasterGroup(this,"dlgs","Test Dialog");
 	grp->SetBorderScaling(2.5);
 	grp->SetFixedColumnCount(1);
 		rl=new emRasterLayout(grp,"rl");
@@ -571,6 +611,24 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 			CbFull=new emCheckBox(rl,"WF_FULLSCREEN","WF_FULLSCREEN");
 		BtCreateDlg=new emButton(grp,"bt","Create Test Dialog");
 		AddWakeUpSignal(BtCreateDlg->GetClickSignal());
+
+	grp=new emRasterGroup(this,"fileChoosers","File Selection");
+	grp->SetBorderScaling(2.5);
+	grp->SetPrefChildTallness(0.3);
+		fsb=new emFileSelectionBox(grp,"l8","File Selection Box");
+		emArray<emString> filters;
+		filters.Add("All Files (*)");
+		filters.Add("Image Files (*.bmp *.gif *.jpg *.png *.tga)");
+		filters.Add("HTML Files (*.htm *.html)");
+		fsb->SetFilters(filters);
+		BtOpenFile=new emButton(grp,"openFile","Open...");
+		AddWakeUpSignal(BtOpenFile->GetClickSignal());
+		BtOpenFiles=new emButton(grp,"openFiles","Open Multi, Allow Dir...");
+		AddWakeUpSignal(BtOpenFiles->GetClickSignal());
+		BtSaveFile=new emButton(grp,"saveFile","Save As...");
+		AddWakeUpSignal(BtSaveFile->GetClickSignal());
+
+	FileDlg=NULL;
 }
 
 
@@ -585,6 +643,9 @@ bool emTestPanel::TkTest::Cycle()
 	emDialog * dlg;
 	emView::ViewFlags vFlags;
 	emWindow::WindowFlags wFlags;
+	emArray<emString> names;
+	emString str;
+	int i;
 
 	if (IsSignaled(SFLen->GetValueSignal())) {
 		SFPos->SetMaxValue(SFLen->GetValue());
@@ -604,6 +665,41 @@ bool emTestPanel::TkTest::Cycle()
 		dlg->EnableAutoDeletion();
 		dlg->SetRootTitle("Test Dialog");
 		new TkTest(dlg->GetContentPanel(),"test");
+	}
+	if (IsSignaled(BtOpenFile->GetClickSignal())) {
+		if (FileDlg) delete FileDlg;
+		FileDlg=new emFileDialog(GetView(),emFileDialog::M_OPEN);
+		AddWakeUpSignal(FileDlg->GetFinishSignal());
+	}
+	if (IsSignaled(BtOpenFiles->GetClickSignal())) {
+		if (FileDlg) delete FileDlg;
+		FileDlg=new emFileDialog(GetView(),emFileDialog::M_OPEN);
+		FileDlg->SetMultiSelectionEnabled();
+		FileDlg->SetDirectoryResultAllowed();
+		AddWakeUpSignal(FileDlg->GetFinishSignal());
+	}
+	if (IsSignaled(BtSaveFile->GetClickSignal())) {
+		if (FileDlg) delete FileDlg;
+		FileDlg=new emFileDialog(GetView(),emFileDialog::M_SAVE);
+		AddWakeUpSignal(FileDlg->GetFinishSignal());
+	}
+	if (FileDlg && IsSignaled(FileDlg->GetFinishSignal())) {
+		if (FileDlg->GetResult()==emDialog::POSITIVE) {
+			names=FileDlg->GetSelectedNames();
+			str="File dialog finished with positive result. Would load or save:\n";
+			if (names.GetCount() <= 1) {
+				str+=FileDlg->GetSelectedPath();
+			}
+			else {
+				for (i=0; i<names.GetCount(); i++) {
+					str+=emString("  ")+names[i]+emString("\n");
+				}
+				str+=emString("From:\n  ")+FileDlg->GetParentDirectory();
+			}
+			emDialog::ShowMessage(GetView(),"Result",str);
+		}
+		delete FileDlg;
+		FileDlg=NULL;
 	}
 	return false;
 }
@@ -651,7 +747,6 @@ emTestPanel::TkTestGrp::TkTestGrp(ParentArg parent, const emString & name)
 	: emRasterGroup(parent,name)
 {
 	SetCaption("Toolkit Test");
-	EnableAutoExpansion();
 	SetAutoExpansionThreshold(900.0);
 }
 
@@ -677,4 +772,92 @@ void emTestPanel::TkTestGrp::AutoExpand()
 
 	t2b->SetEnableSwitch(false);
 	t2b->SetCaption("Disabled");
+}
+
+
+emTestPanel::CustomItemPanel::CustomItemPanel(
+	emListBox & listBox, const emString & name, int itemIndex
+) :
+	emLinearGroup(listBox,name),
+	ItemPanelInterface(listBox,itemIndex)
+{
+	SetBorderScaling(5.0);
+	SetHorizontal();
+	ItemTextChanged();
+	ItemSelectionChanged();
+}
+
+
+emTestPanel::CustomItemPanel::~CustomItemPanel()
+{
+}
+
+
+void emTestPanel::CustomItemPanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	ProcessItemInput(this,event,state);
+	emLinearGroup::Input(event,state,mx,my);
+}
+
+
+void emTestPanel::CustomItemPanel::AutoExpand()
+{
+	emLabel * label;
+	emTestPanel::CustomListBox * listBox;
+	int i;
+
+	label=new emLabel(this,"t","This is a custom list\nbox item panel (it is\nrecursive...)");
+	label->SetLook(GetListBox().GetLook());
+	listBox = new emTestPanel::CustomListBox(this,"l","Child List Box");
+	listBox->SetLook(GetListBox().GetLook());
+	listBox->SetSelectionType(emListBox::MULTI_SELECTION);
+	for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+	listBox->SetSelectedIndex(0);
+}
+
+
+void emTestPanel::CustomItemPanel::ItemTextChanged()
+{
+	SetCaption(GetItemText());
+}
+
+
+void emTestPanel::CustomItemPanel::ItemDataChanged()
+{
+}
+
+
+void emTestPanel::CustomItemPanel::ItemSelectionChanged()
+{
+	emLook look;
+
+	if (IsItemSelected()) {
+		look=GetLook();
+		look.SetBgColor(emColor(224,80,128));
+		SetLook(look);
+	}
+	else {
+		SetLook(GetListBox().GetLook());
+	}
+}
+
+
+emTestPanel::CustomListBox::CustomListBox(
+	ParentArg parent, const emString & name,
+	const emString & caption, const emString & description,
+	const emImage & icon, SelectionType selType
+) :
+	emListBox(parent,name,caption,description,icon,selType)
+{
+	SetChildTallness(0.4);
+	SetAlignment(EM_ALIGN_TOP_LEFT);
+	SetStrictRaster();
+}
+
+
+void emTestPanel::CustomListBox::CreateItemPanel(const emString & name, int itemIndex)
+{
+	new emTestPanel::CustomItemPanel(*this,name,itemIndex);
 }

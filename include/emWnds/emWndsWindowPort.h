@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.h
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -109,6 +109,7 @@ private:
 	emInputKey RepeatKey;
 	int KeyRepeat;
 	int MouseWheelRemainder;
+	int MouseHWheelRemainder;
 	bool ModalState;
 	int ModalDescendants;
 	HICON BigIcon;

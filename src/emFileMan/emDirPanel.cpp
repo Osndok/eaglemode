@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -328,7 +328,10 @@ void emDirPanel::KeyWalk(emInputEvent & event, const emInputState & state)
 
 	if (event.GetChars().IsEmpty()) return;
 	if (state.GetCtrl() || state.GetAlt() || state.GetMeta()) return;
-	if (event.GetChars()==" ") return;
+	for (i=0; i<event.GetChars().GetLen(); i++) {
+		c1=(unsigned char)event.GetChars()[i];
+		if (c1<=32 || c1==127) return;
+	}
 
 	if (!IsContentComplete()) {
 		screen=GetScreen();
@@ -349,8 +352,8 @@ void emDirPanel::KeyWalk(emInputEvent & event, const emInputState & state)
 			s1=str.Get()+1;
 			s2=dep->GetDirEntry().GetName();
 			for (i=0;;) {
-				c1=s1[i];
-				c2=s2[i];
+				c1=(unsigned char)s1[i];
+				c2=(unsigned char)s2[i];
 				if (!c1 || !c2) break;
 				if (tolower(c1)==tolower(c2)) i++;
 				else { i=0; s2++; }
@@ -371,10 +374,10 @@ void emDirPanel::KeyWalk(emInputEvent & event, const emInputState & state)
 				s1=str;
 				s2=dep->GetDirEntry().GetName();
 				for (;;) {
-					c1=tolower(*s1++);
+					c1=tolower((unsigned char)*s1++);
 					if (!c1) break;
 					do {
-						c2=tolower(*s2++);
+						c2=tolower((unsigned char)*s2++);
 					} while (c2 && c2!=c1 && (c2==' ' || c2=='-' || c2=='_'));
 					if (c2!=c1) break;
 				}

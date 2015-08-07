@@ -30,7 +30,7 @@
 #endif
 
 
-class emFileManControlPanel : public emPackGroup {
+class emFileManControlPanel : public emPackLayout {
 
 public:
 

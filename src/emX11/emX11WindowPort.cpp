@@ -632,10 +632,12 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 			Screen.InputState.SetMouse(mx,my);
 			Screen.InputStateClock++;
 		}
-		for (i=0; i<3; i++) {
+		for (i=0; i<5; i++) {
 			if      (i==0) { key=EM_KEY_LEFT_BUTTON  ; mask=Button1Mask; }
 			else if (i==1) { key=EM_KEY_MIDDLE_BUTTON; mask=Button2Mask; }
-			else           { key=EM_KEY_RIGHT_BUTTON ; mask=Button3Mask; }
+			else if (i==2) { key=EM_KEY_RIGHT_BUTTON ; mask=Button3Mask; }
+			else if (i==3) { key=EM_KEY_WHEEL_UP     ; mask=Button4Mask; }
+			else           { key=EM_KEY_WHEEL_DOWN   ; mask=Button5Mask; }
 			if (Screen.InputState.Get(key) && (event.xmotion.state&mask)==0) {
 				Screen.InputState.Set(key,false);
 				Screen.InputStateClock++;
@@ -695,46 +697,41 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 			RequestFocus();
 			Screen.UpdateKeymapAndInputState();
 		}
-		if (event.xbutton.button>=1 && event.xbutton.button<=3) {
-			if      (event.xbutton.button==1) key=EM_KEY_LEFT_BUTTON;
-			else if (event.xbutton.button==2) key=EM_KEY_MIDDLE_BUTTON;
-			else                              key=EM_KEY_RIGHT_BUTTON;
-			if (!Screen.InputState.Get(key)) {
-				Screen.InputState.Set(key,true);
-				Screen.InputStateClock++;
-				if (
-					key==LastButtonPress &&
-					event.xbutton.time>LastButtonPressTime &&
-					event.xbutton.time-LastButtonPressTime<=330 &&
-					event.xbutton.x>=LastButtonPressX-10 &&
-					event.xbutton.x<=LastButtonPressX+10 &&
-					event.xbutton.y>=LastButtonPressY-10 &&
-					event.xbutton.y<=LastButtonPressY+10
-				) {
-					repeat=LastButtonPressRepeat+1;
-				}
-				else {
-					repeat=0;
-				}
-				LastButtonPress=key;
-				LastButtonPressTime=event.xbutton.time;
-				LastButtonPressX=event.xbutton.x;
-				LastButtonPressY=event.xbutton.y;
-				LastButtonPressRepeat=repeat;
-				inputEvent.Setup(key,"",repeat,0);
-				InputStateClock=Screen.InputStateClock;
-				InputToView(inputEvent,Screen.InputState);
-				return;
+		switch (event.xbutton.button) {
+		case  1: key=EM_KEY_LEFT_BUTTON   ; break;
+		case  2: key=EM_KEY_MIDDLE_BUTTON ; break;
+		case  3: key=EM_KEY_RIGHT_BUTTON  ; break;
+		case  4: key=EM_KEY_WHEEL_UP      ; break;
+		case  5: key=EM_KEY_WHEEL_DOWN    ; break;
+		case  6: key=EM_KEY_WHEEL_LEFT    ; break;
+		case  7: key=EM_KEY_WHEEL_RIGHT   ; break;
+		case  8: key=EM_KEY_BACK_BUTTON   ; break;
+		case  9: key=EM_KEY_FORWARD_BUTTON; break;
+		default: key=EM_KEY_NONE          ; break;
+		}
+		if (key!=EM_KEY_NONE && !Screen.InputState.Get(key)) {
+			Screen.InputState.Set(key,true);
+			Screen.InputStateClock++;
+			if (
+				key==LastButtonPress &&
+				event.xbutton.time>LastButtonPressTime &&
+				event.xbutton.time-LastButtonPressTime<=330 &&
+				event.xbutton.x>=LastButtonPressX-10 &&
+				event.xbutton.x<=LastButtonPressX+10 &&
+				event.xbutton.y>=LastButtonPressY-10 &&
+				event.xbutton.y<=LastButtonPressY+10
+			) {
+				repeat=LastButtonPressRepeat+1;
 			}
-		}
-		else if (event.xbutton.button==4) {
-			inputEvent.Setup(EM_KEY_WHEEL_UP,"",0,0);
-			InputStateClock=Screen.InputStateClock;
-			InputToView(inputEvent,Screen.InputState);
-			return;
-		}
-		else if (event.xbutton.button==5) {
-			inputEvent.Setup(EM_KEY_WHEEL_DOWN,"",0,0);
+			else {
+				repeat=0;
+			}
+			LastButtonPress=key;
+			LastButtonPressTime=event.xbutton.time;
+			LastButtonPressX=event.xbutton.x;
+			LastButtonPressY=event.xbutton.y;
+			LastButtonPressRepeat=repeat;
+			inputEvent.Setup(key,"",repeat,0);
 			InputStateClock=Screen.InputStateClock;
 			InputToView(inputEvent,Screen.InputState);
 			return;
@@ -750,18 +747,25 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 			Screen.InputState.SetMouse(mx,my);
 			Screen.InputStateClock++;
 		}
-		if (event.xbutton.button>=1 && event.xbutton.button<=3) {
-			if      (event.xbutton.button==1) key=EM_KEY_LEFT_BUTTON;
-			else if (event.xbutton.button==2) key=EM_KEY_MIDDLE_BUTTON;
-			else                              key=EM_KEY_RIGHT_BUTTON;
-			if (Screen.InputState.Get(key)) {
-				Screen.InputState.Set(key,false);
-				Screen.InputStateClock++;
-				inputEvent.Eat();
-				InputStateClock=Screen.InputStateClock;
-				InputToView(inputEvent,Screen.InputState);
-				return;
-			}
+		switch (event.xbutton.button) {
+		case  1: key=EM_KEY_LEFT_BUTTON   ; break;
+		case  2: key=EM_KEY_MIDDLE_BUTTON ; break;
+		case  3: key=EM_KEY_RIGHT_BUTTON  ; break;
+		case  4: key=EM_KEY_WHEEL_UP      ; break;
+		case  5: key=EM_KEY_WHEEL_DOWN    ; break;
+		case  6: key=EM_KEY_WHEEL_LEFT    ; break;
+		case  7: key=EM_KEY_WHEEL_RIGHT   ; break;
+		case  8: key=EM_KEY_BACK_BUTTON   ; break;
+		case  9: key=EM_KEY_FORWARD_BUTTON; break;
+		default: key=EM_KEY_NONE          ; break;
+		}
+		if (key!=EM_KEY_NONE && Screen.InputState.Get(key)) {
+			Screen.InputState.Set(key,false);
+			Screen.InputStateClock++;
+			inputEvent.Eat();
+			InputStateClock=Screen.InputStateClock;
+			InputToView(inputEvent,Screen.InputState);
+			return;
 		}
 		return;
 	case KeyPress:

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.h
 //
-// Copyright (C) 2004-2008,2010-2012,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -551,11 +551,6 @@ protected:
 		//                 color.
 		// See also: InvalidatePainting()
 
-	void EnableAutoExpansion();
-		// Enable the auto-expansion mechanism. This must be called in
-		// the constructors of panel classes which overload the method
-		// AutoExpand().
-
 	virtual void AutoExpand();
 		// Create child panels by auto-expansion. Often it is a good
 		// idea to dynamically create and delete the children of a panel
@@ -566,7 +561,7 @@ protected:
 		// does nothing. AutoExpand is called when the view condition
 		// reaches a threshold value. As soon as the view condition
 		// falls below again, the child panels are deleted through
-		// calling AutoShrink(). See also: EnableAutoExpansion(),
+		// calling AutoShrink(). See also:
 		// SetAutoExpansionThreshold(...), AutoShrink(),
 		// InvalidateAutoExpansion().
 
@@ -696,7 +691,7 @@ private:
 	unsigned InActivePath : 1;
 	unsigned PendingInput : 1;
 	unsigned ChildrenLayoutInvalid : 1;
-	unsigned AEEnabled : 1;
+	unsigned AEInvalid : 1;
 	unsigned AEDecisionInvalid : 1;
 	unsigned AECalling : 1;
 	unsigned AEExpanded : 1;

@@ -101,6 +101,15 @@ public:
 		// Get a button. The index is: 0 for the first added button, 1
 		// for the second added button, and so on.
 
+	emButton * GetButtonForResult(int result);
+		// Get the first button, whose result is the given result.
+
+	emButton * GetOKButton();
+		// Get the first button with positive result.
+
+	emButton * GetCancelButton();
+		// Get the first button with negative result.
+
 	const emSignal & GetFinishSignal() const;
 		// Signaled when any of the buttons has been triggered, or by
 		// pressing the Enter key or the Escape key, or by the window
@@ -121,8 +130,10 @@ public:
 		// The result should be asked after the finish signal has been
 		// signaled. Before that, the result is not valid.
 
-	void Finish(int result);
+	bool Finish(int result);
 		// Finish this dialog with the given result programmatically.
+		// Returns true on success, or false if the finishing was aborted
+		// by a call to CheckFinish(result).
 
 	void EnableAutoDeletion(bool autoDelete=true);
 	bool IsAutoDeletionEnabled();
@@ -143,6 +154,10 @@ public:
 
 protected:
 
+	virtual bool CheckFinish(int result);
+		// Check whether finishing is allowed with the given result at
+		// this moment. The default implementation always returns true.
+
 	virtual void Finished(int result);
 		// Like the finish signal. Default implementation does nothing.
 		// It's allowed to delete (destruct) this dialog herein.
@@ -160,6 +175,7 @@ private:
 			const emImage & icon,
 			int result
 		);
+		int GetResult() const;
 	protected:
 		virtual void Clicked();
 	private:
@@ -205,6 +221,16 @@ inline emLinearLayout * emDialog::GetContentPanel()
 	return ((DlgPanel*)GetRootPanel())->ContentPanel;
 }
 
+inline emButton * emDialog::GetOKButton()
+{
+	return GetButtonForResult(POSITIVE);
+}
+
+inline emButton * emDialog::GetCancelButton()
+{
+	return GetButtonForResult(NEGATIVE);
+}
+
 inline const emSignal & emDialog::GetFinishSignal() const
 {
 	return FinishSignal;
@@ -218,6 +244,11 @@ inline int emDialog::GetResult() const
 inline bool emDialog::IsAutoDeletionEnabled()
 {
 	return ADEnabled;
+}
+
+inline int emDialog::DlgButton::GetResult() const
+{
+	return Result;
 }
 
 

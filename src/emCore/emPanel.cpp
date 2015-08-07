@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		InActivePath=0;
 		PendingInput=0;
 		ChildrenLayoutInvalid=0;
-		AEEnabled=0;
+		AEInvalid=0;
 		AEDecisionInvalid=0;
 		AECalling=0;
 		AEExpanded=0;
@@ -129,7 +129,7 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		InActivePath=1;
 		PendingInput=0;
 		ChildrenLayoutInvalid=0;
-		AEEnabled=0;
+		AEInvalid=0;
 		AEDecisionInvalid=0;
 		AECalling=0;
 		AEExpanded=0;
@@ -1119,16 +1119,6 @@ void emPanel::Paint(const emPainter & painter, emColor canvasColor)
 }
 
 
-void emPanel::EnableAutoExpansion()
-{
-	if (!AEEnabled) {
-		AEEnabled=1;
-		AEDecisionInvalid=1;
-		if (!NoticeNode.Next) View.AddToNoticeList(&NoticeNode);
-	}
-}
-
-
 void emPanel::AutoExpand()
 {
 }
@@ -1223,11 +1213,9 @@ void emPanel::InvalidatePainting(double x, double y, double w, double h)
 
 void emPanel::InvalidateAutoExpansion()
 {
-	if (AEExpanded) {
-		AEExpanded=0;
-		AEDecisionInvalid=1;
+	if (!AEInvalid && AEExpanded) {
+		AEInvalid=1;
 		if (!NoticeNode.Next) View.AddToNoticeList(&NoticeNode);
-		AutoShrink();
 	}
 }
 
@@ -1242,20 +1230,32 @@ void emPanel::HandleNotice()
 {
 	NoticeFlags flags;
 
+	if (AEInvalid) {
+		AEInvalid=0;
+		if (AEExpanded) {
+			AEExpanded=0;
+			AEDecisionInvalid=1;
+			AutoShrink();
+		}
+	}
+
 	flags=PendingNoticeFlags;
 	if (flags) {
-		if (AEEnabled) {
-			if (flags&(NF_SOUGHT_NAME_CHANGED|NF_VIEWING_CHANGED)) {
-				AEDecisionInvalid=1;
+		if (flags&(NF_SOUGHT_NAME_CHANGED|NF_VIEWING_CHANGED)) {
+			if (
+				View.SeekPosPanel==this ||
+				GetViewCondition((ViewConditionType)AEThresholdType)>=AEThresholdValue
+			) {
+				if (!AEExpanded) AEDecisionInvalid=1;
 			}
-			if (AEDecisionInvalid) {
-				if (!NoticeNode.Next) View.AddToNoticeList(&NoticeNode);
+			else {
+				if (AEExpanded) AEDecisionInvalid=1;
 			}
 		}
 		if (flags&(NF_LAYOUT_CHANGED|NF_CHILD_LIST_CHANGED)) {
 			if (FirstChild) ChildrenLayoutInvalid=1;
 		}
-		if (ChildrenLayoutInvalid) {
+		if (AEDecisionInvalid || ChildrenLayoutInvalid) {
 			if (!NoticeNode.Next) View.AddToNoticeList(&NoticeNode);
 		}
 		PendingNoticeFlags=0;
@@ -1265,25 +1265,23 @@ void emPanel::HandleNotice()
 
 	if (AEDecisionInvalid) {
 		AEDecisionInvalid=0;
-		if (AEEnabled) {
-			if (
-				GetSoughtName() ||
-				GetViewCondition((ViewConditionType)AEThresholdType)>=AEThresholdValue
-			) {
-				if (!AEExpanded) {
-					AEExpanded=1;
-					AECalling=1;
-					AutoExpand();
-					AECalling=0;
-					if (PendingNoticeFlags) return;
-				}
+		if (
+			View.SeekPosPanel==this ||
+			GetViewCondition((ViewConditionType)AEThresholdType)>=AEThresholdValue
+		) {
+			if (!AEExpanded) {
+				AEExpanded=1;
+				AECalling=1;
+				AutoExpand();
+				AECalling=0;
+				if (PendingNoticeFlags) return;
 			}
-			else {
-				if (AEExpanded) {
-					AEExpanded=0;
-					AutoShrink();
-					if (PendingNoticeFlags) return;
-				}
+		}
+		else {
+			if (AEExpanded) {
+				AEExpanded=0;
+				AutoShrink();
+				if (PendingNoticeFlags) return;
 			}
 		}
 	}

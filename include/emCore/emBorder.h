@@ -224,6 +224,14 @@ public:
 		// Get the coordinates and canvas color of the auxiliary area.
 		// Valid only if HasAux()==true.
 
+	virtual void GetContentRoundRect(
+		double * pX, double * pY, double * pW, double * pH, double * pR,
+		emColor * pCanvasColor=NULL
+	);
+		// Get the coordinates and canvas color of the content area as a
+		// round rectangle (argument pR is for returning the radius of
+		// the corners).
+
 	virtual void GetContentRect(
 		double * pX, double * pY, double * pW, double * pH,
 		emColor * pCanvasColor=NULL
@@ -234,13 +242,18 @@ public:
 		// GetContentRoundRect, so that it fits completely into the
 		// content area.
 
-	virtual void GetContentRoundRect(
-		double * pX, double * pY, double * pW, double * pH, double * pR,
+	virtual void GetContentRectUnobscured(
+		double * pX, double * pY, double * pW, double * pH,
 		emColor * pCanvasColor=NULL
 	);
-		// Get the coordinates and canvas color of the content area as a
-		// round rectangle (argument pR is for returning the radius of
-		// the corners).
+		// Get the coordinates and canvas color of the unobscured part
+		// of the content area. Some border types are painting an
+		// overlay like a shadow at the edges of the content area, after
+		// PaintContent is called. This does not work for child panels,
+		// because they are painted after the overlay. Therefore child
+		// panels should be laid out in the rectangle returned by
+		// GetContentRectUnobscured. It returns the inner part, which is
+		// not painted over.
 
 protected:
 
@@ -310,6 +323,8 @@ protected:
 		emImage ImgCheckBox;
 		emImage ImgCheckBoxPressed;
 		emImage ImgCustomRectBorder;
+		emImage ImgDir;
+		emImage ImgDirUp;
 		emImage ImgGroupBorder;
 		emImage ImgGroupInnerBorder;
 		emImage ImgIOField;
@@ -329,8 +344,9 @@ private:
 
 	enum DoBorderFunc {
 		BORDER_FUNC_PAINT,
-		BORDER_FUNC_CONTENT_RECT,
 		BORDER_FUNC_CONTENT_ROUND_RECT,
+		BORDER_FUNC_CONTENT_RECT,
+		BORDER_FUNC_CONTENT_RECT_UNOBSCURED,
 		BORDER_FUNC_AUX_RECT
 	};
 	void DoBorder(

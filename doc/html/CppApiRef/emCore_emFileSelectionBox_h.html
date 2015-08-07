@@ -1,0 +1,409 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emFileSelectionBox.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>.h
+//
+// Copyright (C) 2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emFileSelectionBox_h
+#define emFileSelectionBox_h
+
+#ifndef emCheckBox_h
+#include &lt;<A CLASS=f HREF="emCore_emCheckBox_h.html">emCore/emCheckBox.h</A>&gt;
+#endif
+
+#ifndef emListBox_h
+#include &lt;<A CLASS=f HREF="emCore_emListBox_h.html">emCore/emListBox.h</A>&gt;
+#endif
+
+#ifndef emTextField_h
+#include &lt;<A CLASS=f HREF="emCore_emTextField_h.html">emCore/emTextField.h</A>&gt;
+#endif
+
+
+<A NAME="emFileSelectionBox"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emBorder_h.html#emBorder">emBorder</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a file selection box. This allows the user to walk through
+        // the file system, view the contents of a directory, and select one or
+        // optionally more files in it. He may also enter a new file name. The
+        // file selection box is an <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A> whith the following child panels:
+        //  - An editable text field for the path of the directory.
+        //  - A check box for switching the showing of hidden files on and off.
+        //  - A list box which shows the contents of the directory. It has one
+        //    item for each file or sub-directory, and the item ".." for the
+        //    parent directory. Each item shows the name and an icon (if it's a
+        //    directory) or preview (if it's a file).
+        //  - An editable text field for the file name.
+        //  - A list box for file type filters.
+
+        </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>()
+        );
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsMultiSelectionEnabled() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the user is allowed to select multiple entries.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetMultiSelectionEnabled(<SPAN CLASS=t>bool </SPAN>enabled=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether the user is allowed to select multiple entries.
+                // The default is false.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetParentDirectory() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the absolute path of the parent directory.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetParentDirectory(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; parentDirectory);
+                <SPAN CLASS=c>// Set the parent directory.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetSelectedName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the name of the selected entry. If nothing is selected,
+                // an empty string is returned. If multiple entries are
+                // selected, the first one is returned.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; GetSelectedNames() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get an array with the names of all the selected entries.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedName(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; selectedName);
+                <SPAN CLASS=c>// Select a single entry. An empty string means to clear the
+                // selection.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedNames(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; selectedNames);
+                <SPAN CLASS=c>// Select any number of entries.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearSelection();
+                <SPAN CLASS=c>// Clear the selection.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetSelectedPath() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the absolute path of the selected entry. If nothing is
+                // selected, the absolute path of the parent directory is
+                // returned. If multiple entries are selected, the absolute path
+                // of the first selected one is returned.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedPath(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; selectedPath);
+                <SPAN CLASS=c>// Change the parent directory and the selection in one call. If
+                // the given path is a directory, the parent directory is set to
+                // that directory, and the selection is cleared. Otherwise the
+                // parent directory is set to the parent path of the given path,
+                // and the selection is set to the final name in the given path.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSelectionSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled when the selection or the parent directory has
+                // changed.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; GetFilters() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the file type filters. See SetFilters for more.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetFilters(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; filters);
+                <SPAN CLASS=c>// Set the file type filters, from which the user can choose
+                // one. The default is to have no filters, which means to show
+                // all entries. If no filter is selected at the time of calling
+                // SetFilters with a non-empty array, the first filter is
+                // selected automatically. Each filter is a string of the form:
+                //   &lt;description&gt;'('&lt;pattern&gt;[&lt;separator&gt;&lt;pattern&gt;...]')'
+                // With:
+                //   &lt;description&gt; = Any text.
+                //   &lt;pattern&gt;     = A pattern for the file name. The only supported
+                //                   meta character is an asterisk ('*'). It
+                //                   means to match any sequence (including the
+                //                   empty sequence). Everything else is taken
+                //                   literal, but case-insensitive.
+                //   &lt;separator&gt;   = A space char, a semicolon, a comma, or a
+                //                   vertical bar.
+                // Examples:
+                //   "All files (*)"
+                //   "Targa files (*.tga)"
+                //   "HTML files (*.htm *.html)"
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSelectedFilterIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the selected filter, or -1 if none is
+                // selected.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedFilterIndex(<SPAN CLASS=t>int </SPAN>selectedFilterIndex);
+                <SPAN CLASS=c>// Set the index of the selected filter. -1 means to select none.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>AreHiddenFilesShown() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether hidden files are shown.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetHiddenFilesShown(<SPAN CLASS=t>bool </SPAN>hiddenFilesShown=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether hidden files are shown. The default is false.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetFileTriggerSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when the user double-clicks an item
+                // or presses enter in the name field - but only if it is not a
+                // directory. (If it is a directory, the parent directory is
+                // changed instead of sending the signal). The associated name
+                // can be get with GetTriggeredFileName().
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetTriggeredFileName() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the name of the file which was triggered by a
+                // double-click or enter key press.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TriggerFile(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Trigger a file name programmatically.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>EnterSubDir(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=c>// Enter a sub-directory programmatically. This is like
+                // SetParentDirectory, but the given string is the name of a
+                // sub-directory instead of a path, and some checks are
+                // performed whether it is really a directory and whether it is
+                // readable.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsParentDirFieldHidden() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the text field for the parent directory is
+                // hidden.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetParentDirFieldHidden(<SPAN CLASS=t>bool </SPAN>parentDirFieldHidden=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether to hide the text field for the parent directory.
+                // The default is false.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsHiddenCheckBoxHidden() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the "show hidden files" check box is hidden.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetHiddenCheckBoxHidden(<SPAN CLASS=t>bool </SPAN>hiddenCheckBoxHidden=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether to hide the "show hidden files" check box. The
+                // default is false.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsNameFieldHidden() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the text field for the name is hidden.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetNameFieldHidden(<SPAN CLASS=t>bool </SPAN>nameFieldHidden=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether to hide the text field for the name. The default
+                // is false.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsFilterHidden() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the list box for the filters is hidden.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetFilterHidden(<SPAN CLASS=t>bool </SPAN>filterHidden=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Set whether to hide the list box for the filters. The default
+                // is false.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+        <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>InvalidateListing();
+        <SPAN CLASS=t>void </SPAN>ReloadListing();
+        <SPAN CLASS=t>void </SPAN>SelectionToListBox();
+        <SPAN CLASS=t>void </SPAN>SelectionFromListBox();
+
+        <SPAN CLASS=t>static int </SPAN>CompareNames(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * name1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * name2, <SPAN CLASS=t>void </SPAN>* context
+        );
+
+        <SPAN CLASS=t>static bool </SPAN>MatchFileNameFilter(<SPAN CLASS=t>const char </SPAN>* fileName, <SPAN CLASS=t>const char </SPAN>* filter);
+        <SPAN CLASS=t>static bool </SPAN>MatchFileNamePattern(<SPAN CLASS=t>const char </SPAN>* fileName, <SPAN CLASS=t>const char </SPAN>* pattern,
+                                         <SPAN CLASS=t>const char </SPAN>* patternEnd);
+
+        <SPAN CLASS=t>class </SPAN>FilesListBox;
+        <SPAN CLASS=t>class </SPAN>FileItemPanel;
+        <SPAN CLASS=t>class </SPAN>FileOverlayPanel;
+        <SPAN CLASS=t>friend class </SPAN>FilesListBox;
+        <SPAN CLASS=t>friend class </SPAN>FileItemPanel;
+
+        <SPAN CLASS=t>class </SPAN>FilesListBox : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                FilesListBox(<A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=t>virtual </SPAN>~FilesListBox();
+                <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; GetFileSelectionBox();
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetDirImage() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetDirUpImage() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>CreateItemPanel(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>int </SPAN>itemIndex);
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>FileItemPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>, <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                FileItemPanel(FilesListBox &amp; listBox, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>int </SPAN>itemIndex);
+                <SPAN CLASS=t>virtual </SPAN>~FileItemPanel();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+                <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                                   <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+                <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+                <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+                <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+                <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
+                <SPAN CLASS=t>virtual void </SPAN>ItemTextChanged();
+                <SPAN CLASS=t>virtual void </SPAN>ItemDataChanged();
+                <SPAN CLASS=t>virtual void </SPAN>ItemSelectionChanged();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBgColor();
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetFgColor();
+                <SPAN CLASS=t>friend class </SPAN>FileOverlayPanel;
+                FilesListBox &amp; ListBox;
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * FilePanel;
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * OverlayPanel;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>FileOverlayPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                FileOverlayPanel(FileItemPanel &amp; parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=t>virtual </SPAN>~FileOverlayPanel();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                                   <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>FileItemData <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>bool </SPAN>IsDirectory;
+                <SPAN CLASS=t>bool </SPAN>IsReadable;
+                <SPAN CLASS=t>bool </SPAN>IsHidden;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>bool </SPAN>MultiSelectionEnabled;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ParentDir;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; SelectedNames;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> SelectionSignal;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; Filters;
+        <SPAN CLASS=t>int </SPAN>SelectedFilterIndex;
+        <SPAN CLASS=t>bool </SPAN>HiddenFilesShown;
+
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> FileTriggerSignal;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> TriggeredFileName;
+
+        <SPAN CLASS=t>bool </SPAN>ParentDirFieldHidden;
+        <SPAN CLASS=t>bool </SPAN>HiddenCheckBoxHidden;
+        <SPAN CLASS=t>bool </SPAN>NameFieldHidden;
+        <SPAN CLASS=t>bool </SPAN>FilterHidden;
+
+        <A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A> * ParentDirField;
+        <A CLASS=l HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A> * HiddenCheckBox;
+        FilesListBox * FilesLB;
+        <A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A> * NameField;
+        <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> * FiltersLB;
+
+        <SPAN CLASS=t>bool </SPAN>ListingInvalid;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::IsMultiSelectionEnabled() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MultiSelectionEnabled;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetParentDirectory() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ParentDir;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetSelectedNames() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectedNames;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetSelectionSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectionSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetFilters() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Filters;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetSelectedFilterIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectedFilterIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::AreHiddenFilesShown() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HiddenFilesShown;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetFileTriggerSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FileTriggerSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::GetTriggeredFileName() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TriggeredFileName;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::IsParentDirFieldHidden() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ParentDirFieldHidden;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::IsHiddenCheckBoxHidden() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>HiddenCheckBoxHidden;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::IsNameFieldHidden() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>NameFieldHidden;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::IsFilterHidden() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FilterHidden;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::FilesListBox::GetFileSelectionBox()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*((<A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>*)GetParent());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::FilesListBox::GetDirImage() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GetTkResources().ImgDir;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::FilesListBox::GetDirUpImage() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GetTkResources().ImgDirUp;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

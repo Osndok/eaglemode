@@ -25,14 +25,12 @@ emCoreConfigPanel::emCoreConfigPanel(
 	ParentArg parent, const emString & name
 )
 	: emLinearGroup(parent,name,
-			"Preferences",
-			"This panel provides some user settings. Internally, this\n"
-			"is also called the emCore Configuration."
+			"General Preferences",
+			"This panel provides general user settings."
 	)
 {
 	Config=emCoreConfig::Acquire(GetRootContext());
 	ResetButton=NULL;
-	EnableAutoExpansion();
 }
 
 
@@ -225,7 +223,6 @@ emCoreConfigPanel::MouseMiscGroup::MouseMiscGroup(
 	StickBox=NULL;
 	EmuBox=NULL;
 	PanBox=NULL;
-	EnableAutoExpansion();
 	SetBorderScaling(4);
 	SetPrefChildTallness(0.1);
 }
@@ -317,7 +314,6 @@ emCoreConfigPanel::MouseGroup::MouseGroup(
 	: emRasterGroup(parent,name,"Mouse Navigation"),
 	Config(config)
 {
-	EnableAutoExpansion();
 	SetPrefChildTallness(0.4);
 	SetBorderScaling(4.0);
 	SetSpace(0.05,0.1,0.05,0.1);
@@ -370,7 +366,6 @@ emCoreConfigPanel::KBGroup::KBGroup(
 	: emRasterGroup(parent,name,"Keyboard Navigation"),
 	Config(config)
 {
-	EnableAutoExpansion();
 	SetPrefChildTallness(0.4);
 	SetBorderScaling(4.0);
 	SetSpace(0.05,0.1,0.05,0.1);
@@ -406,7 +401,6 @@ emCoreConfigPanel::KineticGroup::KineticGroup(
 	: emRasterGroup(parent,name,"Kinetic Effects"),
 	Config(config)
 {
-	EnableAutoExpansion();
 	SetPrefChildTallness(0.4);
 	SetBorderScaling(4.0);
 	SetSpace(0.05,0.1,0.05,0.1);
@@ -467,7 +461,6 @@ emCoreConfigPanel::MaxMemGroup::MaxMemGroup(
 {
 	MemField=NULL;
 	ValOut=0;
-	EnableAutoExpansion();
 	SetVertical();
 	SetChildWeight(0,5.0);
 	SetChildWeight(1,1.0);
@@ -595,7 +588,6 @@ emCoreConfigPanel::MaxMemTunnel::MaxMemTunnel(
 	Config(config)
 {
 	SetChildTallness(0.3);
-	EnableAutoExpansion();
 }
 
 

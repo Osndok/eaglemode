@@ -800,8 +800,7 @@ could start by reading the comments on the methods <TT CLASS=c>GetViewCondition<
 But for now, lets continue with the easier way:
 <P>
 The automatic way of panel tree expansion and -shrinking is really easy. All you
-have to do is to call <TT CLASS=c>EnableAutoExpansion()</TT> in the constructor,
-and to overload the method <TT CLASS=c>AutoExpand</TT> of
+have to do is to overload the method <TT CLASS=c>AutoExpand</TT> of
 <TT><A CLASS=c HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A></TT> in
 order to create all your child panels in it with the <TT CLASS=c>new</TT>
 operator. There is also the counterpart method <TT CLASS=c>AutoShrink</TT>, but
@@ -809,8 +808,7 @@ it is seldom to be overloaded, because its default implementation deletes
 exactly all the child panels which are created in <TT CLASS=c>AutoExpand</TT>.
 You suspect it: <TT CLASS=c>AutoExpand</TT> and <TT CLASS=c>AutoShrink</TT> are
 called automatically when it is a good idea to create or destroy the child
-panels depending on the zoom and scroll state of the view (but only if you did
-not forget to call <TT CLASS=c>EnableAutoExpansion()</TT> - pitfall warning!).
+panels depending on the zoom and scroll state of the view.
 <P>
 Another important point is to layout your child panels, which means to position
 and size them within the coordinate system of the parent panel. You can do this
@@ -873,7 +871,6 @@ MyPanel::MyPanel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="C
         : <A CLASS=l HREF="CppApiRef/emCore_emPanel_h.html#emPanel">emPanel</A>(parent,name)
 <SPAN CLASS=b>{
         </SPAN>BackgroundColor=bgcolor;
-        EnableAutoExpansion(); <SPAN CLASS=c>// Don't forget this one!!!
 </SPAN><SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>bool </SPAN>MyPanel::IsOpaque()
@@ -925,30 +922,33 @@ components like buttons, text fields and so on. Most of them are panel classes,
 but not all. Here is a class hierarchy diagram of all the toolkit classes:
 <P>
 <CENTER>
-<IMG SRC="images/ToolkitClasses.png" BORDER=0 WIDTH=640 HEIGHT=407 USEMAP="#tkcmap">
+<IMG SRC="images/ToolkitClasses.png" BORDER=0 WIDTH=646 HEIGHT=412 USEMAP="#tkcmap">
 <MAP NAME="tkcmap">
-<AREA COORDS="54,2,146,24" HREF="CppApiRef/emCore_emWindow_h.html#emWindow">
-<AREA COORDS="263,2,336,24" HREF="CppApiRef/emCore_emPanel_h.html#emPanel">
-<AREA COORDS="342,35,409,57" HREF="CppApiRef/emCore_emLook_h.html#emLook">
-<AREA COORDS="259,72,341,94" HREF="CppApiRef/emCore_emBorder_h.html#emBorder">
-<AREA COORDS="2,109,74,131" HREF="CppApiRef/emCore_emLabel_h.html#emLabel">
-<AREA COORDS="2,145,132,167" HREF="CppApiRef/emCore_emLinearLayout_h.html#emLinearLayout">
-<AREA COORDS="2,225,127,247" HREF="CppApiRef/emCore_emLinearGroup_h.html#emLinearGroup">
-<AREA COORDS="68,180,200,202" HREF="CppApiRef/emCore_emRasterLayout_h.html#emRasterLayout">
-<AREA COORDS="70,259,198,281" HREF="CppApiRef/emCore_emRasterGroup_h.html#emRasterGroup">
-<AREA COORDS="162,215,281,238" HREF="CppApiRef/emCore_emPackLayout_h.html#emPackLayout">
-<AREA COORDS="165,293,278,315" HREF="CppApiRef/emCore_emPackGroup_h.html#emPackGroup">
-<AREA COORDS="266,251,347,273" HREF="CppApiRef/emCore_emTunnel_h.html#emTunnel">
-<AREA COORDS="440,216,523,238" HREF="CppApiRef/emCore_emButton_h.html#emButton">
-<AREA COORDS="375,345,504,367" HREF="CppApiRef/emCore_emCheckButton_h.html#emCheckButton">
-<AREA COORDS="377,384,503,406" HREF="CppApiRef/emCore_emRadioButton_h.html#emRadioButton">
-<AREA COORDS="533,345,639,368" HREF="CppApiRef/emCore_emCheckBox_h.html#emCheckBox">
-<AREA COORDS="536,384,639,406" HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">
-<AREA COORDS="494,180,595,202" HREF="CppApiRef/emCore_emTextField_h.html#emTextField">
-<AREA COORDS="523,145,638,167" HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">
-<AREA COORDS="530,109,639,132" HREF="CppApiRef/emCore_emColorField_h.html#emColorField">
-<AREA COORDS="362,250,451,273" HREF="CppApiRef/emCore_emSplitter_h.html#emSplitter">
-<AREA COORDS="60,50,140,72" HREF="CppApiRef/emCore_emDialog_h.html#emDialog">
+<AREA COORDS="534,2,626,24" HREF="CppApiRef/emCore_emWindow_h.html#emWindow">
+<AREA COORDS="284,2,357,24" HREF="CppApiRef/emCore_emPanel_h.html#emPanel">
+<AREA COORDS="363,35,430,57" HREF="CppApiRef/emCore_emLook_h.html#emLook">
+<AREA COORDS="279,72,362,94" HREF="CppApiRef/emCore_emBorder_h.html#emBorder">
+<AREA COORDS="2,104,74,127" HREF="CppApiRef/emCore_emLabel_h.html#emLabel">
+<AREA COORDS="2,143,133,165" HREF="CppApiRef/emCore_emLinearLayout_h.html#emLinearLayout">
+<AREA COORDS="2,221,127,243" HREF="CppApiRef/emCore_emLinearGroup_h.html#emLinearGroup">
+<AREA COORDS="68,181,201,203" HREF="CppApiRef/emCore_emRasterLayout_h.html#emRasterLayout">
+<AREA COORDS="71,255,198,277" HREF="CppApiRef/emCore_emRasterGroup_h.html#emRasterGroup">
+<AREA COORDS="162,219,281,241" HREF="CppApiRef/emCore_emPackLayout_h.html#emPackLayout">
+<AREA COORDS="165,289,278,311" HREF="CppApiRef/emCore_emPackGroup_h.html#emPackGroup">
+<AREA COORDS="244,257,326,280" HREF="CppApiRef/emCore_emTunnel_h.html#emTunnel">
+<AREA COORDS="403,296,485,318" HREF="CppApiRef/emCore_emButton_h.html#emButton">
+<AREA COORDS="380,344,509,367" HREF="CppApiRef/emCore_emCheckButton_h.html#emCheckButton">
+<AREA COORDS="381,388,508,411" HREF="CppApiRef/emCore_emRadioButton_h.html#emRadioButton">
+<AREA COORDS="538,344,643,367" HREF="CppApiRef/emCore_emCheckBox_h.html#emCheckBox">
+<AREA COORDS="540,389,643,411" HREF="CppApiRef/emCore_emRadioBox_h.html#emRadioBox">
+<AREA COORDS="458,257,558,280" HREF="CppApiRef/emCore_emTextField_h.html#emTextField">
+<AREA COORDS="505,219,621,242" HREF="CppApiRef/emCore_emScalarField_h.html#emScalarField">
+<AREA COORDS="520,181,629,203" HREF="CppApiRef/emCore_emColorField_h.html#emColorField">
+<AREA COORDS="42,306,129,329" HREF="CppApiRef/emCore_emListBox_h.html#emListBox">
+<AREA COORDS="487,143,645,165" HREF="CppApiRef/emCore_emFileSelectionBox_h.html#emFileSelectionBox">
+<AREA COORDS="304,296,392,318" HREF="CppApiRef/emCore_emSplitter_h.html#emSplitter">
+<AREA COORDS="540,46,620,68" HREF="CppApiRef/emCore_emDialog_h.html#emDialog">
+<AREA COORDS="526,90,634,112" HREF="CppApiRef/emCore_emFileDialog_h.html#emFileDialog">
 </MAP>
 <P>
 <I>Class chart of the toolkit classes.</I>

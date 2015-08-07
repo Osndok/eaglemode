@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_exe.pl
 #
-# Copyright (C) 2010-2011 Oliver Hamann.
+# Copyright (C) 2010-2011,2015 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -132,18 +132,22 @@ CreateFile(
 	'  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'.Var('TITLE').'" "UninstallString" "$INSTDIR\\uninstall.exe"'."\n".
 	'  WriteRegDWORD HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'.Var('TITLE').'" "NoModify" 1'."\n".
 	'  WriteRegDWORD HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'.Var('TITLE').'" "NoRepair" 1'."\n".
+	'  CreateShortCut "$INSTDIR\\'.Var('TITLE').'.lnk" "$SYSDIR\\wscript.exe" "$\\"$INSTDIR\\'.Var('NAME').'.wsf$\\"" "$INSTDIR\\res\\icons\\'.Var('NAME').'.ico" 0'."\n".
 	'  WriteUninstaller "uninstall.exe"'."\n".
 	'SectionEnd'."\n".
 	'Section "Start Menu Shortcuts"'."\n".
+	'  SetShellVarContext all'."\n".
 	'  CreateDirectory "$SMPROGRAMS\\'.Var('TITLE').'"'."\n".
 	'  CreateShortCut "$SMPROGRAMS\\'.Var('TITLE').'\\Documentation.lnk" "$INSTDIR\\doc\\html\\index.html"'."\n".
-	'  CreateShortCut "$SMPROGRAMS\\'.Var('TITLE').'\\'.Var('TITLE').'.lnk" "$INSTDIR\\'.Var('NAME').'.wsf" "" "$INSTDIR\\res\\icons\\'.Var('NAME').'.ico" 0'."\n".
+	'  CreateShortCut "$SMPROGRAMS\\'.Var('TITLE').'\\'.Var('TITLE').'.lnk" "$SYSDIR\\wscript.exe" "$\\"$INSTDIR\\'.Var('NAME').'.wsf$\\"" "$INSTDIR\\res\\icons\\'.Var('NAME').'.ico" 0'."\n".
 	'  CreateShortCut "$SMPROGRAMS\\'.Var('TITLE').'\\Uninstall.lnk" "$INSTDIR\\uninstall.exe" "" "$INSTDIR\\uninstall.exe" 0'."\n".
 	'SectionEnd'."\n".
 	'Section "Desktop Icon"'."\n".
-	'  CreateShortCut "$DESKTOP\\'.Var('TITLE').'.lnk" "$INSTDIR\\'.Var('NAME').'.wsf" "" "$INSTDIR\\res\\icons\\'.Var('NAME').'.ico" 0'."\n".
+	'  SetShellVarContext all'."\n".
+	'  CreateShortCut "$DESKTOP\\'.Var('TITLE').'.lnk" "$SYSDIR\\wscript.exe" "$\\"$INSTDIR\\'.Var('NAME').'.wsf$\\"" "$INSTDIR\\res\\icons\\'.Var('NAME').'.ico" 0'."\n".
 	'SectionEnd'."\n".
 	'Section "Uninstall"'."\n".
+	'  SetShellVarContext all'."\n".
 	'  DeleteRegKey HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'.Var('TITLE').'"'."\n".
 	'  Delete "$DESKTOP\\'.Var('TITLE').'.lnk"'."\n".
 	'  Delete "$SMPROGRAMS\\'.Var('TITLE').'\\Documentation.lnk"'."\n".
@@ -151,6 +155,7 @@ CreateFile(
 	'  Delete "$SMPROGRAMS\\'.Var('TITLE').'\\Uninstall.lnk"'."\n".
 	'  RMDir "$SMPROGRAMS\\'.Var('TITLE').'"'."\n".
 	'  Delete "$INSTDIR\\uninstall.exe"'."\n".
+	'  Delete "$INSTDIR\\'.Var('TITLE').'.lnk"'."\n".
 	$uninstallCommands.
 	'SectionEnd'."\n"
 );

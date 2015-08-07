@@ -76,12 +76,12 @@ if ($Config{'osname'} eq "linux") {
 	if (!defined($dist)) { $dist=''; }
 }
 $V{'DEB_BUILD_DEPENDS'}=
-	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, libjpeg8-dev, '.
+	'debhelper (>= 5), g++ (>= 3), perl, libx11-dev, libjpeg62-dev, '.
 	'libpng12-dev, libtiff5-dev, libxine2-dev, librsvg2-dev, '.
 	'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-	'libjpeg8, libpng12-0, libtiff5, libxine2, librsvg2-2, '.
+	'libjpeg62, libpng12-0, libtiff5, libxine2, librsvg2-2, '.
 	'libpoppler-glib8, libfreetype6';
 $V{'DEB_RECOMMENDS'}=
 	'abiword, genisoimage, htmldoc, netpbm, transfig';

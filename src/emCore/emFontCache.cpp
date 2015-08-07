@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.cpp
 //
-// Copyright (C) 2009,2014 Oliver Hamann.
+// Copyright (C) 2009,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -278,4 +278,4 @@ void emFontCache::Clear()
 const double emFontCache::StressHalfLifePeriodMS = 3000;
 const double emFontCache::StressSensitivity = 4;
 
-const unsigned emFontCache::MaxMegabytes = 32;
+const unsigned emFontCache::MaxMegabytes = 64;

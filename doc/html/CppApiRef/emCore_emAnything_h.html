@@ -1,0 +1,183 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emAnything.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A>.h
+//
+// Copyright (C) 2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emAnything_h
+#define emAnything_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="emAnything"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for holding any type of value. Copies are implicitly shared.
+        // The derived template class <A CLASS=m HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A> is used to cast to and from
+        // <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A>. Examples:
+        //
+        //   // Convert an integer to <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A>:
+        //   <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A> a = <A CLASS=m HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;int&gt;(100);
+        //
+        //   // Get back that integer:
+        //   const int * pi = <A CLASS=m HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;int&gt;(a);
+        //   if (pi) {
+        //     int i = *pi;
+        //     printf("a = %d\n", i);
+        //   }
+        //   else {
+        //     printf("Error: a is not an int.\n");
+        //   }
+        //
+        //   // Convert an <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A> to <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A>:
+        //   <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A> a2 = <A CLASS=m HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;<A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>&gt;(<A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>("Hello"));
+        //
+        //   // Get back that string:
+        //   const <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A> * ps = <A CLASS=m HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;<A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>&gt;(a2);
+        //   if (ps) {
+        //     printf("a2 = %s\n", ps-&gt;Get());
+        //   }
+        //   else {
+        //     printf("Error: a2 is not an <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>.\n");
+        //   }
+
+        </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>();
+                <SPAN CLASS=c>// Construct invalid.
+
+        </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; anything);
+                <SPAN CLASS=c>// Construct a copy.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>();
+                <SPAN CLASS=c>// Destruct.
+
+        </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; anything);
+                <SPAN CLASS=c>// Copy.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>AbstractSharedData <SPAN CLASS=b>{
+                </SPAN>AbstractSharedData();
+                <SPAN CLASS=t>virtual </SPAN>~AbstractSharedData();
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>(AbstractSharedData * data);
+
+        AbstractSharedData * Data;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emCastAnything"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Helper class for casting <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A> to and from any type.
+        // Please see the examples in the description of <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>(<SPAN CLASS=t>const </SPAN>VALUE &amp; value);
+        <A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; anything);
+
+        <SPAN CLASS=t>operator const </SPAN>VALUE * () <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>SharedData : AbstractSharedData <SPAN CLASS=b>{
+                </SPAN>SharedData(<SPAN CLASS=t>const </SPAN>VALUE &amp; value);
+                <SPAN CLASS=t>virtual </SPAN>~SharedData();
+                VALUE Value;
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>::<A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>()
+        : Data(<SPAN CLASS=u>NULL</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>::AbstractSharedData::AbstractSharedData()
+        : RefCount(<SPAN CLASS=u>1</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>::<A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>(AbstractSharedData * data)
+        : Data(data)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::<A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>(
+        <SPAN CLASS=t>const </SPAN>VALUE &amp; value
+) : <A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>(<SPAN CLASS=k>new </SPAN>SharedData(value))
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::<A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; anything
+) : <A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>(anything)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::SharedData::SharedData(
+        <SPAN CLASS=t>const </SPAN>VALUE &amp; value
+) : Value(value)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VALUE&gt; <A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::<SPAN CLASS=t>operator const </SPAN>VALUE * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Data) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>const </SPAN>SharedData * d=
+                        <SPAN CLASS=k>dynamic_cast</SPAN>&lt;<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::SharedData*&gt;(Data)
+                ;
+                <SPAN CLASS=k>if </SPAN>(d) <SPAN CLASS=k>return </SPAN>&amp;d-&gt;Value;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>VALUE&gt; <A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::SharedData::~SharedData()
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

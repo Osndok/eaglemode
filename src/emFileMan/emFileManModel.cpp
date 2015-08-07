@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -862,11 +862,16 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 			iconFound=true;
 			while (*p && (unsigned char)*p<=32) p++;
 			try {
-				cmd->Icon=emTryGetInsResImage(GetRootContext(),"icons",p);
+				cmd->Icon=emTryGetResImage(
+					GetRootContext(),
+					emGetAbsolutePath(p, emGetInstallPath(EM_IDT_RES,"icons"))
+				);
 			}
 			catch (emException &) {
 				try {
-					cmd->Icon=emTryGetInsResImage(GetRootContext(),"icons","em-error-unknown-icon.tga");
+					cmd->Icon=emTryGetInsResImage(
+						GetRootContext(),"icons","em-error-unknown-icon.tga"
+					);
 				}
 				catch (emException &) {
 				}

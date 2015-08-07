@@ -26,11 +26,7 @@
 emFileManControlPanel::emFileManControlPanel(
 	ParentArg parent, const emString & name, emView & contentView
 )
-	: emPackGroup(
-		parent,name,
-		"emFileMan",
-		"The Eagle Mode File Manager"
-	),
+	: emPackLayout(parent,name),
 	ContentView(contentView)
 {
 	emRasterGroup * sortByGroup, * nameSortingStyleGroup;
@@ -50,7 +46,7 @@ emFileManControlPanel::emFileManControlPanel(
 	SetChildWeight(1, 1.0/0.97);
 	SetChildWeight(2, 1.0/0.195);
 
-	GrView=new emPackGroup(this,"view","View Settings");
+	GrView=new emPackGroup(this,"view","File View Settings");
 	GrView->SetPrefChildTallness(0, 0.4);
 	GrView->SetPrefChildTallness(1, 0.8);
 	GrView->SetPrefChildTallness(2, 0.3);
@@ -61,7 +57,7 @@ emFileManControlPanel::emFileManControlPanel(
 	GrView->SetChildWeight(2, 16.0);
 	GrView->SetChildWeight(3,  3.0);
 	GrView->SetChildWeight(4,  3.0);
-		sortByGroup=new emRasterGroup(GrView,"sort","Sort By");
+		sortByGroup=new emRasterGroup(GrView,"sort","Sort Files By");
 		sortByGroup->SetBorderScaling(1.7);
 		sortByGroup->SetPrefChildTallness(0.2);
 			RbSortByName=new emRadioButton(
@@ -140,7 +136,7 @@ emFileManControlPanel::emFileManControlPanel(
 			);
 		nameSortingStyleGroup=new emRasterGroup(
 			GrView,"nameSortingStyle",
-			"Name Sorting Style (Order of Characters)"
+			"File Name Sorting Style (Order of Characters)"
 		);
 		nameSortingStyleGroup->SetBorderScaling(2.0);
 		nameSortingStyleGroup->SetPrefChildTallness(0.05);
@@ -163,22 +159,22 @@ emFileManControlPanel::emFileManControlPanel(
 				"letter case. This may be correct for English letters only.\n"
 				"Technically, names are compared through \"strcasecmp\"."
 			);
-		tunnel=new emTunnel(GrView,"tunnel","Save");
+		tunnel=new emTunnel(GrView,"tunnel","Save File View Settings");
 			saveGroup=new emLinearGroup(tunnel,"save");
 			saveGroup->SetVertical();
 				CbAutosave=new emCheckBox(
 					saveGroup,"autosave",
 					"Save Automatically",
-					"Automatically save changes of the view settings as the default for new windows."
+					"Automatically save changes of the file view settings as the default for new windows."
 				);
 				CbAutosave->SetNoEOI();
 				BtSaveAsDefault=new emButton(
 					saveGroup,"save",
 					"Save",
-					"Save the current view settings as the default for new windows."
+					"Save the current file view settings as the default for new windows."
 				);
 
-	GrSelection=new emLinearGroup(this,"selection","Selection");
+	GrSelection=new emLinearGroup(this,"selection","File Selection");
 	GrSelection->SetVertical();
 	GrSelection->SetChildWeight(0.17);
 	GrSelection->SetChildWeight(5,0.28);
@@ -228,7 +224,7 @@ emFileManControlPanel::emFileManControlPanel(
 			SelInfo->SetFocusable(false);
 
 	GrCommand=new Group(this,"commands",contentView,FMModel,FMModel->GetCommandRoot());
-	GrCommand->SetCaption("Commands");
+	GrCommand->SetCaption("File Manager Commands");
 
 	AddWakeUpSignal(FMModel->GetSelectionSignal());
 	AddWakeUpSignal(FMVConfig->GetChangeSignal());
@@ -344,7 +340,7 @@ bool emFileManControlPanel::Cycle()
 	if (IsSignaled(BtNames2Clipboard->GetClickSignal())) {
 		FMModel->SelectionToClipboard(ContentView,false,true);
 	}
-	return emPackGroup::Cycle();
+	return emPackLayout::Cycle();
 }
 
 
@@ -403,7 +399,6 @@ emFileManControlPanel::Group::Group(
 	SetAlignment(EM_ALIGN_TOP_LEFT);
 	FMModel=fmModel;
 	CmdPath=cmd->CmdPath;
-	EnableAutoExpansion();
 	AddWakeUpSignal(FMModel->GetCommandsSignal());
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSplitter.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,7 +98,7 @@ void emSplitter::Input(
 {
 	double cx,cy,cw,ch,gx,gy,gw,gh,mig,d;
 
-	GetContentRect(&cx,&cy,&cw,&ch);
+	GetContentRectUnobscured(&cx,&cy,&cw,&ch);
 	CalcGripRect(cx,cy,cw,ch,&gx,&gy,&gw,&gh);
 
 	if (mx>=gx && my>=gy && mx<gx+gw && my<gy+gh) {
@@ -206,7 +206,7 @@ void emSplitter::LayoutChildren()
 		p=p->GetNext();
 		if (!p) return;
 	}
-	GetContentRect(&cx,&cy,&cw,&ch,&canvasColor);
+	GetContentRectUnobscured(&cx,&cy,&cw,&ch,&canvasColor);
 	CalcGripRect(cx,cy,cw,ch,&gx,&gy,&gw,&gh);
 	if (Vertical) {
 		x=cx;

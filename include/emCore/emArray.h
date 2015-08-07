@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArray.h
 //
-// Copyright (C) 2005-2009,2014 Oliver Hamann.
+// Copyright (C) 2005-2009,2014,2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1233,7 +1233,14 @@ template <class OBJ> void emArray<OBJ>::FreeData()
 			i=Data->Count;
 			while (--i>=0) Data->Obj[i].~OBJ();
 		}
+#if defined(__GNUC__) && __GNUC__>=5
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wfree-nonheap-object"
+#endif
 		free((void*)Data);
+#if defined(__GNUC__) && __GNUC__>=5
+#	pragma GCC diagnostic pop
+#endif
 	}
 }
 

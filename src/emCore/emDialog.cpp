@@ -127,11 +127,29 @@ emButton * emDialog::GetButton(int index)
 }
 
 
-void emDialog::Finish(int result)
+emButton * emDialog::GetButtonForResult(int result)
 {
+	emPanel * buttonsPanel, * p;
+	DlgButton * db;
+
+	buttonsPanel=((DlgPanel*)GetRootPanel())->ButtonsPanel;
+	for (p=buttonsPanel->GetFirstChild(); p; p=p->GetNext()) {
+		db=dynamic_cast<DlgButton*>(p);
+		if (db && db->GetResult() == result) {
+			return db;
+		}
+	}
+	return NULL;
+}
+
+
+bool emDialog::Finish(int result)
+{
+	if (!CheckFinish(result)) return false;
 	Result=result;
 	FinishState=1;
 	PrivateEngine.WakeUp();
+	return true;
 }
 
 
@@ -159,6 +177,12 @@ void emDialog::ShowMessage(
 		icon
 	);
 	d->EnableAutoDeletion();
+}
+
+
+bool emDialog::CheckFinish(int result)
+{
+	return true;
 }
 
 
@@ -282,7 +306,7 @@ void emDialog::DlgPanel::LayoutChildren()
 
 	emBorder::LayoutChildren();
 
-	GetContentRect(&x,&y,&w,&h,&cc);
+	GetContentRectUnobscured(&x,&y,&w,&h,&cc);
 	bh=emMin(w*0.08,h*0.3);
 	sp=bh*0.25;
 	x+=sp;

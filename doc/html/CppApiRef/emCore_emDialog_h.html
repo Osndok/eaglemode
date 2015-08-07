@@ -110,6 +110,15 @@
                 <SPAN CLASS=c>// Get a button. The index is: 0 for the first added button, 1
                 // for the second added button, and so on.
 
+        </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * GetButtonForResult(<SPAN CLASS=t>int </SPAN>result);
+                <SPAN CLASS=c>// Get the first button, whose result is the given result.
+
+        </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * GetOKButton();
+                <SPAN CLASS=c>// Get the first button with positive result.
+
+        </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * GetCancelButton();
+                <SPAN CLASS=c>// Get the first button with negative result.
+
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetFinishSignal() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Signaled when any of the buttons has been triggered, or by
                 // pressing the Enter key or the Escape key, or by the window
@@ -130,8 +139,10 @@
                 <SPAN CLASS=c>// The result should be asked after the finish signal has been
                 // signaled. Before that, the result is not valid.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Finish(<SPAN CLASS=t>int </SPAN>result);
+        </SPAN><SPAN CLASS=t>bool </SPAN>Finish(<SPAN CLASS=t>int </SPAN>result);
                 <SPAN CLASS=c>// Finish this dialog with the given result programmatically.
+                // Returns true on success, or false if the finishing was aborted
+                // by a call to CheckFinish(result).
 
         </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoDeletion(<SPAN CLASS=t>bool </SPAN>autoDelete=<SPAN CLASS=k>true</SPAN>);
         <SPAN CLASS=t>bool </SPAN>IsAutoDeletionEnabled();
@@ -152,7 +163,11 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual void </SPAN>Finished(<SPAN CLASS=t>int </SPAN>result);
+        <SPAN CLASS=t>virtual bool </SPAN>CheckFinish(<SPAN CLASS=t>int </SPAN>result);
+                <SPAN CLASS=c>// Check whether finishing is allowed with the given result at
+                // this moment. The default implementation always returns true.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Finished(<SPAN CLASS=t>int </SPAN>result);
                 <SPAN CLASS=c>// Like the finish signal. Default implementation does nothing.
                 // It's allowed to delete (destruct) this dialog herein.
 
@@ -169,6 +184,7 @@
                         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon,
                         <SPAN CLASS=t>int </SPAN>result
                 );
+                <SPAN CLASS=t>int </SPAN>GetResult() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual void </SPAN>Clicked();
         <SPAN CLASS=t>private</SPAN>:
@@ -214,6 +230,16 @@
         </SPAN><SPAN CLASS=k>return </SPAN>((DlgPanel*)GetRootPanel())-&gt;ContentPanel;
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetOKButton()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GetButtonForResult(POSITIVE);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetCancelButton()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GetButtonForResult(NEGATIVE);
+<SPAN CLASS=b>}
+
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::GetFinishSignal() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>FinishSignal;
@@ -227,6 +253,11 @@
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::IsAutoDeletionEnabled()
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>ADEnabled;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emDialog_h.html#emDialog">emDialog</A>::DlgButton::GetResult() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Result;
 <SPAN CLASS=b>}
 
 

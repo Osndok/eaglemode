@@ -167,7 +167,7 @@ void emPackLayout::LayoutChildren()
 		}
 		FillTPIs(tpiCnt);
 
-		GetContentRect(&x,&y,&w,&h,&TI->CanvasColor);
+		GetContentRectUnobscured(&x,&y,&w,&h,&TI->CanvasColor);
 		if (w<1E-100) w=1E-100;
 		if (h<1E-100) h=1E-100;
 

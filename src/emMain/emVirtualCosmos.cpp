@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -269,7 +269,6 @@ emVirtualCosmosItemPanel::emVirtualCosmosItemPanel(
 		GetRootContext(),"emMain","VcItemInnerBorder.tga"
 	);
 
-	EnableAutoExpansion();
 	WakeUp();
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2011 Oliver Hamann.
+// Copyright (C) 2006-2011,2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -332,6 +332,27 @@ void emWndsScreen::UpdateInputStateFromKeymap()
 	}
 	if (InputState.Get(EM_KEY_RIGHT_BUTTON)) {
 		keyStates[EM_KEY_RIGHT_BUTTON>>3]|=1<<(EM_KEY_RIGHT_BUTTON&7);
+	}
+	if (InputState.Get(EM_KEY_WHEEL_UP)) {
+		keyStates[EM_KEY_WHEEL_UP>>3]|=1<<(EM_KEY_WHEEL_UP&7);
+	}
+	if (InputState.Get(EM_KEY_WHEEL_DOWN)) {
+		keyStates[EM_KEY_WHEEL_DOWN>>3]|=1<<(EM_KEY_WHEEL_DOWN&7);
+	}
+	if (InputState.Get(EM_KEY_WHEEL_LEFT)) {
+		keyStates[EM_KEY_WHEEL_LEFT>>3]|=1<<(EM_KEY_WHEEL_LEFT&7);
+	}
+	if (InputState.Get(EM_KEY_WHEEL_RIGHT)) {
+		keyStates[EM_KEY_WHEEL_RIGHT>>3]|=1<<(EM_KEY_WHEEL_RIGHT&7);
+	}
+	if (InputState.Get(EM_KEY_BACK_BUTTON)) {
+		keyStates[EM_KEY_BACK_BUTTON>>3]|=1<<(EM_KEY_BACK_BUTTON&7);
+	}
+	if (InputState.Get(EM_KEY_FORWARD_BUTTON)) {
+		keyStates[EM_KEY_FORWARD_BUTTON>>3]|=1<<(EM_KEY_FORWARD_BUTTON&7);
+	}
+	if (InputState.Get(EM_KEY_TOUCH)) {
+		keyStates[EM_KEY_TOUCH>>3]|=1<<(EM_KEY_TOUCH&7);
 	}
 	if (memcmp(InputState.GetKeyStates(),keyStates,32)!=0) {
 		memcpy(InputState.GetKeyStates(),keyStates,32);

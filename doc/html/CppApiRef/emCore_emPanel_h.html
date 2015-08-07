@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>.h
 //
-// Copyright (C) 2004-2008,2010-2012,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -560,11 +560,6 @@
                 //                 color.
                 // See also: InvalidatePainting()
 
-        </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoExpansion();
-                <SPAN CLASS=c>// Enable the auto-expansion mechanism. This must be called in
-                // the constructors of panel classes which overload the method
-                // AutoExpand().
-
         </SPAN><SPAN CLASS=t>virtual void </SPAN>AutoExpand();
                 <SPAN CLASS=c>// Create child panels by auto-expansion. Often it is a good
                 // idea to dynamically create and delete the children of a panel
@@ -575,7 +570,7 @@
                 // does nothing. AutoExpand is called when the view condition
                 // reaches a threshold value. As soon as the view condition
                 // falls below again, the child panels are deleted through
-                // calling AutoShrink(). See also: EnableAutoExpansion(),
+                // calling AutoShrink(). See also:
                 // SetAutoExpansionThreshold(...), AutoShrink(),
                 // InvalidateAutoExpansion().
 
@@ -705,7 +700,7 @@
         <SPAN CLASS=t>unsigned </SPAN>InActivePath : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>PendingInput : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>ChildrenLayoutInvalid : <SPAN CLASS=u>1</SPAN>;
-        <SPAN CLASS=t>unsigned </SPAN>AEEnabled : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>AEInvalid : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>AEDecisionInvalid : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>AECalling : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>AEExpanded : <SPAN CLASS=u>1</SPAN>;

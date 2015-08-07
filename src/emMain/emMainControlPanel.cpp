@@ -51,9 +51,9 @@ emMainControlPanel::emMainControlPanel(
 		"You should have received a copy of the GNU General Public License version 3\n"
 		"along with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 	;
-	emLinearGroup * grMain, * grAbout;
+	emLinearGroup * grAbout;
 	emRasterGroup * grCommands, * grFullscreenPrefs;
-	emLinearLayout * lLeft, * lTop, * lClose;
+	emLinearLayout * lMain, * lLeft, * lTop, * lClose;
 	emCoreConfigPanel * coreConfigPanel;
 	emLabel * iconLabel, * textLabel;
 	emLook look;
@@ -70,16 +70,16 @@ emMainControlPanel::emMainControlPanel(
 	SetChildWeight(0,3.0);
 	SetChildWeight(1,7.0);
 
-	grMain=new emLinearGroup(this,"general","General");
-	grMain->SetOrientationThresholdTallness(1.0);
-	grMain->SetChildWeight(0,0.9);
-	grMain->SetChildWeight(1,2.2);
-		lLeft=new emLinearLayout(grMain,"l");
+	lMain=new emLinearLayout(this,"general");
+	lMain->SetOrientationThresholdTallness(1.0);
+	lMain->SetChildWeight(0,0.9);
+	lMain->SetChildWeight(1,2.2);
+		lLeft=new emLinearLayout(lMain,"l");
 		lLeft->SetOrientationThresholdTallness(0.5);
 		lLeft->SetChildWeight(0,0.2);
 		lLeft->SetChildWeight(1,0.9);
 		new emBookmarksPanel(
-			grMain,"bookmarks",
+			lMain,"bookmarks",
 			&MainWin.GetContentView(),
 			BookmarksModel
 		);
@@ -88,7 +88,7 @@ emMainControlPanel::emMainControlPanel(
 		lTop->SetOrientationThresholdTallness(0.5);
 		lTop->SetChildWeight(0,1.2);
 		lTop->SetChildWeight(1,1.0);
-		grAbout=new emLinearGroup(lTop,"about","About");
+		grAbout=new emLinearGroup(lTop,"about","About Eagle Mode");
 		grAbout->SetOrientationThresholdTallness(1.0);
 		grAbout->SetBorderScaling(4.0);
 		grAbout->SetChildWeight(0,1.0);
@@ -107,7 +107,7 @@ emMainControlPanel::emMainControlPanel(
 		);
 		coreConfigPanel->SetBorderScaling(4.0);
 
-	grCommands=new emRasterGroup(lLeft,"commands","Commands");
+	grCommands=new emRasterGroup(lLeft,"commands","Main Commands");
 		grCommands->SetPrefChildTallness(0.2);
 		BtNewWindow=new emButton(
 			grCommands,"new window",

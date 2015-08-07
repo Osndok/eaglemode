@@ -101,12 +101,24 @@
 #include <emCore/emColorField.h>
 #endif
 
+#ifndef emListBox_h
+#include <emCore/emListBox.h>
+#endif
+
+#ifndef emFileSelectionBox_h
+#include <emCore/emFileSelectionBox.h>
+#endif
+
 #ifndef emSplitter_h
 #include <emCore/emSplitter.h>
 #endif
 
 #ifndef emDialog_h
 #include <emCore/emDialog.h>
+#endif
+
+#ifndef emFileDialog_h
+#include <emCore/emFileDialog.h>
 #endif
 
 

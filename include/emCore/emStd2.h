@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2011,2014-2015 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -128,6 +128,7 @@ bool emIsWritablePath(const char * path);
 bool emIsDirectory(const char * path);
 bool emIsRegularFile(const char * path);
 bool emIsSymLinkPath(const char * path);
+bool emIsHiddenPath(const char * path);
 	// Ask whether the given file path exists, whether it is readable and so
 	// on.
 

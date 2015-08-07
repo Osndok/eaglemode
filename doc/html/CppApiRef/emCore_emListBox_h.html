@@ -1,0 +1,413 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emListBox.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A>.h
+//
+// Copyright (C) 2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emListBox_h
+#define emListBox_h
+
+#ifndef emAnything_h
+#include &lt;<A CLASS=f HREF="emCore_emAnything_h.html">emCore/emAnything.h</A>&gt;
+#endif
+
+#ifndef emRasterGroup_h
+#include &lt;<A CLASS=f HREF="emCore_emRasterGroup_h.html">emCore/emRasterGroup.h</A>&gt;
+#endif
+
+
+<A NAME="emListBox"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for list box. It is an <A CLASS=m HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> which shows a group of
+        // text items, from which the user can select one item. Optionally,
+        // multi-selection can be enabled. Each item just consists of a text,
+        // but it is possible to derive from <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A> in order to create custom
+        // item panels, which show more than just a text.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>SelectionType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Type of selection a user can make in an <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A>.
+                </SPAN>READY_ONLY_SELECTION,
+                SINGLE_SELECTION,
+                MULTI_SELECTION,
+                TOGGLE_SELECTION
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>(
+                ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description=<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>(),
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon=<A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A>(),
+                SelectionType selType=SINGLE_SELECTION
+        );
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   parent      - Parent for this panel (<A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> or <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>).
+                //   name        - The name for this panel.
+                //   caption     - The label's caption, or empty.
+                //   description - The label's description, or empty.
+                //   icon        - The label's icon, or empty.
+                //   selType     - Type of selection.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN>SelectionType GetSelectionType() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSelectionType(SelectionType selType);
+                <SPAN CLASS=c>// Get or set the type of selection, which the user can make in
+                // this list box.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetItemCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of Items.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>AddItem(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; data = <A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>()
+        );
+                <SPAN CLASS=c>// Add an item to the end of the list.
+                // Arguments:
+                //   text - The text to be shown in the item.
+                //   data - Any custom data to be stored in the item.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InsertItem(
+                <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; data = <A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A>()
+        );
+                <SPAN CLASS=c>// Add an item at any position in the list.
+                // Arguments:
+                //   index - Index of the new item.
+                //   text  - The text to be shown in the item.
+                //   data  - Any custom data to be stored in the item.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveItem(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Remove an item from the list.
+                // Arguments:
+                //   index - Index of the item to be removed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearItems();
+                <SPAN CLASS=c>// Remove all items.
+
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetItemText(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the text of an item.
+                // Arguments:
+                //   index - Index of the item.
+                // Returns: The text of the item, or an empty string if the
+                // index is out of range.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetItemText(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text);
+                <SPAN CLASS=c>// Set the text of an item.
+                // Arguments:
+                //   index - Index of the item.
+                //   text  - The text to be shown in the item.
+
+        </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> GetItemData(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the data of an item.
+                // Arguments:
+                //   index - Index of the item.
+                // Returns: The data of the item, or an invalid <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A> if
+                // the index is out of range.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetItemData(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> &amp; data);
+                <SPAN CLASS=c>// Set the data of an item.
+                // Arguments:
+                //   index - Index of the item.
+                //   data  - Any custom data to be stored in the item.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSelectionCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of selected items.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>int</SPAN>&gt; &amp; GetSelectedIndices() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the indices of the selected items. The returned array is
+                // always sorted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedIndices(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>int</SPAN>&gt; &amp; itemIndices);
+                <SPAN CLASS=c>// Set the indices of the selected items.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSelectedIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the first (or solely) selected item. If no
+                // item is selected, -1 is returned.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetSelectedIndex(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Select a certain item solely.
+                // Arguments:
+                //   index - Index of the item.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSelected(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether a certain item is selected.
+                // Arguments:
+                //   index - Index of the item.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Select(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>bool </SPAN>solely=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Select an item.
+                // Arguments:
+                //   index  - Index of the item.
+                //   solely - Whether all other items should be deselected.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Deselect(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Deselect an item.
+                // Arguments:
+                //   index - Index of the item.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ToggleSelection(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Invert the selection of an item.
+                // Arguments:
+                //   index - Index of the item.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SelectAll();
+                <SPAN CLASS=c>// Select all items.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>ClearSelection();
+                <SPAN CLASS=c>// Deselect all items.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSelectionSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled after each change of the selection.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetItemTriggerSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled when an item is triggered by a double
+                // click or by pressing the enter key. The triggered item index
+                // can be get with GetTriggeredItemIndex().
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetTriggeredItemIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the item which was triggered by a double
+                // click or enter key press.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>TriggerItem(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Trigger an item programmatically.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>ItemPanelInterface <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for an interface to an item panel. This must be derived
+                // by custom item panel classes. Also see
+                // <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::CreateItemPanel(...).
+
+                </SPAN>ItemPanelInterface(<A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; listBox, <SPAN CLASS=t>int </SPAN>itemIndex);
+                        <SPAN CLASS=c>// Constructor.
+                        // Arguments:
+                        //   listBox   - The list box.
+                        //   itemIndex - The index of the item.
+
+                </SPAN><SPAN CLASS=t>virtual </SPAN>~ItemPanelInterface();
+                        <SPAN CLASS=c>// Destructor.
+
+                </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; GetListBox();
+                        <SPAN CLASS=c>// Get the list box.
+
+                </SPAN><SPAN CLASS=t>int </SPAN>GetItemIndex() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the item index.
+
+                </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetItemText() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// The the text of the item.
+
+                </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> GetItemData() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// The the data of the item.
+
+                </SPAN><SPAN CLASS=t>bool </SPAN>IsItemSelected() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Whether the item is selected.
+
+        </SPAN><SPAN CLASS=t>protected</SPAN>:
+
+                <SPAN CLASS=t>void </SPAN>ProcessItemInput(
+                        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state
+                );
+                        <SPAN CLASS=c>// Process mouse an keyboard events which select,
+                        // deselect, or trigger an item. This method must be
+                        // called from the Input method of the item panel.
+
+                </SPAN><SPAN CLASS=t>virtual void </SPAN>ItemTextChanged() = <SPAN CLASS=u>0</SPAN>;
+                        <SPAN CLASS=c>// Called when the text of the item has changed.
+
+                </SPAN><SPAN CLASS=t>virtual void </SPAN>ItemDataChanged() = <SPAN CLASS=u>0</SPAN>;
+                        <SPAN CLASS=c>// Called when the data of the item has changed.
+
+                </SPAN><SPAN CLASS=t>virtual void </SPAN>ItemSelectionChanged() = <SPAN CLASS=u>0</SPAN>;
+                        <SPAN CLASS=c>// Called when the selection of the item has changed.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>;
+                <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; ListBox;
+                <SPAN CLASS=t>int </SPAN>ItemIndex;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>DefaultItemPanel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>, <SPAN CLASS=t>public </SPAN>ItemPanelInterface <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Default class for an item panel.
+
+                </SPAN>DefaultItemPanel(<A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; listBox, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                                 <SPAN CLASS=t>int </SPAN>itemIndex);
+
+                <SPAN CLASS=t>virtual </SPAN>~DefaultItemPanel();
+
+        <SPAN CLASS=t>protected</SPAN>:
+
+                <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+                                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                                   <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+                <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+
+                <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter,
+                                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+
+                <SPAN CLASS=t>virtual void </SPAN>ItemTextChanged();
+
+                <SPAN CLASS=t>virtual void </SPAN>ItemDataChanged();
+
+                <SPAN CLASS=t>virtual void </SPAN>ItemSelectionChanged();
+        <SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>CreateItemPanel(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>int </SPAN>itemIndex);
+                <SPAN CLASS=c>// Create the panel for an item. This can be overloaded in order
+                // to have custom item panels. The default implementation
+                // creates an instance of <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::DefaultItemPanel. A derived
+                // class may create a panel of an other class. It just has to be
+                // a derivative of <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> and mListBox::ItemPanelInterface.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetItemPanelName(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the name for an item panel. The default implementation
+                // simply converts the index to a decimal string.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetItemPanel(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get an item panel. The default implementation calls
+                // GetChild(..) with the name of the item panel.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>ItemPanelInterface * GetItemPanelInterface(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get the ItemPanelInterface for an item panel. The default
+                // implementation calls GetItemPanel and does a dynamic cast.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
+                           <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+
+        <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN>ItemPanelInterface;
+
+        <SPAN CLASS=t>void </SPAN>ProcessItemInput(
+                <SPAN CLASS=t>int </SPAN>itemIndex, <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state
+        );
+
+        <SPAN CLASS=t>void </SPAN>SelectByInput(<SPAN CLASS=t>int </SPAN>itemIndex, <SPAN CLASS=t>bool </SPAN>shift, <SPAN CLASS=t>bool </SPAN>ctrl, <SPAN CLASS=t>bool </SPAN>trigger);
+
+        <SPAN CLASS=t>void </SPAN>KeyWalk(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+
+        <SPAN CLASS=t>struct </SPAN>Item <SPAN CLASS=b>{
+                </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Text;
+                <A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> Data;
+                <SPAN CLASS=t>bool </SPAN>Selected;
+        <SPAN CLASS=b>}</SPAN>;
+
+        SelectionType SelType;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;Item&gt; Items;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>int</SPAN>&gt; SelectedItemIndices;
+        <SPAN CLASS=t>int </SPAN>TriggeredItemIndex;
+        <SPAN CLASS=t>int </SPAN>PrevInputItemIndex;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> SelectionSignal;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ItemTriggerSignal;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> KeyWalkChars;
+        emUInt64 KeyWalkClock;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::SelectionType <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetSelectionType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelType;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetItemCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Items.GetCount();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetSelectionCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectedItemIndices.GetCount();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>int</SPAN>&gt; &amp; <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetSelectedIndices() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectedItemIndices;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetSelectionSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SelectionSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetItemTriggerSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ItemTriggerSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::GetTriggeredItemIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TriggeredItemIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::GetListBox()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ListBox;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::GetItemIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ItemIndex;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::GetItemText() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ListBox.GetItemText(ItemIndex);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emAnything">emAnything</A> <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::GetItemData() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ListBox.GetItemData(ItemIndex);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::IsItemSelected() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ListBox.IsSelected(ItemIndex);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

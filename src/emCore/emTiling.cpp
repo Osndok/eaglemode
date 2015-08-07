@@ -354,7 +354,7 @@ void emTiling::LayoutChildren()
 	if (!cells) return;
 	if (cells<MinCellCount) cells=MinCellCount;
 
-	GetContentRect(&x,&y,&w,&h,&cc);
+	GetContentRectUnobscured(&x,&y,&w,&h,&cc);
 	if (w<1E-100) w=1E-100;
 	if (h<1E-100) h=1E-100;
 

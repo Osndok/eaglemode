@@ -32,7 +32,6 @@ emTreeDumpControlPanel::emTreeDumpControlPanel(
 	Rec=rec;
 	Dir=dir;
 	SetMinCellCount(3);
-	EnableAutoExpansion();
 }
 
 
