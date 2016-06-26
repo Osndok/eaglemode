@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 4.0
+# Order = 5.0
 # Interpreter = perl
 # Caption = Clone
 # Descr =Create a copy of a file or directory within the same
@@ -13,8 +13,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The file or directory to be cloned.
-# ButtonBgColor = #796
-# ButtonFgColor = #000
+# Icon = clone_file.tga
 # Hotkey = Ctrl+V
 #[[END PROPERTIES]]
 

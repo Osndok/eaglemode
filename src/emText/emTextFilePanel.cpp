@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,6 +41,17 @@ void emTextFilePanel::SetFileModel(
 {
 	Model=dynamic_cast<emTextFileModel*>(fileModel);
 	emFilePanel::SetFileModel(Model,updateFileModel);
+}
+
+
+emString emTextFilePanel::GetIconFileName()
+{
+	if (IsVFSGood()) {
+		if (Model->GetCharEncoding()!=emTextFileModel::CE_BINARY) {
+			return "plain_text.tga";
+		}
+	}
+	return emFilePanel::GetIconFileName();
 }
 
 
@@ -120,7 +131,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 		);
 
 		grp->SetRowByRow();
-		grp->SetPrefChildTallness(0.2);
+		grp->SetPrefChildTallness(0.1);
 
 		switch (Model->GetCharEncoding()) {
 			case emTextFileModel::CE_7BIT   : p="7-Bit"    ; break;

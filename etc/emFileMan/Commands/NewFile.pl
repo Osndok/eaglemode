@@ -12,8 +12,7 @@
 # Descr =
 # Descr =  Target: The directory in which the new file
 # Descr =          shall be created.
-# ButtonBgColor = #8AB
-# ButtonFgColor = #000
+# Icon = new_file.tga
 # Hotkey = Ctrl+F
 #[[END PROPERTIES]]
 

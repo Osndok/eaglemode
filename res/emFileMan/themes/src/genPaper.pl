@@ -6,66 +6,62 @@ use File::Basename;
 
 
 sub generate_theme
-	# Arguments: tallness, display name, file
+	# Arguments: tallness, display name, display icon, file
 {
 	my $tallness = shift;
 	my $DisplayName = shift;
+	my $DisplayIcon = shift;
 	my $fileName = shift;
 
-	my $BackgroundColor = '{238 238 221}';
-	my $SourceSelectionColor = '{204 241 202}';
-	my $TargetSelectionColor = '{255 198 193}';
-	my $NormalNameColor = '{20 20 15}';
-	my $ExeNameColor = '{10 82 5}';
-	my $DirNameColor = '{35 40 155}';
-	my $FifoNameColor = '{170 20 70}';
-	my $BlkNameColor = '{100 45 20}';
-	my $ChrNameColor = '{65  92 15}';
-	my $SockNameColor = '{140 20 140}';
-	my $OtherNameColor = '{140 20 10}';
-	my $PathColor = '{103 103 95}';
-	my $SymLinkColor = '{60 123 133}';
-	my $LabelColor = '{170 170 160}';
-	my $InfoColor = '{156 156 145}';
+	my $BackgroundColor = '{247 247 239}';
+	my $SourceSelectionColor = '{200 245 200}';
+	my $TargetSelectionColor = '{255 197 197}';
+	my $NormalNameColor = '{18 18 16 255}';
+	my $ExeNameColor = '{8 100 6 255}';
+	my $DirNameColor = '{14 34 176 255}';
+	my $FifoNameColor = '{170 20 70 255}';
+	my $BlkNameColor = '{100 45 20 255}';
+	my $ChrNameColor = '{65 92 15 255}';
+	my $SockNameColor = '{140 20 140 255}';
+	my $OtherNameColor = '{140 20 10 255}';
+	my $PathColor = '{61 61 49 161}';
+	my $SymLinkColor = '{80 151 162 255}';
+	my $LabelColor = '{61 61 49 89}';
+	my $InfoColor = '{61 61 49 117}';
 	my $FileContentColor = $BackgroundColor;
 	my $DirContentColor = $BackgroundColor;
 
 	my $Height = $tallness;
 
-	my $f=($tallness/(1.0/3.0)+1.0)/2.0;
+	my $frame=(1.0+$tallness)*($tallness*3.0+1.0)*0.00525;
 
-	my $MinAltVW=25.0/$f;
-	my $MinContentVW=45.0/$f;
-
-	my $frame=(1.0+$tallness)*0.0075*$f;
-
-	my $spacing=$frame*0.5;
-
-	my $BackgroundX = $frame;
-	my $BackgroundY = $frame;
-	my $BackgroundW = 1.0-2.0*$frame;
-	my $BackgroundH = $tallness-2.0*$frame;
+	my $BackgroundX = $frame/151.0*64.0;
+	my $BackgroundY = $frame/151.0*64.0;
+	my $BackgroundW = 1.0-$BackgroundX-$frame;
+	my $BackgroundH = $tallness-$BackgroundY-$frame;
 	my $BackgroundRX = 0.0;
 	my $BackgroundRY = 0.0;
 
-	my $OuterBorderX = 0.0;
-	my $OuterBorderY = 0.0;
-	my $OuterBorderW = 1.0;
-	my $OuterBorderH = $tallness;
+	my $OuterBorderX = $BackgroundX-$frame/151.0*64.0;
+	my $OuterBorderY = $BackgroundY-$frame/151.0*63.0;
+	my $OuterBorderW = $BackgroundX+$BackgroundW-$OuterBorderX+$frame/151.0*131.0;
+	my $OuterBorderH = $BackgroundY+$BackgroundH-$OuterBorderY+$frame/151.0*151.0;
 	my $OuterBorderImg = 'PaperBorder.tga';
-	my $OuterBorderImgL = 197.0;
-	my $OuterBorderImgT = 197.0;
-	my $OuterBorderImgR = 197.0;
-	my $OuterBorderImgB = 197.0;
-	my $OuterBorderL = $frame/80.0*197.0;
-	my $OuterBorderT = $frame/80.0*197.0;
-	my $OuterBorderR = $frame/80.0*197.0;
-	my $OuterBorderB = $frame/80.0*197.0;
+	my $OuterBorderImgL = 337.0;
+	my $OuterBorderImgT = 337.0;
+	my $OuterBorderImgR = 391.0;
+	my $OuterBorderImgB = 410.0;
+	my $OuterBorderL = $frame/151.0*337.0;
+	my $OuterBorderT = $frame/151.0*337.0;
+	my $OuterBorderR = $frame/151.0*391.0;
+	my $OuterBorderB = $frame/151.0*410.0;
 
-	my $x1=$frame+$spacing;
-	my $y1=$frame+$spacing;
-	my $x2=1.0-$frame-$spacing;
-	my $y2=$tallness-$frame-$spacing;
+	my $spacing=$frame*0.357;
+
+	my $x1=$BackgroundX+$spacing;
+	my $y1=$BackgroundY+$spacing;
+	my $x2=$BackgroundX+$BackgroundW-$spacing;
+	my $y2=$BackgroundY+$BackgroundH-$spacing;
 
 	my $NameX=$x1;
 	my $NameY=$y1;
@@ -124,7 +120,7 @@ sub generate_theme
 	my $InfoH=$y2-$InfoY;
 	my $InfoAlignment = "top-left";
 
-	my $altContentFrame=0.002/0.604*$f;
+	my $altContentFrame=$frame*0.143/$FileInnerBorderW;
 
 	my $AltLabelX = 0.0;
 	my $AltLabelY = 0.0;
@@ -163,6 +159,20 @@ sub generate_theme
 	my $AltAltX=1.0-$AltAltW;
 	my $AltPathW=$AltAltX-$AltPathX-$AltPathH*0.4;
 
+	my $MinContentVW=26.0/sqrt($Height);
+	my $MinAltVW=15.0/sqrt($Height);
+
+	my $px=1.0-$BackgroundW-$BackgroundX*2;
+	my $py=$Height-$BackgroundH-$BackgroundY*2;
+	my $DirPaddingL=0.0;
+	my $DirPaddingT=0.0;
+	my $DirPaddingR=0.0;
+	my $DirPaddingB=0.0;
+	my $LnkPaddingL=$px*0.15;
+	my $LnkPaddingT=$py*0.15;
+	my $LnkPaddingR=-$px*0.85;
+	my $LnkPaddingB=-$py*0.85;
+
 	my $fh;
 	open($fh,">",$fileName);
 
@@ -170,6 +180,7 @@ sub generate_theme
 		"#%rec:emFileManTheme%#\n".
 		"\n".
 		"DisplayName = \"$DisplayName\"\n".
+		"DisplayIcon = \"$DisplayIcon\"\n".
 		"BackgroundColor = $BackgroundColor\n".
 		"SourceSelectionColor = $SourceSelectionColor\n".
 		"TargetSelectionColor = $TargetSelectionColor\n".
@@ -292,7 +303,15 @@ sub generate_theme
 		"AltContentW = $AltContentW\n".
 		"AltContentH = $AltContentH\n".
 		"MinContentVW = $MinContentVW\n".
-		"MinAltVW = $MinAltVW\n"
+		"MinAltVW = $MinAltVW\n".
+		"DirPaddingL = $DirPaddingL\n".
+		"DirPaddingT = $DirPaddingT\n".
+		"DirPaddingR = $DirPaddingR\n".
+		"DirPaddingB = $DirPaddingB\n".
+		"LnkPaddingL = $LnkPaddingL\n".
+		"LnkPaddingT = $LnkPaddingT\n".
+		"LnkPaddingR = $LnkPaddingR\n".
+		"LnkPaddingB = $LnkPaddingB\n"
 	);
 
 	close($fh);
@@ -302,6 +321,8 @@ sub generate_theme
 my $ThemeName = basename($0);
 $ThemeName =~ s/(^gen)|(.pl$)//g;
 
-generate_theme(1.0/3.0 , "${ThemeName} 3:1" , "../${ThemeName}1.emFileManTheme");
-generate_theme(9.0/16.0 , "${ThemeName} 16:9" , "../${ThemeName}2.emFileManTheme");
-generate_theme(3.0/4.0 , "${ThemeName} 4:3" , "../${ThemeName}3.emFileManTheme");
+my $DisplayName = $ThemeName;
+
+generate_theme(1.0/3.0 , "${DisplayName}", "theme_${ThemeName}.tga", "../${ThemeName}1.emFileManTheme");
+generate_theme(9.0/16.0, "${DisplayName}", "theme_${ThemeName}.tga", "../${ThemeName}2.emFileManTheme");
+generate_theme(3.0/4.0 , "${DisplayName}", "theme_${ThemeName}.tga", "../${ThemeName}3.emFileManTheme");

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.cpp
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,7 +49,9 @@ emWindow::emWindow(
 		}
 	}
 	WindowPort=NULL;
-	PrevVPValid=false;
+
+	emView::SetWindowAndScreen(this);
+
 	WindowPort=Screen->CreateWindowPort(*this);
 	Screen->Windows.Add(this);
 	Signal(Screen->WindowsSignal);
@@ -113,19 +115,9 @@ emWindow::~emWindow()
 void emWindow::SetWindowFlags(WindowFlags windowFlags)
 {
 	if (WFlags!=windowFlags) {
-		if ((WFlags&WF_FULLSCREEN)==0) {
-			PrevVPX=GetHomeX();
-			PrevVPY=GetHomeY();
-			PrevVPW=GetHomeWidth();
-			PrevVPH=GetHomeHeight();
-			PrevVPValid=true;
-		}
 		WFlags=windowFlags;
-		WindowPort->WindowFlagsChanged();
-		if ((WFlags&WF_FULLSCREEN)==0 && PrevVPValid) {
-			SetViewPosSize(PrevVPX,PrevVPY,PrevVPW,PrevVPH);
-		}
 		Signal(WindowFlagsSignal);
+		WindowPort->WindowFlagsChanged();
 	}
 }
 
@@ -133,18 +125,19 @@ void emWindow::SetWindowFlags(WindowFlags windowFlags)
 bool emWindow::SetWinPosViewSize(const char * geometry)
 {
 	emWindowPort::PosSizeArgSpec posSpec,sizeSpec;
-	double x,y,w,h,l,t,r,b;
+	double x,y,w,h,l,t,r,b,dx,dy,dw,dh;
 	char sx,sy;
 
 	GetBorderSizes(&l,&t,&r,&b);
+	Screen->GetDesktopRect(&dx,&dy,&dw,&dh);
 	posSpec=sizeSpec=emWindowPort::PSAS_IGNORE;
 	x=y=w=h=0.0;
 	if (sscanf(geometry,"%lfx%lf%c%lf%c%lf",&w,&h,&sx,&x,&sy,&y)==6) {
 		posSpec=emWindowPort::PSAS_WINDOW;
 		sizeSpec=emWindowPort::PSAS_VIEW;
-		if (sx=='-') x=Screen->GetWidth()-w-l-r-x;
+		if (sx=='-') x=dx+dw-w-l-r-x;
 		else if (sx!='+') return false;
-		if (sy=='-') y=Screen->GetHeight()-h-t-b-y;
+		if (sy=='-') y=dy+dh-h-t-b-y;
 		else if (sy!='+') return false;
 	}
 	else if (sscanf(geometry,"%lfx%lf",&w,&h)==2) {
@@ -152,9 +145,9 @@ bool emWindow::SetWinPosViewSize(const char * geometry)
 	}
 	else if (sscanf(geometry,"%c%lf%c%lf",&sx,&x,&sy,&y)==4) {
 		posSpec=emWindowPort::PSAS_WINDOW;
-		if (sx=='-') x=Screen->GetWidth()-GetHomeWidth()-l-r-x;
+		if (sx=='-') x=dx+dw-GetHomeWidth()-l-r-x;
 		else if (sx!='+') return false;
-		if (sy=='-') y=Screen->GetHeight()-GetHomeHeight()-t-b-y;
+		if (sy=='-') y=dy+dh-GetHomeHeight()-t-b-y;
 		else if (sy!='+') return false;
 	}
 	else {
@@ -162,6 +155,14 @@ bool emWindow::SetWinPosViewSize(const char * geometry)
 	}
 	WindowPort->SetPosSize(x,y,posSpec,w,h,sizeSpec);
 	return true;
+}
+
+
+int emWindow::GetMonitorIndex() const
+{
+	return Screen->GetMonitorIndexOfRect(
+		GetHomeX(),GetHomeY(),GetHomeWidth(),GetHomeHeight()
+	);
 }
 
 

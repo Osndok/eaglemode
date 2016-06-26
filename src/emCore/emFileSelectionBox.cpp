@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emFileSelectionBox.h>
+#include <emCore/emAvlTreeMap.h>
 #include <emCore/emFpPlugin.h>
 #include <ctype.h>
 #if defined(_WIN32)
@@ -881,7 +882,7 @@ emFileSelectionBox::FileItemPanel::FileItemPanel(
 	FilesListBox & listBox, const emString & name, int itemIndex
 ) :
 	emPanel(listBox,name),
-	ItemPanelInterface(listBox,itemIndex),
+	emListBox::ItemPanelInterface(listBox,itemIndex),
 	ListBox(listBox)
 {
 	FilePanel=NULL;
@@ -1094,7 +1095,7 @@ void emFileSelectionBox::FileItemPanel::ItemSelectionChanged()
 }
 
 
-emColor emFileSelectionBox::FileItemPanel::GetBgColor()
+emColor emFileSelectionBox::FileItemPanel::GetBgColor() const
 {
 	emColor bgColor;
 
@@ -1116,7 +1117,7 @@ emColor emFileSelectionBox::FileItemPanel::GetBgColor()
 }
 
 
-emColor emFileSelectionBox::FileItemPanel::GetFgColor()
+emColor emFileSelectionBox::FileItemPanel::GetFgColor() const
 {
 	const FileItemData * data;
 	emColor fgColor;

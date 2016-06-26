@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvPanel.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,7 +108,7 @@ void emTmpConvPanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Costly",
 			GetHeight()/6,
-			emColor(136,102,102),
+			emColor(112,64,64,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -123,7 +123,7 @@ void emTmpConvPanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Wait...",
 			GetHeight()/6,
-			emColor(136,136,0),
+			emColor(92,92,0,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -138,7 +138,7 @@ void emTmpConvPanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Converting...",
 			GetHeight()/6,
-			emColor(0,136,0),
+			emColor(0,112,0,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,

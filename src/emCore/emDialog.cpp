@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDialog.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,7 +117,7 @@ void emDialog::AddOKCancelButtons()
 }
 
 
-emButton * emDialog::GetButton(int index)
+emButton * emDialog::GetButton(int index) const
 {
 	return dynamic_cast<emButton*>(
 		((DlgPanel*)GetRootPanel())->ButtonsPanel->GetChild(
@@ -127,7 +127,7 @@ emButton * emDialog::GetButton(int index)
 }
 
 
-emButton * emDialog::GetButtonForResult(int result)
+emButton * emDialog::GetButtonForResult(int result) const
 {
 	emPanel * buttonsPanel, * p;
 	DlgButton * db;

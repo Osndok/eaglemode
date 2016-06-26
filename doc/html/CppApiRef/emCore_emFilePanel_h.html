@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>.h
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,8 +72,7 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>();
                 <SPAN CLASS=c>// Destructor.
 
-        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetFileModel() <SPAN CLASS=t>const</SPAN>;
-        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetFileModel();
+        </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetFileModel() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the file model, NULL if none.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetFileModel(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * fileModel,
@@ -83,7 +82,7 @@
 
         </SPAN><SPAN CLASS=t>void </SPAN>SetCustomError(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; message);
         <SPAN CLASS=t>void </SPAN>ClearCustomError();
-        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetCustomError();
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetCustomError() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Set, clear or get a custom error message. If set, the message
                 // is shown by the default implementation of Paint.
 
@@ -123,7 +122,9 @@
                 // It means that the file model data can safely be shown and
                 // modified.
 
-</SPAN><SPAN CLASS=t>protected</SPAN>:
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName();
+
+<SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual bool </SPAN>Cycle();
 
@@ -148,13 +149,8 @@
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> VirFileStateSignal;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetFileModel() <SPAN CLASS=t>const
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetFileModel() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>FileModelClient.GetModel();
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetFileModel()
-<SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>FileModelClient.GetModel();
 <SPAN CLASS=b>}
 

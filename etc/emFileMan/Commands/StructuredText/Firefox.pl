@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 1.0
+# Order = 3.0
 # Interpreter = perl
 # DefaultFor = .htm:.html
 # Caption = Firefox
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files and directories to be opened.
+# Icon = thirdparty/firefox.tga
 #[[END PROPERTIES]]
 
 use strict;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.h
 //
-// Copyright (C) 2009-2010 Oliver Hamann.
+// Copyright (C) 2009-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,7 @@
 #endif
 
 class emThreadPrivate;
-struct emThreadEventReceivers;
+struct emThreadEventReceiver;
 
 
 //==============================================================================
@@ -128,7 +128,7 @@ inline void emThread::Start(void * arg)
 
 inline bool emThread::IsRunning()
 {
-	return WaitForTermination(0);
+	return !WaitForTermination(0);
 }
 
 
@@ -152,7 +152,7 @@ public:
 	~emThreadMutexLocker();
 		// Calls Unlock() on the mutex.
 
-	OBJ & GetMutex();
+	OBJ & GetMutex() const;
 		// Get the mutex which is locked by this locker.
 
 private:
@@ -173,7 +173,7 @@ template <class OBJ> inline emThreadMutexLocker<OBJ>::~emThreadMutexLocker()
 	Mutex.Unlock();
 }
 
-template <class OBJ> inline OBJ & emThreadMutexLocker<OBJ>::GetMutex()
+template <class OBJ> inline OBJ & emThreadMutexLocker<OBJ>::GetMutex() const
 {
 	return Mutex;
 }
@@ -285,7 +285,7 @@ private:
 
 	emThreadMiniMutex Mutex;
 	emInt64 Count;
-	emThreadEventReceivers * Receivers;
+	emThreadEventReceiver * Ring;
 };
 
 inline void emThreadEvent::Clear()
@@ -362,7 +362,7 @@ public:
 		// A read-only locker class for this mutex class.
 		ReadOnlyLocker(emThreadMutex & mutex);
 		~ReadOnlyLocker();
-		emThreadMutex & GetMutex();
+		emThreadMutex & GetMutex() const;
 	private:
 		emThreadMutex & Mutex;
 	};
@@ -404,7 +404,7 @@ inline emThreadMutex::ReadOnlyLocker::~ReadOnlyLocker()
 	Mutex.UnlockReadOnly();
 }
 
-inline emThreadMutex & emThreadMutex::ReadOnlyLocker::GetMutex()
+inline emThreadMutex & emThreadMutex::ReadOnlyLocker::GetMutex() const
 {
 	return Mutex;
 }

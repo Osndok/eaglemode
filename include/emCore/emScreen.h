@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScreen.h
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,24 +61,44 @@ public:
 		//   The reference to the interface, or a NULL reference if not
 		//   found.
 
-	virtual double GetWidth() = 0;
-	virtual double GetHeight() = 0;
-		// Get the resolution of the screen (or virtual desktop) in
-		// pixels.
-
-	virtual void GetVisibleRect(double * pX, double * pY,
-	                            double * pW, double * pH) = 0;
-		// Get the pixel coordinates of the visible rectangle of the
-		// screen. If it is not a virtual desktop, the result is equal
-		// to: 0.0, 0.0, GetWidth(), GetHeight()
+	virtual void GetDesktopRect(
+		double * pX, double * pY, double * pW, double * pH
+	) const = 0;
+		// Get the pixel coordinates of this (virtual) desktop.
 		// Arguments:
 		//   pX - Pointer for returning the X-position of the rectangle.
 		//   pY - Pointer for returning the Y-position of the rectangle.
 		//   pW - Pointer for returning the width of the rectangle.
 		//   pH - Pointer for returning the height of the rectangle.
 
-	virtual double GetDPI() = 0;
-		// Get pixels per inch (horizontally).
+	virtual int GetMonitorCount() const = 0;
+		// Get the number of display monitors showing this (virtual)
+		// desktop.
+
+	virtual void GetMonitorRect(
+		int index, double * pX, double * pY, double * pW, double * pH
+	) const = 0;
+		// Get the pixel coordinates of a display monitor on this
+		// (virtual) desktop.
+		// Arguments:
+		//   index - Index of the monitor (0...GetMonitorCount()).
+		//   pX    - Pointer for returning the X-position of the rectangle.
+		//   pY    - Pointer for returning the Y-position of the rectangle.
+		//   pW    - Pointer for returning the width of the rectangle.
+		//   pH    - Pointer for returning the height of the rectangle.
+
+	int GetMonitorIndexOfRect(double x, double y, double w, double h) const;
+		// Get the index of the monitor which contains the given
+		// rectangle or the biggest part of it. If the rectangle is
+		// beyond all monitors, the index of the primary monitor is
+		// returned (which is 0).
+
+	virtual double GetDPI() const = 0;
+		// Get pixels per inch of the primary monitor (horizontally).
+
+	const emSignal & GetGeometrySignal() const;
+		// This signal is signaled on any change in the results of
+		// GetDesktopRect, GetMonitorCount, GetMonitorRect and GetDPI.
 
 	virtual void MoveMousePointer(double dx, double dy) = 0;
 		// Move the mouse pointer programmatically.
@@ -95,12 +115,12 @@ public:
 		// an internal counter for calls to DisableScreensaver() which
 		// have not yet been taken back by calls to EnableScreensaver().
 
-	const emArray<emWindow*> & GetWindows();
+	const emArray<emWindow*> & GetWindows() const;
 		// Get an array of pointers to all windows on the screen, which
 		// have been created within the context of this screen
 		// interface. Other windows are not included.
 
-	const emSignal & GetWindowsSignal();
+	const emSignal & GetWindowsSignal() const;
 		// This signal is signaled when the array returned by GetWindows
 		// has changed.
 
@@ -122,23 +142,38 @@ protected:
 		// Register this interface so that it can be found by
 		// LookupInherited.
 
+	void SignalGeometrySignal();
+		// Signal a change in the results of GetDesktopRect,
+		// GetMonitorCount, GetMonitorRect or GetDPI.
+
 	virtual emWindowPort * CreateWindowPort(emWindow & window) = 0;
 		// Create a window port implementation for a new window on the
 		// screen. (This is called by the constructor of emWindow)
 
 private:
 	emArray<emWindow*> Windows;
+	emSignal GeometrySignal;
 	emSignal WindowsSignal;
 };
 
-inline const emArray<emWindow*> & emScreen::GetWindows()
+inline const emSignal & emScreen::GetGeometrySignal() const
+{
+	return GeometrySignal;
+}
+
+inline const emArray<emWindow*> & emScreen::GetWindows() const
 {
 	return Windows;
 }
 
-inline const emSignal & emScreen::GetWindowsSignal()
+inline const emSignal & emScreen::GetWindowsSignal() const
 {
 	return WindowsSignal;
+}
+
+inline void emScreen::SignalGeometrySignal()
+{
+	Signal(GeometrySignal);
 }
 
 

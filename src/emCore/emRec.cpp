@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -639,7 +639,7 @@ void emEnumRec::Set(int value)
 }
 
 
-const char * emEnumRec::GetIdentifierOf(int value)
+const char * emEnumRec::GetIdentifierOf(int value) const
 {
 	if (value<0) return NULL;
 	if (value>=IdentifierCount) return NULL;
@@ -647,7 +647,7 @@ const char * emEnumRec::GetIdentifierOf(int value)
 }
 
 
-int emEnumRec::GetValueOf(const char * identifier)
+int emEnumRec::GetValueOf(const char * identifier) const
 {
 	int val;
 
@@ -792,14 +792,14 @@ void emFlagsRec::Set(int value)
 }
 
 
-const char * emFlagsRec::GetIdentifierOf(int bit)
+const char * emFlagsRec::GetIdentifierOf(int bit) const
 {
 	if (bit<0 || bit>=IdentifierCount) return NULL;
 	return Identifiers[bit];
 }
 
 
-int emFlagsRec::GetBitOf(const char * identifier)
+int emFlagsRec::GetBitOf(const char * identifier) const
 {
 	int bit;
 
@@ -1185,6 +1185,7 @@ void emColorRec::TryStartReading(emRecReader & reader) throw(emException)
 {
 	const char * str;
 	emColor val;
+	char c;
 	int i;
 
 	if (reader.TryPeekNext()==emRecReader::ET_QUOTED) {
@@ -1208,9 +1209,14 @@ void emColorRec::TryStartReading(emRecReader & reader) throw(emException)
 		if (i<0 || i>255) reader.ThrowElemError("Value out of range.");
 		val.SetBlue((emByte)i);
 		if (HaveAlpha) {
-			i=reader.TryReadInt();
-			if (i<0 || i>255) reader.ThrowElemError("Value out of range.");
-			val.SetAlpha((emByte)i);
+			if (reader.TryPeekNext(&c)!=emRecReader::ET_DELIMITER || c!='}') {
+				i=reader.TryReadInt();
+				if (i<0 || i>255) reader.ThrowElemError("Value out of range.");
+				val.SetAlpha((emByte)i);
+			}
+			else {
+				val.SetAlpha(255);
+			}
 		}
 		reader.TryReadCertainDelimiter('}');
 	}
@@ -1298,14 +1304,14 @@ emStructRec::~emStructRec()
 }
 
 
-const char * emStructRec::GetIdentifierOf(int index)
+const char * emStructRec::GetIdentifierOf(int index) const
 {
 	if (index<0 || index>=Count) return NULL;
 	return Members[index].Identifier;
 }
 
 
-int emStructRec::GetIndexOf(emRec * member)
+int emStructRec::GetIndexOf(const emRec * member) const
 {
 	int i;
 
@@ -1316,7 +1322,7 @@ int emStructRec::GetIndexOf(emRec * member)
 }
 
 
-int emStructRec::GetIndexOf(const char * identifier)
+int emStructRec::GetIndexOf(const char * identifier) const
 {
 	int i;
 
@@ -1572,7 +1578,7 @@ void emUnionRec::SetVariant(int variant)
 }
 
 
-const char * emUnionRec::GetIdentifierOf(int variant)
+const char * emUnionRec::GetIdentifierOf(int variant) const
 {
 	if (variant<0) return NULL;
 	if (variant>=VariantCount) return NULL;
@@ -1580,7 +1586,7 @@ const char * emUnionRec::GetIdentifierOf(int variant)
 }
 
 
-int emUnionRec::GetVariantOf(const char * identifier)
+int emUnionRec::GetVariantOf(const char * identifier) const
 {
 	int variant;
 

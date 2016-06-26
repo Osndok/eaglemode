@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2015 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2016 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -71,6 +71,8 @@ Topics=[
 			AutoSectionsFile("emCore/emArray.h"),
 			AutoSectionsFile("emCore/emList.h"),
 			AutoSectionsFile("emCore/emAvlTree.h"),
+			AutoSectionsFile("emCore/emAvlTreeMap.h"),
+			AutoSectionsFile("emCore/emAvlTreeSet.h"),
 			AutoSectionsFile("emCore/emAnything.h")
 		]
 	),
@@ -127,7 +129,9 @@ Topics=[
 			AutoSectionsFile("emCore/emSubViewPanel.h"),
 			AutoSectionsFile("emCore/emErrorPanel.h"),
 			AutoSectionsFile("emCore/emGUIFramework.h"),
-			AutoSectionsFile("emCore/emViewInputFilter.h")
+			AutoSectionsFile("emCore/emViewAnimator.h"),
+			AutoSectionsFile("emCore/emViewInputFilter.h"),
+			AutoSectionsFile("emCore/emWindowStateSaver.h")
 		]
 	),
 	Topic(text="Toolkit Panels",
@@ -164,7 +168,8 @@ Topics=[
 			AutoSectionsFile("emCore/emImageFile.h"),
 			AutoSectionsFile("emCore/emRecFileModel.h"),
 			AutoSectionsFile("emCore/emConfigModel.h"),
-			AutoSectionsFile("emCore/emCoreConfig.h")
+			AutoSectionsFile("emCore/emCoreConfig.h"),
+			AutoSectionsFile("emCore/emCoreConfigPanel.h")
 		]
 	),
 	Topic(text="File Panel Plugins",

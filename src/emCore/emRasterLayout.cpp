@@ -297,14 +297,6 @@ void emRasterLayout::LayoutChildren()
 			uy=sy/rows+1.0;
 			ct=h*ux*cols/(w*uy*rows);
 			err=fabs(log(prefCT/ct));
-			if (StrictRaster) {
-				if (RowByRow) {
-					if (ct<minCT) err+=1E3;
-				}
-				else {
-					if (ct>maxCT) err+=1E3;
-				}
-			}
 			if (rows==1 || err<errBest) {
 				rowsBest=rows;
 				errBest=err;
@@ -320,8 +312,39 @@ void emRasterLayout::LayoutChildren()
 	sy=SpaceT+SpaceB+SpaceV*(rows-1);
 	ux=sx/cols+1.0;
 	uy=sy/rows+1.0;
-
 	ct=h*ux*cols/(w*uy*rows);
+
+	if (StrictRaster) {
+		if (RowByRow) {
+			if (FixedColumnCount<=0) {
+				while (cols<cells && ct<minCT) {
+					cols++;
+					rows=(cells+cols-1)/cols;
+					if (rows<FixedRowCount) rows=FixedRowCount;
+					sx=SpaceL+SpaceR+SpaceH*(cols-1);
+					sy=SpaceT+SpaceB+SpaceV*(rows-1);
+					ux=sx/cols+1.0;
+					uy=sy/rows+1.0;
+					ct=h*ux*cols/(w*uy*rows);
+				}
+			}
+		}
+		else {
+			if (FixedRowCount<=0) {
+				while (rows<cells && ct>maxCT) {
+					rows++;
+					cols=(cells+rows-1)/rows;
+					if (cols<FixedColumnCount) cols=FixedColumnCount;
+					sx=SpaceL+SpaceR+SpaceH*(cols-1);
+					sy=SpaceT+SpaceB+SpaceV*(rows-1);
+					ux=sx/cols+1.0;
+					uy=sy/rows+1.0;
+					ct=h*ux*cols/(w*uy*rows);
+				}
+			}
+		}
+	}
+
 	if (ct<minCT) ct=minCT;
 	else if (ct>maxCT) ct=maxCT;
 	cw=cols*ux;

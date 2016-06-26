@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.h
 //
-// Copyright (C) 2005-2012 Oliver Hamann.
+// Copyright (C) 2005-2012,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,7 +41,7 @@ protected:
 	);
 	virtual void GetBorderSizes(
 		double * pL, double * pT, double * pR, double * pB
-	);
+	) const;
 	virtual void RequestFocus();
 	virtual void Raise();
 	virtual emUInt64 GetInputClockMS();
@@ -89,6 +89,10 @@ private:
 	void GetAbsWinGeometry(Display * disp, ::Window win,
 	                       int * pX, int *pY, int * pW, int *pH);
 
+	void SetWmStateMaximized(bool maximized);
+	void SetWmStateFullscreen(bool fullscreen);
+	void UpdateFromWmState();
+
 	emX11Screen & Screen;
 	emThreadMiniMutex & XMutex;
 	Display * Disp;
@@ -96,6 +100,7 @@ private:
 	::Window Win;
 	XIC InputContext;
 	GC Gc;
+	emWindow::WindowFlags WindowFlags;
 	int MinPaneW,MinPaneH;
 	int PaneX,PaneY,PaneW,PaneH;
 	int BorderL,BorderT,BorderR,BorderB;
@@ -123,7 +128,6 @@ private:
 	emInputKey RepeatKey;
 	int KeyRepeat;
 	XComposeStatus ComposeStatus;
-	emTimer * FullscreenUpdateTimer;
 	bool ModalState;
 	int ModalDescendants;
 };

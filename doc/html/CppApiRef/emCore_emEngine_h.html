@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emEngine_h.html#emEngine">emEngine</A>.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -163,7 +163,7 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>();
                 <SPAN CLASS=c>// Destructor.
 
-        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the scheduler.
 
         </SPAN><SPAN CLASS=t>void </SPAN>WakeUp();
@@ -271,8 +271,8 @@
                 <SPAN CLASS=c>// State of <A CLASS=m HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A>::Clock after last call to Cycle().
 </SPAN><SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::GetScheduler()
-<SPAN CLASS=b>{
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A>::GetScheduler() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Scheduler;
 <SPAN CLASS=b>}
 

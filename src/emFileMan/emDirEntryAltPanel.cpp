@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2010,2014 Oliver Hamann.
+// Copyright (C) 2007-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,6 +98,38 @@ void emDirEntryAltPanel::Notice(NoticeFlags flags)
 }
 
 
+void emDirEntryAltPanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	const emFileManTheme * theme;
+	double cx,cy,cw,ch;
+	emPanel * p;
+
+	if (event.IsMouseEvent()) {
+		theme = &Config->GetTheme();
+		cx=theme->AltContentX;
+		cy=theme->AltContentY;
+		cw=theme->AltContentW;
+		ch=theme->AltContentH;
+		if (mx>=cx && mx<cx+cw && my>=cy && my<cy+ch) {
+			p=GetChild(ContentName);
+			if (p) {
+				if (!p->IsFocusable()) {
+					p=p->GetFocusableFirstChild();
+				}
+				if (p) {
+					p->Focus();
+					event.Eat();
+				}
+			}
+		}
+	}
+
+	emPanel::Input(event,state,mx,my);
+}
+
+
 bool emDirEntryAltPanel::IsOpaque()
 {
 	return false;
@@ -157,6 +189,18 @@ void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor)
 			theme->AltInnerBorderImgB,
 			255,canvasColor,0757
 		);
+		if (
+			theme->AltContentX + 1E-10 <
+				theme->AltInnerBorderX + theme->AltInnerBorderL ||
+			theme->AltContentY + 1E-10 <
+				theme->AltInnerBorderY + theme->AltInnerBorderT ||
+			theme->AltContentX + theme->AltContentW - 1E-10 >
+				theme->AltInnerBorderX + theme->AltInnerBorderW - theme->AltInnerBorderR ||
+			theme->AltContentY + theme->AltContentH - 1E-10 >
+				theme->AltInnerBorderY + theme->AltInnerBorderH - theme->AltInnerBorderB
+		) {
+			canvasColor=0;
+		}
 		painter.PaintRect(
 			theme->AltContentX,theme->AltContentY,
 			theme->AltContentW,theme->AltContentH,

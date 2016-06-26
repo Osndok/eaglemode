@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 3.0
+# Order = 4.0
 # Interpreter = perl
 # DefaultFor = .fig
 # Caption = Xfig
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The xfig file to be opened.
+# Icon = thirdparty/xfig.tga
 #[[END PROPERTIES]]
 
 #??? Do not add fig.gz to the DefaultFor list, because xfig would unpack

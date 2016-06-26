@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.h
 //
-// Copyright (C) 2004-2010 Oliver Hamann.
+// Copyright (C) 2004-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,6 +56,11 @@ public:
 	void UpdateDirEntry(const emDirEntry & dirEntry);
 
 	virtual emString GetTitle();
+	virtual emString GetIconFileName();
+
+	virtual void GetSubstanceRect(double * pX, double * pY,
+	                              double * pW, double * pH,
+	                              double * pR);
 
 protected:
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 8.0
+# Order = 12.0
 # Interpreter = perl
 # DefaultFor = directory
 # Caption = Terminal
@@ -15,8 +15,7 @@
 # Descr =  Target: The directory to be used as the current working directory.
 # Descr =          If a file is selected as the target, the parent directory
 # Descr =          of that file is used.
-# ButtonBgColor = #A9A
-# ButtonFgColor = #000
+# Icon = terminal.tga
 # Hotkey = Ctrl+T
 #[[END PROPERTIES]]
 

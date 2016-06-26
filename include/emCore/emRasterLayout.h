@@ -124,13 +124,12 @@ public:
 		// rows and columns so that the child panels are shown as large
 		// as possible. Depending on minimum and maximum tallness, the
 		// available space may not be filled completely either
-		// horizontally or vertically - more or less by random. With
-		// "strict raster", the available space is always filled
-		// vertically in a column-by-column layout or horizontally in a
-		// row-by-row layout, respectively. This may result in more rows
-		// or columns than originally needed, but it may look better or
-		// cleaner, especially when the set of child panels is
-		// extensible.
+		// horizontally or vertically. With "strict raster", the
+		// available space is best possible filled vertically in a
+		// column-by-column layout or horizontally in a row-by-row
+		// layout, respectively. This may result in more rows or columns
+		// than originally needed, but it may look better or cleaner,
+		// especially when the set of child panels is extensible.
 
 	emAlignment GetAlignment() const;
 	void SetAlignment(emAlignment alignment);
@@ -177,10 +176,10 @@ public:
 		// The method argument lr means to set l and r to the same
 		// value, same with tb for t and b.
 		//
-		// The values are relative to the average size of the child
-		// panels. For example, v=0.5 means that the vertical space
-		// between child panels gets half as tall as an average child
-		// panel. The default is zero for all parameters.
+		// The values are relative to the size of the child panels. For
+		// example, v=0.5 means that the vertical space between child
+		// panels gets half as tall as a child panel. The default is
+		// zero for all parameters.
 
 protected:
 

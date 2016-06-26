@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -292,7 +292,7 @@ void emImage::TryParseTga(
 	emColor * palette;
 	emColor runCol;
 	int runLen,i,x,y,c,w,h,idLen,palType,palBitsPP,bitsPP,desc,palSize;
-	int alphaMask,imgType;
+	int alphaMask,imgType,maxCC;
 
 	palette=NULL;
 
@@ -358,14 +358,25 @@ void emImage::TryParseTga(
 
 	if (channelCount<1 || channelCount>4) {
 		if (palette) {
+			if (palBitsPP==24 || alphaMask==255) maxCC=3;
+			else maxCC=4;
 			channelCount=1;
 			for (i=0; i<palSize; i++) {
 				if (channelCount<3 && !palette[i].IsGrey()) channelCount+=2;
 				if ((channelCount&1)!=0 && palette[i].GetAlpha()!=255) channelCount+=1;
+				if (channelCount>=maxCC) break;
 			}
 		}
 		else if ((imgType&~8)==3 && bitsPP==8) channelCount=1;
 		else {
+			if ((imgType&~8)==2) {
+				if (bitsPP==24 || alphaMask==255) maxCC=3;
+				else maxCC=4;
+			}
+			else {
+				if (bitsPP==8 || alphaMask==255) maxCC=1;
+				else maxCC=2;
+			}
 			channelCount=1;
 			runCol=0;
 			runLen=0;
@@ -406,6 +417,7 @@ void emImage::TryParseTga(
 					}
 					if (channelCount<3 && !runCol.IsGrey()) channelCount+=2;
 					if ((channelCount&1)!=0 && runCol.GetAlpha()!=255) channelCount+=1;
+					if (channelCount>=maxCC) break;
 				}
 			}
 		}

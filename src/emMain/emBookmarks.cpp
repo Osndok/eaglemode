@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,7 +51,7 @@ void emBookmarksRec::InsertNewBookmark(int index, emView * contentView)
 	emPanel * p;
 	emUnionRec * u;
 	emBookmarkRec * bm;
-	emString title,name,desc;
+	emString title,name,desc,icon;
 	double x,y,a;
 
 	if (index<0) index=0;
@@ -67,9 +67,12 @@ void emBookmarksRec::InsertNewBookmark(int index, emView * contentView)
 	name=BookmarkNameFromPanelTitle(p->GetTitle());
 	desc=(name!=title ? title : emString());
 
+	icon=emBookmarksModel::GetNormalizedIconFileName(p->GetIconFileName());
+
 	bm=(emBookmarkRec*)&u->Get();
 	bm->Name=name;
 	bm->Description=desc;
+	bm->Icon=icon;
 	bm->LocationIdentity=p->GetIdentity();
 	bm->LocationRelX=x;
 	bm->LocationRelY=y;
@@ -411,53 +414,285 @@ emString emBookmarksModel::GetDefaultIconDir()
 }
 
 
+emString emBookmarksModel::GetNormalizedIconFileName(const emString & iconFile)
+{
+	emString iconDir;
+	int dLen, fLen;
+
+	if (!iconFile.IsEmpty()) {
+		iconDir=GetDefaultIconDir();
+		dLen=iconDir.GetLen();
+		fLen=iconFile.GetLen();
+		if (
+			dLen+1<fLen &&
+#if defined(_WIN32)
+			(iconFile[dLen]=='\\' || iconFile[dLen]=='/') &&
+#else
+			iconFile[dLen]=='/' &&
+#endif
+			iconFile.GetSubString(0,dLen)==iconDir
+		) {
+			return iconFile.GetSubString(dLen+1,fLen-dLen-1);
+		}
+	}
+	return iconFile;
+}
+
+
 emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 	: emConfigModel(context,name)
 {
-	emString recPath,srcPath;
+	emString recPath,srcPath,interpreter;
 	emArray<emString> args;
 	emProcess process;
 
 	recPath=emGetInstallPath(EM_IDT_USER_CONFIG,"emMain","bookmarks.rec");
 
 	if (!emIsExistingPath(recPath)) {
+
+		interpreter.Clear();
 		srcPath=emGetInstallPath(EM_IDT_HOST_CONFIG,"emMain","InitialBookmarks.rec");
-		if (emIsExistingPath(srcPath)) {
-			try {
-				emTryMakeDirectories(emGetParentPath(recPath));
-				emTryCopyFileOrTree(recPath,srcPath);
-			}
-			catch (emException & exception) {
-				emWarning("%s",exception.GetText());
-			}
+
+		if (!emIsExistingPath(srcPath)) {
+#if defined(_WIN32)
+			interpreter="wscript";
+			srcPath=emGetInstallPath(EM_IDT_HOST_CONFIG,"emMain","CreateInitialBookmarks.js");
+#else
+			interpreter="perl";
+			srcPath=emGetInstallPath(EM_IDT_HOST_CONFIG,"emMain","CreateInitialBookmarks.pl");
+#endif
 		}
-		else {
-			args.Add("perl");
-			args.Add(
-				emGetInstallPath(
-					EM_IDT_HOST_CONFIG,"emMain",
-					"CreateInitialBookmarks.pl"
-				)
-			);
-			args.Add(recPath);
-			try {
-				emTryMakeDirectories(emGetParentPath(recPath));
-				process.TryStart(args);
-				while (!process.WaitForTermination(60000)) {}
+
+		if (emIsExistingPath(srcPath)) {
+			if (interpreter.IsEmpty()) {
+				try {
+					emTryMakeDirectories(emGetParentPath(recPath));
+					emTryCopyFileOrTree(recPath,srcPath);
+				}
+				catch (emException & exception) {
+					emWarning("%s",exception.GetText());
+				}
 			}
-			catch (emException & exception) {
-				emWarning("%s",exception.GetText());
+			else {
+				args.Clear();
+				args.Add(interpreter);
+				args.Add(srcPath);
+				args.Add(recPath);
+				try {
+					emTryMakeDirectories(emGetParentPath(recPath));
+					process.TryStart(args);
+					while (!process.WaitForTermination(60000)) {}
+				}
+				catch (emException & exception) {
+					emWarning("%s",exception.GetText());
+				}
 			}
 		}
 	}
 
 	PostConstruct(*this,recPath);
 	LoadOrInstall(NULL);
+
+	Update_0_90_0();
+	Update_0_91_0();
 }
 
 
 emBookmarksModel::~emBookmarksModel()
 {
+}
+
+
+void emBookmarksModel::Update_0_90_0()
+{
+	emBookmarkRec * bm;
+	emUnionRec * u;
+	bool anyChange;
+	int i;
+
+	// This is a hack which updates the colors and icons of the default
+	// bookmarks from version <= 0.89.x to version 0.90.0.
+
+	anyChange=false;
+	for (i=0; i<GetCount(); i++) {
+		u=(emUnionRec*)&Get(i);
+		if (u->GetVariant() != BOOKMARK) continue;
+		bm=(emBookmarkRec*)&u->Get();
+
+		if (
+			bm->BgColor.Get()==0xEEEEEEFFU &&
+			bm->FgColor.Get()==0x333333FFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Help" &&
+			bm->Hotkey.Get()=="F1"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("help.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0xAAAAAAFFU &&
+			bm->FgColor.Get()==0x000088FFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Home" &&
+			bm->Hotkey.Get()=="F6"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("home.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0x777777FFU &&
+			bm->FgColor.Get()==0x000066FFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Root" &&
+			bm->Hotkey.Get()=="F7"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("root.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0x111122FFU &&
+			bm->FgColor.Get()==0xDDDD99FFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Virtual Cosmos" &&
+			bm->LocationIdentity.Get()==":"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("virtual_cosmos.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0x886644FFU &&
+			bm->FgColor.Get()==0xDDCCBBFFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Chess" &&
+			bm->LocationIdentity.Get()=="::Chess1:"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("silchess.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0x221111FFU &&
+			bm->FgColor.Get()==0xCC4444FFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Mines" &&
+			bm->LocationIdentity.Get()=="::Mines1:"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("mines.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0x447799FFU &&
+			(bm->FgColor.Get()==0xAADDCCFFU || bm->FgColor.Get()==0x66DDAAFFU) &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Netwalk" &&
+			bm->LocationIdentity.Get()=="::Netwalk1:"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("netwalk.tga");
+			anyChange=true;
+		}
+
+		if (
+			bm->BgColor.Get()==0x002288FFU &&
+			bm->FgColor.Get()==0x99CC66FFU &&
+			bm->Icon.Get().IsEmpty() &&
+			bm->Name.Get()=="Clock" &&
+			bm->LocationIdentity.Get()=="::Clock1:"
+		) {
+			bm->BgColor.Set(emLook().GetButtonBgColor());
+			bm->FgColor.Set(emLook().GetButtonFgColor());
+			bm->Icon.Set("clock.tga");
+			anyChange=true;
+		}
+	}
+
+	if (anyChange) {
+		Save();
+	}
+}
+
+
+void emBookmarksModel::Update_0_91_0()
+{
+#if defined(_WIN32)
+	emArray<emString> names;
+	emString str;
+	emBookmarkRec * bm;
+	emUnionRec * u;
+	bool anyChange;
+	int i;
+
+	// This is a hack which updates some locations of the default
+	// bookmarks from version <= 0.90.0 to version 0.91.0 on Windows.
+
+	anyChange=false;
+	for (i=0; i<GetCount(); i++) {
+		u=(emUnionRec*)&Get(i);
+		if (u->GetVariant() != BOOKMARK) continue;
+		bm=(emBookmarkRec*)&u->Get();
+
+		if (
+			bm->Name.Get()=="Home" &&
+			bm->Hotkey.Get()=="F6" &&
+			bm->LocationIdentity.Get()=="::HomeDir:::" &&
+			fabs(bm->LocationRelX.Get() - 0.0)<0.000001 &&
+			fabs(bm->LocationRelY.Get() - 0.0)<0.000001 &&
+			fabs(bm->LocationRelA.Get() - 0.0)<0.000001
+		) {
+			str=emGetInstallPath(EM_IDT_HOME,"unknown");
+			names.Clear();
+			while (str!=emGetParentPath(str)) {
+				names.Insert(0,emGetNameInPath(str));
+				names.Insert(0,"");
+				str=emGetParentPath(str);
+			}
+			names.Insert(0,str);
+			names.Insert(0,"");
+			names.Insert(0,"FS");
+			names.Insert(0,"");
+			names.Insert(0,"");
+			bm->LocationIdentity.Set(emPanel::EncodeIdentity(names));
+			anyChange=true;
+		}
+
+		if (
+			bm->Name.Get()=="Root" &&
+			bm->Hotkey.Get()=="F7" &&
+			bm->LocationIdentity.Get()==":" &&
+			fabs(bm->LocationRelX.Get() - 0.0014)<0.000001 &&
+			fabs(bm->LocationRelY.Get() - 0.0031)<0.000001 &&
+			fabs(bm->LocationRelA.Get() - 0.0271)<0.000001
+		) {
+			bm->LocationIdentity.Set("::FS:");
+			bm->LocationRelX.Set(0.0);
+			bm->LocationRelY.Set(0.0);
+			bm->LocationRelA.Set(0.0);
+			anyChange=true;
+		}
+	}
+
+	if (anyChange) {
+		Save();
+	}
+#endif
 }
 
 
@@ -538,10 +773,10 @@ bool emBookmarkEntryAuxPanel::Cycle()
 	emBookmarksRec * bmsParentRec;
 	emClipboard * clipboard;
 	emPanel * p;
-	emString path1,path2,icon;
+	emString icon;
 	double x,y,a;
 	bool busy,modified,zoomOut;
-	int index,l1,l2;
+	int index;
 
 	busy=emLinearGroup::Cycle();
 
@@ -631,26 +866,11 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				}
 			}
 			else {
-				path1=emBookmarksModel::GetDefaultIconDir();
-				path2=FlbIcon->GetSelectedPath();
-				l1=path1.GetLen();
-				l2=path2.GetLen();
-				if (
-					l1+1<l2 &&
-#if defined(_WIN32)
-					(path2[l1]=='\\' || path2[l1]=='/') &&
-#else
-					path2[l1]=='/' &&
-#endif
-					path2.GetSubString(0,l1)==path1
-				) {
-					icon=path2.GetSubString(l1+1,l2-l1-1);
-				}
-				else {
-					icon=path2;
-				}
+				icon=emBookmarksModel::GetNormalizedIconFileName(
+					FlbIcon->GetSelectedPath()
+				);
 				if (entryRec->Icon.Get()!=icon) {
-					if (emIsDirectory(path2)) {
+					if (emIsDirectory(icon)) {
 						icon.Clear();
 					}
 					if (entryRec->Icon.Get()!=icon) {
@@ -660,6 +880,11 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				}
 			}
 		}
+	}
+	if (FlbIcon && IsSignaled(FlbIcon->GetFileTriggerSignal())) {
+		p=GetParent();
+		if (grpRec && p) p=p->GetParent();
+		if (p) GetView().VisitFullsized(p,false);
 	}
 	if (CfBgColor && IsSignaled(CfBgColor->GetColorSignal())) {
 		if (entryRec) {
@@ -869,7 +1094,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 			"Icon",
 			emString::Format(
 				"An icon to be shown in this bookmark %s.\n"
-				"It must be the name of a TGA file",
+				"It must be the name of a TGA file.",
 				bmRec ? "button" : "group border"
 			)
 		);
@@ -879,6 +1104,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		FlbIcon->SetFilters(filters);
 		FlbIcon->SetParentDirectory(emBookmarksModel::GetDefaultIconDir());
 		AddWakeUpSignal(FlbIcon->GetSelectionSignal());
+		AddWakeUpSignal(FlbIcon->GetFileTriggerSignal());
 		CfBgColor=new emColorField(
 			g,
 			"bgcol",
@@ -1229,6 +1455,9 @@ emBookmarkButton::emBookmarkButton(
 	UpToDate=false;
 	SetListenedRec(rec);
 	HaveAux("aux",6.0);
+	SetIconAboveCaption();
+	SetMaxIconAreaTallness(9.0/16.0);
+	SetBorderScaling(0.5);
 	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
 	AddWakeUpSignal(GetClickSignal());
 	WakeUp();
@@ -1331,7 +1560,7 @@ void emBookmarkButton::Update()
 		catch (emException &) {
 			try {
 				img=emTryGetInsResImage(
-					GetRootContext(),"icons","em-error-unknown-icon.tga"
+					GetRootContext(),"icons","error_unknown_icon.tga"
 				);
 			}
 			catch (emException &) {
@@ -1460,11 +1689,11 @@ void emBookmarksPanel::AutoExpand()
 		new emBookmarksAuxPanel(RasterLayout,"empty",ContentView,Model,bmsRec);
 	}
 	else {
-		RasterLayout->SetMinCellCount(4);
+		RasterLayout->SetMinCellCount(2);
 		RasterLayout->SetOuterSpace(0.0,0.0);
-		RasterLayout->SetPrefChildTallness(0.2);
-		RasterLayout->SetMinChildTallness(0.0);
-		RasterLayout->SetMaxChildTallness(1E100);
+		RasterLayout->SetPrefChildTallness(1.0);
+		RasterLayout->SetMinChildTallness(0.45);
+		RasterLayout->SetMaxChildTallness(0.9);
 		RasterLayout->SetStrictRaster(true);
 		RasterLayout->SetAlignment(EM_ALIGN_TOP_LEFT);
 		for (idx=0; idx<cnt; idx++) {
@@ -1536,7 +1765,7 @@ void emBookmarksPanel::Update()
 			catch (emException &) {
 				try {
 					img=emTryGetInsResImage(
-						GetRootContext(),"icons","em-error-unknown-icon.tga"
+						GetRootContext(),"icons","error_unknown_icon.tga"
 					);
 				}
 				catch (emException &) {

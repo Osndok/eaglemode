@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.h
 //
-// Copyright (C) 2007-2008,2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -143,10 +143,17 @@ public:
 
 	static emString GetDefaultIconDir();
 
+	static emString GetNormalizedIconFileName(const emString & iconFile);
+
 protected:
 
 	emBookmarksModel(emContext & context, const emString & name);
 	virtual ~emBookmarksModel();
+
+private:
+
+	void Update_0_90_0();
+	void Update_0_91_0();
 };
 
 

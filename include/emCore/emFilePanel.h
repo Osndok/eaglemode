@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.h
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,8 +63,7 @@ public:
 	virtual ~emFilePanel();
 		// Destructor.
 
-	const emFileModel * GetFileModel() const;
-	emFileModel * GetFileModel();
+	emFileModel * GetFileModel() const;
 		// Get the file model, NULL if none.
 
 	virtual void SetFileModel(emFileModel * fileModel,
@@ -74,7 +73,7 @@ public:
 
 	void SetCustomError(const emString & message);
 	void ClearCustomError();
-	emString GetCustomError();
+	emString GetCustomError() const;
 		// Set, clear or get a custom error message. If set, the message
 		// is shown by the default implementation of Paint.
 
@@ -114,6 +113,8 @@ public:
 		// It means that the file model data can safely be shown and
 		// modified.
 
+	virtual emString GetIconFileName();
+
 protected:
 
 	virtual bool Cycle();
@@ -139,12 +140,7 @@ private:
 	emSignal VirFileStateSignal;
 };
 
-inline const emFileModel * emFilePanel::GetFileModel() const
-{
-	return FileModelClient.GetModel();
-}
-
-inline emFileModel * emFilePanel::GetFileModel()
+inline emFileModel * emFilePanel::GetFileModel() const
 {
 	return FileModelClient.GetModel();
 }

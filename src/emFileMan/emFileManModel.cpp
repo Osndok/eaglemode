@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -230,7 +230,7 @@ emFileManModel::CommandNode::CommandNode()
 	Type=CT_GROUP;
 	Order=0.0;
 	BorderScaling=1.0;
-	PrefChildTallness=0.2;
+	PrefChildTallness=1.0;
 	Children.SetTuningLevel(4);
 	DirCRC=0;
 }
@@ -274,16 +274,12 @@ void emFileManModel::RunCommand(const CommandNode * cmd, emView & contentView)
 	emArray<emDirEntry> src,tgt;
 	emArray<emString> args,extraEnv;
 	emWindow * wnd;
-	emScreen * screen;
 	emString commandRunId;
 	emString str;
 	double l,t,r,b;
 	int i,scnt,tcnt,winX,winY,winW,winH;
 
 	if (!cmd || cmd->Type!=CT_COMMAND) return;
-
-	screen=contentView.GetScreen();
-	if (screen) screen->LeaveFullscreenModes();
 
 	SelCmdCounter++;
 	commandRunId=GetCommandRunId();
@@ -870,7 +866,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 			catch (emException &) {
 				try {
 					cmd->Icon=emTryGetInsResImage(
-						GetRootContext(),"icons","em-error-unknown-icon.tga"
+						GetRootContext(),"icons","error_unknown_icon.tga"
 					);
 				}
 				catch (emException &) {

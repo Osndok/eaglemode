@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManTheme.h
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emFileManTheme_h
 #define emFileManTheme_h
+
+#ifndef emAvlTreeMap_h
+#include <emCore/emAvlTreeMap.h>
+#endif
 
 #ifndef emImage_h
 #include <emCore/emImage.h>
@@ -66,6 +70,7 @@ public:
 	};
 
 	emStringRec DisplayName;
+	emStringRec DisplayIcon;
 	emColorRec BackgroundColor;
 	emColorRec SourceSelectionColor;
 	emColorRec TargetSelectionColor;
@@ -189,6 +194,14 @@ public:
 	emDoubleRec AltContentH;
 	emDoubleRec MinContentVW;
 	emDoubleRec MinAltVW;
+	emDoubleRec DirPaddingL;
+	emDoubleRec DirPaddingT;
+	emDoubleRec DirPaddingR;
+	emDoubleRec DirPaddingB;
+	emDoubleRec LnkPaddingL;
+	emDoubleRec LnkPaddingT;
+	emDoubleRec LnkPaddingR;
+	emDoubleRec LnkPaddingB;
 
 	virtual const char * GetFormatName() const;
 
@@ -211,9 +224,16 @@ public:
 		emRootContext & rootContext
 	);
 
-	int GetThemeCount() const;
-	const emString & GetThemeName(int index) const;
-	const emString & GetThemeDisplayName(int index) const;
+	int GetThemeStyleCount() const;
+	int GetThemeAspectRatioCount(int styleIndex) const;
+	emString GetThemeName(int styleIndex, int aspectRatioIndex) const;
+	emString GetDefaultThemeName() const;
+	emString GetThemeStyleDisplayName(int styleIndex) const;
+	emString GetThemeStyleDisplayIcon(int styleIndex) const;
+	emString GetThemeAspectRatio(int styleIndex, int aspectRatioIndex) const;
+	bool IsExistingThemeName(const emString & themeName) const;
+	int GetThemeStyleIndex(const emString & themeName) const;
+	int GetThemeAspectRatioIndex(const emString & themeName) const;
 
 protected:
 
@@ -222,27 +242,27 @@ protected:
 
 private:
 
-	struct ThemeInfo {
+	static emString HeightToAspectRatioString(double height);
+
+	struct ThemeAR {
 		emString Name;
-		emString DisplayName;
+		emString AspectRatio;
+		double Height;
 	};
 
-	emArray<ThemeInfo> ThemeInfos;
+	struct ThemeStyle {
+		emString DisplayName;
+		emString DisplayIcon;
+		emArray<ThemeAR> ThemeARs;
+	};
+
+	emArray<ThemeStyle> ThemeStyles;
+	emAvlTreeMap<emString,int> NameToPackedIndex;
 };
 
-inline int emFileManThemeNames::GetThemeCount() const
+inline int emFileManThemeNames::GetThemeStyleCount() const
 {
-	return ThemeInfos.GetCount();
-}
-
-inline const emString & emFileManThemeNames::GetThemeName(int index) const
-{
-	return ThemeInfos[index].Name;
-}
-
-inline const emString & emFileManThemeNames::GetThemeDisplayName(int index) const
-{
-	return ThemeInfos[index].DisplayName;
+	return ThemeStyles.GetCount();
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.h
 //
-// Copyright (C) 2008-2009,2014 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -127,6 +127,37 @@ extern void * emX11_LibXxf86vmFunctions[4];
 #define XF86VidModeQueryVersion (\
 	(Bool(*)(Display*,int*,int*))\
 	emX11_LibXxf86vmFunctions[3]\
+)
+
+
+//==============================================================================
+//======================= Dynamic access to libXinerama ========================
+//==============================================================================
+
+void emX11_TryLoadLibXinerama() throw(emException);
+bool emX11_IsLibXineramaLoaded();
+
+typedef struct {
+	int screen_number;
+	short x_org;
+	short y_org;
+	short width;
+	short height;
+} XineramaScreenInfo;
+
+extern void * emX11_LibXineramaFunctions[3];
+
+#define XineramaQueryExtension (\
+	(Bool(*)(Display*,int*,int*))\
+	emX11_LibXineramaFunctions[0]\
+)
+#define XineramaQueryScreens (\
+	(XineramaScreenInfo*(*)(Display*,int*))\
+	emX11_LibXineramaFunctions[1]\
+)
+#define XineramaQueryVersion (\
+	(Status(*)(Display*,int*,int*))\
+	emX11_LibXineramaFunctions[2]\
 )
 
 

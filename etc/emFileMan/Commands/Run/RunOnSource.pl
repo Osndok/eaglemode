@@ -16,6 +16,7 @@
 # Descr =Hints: Here, the current working directory is set to the
 # Descr =parent directory of the first source argument. The order
 # Descr =of arguments may differ from the order of selecting them.
+# Icon = run_on_source.tga
 # Hotkey = Shift+Ctrl+R
 #[[END PROPERTIES]]
 

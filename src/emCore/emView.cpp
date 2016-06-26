@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,16 +29,17 @@
 emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	: emContext(parentContext)
 {
+	emContext * c;
+	emWindow * win;
+
 	CoreConfig=emCoreConfig::Acquire(GetRootContext());
 	DummyViewPort=new emViewPort();
 	DummyViewPort->CurrentView=this;
 	DummyViewPort->HomeView=this;
 	HomeViewPort=DummyViewPort;
 	CurrentViewPort=DummyViewPort;
-	WindowPtrCache=NULL;
-	ScreenRefCache=NULL;
-	WindowPtrValid=false;
-	ScreenRefValid=false;
+	Window=NULL;
+	ScreenRef=NULL;
 	PopupWindow=NULL;
 	FirstVIF=NULL;
 	LastVIF=NULL;
@@ -96,6 +97,12 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	new emCheatVIF(*this);
 	new emKeyboardZoomScrollVIF(*this);
 	new emMouseZoomScrollVIF(*this);
+
+	for (win=NULL, c=GetParentContext(); c!=NULL; c=c->GetParentContext()) {
+		win=dynamic_cast<emWindow*>(c);
+		if (win) break;
+	}
+	SetWindowAndScreen(win); // emWindow constructor also calls that...
 }
 
 
@@ -204,33 +211,68 @@ void emView::Focus()
 }
 
 
-emWindow * emView::GetWindow()
+emScreen * emView::GetScreen() const
 {
-	emContext * c;
-
-	if (!WindowPtrValid) {
-		// Unfortunately this cannot be done in the constructor.
-		for (c=this; c!=NULL; c=c->GetParentContext()) {
-			WindowPtrCache=dynamic_cast<emWindow*>(c);
-			if (WindowPtrCache) break;
-		}
-		WindowPtrValid=true;
-	}
-	return WindowPtrCache;
+	return (emScreen*)ScreenRef.Get();
 }
 
 
-emScreen * emView::GetScreen()
+void emView::GetMaxPopupViewRect(
+	double * pX, double * pY, double * pW, double * pH
+) const
 {
-	emWindow * win;
+	double x,y,w,h,mx,my,mw,mh,cx,cy;
+	const emScreen * screen;
+	bool found;
+	int i,n;
 
-	if (!ScreenRefValid) {
-		win=GetWindow();
-		if (win) ScreenRefCache=&win->GetScreen();
-		else ScreenRefCache=emScreen::LookupInherited(*this);
-		ScreenRefValid=true;
+	x=CurrentX;
+	y=CurrentY;
+	w=CurrentWidth;
+	h=CurrentHeight;
+	screen=GetScreen();
+	if (screen) {
+		n=screen->GetMonitorCount();
+		found=false;
+		for (i=n-1; i>=0; i--) {
+			screen->GetMonitorRect(i,&mx,&my,&mw,&mh);
+			if (
+				(!found && i==0) || (
+					mx<HomeX+HomeWidth  && mx+mw>HomeX &&
+					my<HomeY+HomeHeight && my+mh>HomeY
+				)
+			) {
+				if (!found) {
+					x=mx;
+					y=my;
+					w=mw;
+					h=mh;
+					found=true;
+				}
+				else {
+					if (x>mx) { w+=x-mx; x=mx; }
+					if (w<mx+mw-x) w=mx+mw-x;
+					if (y>my) { h+=y-my; y=my; }
+					if (h<my+mh-y) h=my+mh-y;
+				}
+			}
+		}
+		if (found) {
+			// This is just for that the users sees more than
+			// nothing even when the monitor rectangles are
+			// completely wrong.
+			cx=HomeX+HomeWidth*0.5;
+			cy=HomeY+HomeHeight*0.5;
+			if (x>cx) { w+=x-cx; x=cx; }
+			if (w<cx-x) w=cx-x;
+			if (y>cy) { h+=y-cy; y=cy; }
+			if (h<cy-y) h=cy-y;
+		}
 	}
-	return (emScreen*)ScreenRefCache.Get();
+	if (pX) *pX=x;
+	if (pY) *pY=y;
+	if (pW) *pW=w;
+	if (pH) *pH=h;
 }
 
 
@@ -291,7 +333,7 @@ void emView::SetActivePanelBestPossible()
 	cw=CurrentWidth;
 	ch=CurrentHeight;
 	if (PopupWindow) {
-		PopupWindow->GetScreen().GetVisibleRect(&ex,&ey,&ew,&eh);
+		GetMaxPopupViewRect(&ex,&ey,&ew,&eh);
 		if (ex<cx) { ew-=cx-ex; ex=cx; }
 		if (ey<cy) { eh-=cy-ey; ey=cy; }
 		if (ew>cx+cw-ex) { ew=cx+cw-ex; }
@@ -349,7 +391,7 @@ void emView::SetActivePanelBestPossible()
 }
 
 
-emPanel * emView::GetPanelByIdentity(const char * identity)
+emPanel * emView::GetPanelByIdentity(const char * identity) const
 {
 	emArray<emString> a;
 	emPanel * p;
@@ -370,7 +412,7 @@ emPanel * emView::GetPanelByIdentity(const char * identity)
 }
 
 
-emPanel * emView::GetPanelAt(double x, double y)
+emPanel * emView::GetPanelAt(double x, double y) const
 {
 	emPanel * p, * c;
 
@@ -395,16 +437,26 @@ emPanel * emView::GetPanelAt(double x, double y)
 }
 
 
-emPanel * emView::GetFocusablePanelAt(double x, double y)
+emPanel * emView::GetFocusablePanelAt(double x, double y, bool checkSubstance) const
 {
 	emPanel * p, * c;
 
 	p=SupremeViewedPanel;
-	if (p && p->ClipX1<=x && p->ClipX2>x && p->ClipY1<=y && p->ClipY2>y) {
+	if (
+		p && p->ClipX1<=x && p->ClipX2>x && p->ClipY1<=y && p->ClipY2>y && (
+			!checkSubstance ||
+			p->IsPointInSubstanceRect(p->ViewToPanelX(x),p->ViewToPanelY(y))
+		)
+	) {
 		c=p->GetFocusableLastChild();
 		while (c) {
-			if (c->Viewed && c->ClipX1<=x && c->ClipX2>x && c->ClipY1<=y &&
-			    c->ClipY2>y) {
+			if (
+				c->Viewed &&
+				c->ClipX1<=x && c->ClipX2>x && c->ClipY1<=y && c->ClipY2>y && (
+					!checkSubstance ||
+					c->IsPointInSubstanceRect(c->ViewToPanelX(x),c->ViewToPanelY(y))
+				)
+			) {
 				p=c;
 				c=p->GetFocusableLastChild();
 			}
@@ -423,7 +475,7 @@ emPanel * emView::GetFocusablePanelAt(double x, double y)
 
 emPanel * emView::GetVisitedPanel(
 	double * pRelX, double * pRelY, double * pRelA
-)
+) const
 {
 	emPanel * p;
 
@@ -833,16 +885,16 @@ void emView::RawScrollAndZoom(
 }
 
 
-double emView::GetZoomFactorLogarithmPerPixel()
+double emView::GetZoomFactorLogarithmPerPixel() const
 {
-	double x,y,w,h,r;
-	emScreen * screen;
+	double w,h,r;
 
-	w=GetCurrentWidth();
-	h=GetCurrentHeight();
 	if ((GetViewFlags()&emView::VF_POPUP_ZOOM)!=0) {
-		screen=GetScreen();
-		if (screen) screen->GetVisibleRect(&x,&y,&w,&h);
+		GetMaxPopupViewRect(NULL,NULL,&w,&h);
+	}
+	else {
+		w=GetCurrentWidth();
+		h=GetCurrentHeight();
 	}
 	r=(w+h)*0.25;
 	if (r<1.0) r=1.0;
@@ -864,10 +916,10 @@ void emView::RawZoomOut()
 }
 
 
-bool emView::IsZoomedOut()
+bool emView::IsZoomedOut() const
 {
 	double x,y,w,h;
-	emPanel * p;
+	const emPanel * p;
 
 	if (SettingGeometry) return ZoomedOutBeforeSG;
 	if (VFlags&VF_POPUP_ZOOM) return PopupWindow==NULL;
@@ -1114,6 +1166,15 @@ void emView::DoCustomCheat(const char * func)
 }
 
 
+void emView::SetWindowAndScreen(emWindow * window)
+{
+	// Called by the constructors of emView and emWindow.
+	Window=window;
+	if (window) ScreenRef=&window->GetScreen();
+	else ScreenRef=emScreen::LookupInherited(*this);
+}
+
+
 void emView::SetFocused(bool focused)
 {
 	emPanel * p;
@@ -1282,26 +1343,24 @@ void emView::Update()
 
 void emView::CalcVisitCoords(
 	emPanel * panel, double * pRelX, double * pRelY, double * pRelA
-)
+) const
 {
 	static const double MIN_REL_DISTANCE=0.03;
 	static const double MIN_REL_CIRCUMFERENCE=0.05;
-	emScreen * screen;
 	emPanel * p, * cp;
 	double ph,dx,dy,sx,sy,sw,sh,minvw,maxvw,vx,vy,vw,vh;
 	double ctx,cty,ctw,cth,csx,csy,csw,csh;
 
 	ph=panel->GetHeight();
 
-	sx=CurrentX;
-	sy=CurrentY;
-	sw=CurrentWidth;
-	sh=CurrentHeight;
 	if ((VFlags&VF_POPUP_ZOOM)!=0) {
-		screen=GetScreen();
-		if (screen) {
-			screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-		}
+		GetMaxPopupViewRect(&sx,&sy,&sw,&sh);
+	}
+	else {
+		sx=CurrentX;
+		sy=CurrentY;
+		sw=CurrentWidth;
+		sh=CurrentHeight;
 	}
 
 	dx=emMin(
@@ -1402,18 +1461,18 @@ void emView::CalcVisitCoords(
 void emView::CalcVisitFullsizedCoords(
 	emPanel * panel, double * pRelX, double * pRelY, double * pRelA,
 	bool utilizeView
-)
+) const
 {
 	double fx,fy,fw,fh,ph,vx,vy,vw,vh,ex,ey,ew,eh;
-	emScreen * screen;
 
-	fx=HomeX;
-	fy=HomeY;
-	fw=HomeWidth;
-	fh=HomeHeight;
 	if ((VFlags&VF_POPUP_ZOOM)!=0) {
-		screen=GetScreen();
-		if (screen) screen->GetVisibleRect(&fx,&fy,&fw,&fh);
+		GetMaxPopupViewRect(&fx,&fy,&fw,&fh);
+	}
+	else {
+		fx=HomeX;
+		fy=HomeY;
+		fw=HomeWidth;
+		fh=HomeHeight;
 	}
 
 	panel->GetEssenceRect(&ex,&ey,&ew,&eh);
@@ -1557,25 +1616,24 @@ void emView::RawVisitAbs(
 				SwapViewPorts(true);
 				if (wasFocused && !Focused) CurrentViewPort->RequestFocus();
 			}
-			sw=PopupWindow->GetScreen().GetWidth();
-			sh=PopupWindow->GetScreen().GetHeight();
+			GetMaxPopupViewRect(&sx,&sy,&sw,&sh);
 			if (vp==RootPanel) {
 				x1=floor(vx);
 				y1=floor(vy);
 				x2=ceil(vx+vw);
 				y2=ceil(vy+vh);
-				if (y1<0.0) y1=0.0;
-				if (x1<0.0) x1=0.0;
-				if (x2>sw) x2=sw;
-				if (y2>sh) y2=sh;
+				if (x1<sx) x1=sx;
+				if (y1<sy) y1=sy;
+				if (x2>sx+sw) x2=sx+sw;
+				if (y2>sy+sh) y2=sy+sh;
 				if (x2<x1+1.0) x2=x1+1.0;
 				if (y2<y1+1.0) y2=y1+1.0;
 			}
 			else {
-				x1=0.0;
-				y1=0.0;
-				x2=sw;
-				y2=sh;
+				x1=sx;
+				y1=sy;
+				x2=sx+sw;
+				y2=sy+sh;
 			}
 			if (
 				fabs(x1-CurrentX)>0.01 || fabs(x2-CurrentX-CurrentWidth)>0.01 ||
@@ -1620,10 +1678,10 @@ void emView::RawVisitAbs(
 	for (;;) {
 		p=sp->LastChild;
 		if (!p) break;
-		x1=(CurrentX-sx)/sw;
-		x2=x1+CurrentWidth/sw;
-		y1=(CurrentY-sy)*(CurrentPixelTallness/sw);
-		y2=y1+CurrentHeight*(CurrentPixelTallness/sw);
+		x1=(CurrentX+1E-4-sx)/sw;
+		x2=(CurrentX+CurrentWidth-1E-4-sx)/sw;
+		y1=(CurrentY+1E-4-sy)*(CurrentPixelTallness/sw);
+		y2=(CurrentY+CurrentHeight-1E-4-sy)*(CurrentPixelTallness/sw);
 		do {
 			if (
 				p->LayoutX<x2 && p->LayoutX+p->LayoutWidth>x1 &&
@@ -1747,7 +1805,7 @@ void emView::RawZoomOut(bool forceViewingUpdate)
 
 void emView::FindBestSVP(
 	emPanel * * pPanel, double * pVx, double * pVy, double * pVw
-)
+) const
 {
 	emPanel * vp, * p, * op;
 	double vx,vy,vw,x,y,w,minS;
@@ -1773,10 +1831,10 @@ void emView::FindBestSVP(
 		}
 		if (op==vp && i>0) break;
 		b=
-			vx<=CurrentX &&
-			vx+vw>=CurrentX+CurrentWidth &&
-			vy<=CurrentY &&
-			vy+vp->GetHeight()*vw/CurrentPixelTallness>=CurrentY+CurrentHeight
+			vx<=CurrentX+1E-4 &&
+			vx+vw>=CurrentX+CurrentWidth-1E-4 &&
+			vy<=CurrentY+1E-4 &&
+			vy+vp->GetHeight()*vw/CurrentPixelTallness>=CurrentY+CurrentHeight-1E-4
 		;
 		p=vp; x=vx; y=vy; w=vw;
 		b=FindBestSVPInTree(&p,&x,&y,&w,b);
@@ -1793,7 +1851,7 @@ void emView::FindBestSVP(
 
 bool emView::FindBestSVPInTree(
 	emPanel * * pPanel, double * pVx, double * pVy, double * pVw, bool covering
-)
+) const
 {
 	double f,vx,vy,vw,vwc,vs,vd,x1,y1,x2,y2,x,y,cx,cy,cw,cs,d;
 	emPanel * p, * cp;
@@ -1816,11 +1874,11 @@ bool emView::FindBestSVPInTree(
 	p=p->LastChild;
 	if (!p) return vc;
 
-	x1=(CurrentX-vx)/vw;
-	x2=x1+CurrentWidth/vw;
+	x1=(CurrentX+1E-4-vx)/vw;
+	x2=(CurrentX+CurrentWidth-1E-4-vx)/vw;
 	vwc=vw/CurrentPixelTallness;
-	y1=(CurrentY-vy)/vwc;
-	y2=y1+CurrentHeight/vwc;
+	y1=(CurrentY+1E-4-vy)/vwc;
+	y2=(CurrentY+CurrentHeight-1E-4-vy)/vwc;
 	vd=1E+30;
 	overlapped=false;
 
@@ -1960,12 +2018,12 @@ void emView::RecurseInput(emInputEvent & event, const emInputState & state)
 			e=ebase;
 			if (!e->IsEmpty()) {
 				if (e->IsMouseEvent()) {
-					if (mx<0.0 || mx>=1.0 || my<0.0 || my>=panel->GetHeight()) {
+					if (!panel->IsPointInSubstanceRect(mx,my)) {
 						e=&NoEvent;
 					}
 				}
 				else if (e->IsTouchEvent()) {
-					if (tx<0.0 || tx>=1.0 || ty<0.0 || ty>=panel->GetHeight()) {
+					if (!panel->IsPointInSubstanceRect(tx,ty)) {
 						e=&NoEvent;
 					}
 				}
@@ -2025,12 +2083,12 @@ void emView::RecurseInput(
 	e=&event;
 	if (!e->IsEmpty()) {
 		if (e->IsMouseEvent()) {
-			if (mx<0.0 || mx>=1.0 || my<0.0 || my>=panel->GetHeight()) {
+			if (!panel->IsPointInSubstanceRect(mx,my)) {
 				e=&NoEvent;
 			}
 		}
 		else if (e->IsTouchEvent()) {
-			if (tx<0.0 || tx>=1.0 || ty<0.0 || ty>=panel->GetHeight()) {
+			if (!panel->IsPointInSubstanceRect(tx,ty)) {
 				e=&NoEvent;
 			}
 		}
@@ -2063,12 +2121,13 @@ void emView::InvalidateHighlight()
 }
 
 
-void emView::PaintHighlight(const emPainter & painter)
+void emView::PaintHighlight(const emPainter & painter) const
 {
 	emColor shadowColor,arrowColor;
-	double sxy[4*2],axy[4*2];
-	double x1,y1,x2,y2,cx1,cy1,cx2,cy2,edx,edy,ex,ey,dx,dy,d,x,y,aw,ah,ag,sd;
-	int edge,n,i1,i2;
+	emPainter pnt;
+	double cx1,cy1,cx2,cy2,vx,vy,vw,vh,sx,sy,sw,sh,sr,x1,y1,x2,y2;
+	double goalX,goalY,lc,lh,lv,l,len,pc,pc2,pos,delta;
+	int i,j,n,m;
 
 	//??? These things could be configurable.
 	static const emColor highlightColor=emColor(255,255,255);
@@ -2084,21 +2143,38 @@ void emView::PaintHighlight(const emPainter & painter)
 		)
 	) return;
 
-	x1=ActivePanel->GetViewedX();
-	y1=ActivePanel->GetViewedY();
-	x2=x1+ActivePanel->GetViewedWidth();
-	y2=y1+ActivePanel->GetViewedHeight();
-	x1-=distanceFromPanel;
-	x2+=distanceFromPanel;
-	y1-=distanceFromPanel/CurrentPixelTallness;
-	y2+=distanceFromPanel/CurrentPixelTallness;
+	pnt=painter;
+	pnt.SetScaling(1.0,1.0/CurrentPixelTallness);
 
-	cx1=painter.GetUserClipX1()-arrowSize*2.0;
-	cy1=painter.GetUserClipY1()-arrowSize*2.0/CurrentPixelTallness;
-	cx2=painter.GetUserClipX2()+arrowSize*2.0;
-	cy2=painter.GetUserClipY2()+arrowSize*2.0/CurrentPixelTallness;
+	vx=ActivePanel->GetViewedX();
+	vy=ActivePanel->GetViewedY()*CurrentPixelTallness;
+	vw=ActivePanel->GetViewedWidth();
+	vh=ActivePanel->GetViewedHeight()*CurrentPixelTallness;
 
-	if (x1>=cx2 || x2<=cx1 || y1>=cy2 || y2<=cy1) return;
+	ActivePanel->GetSubstanceRect(&sx,&sy,&sw,&sh,&sr);
+	sx=vx+sx*vw;
+	sy=vy+sy*vw;
+	sw*=vw;
+	sh*=vw;
+	sr*=vw;
+	if (sw<0.0) sw=0.0; else if (sw>vw) sw=vw;
+	if (sh<0.0) sh=0.0; else if (sh>vh) sh=vh;
+	if (sx<vx) sx=vx; else if (sx>vx+vw-sw) sx=vx+vw-sw;
+	if (sy<vy) sy=vy; else if (sy>vy+vh-sh) sy=vy+vh-sh;
+	if (sr<0.0) sr=0.0;
+	if (sr>sw*0.5) sr=sw*0.5;
+	if (sr>sh*0.5) sr=sh*0.5;
+	sx-=distanceFromPanel;
+	sy-=distanceFromPanel;
+	sw+=2*distanceFromPanel;
+	sh+=2*distanceFromPanel;
+	sr+=distanceFromPanel;
+
+	cx1=pnt.GetUserClipX1()-arrowSize*2.0;
+	cy1=pnt.GetUserClipY1()-arrowSize*2.0;
+	cx2=pnt.GetUserClipX2()+arrowSize*2.0;
+	cy2=pnt.GetUserClipY2()+arrowSize*2.0;
+	if (sx>=cx2 || sx+sw<=cx1 || sy>=cy2 || sy+sh<=cy1) return;
 
 	shadowColor=emColor(0,0,0,192);
 	if (ActivationAdherent) arrowColor=adherentHighlightColor;
@@ -2108,85 +2184,269 @@ void emView::PaintHighlight(const emPainter & painter)
 		arrowColor.SetAlpha((emByte)(arrowColor.GetAlpha()/3));
 	}
 
-	for (edge=0; edge<4; edge++) {
-		if ((edge&1)==0) {
-			d=(x2-x1)/arrowDistance;
-			n=emMax(1,(int)(emMin(d,1E9)+0.5));
-			edx=(x2-x1)/n;
-			edy=0.0;
-			if ((edge&2)==0) {
-				ex=x1;
-				ey=y1;
-			}
-			else {
-				ex=x1+edx;
-				ey=y2;
-			}
-			if (ey>=cy2 || ey<=cy1) continue;
-			i1=emMax(0,(int)ceil((cx1-ex)/edx));
-			i2=emMin(n-1,(int)floor((cx2-ex)/edx));
+	x1=sx+sr;
+	x2=sx+sw-sr;
+	y1=sy+sr;
+	y2=sy+sh-sr;
+
+	goalX=(x1+x2)*0.5;
+	goalY=(y1+y2)*0.5;
+
+	lh=x2-x1;
+	lv=y2-y1;
+	lc=0.5*M_PI*sr;
+
+	pc=lc*0.5;
+	if (lc>1E-10) {
+		pc2=(lv*0.5+lc+lh*0.5)*0.5-lv*0.5;
+		if (pc2<0.0) pc2=0.0;
+		if (pc2>lc) pc2=lc;
+		l=lc/(lc+emMin(lh,lv));
+		pc=pc*(1.0-l)+pc2*l;
+	}
+
+	for (i=0; i<4; i++) {
+		switch (i) {
+		case 0:
+			pos=pc;
+			len=(lc-pc)*2.0+lh;
+			break;
+		case 1:
+			pos=lc+lh+lc-pc;
+			len=pc*2.0+lv;
+			break;
+		case 2:
+			pos=lc+lh+lc+lv+pc;
+			len=(lc-pc)*2.0+lh;
+			break;
+		default:
+			pos=lc+lh+lc+lv+lc+lh+lc-pc;
+			len=pc*2.0+lv;
+			break;
 		}
-		else {
-			d=(y2-y1)*CurrentPixelTallness/arrowDistance;
-			n=emMax(1,(int)(emMin(d,1E9)+0.5));
-			edx=0.0;
-			edy=(y2-y1)/n;
-			if ((edge&2)==0) {
-				ex=x2;
-				ey=y1;
+
+		n=(int)(emMin(len/arrowDistance,1E9)+0.5);
+		if (n<1) n=1;
+		for (m=1; m<n; m*=2);
+		n&=(m|(m>>1)|(m>>2));
+
+		delta=len/n;
+
+		for (j=0; n>0; j=(j+1)&7) {
+			if (!(j&1)) l=lc;
+			else if (j&2) l=lv;
+			else l=lh;
+			m=(int)floor(1.0+(l-pos)/delta);
+			if (m>0) {
+				if (m>n) m=n;
+				if (j&1) {
+					PaintHighlightArrowsOnLine(
+						pnt,
+						j==1 ? x2    : j==3 ? x1-sr : j==5 ? x1    : x2+sr,
+						j==1 ? y2+sr : j==3 ? y2    : j==5 ? y1-sr : y1,
+						j==1 ? -1.0 : j==5 ? 1.0 : 0.0,
+						j==3 ? -1.0 : j==7 ? 1.0 : 0.0,
+						pos,delta,m,goalX,goalY,
+						arrowSize,shadowColor,arrowColor
+					);
+				}
+				else {
+					PaintHighlightArrowsOnBow(
+						pnt,
+						j==2 || j==4 ? x1 : x2,
+						j>=4 ? y1 : y2,
+						sr,j/2,pos,delta,m,goalX,goalY,
+						arrowSize,shadowColor,arrowColor
+					);
+				}
+				pos+=delta*m;
+				n-=m;
 			}
-			else {
-				ex=x1;
-				ey=y1+edy;
-			}
-			if (ex>=cx2 || ex<=cx1) continue;
-			i1=emMax(0,(int)ceil((cy1-ey)/edy));
-			i2=emMin(n-1,(int)floor((cy2-ey)/edy));
-		}
-
-		for (; i1<=i2; i1++) {
-			x=ex+edx*i1;
-			y=ey+edy*i1;
-
-			dx=x-(x1+x2)*0.5;
-			dy=(y-(y1+y2)*0.5)*CurrentPixelTallness;
-			d=sqrt(dx*dx+dy*dy);
-			if (d<0.01) {
-				dx=0;
-				dy=1.0;
-			}
-			else {
-				dx/=d;
-				dy/=d;
-			}
-
-			ah=arrowSize;
-			ag=ah*0.8;
-			aw=ah*0.5;
-			sd=ah*0.2;
-
-			axy[0]=x;
-			axy[1]=y;
-			axy[2]=x+dx*ah-dy*aw*0.5;
-			axy[3]=y+(dy*ah+dx*aw*0.5)/CurrentPixelTallness;
-			axy[4]=x+dx*ag;
-			axy[5]=y+(dy*ag)/CurrentPixelTallness;
-			axy[6]=x+dx*ah+dy*aw*0.5;
-			axy[7]=y+(dy*ah-dx*aw*0.5)/CurrentPixelTallness;
-
-			sxy[0]=axy[0];
-			sxy[1]=axy[1];
-			sxy[2]=axy[2]+sd;
-			sxy[3]=axy[3]+sd/CurrentPixelTallness;
-			sxy[4]=axy[4]+sd*ag/ah;
-			sxy[5]=axy[5]+sd*ag/ah/CurrentPixelTallness;
-			sxy[6]=axy[6]+sd;
-			sxy[7]=axy[7]+sd/CurrentPixelTallness;
-
-			painter.PaintPolygon(sxy,4,shadowColor);
-			painter.PaintPolygon(axy,4,arrowColor);
+			pos-=l;
 		}
 	}
+}
+
+
+void emView::PaintHighlightArrowsOnLine(
+	const emPainter & painter, double x, double y,
+	double dx, double dy, double pos, double delta,
+	int count, double goalX, double goalY, double arrowSize,
+	emColor shadowColor, emColor arrowColor
+) const
+{
+	double cx1,cy1,cx2,cy2,minPos,maxPos,t;
+
+	minPos=-1E100;
+	maxPos=1E100;
+
+	cx1=painter.GetUserClipX1()-arrowSize*2.0;
+	cx2=painter.GetUserClipX2()+arrowSize*2.0;
+	if (dx>1E-10) {
+		t=(cx1-x)/dx; if (minPos<t) minPos=t;
+		t=(cx2-x)/dx; if (maxPos>t) maxPos=t;
+	}
+	else if (dx<-1E-10) {
+		t=(cx2-x)/dx; if (minPos<t) minPos=t;
+		t=(cx1-x)/dx; if (maxPos>t) maxPos=t;
+	}
+	else if (x>=cx2 || x<=cx1) {
+		return;
+	}
+
+	cy1=painter.GetUserClipY1()-arrowSize*2.0;
+	cy2=painter.GetUserClipY2()+arrowSize*2.0;
+	if (dy>1E-10) {
+		t=(cy1-y)/dy; if (minPos<t) minPos=t;
+		t=(cy2-y)/dy; if (maxPos>t) maxPos=t;
+	}
+	else if (dy<-1E-10) {
+		t=(cy2-y)/dy; if (minPos<t) minPos=t;
+		t=(cy1-y)/dy; if (maxPos>t) maxPos=t;
+	}
+	else if (y>=cy2 || y<=cy1) {
+		return;
+	}
+
+	if (pos<minPos) {
+		t=ceil((minPos-pos)/delta);
+		if (t>=(double)count) return;
+		count-=(int)(t+0.5);
+		pos+=t*delta;
+	}
+
+	while (count>0 && pos<=maxPos) {
+		PaintHighlightArrow(
+			painter,x+dx*pos,y+dy*pos,
+			goalX,goalY,arrowSize,
+			shadowColor,arrowColor
+		);
+		pos+=delta;
+		count--;
+	}
+}
+
+
+void emView::PaintHighlightArrowsOnBow(
+	const emPainter & painter, double x, double y, double radius,
+	int quadrant, double pos, double delta, int count,
+	double goalX, double goalY, double arrowSize,
+	emColor shadowColor, emColor arrowColor
+) const
+{
+	double cx1,cy1,cx2,cy2,minPos,maxPos,t,a;
+	int i;
+
+	minPos=-1E100;
+	maxPos=1E100;
+
+	cx1=painter.GetUserClipX1()-arrowSize*2.0;
+	cy1=painter.GetUserClipY1()-arrowSize*2.0;
+	cx2=painter.GetUserClipX2()+arrowSize*2.0;
+	cy2=painter.GetUserClipY2()+arrowSize*2.0;
+
+	cx1-=x;
+	cy1-=y;
+	cx2-=x;
+	cy2-=y;
+
+	quadrant&=3;
+	for (i=0; i<quadrant; i++) {
+		t=cx1;
+		cx1=cy1;
+		cy1=-cx2;
+		cx2=cy2;
+		cy2=-t;
+	}
+
+	if (cx1>=radius || cx2<=0.0) return;
+	if (cy1>=radius || cy2<=0.0) return;
+
+	if (cx1>0.0) {
+		t=acos(cx1/radius)*radius;
+		if (maxPos>t) maxPos=t;
+	}
+	if (cx2<radius) {
+		t=acos(cx2/radius)*radius;
+		if (minPos<t) minPos=t;
+	}
+	if (cy1>0.0) {
+		t=asin(cy1/radius)*radius;
+		if (minPos<t) minPos=t;
+	}
+	if (cy2<radius) {
+		t=asin(cy2/radius)*radius;
+		if (maxPos>t) maxPos=t;
+	}
+
+	if (pos<minPos) {
+		t=ceil((minPos-pos)/delta);
+		if (t>=(double)count) return;
+		count-=(int)(t+0.5);
+		pos+=t*delta;
+	}
+
+	while (count>0 && pos<=maxPos) {
+		a=quadrant*M_PI*0.5+pos/radius;
+		PaintHighlightArrow(
+			painter,
+			x+cos(a)*radius,
+			y+sin(a)*radius,
+			goalX,goalY,arrowSize,
+			shadowColor,arrowColor
+		);
+		pos+=delta;
+		count--;
+	}
+}
+
+
+void emView::PaintHighlightArrow(
+	const emPainter & painter, double x, double y,
+	double goalX, double goalY, double arrowSize,
+	emColor shadowColor, emColor arrowColor
+) const
+{
+	double sxy[4*2],axy[4*2];
+	double dx,dy,d,aw,ah,ag,sd;
+
+	dx=x-goalX;
+	dy=y-goalY;
+	d=sqrt(dx*dx+dy*dy);
+	if (d<0.01) {
+		dx=0;
+		dy=1.0;
+	}
+	else {
+		dx/=d;
+		dy/=d;
+	}
+
+	ah=arrowSize;
+	ag=ah*0.8;
+	aw=ah*0.5;
+	sd=ah*0.2;
+
+	axy[0]=x;
+	axy[1]=y;
+	axy[2]=x+dx*ah-dy*aw*0.5;
+	axy[3]=y+dy*ah+dx*aw*0.5;
+	axy[4]=x+dx*ag;
+	axy[5]=y+(dy*ag);
+	axy[6]=x+dx*ah+dy*aw*0.5;
+	axy[7]=y+(dy*ah-dx*aw*0.5);
+
+	sxy[0]=axy[0];
+	sxy[1]=axy[1];
+	sxy[2]=axy[2]+sd;
+	sxy[3]=axy[3]+sd;
+	sxy[4]=axy[4]+sd*ag/ah;
+	sxy[5]=axy[5]+sd*ag/ah;
+	sxy[6]=axy[6]+sd;
+	sxy[7]=axy[7]+sd;
+
+	painter.PaintPolygon(sxy,4,shadowColor);
+	painter.PaintPolygon(axy,4,arrowColor);
 }
 
 
@@ -2216,7 +2476,7 @@ void emView::SetSeekPos(emPanel * panel, const char * childName)
 }
 
 
-bool emView::IsHopeForSeeking()
+bool emView::IsHopeForSeeking() const
 {
 	return SeekPosPanel && SeekPosPanel->IsHopeForSeeking();
 }

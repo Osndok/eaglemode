@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.cpp
 //
-// Copyright (C) 2014-2015 Oliver Hamann.
+// Copyright (C) 2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -338,7 +338,6 @@ void emKineticViewAnimator::UpdateBusyState()
 void emKineticViewAnimator::UpdateZoomFixPoint()
 {
 	double sx,sy,sw,sh,x1,y1,x2,y2;
-	emScreen * screen;
 
 	if (ZoomFixPointCentered) {
 		x1=GetView().GetCurrentX();
@@ -346,14 +345,11 @@ void emKineticViewAnimator::UpdateZoomFixPoint()
 		x2=x1+GetView().GetCurrentWidth();
 		y2=y1+GetView().GetCurrentHeight();
 		if (GetView().IsPoppedUp()) {
-			screen=GetView().GetScreen();
-			if (screen) {
-				screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-				if (x1<sx) x1=sx;
-				if (y1<sy) y1=sy;
-				if (x2>sx+sw) x2=sx+sw;
-				if (y2>sy+sh) y2=sy+sh;
-			}
+			GetView().GetMaxPopupViewRect(&sx,&sy,&sw,&sh);
+			if (x1<sx) x1=sx;
+			if (y1<sy) y1=sy;
+			if (x2>sx+sw) x2=sx+sw;
+			if (y2>sy+sh) y2=sy+sh;
 		}
 		ZoomFixX=(x1+x2)*0.5;
 		ZoomFixY=(y1+y2)*0.5;
@@ -868,15 +864,14 @@ void emMagneticViewAnimator::GetViewRect(
 	double * pX, double * pY, double * pW, double * pH
 ) const
 {
-	emScreen * screen;
-
-	*pX=GetView().GetHomeX();
-	*pY=GetView().GetHomeY();
-	*pW=GetView().GetHomeWidth();
-	*pH=GetView().GetHomeHeight();
 	if ((GetView().GetViewFlags()&emView::VF_POPUP_ZOOM)!=0) {
-		screen=GetView().GetScreen();
-		if (screen) screen->GetVisibleRect(pX,pY,pW,pH);
+		GetView().GetMaxPopupViewRect(pX,pY,pW,pH);
+	}
+	else {
+		*pX=GetView().GetHomeX();
+		*pY=GetView().GetHomeY();
+		*pW=GetView().GetHomeWidth();
+		*pH=GetView().GetHomeHeight();
 	}
 }
 
@@ -1538,15 +1533,14 @@ void emVisitingViewAnimator::GetViewRect(
 	double * pX, double * pY, double * pW, double * pH
 ) const
 {
-	emScreen * screen;
-
-	*pX=GetView().GetHomeX();
-	*pY=GetView().GetHomeY();
-	*pW=GetView().GetHomeWidth();
-	*pH=GetView().GetHomeHeight();
 	if ((GetView().GetViewFlags()&emView::VF_POPUP_ZOOM)!=0) {
-		screen=GetView().GetScreen();
-		if (screen) screen->GetVisibleRect(pX,pY,pW,pH);
+		GetView().GetMaxPopupViewRect(pX,pY,pW,pH);
+	}
+	else {
+		*pX=GetView().GetHomeX();
+		*pY=GetView().GetHomeY();
+		*pW=GetView().GetHomeWidth();
+		*pH=GetView().GetHomeHeight();
 	}
 }
 
@@ -1689,6 +1683,7 @@ emVisitingViewAnimator::CurvePoint emVisitingViewAnimator::GetCurvePoint(double 
 
 	t=fabs(d)/CurveDeltaDist;
 	i=(int)t;
+	if (i<0) i=0; // Can happen when d is a nan.
 	if (i>=CurveMaxIndex) i=CurveMaxIndex-1;
 	t-=i;
 	if (t<0.0) t=0.0;

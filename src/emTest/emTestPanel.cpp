@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009,2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2009,2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -608,6 +608,7 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 			CbModal->SetChecked();
 			CbUndec=new emCheckBox(rl,"WF_UNDECORATED","WF_UNDECORATED");
 			CbPopup=new emCheckBox(rl,"WF_POPUP","WF_POPUP");
+			CbMax=new emCheckBox(rl,"WF_MAXIMIZED","WF_MAXIMIZED");
 			CbFull=new emCheckBox(rl,"WF_FULLSCREEN","WF_FULLSCREEN");
 		BtCreateDlg=new emButton(grp,"bt","Create Test Dialog");
 		AddWakeUpSignal(BtCreateDlg->GetClickSignal());
@@ -659,6 +660,7 @@ bool emTestPanel::TkTest::Cycle()
 		if (CbModal->IsChecked()) wFlags|=emWindow::WF_MODAL;
 		if (CbUndec->IsChecked()) wFlags|=emWindow::WF_UNDECORATED;
 		if (CbPopup->IsChecked()) wFlags|=emWindow::WF_POPUP;
+		if (CbMax->IsChecked()) wFlags|=emWindow::WF_MAXIMIZED;
 		if (CbFull->IsChecked()) wFlags|=emWindow::WF_FULLSCREEN;
 		dlg=new emDialog(*ctx,vFlags,wFlags);
 		dlg->AddNegativeButton("Close");
@@ -779,7 +781,7 @@ emTestPanel::CustomItemPanel::CustomItemPanel(
 	emListBox & listBox, const emString & name, int itemIndex
 ) :
 	emLinearGroup(listBox,name),
-	ItemPanelInterface(listBox,itemIndex)
+	emListBox::ItemPanelInterface(listBox,itemIndex)
 {
 	SetBorderScaling(5.0);
 	SetHorizontal();

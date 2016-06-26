@@ -32,9 +32,9 @@ SilChessControlPanel::SilChessControlPanel(
 	Mdl=model;
 	LastOutputDepth=0;
 
-	SetMinChildTallness(0.1);
+	SetMinChildTallness(0.12);
 	SetMaxChildTallness(1.5);
-	SetAlignment(EM_ALIGN_TOP_LEFT);
+	SetAlignment(EM_ALIGN_TOP);
 
 	mainGroup=new emPackGroup(this,"","SilChess");
 

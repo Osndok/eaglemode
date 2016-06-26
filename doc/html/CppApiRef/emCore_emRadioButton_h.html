@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -112,14 +112,18 @@
                         <SPAN CLASS=c>// Get/set the member button which is currently checked.
                         // NULL means to have no member button checked.
 
-                </SPAN><SPAN CLASS=t>int </SPAN>GetCheckIndex();
+                </SPAN><SPAN CLASS=t>int </SPAN>GetCheckIndex() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>void </SPAN>SetCheckIndex(<SPAN CLASS=t>int </SPAN>index);
                         <SPAN CLASS=c>// Get/set the index of the member button which is
                         // currently checked. -1 means to have no member button
                         // checked.
 
-                </SPAN><SPAN CLASS=t>int </SPAN>GetCount();
+                </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
                         <SPAN CLASS=c>// Get number of member buttons.
+
+                </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get a member button by index.
 
                 </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * button) <SPAN CLASS=t>const</SPAN>;
                         <SPAN CLASS=c>// Get the index of a member button, or -1 if not found.
@@ -242,13 +246,13 @@
         </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCheckIndex()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCheckIndex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCount()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Array.GetCount();
 <SPAN CLASS=b>}
 

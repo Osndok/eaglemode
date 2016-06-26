@@ -1,7 +1,7 @@
 /*
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 4.0
+# Order = 5.0
 # Interpreter = wscript
 # Caption = Clone
 # Descr =Create a copy of a file or directory within the same
@@ -13,8 +13,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The file or directory to be cloned.
-# ButtonBgColor = #796
-# ButtonFgColor = #000
+# Icon = clone_file.tga
 # Hotkey = Ctrl+V
 #[[END PROPERTIES]]
 */
@@ -51,15 +50,15 @@ BatBegin("Clone");
 if (IsDirectory(oldPath)) {
 	BatWriteCmdEchoed(["xcopy","/F","/H","/K","/Y","/E","/I",oldPath,newPath]);
 	BatWriteCheckError();
-	BatWriteLine("if exist " + QuoteArg(newPath) + " (");
+	BatWriteLine("if exist " + BatQuoteArg(newPath) + " (");
 	BatWriteSendSelect([newPath]);
 	BatWriteLine(") else (");
 	BatWriteSendUpdate();
 	BatWriteLine(")");
 }
 else {
-	BatWriteLineEchoed("<nul (set /p X=) > " + QuoteArg(newPath));
-	BatWriteLine("if exist " + QuoteArg(newPath) + " (");
+	BatWriteLineEchoed("<nul (set /p X=) > " + BatQuoteArg(newPath));
+	BatWriteLine("if exist " + BatQuoteArg(newPath) + " (");
 	BatWriteCmdEchoed(["xcopy","/F","/H","/K","/Y",oldPath,newPath]);
 	BatWriteCheckError();
 	BatWriteSendSelect([newPath]);

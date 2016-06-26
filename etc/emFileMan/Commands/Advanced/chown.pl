@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 6.0
+# Order = 2.0
 # Interpreter = perl
 # Caption = chown
 # Descr =Change the owner (user and group) of one or more files and/or
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files and directories whose owner shall be changed.
+# Icon = file_owner.tga
 # Hotkey = Ctrl+O
 #[[END PROPERTIES]]
 

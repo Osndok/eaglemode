@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -241,7 +241,7 @@ private:
 	public:
 		FilesListBox(emFileSelectionBox & parent, const emString & name);
 		virtual ~FilesListBox();
-		emFileSelectionBox & GetFileSelectionBox();
+		emFileSelectionBox & GetFileSelectionBox() const;
 		const emImage & GetDirImage() const;
 		const emImage & GetDirUpImage() const;
 	protected:
@@ -265,8 +265,8 @@ private:
 		virtual void ItemDataChanged();
 		virtual void ItemSelectionChanged();
 	private:
-		emColor GetBgColor();
-		emColor GetFgColor();
+		emColor GetBgColor() const;
+		emColor GetFgColor() const;
 		friend class FileOverlayPanel;
 		FilesListBox & ListBox;
 		emPanel * FilePanel;
@@ -378,7 +378,7 @@ inline bool emFileSelectionBox::IsFilterHidden() const
 	return FilterHidden;
 }
 
-inline emFileSelectionBox & emFileSelectionBox::FilesListBox::GetFileSelectionBox()
+inline emFileSelectionBox & emFileSelectionBox::FilesListBox::GetFileSelectionBox() const
 {
 	return *((emFileSelectionBox*)GetParent());
 }

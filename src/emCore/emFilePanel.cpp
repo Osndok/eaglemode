@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -74,7 +74,7 @@ void emFilePanel::ClearCustomError()
 }
 
 
-emString emFilePanel::GetCustomError()
+emString emFilePanel::GetCustomError() const
 {
 	if (CustomError) return *CustomError;
 	else return emString();
@@ -99,6 +99,12 @@ bool emFilePanel::IsVFSGood() const
 
 	s=GetVirFileState();
 	return s==VFS_LOADED || s==VFS_UNSAVED;
+}
+
+
+emString emFilePanel::GetIconFileName()
+{
+	return "file.tga";
 }
 
 
@@ -164,7 +170,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Wait...",
 			GetHeight()/6,
-			emColor(136,136,0),
+			emColor(92,92,0,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -180,7 +186,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			tmp,
 			GetHeight()/6,
-			emColor(0,136,0),
+			emColor(0,112,0,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -195,7 +201,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Loaded",
 			GetHeight()/6,
-			emColor(0,136,136),
+			emColor(0,116,112,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -210,7 +216,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Unsaved",
 			GetHeight()/6,
-			emColor(136,0,136),
+			emColor(144,0,144,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -226,7 +232,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			tmp,
 			GetHeight()/6,
-			emColor(0,136,0),
+			emColor(0,112,0,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -241,7 +247,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"Costly",
 			GetHeight()/6,
-			emColor(136,102,102),
+			emColor(112,64,64,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,
@@ -346,7 +352,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 			GetHeight(),
 			"No file model",
 			GetHeight()/6,
-			emColor(136,0,0),
+			emColor(128,0,0,192),
 			canvasColor,
 			EM_ALIGN_CENTER,
 			EM_ALIGN_LEFT,

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.cpp
 //
-// Copyright (C) 2009,2011 Oliver Hamann.
+// Copyright (C) 2009,2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -523,6 +523,7 @@ struct emThreadEventReceiver {
 	emThreadEventReceiver * Next;
 	emThreadEventReceiver * Prev;
 	emInt64 N;
+	emInt64 P;
 #if defined(_WIN32) || defined(__CYGWIN__)
 	HANDLE EventHandle;
 #else
@@ -531,55 +532,47 @@ struct emThreadEventReceiver {
 };
 
 
-struct emThreadEventReceivers {
-	emThreadEventReceiver * Ring;
-	emInt64 NTotal;
-	unsigned RefCount;
-};
-
-
 emThreadEvent::emThreadEvent()
 {
 	Count=0;
-	Receivers=NULL;
+	Ring=NULL;
 }
 
 
 emThreadEvent::emThreadEvent(int count)
 {
 	Count=count;
-	Receivers=NULL;
+	Ring=NULL;
 }
 
 
 emThreadEvent::~emThreadEvent()
 {
-	while (Receivers) {
-		Mutex.Lock();
-		if (Receivers && Receivers->NTotal) {
-			emFatalError("emThreadEvent: destructor called while receiver waiting");
-		}
-		Mutex.Unlock();
-		emSleepMS(0);
+	if (Ring) {
+		emFatalError("emThreadEvent: destructor called while receiver waiting");
 	}
 }
 
 
 emInt64 emThreadEvent::Send(emInt64 n)
 {
+	emInt64 newCount;
+
 	Mutex.Lock();
-	n+=Count;
-	Count=n;
-	if (Receivers) UpdateReceivers();
+	newCount=Count+n;
+	Count=newCount;
+	if (Ring) {
+		Ring->P-=n;
+		if (n>0) UpdateReceivers();
+	}
 	Mutex.Unlock();
-	return n;
+	return newCount;
 }
 
 
 bool emThreadEvent::Receive(emInt64 n, unsigned timeoutMS)
 {
 	emThreadEventReceiver r;
-	bool result;
 #if defined(_WIN32) || defined(__CYGWIN__)
 	DWORD res;
 #else
@@ -588,48 +581,63 @@ bool emThreadEvent::Receive(emInt64 n, unsigned timeoutMS)
 	fd_set rset;
 #endif
 
+	if (n<=0) {
+		if (n<0) Send(-n);
+		return true;
+	}
+
 	Mutex.Lock();
-	Count-=n;
-	if (Count>=0 || n<=0) {
-		if (n<0 && Receivers) UpdateReceivers();
+
+	if (Count>=n) {
+		Count-=n;
 		Mutex.Unlock();
 		return true;
 	}
+
 	if (!timeoutMS) {
-		Count+=n;
 		Mutex.Unlock();
 		return false;
 	}
-	if (!Receivers) {
-		Receivers=(emThreadEventReceivers*)malloc(
-			sizeof(emThreadEventReceivers)
-		);
-		Receivers->Ring=NULL;
-		Receivers->NTotal=0;
-		Receivers->RefCount=0;
-	}
-	Receivers->NTotal+=n;
-	Receivers->RefCount++;
-	if (!Receivers->Ring) {
-		Receivers->Ring=&r;
+
+	r.N=n;
+	if (!Ring) {
+		r.P=-Count;
+		Ring=&r;
 		r.Next=&r;
 		r.Prev=&r;
 	}
 	else {
-		r.Next=Receivers->Ring;
+		r.P=0;
+		r.Next=Ring;
 		r.Prev=r.Next->Prev;
 		r.Next->Prev=&r;
 		r.Prev->Next=&r;
 	}
-	r.N=n;
+	Count-=n;
 
 	// The following stuff could also be implemented on
 	// pthread_cond_timedwait() where available. But then we would have to
 	// use clock_gettime() too, and that would require us to link the rt
-	// library. Besides, if the pthread_cond solution is ever made, don't
-	// forget also to manage a pthread_mutex to avoid a race condition, and
-	// don't forget to use the monotonic clock instead of the real one (see
-	// pthread_condattr_setclock).
+	// library on some systems. Besides, if the pthread_cond solution is
+	// ever made, don't forget also to manage a pthread_mutex to avoid a
+	// race condition, and don't forget to use the monotonic clock instead
+	// of the real one (see pthread_condattr_setclock).
+	//
+	// In an experiment, I also tried not to create and destroy the event
+	// handle (or pipe) on every wait (managed a global pool instead). That
+	// accelerated the whole communication by about 25% - maybe a good idea.
+	// Another possibility would be to use signals. But in any case, most of
+	// the time is needed by the OS for the thread switching in general.
+	//
+	// Another idea which came up, was to try one or more yieldings to other
+	// threads (emSleep(0)) before doing the unbusy wait. That could mean a
+	// speed-up if there is no other thread awaiting the CPU, because then
+	// we would not lose time by any real thread switching or sleeping (the
+	// call returns very fast, just wasting energy). For the other case, we
+	// would not win anything, but moreover steal some cycles from other
+	// threads. And if we have a CPU with hyperthreading technology, there
+	// is the danger of slowing down another thread on the same core
+	// dramatically by a busy wait. Therefore, it seems to be a bad idea.
 #if defined(_WIN32) || defined(__CYGWIN__)
 	r.EventHandle=CreateEvent(NULL,FALSE,FALSE,NULL);
 	if (!r.EventHandle) {
@@ -714,30 +722,25 @@ bool emThreadEvent::Receive(emInt64 n, unsigned timeoutMS)
 #endif
 
 	if (!r.N) {
-		result=true;
+		Mutex.Unlock();
+		return true;
+	}
+
+	Count+=n;
+	if (r.Next==&r) {
+		Ring=NULL;
 	}
 	else {
-		result=false;
-		Count+=r.N;
-		Receivers->NTotal-=r.N;
-		if (r.Next==&r) {
-			Receivers->Ring=NULL;
+		r.Next->Prev=r.Prev;
+		r.Prev->Next=r.Next;
+		if (Ring==&r) {
+			Ring=r.Next;
+			Ring->P=r.P;
+			UpdateReceivers();
 		}
-		else {
-			r.Next->Prev=r.Prev;
-			r.Prev->Next=r.Next;
-			if (Receivers->Ring==&r) {
-				Receivers->Ring=r.Next;
-				UpdateReceivers();
-			}
-		}
-	}
-	if (!--Receivers->RefCount) {
-		free(Receivers);
-		Receivers=NULL;
 	}
 	Mutex.Unlock();
-	return result;
+	return false;
 }
 
 
@@ -756,13 +759,14 @@ emInt64 emThreadEvent::GetCount() const
 
 void emThreadEvent::SetCount(emInt64 count)
 {
+	emInt64 n;
+
 	Mutex.Lock();
-	if (Count<count && Receivers) {
-		Count=count;
-		UpdateReceivers();
-	}
-	else {
-		Count=count;
+	n=count-Count;
+	Count=count;
+	if (Ring) {
+		Ring->P-=n;
+		if (n>0) UpdateReceivers();
 	}
 	Mutex.Unlock();
 }
@@ -771,22 +775,20 @@ void emThreadEvent::SetCount(emInt64 count)
 void emThreadEvent::UpdateReceivers()
 {
 	emThreadEventReceiver * r, * rn, * rp;
-	emInt64 e, n;
+	emInt64 e;
 
-	e=Count+Receivers->NTotal;
 	for (;;) {
-		r=Receivers->Ring;
+		r=Ring;
 		if (!r) break;
-		n=r->N;
-		e-=n;
-		if (e<0) break;
-		Receivers->NTotal-=n;
+		e=r->N + r->P;
+		if (e>0) break;
 		rn=r->Next;
 		if (rn==r) {
-			Receivers->Ring=NULL;
+			Ring=NULL;
 		}
 		else {
-			Receivers->Ring=rn;
+			rn->P=e;
+			Ring=rn;
 			rp=r->Prev;
 			rn->Prev=rp;
 			rp->Next=rn;
@@ -799,7 +801,8 @@ void emThreadEvent::UpdateReceivers()
 				emGetErrorText(GetLastError()).Get()
 			);
 		}
-#elif defined(HAVE_EVENTFD_H)
+#else
+#	if defined(HAVE_EVENTFD_H)
 		if (r->Pipe[1]==-1) {
 			errno=0;
 			if (write(r->Pipe[0],"xxxxxxxx",8)!=8) {
@@ -809,13 +812,12 @@ void emThreadEvent::UpdateReceivers()
 				);
 			}
 		}
-		else {
+		else
+#	endif
+		{
 			close(r->Pipe[1]);
 			r->Pipe[1]=-1;
 		}
-#else
-		close(r->Pipe[1]);
-		r->Pipe[1]=-1;
 #endif
 	}
 }

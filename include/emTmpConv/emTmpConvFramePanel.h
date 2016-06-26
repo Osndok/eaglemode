@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFramePanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,10 @@
 #include <emTmpConv/emTmpConvPanel.h>
 #endif
 
+#ifndef emFileManViewConfig_h
+#include <emFileMan/emFileManViewConfig.h>
+#endif
+
 
 class emTmpConvFramePanel : public emPanel {
 
@@ -37,6 +41,8 @@ public:
 
 protected:
 
+	virtual bool Cycle();
+
 	virtual bool IsOpaque();
 
 	virtual void Paint(const emPainter & painter, emColor canvasColor);
@@ -44,6 +50,8 @@ protected:
 	virtual void LayoutChildren();
 
 private:
+
+	void UpdateBgColor();
 
 	void PaintInfo(
 		const emPainter & painter,
@@ -54,6 +62,7 @@ private:
 	double InnerScale;
 	emColor BGColor;
 	emTmpConvPanel * InnerPanel;
+	emRef<emFileManViewConfig> FileManViewConfig;
 };
 
 

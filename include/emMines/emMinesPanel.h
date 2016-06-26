@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesPanel.h
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,7 @@ public:
 	virtual ~emMinesPanel();
 
 	virtual emString GetTitle();
+	virtual emString GetIconFileName();
 
 	virtual void GetEssenceRect(double * pX, double * pY,
 	                            double * pW, double * pH);

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emListBox_h.html#emListBox">emListBox</A>.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -219,7 +219,7 @@
                 </SPAN><SPAN CLASS=t>virtual </SPAN>~ItemPanelInterface();
                         <SPAN CLASS=c>// Destructor.
 
-                </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; GetListBox();
+                </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; GetListBox() <SPAN CLASS=t>const</SPAN>;
                         <SPAN CLASS=c>// Get the list box.
 
                 </SPAN><SPAN CLASS=t>int </SPAN>GetItemIndex() <SPAN CLASS=t>const</SPAN>;
@@ -381,8 +381,8 @@
         </SPAN><SPAN CLASS=k>return </SPAN>TriggeredItemIndex;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::GetListBox()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A> &amp; <A CLASS=l HREF="emCore_emListBox_h.html#emListBox">emListBox</A>::ItemPanelInterface::GetListBox() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>ListBox;
 <SPAN CLASS=b>}
 

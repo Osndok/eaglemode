@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirModel.h
 //
-// Copyright (C) 2005-2008,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,6 +38,10 @@ public:
 		emContext & context, const emString & name, bool common=true
 	);
 
+#if defined(_WIN32)
+	static const char * const NAME_OF_DRIVE_LISTING;
+#endif
+
 	int GetEntryCount() const;
 	const emDirEntry & GetEntry(int index) const;
 	int GetEntryIndex(const char * fileName) const;
@@ -55,6 +59,7 @@ protected:
 	virtual void QuitSaving();
 	virtual emUInt64 CalcMemoryNeed();
 	virtual double CalcFileProgress();
+	virtual void TryFetchDate() throw(emException);
 	virtual bool IsOutOfDate();
 
 private:
@@ -68,6 +73,8 @@ private:
 		enum { MaxNames=1024 };
 		NameNode Names[MaxNames];
 	};
+
+	void AddName(const emString & name);
 
 	static int CompareName(void * node1, void * node2, void * context);
 

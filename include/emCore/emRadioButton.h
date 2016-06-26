@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioButton.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -103,14 +103,18 @@ public:
 			// Get/set the member button which is currently checked.
 			// NULL means to have no member button checked.
 
-		int GetCheckIndex();
+		int GetCheckIndex() const;
 		void SetCheckIndex(int index);
 			// Get/set the index of the member button which is
 			// currently checked. -1 means to have no member button
 			// checked.
 
-		int GetCount();
+		int GetCount() const;
 			// Get number of member buttons.
+
+		emRadioButton * GetButton(int index);
+		const emRadioButton * GetButton(int index) const;
+			// Get a member button by index.
 
 		int GetIndexOf(const emRadioButton * button) const;
 			// Get the index of a member button, or -1 if not found.
@@ -233,12 +237,12 @@ inline const emRadioButton * emRadioButton::Mechanism::GetChecked() const
 	return CheckIndex>=0 ? Array[CheckIndex] : NULL;
 }
 
-inline int emRadioButton::Mechanism::GetCheckIndex()
+inline int emRadioButton::Mechanism::GetCheckIndex() const
 {
 	return CheckIndex;
 }
 
-inline int emRadioButton::Mechanism::GetCount()
+inline int emRadioButton::Mechanism::GetCount() const
 {
 	return Array.GetCount();
 }

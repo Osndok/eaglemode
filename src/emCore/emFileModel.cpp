@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -193,7 +193,10 @@ emFileModel::emFileModel(
 	FileProgressClock=0;
 	ClientList=NULL;
 	MemoryLimit=0;
-	FileTime=0;
+	LastMTime=0;
+	LastCTime=0;
+	LastFSize=0;
+	LastINode=0;
 	PSAgent=NULL;
 	UpdateSignalModel=NULL;
 	SetIgnoreUpdateSignal(false);
@@ -264,15 +267,37 @@ void emFileModel::SetUnsavedState()
 }
 
 
+void emFileModel::TryFetchDate() throw(emException)
+{
+	struct em_stat st;
+
+	if (em_stat(GetFilePath().Get(),&st)!=0) {
+		throw emException(
+			"Failed to get info of \"%s\": %s",
+			GetFilePath().Get(),
+			emGetErrorText(errno).Get()
+		);
+	}
+	LastMTime=st.st_mtime;
+	LastCTime=st.st_ctime;
+	LastFSize=st.st_size;
+	LastINode=st.st_ino;
+}
+
+
 bool emFileModel::IsOutOfDate()
 {
-	try {
-		if (FileTime==emTryGetFileTime(GetFilePath())) return false;
-	}
-	catch (emException &) {
+	struct em_stat st;
+
+	if (em_stat(GetFilePath().Get(),&st)!=0) {
 		return true;
 	}
-	return true;
+	return
+		LastMTime!=st.st_mtime ||
+		LastCTime!=st.st_ctime ||
+		LastFSize!=(emUInt64)st.st_size ||
+		LastINode!=(emUInt64)st.st_ino
+	;
 }
 
 
@@ -357,12 +382,12 @@ bool emFileModel::StepLoading()
 	}
 	else if (State==FS_WAITING) {
 		try {
-			FileTime=emTryGetFileTime(GetFilePath());
+			TryFetchDate();
 		}
-		catch (emException & exception) {
+		catch (emException & e) {
 			EndPSAgent();
 			State=FS_LOAD_ERROR;
-			ErrorText=exception.GetText();
+			ErrorText=e.GetText();
 			return true;
 		}
 		ResetData();
@@ -441,11 +466,11 @@ bool emFileModel::StepSaving()
 	EndPSAgent();
 	QuitSaving();
 	try {
-		FileTime=emTryGetFileTime(GetFilePath());
+		TryFetchDate();
 	}
-	catch (emException & exception) {
+	catch (emException & e) {
 		State=FS_SAVE_ERROR;
-		ErrorText=exception.GetText();
+		ErrorText=e.GetText();
 		return true;
 	}
 	State=FS_LOADED;

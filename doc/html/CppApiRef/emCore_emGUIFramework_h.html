@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>.h
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -89,10 +89,10 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>();
                 <SPAN CLASS=c>// Destructor.
 
-        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the scheduler.
 
-        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the root context. It has an <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A> and an <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>.
 
         </SPAN><SPAN CLASS=t>void </SPAN>EnableAutoTermination(<SPAN CLASS=t>bool </SPAN>autoTermination=<SPAN CLASS=k>true</SPAN>);
@@ -119,13 +119,13 @@
         AutoTerminatorClass * AutoTerminator;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::GetScheduler()
-<SPAN CLASS=b>{
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::GetScheduler() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>*Scheduler;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::GetRootContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emGUIFramework_h.html#emGUIFramework">emGUIFramework</A>::GetRootContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>*RootContext;
 <SPAN CLASS=b>}
 

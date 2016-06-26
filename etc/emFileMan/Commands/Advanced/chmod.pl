@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 5.0
+# Order = 1.0
 # Interpreter = perl
 # Caption = chmod
 # Descr =Change the permissions of one or more files and/or directories.
@@ -12,6 +12,7 @@
 # Descr =
 # Descr =  Target: The files and directories whose permissions shall be
 # Descr =          changed.
+# Icon = file_permissions.tga
 # Hotkey = Meta+O
 #[[END PROPERTIES]]
 

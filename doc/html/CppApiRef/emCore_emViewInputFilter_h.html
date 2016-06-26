@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>.h
 //
-// Copyright (C) 2011-2012,2014 Oliver Hamann.
+// Copyright (C) 2011-2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,7 +31,7 @@
 #define emViewInputFilter_h
 
 #ifndef emViewAnimator_h
-#include &lt;emCore/emViewAnimator.h&gt;
+#include &lt;<A CLASS=f HREF="emCore_emViewAnimator_h.html">emCore/emViewAnimator.h</A>&gt;
 #endif
 
 
@@ -60,11 +60,11 @@
                 <SPAN CLASS=c>// Destruct this view input filter. This also removes the filter
                 // from the list.
 
-        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView();
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the view.
 
-        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetPrev();
-        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetNext();
+        </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetPrev() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * GetNext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the previous or next filter in the list. NULL means this
                 // is the first or last filter.
 
@@ -121,18 +121,18 @@
         <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * Next;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetView()
-<SPAN CLASS=b>{
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetView() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetPrev()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetPrev() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Prev;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetNext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetNext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Next;
 <SPAN CLASS=b>}
 
@@ -178,16 +178,16 @@
         <SPAN CLASS=t>void </SPAN>EmulateMiddleButton(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
         <SPAN CLASS=t>bool </SPAN>MoveMousePointerBackIntoView(<SPAN CLASS=t>double </SPAN>* pmx, <SPAN CLASS=t>double </SPAN>* pmy);
         <SPAN CLASS=t>void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy);
-        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
-        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>double </SPAN>GetMouseZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetMouseScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>UpdateWheelZoomSpeed(<SPAN CLASS=t>bool </SPAN>down, <SPAN CLASS=t>bool </SPAN>fine);
         <SPAN CLASS=t>void </SPAN>SetMouseAnimParams();
         <SPAN CLASS=t>void </SPAN>SetWheelAnimParams();
         <SPAN CLASS=t>void </SPAN>InitMagnetismAvoidance();
         <SPAN CLASS=t>void </SPAN>UpdateMagnetismAvoidance(<SPAN CLASS=t>double </SPAN>dmx, <SPAN CLASS=t>double </SPAN>dmy);
 
-        emSwipingViewAnimator MouseAnim;
-        emSwipingViewAnimator WheelAnim;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A> MouseAnim;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A> WheelAnim;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
         <SPAN CLASS=t>double </SPAN>LastMouseX,LastMouseY,ZoomFixX,ZoomFixY;
         emUInt64 EmuMidButtonTime;
@@ -221,11 +221,11 @@
 <SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>void </SPAN>NavigateByProgram(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-        <SPAN CLASS=t>double </SPAN>GetZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
-        <SPAN CLASS=t>double </SPAN>GetScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>double </SPAN>GetZoomSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetScrollSpeed(<SPAN CLASS=t>bool </SPAN>fine=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetAnimatorParameters();
 
-        emSpeedingViewAnimator Animator;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A> Animator;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
         <SPAN CLASS=t>bool </SPAN>Active;
         <SPAN CLASS=t>int </SPAN>NavByProgState;
@@ -284,13 +284,13 @@
         <SPAN CLASS=t>void </SPAN>ResetTouches();
         <SPAN CLASS=t>void </SPAN>NextTouches();
         <SPAN CLASS=t>void </SPAN>RemoveTouch(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>bool </SPAN>IsAnyTouchDown();
-        <SPAN CLASS=t>double </SPAN>GetTouchMoveX(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>double </SPAN>GetTouchMoveY(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>double </SPAN>GetTouchMove(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>double </SPAN>GetTotalTouchMoveX(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>double </SPAN>GetTotalTouchMoveY(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>double </SPAN>GetTotalTouchMove(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>bool </SPAN>IsAnyTouchDown() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTouchMoveX(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTouchMoveY(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTouchMove(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTotalTouchMoveX(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTotalTouchMoveY(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetTotalTouchMove(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>struct </SPAN>Touch <SPAN CLASS=b>{
                 </SPAN>emUInt64 Id;

@@ -13,8 +13,7 @@
 # Descr =
 # Descr =  Target: The target directory, or a single target file
 # Descr =          to be overwritten by a single source file.
-# ButtonBgColor = #5A7
-# ButtonFgColor = #000
+# Icon = copy_file.tga
 # Hotkey = Ctrl+C
 #[[END PROPERTIES]]
 */
@@ -75,7 +74,7 @@ for (var i=0; i<Src.length; i++) {
 }
 BatWriteLine(":L_END");
 if (IsDirectory(Tgt[0])) {
-	BatWriteLine("if exist " + QuoteArg(newTgt[0]) + " (");
+	BatWriteLine("if exist " + BatQuoteArg(newTgt[0]) + " (");
 	BatWriteSendSelectKS(newTgt);
 	BatWriteLine(") else (");
 	BatWriteSendUpdate();

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.h
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emView_h
 #include <emCore/emView.h>
+#endif
+
+#ifndef emViewAnimator_h
+#include <emCore/emViewAnimator.h>
 #endif
 
 #ifndef emFileManTheme_h
@@ -99,6 +103,7 @@ private:
 	class RevisitEngineClass : public emEngine {
 	public:
 		RevisitEngineClass(emFileManViewConfig & config);
+		virtual ~RevisitEngineClass();
 	protected:
 		virtual bool Cycle();
 	private:
@@ -106,6 +111,8 @@ private:
 		emString VisIdentity;
 		double VisRelX,VisRelY,VisRelA;
 		bool VisAdherent;
+		emString Subject;
+		emVisitingViewAnimator * VisitingVA;
 	};
 	friend class RevisitEngineClass;
 

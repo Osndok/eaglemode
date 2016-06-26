@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -250,7 +250,7 @@
         </SPAN><SPAN CLASS=t>public</SPAN>:
                 FilesListBox(<A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
                 <SPAN CLASS=t>virtual </SPAN>~FilesListBox();
-                <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; GetFileSelectionBox();
+                <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; GetFileSelectionBox() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetDirImage() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetDirUpImage() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>protected</SPAN>:
@@ -274,8 +274,8 @@
                 <SPAN CLASS=t>virtual void </SPAN>ItemDataChanged();
                 <SPAN CLASS=t>virtual void </SPAN>ItemSelectionChanged();
         <SPAN CLASS=t>private</SPAN>:
-                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBgColor();
-                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetFgColor();
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetBgColor() <SPAN CLASS=t>const</SPAN>;
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetFgColor() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>friend class </SPAN>FileOverlayPanel;
                 FilesListBox &amp; ListBox;
                 <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * FilePanel;
@@ -387,8 +387,8 @@
         </SPAN><SPAN CLASS=k>return </SPAN>FilterHidden;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::FilesListBox::GetFileSelectionBox()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A> &amp; <A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>::FilesListBox::GetFileSelectionBox() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>*((<A CLASS=l HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>*)GetParent());
 <SPAN CLASS=b>}
 

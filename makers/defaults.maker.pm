@@ -42,6 +42,10 @@ sub GetFileHandlingRules
 		# but res/xxx/src.old/yyy would!)
 		'-clean-install:(^|/)src(/|$)',
 
+		# Beyond that, do not back up, release, or install any path
+		# where a name ends with '.tmp'.
+		'+nobackup+private-install:\.tmp(/|$)',
+
 		# And do not install the postscript documentation on Windows.
 		$Config{'osname'} eq "MSWin32" ? ('-install:^doc/ps(/|$)') : ()
 

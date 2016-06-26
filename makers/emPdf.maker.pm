@@ -61,7 +61,7 @@ sub Build
 	my @libpopplerglibFlags=();
 	my $str=readpipe('pkg-config --cflags --libs gtk+-2.0 poppler-glib');
 	if (!$str) { return 0; }
-	foreach my $f (split(/ /,$str)) {
+	foreach my $f (split(/\s+/,$str)) {
 		if (substr($f,0,2) eq '-I') {
 			push(@libpopplerglibFlags,'--inc-search-dir',substr($f,2));
 		}

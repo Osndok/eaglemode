@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 3.0
+# Order = 2.0
 # Interpreter = perl
 # DefaultFor = file
 # Caption = Kate
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The plain text files to be opened.
+# Icon = thirdparty/kate.tga
 #[[END PROPERTIES]]
 
 use strict;

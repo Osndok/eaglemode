@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 7.0
+# Order = 11.0
 # Interpreter = perl
 # Caption = Delete
 # Descr =Remove one or more files and/or directories.
@@ -12,8 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files and directories to be removed.
-# ButtonBgColor = #E56
-# ButtonFgColor = #000
+# Icon = delete_file.tga
 # Hotkey = Delete
 #[[END PROPERTIES]]
 

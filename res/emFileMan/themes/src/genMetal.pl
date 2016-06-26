@@ -6,10 +6,11 @@ use File::Basename;
 
 
 sub generate_theme
-	# Arguments: tallness, display name, file
+	# Arguments: tallness, display name, display icon, file
 {
 	my $tallness = shift;
 	my $DisplayName = shift;
+	my $DisplayIcon = shift;
 	my $fileName = shift;
 
 	my $BackgroundColor = '{187 187 187}';
@@ -32,12 +33,7 @@ sub generate_theme
 
 	my $Height = $tallness;
 
-	my $f=($tallness/(1.0/3.0)+1.0)/2.0;
-
-	my $MinAltVW=25.0/$f;
-	my $MinContentVW=45.0/$f;
-
-	my $frame=(1.0+$tallness)*0.0075*$f;
+	my $frame=(1.0+$tallness)*($tallness*3.0+1.0)*0.00375;
 
 	my $BackgroundX = 0.0;
 	my $BackgroundY = 0.0;
@@ -124,7 +120,7 @@ sub generate_theme
 	my $InfoH=$y2-$InfoY;
 	my $InfoAlignment = "top-left";
 
-	my $altContentFrame=0.002/0.604*$f;
+	my $altContentFrame=$contentFrame/$FileInnerBorderW;
 
 	my $AltLabelX = 0.0;
 	my $AltLabelY = 0.0;
@@ -163,6 +159,20 @@ sub generate_theme
 	my $AltAltX=1.0-$AltAltW;
 	my $AltPathW=$AltAltX-$AltPathX-$AltPathH*0.4;
 
+	my $MinContentVW=26.0/sqrt($Height);
+	my $MinAltVW=15.0/sqrt($Height);
+
+	my $px=1.0-$BackgroundW-$BackgroundX*2;
+	my $py=$Height-$BackgroundH-$BackgroundY*2;
+	my $DirPaddingL=0.0;
+	my $DirPaddingT=0.0;
+	my $DirPaddingR=0.0;
+	my $DirPaddingB=0.0;
+	my $LnkPaddingL=$px;
+	my $LnkPaddingT=$py;
+	my $LnkPaddingR=0.0;
+	my $LnkPaddingB=0.0;
+
 	my $fh;
 	open($fh,">",$fileName);
 
@@ -170,6 +180,7 @@ sub generate_theme
 		"#%rec:emFileManTheme%#\n".
 		"\n".
 		"DisplayName = \"$DisplayName\"\n".
+		"DisplayIcon = \"$DisplayIcon\"\n".
 		"BackgroundColor = $BackgroundColor\n".
 		"SourceSelectionColor = $SourceSelectionColor\n".
 		"TargetSelectionColor = $TargetSelectionColor\n".
@@ -292,7 +303,15 @@ sub generate_theme
 		"AltContentW = $AltContentW\n".
 		"AltContentH = $AltContentH\n".
 		"MinContentVW = $MinContentVW\n".
-		"MinAltVW = $MinAltVW\n"
+		"MinAltVW = $MinAltVW\n".
+		"DirPaddingL = $DirPaddingL\n".
+		"DirPaddingT = $DirPaddingT\n".
+		"DirPaddingR = $DirPaddingR\n".
+		"DirPaddingB = $DirPaddingB\n".
+		"LnkPaddingL = $LnkPaddingL\n".
+		"LnkPaddingT = $LnkPaddingT\n".
+		"LnkPaddingR = $LnkPaddingR\n".
+		"LnkPaddingB = $LnkPaddingB\n"
 	);
 
 	close($fh);
@@ -302,6 +321,8 @@ sub generate_theme
 my $ThemeName = basename($0);
 $ThemeName =~ s/(^gen)|(.pl$)//g;
 
-generate_theme(1.0/3.0 , "${ThemeName} 3:1" , "../${ThemeName}1.emFileManTheme");
-generate_theme(9.0/16.0 , "${ThemeName} 16:9" , "../${ThemeName}2.emFileManTheme");
-generate_theme(3.0/4.0 , "${ThemeName} 4:3" , "../${ThemeName}3.emFileManTheme");
+my $DisplayName = $ThemeName;
+
+generate_theme(1.0/3.0 , "${DisplayName}", "theme_${ThemeName}.tga", "../${ThemeName}1.emFileManTheme");
+generate_theme(9.0/16.0, "${DisplayName}", "theme_${ThemeName}.tga", "../${ThemeName}2.emFileManTheme");
+generate_theme(3.0/4.0 , "${DisplayName}", "theme_${ThemeName}.tga", "../${ThemeName}3.emFileManTheme");

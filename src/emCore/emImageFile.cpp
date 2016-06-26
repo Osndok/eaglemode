@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImageFile.cpp
 //
-// Copyright (C) 2004-2008,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2008,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -112,6 +112,12 @@ void emImageFilePanel::SetFileModel(
 			((const emImageFileModel*)GetFileModel())->GetChangeSignal()
 		);
 	}
+}
+
+
+emString emImageFilePanel::GetIconFileName()
+{
+	return "picture.tga";
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLook.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -185,16 +185,16 @@ void emLook::MakeWritable()
 
 emLook::SharedData::SharedData()
 	: RefCount(UINT_MAX/2),
-	BgColor      (0x2A3F6BFF),
-	FgColor      (0xD0D7D2FF),
-	ButtonBgColor(0x2E332EFF),
-	ButtonFgColor(0xCBCBD6FF),
-	InputBgColor (0xFFFFFFFF),
-	InputFgColor (0x000000FF),
-	InputHlColor (0x0033BBFF),
-	OutputBgColor(0xBBBBBBFF),
-	OutputFgColor(0x000000FF),
-	OutputHlColor(0x0033BBFF)
+	BgColor      (0x515E84FF),
+	FgColor      (0xEFF0F4FF),
+	ButtonBgColor(0x596790FF),
+	ButtonFgColor(0xF2F2F7FF),
+	InputBgColor (0xEFF0F4FF),
+	InputFgColor (0x020E1DFF),
+	InputHlColor (0x0038C0FF),
+	OutputBgColor(0xA7A9B0FF),
+	OutputFgColor(0x070B18FF),
+	OutputHlColor(0x002B9AFF)
 {
 }
 

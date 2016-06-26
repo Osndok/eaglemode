@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAnything.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -156,7 +156,7 @@ template <class VALUE> emCastAnything<VALUE>::operator const VALUE * () const
 {
 	if (Data) {
 		const SharedData * d=
-			dynamic_cast<const emCastAnything<VALUE>::SharedData*>(Data)
+			dynamic_cast<const typename emCastAnything<VALUE>::SharedData*>(Data)
 		;
 		if (d) return &d->Value;
 	}

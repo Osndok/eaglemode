@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -172,6 +172,24 @@ void emRadioButton::Mechanism::SetCheckIndex(int index)
 		CheckSignal.Signal(*scheduler);
 		CheckChanged();
 	}
+}
+
+
+emRadioButton * emRadioButton::Mechanism::GetButton(int index)
+{
+	if (index>=0 && index<Array.GetCount()) {
+		return Array[index];
+	}
+	return NULL;
+}
+
+
+const emRadioButton * emRadioButton::Mechanism::GetButton(int index) const
+{
+	if (index>=0 && index<Array.GetCount()) {
+		return Array[index];
+	}
+	return NULL;
 }
 
 

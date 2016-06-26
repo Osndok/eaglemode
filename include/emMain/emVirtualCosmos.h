@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.h
 //
-// Copyright (C) 2007-2008,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,7 +41,7 @@ public:
 	emVirtualCosmosItemRec(const emString & name);
 	virtual ~emVirtualCosmosItemRec();
 
-	const emString & GetName();
+	const emString & GetName() const;
 
 	virtual const char * GetFormatName() const;
 
@@ -71,7 +71,7 @@ public:
 		// is made if necessary. This is called by emVirtualCosmosModel
 		// when loading.
 
-	const emString & GetItemFilePath();
+	const emString & GetItemFilePath() const;
 		// Get the path of the file to be shown for this item. This is
 		// not valid before TryPrepareItemFile has been called.
 
@@ -80,12 +80,12 @@ private:
 	emString ItemFilePath;
 };
 
-inline const emString & emVirtualCosmosItemRec::GetName()
+inline const emString & emVirtualCosmosItemRec::GetName() const
 {
 	return Name;
 }
 
-inline const emString & emVirtualCosmosItemRec::GetItemFilePath()
+inline const emString & emVirtualCosmosItemRec::GetItemFilePath() const
 {
 	return ItemFilePath;
 }
@@ -158,7 +158,7 @@ public:
 	emVirtualCosmosItemPanel(ParentArg parent, const emString & name);
 	virtual ~emVirtualCosmosItemPanel();
 
-	emVirtualCosmosItemRec * GetItemRec();
+	emVirtualCosmosItemRec * GetItemRec() const;
 	void SetItemRec(emVirtualCosmosItemRec * itemRec);
 
 	virtual emString GetTitle();
@@ -166,6 +166,8 @@ public:
 protected:
 
 	virtual bool Cycle();
+	virtual void Input(emInputEvent & event, const emInputState & state,
+	                   double mx, double my);
 	virtual bool IsOpaque();
 	virtual void Paint(const emPainter & painter, emColor canvasColor);
 	virtual void AutoExpand();
@@ -176,7 +178,7 @@ protected:
 
 private:
 
-	void CalcBorders(double * pL, double * pT, double * pR, double * pB);
+	void CalcBorders(double * pL, double * pT, double * pR, double * pB) const;
 	void UpdateFromRec();
 	void LayoutContentPanel();
 
@@ -188,7 +190,7 @@ private:
 	emImage OuterBorderImage, InnerBorderImage;
 };
 
-inline emVirtualCosmosItemRec * emVirtualCosmosItemPanel::GetItemRec()
+inline emVirtualCosmosItemRec * emVirtualCosmosItemPanel::GetItemRec() const
 {
 	return (emVirtualCosmosItemRec*)GetListenedRec();
 }
@@ -206,6 +208,7 @@ public:
 	virtual ~emVirtualCosmosPanel();
 
 	virtual emString GetTitle();
+	virtual emString GetIconFileName();
 
 protected:
 

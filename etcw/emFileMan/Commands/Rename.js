@@ -1,7 +1,7 @@
 /*
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 6.0
+# Order = 9.0
 # Interpreter = wscript
 # Caption = Rename
 # Descr =Rename a file or directory. The new name is asked.
@@ -11,8 +11,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The file or directory to be renamed.
-# ButtonBgColor = #C85
-# ButtonFgColor = #000
+# Icon = rename_file.tga
 # Hotkey = Backspace
 #[[END PROPERTIES]]
 */
@@ -48,7 +47,7 @@ if (IsExistingPath(newPath)) {
 BatBegin("Rename");
 BatWriteCmdEchoed(["rename",oldPath,newName]); //??? Fails on hidden files.
 BatWriteCheckError();
-BatWriteLine("if exist " + QuoteArg(newPath) + " (");
+BatWriteLine("if exist " + BatQuoteArg(newPath) + " (");
 BatWriteSendSelectKS([newPath]);
 BatWriteLine(") else (");
 BatWriteSendUpdate();

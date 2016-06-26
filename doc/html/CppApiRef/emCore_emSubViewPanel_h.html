@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>.h
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,7 +56,7 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>();
                 <SPAN CLASS=c>// Destructor. Deletes the sub-view and its panels.
 
-        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetSubView();
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetSubView() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the sub-view.
 
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
@@ -98,7 +98,7 @@
                 <SPAN CLASS=t>void </SPAN>SetViewFocused(<SPAN CLASS=t>bool </SPAN>focused);
                 <SPAN CLASS=t>void </SPAN>InputToView(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
                                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-                <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetViewCursor();
+                <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetViewCursor() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>void </SPAN>PaintView(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual void </SPAN>RequestFocus();
@@ -119,8 +119,8 @@
         SubViewPortClass * SubViewPort;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::GetSubView()
-<SPAN CLASS=b>{
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::GetSubView() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>*SubView;
 <SPAN CLASS=b>}
 
@@ -152,8 +152,8 @@
         </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::InputToView(event,state);
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::GetViewCursor()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::GetViewCursor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::GetViewCursor();
 <SPAN CLASS=b>}
 

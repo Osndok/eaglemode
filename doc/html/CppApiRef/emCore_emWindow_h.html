@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -67,12 +67,17 @@
                 </SPAN>WF_POPUP       = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>),
                         <SPAN CLASS=c>// Like WF_UNDECORATED, but the close signal is
                         // generated as soon as the focus is lost.
-                </SPAN>WF_FULLSCREEN  = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>),
-                        <SPAN CLASS=c>// Like WF_UNDECORATED, but the window covers the whole
-                        // screen.
-                </SPAN>WF_AUTO_DELETE = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>)
-                        <SPAN CLASS=c>// The window deletes itself automatically three time slices
-                        // after the close signal is signaled.
+                </SPAN>WF_MAXIMIZED   = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>),
+                        <SPAN CLASS=c>// The window covers the whole work area of the desktop.
+                        // This flag may have no effect when combined with
+                        // WF_UNDECORATED, WF_POPUP or WF_FULLSCREEN.
+                </SPAN>WF_FULLSCREEN  = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>),
+                        <SPAN CLASS=c>// The window covers the whole screen. This flag may
+                        // have no effect when combined with WF_UNDECORATED or
+                        // WF_POPUP.
+                </SPAN>WF_AUTO_DELETE = (<SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5</SPAN>)
+                        <SPAN CLASS=c>// The window deletes itself automatically three time
+                        // slices after the close signal is signaled.
         </SPAN><SPAN CLASS=b>}</SPAN>;
 
         <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>(
@@ -106,7 +111,7 @@
         </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
                 <SPAN CLASS=c>// This means <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>&gt; is possible.
 
-        </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> &amp; GetScreen();
+        </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> &amp; GetScreen() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the screen where this window is shown.
 
         </SPAN>WindowFlags GetWindowFlags() <SPAN CLASS=t>const</SPAN>;
@@ -120,7 +125,7 @@
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetWMResName() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the resource name of this window.
 
-        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; GetWindowPort();
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; GetWindowPort() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the window port of this window.
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCloseSignal() <SPAN CLASS=t>const</SPAN>;
@@ -156,9 +161,12 @@
                 // returned.
 
         </SPAN><SPAN CLASS=t>void </SPAN>GetBorderSizes(<SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR,
-                            <SPAN CLASS=t>double </SPAN>* pB);
+                            <SPAN CLASS=t>double </SPAN>* pB) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the best known size (thickness) of the left, top, right
                 // and bottom edges of the window border.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMonitorIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the display monitor on which this window is.
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetWindowIcon() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetWindowIcon(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; windowIcon);
@@ -201,8 +209,6 @@
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> WindowFlagsSignal;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CloseSignal;
         AutoDeleteEngineClass AutoDeleteEngine;
-        <SPAN CLASS=t>double </SPAN>PrevVPX,PrevVPY,PrevVPW,PrevVPH;
-        <SPAN CLASS=t>bool </SPAN>PrevVPValid;
 <SPAN CLASS=b>}</SPAN>;
 
 
@@ -223,7 +229,7 @@
                 <SPAN CLASS=c>// Only to be called through overloaded versions of
                 // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::CreateWindowPort.
 
-        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; GetWindow();
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; GetWindow() <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 
@@ -231,7 +237,7 @@
 
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetWMResName() <SPAN CLASS=t>const</SPAN>;
 
-        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetWindowTitle();
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetWindowTitle() <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetWindowIcon() <SPAN CLASS=t>const</SPAN>;
 
@@ -251,7 +257,7 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetBorderSizes(
                 <SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR, <SPAN CLASS=t>double </SPAN>* pB
-        ) = <SPAN CLASS=u>0</SPAN>;
+        ) <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>Raise() = <SPAN CLASS=u>0</SPAN>;
 
@@ -278,8 +284,8 @@
         </SPAN>CrossPtrList.LinkCrossPtr(crossPtr);
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetScreen()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetScreen() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>*(Screen.Get());
 <SPAN CLASS=b>}
 
@@ -293,8 +299,8 @@
         </SPAN><SPAN CLASS=k>return </SPAN>WMResName;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowPort()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowPort() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>*WindowPort;
 <SPAN CLASS=b>}
 
@@ -366,8 +372,8 @@
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetBorderSizes(
         <SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR, <SPAN CLASS=t>double </SPAN>* pB
-)
-<SPAN CLASS=b>{
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN>WindowPort-&gt;GetBorderSizes(pL,pT,pR,pB);
 <SPAN CLASS=b>}
 
@@ -384,8 +390,8 @@
 
 </SPAN><SPAN CLASS=c>//-------------------------------- <A CLASS=m HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> --------------------------------
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindow()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindow() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Window;
 <SPAN CLASS=b>}
 
@@ -404,8 +410,8 @@
         </SPAN><SPAN CLASS=k>return </SPAN>Window.GetWMResName();
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindowTitle()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>::GetWindowTitle() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Window.GetTitle();
 <SPAN CLASS=b>}
 

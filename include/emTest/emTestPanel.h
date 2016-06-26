@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.h
 //
-// Copyright (C) 2005-2008,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2008,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -87,7 +87,8 @@ private:
 		);
 
 		emScalarField * SFLen, * SFPos;
-		emCheckBox * CbTopLev, * CbPZoom, * CbModal, * CbUndec, * CbPopup, * CbFull;
+		emCheckBox * CbTopLev, * CbPZoom, * CbModal, * CbUndec, * CbPopup;
+		emCheckBox * CbMax, * CbFull;
 		emButton * BtCreateDlg, * BtOpenFile, * BtOpenFiles, * BtSaveFile;
 		emFileDialog * FileDlg;
 	};

@@ -48,8 +48,7 @@ print($fh '
 Bookmark: {
 	Name = "Help"
 	Description = "This brings you to the documentation area."
-	BgColor = "#EEE"
-	FgColor = "#333"
+	Icon = "help.tga"
 	Hotkey = "F1"
 	LocationIdentity = ":"
 	LocationRelX = -0.36326
@@ -88,8 +87,7 @@ print($fh '
 Bookmark: {
 	Name = "Home"
 	Description = "This brings you to your home directory."
-	BgColor = "#AAA"
-	FgColor = "#008"
+	Icon = "home.tga"
 	Hotkey = "F6"
 	LocationIdentity = ' . QuoteRecString($loc) . '
 	VisitAtProgramStart = yes
@@ -103,8 +101,7 @@ print($fh '
 Bookmark: {
 	Name = "Root"
 	Description = "This brings you to the root directory of the file system."
-	BgColor = "#777"
-	FgColor = "#006"
+	Icon = "root.tga"
 	Hotkey = "F7"
 	LocationIdentity = "::FS::"
 }
@@ -116,8 +113,7 @@ Bookmark: {
 print($fh '
 Bookmark: {
 	Name = "Virtual Cosmos"
-	BgColor = "#112"
-	FgColor = "#DD9"
+	Icon = "virtual_cosmos.tga"
 	Hotkey = "F8"
 	LocationIdentity = ":"
 }
@@ -129,8 +125,7 @@ Bookmark: {
 print($fh '
 Bookmark: {
 	Name = "Chess"
-	BgColor = "#864"
-	FgColor = "#DCB"
+	Icon = "silchess.tga"
 	LocationIdentity = "::Chess1:"
 }
 ');
@@ -141,8 +136,7 @@ Bookmark: {
 print($fh '
 Bookmark: {
 	Name = "Mines"
-	BgColor = "#211"
-	FgColor = "#C44"
+	Icon = "mines.tga"
 	LocationIdentity = "::Mines1:"
 }
 ');
@@ -153,8 +147,7 @@ Bookmark: {
 print($fh '
 Bookmark: {
 	Name = "Netwalk"
-	BgColor = "#479"
-	FgColor = "#ADC"
+	Icon = "netwalk.tga"
 	LocationIdentity = "::Netwalk1:"
 }
 ');
@@ -165,8 +158,7 @@ Bookmark: {
 print($fh '
 Bookmark: {
 	Name = "Clock"
-	BgColor = "#028"
-	FgColor = "#9C6"
+	Icon = "clock.tga"
 	LocationIdentity = "::Clock1:"
 }
 ');

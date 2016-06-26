@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -582,14 +582,14 @@
         </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifier() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the identifier for the current value.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetIdentifierCount();
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIdentifierCount() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get number of possible values.
 
-        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>value);
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>value) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the identifier for the given value. Returns NULL if the
                 // value is out of range.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetValueOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+        </SPAN><SPAN CLASS=t>int </SPAN>GetValueOf(<SPAN CLASS=t>const char </SPAN>* identifier) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the value for the given identifier. Returns -1 if there
                 // is no such identifier.
 
@@ -633,8 +633,8 @@
         </SPAN><SPAN CLASS=k>return </SPAN>Identifiers[Value];
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::GetIdentifierCount()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emEnumRec">emEnumRec</A>::GetIdentifierCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>IdentifierCount;
 <SPAN CLASS=b>}
 
@@ -679,14 +679,14 @@
         <A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>int </SPAN>value);
                 <SPAN CLASS=c>// Set the value. Undefined flag bits are set to zero.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetIdentifierCount();
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIdentifierCount() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get number of possible flag bits.
 
-        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>bit);
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>bit) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the identifier for the given flag bit (0...31). Returns
                 // NULL when no identifier has been defined for the bit.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetBitOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+        </SPAN><SPAN CLASS=t>int </SPAN>GetBitOf(<SPAN CLASS=t>const char </SPAN>* identifier) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the flag bit for the given identifier. Returns -1 if
                 // there is no such identifier.
 
@@ -725,8 +725,8 @@
         <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::GetIdentifierCount()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emFlagsRec">emFlagsRec</A>::GetIdentifierCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>IdentifierCount;
 <SPAN CLASS=b>}
 
@@ -959,15 +959,15 @@
                 <SPAN CLASS=c>// Get a reference to a member. The index must be within the
                 // range of 0 to GetCount()-1.
 
-        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>index);
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the identifier for the given member index. Returns NULL
                 // if the index is out of range.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * member);
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * member) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the member index for the given member pointer. Returns -1
                 // if there is no such member.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+        </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const char </SPAN>* identifier) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the member index for the given identifier. Returns -1 if
                 // there is no such identifier.
 
@@ -1085,11 +1085,11 @@
         </SPAN><SPAN CLASS=t>int </SPAN>GetVariantCount() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get number of variants.
 
-        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>variant);
+        </SPAN><SPAN CLASS=t>const char </SPAN>* GetIdentifierOf(<SPAN CLASS=t>int </SPAN>variant) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the identifier for the given variant index. Returns NULL
                 // if there is no such variant.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>GetVariantOf(<SPAN CLASS=t>const char </SPAN>* identifier);
+        </SPAN><SPAN CLASS=t>int </SPAN>GetVariantOf(<SPAN CLASS=t>const char </SPAN>* identifier) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the variant index for the given identifier. Returns -1 if
                 // there is no such identifier.
 
@@ -1357,7 +1357,7 @@
         ElementType TryPeekNext(<SPAN CLASS=t>char </SPAN>* pDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
                 <SPAN CLASS=c>// Peek for the type of the next syntactical element to be read.
                 // If it is ET_DELIMITER and if pDelimiter is not NULL,
-                // *pDelimiter is set to the delimiter character,
+                // *pDelimiter is set to the delimiter character.
 
         </SPAN><SPAN CLASS=t>char </SPAN>TryReadDelimiter() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
                 <SPAN CLASS=c>// Read the next syntactical element as a delimiter or throw an

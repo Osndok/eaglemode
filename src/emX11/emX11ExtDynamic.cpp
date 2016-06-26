@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.cpp
 //
-// Copyright (C) 2008-2009,2014 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -161,4 +161,71 @@ void emX11_TryLoadLibXxf86vm() throw(emException)
 bool emX11_IsLibXxf86vmLoaded()
 {
 	return emX11_LibXxf86vmLoaded;
+}
+
+
+//==============================================================================
+//======================= Dynamic access to libXinerama ========================
+//==============================================================================
+
+static const char * emX11_LibXineramaName=
+#	if defined(_WIN32)
+		"libXinerama.dll"
+#	elif defined(__CYGWIN__)
+		"cygXinerama-1.dll"
+#	elif defined(__APPLE__)
+		"/usr/X11/lib/libXinerama.1.dylib"
+#	else
+		"libXinerama.so.1"
+#	endif
+;
+
+
+static const char * emX11_LibXineramaFuncNames[4]={
+	"XineramaQueryExtension",
+	"XineramaQueryScreens",
+	"XineramaQueryVersion"
+};
+
+
+void * emX11_LibXineramaFunctions[3]={
+	NULL,
+	NULL,
+	NULL
+};
+
+
+static emThreadMiniMutex emX11_LibXineramaLoadMutex;
+static bool emX11_LibXineramaLoaded=false;
+
+
+void emX11_TryLoadLibXinerama() throw(emException)
+{
+	emLibHandle h;
+	int i;
+
+	emX11_LibXineramaLoadMutex.Lock();
+	if (!emX11_LibXineramaLoaded) {
+		try {
+			h=emTryOpenLib(emX11_LibXineramaName,true);
+			for (i=0; i<(int)(sizeof(emX11_LibXineramaFunctions)/sizeof(void*)); i++) {
+				emX11_LibXineramaFunctions[i]=emTryResolveSymbolFromLib(
+					h,
+					emX11_LibXineramaFuncNames[i]
+				);
+			}
+		}
+		catch (emException & exception) {
+			emX11_LibXineramaLoadMutex.Unlock();
+			throw exception;
+		}
+		emX11_LibXineramaLoaded=true;
+	}
+	emX11_LibXineramaLoadMutex.Unlock();
+}
+
+
+bool emX11_IsLibXineramaLoaded()
+{
+	return emX11_LibXineramaLoaded;
 }

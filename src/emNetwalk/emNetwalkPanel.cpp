@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.cpp
 //
-// Copyright (C) 2010-2012,2014 Oliver Hamann.
+// Copyright (C) 2010-2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,6 +45,12 @@ emNetwalkPanel::~emNetwalkPanel()
 emString emNetwalkPanel::GetTitle()
 {
 	return "Netwalk";
+}
+
+
+emString emNetwalkPanel::GetIconFileName()
+{
+	return "netwalk.tga";
 }
 
 

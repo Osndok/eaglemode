@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emModel.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,12 +129,10 @@ public:
 		if (!m) { m=new CLASS(CONTEXT,NAME); m->Register(); } \
 		return emRef<CLASS >(m);
 
-	const emRootContext & GetRootContext() const;
-	emRootContext & GetRootContext();
+	emRootContext & GetRootContext() const;
 		// Get the root context.
 
-	const emContext & GetContext() const;
-	emContext & GetContext();
+	emContext & GetContext() const;
 		// Get the context of this model.
 
 	const emString & GetName() const;
@@ -230,22 +228,12 @@ private: friend class emContext;
 		// Context.SharedTiming->SecsCounter)
 };
 
-inline const emRootContext & emModel::GetRootContext() const
+inline emRootContext & emModel::GetRootContext() const
 {
 	return Context.RootContext;
 }
 
-inline emRootContext & emModel::GetRootContext()
-{
-	return Context.RootContext;
-}
-
-inline const emContext & emModel::GetContext() const
-{
-	return Context;
-}
-
-inline emContext & emModel::GetContext()
+inline emContext & emModel::GetContext() const
 {
 	return Context;
 }

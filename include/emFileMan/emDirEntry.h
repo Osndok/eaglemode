@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.h
 //
-// Copyright (C) 2005-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -66,6 +66,10 @@ public:
 
 #if defined(_WIN32)
 	emUInt32 GetWndsFileAttributes() const;
+	bool IsDrive() const;
+	unsigned GetDriveType() const;
+	const emString & GetDriveName() const;
+	const emString & GetDriveFileSystem() const;
 #endif
 
 	unsigned int GetDataRefCount() const;
@@ -92,6 +96,10 @@ private:
 		struct em_stat * LStat;
 #if defined(_WIN32)
 		emUInt32 WndsFileAttributes;
+		bool Drive;
+		unsigned DriveType;
+		emString DriveName;
+		emString DriveFileSystem;
 #endif
 	};
 
@@ -182,6 +190,26 @@ inline int emDirEntry::GetLStatErrNo() const
 inline emUInt32 emDirEntry::GetWndsFileAttributes() const
 {
 	return Data->WndsFileAttributes;
+}
+
+inline bool emDirEntry::IsDrive() const
+{
+	return Data->Drive;
+}
+
+inline unsigned emDirEntry::GetDriveType() const
+{
+	return Data->DriveType;
+}
+
+inline const emString & emDirEntry::GetDriveName() const
+{
+	return Data->DriveName;
+}
+
+inline const emString & emDirEntry::GetDriveFileSystem() const
+{
+	return Data->DriveFileSystem;
 }
 #endif
 

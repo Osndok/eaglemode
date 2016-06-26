@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.h - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2008,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,8 +73,7 @@ public:
 	virtual ~emMiniIpcServer();
 		// Destructor: stops any serving.
 
-	const emScheduler & GetScheduler() const;
-	emScheduler & GetScheduler();
+	emScheduler & GetScheduler() const;
 		// Get the scheduler.
 
 	void StartServing(const char * userDefinedServerName=NULL);
@@ -130,12 +129,7 @@ private:
 	bool * PtrStoppedOrDestructed;
 };
 
-inline const emScheduler & emMiniIpcServer::GetScheduler() const
-{
-	return Scheduler;
-}
-
-inline emScheduler & emMiniIpcServer::GetScheduler()
+inline emScheduler & emMiniIpcServer::GetScheduler() const
 {
 	return Scheduler;
 }

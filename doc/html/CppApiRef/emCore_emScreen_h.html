@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>.h
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,24 +70,44 @@
                 //   The reference to the interface, or a NULL reference if not
                 //   found.
 
-        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetWidth() = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual double </SPAN>GetHeight() = <SPAN CLASS=u>0</SPAN>;
-                <SPAN CLASS=c>// Get the resolution of the screen (or virtual desktop) in
-                // pixels.
-
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetVisibleRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
-                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH) = <SPAN CLASS=u>0</SPAN>;
-                <SPAN CLASS=c>// Get the pixel coordinates of the visible rectangle of the
-                // screen. If it is not a virtual desktop, the result is equal
-                // to: 0.0, 0.0, GetWidth(), GetHeight()
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetDesktopRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH
+        ) <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the pixel coordinates of this (virtual) desktop.
                 // Arguments:
                 //   pX - Pointer for returning the X-position of the rectangle.
                 //   pY - Pointer for returning the Y-position of the rectangle.
                 //   pW - Pointer for returning the width of the rectangle.
                 //   pH - Pointer for returning the height of the rectangle.
 
-        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetDPI() = <SPAN CLASS=u>0</SPAN>;
-                <SPAN CLASS=c>// Get pixels per inch (horizontally).
+        </SPAN><SPAN CLASS=t>virtual int </SPAN>GetMonitorCount() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the number of display monitors showing this (virtual)
+                // desktop.
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetMonitorRect(
+                <SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH
+        ) <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get the pixel coordinates of a display monitor on this
+                // (virtual) desktop.
+                // Arguments:
+                //   index - Index of the monitor (0...GetMonitorCount()).
+                //   pX    - Pointer for returning the X-position of the rectangle.
+                //   pY    - Pointer for returning the Y-position of the rectangle.
+                //   pW    - Pointer for returning the width of the rectangle.
+                //   pH    - Pointer for returning the height of the rectangle.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMonitorIndexOfRect(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the index of the monitor which contains the given
+                // rectangle or the biggest part of it. If the rectangle is
+                // beyond all monitors, the index of the primary monitor is
+                // returned (which is 0).
+
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetDPI() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get pixels per inch of the primary monitor (horizontally).
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetGeometrySignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This signal is signaled on any change in the results of
+                // GetDesktopRect, GetMonitorCount, GetMonitorRect and GetDPI.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy) = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Move the mouse pointer programmatically.
@@ -104,12 +124,12 @@
                 // an internal counter for calls to DisableScreensaver() which
                 // have not yet been taken back by calls to EnableScreensaver().
 
-        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; GetWindows();
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; GetWindows() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get an array of pointers to all windows on the screen, which
                 // have been created within the context of this screen
                 // interface. Other windows are not included.
 
-        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetWindowsSignal();
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetWindowsSignal() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// This signal is signaled when the array returned by GetWindows
                 // has changed.
 
@@ -131,23 +151,38 @@
                 <SPAN CLASS=c>// Register this interface so that it can be found by
                 // LookupInherited.
 
+        </SPAN><SPAN CLASS=t>void </SPAN>SignalGeometrySignal();
+                <SPAN CLASS=c>// Signal a change in the results of GetDesktopRect,
+                // GetMonitorCount, GetMonitorRect or GetDPI.
+
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> * CreateWindowPort(<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; window) = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Create a window port implementation for a new window on the
                 // screen. (This is called by the constructor of <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>)
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
         <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; Windows;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> GeometrySignal;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> WindowsSignal;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetWindows()
-<SPAN CLASS=b>{
+<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetGeometrySignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GeometrySignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetWindows() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Windows;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetWindowsSignal()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::GetWindowsSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>WindowsSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::SignalGeometrySignal()
+<SPAN CLASS=b>{
+        </SPAN>Signal(GeometrySignal);
 <SPAN CLASS=b>}
 
 

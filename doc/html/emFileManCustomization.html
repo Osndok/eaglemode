@@ -6,27 +6,28 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>emFileMan Customization</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2008-2011 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2008-2011,2016 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Contents</H1>
 <A HREF="#1">1 Introduction</A><BR>
-<A HREF="#2">2 Simple modifications</A><BR>
+<A HREF="#2">2 File types and applications</A><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.1">2.1 Setting the preferred application for a file type</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.2">2.2 Adding a new application for a file type</A></SMALL><BR>
 <A HREF="#3">3 Reference</A><BR>
-<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Properties</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Properties of commands and groups</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 Precedence of default commands</A></SMALL><BR>
-<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 The Perl utility functions</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 Utility functions</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.4">3.4 Arguments</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.5">3.5 Environment variables</A></SMALL><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.6">3.6 The file manager's emMiniIpc server</A></SMALL><BR>
 
 <H1><A NAME="1"></A>1 Introduction</H1>
 This document describes how to customize the commands of the Eagle Mode File
-Manager. The commands are made of small script files written in the Perl
-programming language. But for simple modifications described below, you do not
-need to know anything about Perl.
+Manager. The commands are made of small script files. On Linux/UNIX, these files are
+written in the Perl programming language, and on Windows, they are written in Javascript.
+But for simple modifications, you do not need to know anything about these
+languages.
 <P>
 The script files are located in the directory
 <TT>$EM_DIR/etc/emFileMan/Commands</TT> (replace <TT>$EM_DIR</TT> by the
@@ -48,18 +49,23 @@ on Windows the messages are written to <TT>%TMP%\emCoreBasedAppLog.log</TT>).
 <P>
 Remember to make backups of your modifications, because they could be removed
 when reinstalling Eagle Mode.
-<P>
-Note: This document describes the UNIX version where the scripts are written in
-Perl. On Windows, everything is very similar, but the scripts are in Javascript.
 
-<H1><A NAME="2"></A>2 Simple modifications</H1>
+<H1><A NAME="2"></A>2 File types and applications</H1>
+This chapter is about modifying the mapping of file types to applications. But
+that is described only for Linux/UNIX here. There, Eagle Mode has one file
+manager command for each application. On Windows, there is just one command for
+all: "Open or Run". It is the default action for all files and it uses the
+mapping from the operating system, so that you can configure there (see Windows
+Control Panel -&gt; Default Programs). Yes, it would be possible to create such an
+"Open or Run" command also on Linux/UNIX, which forwards to a central default
+program service - if you have one.
 
 <H2><A NAME="2.1"></A>2.1 Setting the preferred application for a file type</H2>
 For example, if you want to make Kate the default text editor, edit the file
 <TT>PlainText/Kate.pl</TT> (below the <I>Commands</I> directory described above)
 and find the following line in it:
 <P>
-<TT>&nbsp;&nbsp;&nbsp;# Order = 3.0</TT>
+<TT>&nbsp;&nbsp;&nbsp;# Order = 2.0</TT>
 <P>
 Simply set the order number to zero:
 <P>
@@ -123,7 +129,7 @@ application, you could replace, in the last line of the script, the word
 
 <H1><A NAME="3"></A>3 Reference</H1>
 
-<H2><A NAME="3.1"></A>3.1 Properties</H2>
+<H2><A NAME="3.1"></A>3.1 Properties of commands and groups</H2>
 Each command script file has a special section containing properties. And for
 each command group directory, there is a file which even has such a section. The
 properties are configuration parameters read and used by the file manager.
@@ -136,6 +142,9 @@ The format of the properties section is:
 <TT>#&nbsp;</TT><I>name</I><TT>&nbsp;=&nbsp;</TT><I>value</I><BR>
 <I>...</I><BR>
 <TT>#[[END PROPERTIES]]</TT>
+<P>
+On Windows, i.e. with Javascript, the section has to be enclosed in a Javascript
+comment (/*...*/).
 <P>
 Possible properties are:
 <P>
@@ -208,8 +217,10 @@ Possible properties are:
 	<TR VALIGN="top">
 		<TD><TT>Icon</TT></TD>
 		<TD>An icon to be shown in the label of the button or group. It
-		can be specified by a file name (without path) of a TGA file in
-		the directory <TT>$EM_DIR/res/icons</TT>.</TD>
+		can be specified by a file name of a TGA file in
+		the directory <TT>$EM_DIR/res/icons</TT>. A path to a TGA file
+		is also allowed, either relative to that directory, or
+		absolute.</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD><TT>BgColor<BR>FgColor<BR>ButtonBgColor<BR>ButtonFgColor</TT></TD>
@@ -233,7 +244,7 @@ Possible properties are:
 	<TR VALIGN="top">
 		<TD><TT>PrefChildTallness</TT></TD>
 		<TD>Preferred height/width ratio of the elements of the group.
-		The default is 0.2.</TD>
+		The default is 1.0.</TD>
 	</TR>
 </TABLE>
 <P>
@@ -260,21 +271,14 @@ the following rules (strongest-first):
 </UL>
 The rest is tree sorting by captions, case-sensitive.
 
-<H2><A NAME="3.3"></A>3.3 The Perl utility functions</H2>
-The original command scripts are implemented in Perl, and the first lines
-are always:
-<P>
-<SMALL><TT>
-&nbsp;&nbsp;use strict;<BR>
-&nbsp;&nbsp;use warnings;<BR>
-&nbsp;&nbsp;BEGIN { require &quot;$ENV{'EM_DIR'}/res/emFileMan/scripts/cmd-util.pl&quot;; }
-</TT></SMALL>
-<P>
-This loads and executes a framework which performs some initializations and
-defines a lot of of utility functions. For information about those functions,
-please have a look into the file
-<TT>$EM_DIR/res/emFileMan/scripts/cmd-util.pl</TT>, and take all the existing
-command scripts as usage examples.
+<H2><A NAME="3.3"></A>3.3 Utility functions</H2>
+At the beginning of each command script, there is some code which loads and
+executes a framework. It is the file
+<TT>$EM_DIR/res/emFileMan/scripts/cmd-util.pl</TT> on Linux/UNIX, and
+<TT>%EM_DIR%\res\emFileMan\scripts\cmd-util.js</TT> on Windows. This performs
+some initializations and defines a lot of of utility functions. For information
+about these functions, please have a look into that file, and take all the
+existing command scripts as usage examples.
 <P>
 The rest of this document may be of interest only for understanding the
 implementation of the framework, or for writing a new framework in another
@@ -301,7 +305,7 @@ are set in addition to normal variables:
 		<TD>Directory where Eagle Mode has been installed.</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD><TT>LD_LIBRARY_PATH</TT></TD>
+		<TD><TT>LD_LIBRARY_PATH</TT> or <TT>PATH</TT> or <TT>DYLD_LIBRARY_PATH</TT> (depends on OS)</TD>
 		<TD>Contains $EM_DIR/lib, for that the libraries can be found.
 		</TD>
 	</TR>
@@ -318,12 +322,16 @@ are set in addition to normal variables:
 		<TD>Position and size of the application window. This can be
 		used to calculate a good position for popup dialogs.</TD>
 	</TR>
+	<TR VALIGN="top">
+		<TD><TT>EM_ACP</TT></TD>
+		<TD>Only on Windows: ANSI code page.</TD>
+	</TR>
 </TABLE>
 <P>
 
 <H2><A NAME="3.6"></A>3.6 The file manager's emMiniIpc server</H2>
 A command script can send certain requests to the file manager. For doing that,
-the script can use the program <TT>emSendMiniIpc</TT> in the directory
+the script can execute the program <TT>emSendMiniIpc</TT> in the directory
 <TT>$EM_DIR/bin</TT>. The first argument must be the server name (say
 <TT>$EM_FM_SERVER_NAME</TT>), and all further arguments are making up the
 request, which can be one of these:

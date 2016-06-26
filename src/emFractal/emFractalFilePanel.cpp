@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,6 +42,12 @@ emFractalFilePanel::~emFractalFilePanel()
 emString emFractalFilePanel::GetTitle()
 {
 	return "Fractal";
+}
+
+
+emString emFractalFilePanel::GetIconFileName()
+{
+	return "fractal.tga";
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1226,7 +1226,8 @@ emUInt64 emGetUInt64Random(emUInt64 minimum, emUInt64 maximum)
 	static emUInt32 seedLo=0x302D9934U;
 	static emUInt32 seedHi=0xD5441C6EU;
 	static emUInt32 count=0;
-	emUInt64 r,a,b,c;
+	emUInt32 a,b,c;
+	emUInt64 r;
 
 	if (!count) {
 		a=(emUInt32)time(NULL);

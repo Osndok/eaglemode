@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2011 Oliver Hamann.
+// Copyright (C) 2005-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,13 +51,17 @@ public:
 
 	static void Install(emContext & context);
 
-	virtual double GetWidth();
-	virtual double GetHeight();
+	virtual void GetDesktopRect(
+		double * pX, double * pY, double * pW, double * pH
+	) const;
 
-	virtual void GetVisibleRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	virtual int GetMonitorCount() const;
 
-	virtual double GetDPI();
+	virtual void GetMonitorRect(
+		int index, double * pX, double * pY, double * pW, double * pH
+	) const;
+
+	virtual double GetDPI() const;
 
 	virtual void MoveMousePointer(double dx, double dy);
 
@@ -78,12 +82,18 @@ private:
 	emX11Screen(emContext & context, const emString & name);
 	virtual ~emX11Screen();
 
+	struct Rect {
+		int x,y,w,h;
+	};
+
 	struct CursorMapElement {
 		int CursorId;
 		::Cursor XCursor;
 	};
 
 	virtual bool Cycle();
+
+	void UpdateGeometry();
 
 	void UpdateKeymapAndInputState();
 	void UpdateInputStateFromKeymap();
@@ -114,7 +124,7 @@ private:
 	{
 	public:
 		WaitCursorThread(emThreadMiniMutex & xMutex, Display * disp);
-		~WaitCursorThread();
+		virtual ~WaitCursorThread();
 		void AddWindow(::Window win);
 		void RemoveWindow(::Window win);
 		void SignOfLife();
@@ -135,25 +145,37 @@ private:
 	WaitCursorThread * WCThread;
 	XIM       InputMethod;
 	int       Scrn;
-	int       Width,Height;
-	double    DPI;
-	double    PixelTallness;
 	Window    RootWin;
+
 	Visual *  Visu;
 	int       VisuDepth;
 	Colormap  Colmap;
 	Atom      WM_PROTOCOLS;
 	Atom      WM_DELETE_WINDOW;
 	Atom      _NET_WM_ICON;
+	Atom      _NET_WM_STATE;
+	Atom      _NET_WM_STATE_MAXIMIZED_HORZ;
+	Atom      _NET_WM_STATE_MAXIMIZED_VERT;
+	Atom      _NET_WM_STATE_FULLSCREEN;
 	bool      HaveXF86VidMode;
+	bool      HaveXinerama;
 	bool      UsingXShm;
 	int       ShmCompletionEventType;
+
+	Rect      DesktopRect;
+	emArray<Rect> MonitorRects;
+	bool      MonitorRectPannable;
+	double    DPI;
+	double    PixelTallness;
+	emUInt64 GeometryUpdateTime;
+
 	int       BufWidth,BufHeight;
 	XImage *  BufImg[2];
 	XShmSegmentInfo BufSeg[2];
 	bool      BufActive[2];
 	bool      BufSegAutoRemoved;
 	emPainter BufPainter[2];
+
 	emArray<CursorMapElement> CursorMap;
 	emInputState InputState;
 	emUInt64 InputStateClock;

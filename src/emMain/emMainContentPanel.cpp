@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainContentPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,6 +41,12 @@ emMainContentPanel::~emMainContentPanel()
 emString emMainContentPanel::GetTitle()
 {
 	return "Eagle";
+}
+
+
+emString emMainContentPanel::GetIconFileName()
+{
+	return "virtual_cosmos.tga";
 }
 
 

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emThread_h.html#emThread">emThread</A>.h
 //
-// Copyright (C) 2009-2010 Oliver Hamann.
+// Copyright (C) 2009-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,7 @@
 #endif
 
 </SPAN><SPAN CLASS=t>class </SPAN>emThreadPrivate;
-<SPAN CLASS=t>struct </SPAN>emThreadEventReceivers;
+<SPAN CLASS=t>struct </SPAN>emThreadEventReceiver;
 
 
 <A NAME="emThreadId"></A><SPAN CLASS=c>//==============================================================================
@@ -137,7 +137,7 @@
 
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThread">emThread</A>::IsRunning()
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>WaitForTermination(<SPAN CLASS=u>0</SPAN>);
+        </SPAN><SPAN CLASS=k>return </SPAN>!WaitForTermination(<SPAN CLASS=u>0</SPAN>);
 <SPAN CLASS=b>}
 
 
@@ -161,7 +161,7 @@
         </SPAN>~<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>();
                 <SPAN CLASS=c>// Calls Unlock() on the mutex.
 
-        </SPAN>OBJ &amp; GetMutex();
+        </SPAN>OBJ &amp; GetMutex() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the mutex which is locked by this locker.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
@@ -182,8 +182,8 @@
         </SPAN>Mutex.Unlock();
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;OBJ&gt;::GetMutex()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutexLocker">emThreadMutexLocker</A>&lt;OBJ&gt;::GetMutex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Mutex;
 <SPAN CLASS=b>}
 
@@ -294,7 +294,7 @@
 
         <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> Mutex;
         emInt64 Count;
-        emThreadEventReceivers * Receivers;
+        emThreadEventReceiver * Ring;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadEvent">emThreadEvent</A>::Clear()
@@ -371,7 +371,7 @@
                 <SPAN CLASS=c>// A read-only locker class for this mutex class.
                 </SPAN>ReadOnlyLocker(<A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; mutex);
                 ~ReadOnlyLocker();
-                <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; GetMutex();
+                <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; GetMutex() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>private</SPAN>:
                 <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; Mutex;
         <SPAN CLASS=b>}</SPAN>;
@@ -413,8 +413,8 @@
         </SPAN>Mutex.UnlockReadOnly();
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::ReadOnlyLocker::GetMutex()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A> &amp; <A CLASS=l HREF="emCore_emThread_h.html#emThreadMutex">emThreadMutex</A>::ReadOnlyLocker::GetMutex() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Mutex;
 <SPAN CLASS=b>}
 

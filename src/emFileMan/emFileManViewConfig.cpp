@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.cpp
 //
-// Copyright (C) 2004-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -323,40 +323,43 @@ emFileManViewConfig::RevisitEngineClass::RevisitEngineClass(
 	emPanel * p;
 	p=Config.View.GetVisitedPanel(&VisRelX,&VisRelY,&VisRelA);
 	VisAdherent=Config.View.IsActivationAdherent();
-	if (p) VisIdentity=p->GetIdentity();
+	if (p) {
+		VisIdentity=p->GetIdentity();
+		Subject=p->GetTitle();
+	}
+	VisitingVA=NULL;
 	SetEnginePriority(VERY_LOW_PRIORITY);
 	WakeUp();
 }
 
 
+emFileManViewConfig::RevisitEngineClass::~RevisitEngineClass()
+{
+	if (VisitingVA) delete VisitingVA;
+}
+
+
 bool emFileManViewConfig::RevisitEngineClass::Cycle()
 {
-	emArray<emString> names;
-	emPanel * p, * c;
-	int i;
-
-	if (!VisIdentity.IsEmpty()) {
-		p=Config.View.GetPanelByIdentity(VisIdentity);
-		if (p) {
-			Config.View.RawVisit(p,VisRelX,VisRelY,VisRelA);
-			p->Activate(VisAdherent);
-		}
-		else {
-			names=emPanel::DecodeIdentity(VisIdentity);
-			p=Config.View.GetRootPanel();
-			if (p) {
-				for (i=1; i<names.GetCount(); i++) {
-					c=p->GetChild(names[i]);
-					if (!c) break;
-					p=c;
-				}
-				Config.View.RawVisitFullsized(p);
-			}
-			Config.View.Visit(VisIdentity,VisRelX,VisRelY,VisRelA,VisAdherent);
-		}
+	if (!VisitingVA && !VisIdentity.IsEmpty()) {
+		VisitingVA=new emVisitingViewAnimator(Config.View);
+		VisitingVA->SetAnimated(true);
+		VisitingVA->SetAcceleration(10000.0);
+		VisitingVA->SetMaxCuspSpeed(1000.0);
+		VisitingVA->SetMaxAbsoluteSpeed(500.0);
+		VisitingVA->SetGoal(
+			VisIdentity,VisRelX,VisRelY,VisRelA,
+			VisAdherent,Subject
+		);
+		VisitingVA->Activate();
 	}
 
-	Config.RevisitEngine=NULL;
-	delete this;
-	return false;
+	if (VisitingVA && VisitingVA->IsActive()) {
+		return true;
+	}
+	else {
+		Config.RevisitEngine=NULL;
+		delete this;
+		return false;
+	}
 }

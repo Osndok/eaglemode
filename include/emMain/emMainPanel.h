@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainPanel.h
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,11 +39,14 @@ public:
 
 	virtual ~emMainPanel();
 
-	emView & GetControlView();
-	emView & GetContentView();
+	emView & GetControlView() const;
+	emView & GetContentView() const;
 
 	emColor GetControlEdgesColor() const;
 	void SetControlEdgesColor(emColor controlEdgesColor);
+
+	bool HasStartupOverlay() const;
+	void SetStartupOverlay(bool startupOverlay);
 
 protected:
 
@@ -81,6 +84,19 @@ private:
 	};
 	friend class SliderPanel;
 
+	class StartupOverlayPanel : public emPanel {
+	public:
+		StartupOverlayPanel(ParentArg parent, const emString & name);
+		virtual ~StartupOverlayPanel();
+		virtual void Input(emInputEvent & event,
+		                   const emInputState & state,
+		                   double mx, double my);
+		virtual emCursor GetCursor();
+		virtual bool IsOpaque();
+		virtual void Paint(const emPainter & painter,
+		                   emColor canvasColor);
+	};
+
 	emRef<emMainConfig> MainConfig;
 
 	emColor ControlEdgesColor;
@@ -90,6 +106,7 @@ private:
 	emSubViewPanel * ControlViewPanel;
 	emSubViewPanel * ContentViewPanel;
 	SliderPanel * Slider;
+	StartupOverlayPanel * StartupOverlay;
 
 	double UnifiedSliderPos;
 	double ControlX,ControlY,ControlW,ControlH;
@@ -103,12 +120,12 @@ private:
 	emTimer SliderTimer;
 };
 
-inline emView & emMainPanel::GetControlView()
+inline emView & emMainPanel::GetControlView() const
 {
 	return ControlViewPanel->GetSubView();
 }
 
-inline emView & emMainPanel::GetContentView()
+inline emView & emMainPanel::GetContentView() const
 {
 	return ContentViewPanel->GetSubView();
 }
@@ -118,5 +135,9 @@ inline emColor emMainPanel::GetControlEdgesColor() const
 	return ControlEdgesColor;
 }
 
+inline bool emMainPanel::HasStartupOverlay() const
+{
+	return StartupOverlay!=NULL;
+}
 
 #endif

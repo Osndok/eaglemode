@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManConfig.cpp
 //
-// Copyright (C) 2006-2008,2010 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,8 +18,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <emCore/emInstallInfo.h>
 #include <emFileMan/emFileManConfig.h>
+#include <emFileMan/emFileManTheme.h>
+#include <emCore/emInstallInfo.h>
 
 
 emRef<emFileManConfig> emFileManConfig::Acquire(emRootContext & rootContext)
@@ -60,14 +61,22 @@ emFileManConfig::emFileManConfig(emContext & context, const emString & name)
 	),
 	SortDirectoriesFirst(this,"SortDirectoriesFirst",false),
 	ShowHiddenFiles(this,"ShowHiddenFiles",false),
-	ThemeName(this,"ThemeName","Metal1"),
+	ThemeName(this,"ThemeName",""),
 	Autosave(this,"Autosave",true)
 {
+	emRef<emFileManThemeNames> themeNames;
+
 	PostConstruct(
 		*this,
 		emGetInstallPath(EM_IDT_USER_CONFIG,"emFileMan","config.rec")
 	);
 	LoadOrInstall();
+
+	themeNames=emFileManThemeNames::Acquire(GetRootContext());
+	if (!themeNames->IsExistingThemeName(ThemeName.Get())) {
+		ThemeName=themeNames->GetDefaultThemeName();
+		Save();
+	}
 }
 
 

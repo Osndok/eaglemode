@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 9.0
+# Order = 3.0
 # Interpreter = perl
 # Caption = Select Recursively
 # Descr =Recursively select files and/or directories whose names match a
@@ -15,7 +15,7 @@
 # Descr =
 # Descr =  Target: The files and directories to be taken for the pattern
 # Descr =          test. Directories are scanned recursively.
-# ButtonFgColor = #C44
+# Icon = select_files_recursively.tga
 # Hotkey = Ctrl+S
 #[[END PROPERTIES]]
 

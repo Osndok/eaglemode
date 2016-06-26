@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainPanel.cpp
 //
-// Copyright (C) 2007-2010,2014 Oliver Hamann.
+// Copyright (C) 2007-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,6 +39,7 @@ emMainPanel::emMainPanel(
 	ControlViewPanel=new emSubViewPanel(this,"control view");
 	ContentViewPanel=new emSubViewPanel(this,"content view");
 	Slider=new SliderPanel(*this,"slider");
+	StartupOverlay=NULL;
 
 	GetControlView().SetViewFlags(
 		emView::VF_POPUP_ZOOM          |
@@ -84,6 +85,24 @@ void emMainPanel::SetControlEdgesColor(emColor controlEdgesColor)
 	if (ControlEdgesColor!=controlEdgesColor) {
 		ControlEdgesColor=controlEdgesColor;
 		InvalidatePainting();
+	}
+}
+
+
+void emMainPanel::SetStartupOverlay(bool startupOverlay)
+{
+	if (startupOverlay) {
+		if (!StartupOverlay) {
+			StartupOverlay=new StartupOverlayPanel(this,"startupOverlay");
+			StartupOverlay->Activate();
+		}
+	}
+	else {
+		if (StartupOverlay) {
+			delete StartupOverlay;
+			StartupOverlay=NULL;
+			ContentViewPanel->Activate();
+		}
 	}
 }
 
@@ -208,6 +227,7 @@ void emMainPanel::LayoutChildren()
 	ControlViewPanel->Layout(ControlX,ControlY,ControlW,ControlH);
 	ContentViewPanel->Layout(ContentX,ContentY,ContentW,ContentH);
 	Slider->Layout(SliderX,SliderY,SliderW,SliderH);
+	if (StartupOverlay) StartupOverlay->Layout(0,0,1,GetHeight());
 }
 
 
@@ -477,4 +497,67 @@ void emMainPanel::SliderPanel::Paint(const emPainter & painter, emColor canvasCo
 	}
 
 	painter.PaintImage(0.0,0.0,1.0,h,SliderImage);
+}
+
+
+emMainPanel::StartupOverlayPanel::StartupOverlayPanel(
+	ParentArg parent, const emString & name
+) :
+	emPanel(parent,name)
+{
+}
+
+
+emMainPanel::StartupOverlayPanel::~StartupOverlayPanel()
+{
+}
+
+
+void emMainPanel::StartupOverlayPanel::Input(
+	emInputEvent & event, const emInputState & state,
+	double mx, double my
+)
+{
+	if (IsFocusable() && (event.IsMouseEvent() || event.IsTouchEvent())) {
+		Focus();
+	}
+	event.Eat();
+}
+
+
+emCursor emMainPanel::StartupOverlayPanel::GetCursor()
+{
+	return emCursor::WAIT;
+}
+
+
+bool emMainPanel::StartupOverlayPanel::IsOpaque()
+{
+	// Must be false. Otherwise the sub-view panels for content and control
+	// would get "non-viewed" state, and thereby the sub-views would be set
+	// to a very small size (by emSubViewPanel), and thereby the visiting
+	// view animator in emMainWindow::StartupEngine would not work
+	// correctly.
+	return false;
+}
+
+
+void emMainPanel::StartupOverlayPanel::Paint(
+	const emPainter & painter, emColor canvasColor
+)
+{
+	emColor bgColor,fgColor;
+
+	bgColor=0x808080FF;
+	fgColor=0x404040FF;
+	painter.Clear(bgColor,canvasColor);
+	painter.PaintTextBoxed(
+		0,0,1,GetHeight(),
+		"Loading...",
+		ViewToPanelDeltaY(30.0),
+		fgColor, bgColor,
+		EM_ALIGN_CENTER,
+		EM_ALIGN_LEFT,
+		1.0
+	);
 }

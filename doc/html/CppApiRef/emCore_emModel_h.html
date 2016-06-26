@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -138,12 +138,10 @@
                 <SPAN CLASS=k>if </SPAN>(!m) <SPAN CLASS=b>{ </SPAN>m=<SPAN CLASS=k>new </SPAN>CLASS(CONTEXT,NAME); m-&gt;Register(); <SPAN CLASS=b>} </SPAN>\
                 <SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLASS &gt;(m);
 
-        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext() <SPAN CLASS=t>const</SPAN>;
-        <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+        <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the root context.
 
-        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; GetContext() <SPAN CLASS=t>const</SPAN>;
-        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; GetContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; GetContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the context of this model.
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetName() <SPAN CLASS=t>const</SPAN>;
@@ -239,23 +237,13 @@
                 // Context.SharedTiming-&gt;SecsCounter)
 </SPAN><SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>::GetRootContext() <SPAN CLASS=t>const
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>::GetRootContext() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Context.RootContext;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>::GetRootContext()
-<SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Context.RootContext;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>::GetContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>::GetContext() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Context;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>::GetContext()
-<SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Context;
 <SPAN CLASS=b>}
 

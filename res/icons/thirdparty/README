@@ -1,0 +1,22 @@
+The icons in this directory are from other projects (converted to tga
+format) and do not belong to the eagle mode project. They are only used
+for identifying those projects. For copyright details, please refer to
+the project homepages and source packages.
+
+icon           |  homepage       | license
+---------------+-----------------+-------------
+abiword.tga    | abiword.org     | GPLv2
+dia.tga        | gnome.org       | GPLv2
+evince.tga     | gnome.org       | GPLv2
+firefox.tga    | mozilla.org     | MPL2
+gedit.tga      | gnome.org       | GPLv2
+gimp.tga       | gimp.org        | GPLv3
+inkscape.tga   | inkscape.org    | GPLv2
+kaffeine.tga   | kde.org         | GPLv2
+kate.tga       | kde.org         | LGPLv2.1
+libreoffice.tga| libreoffice.org | MPL2
+meld.tga       | meldmerge.org   | GPLv2
+totem.tga      | gnome.org       | GPLv2
+vlc.tga        | videolan.org    | GPLv2
+xfig.tga       | xfig.org        | xfig
+xine.tga       | xine-project.org| GPLv2

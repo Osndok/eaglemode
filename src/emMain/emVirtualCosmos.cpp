@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -309,6 +309,42 @@ bool emVirtualCosmosItemPanel::Cycle()
 }
 
 
+void emVirtualCosmosItemPanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	emVirtualCosmosItemRec * itemRec;
+	emPanel * p;
+
+	if (!IsFocusable()) {
+		if (event.IsMouseEvent() || event.IsTouchEvent()) {
+			itemRec=GetItemRec();
+			if (itemRec) {
+				if (
+					!itemRec->BackgroundColor.Get().IsTotallyTransparent() || (
+						!itemRec->BorderColor.Get().IsTotallyTransparent() &&
+						itemRec->BorderScaling.Get()>1E-100
+					)
+				) {
+					p=ContentPanel;
+					if (p) {
+						if (!p->IsFocusable()) {
+							p=p->GetFocusableFirstChild();
+						}
+						if (p) {
+							p->Focus();
+							event.Eat();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	emPanel::Input(event,state,mx,my);
+}
+
+
 bool emVirtualCosmosItemPanel::IsOpaque()
 {
 	emVirtualCosmosItemRec * itemRec;
@@ -451,7 +487,7 @@ void emVirtualCosmosItemPanel::OnRecChanged()
 
 void emVirtualCosmosItemPanel::CalcBorders(
 	double * pL, double * pT, double * pR, double * pB
-)
+) const
 {
 	emVirtualCosmosItemRec * itemRec;
 	double t,bs,b;
@@ -549,6 +585,12 @@ emVirtualCosmosPanel::~emVirtualCosmosPanel()
 emString emVirtualCosmosPanel::GetTitle()
 {
 	return emString("Virtual Cosmos");
+}
+
+
+emString emVirtualCosmosPanel::GetIconFileName()
+{
+	return "virtual_cosmos.tga";
 }
 
 

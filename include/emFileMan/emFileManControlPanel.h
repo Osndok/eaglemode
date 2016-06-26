@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.h
 //
-// Copyright (C) 2006-2008,2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,7 @@
 #endif
 
 
-class emFileManControlPanel : public emPackLayout {
+class emFileManControlPanel : public emLinearLayout {
 
 public:
 
@@ -78,23 +78,25 @@ private:
 	emView & ContentView;
 	emRef<emFileManModel> FMModel;
 	emRef<emFileManViewConfig> FMVConfig;
+	emRef<emFileManThemeNames> FMThemeNames;
 
 	emPackGroup * GrView;
+		emRadioButton::Mechanism RbmAspect;
+		emRadioButton::Mechanism RbmTheme;
 		emRadioButton * RbSortByName;
+		emRadioButton * RbSortByDate;
+		emRadioButton * RbSortBySize;
 		emRadioButton * RbSortByEnding;
 		emRadioButton * RbSortByClass;
 		emRadioButton * RbSortByVersion;
-		emRadioButton * RbSortByDate;
-		emRadioButton * RbSortBySize;
+		emCheckButton * CbSortDirectoriesFirst;
+		emCheckButton * CbShowHiddenFiles;
 		emRadioButton * RbPerLocale;
 		emRadioButton * RbCaseSensitive;
 		emRadioButton * RbCaseInsensitive;
-		emCheckButton * CbSortDirectoriesFirst;
-		emCheckButton * CbShowHiddenFiles;
-		emRadioButton::RasterGroup * RbgTheme;
 		emCheckButton * CbAutosave;
 		emButton * BtSaveAsDefault;
-	emLinearGroup * GrSelection;
+	emRasterGroup * GrSelection;
 		emButton * BtSelectAll;
 		emButton * BtClearSelection;
 		emButton * BtSwapSelection;

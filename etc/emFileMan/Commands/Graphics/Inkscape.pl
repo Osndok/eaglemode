@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files to be opened.
+# Icon = thirdparty/inkscape.tga
 #[[END PROPERTIES]]
 
 use strict;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.cpp
 //
-// Copyright (C) 2007-2008,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,6 +46,12 @@ SilChessPanel::~SilChessPanel()
 emString SilChessPanel::GetTitle()
 {
 	return "SilChess";
+}
+
+
+emString SilChessPanel::GetIconFileName()
+{
+	return "silchess.tga";
 }
 
 

@@ -1,0 +1,1120 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emAvlTreeSet.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>.h
+//
+// Copyright (C) 2016 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emAvlTreeSet_h
+#define emAvlTreeSet_h
+
+#ifndef emAvlTree_h
+#include &lt;<A CLASS=f HREF="emCore_emAvlTree_h.html">emCore/emAvlTree.h</A>&gt;
+#endif
+
+
+<A NAME="emAvlTreeSet"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for an AVL tree which holds a sorted set of unique
+        // elements. This class provides copy-on-write behavior and stable
+        // iterators. The template parameter OBJ describes the type of the
+        // elements. Elements are compared with the normal comparison operators
+        // (==, &lt;=, &gt;...).
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>();
+                <SPAN CLASS=c>// Construct an empty set.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; src);
+                <SPAN CLASS=c>// Construct a copied set.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=c>// Construct a set with one element.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+                <SPAN CLASS=c>// Make this set a copy of the given set.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Contains(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this set contains an element which equals the
+                // given object.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Get(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the element which equals the given object.
+                // If there is no such element, NULL is returned. At least
+                // because of the copy-on-write feature, the pointer is valid
+                // only until calling any non-const method or operator on this
+                // set, or giving this set as a non-const argument to any call
+                // in the world.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * GetFirst() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetLast() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the smallest or largest element. If the set is empty,
+                // NULL is returned. The rules for the validity of the
+                // pointer are the same as with Get(obj).
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * GetNearestGreater(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetNearestGreaterOrEqual(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetNearestLess(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>OBJ * GetNearestLessOrEqual(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the nearest element which is greater, or greater or
+                // equal, or less, or less or equal to a given object. If no
+                // such element exists, NULL is returned. The rules for the
+                // validity of the pointer are the same as with Get(obj).
+
+        </SPAN>OBJ * GetWritable(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>bool </SPAN>insertIfNew);
+        OBJ * GetWritable(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+                <SPAN CLASS=c>// Get a non-const version of a pointer to an element of this
+                // set. If insertIfNew is true, the element is created if it is
+                // not found. The pointer may be used for modifying the object
+                // in a way that the order is not disturbed. The rules for the
+                // validity of the pointer are the same as with Get(obj), but:
+                // The pointer must not be used for modifying after doing
+                // something which could have made a shallow copy of this list.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+                <SPAN CLASS=c>// Insert one or more objects. Each objects is only inserted, if
+                // there is not already an equal element contained in the set.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveFirst();
+        <SPAN CLASS=t>void </SPAN>RemoveLast();
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN>OBJ * elem);
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+                <SPAN CLASS=c>// Remove (and delete) elements from this set.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Intersect(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+                <SPAN CLASS=c>// Remove (and delete) all elements from this set which are not
+                // contained in a given set.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear();
+                <SPAN CLASS=c>// Remove (and delete) all elements of this set.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this set has no elements.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compute the number of elements.
+
+        </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Operators for comparing sets.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>+ (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Operators for uniting sets.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>|= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>|= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>| (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>| (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Operators for uniting sets (same as +).
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>-= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>-= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>- (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>- (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Operators for subtracting sets.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>&amp;= (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; <SPAN CLASS=t>operator </SPAN>&amp;= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>&amp; (<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> <SPAN CLASS=t>operator </SPAN>&amp; (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Operators for intersecting sets.
+
+        //friend <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> operator + (const OBJ &amp; obj, const <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        //friend <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> operator | (const OBJ &amp; obj, const <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        //friend <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> operator - (const OBJ &amp; obj, const <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+        //friend <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> operator &amp; (const OBJ &amp; obj, const <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set);
+                // These ones even exist and can be used.
+                // (Having the declaration here would not be portable)
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this set.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the set to another thread.
+                // This method is not recursive. So if the object class
+                // even has such a method, you have to call that manually.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Iterator <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for a stable pointer to an element of a set.
+                // "stable" means:
+                // * If the address of an element changes through the
+                //   copy-on-write mechanism, iterators pointing to that element
+                //   are adapted proper.
+                // * If an element is removed from a set, iterators pointing to
+                //   that element are set to the next element, or NULL if it was
+                //   the last element.
+                // * If the assignment operator '=' is called on a set, all
+                //   iterators which were pointing to elements of the set are
+                //   set to NULL. This is even true if the set is assigned to
+                //   itself.
+                // This kind of iterator needs little more than 500 bytes of
+                // memory, because it manages a stack of tree nodes for the
+                // current position (yes, the AVL nodes do not have parent
+                // pointers...).
+                // Modifying the set while an iterator is active slows down the
+                // iterator, because it has to find the tree position again on
+                // next increment or decrement.
+                // Note the auto-cast operator to a 'const OBJ *'. Wherever
+                // there is an argument 'const OBJ *' in the methods of
+                // <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>, you can even give an instance of this class as
+                // the argument.
+
+                </SPAN>Iterator();
+                        <SPAN CLASS=c>// Construct a "NULL pointer".
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Construct a copied iterator.
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+                        <SPAN CLASS=c>// Construct an iterator pointing to a particular
+                        // element.
+                        // Arguments:
+                        //   set  - The set.
+                        //   elem - Pointer to an element of the set, or NULL.
+
+                </SPAN>~Iterator();
+                        <SPAN CLASS=c>// Destructor.
+
+                </SPAN>Iterator &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy an iterator.
+
+                </SPAN><SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * Get() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the element pointer. It is NULL if this iterator
+                        // does not point to any element.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Set(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy the given iterator and return the element
+                        // pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set, <SPAN CLASS=t>const </SPAN>OBJ * elem);
+                        <SPAN CLASS=c>// Set this iterator to the given element of the given
+                        // set and return the element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * SetFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set);
+                <SPAN CLASS=t>const </SPAN>OBJ * SetLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set);
+                        <SPAN CLASS=c>// Set this iterator to the first or last element of the
+                        // given set and return the element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * SetNext();
+                <SPAN CLASS=t>const </SPAN>OBJ * SetPrev();
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>++();
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>--();
+                        <SPAN CLASS=c>// Set this iterator to the next or previous element and
+                        // return the new element pointer. This must be called
+                        // only if the old element pointer is not NULL.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>);
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>);
+                        <SPAN CLASS=c>// Like above, but return the old element pointer.
+
+                </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>OBJ * elem) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Ordinary compare operators.
+
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; * GetSet() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get a pointer to the set this iterator is currently
+                        // attached to. Returns NULL if not attached to any
+                        // set. (See comments on Detach()).
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Detach();
+                        <SPAN CLASS=c>// Detach this iterator from its set and point to NULL.
+                        // Note: to care about the iterators, each <A CLASS=m HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>
+                        // has a single linked list of its iterators. The
+                        // mechanism is lazy, that means, an iterator may stay
+                        // in the set even when not pointing to any element,
+                        // just for quick re-use. On the other hand, such
+                        // iterators are still costing a tiny number of CPU
+                        // cycles whenever the set is modified.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;;
+                <SPAN CLASS=t>void </SPAN>SetSet(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; * set);
+                <SPAN CLASS=t>const </SPAN>OBJ * SetPos(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj);
+                <SPAN CLASS=t>const </SPAN>OBJ * Pos;
+                emAvlIterator AvlIter;
+                <SPAN CLASS=t>bool </SPAN>AvlIterValid;
+                <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; * Ats;
+                Iterator * NextIter; <SPAN CLASS=c>// Undefined if Ats==NULL
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN>Iterator;
+
+        <SPAN CLASS=t>struct </SPAN>Element <SPAN CLASS=b>{
+                </SPAN>OBJ Obj;
+                emAvlNode AvlNode;
+                <SPAN CLASS=t>inline </SPAN>Element(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) : Obj(obj) <SPAN CLASS=b>{}
+        }</SPAN>;
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN>emAvlTree AvlTree;
+                <SPAN CLASS=t>bool </SPAN>IsStaticEmpty;
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>MakeWritable(<SPAN CLASS=t>const </SPAN>OBJ * * preserve=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>DeleteData();
+        emAvlNode * CloneTree(emAvlNode * tree, <SPAN CLASS=t>const </SPAN>OBJ * * preserve);
+        <SPAN CLASS=t>static void </SPAN>DeleteTree(emAvlNode * tree);
+
+        SharedData * Data;
+        Iterator * Iterators;
+        <SPAN CLASS=t>static </SPAN>SharedData EmptyData;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>()
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; src
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=src.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+        Insert(obj);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::~<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{ </SPAN>i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>; i-&gt;Ats=<SPAN CLASS=u>NULL</SPAN>; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        set.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=set.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Contains(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Get(obj)!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Get(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) EM_AVL_SEARCH_GO_LEFT
+                <SPAN CLASS=k>else if </SPAN>(obj&gt;element-&gt;Obj) EM_AVL_SEARCH_GO_RIGHT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>&amp;element-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetFirst() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                EM_AVL_SEARCH_GO_LEFT_OR_FOUND
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>&amp;element-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetLast() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                EM_AVL_SEARCH_GO_RIGHT_OR_FOUND
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>&amp;element-&gt;Obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetNearestGreater(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        <SPAN CLASS=t>const </SPAN>OBJ * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) <SPAN CLASS=b>{ </SPAN>nearest=&amp;element-&gt;Obj; EM_AVL_SEARCH_GO_LEFT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>EM_AVL_SEARCH_GO_RIGHT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetNearestGreaterOrEqual(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        <SPAN CLASS=t>const </SPAN>OBJ * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) <SPAN CLASS=b>{ </SPAN>nearest=&amp;element-&gt;Obj; EM_AVL_SEARCH_GO_LEFT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(obj&gt;element-&gt;Obj) EM_AVL_SEARCH_GO_RIGHT
+                <SPAN CLASS=k>else </SPAN>nearest=&amp;element-&gt;Obj;
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetNearestLess(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        <SPAN CLASS=t>const </SPAN>OBJ * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(obj&gt;element-&gt;Obj) <SPAN CLASS=b>{ </SPAN>nearest=&amp;element-&gt;Obj; EM_AVL_SEARCH_GO_RIGHT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>EM_AVL_SEARCH_GO_LEFT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetNearestLessOrEqual(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        <SPAN CLASS=t>const </SPAN>OBJ * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) EM_AVL_SEARCH_GO_LEFT
+                <SPAN CLASS=k>else if </SPAN>(obj&gt;element-&gt;Obj) <SPAN CLASS=b>{ </SPAN>nearest=&amp;element-&gt;Obj; EM_AVL_SEARCH_GO_RIGHT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>nearest=&amp;element-&gt;Obj;
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>bool </SPAN>insertIfNew
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(insertIfNew) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable();
+                EM_AVL_INSERT_VARS(Element)
+                EM_AVL_INSERT_BEGIN_SEARCH(Element,AvlNode,Data-&gt;AvlTree)
+                        <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) EM_AVL_INSERT_GO_LEFT
+                        <SPAN CLASS=k>else if </SPAN>(obj&gt;element-&gt;Obj) EM_AVL_INSERT_GO_RIGHT
+                        <SPAN CLASS=k>else return </SPAN>&amp;element-&gt;Obj;
+                EM_AVL_INSERT_END_SEARCH
+                element=<SPAN CLASS=k>new </SPAN>Element(obj);
+                Iterator * i;
+                <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                        </SPAN>i-&gt;AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN>EM_AVL_INSERT_NOW(AvlNode)
+                <SPAN CLASS=k>return </SPAN>&amp;element-&gt;Obj;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * elem = Get(obj);
+                <SPAN CLASS=k>if </SPAN>(!elem) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+                <SPAN CLASS=k>return </SPAN>(OBJ*)elem;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!elem) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>(OBJ*)elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Insert(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>GetWritable(obj,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Insert(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>::Iterator i;
+
+        <SPAN CLASS=k>for </SPAN>(i.SetFirst(set); i; ++i) <SPAN CLASS=b>{
+                </SPAN>Insert(*i.Get());
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::RemoveFirst()
+<SPAN CLASS=b>{
+        </SPAN>Remove(GetFirst());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::RemoveLast()
+<SPAN CLASS=b>{
+        </SPAN>Remove(GetLast());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Remove(<SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_REMOVE_VARS(Element)
+        Iterator * i;
+
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>&amp;&amp; !Data-&gt;IsStaticEmpty) MakeWritable();
+        EM_AVL_REMOVE_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) <SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_GO_LEFT
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(obj&gt;element-&gt;Obj) <SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_GO_RIGHT
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos==&amp;element-&gt;Obj) i-&gt;SetNext();
+                                i-&gt;AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN>EM_AVL_REMOVE_NOW
+                        <SPAN CLASS=k>delete </SPAN>element;
+                <SPAN CLASS=b>}
+        </SPAN>EM_AVL_REMOVE_END
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Remove(<SPAN CLASS=t>const </SPAN>OBJ * elem)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(elem) Remove(*elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Remove(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>::Iterator i;
+
+        <SPAN CLASS=k>if </SPAN>(Data != set.Data) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(i.SetFirst(set); i; ++i) <SPAN CLASS=b>{
+                        </SPAN>Remove(*i.Get());
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>Clear();
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Intersect(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>::Iterator i;
+
+        <SPAN CLASS=k>for </SPAN>(i.SetFirst(*<SPAN CLASS=k>this</SPAN>); i;) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!set.Contains(*i.Get())) Remove(*i);
+                <SPAN CLASS=k>else </SPAN>++i;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Clear()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!Data-&gt;AvlTree;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_LOOP_VARS(Element)
+        <SPAN CLASS=t>int </SPAN>count;
+
+        count=<SPAN CLASS=u>0</SPAN>;
+        EM_AVL_LOOP_START(Element,AvlNode,Data-&gt;AvlTree)
+                count++;
+        EM_AVL_LOOP_END
+        <SPAN CLASS=k>return </SPAN>count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>::Iterator i,j;
+
+        <SPAN CLASS=k>if </SPAN>(Data != set.Data) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(i.SetFirst(*<SPAN CLASS=k>this</SPAN>), j.SetFirst(set); ; ++i, ++j) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>if </SPAN>(!i) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(j) <SPAN CLASS=k>return false</SPAN>;
+                                <SPAN CLASS=k>break</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(!j) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(i) <SPAN CLASS=k>return false</SPAN>;
+                                <SPAN CLASS=k>break</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN><SPAN CLASS=k>if </SPAN>(*i.Get() != *j.Get()) <SPAN CLASS=k>return false</SPAN>;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>return true</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!(*<SPAN CLASS=k>this </SPAN>== set);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>Insert(obj);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN>Insert(set);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> result(*<SPAN CLASS=k>this</SPAN>);
+        result += obj;
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> result(*<SPAN CLASS=k>this</SPAN>);
+        result += set;
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>|= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this </SPAN>+= obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>|= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this </SPAN>+= set;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>| (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this </SPAN>+ obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>| (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this </SPAN>+ set;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>-= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>Remove(obj);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>-= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN>Remove(set);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>- (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> result(*<SPAN CLASS=k>this</SPAN>);
+        result -= obj;
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>- (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> result(*<SPAN CLASS=k>this</SPAN>);
+        result -= set;
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>&amp;= (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>Intersect(<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>(obj));
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>&amp;= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN>Intersect(set);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>&amp; (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> result(*<SPAN CLASS=k>this</SPAN>);
+        result &amp;= obj;
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>&amp; (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> &amp; set
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A> result(*<SPAN CLASS=k>this</SPAN>);
+        result &amp;= set;
+        <SPAN CLASS=k>return </SPAN>result;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <SPAN CLASS=t>operator </SPAN>+ (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>set + obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <SPAN CLASS=t>operator </SPAN>| (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>set | obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <SPAN CLASS=t>operator </SPAN>- (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!set.Contains(obj)) <SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;(obj);
+        <SPAN CLASS=k>else return </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; <SPAN CLASS=t>operator </SPAN>&amp; (
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>set &amp; obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>unsigned int </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::GetDataRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;IsStaticEmpty ? UINT_MAX/<SPAN CLASS=u>2 </SPAN>: Data-&gt;RefCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Iterator()
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Ats=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Ats=<SPAN CLASS=u>NULL</SPAN>;
+        Set(iter);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set,
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Ats=<SPAN CLASS=u>NULL</SPAN>;
+        Set(set,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::~Iterator()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(Ats) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;Ats-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                *pi=NextIter;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator &amp; <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>Set(iter);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>SetSet(iter.Ats);
+        <SPAN CLASS=k>if </SPAN>(Pos!=iter.Pos) <SPAN CLASS=b>{
+                </SPAN>AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                Pos=iter.Pos;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set, <SPAN CLASS=t>const </SPAN>OBJ * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>SetSet(&amp;set);
+        <SPAN CLASS=k>if </SPAN>(Pos!=elem) <SPAN CLASS=b>{
+                </SPAN>AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                Pos=elem;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::SetFirst(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        SetSet(&amp;set);
+        EM_AVL_ITER_FIRST(Element,AvlNode,Ats-&gt;Data-&gt;AvlTree,AvlIter)
+        AvlIterValid=<SPAN CLASS=k>true</SPAN>;
+        Pos=(element ? &amp;element-&gt;Obj : <SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::SetLast(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; &amp; set
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        SetSet(&amp;set);
+        EM_AVL_ITER_LAST(Element,AvlNode,Ats-&gt;Data-&gt;AvlTree,AvlIter)
+        AvlIterValid=<SPAN CLASS=k>true</SPAN>;
+        Pos=(element ? &amp;element-&gt;Obj : <SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::SetNext()
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        <SPAN CLASS=k>if </SPAN>(Pos) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!AvlIterValid) SetPos(*Pos);
+                EM_AVL_ITER_NEXT(Element,AvlNode,AvlIter)
+                Pos=(element ? &amp;element-&gt;Obj : <SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::SetPrev()
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        <SPAN CLASS=k>if </SPAN>(Pos) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!AvlIterValid) SetPos(*Pos);
+                EM_AVL_ITER_PREV(Element,AvlNode,AvlIter)
+                Pos=(element ? &amp;element-&gt;Obj : <SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SetNext();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SetPrev();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * res=Pos;
+        SetNext();
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * res=Pos;
+        SetPrev();
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>OBJ * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::GetSet() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ats;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::Detach()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(Ats) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;Ats-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                *pi=NextIter;
+                Ats=<SPAN CLASS=u>NULL</SPAN>;
+                Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::SetSet(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt; * set
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(Ats!=set) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Ats) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;Ats-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                        *pi=NextIter;
+                <SPAN CLASS=b>}
+                </SPAN>Ats=(<A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;*)set;
+                <SPAN CLASS=k>if </SPAN>(Ats) <SPAN CLASS=b>{
+                        </SPAN>NextIter=Ats-&gt;Iterators;
+                        Ats-&gt;Iterators=<SPAN CLASS=k>this</SPAN>;
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>const </SPAN>OBJ * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::Iterator::SetPos(
+        <SPAN CLASS=t>const </SPAN>OBJ &amp; obj
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        EM_AVL_ITER_START_ANY_BEGIN(Element,AvlNode,Ats-&gt;Data-&gt;AvlTree,AvlIter)
+                <SPAN CLASS=k>if </SPAN>(obj&lt;element-&gt;Obj) EM_AVL_ITER_START_ANY_GO_LEFT(AvlIter)
+                <SPAN CLASS=k>else if </SPAN>(obj&gt;element-&gt;Obj) EM_AVL_ITER_START_ANY_GO_RIGHT(AvlIter)
+        EM_AVL_ITER_START_ANY_END
+        AvlIterValid=<SPAN CLASS=k>true</SPAN>;
+        Pos=(element ? &amp;element-&gt;Obj : <SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::MakeWritable(
+        <SPAN CLASS=t>const </SPAN>OBJ * * preserve
+)
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d1, * d2;
+
+        d1=Data;
+        <SPAN CLASS=k>if </SPAN>(d1-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN>d2=<SPAN CLASS=k>new </SPAN>SharedData;
+                d2-&gt;AvlTree=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+                d2-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+                d1-&gt;RefCount--;
+                Data=d2;
+                <SPAN CLASS=k>if </SPAN>(d1-&gt;AvlTree) <SPAN CLASS=b>{
+                        </SPAN>d2-&gt;AvlTree=CloneTree(d1-&gt;AvlTree,preserve);
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::DeleteData()
+<SPAN CLASS=b>{
+        </SPAN>EmptyData.RefCount=UINT_MAX/<SPAN CLASS=u>2</SPAN>;
+
+        <SPAN CLASS=c>// Never do a
+        //  if (Data!=&amp;EmptyData)...
+        // instead of
+        //  if (!Data-&gt;IsStaticEmpty)...
+        // because static member variables of template classes could exist
+        // multiple times for the same final type (e.g. with Windows DLLs).
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;AvlTree) <SPAN CLASS=b>{
+                        </SPAN>DeleteTree(Data-&gt;AvlTree);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>delete </SPAN>Data;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; emAvlNode * <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::CloneTree(
+        emAvlNode * tree, <SPAN CLASS=t>const </SPAN>OBJ * * preserve
+)
+<SPAN CLASS=b>{
+        </SPAN>Element * e1, * e2;
+        Iterator * i;
+
+        e1=EM_AVL_ELEMENT(Element,AvlNode,tree);
+        e2=<SPAN CLASS=k>new </SPAN>Element(e1-&gt;Obj);
+        e2-&gt;AvlNode=e1-&gt;AvlNode;
+        <SPAN CLASS=k>if </SPAN>(preserve &amp;&amp; *preserve==&amp;e1-&gt;Obj) *preserve=&amp;e2-&gt;Obj;
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos==&amp;e1-&gt;Obj) <SPAN CLASS=b>{
+                        </SPAN>i-&gt;Pos=&amp;e2-&gt;Obj;
+                        i-&gt;AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>if </SPAN>(e1-&gt;AvlNode.Left) <SPAN CLASS=b>{
+                </SPAN>e2-&gt;AvlNode.Left=CloneTree(e1-&gt;AvlNode.Left,preserve);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(e1-&gt;AvlNode.Right) <SPAN CLASS=b>{
+                </SPAN>e2-&gt;AvlNode.Right=CloneTree(e1-&gt;AvlNode.Right,preserve);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>&amp;e2-&gt;AvlNode;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::DeleteTree(emAvlNode * tree)
+<SPAN CLASS=b>{
+        </SPAN>Element * element=EM_AVL_ELEMENT(Element,AvlNode,tree);
+        <SPAN CLASS=k>if </SPAN>(element-&gt;AvlNode.Left ) DeleteTree(element-&gt;AvlNode.Left );
+        <SPAN CLASS=k>if </SPAN>(element-&gt;AvlNode.Right) DeleteTree(element-&gt;AvlNode.Right);
+        <SPAN CLASS=k>delete </SPAN>element;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::SharedData <A CLASS=l HREF="emCore_emAvlTreeSet_h.html#emAvlTreeSet">emAvlTreeSet</A>&lt;OBJ&gt;::EmptyData=
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>true</SPAN>,UINT_MAX/<SPAN CLASS=u>2
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

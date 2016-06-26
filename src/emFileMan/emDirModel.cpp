@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirModel.cpp
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,9 @@
 
 #include <emCore/emList.h>
 #include <emFileMan/emDirModel.h>
+#if defined(_WIN32)
+#	include <windows.h>
+#endif
 
 
 emRef<emDirModel> emDirModel::Acquire(
@@ -28,6 +31,11 @@ emRef<emDirModel> emDirModel::Acquire(
 {
 	EM_IMPL_ACQUIRE(emDirModel,context,name,common)
 }
+
+
+#if defined(_WIN32)
+const char * const emDirModel::NAME_OF_DRIVE_LISTING="*:";
+#endif
 
 
 int emDirModel::GetEntryIndex(const char * fileName) const
@@ -88,13 +96,25 @@ void emDirModel::TryStartLoading() throw(emException)
 		"Loading this directory would probably stall the process."
 	);
 #endif
+
+#if defined(_WIN32)
+	if (GetFilePath()==NAME_OF_DRIVE_LISTING) {
+		DWORD logicalDrives=::GetLogicalDrives();
+		for (int i=0; i<26; i++) {
+			if ((1<<i)&logicalDrives) {
+				AddName(emString::Format("%c:\\",'A'+i));
+			}
+		}
+		return;
+	}
+#endif
+
 	DirHandle=emTryOpenDir(GetFilePath());
 }
 
 
 bool emDirModel::TryContinueLoading() throw(emException)
 {
-	NamesBlock * block;
 	NameNode * node;
 	emString name;
 
@@ -105,17 +125,7 @@ bool emDirModel::TryContinueLoading() throw(emException)
 			DirHandle=NULL;
 		}
 		else {
-			if (!CurrentBlock || CurrentBlockFill>=NamesBlock::MaxNames) {
-				block=new NamesBlock;
-				block->Prev=CurrentBlock;
-				CurrentBlock=block;
-				CurrentBlockFill=0;
-			}
-			node=&CurrentBlock->Names[CurrentBlockFill++];
-			node->Name=name;
-			node->Next=Names;
-			Names=node;
-			NameCount++;
+			AddName(name);
 		}
 		return false;
 	}
@@ -137,7 +147,16 @@ bool emDirModel::TryContinueLoading() throw(emException)
 		return false;
 	}
 	else if (EntryCount<NameCount) {
+#if defined(_WIN32)
+		if (GetFilePath()==NAME_OF_DRIVE_LISTING) {
+			Entries[EntryCount].Load(Names->Name);
+		}
+		else {
+			Entries[EntryCount].Load(GetFilePath(),Names->Name);
+		}
+#else
 		Entries[EntryCount].Load(GetFilePath(),Names->Name);
+#endif
 		Names=Names->Next;
 		EntryCount++;
 		return false;
@@ -201,11 +220,35 @@ double emDirModel::CalcFileProgress()
 }
 
 
+void emDirModel::TryFetchDate() throw(emException)
+{
+}
+
+
 bool emDirModel::IsOutOfDate()
 {
 	//??? Always true because the modification time may not get
 	//??? updated after a change.
 	return true;
+}
+
+
+void emDirModel::AddName(const emString & name)
+{
+	NamesBlock * block;
+	NameNode * node;
+
+	if (!CurrentBlock || CurrentBlockFill>=NamesBlock::MaxNames) {
+		block=new NamesBlock;
+		block->Prev=CurrentBlock;
+		CurrentBlock=block;
+		CurrentBlockFill=0;
+	}
+	node=&CurrentBlock->Names[CurrentBlockFill++];
+	node->Name=name;
+	node->Next=Names;
+	Names=node;
+	NameCount++;
 }
 
 

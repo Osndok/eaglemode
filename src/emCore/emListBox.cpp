@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emListBox.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,6 +108,7 @@ void emListBox::RemoveItem(int index)
 
 	if (index>=0 && index<Items.GetCount()) {
 		Items.Remove(index);
+		selectionChanged=false;
 		for (i=SelectedItemIndices.GetCount()-1; i>=0; i--) {
 			j=SelectedItemIndices[i];
 			if (j<=index) {

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.cpp
 //
-// Copyright (C) 2011-2012,2014 Oliver Hamann.
+// Copyright (C) 2011-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -172,7 +172,7 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 	case EM_KEY_MIDDLE_BUTTON:
 		if (!rwstate.GetAlt() && !rwstate.GetMeta()) {
 			if (event.GetRepeat()) {
-				p=GetView().GetFocusablePanelAt(mx,my);
+				p=GetView().GetFocusablePanelAt(mx,my,true);
 				if (!p) p=GetView().GetRootPanel();
 				if (p) GetView().VisitFullsized(p,true,((event.GetRepeat()&1)==0)!=rwstate.GetShift());
 			}
@@ -335,7 +335,7 @@ void emMouseZoomScrollVIF::MoveMousePointer(double dx, double dy)
 }
 
 
-double emMouseZoomScrollVIF::GetMouseZoomSpeed(bool fine)
+double emMouseZoomScrollVIF::GetMouseZoomSpeed(bool fine) const
 {
 	double f;
 
@@ -345,7 +345,7 @@ double emMouseZoomScrollVIF::GetMouseZoomSpeed(bool fine)
 }
 
 
-double emMouseZoomScrollVIF::GetMouseScrollSpeed(bool fine)
+double emMouseZoomScrollVIF::GetMouseScrollSpeed(bool fine) const
 {
 	double f;
 
@@ -536,8 +536,8 @@ void emKeyboardZoomScrollVIF::NavigateByProgram(
 	emInputEvent & event, const emInputState & state
 )
 {
-	static const double scrollDelta=3.0;
-	static const double zoomFac=1.015;
+	static const double scrollDelta=0.3;
+	static const double zoomFac=1.0015;
 	double cx,cy,cw,ch,cpt;
 	int step;
 
@@ -613,7 +613,7 @@ void emKeyboardZoomScrollVIF::NavigateByProgram(
 }
 
 
-double emKeyboardZoomScrollVIF::GetZoomSpeed(bool fine)
+double emKeyboardZoomScrollVIF::GetZoomSpeed(bool fine) const
 {
 	double f;
 
@@ -625,7 +625,7 @@ double emKeyboardZoomScrollVIF::GetZoomSpeed(bool fine)
 }
 
 
-double emKeyboardZoomScrollVIF::GetScrollSpeed(bool fine)
+double emKeyboardZoomScrollVIF::GetScrollSpeed(bool fine) const
 {
 	double f;
 
@@ -984,7 +984,7 @@ void emDefaultTouchVIF::DoGesture()
 			GestureState=STATE_FIRST_DOWN_UP;
 			break;
 		}
-		if (GetTotalTouchMove(0)>10.0) {
+		if (GetTotalTouchMove(0)>20.0) {
 			GetView().Scroll(-GetTotalTouchMoveX(0),-GetTotalTouchMoveY(0));
 			GestureState=STATE_SCROLL;
 			break;
@@ -1045,7 +1045,7 @@ void emDefaultTouchVIF::DoGesture()
 			break;
 		}
 		if (Touches[0].MsTotal>250) {
-			p=GetView().GetFocusablePanelAt(Touches[0].X,Touches[0].Y);
+			p=GetView().GetFocusablePanelAt(Touches[0].X,Touches[0].Y,true);
 			if (!p) p=GetView().GetRootPanel();
 			if (p) GetView().VisitFullsized(p,true,false);
 			GestureState=STATE_FINISH;
@@ -1069,7 +1069,7 @@ void emDefaultTouchVIF::DoGesture()
 			break;
 		}
 		if (Touches[0].MsTotal>250) {
-			p=GetView().GetFocusablePanelAt(Touches[0].X,Touches[0].Y);
+			p=GetView().GetFocusablePanelAt(Touches[0].X,Touches[0].Y,true);
 			if (!p) p=GetView().GetRootPanel();
 			if (p) GetView().VisitFullsized(p,true,true);
 			GestureState=STATE_FINISH;
@@ -1248,7 +1248,7 @@ void emDefaultTouchVIF::RemoveTouch(int index)
 }
 
 
-bool emDefaultTouchVIF::IsAnyTouchDown()
+bool emDefaultTouchVIF::IsAnyTouchDown() const
 {
 	int i;
 
@@ -1259,19 +1259,19 @@ bool emDefaultTouchVIF::IsAnyTouchDown()
 }
 
 
-double emDefaultTouchVIF::GetTouchMoveX(int index)
+double emDefaultTouchVIF::GetTouchMoveX(int index) const
 {
 	return Touches[index].X-Touches[index].PrevX;
 }
 
 
-double emDefaultTouchVIF::GetTouchMoveY(int index)
+double emDefaultTouchVIF::GetTouchMoveY(int index) const
 {
 	return Touches[index].Y-Touches[index].PrevY;
 }
 
 
-double emDefaultTouchVIF::GetTouchMove(int index)
+double emDefaultTouchVIF::GetTouchMove(int index) const
 {
 	double dx,dy;
 
@@ -1281,19 +1281,19 @@ double emDefaultTouchVIF::GetTouchMove(int index)
 }
 
 
-double emDefaultTouchVIF::GetTotalTouchMoveX(int index)
+double emDefaultTouchVIF::GetTotalTouchMoveX(int index) const
 {
 	return Touches[index].X-Touches[index].DownX;
 }
 
 
-double emDefaultTouchVIF::GetTotalTouchMoveY(int index)
+double emDefaultTouchVIF::GetTotalTouchMoveY(int index) const
 {
 	return Touches[index].Y-Touches[index].DownY;
 }
 
 
-double emDefaultTouchVIF::GetTotalTouchMove(int index)
+double emDefaultTouchVIF::GetTotalTouchMove(int index) const
 {
 	double dx,dy;
 

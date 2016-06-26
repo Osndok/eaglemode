@@ -3,7 +3,7 @@
 // Copyright (C) 2008 Oliver Hamann.
 //------------------------------------------------------------------------------
 
-#include "../../emCore/toolkit/src/borders.inc"
+#include "borders.inc"
 
 
 camera {

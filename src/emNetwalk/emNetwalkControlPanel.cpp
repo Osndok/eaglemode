@@ -33,9 +33,9 @@ emNetwalkControlPanel::emNetwalkControlPanel(
 
 	Mdl=fileModel;
 
-	SetMinChildTallness(0.06);
+	SetMinChildTallness(0.13);
 	SetMaxChildTallness(2.0);
-	SetAlignment(EM_ALIGN_TOP_LEFT);
+	SetAlignment(EM_ALIGN_TOP);
 
 	mainGroup=new emPackGroup(this,"","emNetwalk");
 

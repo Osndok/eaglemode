@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_exe.pl
 #
-# Copyright (C) 2010-2011,2015 Oliver Hamann.
+# Copyright (C) 2010-2011,2015-2016 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -119,7 +119,7 @@ CreateFile(
 	'InstallDir "$PROGRAMFILES\\'.Var('TITLE').'"'."\n".
 	'RequestExecutionLevel admin'."\n".
 	'Page components'."\n".
-	'Page directory'."\n".
+	'Page directory "" "" F_CheckInstDir'."\n".
 	'Page instfiles'."\n".
 	'UninstPage uninstConfirm'."\n".
 	'UninstPage instfiles'."\n".
@@ -157,7 +157,14 @@ CreateFile(
 	'  Delete "$INSTDIR\\uninstall.exe"'."\n".
 	'  Delete "$INSTDIR\\'.Var('TITLE').'.lnk"'."\n".
 	$uninstallCommands.
-	'SectionEnd'."\n"
+	'SectionEnd'."\n".
+	'Function F_CheckInstDir'."\n".
+	'  IfFileExists "$INSTDIR\\uninstall.exe" L_Exists L_NotExists'."\n".
+	'  L_Exists:'."\n".
+	'    MessageBox MB_OK|MB_ICONSTOP "ERROR: Cannot install to the selected folder because$\\nthere is already a version installed. Please uninstall$\\nfirst or install to another folder."'."\n".
+	'    Abort'."\n".
+	'  L_NotExists:'."\n".
+	'FunctionEnd'."\n"
 );
 
 # Create the installer executable.

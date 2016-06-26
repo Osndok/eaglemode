@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2012,2014 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,6 +98,44 @@ emString emDirEntryPanel::GetTitle()
 }
 
 
+emString emDirEntryPanel::GetIconFileName()
+{
+	static int recursive = 0; //??? Not good
+	emString icon;
+	emPanel * p;
+
+	if (recursive <= 0) {
+		p=GetChild(ContentName);
+		if (p) {
+			recursive++;
+			icon = p->GetIconFileName(); // May call the parent, i.e. this!
+			recursive--;
+			return icon;
+		}
+	}
+
+	if (DirEntry.IsDirectory()) return "directory.tga";
+	else return "file.tga";
+}
+
+
+void emDirEntryPanel::GetSubstanceRect(
+	double * pX, double * pY,
+	double * pW, double * pH,
+	double * pR
+)
+{
+	const emFileManTheme * theme;
+
+	theme = &Config->GetTheme();
+	*pX=theme->BackgroundX;
+	*pY=theme->BackgroundY;
+	*pW=theme->BackgroundW;
+	*pH=theme->BackgroundH;
+	*pR=emMin(theme->BackgroundRX.Get(),theme->BackgroundRY.Get());
+}
+
+
 bool emDirEntryPanel::Cycle()
 {
 	if (IsSignaled(FileMan->GetSelectionSignal())) {
@@ -126,8 +164,40 @@ void emDirEntryPanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
+	const emFileManTheme * theme;
+	double cx,cy,cw,ch;
+	emPanel * p;
+
 	if (event.IsKeyboardEvent() && !IsActive()) {
 		event.Eat();
+	}
+
+	if (event.IsMouseEvent()) {
+		theme = &Config->GetTheme();
+		if (DirEntry.IsDirectory()) {
+			cx=theme->DirContentX;
+			cy=theme->DirContentY;
+			cw=theme->DirContentW;
+			ch=theme->DirContentH;
+		}
+		else {
+			cx=theme->FileContentX;
+			cy=theme->FileContentY;
+			cw=theme->FileContentW;
+			ch=theme->FileContentH;
+		}
+		if (mx>=cx && mx<cx+cw && my>=cy && my<cy+ch) {
+			p=GetChild(ContentName);
+			if (p) {
+				if (!p->IsFocusable()) {
+					p=p->GetFocusableFirstChild();
+				}
+				if (p) {
+					p->Focus();
+					event.Eat();
+				}
+			}
+		}
 	}
 
 	switch (event.GetKey()) {
@@ -203,6 +273,7 @@ void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
 	const emFileManTheme * theme;
 	emColor color;
+	emString str;
 	double t;
 
 	theme = &Config->GetTheme();
@@ -269,12 +340,20 @@ void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
 #endif
 	else color=theme->OtherNameColor;
 	if (DirEntry.IsHidden()) color=color.GetTransparented(27.0F);
+	str=DirEntry.GetName();
+#if defined(_WIN32)
+	if (DirEntry.IsDrive() && !DirEntry.GetDriveName().IsEmpty()) {
+		str=emString::Format(
+			"%s - %s",DirEntry.GetName().Get(),DirEntry.GetDriveName().Get()
+		);
+	}
+#endif
 	painter.PaintTextBoxed(
 		theme->NameX,
 		theme->NameY,
 		theme->NameW,
 		theme->NameH,
-		DirEntry.GetName(),
+		str,
 		theme->NameH,
 		color,
 		canvasColor,
@@ -353,6 +432,18 @@ void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
 				theme->FileInnerBorderImgB,
 				255,canvasColor,0757
 			);
+			if (
+				theme->FileContentX + 1E-10 <
+					theme->FileInnerBorderX + theme->FileInnerBorderL ||
+				theme->FileContentY + 1E-10 <
+					theme->FileInnerBorderY + theme->FileInnerBorderT ||
+				theme->FileContentX + theme->FileContentW - 1E-10 >
+					theme->FileInnerBorderX + theme->FileInnerBorderW - theme->FileInnerBorderR ||
+				theme->FileContentY + theme->FileContentH - 1E-10 >
+					theme->FileInnerBorderY + theme->FileInnerBorderH - theme->FileInnerBorderB
+			) {
+				canvasColor=0;
+			}
 			painter.PaintRect(
 				theme->FileContentX,
 				theme->FileContentY,
@@ -506,6 +597,22 @@ void emDirEntryPanel::PaintInfo(
 		);
 	}
 	else {
+#if defined(_WIN32)
+		if (DirEntry.IsDrive()) {
+			switch (DirEntry.GetDriveType()) {
+			case DRIVE_REMOVABLE: p="Removable Drive"; break;
+			case DRIVE_REMOTE:    p="Network Drive"; break;
+			case DRIVE_CDROM:     p="Optical Disk"; break;
+			case DRIVE_RAMDISK:   p="RAM Disk"; break;
+			default:              p="Disk Drive"; break;
+			}
+			if (!DirEntry.GetDriveFileSystem().IsEmpty()) {
+				snprintf(tmp,sizeof(tmp),"%s: %s",p,DirEntry.GetDriveFileSystem().Get());
+				tmp[sizeof(tmp)-1]=0;
+				p=tmp;
+			}
+		}
+#endif
 		painter.PaintTextBoxed(
 			bx[0],by[0],bw[0],bh[0],
 			p,bh[0],
@@ -590,6 +697,9 @@ void emDirEntryPanel::PaintInfo(
 	}
 #endif
 
+#if defined(_WIN32)
+	if (!DirEntry.IsDrive()) {
+#endif
 	FormatTime(DirEntry.GetStat()->st_mtime,tmp,bw[5]/bh[5]<6.0);
 	painter.PaintTextBoxed(
 		bx[5],by[5],bw[5],bh[5],
@@ -598,6 +708,9 @@ void emDirEntryPanel::PaintInfo(
 		EM_ALIGN_LEFT,EM_ALIGN_LEFT,
 		0.5,true
 	);
+#if defined(_WIN32)
+	}
+#endif
 }
 
 

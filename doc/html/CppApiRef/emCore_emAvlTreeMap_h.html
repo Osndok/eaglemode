@@ -1,0 +1,1040 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emAvlTreeMap.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>.h
+//
+// Copyright (C) 2015-2016 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emAvlTreeMap_h
+#define emAvlTreeMap_h
+
+#ifndef emAvlTree_h
+#include &lt;<A CLASS=f HREF="emCore_emAvlTree_h.html">emCore/emAvlTree.h</A>&gt;
+#endif
+
+
+<A NAME="emAvlTreeMap"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for an AVL tree where the elements consist of
+        // key/value pairs and are sorted by the keys. <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> has
+        // copy-on-write behavior and stable iterators. The template parameter
+        // KEY describes the type of the keys, and the template parameter VALUE
+        // describes the type of the values. Keys are compared with the normal
+        // comparison operators (==, &lt;=, &gt;...).
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>();
+                <SPAN CLASS=c>// Construct an empty map.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> &amp; src);
+                <SPAN CLASS=c>// Construct a copied map.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>(<SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>const </SPAN>VALUE &amp; value);
+                <SPAN CLASS=c>// Construct a map with one element.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>();
+                <SPAN CLASS=c>// Destructor.
+
+        </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> &amp; map);
+                <SPAN CLASS=c>// Make this map a copy of the given map.
+
+        </SPAN><SPAN CLASS=t>struct </SPAN>Element <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Datatype for an element of the map.
+
+                </SPAN>KEY Key;
+                        <SPAN CLASS=c>// The key of the element.
+
+                </SPAN>VALUE Value;
+                        <SPAN CLASS=c>// The value of the element.
+
+                </SPAN>emAvlNode AvlNode;
+                <SPAN CLASS=t>inline </SPAN>Element(<SPAN CLASS=t>const </SPAN>KEY &amp; k) : Key(k), Value() <SPAN CLASS=b>{}
+                </SPAN><SPAN CLASS=t>inline </SPAN>Element(<SPAN CLASS=t>const </SPAN>KEY &amp; k, <SPAN CLASS=t>const </SPAN>VALUE &amp; v) : Key(k), Value(v) <SPAN CLASS=b>{}
+                        </SPAN><SPAN CLASS=c>// Private stuff.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>bool </SPAN>Contains(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the map contains an element whose key equals the
+                // given key.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * Get(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the element whose key equals the given key.
+                // If there is no such element, NULL is returned. At least
+                // because of the copy-on-write feature, the pointer is valid
+                // only until calling any non-const method or operator on this
+                // map, or giving this map as a non-const argument to any call
+                // in the world.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * GetFirst() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>Element * GetLast() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the element with the smallest or largest key. If the map
+                // is empty, NULL is returned. The rules for the validity of the
+                // pointer are the same as with Get(key).
+
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * GetNearestGreater(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>Element * GetNearestGreaterOrEqual(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>Element * GetNearestLess(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>Element * GetNearestLessOrEqual(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the nearest element whose key is greater, or greater or
+                // equal, or less, or less or equal to a given key. If no such
+                // element exists, NULL is returned. The rules for the validity
+                // of the pointer are the same as with Get(key).
+
+        </SPAN><SPAN CLASS=t>const </SPAN>KEY * GetKey(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>KEY * GetKey(<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the key of an element. If there is no such
+                // element, NULL is returned. The rules for the validity of the
+                // pointer are the same as with the Get(key).
+
+        </SPAN>KEY * GetKeyWritable(<SPAN CLASS=t>const </SPAN>KEY &amp; key);
+        KEY * GetKeyWritable(<SPAN CLASS=t>const </SPAN>Element * elem);
+                <SPAN CLASS=c>// Get a non-const version of a pointer to the key of an element.
+                // The pointer may be used for modifying the key in a way that
+                // the order is not disturbed. The rules for the validity of the
+                // pointer are the same as with the GetKey methods, but: The
+                // pointer must not be used for modifying after doing something
+                // which could have made a shallow copy of this list.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>VALUE * GetValue(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>const </SPAN>VALUE * GetValue(<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get a pointer to the value of an element. If there is no such
+                // element, NULL is returned. The rules for the validity of the
+                // pointer are the same as with the Get(key).
+
+        </SPAN>VALUE * GetValueWritable(<SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>bool </SPAN>insertIfNew);
+        VALUE * GetValueWritable(<SPAN CLASS=t>const </SPAN>Element * elem);
+                <SPAN CLASS=c>// Get a non-const version of a pointer to the value of an
+                // element. If insertIfNew is true, the element is created if it
+                // is not found. The pointer may be used for modifying the
+                // value. The rules for the validity of the pointer are the same
+                // as with the GetValue methods, but: The pointer must not be
+                // used for modifying after doing something which could have
+                // made a shallow copy of this list.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetValue(<SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>const </SPAN>VALUE &amp; value, <SPAN CLASS=t>bool </SPAN>insertIfNew);
+        <SPAN CLASS=t>void </SPAN>SetValue(<SPAN CLASS=t>const </SPAN>Element * elem, <SPAN CLASS=t>const </SPAN>VALUE &amp; value);
+                <SPAN CLASS=c>// Set the value of an element. If insertIfNew is true, the
+                // element is created if it is not found.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>VALUE &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const</SPAN>;
+        VALUE &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>const </SPAN>KEY &amp; key);
+                <SPAN CLASS=c>// Same as *GetValue(key) or *GetValueWritable(key,true).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>const </SPAN>VALUE &amp; value);
+                <SPAN CLASS=c>// Same as SetValue(key,value,true).
+
+        </SPAN><SPAN CLASS=t>void </SPAN>RemoveFirst();
+        <SPAN CLASS=t>void </SPAN>RemoveLast();
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN>KEY &amp; key);
+        <SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>const </SPAN>Element * elem);
+                <SPAN CLASS=c>// Remove (and delete) the first element, the last element, the
+                // element that matches a key, or a given element. If the
+                // element does not exist, nothing is removed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear();
+                <SPAN CLASS=c>// Remove (and delete) all elements of this map.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether this map has no elements.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Compute the number of elements.
+
+        </SPAN><SPAN CLASS=t>unsigned int </SPAN>GetDataRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of references to the data behind this map.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>MakeNonShared();
+                <SPAN CLASS=c>// This must be called before handing the map to another thread.
+                // This method is not recursive. So if the key or value classes
+                // even have such a method, you have to call that manually.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Iterator <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for a stable pointer to an element of a map.
+                // "stable" means:
+                // * If the address of an element changes through the
+                //   copy-on-write mechanism, iterators pointing to that element
+                //   are adapted proper.
+                // * If an element is removed from a map, iterators pointing to
+                //   that element are set to the next element, or NULL if it was
+                //   the last element.
+                // * If the assignment operator '=' is called on a map, all
+                //   iterators which were pointing to elements of the map are
+                //   set to NULL. This is even true if the map is assigned to
+                //   itself.
+                // This kind of iterator needs little more than 500 bytes of
+                // memory, because it manages a stack of tree nodes for the
+                // current position (yes, the AVL nodes do not have parent
+                // pointers...).
+                // Modifying the map while an iterator is active slows down the
+                // iterator, because it has to find the tree position again on
+                // next increment or decrement.
+                // Note the auto-cast operator to a 'const Element *'. Wherever
+                // there is an argument 'const Element *' in the methods of
+                // <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>, you can even give an instance of this class as
+                // the argument.
+
+                </SPAN>Iterator();
+                        <SPAN CLASS=c>// Construct a "NULL pointer".
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Construct a copied iterator.
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key);
+                Iterator(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>Element * elem);
+                        <SPAN CLASS=c>// Construct an iterator pointing to a particular
+                        // element.
+
+                </SPAN>~Iterator();
+                        <SPAN CLASS=c>// Destructor.
+
+                </SPAN>Iterator &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy an iterator.
+
+                </SPAN><SPAN CLASS=t>operator const </SPAN>Element * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>Element * Get() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the element pointer. It is NULL if this iterator
+                        // does not point to any element.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * Set(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy the given iterator and return the element
+                        // pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key);
+                <SPAN CLASS=t>const </SPAN>Element * Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>Element * elem);
+                        <SPAN CLASS=c>// Set this iterator to the given element of the given
+                        // map and return the element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * SetFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map);
+                <SPAN CLASS=t>const </SPAN>Element * SetLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map);
+                        <SPAN CLASS=c>// Set this iterator to the first or last element of the
+                        // given map and return the element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * SetNext();
+                <SPAN CLASS=t>const </SPAN>Element * SetPrev();
+                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>++();
+                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>--();
+                        <SPAN CLASS=c>// Set this iterator to the next or previous element and
+                        // return the new element pointer. This must be called
+                        // only if the old element pointer is not NULL.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>);
+                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>);
+                        <SPAN CLASS=c>// Like above, but return the old element pointer.
+
+                </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Ordinary compare operators.
+
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; * GetMap() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get a pointer to the map this iterator is currently
+                        // attached to. Returns NULL if not attached to any
+                        // map. (See comments on Detach()).
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Detach();
+                        <SPAN CLASS=c>// Detach this iterator from its map and point to NULL.
+                        // Note: to care about the iterators, each <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>
+                        // has a single linked list of its iterators. The
+                        // mechanism is lazy, that means, an iterator may stay
+                        // in the map even when not pointing to any element,
+                        // just for quick re-use. On the other hand, such
+                        // iterators are still costing a tiny number of CPU
+                        // cycles whenever the map is modified.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;;
+                <SPAN CLASS=t>void </SPAN>SetMap(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; * map);
+                <SPAN CLASS=t>const </SPAN>Element * Pos;
+                emAvlIterator AvlIter;
+                <SPAN CLASS=t>bool </SPAN>AvlIterValid;
+                <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; * Map;
+                Iterator * NextIter; <SPAN CLASS=c>// Undefined if Map==NULL
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN>Iterator;
+
+        <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
+                </SPAN>emAvlTree AvlTree;
+                <SPAN CLASS=t>bool </SPAN>IsStaticEmpty;
+                <SPAN CLASS=t>unsigned int </SPAN>RefCount;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>MakeWritable(<SPAN CLASS=t>const </SPAN>Element * * preserve=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>DeleteData();
+        emAvlNode * CloneTree(emAvlNode * tree, <SPAN CLASS=t>const </SPAN>Element * * preserve);
+        <SPAN CLASS=t>static void </SPAN>DeleteTree(emAvlNode * tree);
+
+        SharedData * Data;
+        Iterator * Iterators;
+        <SPAN CLASS=t>static </SPAN>SharedData EmptyData;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>()
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> &amp; src)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=src.Data;
+        Data-&gt;RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>(<SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>const </SPAN>VALUE &amp; value)
+<SPAN CLASS=b>{
+        </SPAN>Iterators=<SPAN CLASS=u>NULL</SPAN>;
+        Data=&amp;EmptyData;
+        SetValue(key,value,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::~<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{ </SPAN>i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>; i-&gt;Map=<SPAN CLASS=u>NULL</SPAN>; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::<SPAN CLASS=t>operator </SPAN>= (
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> &amp; map
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        map.Data-&gt;RefCount++;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=map.Data;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Contains(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Get(key)!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Get(
+        <SPAN CLASS=t>const </SPAN>KEY &amp; key
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) EM_AVL_SEARCH_GO_LEFT
+                <SPAN CLASS=k>else if </SPAN>(key&gt;element-&gt;Key) EM_AVL_SEARCH_GO_RIGHT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>element;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetFirst() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                EM_AVL_SEARCH_GO_LEFT_OR_FOUND
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>element;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetLast() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                EM_AVL_SEARCH_GO_RIGHT_OR_FOUND
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>element;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetNearestGreater(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        Element * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) <SPAN CLASS=b>{ </SPAN>nearest=element; EM_AVL_SEARCH_GO_LEFT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>EM_AVL_SEARCH_GO_RIGHT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetNearestGreaterOrEqual(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        Element * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) <SPAN CLASS=b>{ </SPAN>nearest=element; EM_AVL_SEARCH_GO_LEFT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(key&gt;element-&gt;Key) EM_AVL_SEARCH_GO_RIGHT
+                <SPAN CLASS=k>else </SPAN>nearest=element;
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetNearestLess(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        Element * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(key&gt;element-&gt;Key) <SPAN CLASS=b>{ </SPAN>nearest=element; EM_AVL_SEARCH_GO_RIGHT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>EM_AVL_SEARCH_GO_LEFT
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetNearestLessOrEqual(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_SEARCH_VARS(Element)
+        Element * nearest;
+
+        nearest=<SPAN CLASS=u>NULL</SPAN>;
+        EM_AVL_SEARCH_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) EM_AVL_SEARCH_GO_LEFT
+                <SPAN CLASS=k>else if </SPAN>(key&gt;element-&gt;Key) <SPAN CLASS=b>{ </SPAN>nearest=element; EM_AVL_SEARCH_GO_RIGHT <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN>nearest=element;
+        EM_AVL_SEARCH_END
+        <SPAN CLASS=k>return </SPAN>nearest;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const </SPAN>KEY * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetKey(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * elem = Get(key);
+        <SPAN CLASS=k>return </SPAN>elem ? &amp;elem-&gt;Key : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const </SPAN>KEY * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetKey(<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>elem ? &amp;elem-&gt;Key : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+KEY * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetKeyWritable(<SPAN CLASS=t>const </SPAN>KEY &amp; key)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * elem = Get(key);
+        <SPAN CLASS=k>if </SPAN>(!elem) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>(KEY*)&amp;elem-&gt;Key;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+KEY * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetKeyWritable(<SPAN CLASS=t>const </SPAN>Element * elem)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!elem) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>(KEY*)&amp;elem-&gt;Key;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>inline const </SPAN>VALUE * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetValue(<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * elem = Get(key);
+        <SPAN CLASS=k>return </SPAN>elem ? &amp;elem-&gt;Value : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>inline const </SPAN>VALUE * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetValue(
+        <SPAN CLASS=t>const </SPAN>Element * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>elem ? &amp;elem-&gt;Value : <SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+VALUE * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetValueWritable(
+        <SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>bool </SPAN>insertIfNew
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(insertIfNew) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) MakeWritable();
+                EM_AVL_INSERT_VARS(Element)
+                EM_AVL_INSERT_BEGIN_SEARCH(Element,AvlNode,Data-&gt;AvlTree)
+                        <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) EM_AVL_INSERT_GO_LEFT
+                        <SPAN CLASS=k>else if </SPAN>(key&gt;element-&gt;Key) EM_AVL_INSERT_GO_RIGHT
+                        <SPAN CLASS=k>else return </SPAN>&amp;element-&gt;Value;
+                EM_AVL_INSERT_END_SEARCH
+                element=<SPAN CLASS=k>new </SPAN>Element(key);
+                Iterator * i;
+                <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                        </SPAN>i-&gt;AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                <SPAN CLASS=b>}
+                </SPAN>EM_AVL_INSERT_NOW(AvlNode)
+                <SPAN CLASS=k>return </SPAN>&amp;element-&gt;Value;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * elem = Get(key);
+                <SPAN CLASS=k>if </SPAN>(!elem) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+                <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+                <SPAN CLASS=k>return </SPAN>(VALUE*)&amp;elem-&gt;Value;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+VALUE * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetValueWritable(<SPAN CLASS=t>const </SPAN>Element * elem)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!elem) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable(&amp;elem);
+        <SPAN CLASS=k>return </SPAN>(VALUE*)&amp;elem-&gt;Value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::SetValue(
+        <SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>const </SPAN>VALUE &amp; value, <SPAN CLASS=t>bool </SPAN>insertIfNew
+)
+<SPAN CLASS=b>{
+        </SPAN>VALUE * p=GetValueWritable(key,insertIfNew);
+        <SPAN CLASS=k>if </SPAN>(p) *p=value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::SetValue(
+        <SPAN CLASS=t>const </SPAN>Element * elem, <SPAN CLASS=t>const </SPAN>VALUE &amp; value
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(elem) *GetValueWritable(elem)=value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const </SPAN>VALUE &amp; <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>const </SPAN>KEY &amp; key) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*GetValue(key);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+</SPAN>VALUE &amp; <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>const </SPAN>KEY &amp; key)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*GetValueWritable(key,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Insert(<SPAN CLASS=t>const </SPAN>KEY &amp; key, <SPAN CLASS=t>const </SPAN>VALUE &amp; value)
+<SPAN CLASS=b>{
+        </SPAN>SetValue(key,value,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::RemoveFirst()
+<SPAN CLASS=b>{
+        </SPAN>Remove(GetFirst());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::RemoveLast()
+<SPAN CLASS=b>{
+        </SPAN>Remove(GetLast());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Remove(<SPAN CLASS=t>const </SPAN>KEY &amp; key)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_REMOVE_VARS(Element)
+        Iterator * i;
+
+        <SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>&amp;&amp; !Data-&gt;IsStaticEmpty) MakeWritable();
+        EM_AVL_REMOVE_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) <SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_GO_LEFT
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else if </SPAN>(key&gt;element-&gt;Key) <SPAN CLASS=b>{
+                        </SPAN>EM_AVL_REMOVE_GO_RIGHT
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                                </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos==element) i-&gt;SetNext();
+                                i-&gt;AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                        <SPAN CLASS=b>}
+                        </SPAN>EM_AVL_REMOVE_NOW
+                        <SPAN CLASS=k>delete </SPAN>element;
+                <SPAN CLASS=b>}
+        </SPAN>EM_AVL_REMOVE_END
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Remove(<SPAN CLASS=t>const </SPAN>Element * elem)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(elem) Remove(elem-&gt;Key);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Clear()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * i;
+
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) i-&gt;Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(!--Data-&gt;RefCount) DeleteData();
+        Data=&amp;EmptyData;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!Data-&gt;AvlTree;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>EM_AVL_LOOP_VARS(Element)
+        <SPAN CLASS=t>int </SPAN>count;
+
+        count=<SPAN CLASS=u>0</SPAN>;
+        EM_AVL_LOOP_START(Element,AvlNode,Data-&gt;AvlTree)
+                count++;
+        EM_AVL_LOOP_END
+        <SPAN CLASS=k>return </SPAN>count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>unsigned int </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::GetDataRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Data-&gt;IsStaticEmpty ? UINT_MAX/<SPAN CLASS=u>2 </SPAN>: Data-&gt;RefCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::MakeNonShared()
+<SPAN CLASS=b>{
+        </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Iterator()
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Map=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Map=<SPAN CLASS=u>NULL</SPAN>;
+        Set(iter);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key
+)
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Map=<SPAN CLASS=u>NULL</SPAN>;
+        Set(map,key);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map,
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>Pos=<SPAN CLASS=u>NULL</SPAN>;
+        Map=<SPAN CLASS=u>NULL</SPAN>;
+        Set(map,elem);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::~Iterator()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(Map) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;Map-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                *pi=NextIter;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator &amp;
+        <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter)
+<SPAN CLASS=b>{
+        </SPAN>Set(iter);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>SetMap(iter.Map);
+        <SPAN CLASS=k>if </SPAN>(Pos!=iter.Pos) <SPAN CLASS=b>{
+                </SPAN>AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                Pos=iter.Pos;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        SetMap(&amp;map);
+        EM_AVL_ITER_START_ANY_BEGIN(Element,AvlNode,Map-&gt;Data-&gt;AvlTree,AvlIter)
+                <SPAN CLASS=k>if </SPAN>(key&lt;element-&gt;Key) EM_AVL_ITER_START_ANY_GO_LEFT(AvlIter)
+                <SPAN CLASS=k>else if </SPAN>(key&gt;element-&gt;Key) EM_AVL_ITER_START_ANY_GO_RIGHT(AvlIter)
+        EM_AVL_ITER_START_ANY_END
+        AvlIterValid=<SPAN CLASS=k>true</SPAN>;
+        Pos=element;
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>Element * elem
+)
+<SPAN CLASS=b>{
+        </SPAN>SetMap(&amp;map);
+        <SPAN CLASS=k>if </SPAN>(Pos!=elem) <SPAN CLASS=b>{
+                </SPAN>AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                Pos=elem;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetFirst(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        SetMap(&amp;map);
+        EM_AVL_ITER_FIRST(Element,AvlNode,Map-&gt;Data-&gt;AvlTree,AvlIter)
+        AvlIterValid=<SPAN CLASS=k>true</SPAN>;
+        Pos=element;
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetLast(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map
+)
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        SetMap(&amp;map);
+        EM_AVL_ITER_LAST(Element,AvlNode,Map-&gt;Data-&gt;AvlTree,AvlIter)
+        AvlIterValid=<SPAN CLASS=k>true</SPAN>;
+        Pos=element;
+        <SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetNext()
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        <SPAN CLASS=k>if </SPAN>(Pos) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!AvlIterValid) Set(*Map,Pos-&gt;Key);
+                EM_AVL_ITER_NEXT(Element,AvlNode,AvlIter)
+                Pos=element;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetPrev()
+<SPAN CLASS=b>{
+        </SPAN>EM_AVL_ITER_VARS(Element)
+
+        <SPAN CLASS=k>if </SPAN>(Pos) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(!AvlIterValid) Set(*Map,Pos-&gt;Key);
+                EM_AVL_ITER_PREV(Element,AvlNode,AvlIter)
+                Pos=element;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SetNext();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SetPrev();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * res=Pos;
+        SetNext();
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>Element * res=Pos;
+        SetPrev();
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>Element * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>Element * elem
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=elem;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; *
+<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::GetMap() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Map;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Detach()
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(Map) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;Map-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                *pi=NextIter;
+                Map=<SPAN CLASS=u>NULL</SPAN>;
+                Pos=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetMap(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; * map
+)
+<SPAN CLASS=b>{
+        </SPAN>Iterator * * pi;
+
+        <SPAN CLASS=k>if </SPAN>(Map!=map) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Map) <SPAN CLASS=b>{
+                        </SPAN><SPAN CLASS=k>for </SPAN>(pi=&amp;Map-&gt;Iterators; *pi!=<SPAN CLASS=k>this</SPAN>; pi=&amp;(*pi)-&gt;NextIter);
+                        *pi=NextIter;
+                <SPAN CLASS=b>}
+                </SPAN>Map=(<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;*)map;
+                <SPAN CLASS=k>if </SPAN>(Map) <SPAN CLASS=b>{
+                        </SPAN>NextIter=Map-&gt;Iterators;
+                        Map-&gt;Iterators=<SPAN CLASS=k>this</SPAN>;
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::MakeWritable(<SPAN CLASS=t>const </SPAN>Element * * preserve)
+<SPAN CLASS=b>{
+        </SPAN>SharedData * d1, * d2;
+
+        d1=Data;
+        <SPAN CLASS=k>if </SPAN>(d1-&gt;RefCount&gt;<SPAN CLASS=u>1 </SPAN>|| Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN>d2=<SPAN CLASS=k>new </SPAN>SharedData;
+                d2-&gt;AvlTree=<SPAN CLASS=u>NULL</SPAN>;
+                d2-&gt;IsStaticEmpty=<SPAN CLASS=k>false</SPAN>;
+                d2-&gt;RefCount=<SPAN CLASS=u>1</SPAN>;
+                d1-&gt;RefCount--;
+                Data=d2;
+                <SPAN CLASS=k>if </SPAN>(d1-&gt;AvlTree) <SPAN CLASS=b>{
+                        </SPAN>d2-&gt;AvlTree=CloneTree(d1-&gt;AvlTree,preserve);
+                <SPAN CLASS=b>}
+        }
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::DeleteData()
+<SPAN CLASS=b>{
+        </SPAN>EmptyData.RefCount=UINT_MAX/<SPAN CLASS=u>2</SPAN>;
+
+        <SPAN CLASS=c>// Never do a
+        //  if (Data!=&amp;EmptyData)...
+        // instead of
+        //  if (!Data-&gt;IsStaticEmpty)...
+        // because static member variables of template classes could exist
+        // multiple times for the same final type (e.g. with Windows DLLs).
+        </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;AvlTree) <SPAN CLASS=b>{
+                        </SPAN>DeleteTree(Data-&gt;AvlTree);
+                <SPAN CLASS=b>}
+                </SPAN><SPAN CLASS=k>delete </SPAN>Data;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+emAvlNode * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::CloneTree(
+        emAvlNode * tree, <SPAN CLASS=t>const </SPAN>Element * * preserve
+)
+<SPAN CLASS=b>{
+        </SPAN>Element * e1, * e2;
+        Iterator * i;
+
+        e1=EM_AVL_ELEMENT(Element,AvlNode,tree);
+        e2=<SPAN CLASS=k>new </SPAN>Element(e1-&gt;Key,e1-&gt;Value);
+        e2-&gt;AvlNode=e1-&gt;AvlNode;
+        <SPAN CLASS=k>if </SPAN>(preserve &amp;&amp; *preserve==e1) *preserve=e2;
+        <SPAN CLASS=k>for </SPAN>(i=Iterators; i; i=i-&gt;NextIter) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(i-&gt;Pos==e1) <SPAN CLASS=b>{
+                        </SPAN>i-&gt;Pos=e2;
+                        i-&gt;AvlIterValid=<SPAN CLASS=k>false</SPAN>;
+                <SPAN CLASS=b>}
+        }
+        </SPAN><SPAN CLASS=k>if </SPAN>(e1-&gt;AvlNode.Left) <SPAN CLASS=b>{
+                </SPAN>e2-&gt;AvlNode.Left=CloneTree(e1-&gt;AvlNode.Left,preserve);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(e1-&gt;AvlNode.Right) <SPAN CLASS=b>{
+                </SPAN>e2-&gt;AvlNode.Right=CloneTree(e1-&gt;AvlNode.Right,preserve);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return </SPAN>&amp;e2-&gt;AvlNode;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::DeleteTree(emAvlNode * tree)
+<SPAN CLASS=b>{
+        </SPAN>Element * element=EM_AVL_ELEMENT(Element,AvlNode,tree);
+        <SPAN CLASS=k>if </SPAN>(element-&gt;AvlNode.Left ) DeleteTree(element-&gt;AvlNode.Left );
+        <SPAN CLASS=k>if </SPAN>(element-&gt;AvlNode.Right) DeleteTree(element-&gt;AvlNode.Right);
+        <SPAN CLASS=k>delete </SPAN>element;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
+<SPAN CLASS=t>typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::SharedData <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::EmptyData=
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>true</SPAN>,UINT_MAX/<SPAN CLASS=u>2
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

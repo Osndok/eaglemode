@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.cpp
 //
-// Copyright (C) 2005-2012 Oliver Hamann.
+// Copyright (C) 2005-2012,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -87,6 +87,13 @@ bool emDirEntry::operator == (const emDirEntry & dirEntry) const
 			Data->Hidden!=dirEntry.Data->Hidden ||
 			memcmp(&Data->Stat,&dirEntry.Data->Stat,sizeof(Data->Stat))!=0 ||
 			memcmp(&Data->LStat,&dirEntry.Data->LStat,sizeof(Data->LStat))!=0
+#if defined(_WIN32)
+			|| Data->WndsFileAttributes!=dirEntry.Data->WndsFileAttributes ||
+			Data->Drive!=dirEntry.Data->Drive ||
+			Data->DriveType!=dirEntry.Data->DriveType ||
+			Data->DriveName!=dirEntry.Data->DriveName ||
+			Data->DriveFileSystem!=dirEntry.Data->DriveFileSystem
+#endif
 		) return false;
 	}
 	return true;
@@ -125,7 +132,7 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	PSECURITY_DESCRIPTOR pSd;
 	PSID pOwnerSid, pGroupSid;
 	SID_NAME_USE snu;
-	CHAR str[256],str2[256];
+	CHAR str[MAX_PATH+1],str2[MAX_PATH+1];
 	DWORD sz,sz2;
 	BOOL b;
 
@@ -162,7 +169,25 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	}
 	b=GetFileAttributesEx(Data->Path.Get(),GetFileExInfoStandard,&fad);
 	Data->WndsFileAttributes = b ? fad.dwFileAttributes : 0;
-	Data->Hidden=(Data->WndsFileAttributes&FILE_ATTRIBUTE_HIDDEN)!=0;
+	if (Data->Path.GetLen()==3 && Data->Path[1]==':' && Data->Path[2]=='\\') {
+		Data->Drive=true;
+	}
+	Data->Hidden=
+		!Data->Drive &&
+		(Data->WndsFileAttributes&FILE_ATTRIBUTE_HIDDEN)!=0
+	;
+	if (Data->Drive) {
+		Data->DriveType=::GetDriveType(Data->Path.Get());
+		if (
+			::GetVolumeInformation(
+				Data->Path.Get(),str,sizeof(str),NULL,
+				NULL,NULL,str2,sizeof(str2)
+			)
+		) {
+			Data->DriveName=str;
+			Data->DriveFileSystem=str2;
+		}
+	}
 #else
 	char tmp[1024];
 #if !defined(ANDROID)
@@ -246,6 +271,11 @@ emDirEntry::SharedData::SharedData()
 	Hidden=false;
 	memset(&Stat,0,sizeof(struct em_stat));
 	LStat=&Stat;
+#if defined(_WIN32)
+	WndsFileAttributes=0;
+	Drive=false;
+	DriveType=0;
+#endif
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,7 @@ void emButton::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const double minExt=2.5;
+	static const double minExt=4.0;
 	double vmx,vmy;
 
 	if (
@@ -265,13 +265,13 @@ void emButton::DoButton(
 		bw-=2*d;
 		bh-=2*d;
 
-		d=bw*8.0/120;
+		d=bw*30.0/380;
 		fx=bx+d;
 		fy=by+d;
 		fw=bw-2*d;
 		fh=bh-2*d;
 		if (ShownRadioed) fr=fw*0.5;
-		else fr=bw*24.0/120-d;
+		else fr=bw*50.0/380;
 
 		if (func==BUTTON_FUNC_CHECK_MOUSE) {
 			dx=emMax(emMax(fx-mx,mx-fx-fw)+fr,0.0);
@@ -316,8 +316,9 @@ void emButton::DoButton(
 	else {
 
 		GetContentRoundRect(&x,&y,&w,&h,&r);
+		r=emMax(r,emMin(w,h)*GetBorderScaling()*0.223);
 
-		d=(1-(98.0-5.0)/98.0)*r;
+		d=(1-(264.0-14.0)/264.0)*r;
 		fx=x+d;
 		fy=y+d;
 		fw=w-2*d;
@@ -364,29 +365,29 @@ void emButton::DoButton(
 		if (Pressed) {
 			painter->PaintBorderImage(
 				x,y,w,h,
-				135.0/98*r,151.0/98*r,99.0/98*r,99.0/98*r,
+				360.0/264*r,374.0/264*r,264.0/264*r,264.0/264*r,
 				GetTkResources().ImgButtonPressed,
-				135.0,151.0,99.0,99.0,
+				360.0,374.0,264.0,264.0,
 				255,0,0757
 			);
 		}
 		else if (ShownChecked) {
 			painter->PaintBorderImage(
 				x,y,w,h,
-				132.0/98*r,146.0/98*r,99.0/98*r,99.0/98*r,
+				340.0/264*r,374.0/264*r,264.0/264*r,264.0/264*r,
 				GetTkResources().ImgButtonChecked,
-				132.0,146.0,99.0,99.0,
+				340.0,374.0,264.0,264.0,
 				255,0,0757
 			);
 		}
 		else {
 			painter->PaintBorderImage(
 				x,y,
-				w+(353.0-340.0)/98*r,
-				h+(365.0-340.0)/98*r,
-				112.0/98*r,128.0/98*r,111.0/98*r,123.0/98*r,
+				w+(658.0-648.0)/264*r,
+				h+(658.0-648.0)/264*r,
+				278.0/264*r,278.0/264*r,278.0/264*r,278.0/264*r,
 				GetTkResources().ImgButton,
-				112.0,128.0,111.0,123.0,
+				278.0,278.0,278.0,278.0,
 				255,0,0757
 			);
 		}

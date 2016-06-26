@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestContainers.cpp
 //
-// Copyright (C) 2005-2009,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,7 +20,8 @@
 
 #include <emCore/emStd2.h>
 #include <emCore/emList.h>
-#include <emCore/emAvlTree.h>
+#include <emCore/emAvlTreeMap.h>
+#include <emCore/emAvlTreeSet.h>
 #include <emCore/emAnything.h>
 
 #define MY_ASSERT(c) \
@@ -201,9 +202,9 @@ static void TestStringArray()
 }
 
 
-static void TestAvlTree()
+static void TestAvlTreeMap()
 {
-	printf("TestAvlTree...\n");
+	printf("TestAvlTreeMap...\n");
 	emAvlTreeMap<emString,emString> m,m2;
 	emAvlTreeMap<int,const char *> m3;
 	emAvlTreeMap<emString,emString>::Iterator i,i2;
@@ -265,6 +266,71 @@ static void TestAvlTree()
 }
 
 
+static void TestAvlTreeSet()
+{
+	printf("TestAvlTreeSet...\n");
+
+	typedef emAvlTreeSet<int> ISet;
+	ISet s,s2;
+	ISet::Iterator i,j;
+	int k;
+
+	s=ISet(2);
+	s.Insert(4);
+	s+=ISet(3)+7+(ISet(5)+8+9)-7-(ISet(8)+9);
+	MY_ASSERT(s==4+ISet(5)+3+2);
+	MY_ASSERT(s!=ISet());
+	MY_ASSERT(s.GetCount()==4);
+	MY_ASSERT(s.Contains(4));
+	MY_ASSERT(!s.Contains(1));
+	s-=ISet(3)|2;
+	s=s|((8|ISet(5)|9)&(ISet(4)|5|6|7|8));
+	MY_ASSERT(s==ISet(5)+4+8);
+	i.SetFirst(s);
+	++i;
+	MY_ASSERT(*i.Get()==5);
+	s&=4;
+	MY_ASSERT(s==ISet(4));
+	s-=5;
+	MY_ASSERT(!s.IsEmpty());
+	s-=4;
+	MY_ASSERT(s.IsEmpty());
+	s=s+0+2+4+6+8+10+11+14+16+18+20+22;
+	*s.GetWritable(11,false)=12;
+	s.RemoveFirst();
+	s.RemoveLast();
+	s2=s;
+	s2.Intersect(ISet(2)+4+8+9);
+	MY_ASSERT(s2==ISet(4)+2+8);
+	for (i.SetFirst(s), k=2; i; ++i, k+=2) {
+		MY_ASSERT(*i.Get()==k);
+	}
+	MY_ASSERT(k==22);
+	MY_ASSERT(*s.Get(8)==8);
+	MY_ASSERT(!s.Get(9));
+	MY_ASSERT(*s.GetFirst()==2);
+	MY_ASSERT(*s.GetLast()==20);
+	MY_ASSERT(*s.GetNearestGreater(0)==2);
+	MY_ASSERT(*s.GetNearestGreater(4)==6);
+	MY_ASSERT(*s.GetNearestGreater(5)==6);
+	MY_ASSERT(!s.GetNearestGreater(20));
+	MY_ASSERT(*s.GetNearestGreaterOrEqual(4)==4);
+	MY_ASSERT(*s.GetNearestGreaterOrEqual(5)==6);
+	MY_ASSERT(*s.GetNearestLess(4)==2);
+	MY_ASSERT(*s.GetNearestLess(5)==4);
+	MY_ASSERT(*s.GetNearestLessOrEqual(4)==4);
+	MY_ASSERT(*s.GetNearestLessOrEqual(5)==4);
+	i.Set(s,s.Get(10));
+	s2=s;
+	j.Set(s,s.Get(12));
+	s2+=11;
+	MY_ASSERT(i!=j);
+	s.Remove(i);
+	MY_ASSERT(i==j);
+	MY_ASSERT(*i.Get()==12);
+}
+
+
 static void TestUtf8()
 {
 	printf("TestUtf8...\n");
@@ -314,7 +380,8 @@ int main(int argc, char * argv[])
 	TestStringList();
 	TestCharArray();
 	TestStringArray();
-	TestAvlTree();
+	TestAvlTreeMap();
+	TestAvlTreeSet();
 	TestUtf8();
 	TestAnything();
 

@@ -1,6 +1,7 @@
 #%rec:emFileManTheme%#
 
-DisplayName = "Metal 3:1"
+DisplayName = "Metal"
+DisplayIcon = "theme_Metal.tga"
 BackgroundColor = {187 187 187}
 SourceSelectionColor = {174 220 174}
 TargetSelectionColor = {255 153 155}
@@ -122,5 +123,13 @@ AltContentX = 0.0033112582781457
 AltContentY = 0.0270419425496689
 AltContentW = 0.993377483443709
 AltContentH = 0.33112582781457
-MinContentVW = 45
-MinAltVW = 25
+MinContentVW = 45.0333209967908
+MinAltVW = 25.9807621135332
+DirPaddingL = 0
+DirPaddingT = 0
+DirPaddingR = 0
+DirPaddingB = 0
+LnkPaddingL = 0.0033333333333333
+LnkPaddingT = 0.00333333333333335
+LnkPaddingR = 0
+LnkPaddingB = 0

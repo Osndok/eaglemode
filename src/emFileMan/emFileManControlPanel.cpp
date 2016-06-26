@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,8 @@
 //------------------------------------------------------------------------------
 
 #include <emFileMan/emFileManControlPanel.h>
+#include <emCore/emInstallInfo.h>
+#include <emCore/emRes.h>
 #include <emFileMan/emFileManSelInfoPanel.h>
 #include <emFileMan/emDirPanel.h>
 
@@ -26,114 +28,191 @@
 emFileManControlPanel::emFileManControlPanel(
 	ParentArg parent, const emString & name, emView & contentView
 )
-	: emPackLayout(parent,name),
+	: emLinearLayout(parent,name),
 	ContentView(contentView)
 {
-	emRasterGroup * sortByGroup, * nameSortingStyleGroup;
-	emLinearGroup * saveGroup;
-	emRasterLayout * sortOptLayout;
+	emLinearLayout * vsLayout, * saveGroup;
+	emRasterLayout * themeLayout, * themeLayout2, * sortLayout, * sortLayout2;
+	emRasterGroup * nameSortingStyleGroup;
+	emRadioButton * rb;
 	emTunnel * tunnel;
-	emRef<emFileManThemeNames> themeNames;
+	emImage image;
+	emLook look;
 	int i;
 
 	FMModel=emFileManModel::Acquire(GetRootContext());
 	FMVConfig=emFileManViewConfig::Acquire(contentView);
+	FMThemeNames=emFileManThemeNames::Acquire(GetRootContext());
 
-	SetPrefChildTallness(0, 0.66);
-	SetPrefChildTallness(1, 0.97);
-	SetPrefChildTallness(2, 0.195);
-	SetChildWeight(0, 1.0/0.66);
-	SetChildWeight(1, 1.0/0.97);
-	SetChildWeight(2, 1.0/0.195);
+	SetOrientationThresholdTallness(0.43);
+	SetChildWeight(0, 8.16);
+	SetChildWeight(1, 13.0);
+	SetInnerSpace(0.015,0.015);
 
-	GrView=new emPackGroup(this,"view","File View Settings");
-	GrView->SetPrefChildTallness(0, 0.4);
-	GrView->SetPrefChildTallness(1, 0.8);
-	GrView->SetPrefChildTallness(2, 0.3);
-	GrView->SetPrefChildTallness(3, 0.4);
-	GrView->SetPrefChildTallness(4, 0.4);
-	GrView->SetChildWeight(0, 70.0);
-	GrView->SetChildWeight(1,  6.0);
-	GrView->SetChildWeight(2, 16.0);
-	GrView->SetChildWeight(3,  3.0);
-	GrView->SetChildWeight(4,  3.0);
-		sortByGroup=new emRasterGroup(GrView,"sort","Sort Files By");
-		sortByGroup->SetBorderScaling(1.7);
-		sortByGroup->SetPrefChildTallness(0.2);
+	vsLayout=new emLinearLayout(this,"vs");
+	vsLayout->SetOrientationThresholdTallness(0.8);
+	vsLayout->SetChildWeight(0, 5.0);
+	vsLayout->SetChildWeight(1, 3.0);
+	vsLayout->SetInnerSpace(0.04,0.04);
+
+	GrView=new emPackGroup(vsLayout,"view","File View Settings");
+	GrView->SetPrefChildTallness(0, 0.7);
+	GrView->SetPrefChildTallness(1, 0.7);
+	GrView->SetPrefChildTallness(2, 0.7);
+	GrView->SetPrefChildTallness(3, 0.35);
+	GrView->SetPrefChildTallness(4, 0.35);
+	GrView->SetChildWeight(0, 4.0);
+	GrView->SetChildWeight(1, 4.0);
+	GrView->SetChildWeight(2, 1.0);
+	GrView->SetChildWeight(3, 0.5);
+	GrView->SetChildWeight(4, 0.5);
+		themeLayout=new emRasterLayout(GrView,"theme");
+		themeLayout->SetPrefChildTallness(0.7);
+		rb=new emRadioButton(
+			themeLayout,"aspect ratio 1",emString(),
+			"Set the aspect ratio of file panels to the highest value.\n"
+			"This may be best for managing files, because the file\n"
+			"names get a bigger proportion of the display area, than\n"
+			"with the other selectable aspect ratios.",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/aspect_ratio_1.tga")
+		);
+		rb->SetIconAboveCaption();
+		rb->SetBorderScaling(0.5);
+		RbmAspect.Add(rb);
+		rb=new emRadioButton(
+			themeLayout,"aspect ratio 2",emString(),
+			"Set the aspect ratio of file panels to a low value.\n"
+			"This may be best for viewing the contents of many files\n"
+			"(e.g. photos), which have similar aspect ratios.",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/aspect_ratio_2.tga")
+		);
+		rb->SetIconAboveCaption();
+		rb->SetBorderScaling(0.5);
+		RbmAspect.Add(rb);
+		rb=new emRadioButton(
+			themeLayout,"aspect ratio 3",emString(),
+			"Set the aspect ratio of file panels to the lowest value.\n"
+			"This may be best for viewing the contents of many files\n"
+			"(e.g. photos), which have similar aspect ratios.",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/aspect_ratio_3.tga")
+		);
+		rb->SetIconAboveCaption();
+		rb->SetBorderScaling(0.5);
+		RbmAspect.Add(rb);
+		themeLayout2=new emRasterGroup(
+			themeLayout,"theme","Theme",
+			"Here you can choose the look of the directory entry panels."
+		);
+		themeLayout2->SetPrefChildTallness(0.7);
+		for (i=0; i<FMThemeNames->GetThemeStyleCount(); i++) {
+			image.Clear();
+			if (!FMThemeNames->GetThemeStyleDisplayIcon(i).IsEmpty()) {
+				image=emGetResImage(
+					GetRootContext(),
+					emGetChildPath(
+						emGetInstallPath(EM_IDT_RES,"emFileMan","icons"),
+						FMThemeNames->GetThemeStyleDisplayIcon(i)
+					)
+				);
+			}
+			rb=new emRadioButton(
+				themeLayout2,
+				FMThemeNames->GetThemeStyleDisplayName(i),
+				FMThemeNames->GetThemeStyleDisplayName(i),
+				emString(),
+				image
+			);
+			rb->SetIconAboveCaption();
+			rb->SetBorderScaling(0.5);
+			RbmTheme.Add(rb);
+		}
+		sortLayout=new emRasterLayout(GrView,"sort");
+		sortLayout->SetPrefChildTallness(0.7);
 			RbSortByName=new emRadioButton(
-				sortByGroup,"sort by name",
-				"Name",
+				sortLayout,"sort by name",
+				"Sort By Name",
 				"Sort by file name.\n"
 				"\n"
-				"Hotkey: Shift+Alt+N"
+				"Hotkey: Shift+Alt+N",
+				emGetInsResImage(GetRootContext(),"emFileMan","icons/sort_by_name.tga")
 			);
-			RbSortByEnding=new emRadioButton(
-				sortByGroup,"sort by ending",
-				"Ending",
-				"Sort by file name ending. It's the part after the last dot.\n"
-				"Files with equal endings are sorted by name.\n"
-				"\n"
-				"Hotkey: Shift+Alt+E"
-			);
-			RbSortByClass=new emRadioButton(
-				sortByGroup,"sort by class",
-				"Class",
-				"Sort by class names in the file names. This sorting algorithm\n"
-				"splits each file name into words and sorts primarily by the\n"
-				"last word, secondarily by the next-to-last word and so on.\n"
-				"\n"
-				"Hotkey: Shift+Alt+C"
-			);
-			RbSortByVersion=new emRadioButton(
-				sortByGroup,"sort by version",
-				"Version",
-				"Sort by version number. This is like sorting by name, but\n"
-				"decimal numbers are recognized and compared. For example,\n"
-				"\"a-2.10.xy\" comes after \"a-2.9.xy\".\n"
-				"\n"
-				"Hotkey: Shift+Alt+V"
-			);
+			RbSortByName->SetIconAboveCaption();
+			RbSortByName->SetBorderScaling(0.5);
 			RbSortByDate=new emRadioButton(
-				sortByGroup,"sort by date",
-				"Date",
+				sortLayout,"sort by date",
+				"Sort By Date",
 				"Sort primarily by date and time of last modification,\n"
 				"secondarily by name.\n"
 				"\n"
-				"Hotkey: Shift+Alt+D"
+				"Hotkey: Shift+Alt+D",
+				emGetInsResImage(GetRootContext(),"emFileMan","icons/sort_by_date.tga")
 			);
+			RbSortByDate->SetIconAboveCaption();
+			RbSortByDate->SetBorderScaling(0.5);
 			RbSortBySize=new emRadioButton(
-				sortByGroup,"sort by size",
-				"Size",
+				sortLayout,"sort by size",
+				"Sort By Size",
 				"Sort primarily by file size, secondarily by name.\n"
 				"\n"
-				"Hotkey: Shift+Alt+S"
+				"Hotkey: Shift+Alt+S",
+				emGetInsResImage(GetRootContext(),"emFileMan","icons/sort_by_size.tga")
 			);
-		RbgTheme=new emRadioButton::RasterGroup(
-			GrView,"theme","Theme",
-			"Here you can choose the look of directory entry panels."
+			RbSortBySize->SetIconAboveCaption();
+			RbSortBySize->SetBorderScaling(0.5);
+			sortLayout2=new emRasterLayout(sortLayout,"more");
+			sortLayout2->SetPrefChildTallness(0.7);
+				RbSortByEnding=new emRadioButton(
+					sortLayout2,"sort by ending",
+					"Sort By Ending",
+					"Sort by file name ending. It's the part after the last dot.\n"
+					"Files with equal endings are sorted by name.\n"
+					"\n"
+					"Hotkey: Shift+Alt+E",
+					emGetInsResImage(GetRootContext(),"emFileMan","icons/sort_by_ending.tga")
+				);
+				RbSortByEnding->SetIconAboveCaption();
+				RbSortByEnding->SetBorderScaling(0.5);
+				RbSortByClass=new emRadioButton(
+					sortLayout2,"sort by class",
+					"Sort By Class",
+					"Sort by class names in the file names. This sorting algorithm\n"
+					"splits each file name into words and sorts primarily by the\n"
+					"last word, secondarily by the next-to-last word and so on.\n"
+					"\n"
+					"Hotkey: Shift+Alt+C",
+					emGetInsResImage(GetRootContext(),"emFileMan","icons/sort_by_class.tga")
+				);
+				RbSortByClass->SetIconAboveCaption();
+				RbSortByClass->SetBorderScaling(0.5);
+				RbSortByVersion=new emRadioButton(
+					sortLayout2,"sort by version",
+					"Sort By Version",
+					"Sort by version number. This is like sorting by name, but\n"
+					"decimal numbers are recognized and compared. For example,\n"
+					"\"a-2.10.xy\" comes after \"a-2.9.xy\".\n"
+					"\n"
+					"Hotkey: Shift+Alt+V",
+					emGetInsResImage(GetRootContext(),"emFileMan","icons/sort_by_version.tga")
+				);
+				RbSortByVersion->SetIconAboveCaption();
+				RbSortByVersion->SetBorderScaling(0.5);
+				CbSortDirectoriesFirst=new emCheckButton(
+					sortLayout2,"sort directories first",
+					"Directories First",
+					"Always have directories at the beginning, regardless of\n"
+					"the other sort criterions.",
+					emGetInsResImage(GetRootContext(),"emFileMan","icons/directories_first.tga")
+				);
+				CbSortDirectoriesFirst->SetIconAboveCaption();
+				CbSortDirectoriesFirst->SetBorderScaling(0.5);
+		CbShowHiddenFiles=new emCheckButton(
+			GrView,"show hidden files",
+			"Show Hidden Files",
+			"Hotkey: Shift+Alt+H",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/show_hidden_files.tga")
 		);
-		RbgTheme->SetPrefChildTallness(0.2);
-		themeNames=emFileManThemeNames::Acquire(GetRootContext());
-		for (i=0; i<themeNames->GetThemeCount(); i++) {
-			new emRadioButton(
-				RbgTheme,
-				themeNames->GetThemeName(i),
-				themeNames->GetThemeDisplayName(i)
-			);
-		}
-		sortOptLayout=new emRasterLayout(GrView,"left");
-		sortOptLayout->SetPrefChildTallness(0.15);
-			CbSortDirectoriesFirst=new emCheckButton(
-				sortOptLayout,"sort directories first",
-				"Directories First",
-				"Always have directories at the beginning, regardless of\n"
-				"the other sort criterions."
-			);
-			CbShowHiddenFiles=new emCheckButton(
-				sortOptLayout,"show hidden files",
-				"Show Hidden Files",
-				"Hotkey: Shift+Alt+H"
-			);
+		CbShowHiddenFiles->SetIconAboveCaption();
+		CbShowHiddenFiles->SetBorderScaling(0.5);
 		nameSortingStyleGroup=new emRasterGroup(
 			GrView,"nameSortingStyle",
 			"File Name Sorting Style (Order of Characters)"
@@ -160,6 +239,7 @@ emFileManControlPanel::emFileManControlPanel(
 				"Technically, names are compared through \"strcasecmp\"."
 			);
 		tunnel=new emTunnel(GrView,"tunnel","Save File View Settings");
+		tunnel->SetBorderScaling(0.57);
 			saveGroup=new emLinearGroup(tunnel,"save");
 			saveGroup->SetVertical();
 				CbAutosave=new emCheckBox(
@@ -174,10 +254,8 @@ emFileManControlPanel::emFileManControlPanel(
 					"Save the current file view settings as the default for new windows."
 				);
 
-	GrSelection=new emLinearGroup(this,"selection","File Selection");
-	GrSelection->SetVertical();
-	GrSelection->SetChildWeight(0.17);
-	GrSelection->SetChildWeight(5,0.28);
+	GrSelection=new emRasterGroup(vsLayout,"selection","File Selection");
+	GrSelection->SetPrefChildTallness(0.7);
 		BtSelectAll=new emButton(
 			GrSelection,"select all",
 			"Select All",
@@ -186,60 +264,80 @@ emFileManControlPanel::emFileManControlPanel(
 			"entry panel. As usual, the entries are selected as the target and\n"
 			"the source selection is set from the previous target selection.\n"
 			"\n"
-			"Hotkey: Alt+A"
+			"Hotkey: Alt+A",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/select_all.tga")
 		);
+		BtSelectAll->SetIconAboveCaption();
+		BtSelectAll->SetBorderScaling(0.5);
 		BtClearSelection=new emButton(
 			GrSelection,"clear selection",
 			"Clear Selection",
 			"Clear the source and target selections.\n"
 			"\n"
-			"Hotkey: Alt+E"
+			"Hotkey: Alt+E",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/clear_selection.tga")
 		);
+		BtClearSelection->SetIconAboveCaption();
+		BtClearSelection->SetBorderScaling(0.5);
 		BtSwapSelection=new emButton(
 			GrSelection,"swap selection",
 			"Swap Selection",
 			"Exchange the source selection for the target selection.\n"
 			"\n"
-			"Hotkey: Alt+Z"
+			"Hotkey: Alt+Z",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/swap_selection.tga")
 		);
+		BtSwapSelection->SetIconAboveCaption();
+		BtSwapSelection->SetBorderScaling(0.5);
+		GrSelInfo=new emLinearGroup(GrSelection,"stat","Selection Statistics");
+		GrSelInfo->SetBorderType(OBT_INSTRUMENT,IBT_OUTPUT_FIELD);
+		look=GrSelInfo->GetLook();
+		look.SetOutputBgColor(look.GetButtonBgColor());
+		GrSelInfo->SetLook(look);
+		GrSelInfo->SetBorderScaling(0.5);
+			SelInfo=new emFileManSelInfoPanel(GrSelInfo,"info");
+			SelInfo->SetFocusable(false);
 		BtPaths2Clipboard=new emButton(
 			GrSelection,"paths2clipboard",
 			"Copy Paths",
 			"Copy the full file path(s) of the target selection to the clipboard.\n"
 			"Multiple entries are separated by line feeds.\n"
 			"\n"
-			"Hotkey: Alt+P"
+			"Hotkey: Alt+P",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/copy_paths.tga")
 		);
+		BtPaths2Clipboard->SetIconAboveCaption();
+		BtPaths2Clipboard->SetBorderScaling(0.5);
 		BtNames2Clipboard=new emButton(
 			GrSelection,"names2clipboard",
 			"Copy Names",
 			"Copy the file name(s) of the target selection to the clipboard.\n"
 			"Multiple entries are separated by line feeds.\n"
 			"\n"
-			"Hotkey: Alt+N"
+			"Hotkey: Alt+N",
+			emGetInsResImage(GetRootContext(),"emFileMan","icons/copy_names.tga")
 		);
-		GrSelInfo=new emLinearGroup(GrSelection,"stat","Selection Statistics");
-		GrSelInfo->SetBorderType(OBT_INSTRUMENT,IBT_OUTPUT_FIELD);
-			SelInfo=new emFileManSelInfoPanel(GrSelInfo,"info");
-			SelInfo->SetFocusable(false);
+		BtNames2Clipboard->SetIconAboveCaption();
+		BtNames2Clipboard->SetBorderScaling(0.5);
 
 	GrCommand=new Group(this,"commands",contentView,FMModel,FMModel->GetCommandRoot());
 	GrCommand->SetCaption("File Manager Commands");
 
 	AddWakeUpSignal(FMModel->GetSelectionSignal());
 	AddWakeUpSignal(FMVConfig->GetChangeSignal());
+	AddWakeUpSignal(RbmAspect.GetCheckSignal());
+	AddWakeUpSignal(RbmTheme.GetCheckSignal());
 	AddWakeUpSignal(RbSortByName->GetClickSignal());
+	AddWakeUpSignal(RbSortByDate->GetClickSignal());
+	AddWakeUpSignal(RbSortBySize->GetClickSignal());
 	AddWakeUpSignal(RbSortByEnding->GetClickSignal());
 	AddWakeUpSignal(RbSortByClass->GetClickSignal());
 	AddWakeUpSignal(RbSortByVersion->GetClickSignal());
-	AddWakeUpSignal(RbSortByDate->GetClickSignal());
-	AddWakeUpSignal(RbSortBySize->GetClickSignal());
+	AddWakeUpSignal(CbSortDirectoriesFirst->GetCheckSignal());
+	AddWakeUpSignal(CbShowHiddenFiles->GetCheckSignal());
 	AddWakeUpSignal(RbPerLocale->GetClickSignal());
 	AddWakeUpSignal(RbCaseSensitive->GetClickSignal());
 	AddWakeUpSignal(RbCaseInsensitive->GetClickSignal());
-	AddWakeUpSignal(CbSortDirectoriesFirst->GetCheckSignal());
-	AddWakeUpSignal(CbShowHiddenFiles->GetCheckSignal());
-	AddWakeUpSignal(RbgTheme->GetCheckSignal());
 	AddWakeUpSignal(CbAutosave->GetCheckSignal());
 	AddWakeUpSignal(BtSaveAsDefault->GetClickSignal());
 	AddWakeUpSignal(BtSelectAll->GetClickSignal());
@@ -259,10 +357,10 @@ emFileManControlPanel::~emFileManControlPanel()
 
 bool emFileManControlPanel::Cycle()
 {
-	const emRadioButton * rb;
 	emScreen * screen;
 	emDirPanel * dp;
 	emPanel * p;
+	int i,j;
 
 	if (
 		IsSignaled(FMModel->GetSelectionSignal()) ||
@@ -270,8 +368,24 @@ bool emFileManControlPanel::Cycle()
 	) {
 		UpdateButtonStates();
 	}
+	if (
+		IsSignaled(RbmAspect.GetCheckSignal()) ||
+		IsSignaled(RbmTheme.GetCheckSignal())
+	) {
+		i=RbmTheme.GetCheckIndex();
+		j=RbmAspect.GetCheckIndex();
+		if (i<0 || i>=FMThemeNames->GetThemeStyleCount()) i=0;
+		if (j<0 || j>=FMThemeNames->GetThemeAspectRatioCount(i)) j=0;
+		FMVConfig->SetThemeName(FMThemeNames->GetThemeName(i,j));
+	}
 	if (IsSignaled(RbSortByName->GetClickSignal())) {
 		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_NAME);
+	}
+	if (IsSignaled(RbSortByDate->GetClickSignal())) {
+		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_DATE);
+	}
+	if (IsSignaled(RbSortBySize->GetClickSignal())) {
+		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_SIZE);
 	}
 	if (IsSignaled(RbSortByEnding->GetClickSignal())) {
 		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_ENDING);
@@ -282,11 +396,11 @@ bool emFileManControlPanel::Cycle()
 	if (IsSignaled(RbSortByVersion->GetClickSignal())) {
 		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_VERSION);
 	}
-	if (IsSignaled(RbSortByDate->GetClickSignal())) {
-		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_DATE);
+	if (IsSignaled(CbSortDirectoriesFirst->GetCheckSignal())) {
+		FMVConfig->SetSortDirectoriesFirst(CbSortDirectoriesFirst->IsChecked());
 	}
-	if (IsSignaled(RbSortBySize->GetClickSignal())) {
-		FMVConfig->SetSortCriterion(emFileManViewConfig::SORT_BY_SIZE);
+	if (IsSignaled(CbShowHiddenFiles->GetCheckSignal())) {
+		FMVConfig->SetShowHiddenFiles(CbShowHiddenFiles->IsChecked());
 	}
 	if (IsSignaled(RbPerLocale->GetClickSignal())) {
 		FMVConfig->SetNameSortingStyle(emFileManViewConfig::NSS_PER_LOCALE);
@@ -296,16 +410,6 @@ bool emFileManControlPanel::Cycle()
 	}
 	if (IsSignaled(RbCaseInsensitive->GetClickSignal())) {
 		FMVConfig->SetNameSortingStyle(emFileManViewConfig::NSS_CASE_INSENSITIVE);
-	}
-	if (IsSignaled(CbSortDirectoriesFirst->GetCheckSignal())) {
-		FMVConfig->SetSortDirectoriesFirst(CbSortDirectoriesFirst->IsChecked());
-	}
-	if (IsSignaled(CbShowHiddenFiles->GetCheckSignal())) {
-		FMVConfig->SetShowHiddenFiles(CbShowHiddenFiles->IsChecked());
-	}
-	if (IsSignaled(RbgTheme->GetCheckSignal())) {
-		rb=RbgTheme->GetChecked();
-		if (rb) FMVConfig->SetThemeName(rb->GetName());
 	}
 	if (IsSignaled(CbAutosave->GetCheckSignal())) {
 		FMVConfig->SetAutosave(CbAutosave->IsChecked());
@@ -340,30 +444,44 @@ bool emFileManControlPanel::Cycle()
 	if (IsSignaled(BtNames2Clipboard->GetClickSignal())) {
 		FMModel->SelectionToClipboard(ContentView,false,true);
 	}
-	return emPackLayout::Cycle();
+	return emLinearLayout::Cycle();
 }
 
 
 void emFileManControlPanel::UpdateButtonStates()
 {
-	emPanel * p;
+	emRadioButton * rb;
+	int si,ai,ac,i;
+
+	si=FMThemeNames->GetThemeStyleIndex(FMVConfig->GetThemeName());
+	ai=FMThemeNames->GetThemeAspectRatioIndex(FMVConfig->GetThemeName());
+	ac=FMThemeNames->GetThemeAspectRatioCount(si);
+	for (i=0; i<RbmAspect.GetCount(); i++) {
+		rb=RbmAspect.GetButton(i);
+		if (i<ac) {
+			rb->SetEnableSwitch(true);
+			rb->SetCaption(FMThemeNames->GetThemeAspectRatio(si,i));
+		}
+		else {
+			rb->SetEnableSwitch(false);
+		}
+	}
+	RbmAspect.SetCheckIndex(ai);
+	RbmTheme.SetCheckIndex(si);
 
 	RbSortByName->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_NAME);
+	RbSortByDate->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_DATE);
+	RbSortBySize->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_SIZE);
 	RbSortByEnding->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_ENDING);
 	RbSortByClass->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_CLASS);
 	RbSortByVersion->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_VERSION);
-	RbSortByDate->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_DATE);
-	RbSortBySize->SetChecked(FMVConfig->GetSortCriterion()==emFileManViewConfig::SORT_BY_SIZE);
-
-	RbPerLocale->SetChecked(FMVConfig->GetNameSortingStyle()==emFileManViewConfig::NSS_PER_LOCALE);
-	RbCaseSensitive->SetChecked(FMVConfig->GetNameSortingStyle()==emFileManViewConfig::NSS_CASE_SENSITIVE);
-	RbCaseInsensitive->SetChecked(FMVConfig->GetNameSortingStyle()==emFileManViewConfig::NSS_CASE_INSENSITIVE);
 
 	CbSortDirectoriesFirst->SetChecked(FMVConfig->GetSortDirectoriesFirst());
 	CbShowHiddenFiles->SetChecked(FMVConfig->GetShowHiddenFiles());
 
-	p=RbgTheme->GetChild(FMVConfig->GetThemeName());
-	RbgTheme->SetChecked(p ? dynamic_cast<emRadioButton*>(p) : NULL);
+	RbPerLocale->SetChecked(FMVConfig->GetNameSortingStyle()==emFileManViewConfig::NSS_PER_LOCALE);
+	RbCaseSensitive->SetChecked(FMVConfig->GetNameSortingStyle()==emFileManViewConfig::NSS_CASE_SENSITIVE);
+	RbCaseInsensitive->SetChecked(FMVConfig->GetNameSortingStyle()==emFileManViewConfig::NSS_CASE_INSENSITIVE);
 
 	CbAutosave->SetChecked(FMVConfig->GetAutosave());
 	BtSaveAsDefault->SetEnableSwitch(FMVConfig->IsUnsaved());
@@ -395,6 +513,8 @@ emFileManControlPanel::Group::Group(
 		SetFocusable(false);
 	}
 	SetPrefChildTallness(cmd->PrefChildTallness);
+	SetMinChildTallness(cmd->PrefChildTallness*0.65);
+	SetMaxChildTallness(1.0);
 	SetStrictRaster(true);
 	SetAlignment(EM_ALIGN_TOP_LEFT);
 	FMModel=fmModel;
@@ -453,7 +573,9 @@ emFileManControlPanel::Group::Button::Button(
 	ContentView(contentView)
 {
 	SetLook(cmd->Look);
-	SetBorderScaling(cmd->BorderScaling);
+	SetIconAboveCaption();
+	SetMaxIconAreaTallness(9.0/16.0);
+	SetBorderScaling(cmd->BorderScaling * 0.5);
 	FMModel=fmModel;
 	CmdPath=cmd->CmdPath;
 }

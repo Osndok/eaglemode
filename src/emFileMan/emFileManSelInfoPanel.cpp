@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.cpp
 //
-// Copyright (C) 2007-2009,2014 Oliver Hamann.
+// Copyright (C) 2007-2009,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -114,8 +114,8 @@ void emFileManSelInfoPanel::Paint(const emPainter & painter, emColor canvasColor
 	char tmp[256];
 	double x,y,s,h;
 
-	fgColor=emColor(0,68,0);
-	sprintf(tmp,"Source Selection: %d",FileMan->GetSourceSelectionCount());
+	fgColor=emColor(128,224,128);
+	sprintf(tmp,"Sources:%4d",FileMan->GetSourceSelectionCount());
 	painter.PaintTextBoxed(
 		TextX,
 		TextY,
@@ -127,8 +127,8 @@ void emFileManSelInfoPanel::Paint(const emPainter & painter, emColor canvasColor
 		canvasColor,
 		EM_ALIGN_LEFT
 	);
-	fgColor=emColor(102,0,0);
-	sprintf(tmp,"Target Selection: %d",FileMan->GetTargetSelectionCount());
+	fgColor=emColor(224,128,128);
+	sprintf(tmp,"Targets:%4d",FileMan->GetTargetSelectionCount());
 	painter.PaintTextBoxed(
 		TextX,
 		TextY+TextH*0.5,
@@ -145,25 +145,25 @@ void emFileManSelInfoPanel::Paint(const emPainter & painter, emColor canvasColor
 	xy[2]=DetailsFrameX+DetailsFrameW;   xy[3]=DetailsFrameY;
 	xy[4]=DetailsX+DetailsW;             xy[5]=DetailsY;
 	xy[6]=DetailsX;                      xy[7]=DetailsY;
-	painter.PaintPolygon(xy,4,0x00000080,canvasColor);
+	painter.PaintPolygon(xy,4,0x00000030,canvasColor);
 
 	xy[0]=DetailsFrameX;                 xy[1]=DetailsFrameY;
 	xy[2]=DetailsX;                      xy[3]=DetailsY;
 	xy[4]=DetailsX;                      xy[5]=DetailsY+DetailsH;
 	xy[6]=DetailsFrameX;                 xy[7]=DetailsFrameY+DetailsFrameH;
-	painter.PaintPolygon(xy,4,0x00000040,canvasColor);
+	painter.PaintPolygon(xy,4,0x00000014,canvasColor);
 
 	xy[0]=DetailsX+DetailsW;             xy[1]=DetailsY;
 	xy[2]=DetailsFrameX+DetailsFrameW;   xy[3]=DetailsFrameY;
 	xy[4]=DetailsFrameX+DetailsFrameW;   xy[5]=DetailsFrameY+DetailsFrameH;
 	xy[6]=DetailsX+DetailsW;             xy[7]=DetailsY+DetailsH;
-	painter.PaintPolygon(xy,4,0xFFFFFF40,canvasColor);
+	painter.PaintPolygon(xy,4,0xFFFFFF14,canvasColor);
 
 	xy[0]=DetailsX;                      xy[1]=DetailsY+DetailsH;
 	xy[2]=DetailsX+DetailsW;             xy[3]=DetailsY+DetailsH;
 	xy[4]=DetailsFrameX+DetailsFrameW;   xy[5]=DetailsFrameY+DetailsFrameH;
 	xy[6]=DetailsFrameX;                 xy[7]=DetailsFrameY+DetailsFrameH;
-	painter.PaintPolygon(xy,4,0xFFFFFF80,canvasColor);
+	painter.PaintPolygon(xy,4,0xFFFFFF30,canvasColor);
 
 	x=DetailsX;
 	y=DetailsY;
@@ -179,18 +179,18 @@ void emFileManSelInfoPanel::Paint(const emPainter & painter, emColor canvasColor
 
 	if (GetViewedWidth()*s>10.0) {
 
+		bgColor1=emColor(136,0,0);
+		fgColor1=emColor(224,224,224);
+		bgColor2=fgColor1;
+		fgColor2=emColor(0,0,0);
+
 		painter.PaintTextBoxed(
 			x,y,s,s*0.1,
 			"Target Selection Details",
 			s*0.1,
-			fgColor,
+			bgColor1,
 			canvasColor
 		);
-
-		bgColor1=emColor(136,0,0);
-		fgColor1=emColor(255,255,255);
-		bgColor2=emColor(255,255,255);
-		fgColor2=emColor(0,0,0);
 
 		painter.PaintRoundRect(
 			x+s*0.15,
@@ -380,27 +380,49 @@ void emFileManSelInfoPanel::SetRectangles()
 	double h,useW,useH;
 
 	h=GetHeight();
-	useW=1.0;
-	useH=0.115;
-	if (useH>h) {
-		useW*=h/useH;
-		useH=h;
+	if (h < 0.3) {
+		useW=1.0;
+		useH=0.17;
+		if (useH>h) {
+			useW*=h/useH;
+			useH=h;
+		}
+		useW-=useH*0.05;
+		useW-=useH*0.05;
+
+		TextH=useH;
+		TextW=TextH/0.29;
+		TextX=(1.0-useW)*0.5;
+		TextY=(h-useH)*0.5;
+
+		DetailsFrameH=useH;
+		DetailsFrameW=DetailsFrameH/0.56;
+		DetailsFrameX=TextX+useW-DetailsFrameW;
+		DetailsFrameY=TextY;
 	}
-	useW-=useH*0.05;
-	useW-=useH*0.05;
+	else {
+		useW=1.0;
+		useH=0.76;
+		if (useH>h) {
+			useW*=h/useH;
+			useH=h;
+		}
+		useW-=useW*0.05;
+		useH-=useH*0.05;
 
-	TextX=(1.0-useW)*0.5;
-	TextY=(h-useH)*0.5;
-	TextW=useW-useH*2.05;
-	TextH=useH;
+		TextW=useW;
+		TextH=TextW*0.29;
+		TextX=(1.0-useW)*0.5;
+		TextY=(h-useH)*0.5;
 
-	DetailsFrameW=useH*2.0;
-	DetailsFrameH=useH;
-	DetailsFrameX=TextX+useW-DetailsFrameW;
-	DetailsFrameY=TextY;
+		DetailsFrameW=useW;
+		DetailsFrameH=DetailsFrameW*0.44;
+		DetailsFrameX=TextX;
+		DetailsFrameY=TextY+useH-DetailsFrameH;
+	}
 
-	DetailsW=DetailsFrameW*0.6;
-	DetailsH=DetailsFrameH*0.6;
+	DetailsW=DetailsFrameW*0.3;
+	DetailsH=DetailsW*0.4667;
 	DetailsX=DetailsFrameX+(DetailsFrameW-DetailsW)*0.5;
 	DetailsY=DetailsFrameY+(DetailsFrameH-DetailsH)*0.5;
 }

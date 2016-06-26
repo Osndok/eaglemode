@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.h
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -60,6 +60,9 @@ protected:
 	virtual bool Cycle();
 
 	virtual void Notice(NoticeFlags flags);
+
+	virtual void Input(emInputEvent & event, const emInputState & state,
+	                   double mx, double my);
 
 	virtual bool IsOpaque();
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2011,2015 Oliver Hamann.
+// Copyright (C) 2006-2011,2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,8 +21,13 @@
 #include <emWnds/emWndsScreen.h>
 #include <emWnds/emWndsWindowPort.h>
 #include <emWnds/emWndsScheduler.h>
+
 #ifndef IDC_HAND
 #	define IDC_HAND MAKEINTRESOURCE(32649)
+#endif
+
+#ifndef MONITORINFOF_PRIMARY
+#	define MONITORINFOF_PRIMARY 1
 #endif
 
 
@@ -40,30 +45,46 @@ void emWndsScreen::Install(emContext & context)
 }
 
 
-double emWndsScreen::GetWidth()
-{
-	return Width;
-}
-
-
-double emWndsScreen::GetHeight()
-{
-	return Height;
-}
-
-
-void emWndsScreen::GetVisibleRect(
+void emWndsScreen::GetDesktopRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
-	*pX=0.0;
-	*pY=0.0;
-	*pW=Width;
-	*pH=Height;
+	if (pX) *pX=DesktopRect.left;
+	if (pY) *pY=DesktopRect.top;
+	if (pW) *pW=DesktopRect.right-DesktopRect.left;
+	if (pH) *pH=DesktopRect.bottom-DesktopRect.top;
 }
 
 
-double emWndsScreen::GetDPI()
+int emWndsScreen::GetMonitorCount() const
+{
+	return MonitorRects.GetCount();
+}
+
+
+void emWndsScreen::GetMonitorRect(
+	int index, double * pX, double * pY, double * pW, double * pH
+) const
+{
+	const RECT * rect;
+
+	if (index<0 || index>=MonitorRects.GetCount()) {
+		if (pX) *pX=0.0;
+		if (pY) *pY=0.0;
+		if (pW) *pW=0.0;
+		if (pH) *pH=0.0;
+	}
+	else {
+		rect=&MonitorRects[index];
+		if (pX) *pX=rect->left;
+		if (pY) *pY=rect->top;
+		if (pW) *pW=rect->right-rect->left;
+		if (pH) *pH=rect->bottom-rect->top;
+	}
+}
+
+
+double emWndsScreen::GetDPI() const
 {
 	return DPI;
 }
@@ -137,15 +158,14 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 		wc.lpszClassName =WinClassName.Get();
 	} while (!RegisterClass(&wc));
 
+	memset(&DesktopRect,0,sizeof(DesktopRect));
+	DPI=1.0;
+	PixelTallness=1.0;
+	UpdateGeometry();
+	GeometryUpdateTime=emGetClockMS();
+
 	GetWindowRect(GetDesktopWindow(),&rect);
-	Width=rect.right-rect.left;
-	Height=rect.bottom-rect.top;
-
-	DPI=75.0; //???
-	PixelTallness=1.0; //???
-
-	BufWidth=Width;
-
+	BufWidth=rect.right-rect.left;
 	BufHeight=150;
 		// Optimum depends on CPU cache size, pixel size, window width
 		// and the type and complexity of painting. But there is really
@@ -221,6 +241,7 @@ emWndsScreen::~emWndsScreen()
 bool emWndsScreen::Cycle()
 {
 	POINT pnt;
+	emUInt64 clk;
 	int i,dx,dy;
 
 	WCThread->SignOfLife();
@@ -228,6 +249,12 @@ bool emWndsScreen::Cycle()
 		for (i=WinPorts.GetCount()-1; i>=0; i--) {
 			WinPorts[i]->RestoreCursor();
 		}
+	}
+
+	clk=emGetClockMS();
+	if (clk-GeometryUpdateTime>1500) {
+		UpdateGeometry();
+		GeometryUpdateTime=clk;
 	}
 
 	if (InputStateToBeFlushed) {
@@ -299,6 +326,87 @@ LRESULT CALLBACK emWndsScreen::WindowProc(
 	}
 
 	return res;
+}
+
+
+void emWndsScreen::UpdateGeometry()
+{
+	emArray<RECT> oldRects;
+	RECT oldRect;
+	const RECT * rp;
+	bool anyChange;
+	int i;
+
+	anyChange=false;
+
+	oldRect=DesktopRect;
+	DesktopRect.left   = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	DesktopRect.top    = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	DesktopRect.right  = DesktopRect.left + GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	DesktopRect.bottom = DesktopRect.top  + GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	if (memcmp(&DesktopRect,&oldRect,sizeof(RECT))!=0) {
+		anyChange=true;
+	}
+
+	oldRects=MonitorRects;
+	MonitorRects.Clear();
+	EnumDisplayMonitors(NULL,NULL,MonitorEnumProc,(LPARAM)this);
+	if (MonitorRects.IsEmpty()) {
+		MonitorRects.Add(DesktopRect);
+	}
+	if (MonitorRects.GetCount()!=oldRects.GetCount()) {
+		anyChange=true;
+	}
+	if (!anyChange) {
+		for (i=0; i<MonitorRects.GetCount(); i++) {
+			if (memcmp(&MonitorRects[i],&oldRects[i],sizeof(RECT))!=0) {
+				anyChange=true;
+				break;
+			}
+		}
+	}
+
+	DPI=75.0; //???
+	PixelTallness=1.0; //???
+
+	if (anyChange) {
+		SignalGeometrySignal();
+
+		rp=&DesktopRect;
+		emDLog(
+			"emWndsScreen::UpdateGeometry: Desktop: x=%ld y=%ld w=%ld h=%ld",
+			rp->left, rp->top, rp->right-rp->left, rp->bottom-rp->top
+		);
+		for (i=0; i<MonitorRects.GetCount(); i++) {
+			rp=&MonitorRects[i];
+			emDLog(
+				"emWndsScreen::UpdateGeometry: Monitor %d: x=%ld y=%ld w=%ld h=%ld",
+				i, rp->left, rp->top, rp->right-rp->left, rp->bottom-rp->top
+			);
+		}
+	}
+}
+
+
+BOOL CALLBACK emWndsScreen::MonitorEnumProc(
+	HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData
+)
+{
+	emWndsScreen * screen;
+	MONITORINFO info;
+
+	screen=(emWndsScreen*)dwData;
+	memset(&info,0,sizeof(info));
+	info.cbSize=sizeof(info);
+	if (GetMonitorInfo(hMonitor,&info)) {
+		if ((info.dwFlags&MONITORINFOF_PRIMARY)!=0) {
+			screen->MonitorRects.Insert(0,info.rcMonitor);
+		}
+		else {
+			screen->MonitorRects.Add(info.rcMonitor);
+		}
+	}
+	return TRUE;
 }
 
 

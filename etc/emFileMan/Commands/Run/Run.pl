@@ -14,6 +14,7 @@
 # Descr =
 # Descr =Hint: The current working directory is set to the parent
 # Descr =directory of the target file.
+# Icon = run.tga
 # Hotkey = Ctrl+R
 #[[END PROPERTIES]]
 

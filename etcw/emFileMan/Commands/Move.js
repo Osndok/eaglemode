@@ -1,7 +1,7 @@
 /*
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 5.0
+# Order = 7.0
 # Interpreter = wscript
 # Caption = Move
 # Descr =Move one or more files and/or directories into another
@@ -13,8 +13,7 @@
 # Descr =
 # Descr =  Target: The target directory, or a single target file
 # Descr =          to be overwritten by a single source file.
-# ButtonBgColor = #BB5
-# ButtonFgColor = #000
+# Icon = move_file.tga
 # Hotkey = Ctrl+M
 #[[END PROPERTIES]]
 */
@@ -68,7 +67,7 @@ for (var i=0; i<Src.length; i++) {
 }
 BatWriteLine(":L_END");
 if (IsDirectory(Tgt[0])) {
-	BatWriteLine("if exist " + QuoteArg(newTgt[0]) + " (");
+	BatWriteLine("if exist " + BatQuoteArg(newTgt[0]) + " (");
 	BatWriteSendSelectKS(newTgt);
 	BatWriteLine(") else (");
 	BatWriteSendUpdate();

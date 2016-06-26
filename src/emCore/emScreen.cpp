@@ -45,6 +45,31 @@ emScreen::~emScreen()
 }
 
 
+int emScreen::GetMonitorIndexOfRect(double x, double y, double w, double h) const
+{
+	double mx,my,mw,mh,aw,ah,abest;
+	int i,count,monitor;
+
+	if (w<=1.0) w=1.0;
+	if (h<=1.0) h=1.0;
+	abest=0.0;
+	monitor=0;
+	count=GetMonitorCount();
+	for (i=0; i<count; i++) {
+		GetMonitorRect(i,&mx,&my,&mw,&mh);
+		aw=emMin(x+w,mx+mw)-emMax(x,mx);
+		if (aw>0.0) {
+			ah=emMin(y+h,my+mh)-emMax(y,my);
+			if (ah>0.0 && abest+1E-12<aw*ah) {
+				abest=aw*ah;
+				monitor=i;
+			}
+		}
+	}
+	return monitor;
+}
+
+
 void emScreen::LeaveFullscreenModes(emWindow * exceptForWindow)
 {
 	emWindow * w;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModelClient.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,8 +34,7 @@ public:
 	virtual ~emTmpConvModelClient();
 
 	void SetModel(emTmpConvModel * model=NULL);
-	const emTmpConvModel * GetModel() const;
-	emTmpConvModel * GetModel();
+	emTmpConvModel * GetModel() const;
 
 	void SetConversionWanted(bool conversionWanted);
 	bool IsConversionWanted() const;
@@ -52,12 +51,7 @@ private: friend class emTmpConvModel;
 	emTmpConvModelClient * NextInList;
 };
 
-inline const emTmpConvModel * emTmpConvModelClient::GetModel() const
-{
-	return Model;
-}
-
-inline emTmpConvModel * emTmpConvModelClient::GetModel()
+inline emTmpConvModel * emTmpConvModelClient::GetModel() const
 {
 	return Model;
 }

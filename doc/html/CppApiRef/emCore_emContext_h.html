@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,21 +71,22 @@
         </SPAN><SPAN CLASS=t>void </SPAN>LinkCrossPtr(emCrossPtrPrivate &amp; crossPtr);
                 <SPAN CLASS=c>// This means <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;<A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>&gt; is possible.
 
-        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the root context.
 
-        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetParentContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetParentContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the parent context. Returns NULL if this is the root
                 // context.
 
-        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetFirstChildContext();
-        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetLastChildContext();
-        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetPrevContext();
-        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetNextContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetFirstChildContext() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetLastChildContext() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetPrevContext() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * GetNextContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the first or last child context, or the previous or next
                 // brother context, NULL if none.
 
-        </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * Lookup(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass, <SPAN CLASS=t>const char </SPAN>* name);
+        </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * Lookup(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass,
+                         <SPAN CLASS=t>const char </SPAN>* name) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Search for a common model within this context.
                 // Arguments:
                 //   modelClass - Final class of the model.
@@ -93,7 +94,7 @@
                 // Returns: The model, or NULL if not found.
 
         </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * LookupInherited(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass,
-                                  <SPAN CLASS=t>const char </SPAN>* name);
+                                  <SPAN CLASS=t>const char </SPAN>* name) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Like Lookup, but if the model is not found in this context,
                 // the parent context is searched, then the grad-parent, and so
                 // on.
@@ -102,7 +103,7 @@
                 <SPAN CLASS=c>// Just for debugging: Get a listing of all common models.
 
         </SPAN><SPAN CLASS=t>void </SPAN>GetModelInfo(<SPAN CLASS=t>int </SPAN>* pCommonCount, <SPAN CLASS=t>int </SPAN>* pPrivateCount=<SPAN CLASS=u>NULL</SPAN>,
-                          <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * * * pArrayOfCommon=<SPAN CLASS=u>NULL</SPAN>);
+                          <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * * * pArrayOfCommon=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Just for debugging: Get the number of common and private
                 // models, and create an array of pointers to all common models.
                 // The array must be deleted by the caller.
@@ -124,8 +125,8 @@
         <SPAN CLASS=t>void </SPAN>UnregisterModel(<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * model);
         <SPAN CLASS=t>static int </SPAN>CalcHashCode(<SPAN CLASS=t>const </SPAN>type_info &amp; modelClass,
                                 <SPAN CLASS=t>const char </SPAN>* name);
-        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchUnused();
-        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchUnused(<SPAN CLASS=t>int </SPAN>minHash);
+        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchUnused() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchUnused(<SPAN CLASS=t>int </SPAN>minHash) <SPAN CLASS=t>const</SPAN>;
         <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchGarbage();
         <A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> * SearchGarbage(<SPAN CLASS=t>int </SPAN>minHash);
         <SPAN CLASS=t>void </SPAN>CollectGarbage();
@@ -182,33 +183,33 @@
         </SPAN>CrossPtrList.LinkCrossPtr(crossPtr);
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetRootContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetRootContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>RootContext;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetParentContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetParentContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>ParentContext;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetFirstChildContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetFirstChildContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>FirstChildContext;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetLastChildContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetLastChildContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>LastChildContext;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetPrevContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetPrevContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>PrevContext;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetNextContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> * <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A>::GetNextContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>NextContext;
 <SPAN CLASS=b>}
 

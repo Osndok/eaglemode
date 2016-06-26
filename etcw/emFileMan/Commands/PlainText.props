@@ -1,11 +1,7 @@
 #[[BEGIN PROPERTIES]]
 # Type = Group
-# Order = 12.0
+# Order = 21.0
 # Directory = PlainText
 # Caption = Plain Text
 # Descr =Commands for plain text files
-# BgColor = #565
-# FgColor = #EED
-# ButtonBgColor = #DDD
-# ButtonFgColor = #222
 #[[END PROPERTIES]]

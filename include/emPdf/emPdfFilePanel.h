@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.h
 //
-// Copyright (C) 2011-2013 Oliver Hamann.
+// Copyright (C) 2011-2013,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,6 +53,8 @@ public:
 	emColor GetFGColor() const;
 	void SetFGColor(emColor fgColor);
 
+	virtual emString GetIconFileName();
+
 protected:
 
 	virtual bool Cycle();
@@ -87,6 +89,7 @@ private:
 	double CellX0,CellY0,CellW,CellH;
 	double PgX,PgY,PerPoint;
 	double ShadowSize;
+	emImage ShadowImage;
 	emArray<emPdfPagePanel*> PagePanels;
 };
 

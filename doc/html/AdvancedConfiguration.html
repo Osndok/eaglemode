@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Advanced Configuration</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010,2016 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -39,8 +39,8 @@ set by conversion from standard font files.
 First of all, note some important hints on the font hacking:
 <UL>
 <LI>Extending the built-in font is useful only if the system has UTF-8 locale.
-Otherwise Eagle Mode falls back to the 8-bit Latin-1 character set. This is
-always the case on Windows.</LI><P>
+Otherwise Eagle Mode falls back to the 8-bit Latin-1 character set. The latter
+is always the case on Windows.</LI><P>
 <LI>Only mono spaced fonts (aka fixed fonts) are suitable for
 conversion.</LI><P>
 <LI>font2em is a less-than-ideal solution and it lacks some options. Especially
@@ -224,9 +224,9 @@ The library is called <TT>emTmpConv</TT> and the function is
 <PRE><TT>Properties = {
 
   { Name = "OutFileEnding" Value = "insert your ending here" }
-    # Specifies the file name ending of the temporary created file, including
-    # the leading dot. This is important because the final file viewer is chosen
-    # by that. For example, if you want the temporary file to be shown by the
+    # Specifies the file name ending of the temporary file, including the
+    # leading dot. This is important because the final file viewer is chosen by
+    # that. For example, if you want the temporary file to be shown by the
     # PostScript viewer, say ".ps".
 
   { Name="Command" Value="insert your script here" }

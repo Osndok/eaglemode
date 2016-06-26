@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFilePanel.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,6 +46,12 @@ void emPsFilePanel::SetFileModel(
 		fileModel=NULL;
 	}
 	emFilePanel::SetFileModel(fileModel,updateFileModel);
+}
+
+
+emString emPsFilePanel::GetIconFileName()
+{
+	return "document.tga";
 }
 
 

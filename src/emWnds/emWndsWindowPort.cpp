@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,38 +63,81 @@
 
 void emWndsWindowPort::WindowFlagsChanged()
 {
+	emWindow::WindowFlags oldFlags;
 	HWND oldHWnd;
 	int i;
 
-	oldHWnd=HWnd;
-	HWnd=NULL;
+	oldFlags=WindowFlags;
+	WindowFlags=GetWindowFlags();
 
-	SetModalState(false);
+	if (
+		((oldFlags^WindowFlags) & (
+			emWindow::WF_MODAL |
+			emWindow::WF_UNDECORATED |
+			emWindow::WF_POPUP |
+			emWindow::WF_FULLSCREEN
+		)) != 0
+	) {
+		oldHWnd=HWnd;
+		HWnd=NULL;
 
-	PreConstruct();
+		SetModalState(false);
 
-	for (i=0; i<Screen.WinPorts.GetCount(); i++) {
-		if (
-			Screen.WinPorts[i]->Owner==this &&
-			Screen.WinPorts[i]->HWnd!=NULL
-		) {
-			// It is said that SetParent(...) must be used instead of
-			// SetWindowLong(...GWL_HWNDPARENT...). But with SetParent the
-			// window behaves like WS_CHILD always - even when playing
-			// with ShowWindow and SetWindowLong(GWL_STYLE/GWL_EXSTYLE).
-			// Another problem is: It does not work if the owner window
-			// has WS_EX_TOPMOST (even BringWindowToTop does not help here).
-#			if defined(_WIN64)
-				SetWindowLongPtr(Screen.WinPorts[i]->HWnd,GWLP_HWNDPARENT,(LONG_PTR)HWnd);
-#			else
-				SetWindowLong(Screen.WinPorts[i]->HWnd,GWL_HWNDPARENT,(LONG)HWnd);
-#			endif
+		PreConstruct();
+
+		for (i=0; i<Screen.WinPorts.GetCount(); i++) {
+			if (
+				Screen.WinPorts[i]->Owner==this &&
+				Screen.WinPorts[i]->HWnd!=NULL
+			) {
+				// It is said that SetParent(...) must be used instead of
+				// SetWindowLong(...GWL_HWNDPARENT...). But with SetParent the
+				// window behaves like WS_CHILD always - even when playing
+				// with ShowWindow and SetWindowLong(GWL_STYLE/GWL_EXSTYLE).
+				// Another problem is: It does not work if the owner window
+				// has WS_EX_TOPMOST (even BringWindowToTop does not help here).
+#				if defined(_WIN64)
+					SetWindowLongPtr(Screen.WinPorts[i]->HWnd,GWLP_HWNDPARENT,(LONG_PTR)HWnd);
+#				else
+					SetWindowLong(Screen.WinPorts[i]->HWnd,GWL_HWNDPARENT,(LONG)HWnd);
+#				endif
+			}
 		}
+
+		DestroyWindow(oldHWnd);
+		if (BigIcon) { DestroyIcon(BigIcon); BigIcon=NULL; }
+		if (SmallIcon) { DestroyIcon(SmallIcon); SmallIcon=NULL; }
+
+		if (
+			(oldFlags&emWindow::WF_FULLSCREEN)!=0 &&
+			(WindowFlags&emWindow::WF_FULLSCREEN)==0 &&
+			RestoreW>0 && RestoreH>0
+		) {
+			SetPosSize(
+				RestoreX,RestoreY,PSAS_VIEW,
+				RestoreW,RestoreH,PSAS_VIEW
+			);
+		}
+
+		return;
 	}
 
-	DestroyWindow(oldHWnd);
-	if (BigIcon) { DestroyIcon(BigIcon); BigIcon=NULL; }
-	if (SmallIcon) { DestroyIcon(SmallIcon); SmallIcon=NULL; }
+	if (PostConstructed) {
+		if (
+			((oldFlags^WindowFlags) & emWindow::WF_MAXIMIZED) != 0 &&
+			(WindowFlags&(
+				emWindow::WF_UNDECORATED|
+				emWindow::WF_POPUP|
+				emWindow::WF_FULLSCREEN
+			))==0
+		) {
+			ShowWindowAsync(
+				HWnd,
+				(WindowFlags&emWindow::WF_MAXIMIZED)!=0 ?
+				SW_MAXIMIZE : SW_RESTORE
+			);
+		}
+	}
 }
 
 
@@ -106,7 +149,7 @@ void emWndsWindowPort::SetPosSize(
 	RECT rw,rc;
 	POINT pnt;
 
-	if ((GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0) {
+	if ((WindowFlags&(emWindow::WF_MAXIMIZED|emWindow::WF_FULLSCREEN))!=0) {
 		posSpec=PSAS_IGNORE;
 		sizeSpec=PSAS_IGNORE;
 	}
@@ -146,6 +189,12 @@ void emWndsWindowPort::SetPosSize(
 		SizeForced=true;
 		SizePending=true;
 	}
+	if ((WindowFlags&(emWindow::WF_MAXIMIZED|emWindow::WF_FULLSCREEN))==0) {
+		RestoreX=x;
+		RestoreY=y;
+		RestoreW=w;
+		RestoreH=h;
+	}
 	SetViewGeometry(x,y,w,h,Screen.PixelTallness);
 	WakeUp();
 }
@@ -153,7 +202,7 @@ void emWndsWindowPort::SetPosSize(
 
 void emWndsWindowPort::GetBorderSizes(
 	double * pL, double * pT, double * pR, double * pB
-)
+) const
 {
 	RECT rw,rc;
 	POINT pnt;
@@ -253,12 +302,17 @@ emWndsWindowPort::emWndsWindowPort(emWindow & window)
 		break;
 	}
 	HWnd=NULL;
+	WindowFlags=GetWindowFlags();
 	MinPaneW=1;
 	MinPaneH=1;
 	PaneX=0;
 	PaneY=0;
 	PaneW=1;
 	PaneH=1;
+	RestoreX=-1;
+	RestoreY=-1;
+	RestoreW=-1;
+	RestoreH=-1;
 	ClipX1=PaneX;
 	ClipY1=PaneY;
 	ClipX2=PaneX+PaneW;
@@ -318,12 +372,18 @@ void emWndsWindowPort::PreConstruct()
 {
 	double vrx,vry,vrw,vrh,d;
 	DWORD exStyleFlags,styleFlags;
-	int x,y,w,h;
+	int x,y,w,h,monitor;
 	bool haveBorder;
 
-	if ((GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0) {
-		Screen.LeaveFullscreenModes(&GetWindow());
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
+	monitor=0;
+	if (Owner) monitor=Owner->GetWindow().GetMonitorIndex();
+	Screen.GetMonitorRect(monitor,&vrx,&vry,&vrw,&vrh);
+
+	if ((WindowFlags&emWindow::WF_FULLSCREEN)!=0) {
+		if (RestoreW>0 && RestoreH>0) {
+			monitor=Screen.GetMonitorIndexOfRect(RestoreX,RestoreY,RestoreW,RestoreH);
+			Screen.GetMonitorRect(monitor,&vrx,&vry,&vrw,&vrh);
+		}
 		MinPaneW=1;
 		MinPaneH=1;
 		PaneX=(int)(vrx+0.5);
@@ -332,8 +392,7 @@ void emWndsWindowPort::PreConstruct()
 		PaneH=(int)(vrh+0.5);
 		haveBorder=false;
 	}
-	else if ((GetWindowFlags()&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
+	else if ((WindowFlags&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
 		MinPaneW=1;
 		MinPaneH=1;
 		PaneX=(int)(vrx+vrw*emGetDblRandom(0.22,0.28)+0.5);
@@ -343,11 +402,9 @@ void emWndsWindowPort::PreConstruct()
 		haveBorder=false;
 	}
 	else {
-		if (!Owner) Screen.LeaveFullscreenModes(&GetWindow());
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
 		MinPaneW=32;
 		MinPaneH=32;
-		if (!Owner && (GetWindowFlags()&emWindow::WF_MODAL)==0) {
+		if (!Owner && (WindowFlags&emWindow::WF_MODAL)==0) {
 			d=emMin(vrw,vrh)*0.08;
 			PaneX=(int)(vrx+d*emGetDblRandom(0.5,1.5)+0.5);
 			PaneY=(int)(vry+d*emGetDblRandom(0.8,1.2)+0.5);
@@ -457,9 +514,24 @@ void emWndsWindowPort::PreConstruct()
 
 void emWndsWindowPort::PostConstruct()
 {
-	ShowWindow(HWnd,SW_SHOWNORMAL);
 
-	if ((GetWindowFlags()&emWindow::WF_MODAL)!=0) {
+	if (
+		(WindowFlags&emWindow::WF_MAXIMIZED)!=0 &&
+		(WindowFlags&(
+			emWindow::WF_UNDECORATED|
+			emWindow::WF_POPUP|
+			emWindow::WF_FULLSCREEN
+		))==0
+	) {
+		ShowWindow(HWnd,SW_SHOWMAXIMIZED);
+	}
+	else {
+		ShowWindow(HWnd,SW_SHOWNORMAL);
+	}
+
+	Mapped=true;
+
+	if ((WindowFlags&emWindow::WF_MODAL)!=0) {
 		SetModalState(true);
 	}
 }
@@ -733,13 +805,8 @@ LRESULT emWndsWindowPort::WindowProc(
 		}
 		else {
 			// Here we have a mouse wheel event while the mouse is in
-			// another window. And we transfer the focus and the mouse
-			// wheel event to that window, even if it is a foreign
-			// application. This is highly incompatible to the normal
-			// mouse wheel behavior in Windows.
+			// another window. Simply forward the message.
 			if (IsWindowEnabled(hwnd)) {
-				if (wp) SetActiveWindow(hwnd);
-				else SetForegroundWindow(hwnd);
 				PostMessage(hwnd,uMsg,wParam,lParam);
 			}
 		}
@@ -820,19 +887,37 @@ LRESULT emWndsWindowPort::WindowProc(
 			Focused=true;
 			SetViewFocused(true);
 		}
+		for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
+			wp=Screen.WinPorts[i];
+			if (
+				(wp->GetWindowFlags()&emWindow::WF_POPUP)!=0 &&
+				wp!=this && !wp->IsAncestorOf(this)
+			) {
+				wp->SignalWindowClosing();
+			}
+		}
 		return 0;
 	case WM_KILLFOCUS:
 		if (GetCapture()==HWnd) ReleaseCapture();
 		if (Focused) {
 			Focused=false;
 			SetViewFocused(false);
-			if ((GetWindowFlags()&emWindow::WF_POPUP)!=0) SignalWindowClosing();
 		}
 		LastButtonPress=EM_KEY_NONE;
 		RepeatKey=EM_KEY_NONE;
 		MouseWheelRemainder=0;
 		MouseHWheelRemainder=0;
 		return 0;
+	case WM_ACTIVATEAPP:
+		if (wParam==false) {
+			for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
+				wp=Screen.WinPorts[i];
+				if ((wp->GetWindowFlags()&emWindow::WF_POPUP)!=0) {
+					wp->SignalWindowClosing();
+				}
+			}
+		}
+		return DefWindowProc(HWnd,uMsg,wParam,lParam);
 	case WM_SETCURSOR:
 		if ((HWND)wParam!=HWnd || LOWORD(lParam)!=1) {
 			CursorShown=false;
@@ -886,7 +971,39 @@ LRESULT emWndsWindowPort::WindowProc(
 			}
 			Screen.InputStateClock++;
 		}
+		DefWindowProc(HWnd,uMsg,wParam,lParam); // Calls WM_SIZE if needed.
+		if ((WindowFlags&(emWindow::WF_MAXIMIZED|emWindow::WF_FULLSCREEN))==0) {
+			RestoreX=PaneX;
+			RestoreY=PaneY;
+			RestoreW=PaneW;
+			RestoreH=PaneH;
+		}
 		return 0;
+	case WM_SIZE:
+		if (PostConstructed) {
+			if (wParam==SIZE_MINIMIZED) {
+				Mapped=false;
+			}
+			else {
+				if (!Mapped) {
+					Mapped=true;
+					WakeUp();
+				}
+				if (wParam==SIZE_MAXIMIZED) {
+					if ((WindowFlags&emWindow::WF_MAXIMIZED)==0) {
+						WindowFlags|=emWindow::WF_MAXIMIZED;
+						GetWindow().SetWindowFlags(WindowFlags);
+					}
+				}
+				else if (wParam==SIZE_RESTORED) {
+					if ((WindowFlags&emWindow::WF_MAXIMIZED)!=0) {
+						WindowFlags&=~emWindow::WF_MAXIMIZED;
+						GetWindow().SetWindowFlags(WindowFlags);
+					}
+				}
+			}
+		}
+		return DefWindowProc(HWnd,uMsg,wParam,lParam);
 	case WM_GETMINMAXINFO:
 		DefWindowProc(HWnd,uMsg,wParam,lParam);
 		GetClientRect(HWnd,&rc);
@@ -897,19 +1014,6 @@ LRESULT emWndsWindowPort::WindowProc(
 		if (pPnt->x<w) pPnt->x=w;
 		if (pPnt->y<h) pPnt->y=h;
 		return 0;
-	case WM_SHOWWINDOW:
-		if (wParam) {
-			if (!Mapped) {
-				Mapped=true;
-				WakeUp();
-			}
-		}
-		else {
-			if (Mapped) {
-				Mapped=false;
-			}
-		}
-		return DefWindowProc(HWnd,uMsg,wParam,lParam);
 	case WM_CLOSE:
 		SignalWindowClosing();
 		return 0;

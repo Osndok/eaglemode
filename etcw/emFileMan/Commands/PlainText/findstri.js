@@ -13,7 +13,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: File or directory to be searched.
-# ButtonBgColor = #BBB
+# Icon = grepi.tga
 #[[END PROPERTIES]]
 */
 

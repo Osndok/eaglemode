@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>.h
 //
-// Copyright (C) 2005-2008,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -268,9 +268,13 @@
                 // the progress in percent. It's just an information for the
                 // user.
 
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryFetchDate() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+                <SPAN CLASS=c>// Get and remember file information for IsOutOfDate(). The default
+                // implementation is for the default implementation of IsOutOfDate().
+
         </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsOutOfDate();
                 <SPAN CLASS=c>// Check whether the loaded file should be reloaded. The default
-                // implementation checks by file modification time.
+                // implementation checks by file times, size and inode.
 
 </SPAN><SPAN CLASS=t>private</SPAN>: <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>;
 
@@ -300,7 +304,10 @@
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ErrorText;
         <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * ClientList;
         emUInt64 MemoryLimit;
-        time_t FileTime;
+        time_t LastMTime;
+        time_t LastCTime;
+        emUInt64 LastFSize;
+        emUInt64 LastINode;
         PSAgentClass * PSAgent;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emSigModel_h.html#emSigModel">emSigModel</A>&gt; UpdateSignalModel; <SPAN CLASS=c>// NULL if ignored
 </SPAN><SPAN CLASS=b>}</SPAN>;
@@ -373,8 +380,7 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>();
                 <SPAN CLASS=c>// Destructor.
 
-        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetModel() <SPAN CLASS=t>const</SPAN>;
-        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetModel();
+        </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * GetModel() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetModel(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * model=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// The file model this client is connected to. NULL means to
                 // have disconnected state.
@@ -400,13 +406,8 @@
         <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * NextInList;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetModel() <SPAN CLASS=t>const
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetModel() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Model;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetModel()
-<SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Model;
 <SPAN CLASS=b>}
 

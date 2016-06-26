@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockPanel.cpp
 //
-// Copyright (C) 2006-2009,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,6 +70,28 @@ emString emClockPanel::GetTitle()
 	else {
 		return "Clock";
 	}
+}
+
+
+emString emClockPanel::GetIconFileName()
+{
+	return "clock.tga";
+}
+
+
+void emClockPanel::GetSubstanceRect(
+	double * pX, double * pY, double * pW, double * pH, double * pR
+)
+{
+	if (!IsVFSGood()) {
+		emFilePanel::GetSubstanceRect(pX,pY,pW,pH,pR);
+		return;
+	}
+	*pX=CenterX-Radius;
+	*pY=CenterY-Radius;
+	*pW=Radius*2;
+	*pH=Radius*2;
+	*pR=Radius;
 }
 
 

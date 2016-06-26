@@ -32,7 +32,7 @@ sub Build
 		my @libFtFlags=();
 		my $str=readpipe('pkg-config --cflags --libs freetype2');
 		if ($str) {
-			foreach my $f (split(/ /,$str)) {
+			foreach my $f (split(/\s+/,$str)) {
 				if (substr($f,0,2) eq '-I') {
 					push(@libFtFlags,'--inc-search-dir',substr($f,2));
 				}

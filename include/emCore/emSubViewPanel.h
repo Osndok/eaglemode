@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSubViewPanel.h
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,7 +47,7 @@ public:
 	virtual ~emSubViewPanel();
 		// Destructor. Deletes the sub-view and its panels.
 
-	emView & GetSubView();
+	emView & GetSubView() const;
 		// Get the sub-view.
 
 	virtual emString GetTitle();
@@ -89,7 +89,7 @@ private:
 		void SetViewFocused(bool focused);
 		void InputToView(emInputEvent & event,
 		                 const emInputState & state);
-		emCursor GetViewCursor();
+		emCursor GetViewCursor() const;
 		void PaintView(const emPainter & painter, emColor canvasColor);
 	protected:
 		virtual void RequestFocus();
@@ -110,7 +110,7 @@ private:
 	SubViewPortClass * SubViewPort;
 };
 
-inline emView & emSubViewPanel::GetSubView()
+inline emView & emSubViewPanel::GetSubView() const
 {
 	return *SubView;
 }
@@ -143,7 +143,7 @@ inline void emSubViewPanel::SubViewPortClass::InputToView(
 	emViewPort::InputToView(event,state);
 }
 
-inline emCursor emSubViewPanel::SubViewPortClass::GetViewCursor()
+inline emCursor emSubViewPanel::SubViewPortClass::GetViewCursor() const
 {
 	return emViewPort::GetViewCursor();
 }

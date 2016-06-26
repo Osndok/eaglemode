@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArray.h
 //
-// Copyright (C) 2005-2009,2014,2015 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -207,7 +207,8 @@ public:
 	OBJ & GetWritable(int index);
 		// Like Get() and Get(index), but for modifying the elements.
 		// There is no non-const version of the operator [], because
-		// compilers would make use of it too often. The rules for the
+		// that would probably be used accidentally quite often just for
+		// reading, producing unnecessary deep copies. The rules for the
 		// validity of the pointer or reference are the same as with
 		// Get(), but modification is allowed only until doing something
 		// which could make a shallow copy of this array.

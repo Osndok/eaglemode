@@ -2,7 +2,7 @@
 //------------------------------------------------------------------------------
 // eaglemode.wsf
 //
-// Copyright (C) 2006-2010 Oliver Hamann.
+// Copyright (C) 2006-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,7 +25,7 @@ var WshShell=WScript.CreateObject("WScript.Shell");
 var ProcEnv=WshShell.Environment("PROCESS");
 
 // Function for creating a command line from arguments.
-function CommandFromArgs(argsArray)
+function WshShellCmdFromArgs(argsArray)
 {
 	var i,j,k,c,cmd,arg;
 
@@ -36,7 +36,7 @@ function CommandFromArgs(argsArray)
 		for (j=arg.length-1; j>=0; j--) {
 			c=arg.charAt(j);
 			if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
-			    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-' && c!='+') break;
+			    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-') break;
 		}
 		if (j<0 && arg.length>0) {
 			cmd+=arg;
@@ -56,6 +56,12 @@ function CommandFromArgs(argsArray)
 			}
 			while (k>0) { cmd+='\\'; k--; }
 			cmd+='"';
+		}
+	}
+	for (i=cmd.length-1; i>=0; i--) {
+		if (cmd.charAt(i)=='%') {
+			if (ProcEnv("PERCENT_SIGN")!="%") ProcEnv("PERCENT_SIGN")="%";
+			cmd=cmd.substr(0,i)+'%PERCENT_SIGN'+cmd.substr(i);
 		}
 	}
 	return (cmd);
@@ -99,7 +105,7 @@ Args[0]=emDir+"\\bin\\eaglemode.exe";
 for (i=0; i<WScript.Arguments.length; i++) Args[i+1]=WScript.Arguments(i);
 
 // Convert the array of arguments to a command string.
-Cmd=CommandFromArgs(Args);
+Cmd=WshShellCmdFromArgs(Args);
 
 // Run the command (without waiting for termination).
 WshShell.Run(Cmd);

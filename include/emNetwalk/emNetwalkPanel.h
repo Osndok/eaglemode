@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.h
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,7 @@ public:
 	virtual ~emNetwalkPanel();
 
 	virtual emString GetTitle();
+	virtual emString GetIconFileName();
 
 	virtual void GetEssenceRect(double * pX, double * pY,
 	                            double * pW, double * pH);

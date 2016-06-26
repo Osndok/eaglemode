@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,6 +76,19 @@ void emAvFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 		AddWakeUpSignal(fm->GetPlayStateSignal());
 		AddWakeUpSignal(fm->GetImageSignal());
 	}
+}
+
+
+emString emAvFilePanel::GetIconFileName()
+{
+	emAvFileModel * fm;
+
+	if (GetVirFileState()==VFS_LOADED) {
+		fm=(emAvFileModel*)GetFileModel();
+		if (fm->IsVideo()) return "video.tga";
+		else return "audio.tga";
+	}
+	return emFilePanel::GetIconFileName();
 }
 
 
@@ -657,7 +670,9 @@ void emAvFilePanel::UpdateScreensaverDisabling()
 	emScreen * screen;
 	emAvFileModel * fm;
 	emAvFileModel::PlayStateType playState;
-	double a,sx,sy,sw,sh;
+	double x1,y1,x2,y2,mx,my,mw,mh;
+	bool onAnyMonitorBy60Percent;
+	int i,n;
 
 	screen=GetScreen();
 	if (!screen) return;
@@ -669,9 +684,22 @@ void emAvFilePanel::UpdateScreensaverDisabling()
 		if (playState==emAvFileModel::PS_STOPPED) break;
 		if (playState==emAvFileModel::PS_PAUSED) break;
 		if (!fm->IsVideo()) break;
-		a=(GetClipX2()-GetClipX1())*(GetClipY2()-GetClipY1());
-		screen->GetVisibleRect(&sx,&sy,&sw,&sh);
-		if (a<0.6*sw*sh) break;
+
+		onAnyMonitorBy60Percent=false;
+		n=screen->GetMonitorCount();
+		for (i=0; i<n; i++) {
+			screen->GetMonitorRect(i,&mx,&my,&mw,&mh);
+			x1=emMax(GetClipX1(),mx);
+			y1=emMax(GetClipY1(),my);
+			x2=emMin(GetClipX2(),mx+mw);
+			y2=emMin(GetClipY2(),my+mh);
+			if (x1<x2 && y1<y2 && (x2-x1)*(y2-y1)>=0.6*mw*mh) {
+				onAnyMonitorBy60Percent=true;
+				break;
+			}
+		}
+		if (!onAnyMonitorBy60Percent) break;
+
 		if (!ScreensaverDisabled) {
 			ScreensaverDisabled=true;
 			screen->DisableScreensaver();

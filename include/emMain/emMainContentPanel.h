@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainContentPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,6 +35,7 @@ public:
 	virtual ~emMainContentPanel();
 
 	virtual emString GetTitle();
+	virtual emString GetIconFileName();
 
 	virtual void Layout(double layoutX, double layoutY,
 	                    double layoutWidth, double layoutHeight,
@@ -49,7 +50,7 @@ private:
 
 	void UpdateCoordinates();
 	void UpdateChildLayout();
-	void PaintEagle(const emPainter & painter);
+	static void PaintEagle(const emPainter & painter);
 
 	emImage SkyImage;
 	double EagleShiftX,EagleShiftY,EagleScaleX,EagleScaleY;

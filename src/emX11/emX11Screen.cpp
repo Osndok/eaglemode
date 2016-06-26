@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,49 +42,46 @@ void emX11Screen::Install(emContext & context)
 }
 
 
-double emX11Screen::GetWidth()
-{
-	return Width;
-}
-
-
-double emX11Screen::GetHeight()
-{
-	return Height;
-}
-
-
-void emX11Screen::GetVisibleRect(
+void emX11Screen::GetDesktopRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
-	XF86VidModeModeLine ml;
-	int x,y,dc;
-	bool b;
-
-	if (HaveXF86VidMode) {
-		memset(&ml,0,sizeof(ml));
-		x=y=dc=0;
-		XMutex.Lock();
-		b=XF86VidModeGetModeLine(Disp,Scrn,&dc,&ml) &&
-		  XF86VidModeGetViewPort(Disp,Scrn,&x,&y);
-		XMutex.Unlock();
-		if (b) {
-			*pX=x;
-			*pY=y;
-			*pW=ml.hdisplay;
-			*pH=ml.vdisplay;
-			return;
-		}
-	}
-	*pX=0.0;
-	*pY=0.0;
-	*pW=Width;
-	*pH=Height;
+	if (pX) *pX=DesktopRect.x;
+	if (pY) *pY=DesktopRect.y;
+	if (pW) *pW=DesktopRect.w;
+	if (pH) *pH=DesktopRect.h;
 }
 
 
-double emX11Screen::GetDPI()
+int emX11Screen::GetMonitorCount() const
+{
+	return MonitorRects.GetCount();
+}
+
+
+void emX11Screen::GetMonitorRect(
+	int index, double * pX, double * pY, double * pW, double * pH
+) const
+{
+	const Rect * rect;
+
+	if (index<0 || index>=MonitorRects.GetCount()) {
+		if (pX) *pX=0.0;
+		if (pY) *pY=0.0;
+		if (pW) *pW=0.0;
+		if (pH) *pH=0.0;
+	}
+	else {
+		rect=&MonitorRects[index];
+		if (pX) *pX=rect->x;
+		if (pY) *pY=rect->y;
+		if (pW) *pW=rect->w;
+		if (pH) *pH=rect->h;
+	}
+}
+
+
+double emX11Screen::GetDPI() const
 {
 	return DPI;
 }
@@ -137,6 +134,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	XErrorHandler originalHandler;
 	XF86VidModeModeLine ml;
 	Status status;
+	void * data;
 	Bool xb;
 	int eventBase,errorBase;
 
@@ -191,12 +189,6 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 
 	Scrn=DefaultScreen(Disp);
 
-	Width=DisplayWidth(Disp,Scrn);
-	Height=DisplayHeight(Disp,Scrn);
-
-	DPI=Width*25.4/DisplayWidthMM(Disp,Scrn);
-	PixelTallness=1.0; //??? DPI/(Height*25.4/DisplayHeightMM(Disp,Scrn));
-
 	RootWin=RootWindow(Disp,Scrn);
 
 	Visu=DefaultVisual(Disp,Scrn);
@@ -233,6 +225,10 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	WM_PROTOCOLS=XInternAtom(Disp,"WM_PROTOCOLS",False);
 	WM_DELETE_WINDOW=XInternAtom(Disp,"WM_DELETE_WINDOW",False);
 	_NET_WM_ICON=XInternAtom(Disp,"_NET_WM_ICON",False);
+	_NET_WM_STATE=XInternAtom(Disp,"_NET_WM_STATE",False);
+	_NET_WM_STATE_MAXIMIZED_HORZ=XInternAtom(Disp,"_NET_WM_STATE_MAXIMIZED_HORZ",False);
+	_NET_WM_STATE_MAXIMIZED_VERT=XInternAtom(Disp,"_NET_WM_STATE_MAXIMIZED_VERT",False);
+	_NET_WM_STATE_FULLSCREEN=XInternAtom(Disp,"_NET_WM_STATE_FULLSCREEN",False);
 	XMutex.Unlock();
 
 	try {
@@ -271,10 +267,47 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	}
 	if (!HaveXF86VidMode) emWarning("emX11Screen: no XF86VidMode");
 
-	BufWidth=Width;
+	try {
+		emX11_TryLoadLibXinerama();
+	}
+	catch (emException & exception) {
+		emWarning("emX11Screen: %s",exception.GetText());
+	}
+	HaveXinerama=false;
+	if (emX11_IsLibXineramaLoaded()) {
+		XMutex.Lock();
+		XSync(Disp,False);
+		ErrorHandlerMutex.Lock();
+		ErrorHandlerCalled=false;
+		originalHandler=XSetErrorHandler(ErrorHandler);
+		xb=XineramaQueryVersion(Disp,&major,&minor);
+		if (xb && !ErrorHandlerCalled && (major>1 || (major==1 && minor>=1))) {
+			xb=XineramaQueryExtension(Disp,&eventBase,&errorBase);
+			if (xb && !ErrorHandlerCalled) {
+				data=XineramaQueryScreens(Disp,&i);
+				if (!ErrorHandlerCalled) {
+					HaveXinerama=true;
+				}
+				if (data) XFree(data);
+			}
+		}
+		XSync(Disp,False);
+		XSetErrorHandler(originalHandler);
+		ErrorHandlerMutex.Unlock();
+		XMutex.Unlock();
+	}
+	if (!HaveXinerama) emWarning("emX11Screen: no Xinerama");
+
+	memset(&DesktopRect,0,sizeof(DesktopRect));
+	MonitorRectPannable=false;
+	DPI=1.0;
+	PixelTallness=1.0;
+	UpdateGeometry();
+	GeometryUpdateTime=emGetClockMS();
 
 	// --- Buffer Configuration ---
 
+	BufWidth=DisplayWidth(Disp,Scrn);
 	BufHeight=150;
 		// Optimum depends on CPU cache size, pixel size, window width
 		// and the type and complexity of painting. But there is really
@@ -550,8 +583,9 @@ bool emX11Screen::Cycle()
 {
 	XEvent event;
 	Window win;
+	emUInt64 clk;
 	int dx,dy,i;
-	bool gotAnyWinPortEvent;
+	bool gotAnyEvent,gotAnyWinPortEvent;
 
 	WCThread->SignOfLife();
 	if (WCThread->CursorToRestore()) {
@@ -560,11 +594,13 @@ bool emX11Screen::Cycle()
 		}
 	}
 
+	gotAnyEvent=false;
 	gotAnyWinPortEvent=false;
 
 	XMutex.Lock();
 	while (XPending(Disp)) {
 		XNextEvent(Disp,&event);
+		gotAnyEvent=true;
 		if (!XFilterEvent(&event,None)) {
 			XMutex.Unlock();
 			UpdateLastKnownTime(event);
@@ -592,14 +628,21 @@ bool emX11Screen::Cycle()
 	}
 	XMutex.Unlock();
 
-	if (gotAnyWinPortEvent) {
-		UpdateKeymapAndInputState();
-		for (i=0; i<WinPorts.GetCount();) {
-			if (WinPorts[i]->FlushInputState()) {
-				i=0; // Because the array may have been modified.
-			}
-			else {
-				i++;
+	if (gotAnyEvent) {
+		clk=emGetClockMS();
+		if (clk-GeometryUpdateTime > (MonitorRectPannable ? 650 : 2500)) {
+			UpdateGeometry();
+			GeometryUpdateTime=clk;
+		}
+		if (gotAnyWinPortEvent) {
+			UpdateKeymapAndInputState();
+			for (i=0; i<WinPorts.GetCount();) {
+				if (WinPorts[i]->FlushInputState()) {
+					i=0; // Because the array may have been modified.
+				}
+				else {
+					i++;
+				}
 			}
 		}
 	}
@@ -632,6 +675,174 @@ bool emX11Screen::Cycle()
 	}
 
 	return true;
+}
+
+
+void emX11Screen::UpdateGeometry()
+{
+	XineramaScreenInfo * infos;
+	XF86VidModeModeLine ml;
+	Window win;
+	emArray<Rect> oldRects;
+	Rect oldRect;
+	const Rect * rp;
+	Rect * wrp;
+	const char * api;
+	unsigned int width,height,border,depth;
+	int i,x,y,dc,count,d;
+	bool anyChange,b;
+
+	anyChange=false;
+
+	oldRect=DesktopRect;
+	XMutex.Lock();
+	b=XGetGeometry(Disp,RootWin,&win,&x,&y,&width,&height,&border,&depth);
+	XMutex.Unlock();
+	if (!b) emFatalError("emX11Screen: failed to get geometry of root window");
+	DesktopRect.x=0;
+	DesktopRect.y=0;
+	DesktopRect.w=width;
+	DesktopRect.h=height;
+	if (memcmp(&DesktopRect,&oldRect,sizeof(Rect))!=0) {
+		anyChange=true;
+	}
+
+	// Problems with Xinerama and XF86VidMode:
+	// - I saw configurations with one or more monitors, where each monitor
+	//   has a virtual rectangle (virtual desktop or sub-rectangle of it)
+	//   which is larger than the monitor and on which the monitor can be
+	//   panned. There, Xinerama reports that virtual rectangle as the
+	//   monitor instead of the real monitor size and pan position.
+	// - I also saw a configuration with one monitor pannable on a virtual
+	//   desktop where Xinerama reports the correct monitor size but not the
+	//   position (always 0,0). XF86VidMode reports the correct position
+	//   here (but the monitor was not rotated or mirrored).
+	// - I even saw a configuration with two monitors, both not at (0,0),
+	//   where XF86VidMode reported wrong position (0,0).
+	// - Summary: XF86VidMode does not know about rotating, mirroring and
+	//   multiple monitors. Xinerama does not know about correct pan
+	//   positions and (sometimes) real monitor sizes.
+	// ??? Asking Xrandr would probably be the solution of the problems.
+	oldRects=MonitorRects;
+	api="none";
+	MonitorRects.Clear();
+	if (HaveXinerama) {
+		count=0;
+		XMutex.Lock();
+		infos=XineramaQueryScreens(Disp,&count);
+		XMutex.Unlock();
+		if (infos) {
+			if (count>0) {
+				api="Xinerama";
+				MonitorRects.SetCount(count);
+				wrp=&MonitorRects.GetWritable(0);
+				for (i=0; i<count; i++) {
+					wrp[i].x=infos[i].x_org;
+					wrp[i].y=infos[i].y_org;
+					wrp[i].w=infos[i].width;
+					wrp[i].h=infos[i].height;
+				}
+				MonitorRectPannable=false;
+			}
+			XFree(infos);
+		}
+	}
+	if (
+		HaveXF86VidMode && (
+			MonitorRects.IsEmpty() || (
+				MonitorRects.GetCount()==1 && (
+					MonitorRects[0].w < DesktopRect.w ||
+					MonitorRects[0].h < DesktopRect.h
+				)
+			)
+		)
+	) {
+		memset(&ml,0,sizeof(ml));
+		x=y=dc=0;
+		XMutex.Lock();
+		b=XF86VidModeGetModeLine(Disp,Scrn,&dc,&ml) &&
+		  XF86VidModeGetViewPort(Disp,Scrn,&x,&y);
+		XMutex.Unlock();
+		if (b) {
+			if (MonitorRects.IsEmpty()) {
+				api="XF86VidMode";
+				MonitorRects.SetCount(1);
+				wrp=&MonitorRects.GetWritable(0);
+				wrp[0].x=x;
+				wrp[0].y=y;
+				wrp[0].w=ml.hdisplay;
+				wrp[0].h=ml.vdisplay;
+				MonitorRectPannable=(
+					MonitorRects[0].w < DesktopRect.w ||
+					MonitorRects[0].h < DesktopRect.h
+				);
+			}
+			else if (
+				MonitorRects.GetCount()==1 &&
+				MonitorRects[0].x==0 &&
+				MonitorRects[0].y==0 &&
+				MonitorRects[0].w==ml.hdisplay &&
+				MonitorRects[0].h==ml.vdisplay
+			) {
+				api="XF86VidMode";
+				wrp=&MonitorRects.GetWritable(0);
+				wrp[0].x=x;
+				wrp[0].y=y;
+				MonitorRectPannable=(
+					MonitorRects[0].w < DesktopRect.w ||
+					MonitorRects[0].h < DesktopRect.h
+				);
+			}
+		}
+	}
+	if (MonitorRects.IsEmpty()) {
+		api="Xlib";
+		MonitorRects.Add(DesktopRect);
+		MonitorRectPannable=false;
+	}
+	if (MonitorRects.GetCount()!=oldRects.GetCount()) {
+		anyChange=true;
+	}
+	if (!anyChange) {
+		for (i=0; i<MonitorRects.GetCount(); i++) {
+			if (memcmp(&MonitorRects[i],&oldRects[i],sizeof(Rect))!=0) {
+				anyChange=true;
+				break;
+			}
+		}
+	}
+
+	d=DisplayWidth(Disp,Scrn)*25.4/DisplayWidthMM(Disp,Scrn);
+	if (fabs(DPI-d)>1E-3) {
+		DPI=d;
+		anyChange=true;
+	}
+
+	d=1.0; //??? DPI/(DisplayHeight(Disp,Scrn)*25.4/DisplayHeightMM(Disp,Scrn));
+	if (fabs(PixelTallness-d)>1E-3) {
+		PixelTallness=d;
+		anyChange=true;
+	}
+
+	if (anyChange) {
+		SignalGeometrySignal();
+
+		emDLog("emX11Screen::UpdateGeometry: API=%s, Pannable=%d",api,MonitorRectPannable);
+		rp=&DesktopRect;
+		emDLog(
+			"emX11Screen::UpdateGeometry: Desktop: x=%d y=%d w=%d h=%d",
+			rp->x, rp->y, rp->w, rp->h
+		);
+		for (i=0; i<MonitorRects.GetCount(); i++) {
+			rp=&MonitorRects[i];
+			emDLog(
+				"emX11Screen::UpdateGeometry: Monitor %d: x=%d y=%d w=%d h=%d",
+				i, rp->x, rp->y, rp->w, rp->h
+			);
+		}
+		emDLog("emX11Screen::UpdateGeometry: DPI=%f",DPI);
+		emDLog("emX11Screen::UpdateGeometry: PixelTallness=%f",PixelTallness);
+	}
 }
 
 
@@ -1135,7 +1346,7 @@ int emX11Screen::WaitCursorThread::Run(void * arg)
 			XMutex.Unlock();
 			t=blockTimeMS;
 		}
-	}	while (!QuitEvent.Receive(1,t));
+	} while (!QuitEvent.Receive(1,t));
 
 	XMutex.Lock();
 	XFreeCursor(Disp,cur);

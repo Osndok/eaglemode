@@ -30,7 +30,7 @@ emMinesControlPanel::emMinesControlPanel(
 
 	SetMinChildTallness(0.26);
 	SetMaxChildTallness(1.5);
-	SetAlignment(EM_ALIGN_TOP_LEFT);
+	SetAlignment(EM_ALIGN_TOP);
 
 	GrMines=new emPackGroup(this,"","emMines");
 	GrMines->SetPrefChildTallness(0, 0.6);

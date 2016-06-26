@@ -1,11 +1,7 @@
 #[[BEGIN PROPERTIES]]
 # Type = Group
-# Order = 10.0
+# Order = 14.0
 # Directory = Advanced
 # Caption = Advanced
 # Descr =Advanced commands
-# BgColor = #445
-# FgColor = #CCC
-# ButtonBgColor = #AAA
-# ButtonFgColor = #000
 #[[END PROPERTIES]]

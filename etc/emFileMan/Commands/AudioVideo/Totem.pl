@@ -14,6 +14,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files or the directory to be opened.
+# Icon = thirdparty/totem.tga
 #[[END PROPERTIES]]
 
 use strict;

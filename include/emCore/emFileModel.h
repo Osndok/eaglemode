@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.h
 //
-// Copyright (C) 2005-2008,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -259,9 +259,13 @@ protected:
 		// the progress in percent. It's just an information for the
 		// user.
 
+	virtual void TryFetchDate() throw(emException);
+		// Get and remember file information for IsOutOfDate(). The default
+		// implementation is for the default implementation of IsOutOfDate().
+
 	virtual bool IsOutOfDate();
 		// Check whether the loaded file should be reloaded. The default
-		// implementation checks by file modification time.
+		// implementation checks by file times, size and inode.
 
 private: friend class emFileModelClient;
 
@@ -291,7 +295,10 @@ private: friend class emFileModelClient;
 	emString ErrorText;
 	emFileModelClient * ClientList;
 	emUInt64 MemoryLimit;
-	time_t FileTime;
+	time_t LastMTime;
+	time_t LastCTime;
+	emUInt64 LastFSize;
+	emUInt64 LastINode;
 	PSAgentClass * PSAgent;
 	emRef<emSigModel> UpdateSignalModel; // NULL if ignored
 };
@@ -364,8 +371,7 @@ public:
 	virtual ~emFileModelClient();
 		// Destructor.
 
-	const emFileModel * GetModel() const;
-	emFileModel * GetModel();
+	emFileModel * GetModel() const;
 	void SetModel(emFileModel * model=NULL);
 		// The file model this client is connected to. NULL means to
 		// have disconnected state.
@@ -391,12 +397,7 @@ private: friend class emFileModel;
 	emFileModelClient * NextInList;
 };
 
-inline const emFileModel * emFileModelClient::GetModel() const
-{
-	return Model;
-}
-
-inline emFileModel * emFileModelClient::GetModel()
+inline emFileModel * emFileModelClient::GetModel() const
 {
 	return Model;
 }

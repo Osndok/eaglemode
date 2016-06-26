@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008,2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,6 +58,12 @@ void emDirPanel::SelectAll()
 			FileMan->SelectAsTarget(dep->GetDirEntry().GetPath());
 		}
 	}
+}
+
+
+emString emDirPanel::GetIconFileName()
+{
+	return "directory.tga";
 }
 
 
@@ -155,40 +161,59 @@ void emDirPanel::Paint(const emPainter & painter, emColor canvasColor)
 
 void emDirPanel::LayoutChildren()
 {
-	int cnt,col,cols,row,rows;
-	double h,t,cw,ch;
+	const emFileManTheme * theme;
+	int cnt,col,cols,row,rows,n;
+	double h,t,cx,cy,cw,ch,pl,pt,pr,pb,f,gap;
 	emPanel * p;
 
-	if (IsContentComplete()) {
-		for (cnt=0, p=GetFirstChild(); p; cnt++, p=p->GetNext());
-		if (cnt) {
-			h=GetHeight();
-			t=Config->GetTheme().Height;
+	for (cnt=0, p=GetFirstChild(); p; cnt++, p=p->GetNext());
+	if (cnt) {
+		theme = &Config->GetTheme();
+		t=theme->Height;
+		h=GetHeight();
+		if (IsContentComplete()) {
 			for (rows=1; ;rows++) {
 				cols=(int)(rows*t/(h*(1.0-0.05/rows)));
 				if (cols<=0) cols=1;
 				if (rows*cols>=cnt) break;
 			}
 			cols=(cnt+rows-1)/rows;
-			ch=h/rows;
-			cw=1.0/cols;
+			pl=theme->DirPaddingL;
+			pt=theme->DirPaddingT;
+			pr=theme->DirPaddingR;
+			pb=theme->DirPaddingB;
+			cw=1.0/(pl+cols+pr);
+			ch=h/(pt/t+rows+pb/t);
 			if (ch>cw*t) ch=cw*t; else cw=ch/t;
+			cx=cw*pl;
+			cy=cw*pt;
+			f=1.0-cw*(pl+pr);
+			n=(int)(f/cw+0.001);
+			gap=emMin(((pt+pb)/t-(pl+pr))*cw,f-n*cw);
+			if (gap<0.0) gap=0.0;
+			gap/=n+1;
+			cx+=gap;
 			for (col=0, row=0, p=GetFirstChild(); p; p=p->GetNext()) {
-				p->Layout(cw*col,ch*row,cw,ch,Config->GetTheme().DirContentColor);
+				p->Layout(cx+(cw+gap)*col,cy+ch*row,cw,ch,theme->DirContentColor);
 				row++;
 				if (row>=rows) { col++; row=0; }
 			}
 		}
-	}
-	else {
-		for (p=GetFirstChild(); p; p=p->GetNext()) {
-			p->Layout(
-				p->GetLayoutX(),
-				p->GetLayoutY(),
-				p->GetLayoutWidth(),
-				p->GetLayoutWidth()*Config->GetTheme().Height,
-				Config->GetTheme().DirContentColor
-			);
+		else {
+			for (p=GetFirstChild(); p; p=p->GetNext()) {
+				cw=p->GetLayoutWidth();
+				if (cw>1.0) cw=1.0;
+				if (cw<0.001) cw=0.001;
+				ch=cw*t;
+				if (ch>h) { ch=h; cw=ch/t; }
+				cx=p->GetLayoutX();
+				if (cx<0.0) cx=0.0;
+				if (cx>1.0-cw) cx=1.0-cw;
+				cy=p->GetLayoutY();
+				if (cy<0.0) cy=0.0;
+				if (cy>h-ch) cy=h-ch;
+				p->Layout(cx,cy,cw,ch,theme->DirContentColor);
+			}
 		}
 	}
 }

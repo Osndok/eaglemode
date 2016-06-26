@@ -13,8 +13,7 @@
 # Descr =
 # Descr =  Target: The target directory, or a single target file
 # Descr =          to be overwritten by a single source file.
-# ButtonBgColor = #5A7
-# ButtonFgColor = #000
+# Icon = copy_file.tga
 # Hotkey = Ctrl+C
 #[[END PROPERTIES]]
 

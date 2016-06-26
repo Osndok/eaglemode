@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,40 +24,59 @@
 
 void emX11WindowPort::WindowFlagsChanged()
 {
+	emWindow::WindowFlags oldFlags;
 	int i;
 
-	SetModalState(false);
-	if (FullscreenUpdateTimer) {
-		delete FullscreenUpdateTimer;
-		FullscreenUpdateTimer=NULL;
-	}
-	if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
-	XMutex.Lock();
-	XFreeGC(Disp,Gc);
-	XMutex.Unlock();
-	Gc=NULL;
-	if (InputContext) {
+	oldFlags=WindowFlags;
+	WindowFlags=GetWindowFlags();
+
+	if (
+		((oldFlags^WindowFlags) & (
+			emWindow::WF_MODAL |
+			emWindow::WF_UNDECORATED |
+			emWindow::WF_POPUP
+		)) != 0
+	) {
+		SetModalState(false);
+		if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
 		XMutex.Lock();
-		XDestroyIC(InputContext);
+		XFreeGC(Disp,Gc);
 		XMutex.Unlock();
-		InputContext=NULL;
-	}
-	Screen.WCThread->RemoveWindow(Win);
-	XMutex.Lock();
-	XDestroyWindow(Disp,Win);
-	XMutex.Unlock();
-	Win=None;
-
-	PreConstruct();
-
-	for (i=0; i<Screen.WinPorts.GetCount(); i++) {
-		if (
-			Screen.WinPorts[i]->Owner==this &&
-			Screen.WinPorts[i]->Win!=None
-		) {
+		Gc=NULL;
+		if (InputContext) {
 			XMutex.Lock();
-			XSetTransientForHint(Disp,Screen.WinPorts[i]->Win,Win);
+			XDestroyIC(InputContext);
 			XMutex.Unlock();
+			InputContext=NULL;
+		}
+		Screen.WCThread->RemoveWindow(Win);
+		XMutex.Lock();
+		XDestroyWindow(Disp,Win);
+		XMutex.Unlock();
+		Win=None;
+
+		PreConstruct();
+
+		for (i=0; i<Screen.WinPorts.GetCount(); i++) {
+			if (
+				Screen.WinPorts[i]->Owner==this &&
+				Screen.WinPorts[i]->Win!=None
+			) {
+				XMutex.Lock();
+				XSetTransientForHint(Disp,Screen.WinPorts[i]->Win,Win);
+				XMutex.Unlock();
+			}
+		}
+
+		return;
+	}
+
+	if (PostConstructed) {
+		if (((oldFlags^WindowFlags) & emWindow::WF_MAXIMIZED) != 0) {
+			SetWmStateMaximized((WindowFlags&emWindow::WF_MAXIMIZED)!=0);
+		}
+		if (((oldFlags^WindowFlags) & emWindow::WF_FULLSCREEN) != 0) {
+			SetWmStateFullscreen((WindowFlags&emWindow::WF_FULLSCREEN)!=0);
 		}
 	}
 }
@@ -68,7 +87,7 @@ void emX11WindowPort::SetPosSize(
 	double w, double h, PosSizeArgSpec sizeSpec
 )
 {
-	if ((GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0) {
+	if ((WindowFlags&(emWindow::WF_MAXIMIZED|emWindow::WF_FULLSCREEN))!=0) {
 		posSpec=PSAS_IGNORE;
 		sizeSpec=PSAS_IGNORE;
 	}
@@ -109,7 +128,7 @@ void emX11WindowPort::SetPosSize(
 
 void emX11WindowPort::GetBorderSizes(
 	double * pL, double * pT, double * pR, double * pB
-)
+) const
 {
 	*pL=BorderL;
 	*pT=BorderT;
@@ -213,6 +232,7 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	Win=None;
 	InputContext=NULL;
 	Gc=NULL;
+	WindowFlags=GetWindowFlags();
 	MinPaneW=1;
 	MinPaneH=1;
 	PaneX=0;
@@ -247,7 +267,6 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	RepeatKey=EM_KEY_NONE;
 	KeyRepeat=0;
 	memset(&ComposeStatus,0,sizeof(ComposeStatus));
-	FullscreenUpdateTimer=NULL;
 	ModalState=false;
 	ModalDescendants=0;
 
@@ -267,10 +286,6 @@ emX11WindowPort::~emX11WindowPort()
 	// may have to be modified too.
 
 	SetModalState(false);
-	if (FullscreenUpdateTimer) {
-		delete FullscreenUpdateTimer;
-		FullscreenUpdateTimer=NULL;
-	}
 	if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
 	for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
 		if (Screen.WinPorts[i]==this) {
@@ -305,27 +320,14 @@ void emX11WindowPort::PreConstruct()
 	XGCValues xgcv;
 	long eventMask,extraEventMask;
 	double vrx,vry,vrw,vrh,d;
-	int border;
+	int monitor,border;
 	bool haveBorder;
 
-	if ((GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0) {
-		Screen.LeaveFullscreenModes(&GetWindow());
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
-		MinPaneW=1;
-		MinPaneH=1;
-		PaneX=(int)(vrx+0.5);
-		PaneY=(int)(vry+0.5);
-		PaneW=(int)(vrw+0.5);
-		PaneH=(int)(vrh+0.5);
-		BorderL=0;
-		BorderT=0;
-		BorderR=0;
-		BorderB=0;
-		haveBorder=false;
-		Focused=true;
-	}
-	else if ((GetWindowFlags()&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
+	monitor=0;
+	if (Owner) monitor=Owner->GetWindow().GetMonitorIndex();
+	Screen.GetMonitorRect(monitor,&vrx,&vry,&vrw,&vrh);
+
+	if ((WindowFlags&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
 		MinPaneW=1;
 		MinPaneH=1;
 		PaneX=(int)(vrx+vrw*emGetDblRandom(0.22,0.28)+0.5);
@@ -340,11 +342,9 @@ void emX11WindowPort::PreConstruct()
 		Focused=true;
 	}
 	else {
-		Screen.LeaveFullscreenModes(&GetWindow());
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
 		MinPaneW=32;
 		MinPaneH=32;
-		if (!Owner && (GetWindowFlags()&emWindow::WF_MODAL)==0) {
+		if (!Owner && (WindowFlags&emWindow::WF_MODAL)==0) {
 			d=emMin(vrw,vrh)*0.08;
 			PaneX=(int)(vrx+d*emGetDblRandom(0.5,1.5)+0.5);
 			PaneY=(int)(vry+d*emGetDblRandom(0.8,1.2)+0.5);
@@ -363,7 +363,7 @@ void emX11WindowPort::PreConstruct()
 		BorderR=3;
 		BorderB=3;
 		haveBorder=true;
-		if ((GetWindowFlags()&emWindow::WF_MODAL)!=0) Focused=true;
+		if ((WindowFlags&emWindow::WF_MODAL)!=0) Focused=true;
 		else Focused=false;
 	}
 	ClipX1=PaneX;
@@ -395,7 +395,7 @@ void emX11WindowPort::PreConstruct()
 	eventMask=
 		ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
 		KeyPressMask|KeyReleaseMask|StructureNotifyMask|SubstructureNotifyMask|
-		VisibilityChangeMask|FocusChangeMask
+		VisibilityChangeMask|FocusChangeMask|PropertyChangeMask
 	;
 
 	memset(&xswa,0,sizeof(xswa));
@@ -506,9 +506,7 @@ void emX11WindowPort::PostConstruct()
 {
 	int i,r;
 
-	if ((GetWindowFlags()&(
-		emWindow::WF_POPUP|emWindow::WF_UNDECORATED|emWindow::WF_FULLSCREEN
-	))!=0) {
+	if ((WindowFlags&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
 		XMutex.Lock();
 		XMapRaised(Disp,Win);
 		XMutex.Unlock();
@@ -521,7 +519,7 @@ void emX11WindowPort::PostConstruct()
 
 	if (Focused) {
 		if (MakeViewable()) {
-			if ((GetWindowFlags()&emWindow::WF_MODAL)!=0 && Owner) {
+			if ((WindowFlags&emWindow::WF_MODAL)!=0 && Owner) {
 				XMutex.Lock();
 				XSetInputFocus(Disp,Win,RevertToParent,CurrentTime);
 				XMutex.Unlock();
@@ -538,16 +536,7 @@ void emX11WindowPort::PostConstruct()
 		}
 	}
 
-	if (
-		(GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0 ||
-		(
-			(GetWindowFlags()&emWindow::WF_POPUP)!=0 &&
-			(
-				!Screen.GrabbingWinPort ||
-				(Screen.GrabbingWinPort->GetWindowFlags()&emWindow::WF_FULLSCREEN)==0
-			)
-		)
-	) {
+	if ((WindowFlags&emWindow::WF_POPUP)!=0 && !Screen.GrabbingWinPort) {
 		if (MakeViewable()) {
 			for (i=0; ; i++) {
 				XMutex.Lock();
@@ -575,7 +564,7 @@ void emX11WindowPort::PostConstruct()
 					ButtonMotionMask|EnterWindowMask|LeaveWindowMask,
 					GrabModeSync,
 					GrabModeAsync,
-					(GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0 ? Win : None,
+					None,
 					None,
 					CurrentTime
 				);
@@ -592,15 +581,19 @@ void emX11WindowPort::PostConstruct()
 		}
 	}
 
-	if ((GetWindowFlags()&emWindow::WF_FULLSCREEN)!=0) {
-		FullscreenUpdateTimer=new emTimer(GetScheduler());
-		AddWakeUpSignal(FullscreenUpdateTimer->GetSignal());
-		FullscreenUpdateTimer->Start(500,true);
+	if ((WindowFlags&emWindow::WF_MAXIMIZED)!=0) {
+		SetWmStateMaximized(true);
 	}
 
-	if ((GetWindowFlags()&emWindow::WF_MODAL)!=0) {
+	if ((WindowFlags&emWindow::WF_FULLSCREEN)!=0) {
+		SetWmStateFullscreen(true);
+	}
+
+	if ((WindowFlags&emWindow::WF_MODAL)!=0) {
 		SetModalState(true);
 	}
+
+	UpdateFromWmState();
 }
 
 
@@ -674,7 +667,7 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 		if (
 			!inside &&
 			Screen.GrabbingWinPort==this &&
-			(GetWindowFlags()&emWindow::WF_POPUP)!=0
+			(WindowFlags&emWindow::WF_POPUP)!=0
 		) {
 			XMutex.Lock();
 			XAllowEvents(Disp,ReplayPointer,CurrentTime);
@@ -933,6 +926,11 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 			else FocusModalDescendant(true);
 		}
 		return;
+	case PropertyNotify:
+		if (event.xproperty.atom==Screen._NET_WM_STATE) {
+			UpdateFromWmState();
+		}
+		return;
 	}
 }
 
@@ -953,77 +951,15 @@ bool emX11WindowPort::FlushInputState()
 
 bool emX11WindowPort::Cycle()
 {
-	XWindowAttributes attr;
 	XSizeHints xsh;
 	emString str;
 	emCursor cur;
-	::Window win;
 	::Cursor xcur;
-	emX11WindowPort * wp;
 	double vrx,vry,vrw,vrh,fx,fy,fw,fh;
-	int i,x,y,w,h;
-	Status xs;
+	int x,y,w,h;
 
-	if (
-		FullscreenUpdateTimer &&
-		IsSignaled(FullscreenUpdateTimer->GetSignal())
-	) {
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
-		if (
-			fabs(PaneX-vrx)>0.51 || fabs(PaneY-vry)>0.51 ||
-			fabs(PaneW-vrw)>0.51 || fabs(PaneH-vrh)>0.51
-		) {
-			PosForced=true;
-			PosPending=true;
-			SizeForced=true;
-			SizePending=true;
-			SetViewGeometry(vrx,vry,vrw,vrh,Screen.PixelTallness);
-		}
-
-		// Workaround for lots of focus problems with several window managers:
-		if (Screen.GrabbingWinPort==this) {
-			XMutex.Lock();
-			XGetInputFocus(Disp,&win,&i);
-			XMutex.Unlock();
-			wp=NULL;
-			for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
-				if (Screen.WinPorts[i]->Win==win) {
-					wp=Screen.WinPorts[i];
-					break;
-				}
-			}
-			if (wp==this) {
-				if (!Focused) {
-					Focused=true;
-					SetViewFocused(true);
-					emWarning("emX11WindowPort: Focus workaround 1 applied.");
-				}
-			}
-			else {
-				while (wp) {
-					if (wp==this) break;
-					wp=wp->Owner;
-				}
-				if (!wp) {
-					XMutex.Lock();
-					xs=XGetWindowAttributes(Disp,Win,&attr);
-					XMutex.Unlock();
-					if (xs && attr.map_state==IsViewable) {
-						XMutex.Lock();
-						XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
-						XMutex.Unlock();
-						emWarning("emX11WindowPort: Focus workaround 2 applied.");
-					}
-				}
-			}
-		}
-	}
-
-	if (
-		!PostConstructed && !PosForced && Owner &&
-		(GetWindowFlags()&emWindow::WF_FULLSCREEN)==0
-	) {
-		Screen.GetVisibleRect(&vrx,&vry,&vrw,&vrh);
+	if (!PostConstructed && !PosForced && Owner) {
+		Screen.GetDesktopRect(&vrx,&vry,&vrw,&vrh);
 		fx=Owner->GetViewX()-Owner->BorderL;
 		fy=Owner->GetViewY()-Owner->BorderT;
 		fw=Owner->GetViewWidth()+Owner->BorderL+Owner->BorderR;
@@ -1470,5 +1406,109 @@ void emX11WindowPort::GetAbsWinGeometry(
 		}
 		if (root==parent) break;
 		current=parent;
+	}
+}
+
+
+void emX11WindowPort::SetWmStateMaximized(bool maximized)
+{
+	XEvent event;
+
+	memset(&event,0,sizeof(event));
+	event.xclient.type=ClientMessage;
+	event.xclient.window=Win;
+	event.xclient.message_type=Screen._NET_WM_STATE;
+	event.xclient.format=32;
+	event.xclient.data.l[0]=maximized?1:0;
+	event.xclient.data.l[1]=Screen._NET_WM_STATE_MAXIMIZED_VERT;
+	event.xclient.data.l[2]=Screen._NET_WM_STATE_MAXIMIZED_HORZ;
+	event.xclient.data.l[3]=0;
+
+	XMutex.Lock();
+	XSendEvent(
+		Disp,
+		Screen.RootWin,
+		False,
+		SubstructureRedirectMask|SubstructureNotifyMask,
+		&event
+	);
+	XMutex.Unlock();
+}
+
+
+void emX11WindowPort::SetWmStateFullscreen(bool fullscreen)
+{
+	XEvent event;
+
+	memset(&event,0,sizeof(event));
+	event.xclient.type=ClientMessage;
+	event.xclient.window=Win;
+	event.xclient.message_type=Screen._NET_WM_STATE;
+	event.xclient.format=32;
+	event.xclient.data.l[0]=fullscreen?1:0;
+	event.xclient.data.l[1]=Screen._NET_WM_STATE_FULLSCREEN;
+	event.xclient.data.l[2]=0;
+
+	XMutex.Lock();
+	XSendEvent(
+		Disp,
+		Screen.RootWin,
+		False,
+		SubstructureRedirectMask|SubstructureNotifyMask,
+		&event
+	);
+	XMutex.Unlock();
+}
+
+
+void emX11WindowPort::UpdateFromWmState()
+{
+	Atom a,type;
+	int format,res;
+	unsigned long i, count, bytes_after;
+	unsigned char * props;
+	emWindow::WindowFlags newWindowFlags;
+
+	props=NULL;
+	XMutex.Lock();
+	res=XGetWindowProperty(
+		Disp,
+		Win,
+		Screen._NET_WM_STATE,
+		0,
+		65536,
+		False,
+		AnyPropertyType,
+		&type,
+		&format,
+		&count,
+		&bytes_after,
+		&props
+	);
+	XMutex.Unlock();
+
+	newWindowFlags=WindowFlags&~(emWindow::WF_MAXIMIZED|emWindow::WF_FULLSCREEN);
+
+	if (res==Success && props) {
+		for (i=0; i<count; i++) {
+			a=((Atom*)props)[i];
+			if (
+				a==Screen._NET_WM_STATE_MAXIMIZED_HORZ ||
+				a==Screen._NET_WM_STATE_MAXIMIZED_VERT
+			) {
+				newWindowFlags|=emWindow::WF_MAXIMIZED;
+			}
+			else if (a==Screen._NET_WM_STATE_FULLSCREEN) {
+				newWindowFlags|=emWindow::WF_FULLSCREEN;
+			}
+		}
+		XMutex.Lock();
+		XFree(props);
+		XMutex.Unlock();
+	}
+
+	if (WindowFlags!=newWindowFlags) {
+		WindowFlags=newWindowFlags;
+		GetWindow().SetWindowFlags(newWindowFlags);
 	}
 }

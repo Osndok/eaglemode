@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emAnything_h.html#emAnything">emAnything</A>.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -165,7 +165,7 @@
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(Data) <SPAN CLASS=b>{
                 </SPAN><SPAN CLASS=t>const </SPAN>SharedData * d=
-                        <SPAN CLASS=k>dynamic_cast</SPAN>&lt;<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::SharedData*&gt;(Data)
+                        <SPAN CLASS=k>dynamic_cast</SPAN>&lt;<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAnything_h.html#emCastAnything">emCastAnything</A>&lt;VALUE&gt;::SharedData*&gt;(Data)
                 ;
                 <SPAN CLASS=k>if </SPAN>(d) <SPAN CLASS=k>return </SPAN>&amp;d-&gt;Value;
         <SPAN CLASS=b>}

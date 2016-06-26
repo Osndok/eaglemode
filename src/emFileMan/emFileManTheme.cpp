@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManTheme.cpp
 //
-// Copyright (C) 2010-2011,2014 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -87,21 +87,22 @@ emFileManTheme::emFileManTheme(emContext & context, const emString & name)
 	: emConfigModel(context,name),
 	emStructRec(),
 	DisplayName(this,"DisplayName"),
+	DisplayIcon(this,"DisplayIcon"),
 	BackgroundColor(this,"BackgroundColor"),
 	SourceSelectionColor(this,"SourceSelectionColor"),
 	TargetSelectionColor(this,"TargetSelectionColor"),
-	NormalNameColor(this,"NormalNameColor"),
-	ExeNameColor(this,"ExeNameColor"),
-	DirNameColor(this,"DirNameColor"),
-	FifoNameColor(this,"FifoNameColor"),
-	BlkNameColor(this,"BlkNameColor"),
-	ChrNameColor(this,"ChrNameColor"),
-	SockNameColor(this,"SockNameColor"),
-	OtherNameColor(this,"OtherNameColor"),
-	PathColor(this,"PathColor"),
-	SymLinkColor(this,"SymLinkColor"),
-	LabelColor(this,"LabelColor"),
-	InfoColor(this,"InfoColor"),
+	NormalNameColor(this,"NormalNameColor",emColor(0,0,0,255),true),
+	ExeNameColor(this,"ExeNameColor",emColor(0,0,0,255),true),
+	DirNameColor(this,"DirNameColor",emColor(0,0,0,255),true),
+	FifoNameColor(this,"FifoNameColor",emColor(0,0,0,255),true),
+	BlkNameColor(this,"BlkNameColor",emColor(0,0,0,255),true),
+	ChrNameColor(this,"ChrNameColor",emColor(0,0,0,255),true),
+	SockNameColor(this,"SockNameColor",emColor(0,0,0,255),true),
+	OtherNameColor(this,"OtherNameColor",emColor(0,0,0,255),true),
+	PathColor(this,"PathColor",emColor(0,0,0,255),true),
+	SymLinkColor(this,"SymLinkColor",emColor(0,0,0,255),true),
+	LabelColor(this,"LabelColor",emColor(0,0,0,255),true),
+	InfoColor(this,"InfoColor",emColor(0,0,0,255),true),
 	FileContentColor(this,"FileContentColor"),
 	DirContentColor(this,"DirContentColor"),
 	Height(this,"Height"),
@@ -209,13 +210,21 @@ emFileManTheme::emFileManTheme(emContext & context, const emString & name)
 	AltContentW(this,"AltContentW"),
 	AltContentH(this,"AltContentH"),
 	MinContentVW(this,"MinContentVW"),
-	MinAltVW(this,"MinAltVW")
+	MinAltVW(this,"MinAltVW"),
+	DirPaddingL(this,"DirPaddingL"),
+	DirPaddingT(this,"DirPaddingT"),
+	DirPaddingR(this,"DirPaddingR"),
+	DirPaddingB(this,"DirPaddingB"),
+	LnkPaddingL(this,"LnkPaddingL"),
+	LnkPaddingT(this,"LnkPaddingT"),
+	LnkPaddingR(this,"LnkPaddingR"),
+	LnkPaddingB(this,"LnkPaddingB")
 {
 	PostConstruct(
 		*this,
 		emGetChildPath(GetThemesDirPath(), name + ThemeFileEnding)
 	);
-	LoadOrInstall();
+	Load();
 }
 
 
@@ -240,9 +249,10 @@ emFileManThemeNames::emFileManThemeNames(emContext & context, const emString & n
 	: emModel(context,name)
 {
 	emArray<emString> names;
-	int i, eLen, nLen;
-	ThemeInfo * ti;
+	int i, j, eLen, nLen;
 	emRef<emFileManTheme> t;
+	ThemeStyle * s;
+	ThemeAR * a;
 
 	try {
 		names=emTryLoadDir(emFileManTheme::GetThemesDirPath());
@@ -263,13 +273,36 @@ emFileManThemeNames::emFileManThemeNames(emContext & context, const emString & n
 	}
 	names.Sort(emStdComparer<emString>::Compare);
 
-	ThemeInfos.SetCount(names.GetCount());
-	for (i=0; i<ThemeInfos.GetCount(); i++) {
-		ti=&ThemeInfos.GetWritable(i);
-		ti->Name=names[i];
-		t=emFileManTheme::Acquire(GetRootContext(),ti->Name);
-		ti->DisplayName=t->DisplayName;
+	for (i=0; i<names.GetCount(); i++) {
+		t=emFileManTheme::Acquire(GetRootContext(),names[i]);
+		for (j=ThemeStyles.GetCount()-1; j>=0; j--) {
+			if (ThemeStyles[j].DisplayName==t->DisplayName.Get()) break;
+		}
+		if (j<0) {
+			j=ThemeStyles.GetCount();
+			ThemeStyles.AddNew();
+		}
+		s=&ThemeStyles.GetWritable(j);
+		s->DisplayName=t->DisplayName.Get();
+		s->DisplayIcon=t->DisplayIcon.Get();
+		for (j=0; j<s->ThemeARs.GetCount(); j++) {
+			if (s->ThemeARs[j].Height>t->Height.Get()) break;
+		}
+		s->ThemeARs.InsertNew(j);
+		a=&s->ThemeARs.GetWritable(j);
+		a->Name=names[i];
+		a->Height=t->Height.Get();
+		a->AspectRatio=HeightToAspectRatioString(a->Height);
 		t=NULL;
+	}
+
+	for (i=0; i<ThemeStyles.GetCount(); i++) {
+		for (j=0; j<ThemeStyles[i].ThemeARs.GetCount(); j++) {
+			NameToPackedIndex.Insert(
+				ThemeStyles[i].ThemeARs[j].Name,
+				(i<<16)|j
+			);
+		}
 	}
 
 	SetMinCommonLifetime(INT_MAX);
@@ -280,3 +313,122 @@ emFileManThemeNames::~emFileManThemeNames()
 {
 }
 
+
+int emFileManThemeNames::GetThemeAspectRatioCount(int styleIndex) const
+{
+	if (styleIndex<0 || styleIndex>=ThemeStyles.GetCount()) {
+		return 0;
+	}
+	return ThemeStyles[styleIndex].ThemeARs.GetCount();
+}
+
+
+emString emFileManThemeNames::GetThemeName(
+	int styleIndex, int aspectRatioIndex
+) const
+{
+	if (styleIndex<0 || styleIndex>=ThemeStyles.GetCount()) {
+		return emString();
+	}
+	const ThemeStyle & style=ThemeStyles[styleIndex];
+	if (aspectRatioIndex<0 || aspectRatioIndex>=style.ThemeARs.GetCount()) {
+		return emString();
+	}
+	return style.ThemeARs[aspectRatioIndex].Name;
+}
+
+
+emString emFileManThemeNames::GetDefaultThemeName() const
+{
+	emString name;
+
+	name="Glass1";
+	if (!NameToPackedIndex.Contains(name)) {
+		name=GetThemeName(0,0);
+	}
+	return name;
+}
+
+
+emString emFileManThemeNames::GetThemeStyleDisplayName(
+	int styleIndex
+) const
+{
+	if (styleIndex<0 || styleIndex>=ThemeStyles.GetCount()) {
+		return emString();
+	}
+	return ThemeStyles[styleIndex].DisplayName;
+}
+
+
+emString emFileManThemeNames::GetThemeStyleDisplayIcon(
+	int styleIndex
+) const
+{
+	if (styleIndex<0 || styleIndex>=ThemeStyles.GetCount()) {
+		return emString();
+	}
+	return ThemeStyles[styleIndex].DisplayIcon;
+}
+
+
+emString emFileManThemeNames::GetThemeAspectRatio(
+	int styleIndex, int aspectRatioIndex
+) const
+{
+	if (styleIndex<0 || styleIndex>=ThemeStyles.GetCount()) {
+		return emString();
+	}
+	const ThemeStyle & style=ThemeStyles[styleIndex];
+	if (aspectRatioIndex<0 || aspectRatioIndex>=style.ThemeARs.GetCount()) {
+		return emString();
+	}
+	return style.ThemeARs[aspectRatioIndex].AspectRatio;
+}
+
+
+bool emFileManThemeNames::IsExistingThemeName(const emString & themeName) const
+{
+	return NameToPackedIndex.Contains(themeName);
+}
+
+
+int emFileManThemeNames::GetThemeStyleIndex(
+	const emString & themeName
+) const
+{
+	const emAvlTreeMap<emString,int>::Element * e;
+
+	e=NameToPackedIndex.Get(themeName);
+	if (!e) return -1;
+	return e->Value>>16;
+}
+
+
+int emFileManThemeNames::GetThemeAspectRatioIndex(
+	const emString & themeName
+) const
+{
+	const emAvlTreeMap<emString,int>::Element * e;
+
+	e=NameToPackedIndex.Get(themeName);
+	if (!e) return -1;
+	return e->Value&0xFFFF;
+}
+
+
+emString emFileManThemeNames::HeightToAspectRatioString(double height)
+{
+	int n,d,bestN,bestD;
+
+	bestN=bestD=1;
+	for (d=1; d<=10; d++) {
+		n=(int)(d/height+0.5);
+		if (n<1) n=1;
+		if (fabs(height*n/d-1.0)<fabs(height*bestN/bestD-1.0)-0.001) {
+			bestN=n;
+			bestD=d;
+		}
+	}
+	return emString::Format("%d:%d",bestN,bestD);
+}

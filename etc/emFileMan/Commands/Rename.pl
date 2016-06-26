@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 6.0
+# Order = 9.0
 # Interpreter = perl
 # Caption = Rename
 # Descr =Rename one or more files or directories. The new name is
@@ -13,8 +13,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files and directories to be renamed.
-# ButtonBgColor = #C85
-# ButtonFgColor = #000
+# Icon = rename_file.tga
 # Hotkey = Backspace
 #[[END PROPERTIES]]
 

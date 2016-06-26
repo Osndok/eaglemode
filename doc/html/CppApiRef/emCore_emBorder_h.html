@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emBorder_h.html#emBorder">emBorder</A>.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -233,6 +233,11 @@
                 <SPAN CLASS=c>// Get the coordinates and canvas color of the auxiliary area.
                 // Valid only if HasAux()==true.
 
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetSubstanceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                      <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                                      <SPAN CLASS=t>double </SPAN>* pR);
+                <SPAN CLASS=c>// Overloaded from <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> (read there).
+
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRoundRect(
                 <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
@@ -353,6 +358,7 @@
 
         <SPAN CLASS=t>enum </SPAN>DoBorderFunc <SPAN CLASS=b>{
                 </SPAN>BORDER_FUNC_PAINT,
+                BORDER_FUNC_SUBSTANCE_ROUND_RECT,
                 BORDER_FUNC_CONTENT_ROUND_RECT,
                 BORDER_FUNC_CONTENT_RECT,
                 BORDER_FUNC_CONTENT_RECT_UNOBSCURED,

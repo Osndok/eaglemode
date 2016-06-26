@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -224,6 +224,11 @@ public:
 		// Get the coordinates and canvas color of the auxiliary area.
 		// Valid only if HasAux()==true.
 
+	virtual void GetSubstanceRect(double * pX, double * pY,
+	                              double * pW, double * pH,
+	                              double * pR);
+		// Overloaded from emPanel (read there).
+
 	virtual void GetContentRoundRect(
 		double * pX, double * pY, double * pW, double * pH, double * pR,
 		emColor * pCanvasColor=NULL
@@ -344,6 +349,7 @@ private:
 
 	enum DoBorderFunc {
 		BORDER_FUNC_PAINT,
+		BORDER_FUNC_SUBSTANCE_ROUND_RECT,
 		BORDER_FUNC_CONTENT_ROUND_RECT,
 		BORDER_FUNC_CONTENT_RECT,
 		BORDER_FUNC_CONTENT_RECT_UNOBSCURED,

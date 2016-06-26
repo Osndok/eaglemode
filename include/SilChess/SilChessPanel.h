@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,6 +48,7 @@ public:
 	virtual ~SilChessPanel();
 
 	virtual emString GetTitle();
+	virtual emString GetIconFileName();
 
 	virtual void GetEssenceRect(double * pX, double * pY,
 	                            double * pW, double * pH);

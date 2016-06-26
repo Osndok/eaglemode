@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 52.0
+# Order = 3.0
 # Interpreter = perl
 # Caption = Meld
 # Descr =Compare two or three files or directories in Meld.
@@ -12,7 +12,7 @@
 # Descr =files or directories which shall be compared. Source is "left",
 # Descr =target is "right". Within source or target you cannot control
 # Descr =the order.
-# ButtonBgColor = #BBB
+# Icon = thirdparty/meld.tga
 #[[END PROPERTIES]]
 
 use strict;

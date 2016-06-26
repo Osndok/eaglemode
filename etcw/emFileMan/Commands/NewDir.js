@@ -12,8 +12,7 @@
 # Descr =
 # Descr =  Target: The directory in which the new subdirectory
 # Descr =          shall be created.
-# ButtonBgColor = #88C
-# ButtonFgColor = #000
+# Icon = new_dir.tga
 # Hotkey = Ctrl+D
 #[[END PROPERTIES]]
 */
@@ -51,7 +50,7 @@ if (IsExistingPath(newPath)) {
 BatBegin("New Dir");
 BatWriteCmdEchoed(["mkdir",newPath]);
 BatWriteCheckError();
-BatWriteLine("if exist " + QuoteArg(newPath) + " (");
+BatWriteLine("if exist " + BatQuoteArg(newPath) + " (");
 BatWriteSendSelectKS([newPath]);
 BatWriteLine(") else (");
 BatWriteSendUpdate();

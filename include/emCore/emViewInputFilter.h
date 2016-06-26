@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.h
 //
-// Copyright (C) 2011-2012,2014 Oliver Hamann.
+// Copyright (C) 2011-2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,11 +51,11 @@ public:
 		// Destruct this view input filter. This also removes the filter
 		// from the list.
 
-	emView & GetView();
+	emView & GetView() const;
 		// Get the view.
 
-	emViewInputFilter * GetPrev();
-	emViewInputFilter * GetNext();
+	emViewInputFilter * GetPrev() const;
+	emViewInputFilter * GetNext() const;
 		// Get the previous or next filter in the list. NULL means this
 		// is the first or last filter.
 
@@ -112,17 +112,17 @@ private:
 	emViewInputFilter * Next;
 };
 
-inline emView & emViewInputFilter::GetView()
+inline emView & emViewInputFilter::GetView() const
 {
 	return View;
 }
 
-inline emViewInputFilter * emViewInputFilter::GetPrev()
+inline emViewInputFilter * emViewInputFilter::GetPrev() const
 {
 	return Prev;
 }
 
-inline emViewInputFilter * emViewInputFilter::GetNext()
+inline emViewInputFilter * emViewInputFilter::GetNext() const
 {
 	return Next;
 }
@@ -169,8 +169,8 @@ private:
 	void EmulateMiddleButton(emInputEvent & event, emInputState & state);
 	bool MoveMousePointerBackIntoView(double * pmx, double * pmy);
 	void MoveMousePointer(double dx, double dy);
-	double GetMouseZoomSpeed(bool fine=false);
-	double GetMouseScrollSpeed(bool fine=false);
+	double GetMouseZoomSpeed(bool fine=false) const;
+	double GetMouseScrollSpeed(bool fine=false) const;
 	void UpdateWheelZoomSpeed(bool down, bool fine);
 	void SetMouseAnimParams();
 	void SetWheelAnimParams();
@@ -212,8 +212,8 @@ protected:
 private:
 
 	void NavigateByProgram(emInputEvent & event, const emInputState & state);
-	double GetZoomSpeed(bool fine=false);
-	double GetScrollSpeed(bool fine=false);
+	double GetZoomSpeed(bool fine=false) const;
+	double GetScrollSpeed(bool fine=false) const;
 	void SetAnimatorParameters();
 
 	emSpeedingViewAnimator Animator;
@@ -275,13 +275,13 @@ private:
 	void ResetTouches();
 	void NextTouches();
 	void RemoveTouch(int index);
-	bool IsAnyTouchDown();
-	double GetTouchMoveX(int index);
-	double GetTouchMoveY(int index);
-	double GetTouchMove(int index);
-	double GetTotalTouchMoveX(int index);
-	double GetTotalTouchMoveY(int index);
-	double GetTotalTouchMove(int index);
+	bool IsAnyTouchDown() const;
+	double GetTouchMoveX(int index) const;
+	double GetTouchMoveY(int index) const;
+	double GetTouchMove(int index) const;
+	double GetTotalTouchMoveX(int index) const;
+	double GetTotalTouchMoveY(int index) const;
+	double GetTotalTouchMove(int index) const;
 
 	struct Touch {
 		emUInt64 Id;

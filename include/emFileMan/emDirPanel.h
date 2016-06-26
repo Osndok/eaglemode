@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.h
 //
-// Copyright (C) 2004-2008,2010 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,6 +53,8 @@ public:
 
 	void SelectAll();
 		// Works only if IsContentComplete().
+
+	virtual emString GetIconFileName();
 
 protected:
 

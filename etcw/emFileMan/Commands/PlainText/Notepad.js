@@ -11,6 +11,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The plain text file to be opened.
+# Icon = text_editor.tga
 #[[END PROPERTIES]]
 */
 

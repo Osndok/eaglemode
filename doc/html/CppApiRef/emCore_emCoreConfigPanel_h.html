@@ -1,0 +1,186 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emCoreConfigPanel.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emCoreConfigPanel_h.html#emCoreConfigPanel">emCoreConfigPanel</A>.h
+//
+// Copyright (C) 2007-2010,2014-2016 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emCoreConfigPanel_h
+#define emCoreConfigPanel_h
+
+#ifndef emToolkit_h
+#include &lt;emCore/emToolkit.h&gt;
+#endif
+
+#ifndef emCoreConfig_h
+#include &lt;<A CLASS=f HREF="emCore_emCoreConfig_h.html">emCore/emCoreConfig.h</A>&gt;
+#endif
+
+
+<A NAME="emCoreConfigPanel"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emCoreConfigPanel_h.html#emCoreConfigPanel">emCoreConfigPanel</A> ==============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emCoreConfigPanel_h.html#emCoreConfigPanel">emCoreConfigPanel</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a panel in which the user can edit the core configuration
+        // <A CLASS=m HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emCoreConfigPanel_h.html#emCoreConfigPanel">emCoreConfigPanel</A>(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emCoreConfigPanel_h.html#emCoreConfigPanel">emCoreConfigPanel</A>();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+        <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=c>// --- member variables ---
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+        <A CLASS=l HREF="emCore_emButton_h.html#emButton">emButton</A> * ResetButton;
+
+
+        <SPAN CLASS=c>// --- sub-classes ---
+
+        </SPAN><SPAN CLASS=t>class </SPAN>FactorField : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A>, <SPAN CLASS=t>private </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                FactorField(
+                        ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; caption, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; description,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; icon,
+                        <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config, <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> * rec,
+                        <SPAN CLASS=t>bool </SPAN>minimumMeansDisabled=<SPAN CLASS=k>false
+                </SPAN>);
+                <SPAN CLASS=t>virtual </SPAN>~FactorField();
+                <SPAN CLASS=t>virtual void </SPAN>TextOfValue(
+                        <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value,
+                        emUInt64 markInterval
+                ) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>ValueChanged();
+                <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>void </SPAN>UpdateValue();
+                <SPAN CLASS=t>double </SPAN>Val2Cfg(emInt64 value) <SPAN CLASS=t>const</SPAN>;
+                emInt64 Cfg2Val(<SPAN CLASS=t>double </SPAN>d) <SPAN CLASS=t>const</SPAN>;
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+                <SPAN CLASS=t>bool </SPAN>MinimumMeansDisabled;
+                emInt64 ValOut;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>MouseMiscGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>, <SPAN CLASS=t>private </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                MouseMiscGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                                <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~MouseMiscGroup();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+                <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>void </SPAN>UpdateOutput();
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+                <A CLASS=l HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A> * StickBox;
+                <A CLASS=l HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A> * EmuBox;
+                <A CLASS=l HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A> * PanBox;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>MouseGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                MouseGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                           <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~MouseGroup();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>KBGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                KBGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                        <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~KBGroup();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>KineticGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                KineticGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                             <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~KineticGroup();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>MaxMemGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emLinearGroup_h.html#emLinearGroup">emLinearGroup</A>, <SPAN CLASS=t>private </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                MaxMemGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                            <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~MaxMemGroup();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+                <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>void </SPAN>UpdateOutput();
+                <SPAN CLASS=t>static void </SPAN>TextOfMemValue(
+                        <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value,
+                        emUInt64 markInterval, <SPAN CLASS=t>void </SPAN>* context
+                );
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * MemField;
+                emInt64 ValOut;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>MaxMemTunnel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                MaxMemTunnel(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                             <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~MaxMemTunnel();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+        <SPAN CLASS=t>private</SPAN>:
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+        <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

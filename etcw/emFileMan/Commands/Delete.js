@@ -1,7 +1,7 @@
 /*
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 7.0
+# Order = 11.0
 # Interpreter = wscript
 # Caption = Delete
 # Descr =Remove one or more files and/or directories.
@@ -12,8 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files and directories to be removed.
-# ButtonBgColor = #E56
-# ButtonFgColor = #000
+# Icon = delete_file.tga
 # Hotkey = Delete
 #[[END PROPERTIES]]
 */
@@ -51,7 +50,7 @@ for (var i=0; i<Tgt.length; i++) {
 		BatWriteCmdEchoed(["del","/F","/Q",Tgt[i]]);
 	}
 	// rmdir and del are not always setting the error level on error.
-	BatWriteLine("if exist " + QuoteArg(Tgt[i]) + " (");
+	BatWriteLine("if exist " + BatQuoteArg(Tgt[i]) + " (");
 	BatWriteSetErrored();
 	BatWriteLine("goto L_END");
 	BatWriteLine(")");

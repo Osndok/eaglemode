@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFilePanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,6 +46,8 @@ public:
 
 	virtual void SetFileModel(emFileModel * fileModel,
 	                          bool updateFileModel=true);
+
+	virtual emString GetIconFileName();
 
 protected:
 

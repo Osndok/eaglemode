@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFramePanel.cpp
 //
-// Copyright (C) 2006-2009 Oliver Hamann.
+// Copyright (C) 2006-2009,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,6 +36,9 @@ emTmpConvFramePanel::emTmpConvFramePanel(
 		this,"tmp",model,
 		minViewPercentForTriggering,minViewPercentForHolding
 	);
+	FileManViewConfig=emFileManViewConfig::Acquire(GetView());
+	AddWakeUpSignal(FileManViewConfig->GetChangeSignal());
+	UpdateBgColor();
 }
 
 
@@ -44,9 +47,21 @@ emTmpConvFramePanel::~emTmpConvFramePanel()
 }
 
 
+bool emTmpConvFramePanel::Cycle()
+{
+	bool busy;
+
+	busy=emPanel::Cycle();
+	if (IsSignaled(FileManViewConfig->GetChangeSignal())) {
+		UpdateBgColor();
+	}
+	return busy;
+}
+
+
 bool emTmpConvFramePanel::IsOpaque()
 {
-	return true;
+	return BGColor.IsOpaque();
 }
 
 
@@ -57,11 +72,13 @@ void emTmpConvFramePanel::Paint(
 	double xy[4*2];
 	double h,b,d,fx,fy,fw,fh;
 
-	painter.Clear(BGColor,canvasColor);
-	canvasColor=BGColor;
+	if (!BGColor.IsTotallyTransparent()) {
+		painter.Clear(BGColor,canvasColor);
+		canvasColor=BGColor;
+	}
 
 	h=GetHeight();
-	d=emMin(1.0,h)*(1.0-InnerScale)*0.005;
+	d=0.0; //emMin(1.0,h)*(1.0-InnerScale)*0.005;
 	fx=(1.0-InnerScale)*0.5-d;
 	fy=(h-h*InnerScale)*0.5-d;
 	fw=InnerScale+2*d;
@@ -73,25 +90,25 @@ void emTmpConvFramePanel::Paint(
 	xy[2]=1.0-b; xy[3]=0.0;
 	xy[4]=fx+fw; xy[5]=fy;
 	xy[6]=fx;    xy[7]=fy;
-	painter.PaintPolygon(xy,4,emColor(102,102,102),canvasColor);
+	painter.PaintPolygon(xy,4,0x00000044,canvasColor);
 
 	xy[0]=1.0-b; xy[1]=0.0;
 	xy[2]=1.0-b; xy[3]=h;
 	xy[4]=fx+fw; xy[5]=fy+fh;
 	xy[6]=fx+fw; xy[7]=fy;
-	painter.PaintPolygon(xy,4,emColor(153,153,153),canvasColor);
+	painter.PaintPolygon(xy,4,0xFFFFFF22,canvasColor);
 
 	xy[0]=1.0-b; xy[1]=h;
 	xy[2]=b;     xy[3]=h;
 	xy[4]=fx;    xy[5]=fy+fh;
 	xy[6]=fx+fw; xy[7]=fy+fh;
-	painter.PaintPolygon(xy,4,emColor(170,170,170),canvasColor);
+	painter.PaintPolygon(xy,4,0xFFFFFF44,canvasColor);
 
 	xy[0]=b;     xy[1]=h;
 	xy[2]=b;     xy[3]=0.0;
 	xy[4]=fx;    xy[5]=fy;
 	xy[6]=fx;    xy[7]=fy+fh;
-	painter.PaintPolygon(xy,4,emColor(119,119,119),canvasColor);
+	painter.PaintPolygon(xy,4,0x00000022,canvasColor);
 
 	d=0.2;
 	PaintInfo(painter,b*d,h*d,b*(1.0-2*d),h*(1.0-2*d),canvasColor);
@@ -111,6 +128,21 @@ void emTmpConvFramePanel::LayoutChildren()
 		h*InnerScale,
 		BGColor
 	);
+}
+
+
+void emTmpConvFramePanel::UpdateBgColor()
+{
+	emColor c;
+
+	c=FileManViewConfig->GetTheme().FileContentColor.Get();
+	if (c.GetVal()>70.0F) c.SetVal(70.0F);
+	if (c.GetVal()<30.0F) c.SetVal(30.0F);
+	if (BGColor!=c) {
+		BGColor=c;
+		InvalidatePainting();
+		InvalidateChildrenLayout();
+	}
 }
 
 

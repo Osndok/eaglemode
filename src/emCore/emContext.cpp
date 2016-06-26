@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.cpp
 //
-// Copyright (C) 2005-2008,2012 Oliver Hamann.
+// Copyright (C) 2005-2008,2012,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -94,7 +94,9 @@ emContext::~emContext()
 }
 
 
-emModel * emContext::Lookup(const type_info & modelClass, const char * name)
+emModel * emContext::Lookup(
+	const type_info & modelClass, const char * name
+) const
 {
 	EM_AVL_SEARCH_VARS(emModel)
 	int d, hashCode;
@@ -122,9 +124,9 @@ emModel * emContext::Lookup(const type_info & modelClass, const char * name)
 
 emModel * emContext::LookupInherited(
 	const type_info & modelClass, const char * name
-)
+) const
 {
-	emContext * c;
+	const emContext * c;
 	emModel * m;
 
 	c=this;
@@ -155,7 +157,7 @@ emString emContext::GetListing() const
 
 void emContext::GetModelInfo(
 	int * pCommonCount, int * pPrivateCount, emModel * * * pArrayOfCommon
-)
+) const
 {
 	EM_AVL_LOOP_VARS(emModel)
 	emModel * * array;
@@ -293,7 +295,7 @@ int emContext::CalcHashCode(const type_info & modelClass, const char * name)
 }
 
 
-emModel * emContext::SearchUnused()
+emModel * emContext::SearchUnused() const
 {
 	EM_AVL_LOOP_VARS(emModel)
 
@@ -304,7 +306,7 @@ emModel * emContext::SearchUnused()
 }
 
 
-emModel * emContext::SearchUnused(int minHash)
+emModel * emContext::SearchUnused(int minHash) const
 {
 	emAvlIterator iter;
 	EM_AVL_ITER_VARS(emModel)

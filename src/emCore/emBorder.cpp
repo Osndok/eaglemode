@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -328,6 +328,17 @@ void emBorder::GetAuxRect(
 }
 
 
+void emBorder::GetSubstanceRect(
+	double * pX, double * pY, double * pW, double * pH, double * pR
+)
+{
+	DoBorder(
+		BORDER_FUNC_SUBSTANCE_ROUND_RECT,NULL,GetCanvasColor(),
+		pX,pY,pW,pH,pR,NULL
+	);
+}
+
+
 void emBorder::GetContentRoundRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR,
 	emColor * pCanvasColor
@@ -504,6 +515,14 @@ void emBorder::DoBorder(
 
 	switch ((OuterBorderType)OuterBorder) {
 	default: // OBT_NONE or OBT_FILLED
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			if (pX) *pX=0.0;
+			if (pY) *pY=0.0;
+			if (pW) *pW=1.0;
+			if (pH) *pH=h;
+			if (pR) *pR=0.0;
+			return;
+		}
 		rndX=0.0;
 		rndY=0.0;
 		rndW=1.0;
@@ -531,6 +550,14 @@ void emBorder::DoBorder(
 		minSpace=0.0;
 		howToSpace=0.023;
 		labelSpace=0.17;
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			if (pX) *pX=d;
+			if (pY) *pY=d;
+			if (pW) *pW=1.0-2*d;
+			if (pH) *pH=h-2*d;
+			if (pR) *pR=0.0;
+			return;
+		}
 		if ((OuterBorderType)OuterBorder==OBT_MARGIN_FILLED) {
 			color=Look.GetBgColor();
 			if (!color.IsTotallyTransparent()) {
@@ -552,6 +579,14 @@ void emBorder::DoBorder(
 		minSpace=howToSpace=0.023;
 		labelSpace=0.17;
 		color=Look.GetBgColor();
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			if (pX) *pX=d;
+			if (pY) *pY=d;
+			if (pW) *pW=1.0-2*d;
+			if (pH) *pH=h-2*d;
+			if (pR) *pR=0.0;
+			return;
+		}
 		if (!color.IsTotallyTransparent()) {
 			if (func==BORDER_FUNC_PAINT) {
 				painter->PaintRect(
@@ -585,6 +620,14 @@ void emBorder::DoBorder(
 		minSpace=howToSpace=0.023;
 		labelSpace=0.17;
 		color=Look.GetBgColor();
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			if (pX) *pX=d;
+			if (pY) *pY=d;
+			if (pW) *pW=1.0-2*d;
+			if (pH) *pH=h-2*d;
+			if (pR) *pR=f;
+			return;
+		}
 		if (!color.IsTotallyTransparent()) {
 			if (func==BORDER_FUNC_PAINT) {
 				painter->PaintRoundRect(
@@ -616,13 +659,23 @@ void emBorder::DoBorder(
 		minSpace=howToSpace=0.0046;
 		labelSpace=0.05;
 		color=Look.GetBgColor();
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			r=rndR*(280.0/209.0);
+			e=r-rndR;
+			if (pX) *pX=rndX-e;
+			if (pY) *pY=rndY-e;
+			if (pW) *pW=rndW+2*e;
+			if (pH) *pH=rndH+2*e;
+			if (pR) *pR=r;
+			return;
+		}
 		if (func==BORDER_FUNC_PAINT) {
 			color2=canvasColor;
 			if (
 				!color.IsTotallyTransparent() &&
 				(!color2.IsOpaque() || color2!=color)
 			) {
-				r=rndR*(98.0/73.0);
+				r=rndR*(280.0/209.0);
 				e=r-rndR;
 				painter->PaintRoundRect(
 					rndX-e,rndY-e,rndW+2*e,rndH+2*e,
@@ -632,13 +685,13 @@ void emBorder::DoBorder(
 				);
 				color2=0;
 			}
-			r=rndR*(100.0/73.0);
+			r=rndR*(286.0/209.0);
 			e=r-rndR;
 			painter->PaintBorderImage(
 				rndX-e,rndY-e,rndW+2*e,rndH+2*e,
 				r,r,r,r,
 				GetTkResources().ImgGroupBorder,
-				100.0,100.0,100.0,100.0,
+				286.0,286.0,286.0,286.0,
 				255,color2,0757
 			);
 		}
@@ -655,13 +708,23 @@ void emBorder::DoBorder(
 		minSpace=howToSpace=0.023;
 		labelSpace=0.17;
 		color=Look.GetBgColor();
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			r=rndR*(280.0/209.0);
+			e=r-rndR;
+			if (pX) *pX=rndX-e;
+			if (pY) *pY=rndY-e;
+			if (pW) *pW=rndW+2*e;
+			if (pH) *pH=rndH+2*e;
+			if (pR) *pR=r;
+			return;
+		}
 		if (func==BORDER_FUNC_PAINT) {
 			color2=canvasColor;
 			if (
 				!color.IsTotallyTransparent() &&
 				(!color2.IsOpaque() || color2!=color)
 			) {
-				r=rndR*(98.0/73.0);
+				r=rndR*(280.0/209.0);
 				e=r-rndR;
 				painter->PaintRoundRect(
 					rndX-e,rndY-e,rndW+2*e,rndH+2*e,
@@ -671,13 +734,13 @@ void emBorder::DoBorder(
 				);
 				color2=0;
 			}
-			r=rndR*(100.0/73.0);
+			r=rndR*(286.0/209.0);
 			e=r-rndR;
 			painter->PaintBorderImage(
 				rndX-e,rndY-e,rndW+2*e,rndH+2*e,
 				r,r,r,r,
 				GetTkResources().ImgGroupBorder,
-				100.0,100.0,100.0,100.0,
+				286.0,286.0,286.0,286.0,
 				255,color2,0757
 			);
 		}
@@ -694,13 +757,23 @@ void emBorder::DoBorder(
 		minSpace=howToSpace=0.023;
 		labelSpace=0.17;
 		color=Look.GetBgColor();
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			r=rndR*(336/293.4);
+			e=r-rndR;
+			if (pX) *pX=rndX-e;
+			if (pY) *pY=rndY-e;
+			if (pW) *pW=rndW+2*e;
+			if (pH) *pH=rndH+2*e;
+			if (pR) *pR=r;
+			return;
+		}
 		if (func==BORDER_FUNC_PAINT) {
 			color2=canvasColor;
 			if (
 				!color.IsTotallyTransparent() &&
 				(!color2.IsOpaque() || color2!=color)
 			) {
-				r=rndR*(125.9/110.5);
+				r=rndR*(336/293.4);
 				e=r-rndR;
 				painter->PaintRoundRect(
 					rndX-e,rndY-e,rndW+2*e,rndH+2*e,
@@ -710,19 +783,27 @@ void emBorder::DoBorder(
 				);
 				color2=0;
 			}
-			r=rndR*(127.0/110.5);
+			r=rndR*(340.0/293.4);
 			e=r-rndR;
 			painter->PaintBorderImage(
 				rndX-e,rndY-e,rndW+2*e,rndH+2*e,
 				r,r,r,r,
 				GetTkResources().ImgButtonBorder,
-				127.0,127.0,127.0,127.0,
+				340.0,340.0,340.0,340.0,
 				255,color2,0757
 			);
 		}
 		if (!color.IsTotallyTransparent()) canvasColor=color;
 		break;
 	case OBT_POPUP_ROOT:
+		if (func==BORDER_FUNC_SUBSTANCE_ROUND_RECT) {
+			if (pX) *pX=0.0;
+			if (pY) *pY=0.0;
+			if (pW) *pW=1.0;
+			if (pH) *pH=h;
+			if (pR) *pR=0.0;
+			return;
+		}
 		s=emMin(1.0,h)*BorderScaling;
 		d=s*0.006;
 		rndX=d;
@@ -741,12 +822,12 @@ void emBorder::DoBorder(
 			canvasColor=color;
 		}
 		if (func==BORDER_FUNC_PAINT) {
-			r=d*(78.0/62.0);
+			r=d*(159.0/159.0);
 			painter->PaintBorderImage(
 				0.0,0.0,1.0,h,
 				r,r,r,r,
 				GetTkResources().ImgPopupBorder,
-				78.0,78.0,78.0,78.0,
+				159.0,159.0,159.0,159.0,
 				255,canvasColor,0757
 			);
 		}
@@ -858,9 +939,9 @@ void emBorder::DoBorder(
 	}
 	else if (Aux) {
 		s=emMin(rndW,rndH);
-		tw=s*0.2;
+		tw=s*0.1;
 		th=tw*Aux->Tallness;
-		d=s*0.03;
+		d=s*0.01;
 		e=rndH-2*emMax(rndR,d);
 		if (th>e) {
 			th=emMax(1E-100,e);
@@ -874,7 +955,7 @@ void emBorder::DoBorder(
 			if (pCanvasColor) *pCanvasColor=canvasColor;
 			return;
 		}
-		e=s*0.04;
+		e=s*0.015;
 		tw+=e+d;
 		if (tw<minSpace) tw=minSpace;
 		rndX+=minSpace;
@@ -921,18 +1002,18 @@ void emBorder::DoBorder(
 
 	switch (InnerBorder) {
 	case IBT_GROUP:
-		r=emMin(1.0,h)*BorderScaling*0.0125;
+		r=emMin(rndW,rndH)*BorderScaling*0.0188;
 		if (rndR<r) rndR=r;
 		if (func==BORDER_FUNC_PAINT) {
 			painter->PaintBorderImage(
 				rndX,rndY,rndW,rndH,
 				rndR,rndR,rndR,rndR,
 				GetTkResources().ImgGroupInnerBorder,
-				136,136,136,136,
+				225,225,225,225,
 				255,canvasColor,0757
 			);
 		}
-		d=rndR*(10.0/136.0);
+		d=rndR*(17.0/225.0);
 		rndX+=d;
 		rndY+=d;
 		rndW-=2*d;
@@ -945,9 +1026,9 @@ void emBorder::DoBorder(
 		break;
 	case IBT_INPUT_FIELD:
 	case IBT_OUTPUT_FIELD:
-		r=emMin(1.0,h)*BorderScaling*0.0125;
+		r=emMin(rndW,rndH)*BorderScaling*0.094;
 		if (rndR<r) rndR=r;
-		d=(1-(119.0-9.0)/119.0)*rndR;
+		d=(1-(216.0-16.0)/216.0)*rndR;
 		tx=rndX+d;
 		ty=rndY+d;
 		tw=rndW-2*d;
@@ -966,15 +1047,15 @@ void emBorder::DoBorder(
 			PaintContent(*painter,recX,recY,recW,recH,canvasColor);
 			painter->PaintBorderImage(
 				rndX,rndY,rndW,rndH,
-				171.0/119*rndR,197.0/119*rndR,120.0/119*rndR,120.0/119*rndR,
+				300.0/216*rndR,346.0/216*rndR,216.0/216*rndR,216.0/216*rndR,
 				GetTkResources().ImgIOField,
-				171.0,197.0,120.0,120.0,
+				300.0,346.0,216.0,216.0,
 				255,0,0757
 			);
 			return;
 		}
 		if (func==BORDER_FUNC_CONTENT_RECT_UNOBSCURED) {
-			d=114.0/119.0*rndR;
+			d=220.0/216.0*rndR;
 			if (pX) *pX=rndX+d;
 			if (pY) *pY=rndY+d;
 			if (pW) *pW=rndW-2*d;
@@ -1003,7 +1084,7 @@ void emBorder::DoBorder(
 				rndX,rndY,rndW,rndH,
 				rndR,rndR,rndR,rndR,
 				GetTkResources().ImgCustomRectBorder,
-				39,39,39,39,
+				200,200,200,200,
 				255,canvasColor,0757
 			);
 		}

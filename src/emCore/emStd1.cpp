@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2012,2014 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -486,7 +486,7 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 		strcat(logFilePath,logFileName);
 		strcat(backupFilePath,backupFileName);
 		logFileMutex.Lock();
-		if (em_stat(logFilePath,&st)==0 && st.st_size>64000) {
+		if (em_stat(logFilePath,&st)==0 && st.st_size>512*1024) {
 			remove(backupFilePath);
 			rename(logFilePath,backupFilePath);
 		}

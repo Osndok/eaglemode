@@ -13,6 +13,7 @@
 # Descr =
 # Descr =  Target: The file or directory to be inspected.
 # Hotkey = Ctrl+I
+# Icon = file_info.tga
 #[[END PROPERTIES]]
 
 use strict;

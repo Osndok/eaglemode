@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>.h
 //
-// Copyright (C) 2004-2008,2010-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -140,38 +140,45 @@
                 // implementation of this method asks the parent panel. See
                 // also: InvalidateTitle()
 
-        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView();
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName();
+                <SPAN CLASS=c>// Get the file name of an icon for this panel. For example,
+                // this is used in bookmarks. The returned string can be the
+                // name of a file in the default icon directory, or an absolute
+                // file path. An empty string means to have no icon. The default
+                // implementation of this method asks the parent panel.
+
+        </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the view.
 
-        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; GetViewContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; GetViewContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the context of the view, this is just like GetView()
                 // because <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> is an <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>. (Yes, this method is
                 // unnecessary)
 
-        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext();
+        </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; GetRootContext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the root context (don't confuse with root panel).
 
-        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * GetWindow();
-        <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * GetScreen();
+        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * GetWindow() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * GetScreen() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// These are short cuts for GetView().GetWindow() and
                 // GetView().GetScreen().
 
-        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetParent();
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetParent() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the parent panel. Returns NULL if this is the root panel.
 
-        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetChild(<SPAN CLASS=t>const char </SPAN>* name);
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetChild(<SPAN CLASS=t>const char </SPAN>* name) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Search a child panel by name. Returns NULL if there is no
                 // such panel.
 
-        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFirstChild();
-        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetLastChild();
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFirstChild() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetLastChild() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the first or last child panel. The first child panel is
                 // painted at first, and the last one is painted at last (first
                 // means bottom, last means top). Returns NULL if this panel has
                 // no children.
 
-        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPrev();
-        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetNext();
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetPrev() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetNext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the previous or next panel within the list of the
                 // parent's list of children. It is painted before or after this
                 // panel, respectively. Returns NULL if this is the first or
@@ -248,13 +255,30 @@
                 // height/width ratios instead of width/height ratios. Let's
                 // call it "tallness".
 
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetSubstanceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                      <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                                      <SPAN CLASS=t>double </SPAN>* pR);
+                <SPAN CLASS=c>// Get the substance rectangle of this panel. This should
+                // surround everything except empty margins and shadows. It is
+                // used by <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> to paint the focus rectangle, and it is used
+                // to filter mouse and touch events (the panel will not get such
+                // events outside of the rectangle). The returned rectangle is
+                // in the coordinate system of this panel. It can have round
+                // corners (*pR is set to the radius). The default
+                // implementation returns the whole panel rectangle with zero
+                // radius.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsPointInSubstanceRect(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+                <SPAN CLASS=c>// Ask if a point lies within the substance rectangle. The point
+                // must be given in the coordinate system of this panel.
+
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetEssenceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
                                     <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH);
                 <SPAN CLASS=c>// Get the essence rectangle of this panel. When the panel is to
                 // be shown full-sized in the view, this rectangular part of the
                 // panel is actually shown full-sized. The returned rectangle is
                 // in the coordinate system of this panel. The default
-                // implementation returns the whole panel rectangle.
+                // implementation calls GetSubstanceRect(...).
 
         </SPAN><SPAN CLASS=t>bool </SPAN>IsViewed() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsInViewedPath() <SPAN CLASS=t>const</SPAN>;
@@ -367,11 +391,11 @@
                 // root panel must always be focusable. Thus, it has no effect
                 // to call SetFocusable(false) on the root panel.
 
-        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableParent();
-        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableFirstChild();
-        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableLastChild();
-        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusablePrev();
-        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableNext();
+        </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableParent() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableFirstChild() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableLastChild() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusablePrev() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetFocusableNext() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Like GetParent, GetFirstChild and so on, but these methods
                 // behave like if all non-focusable panels would have been
                 // removed from the panel tree. At such a thought removal, the
@@ -508,17 +532,19 @@
                 // Arguments:
                 //   event  - An input event. This is non-empty only if:
                 //            * It is a mouse button event, and the mouse
-                //              position lies within the panel and all its
-                //              ancestors, and the event has not been eaten by a
-                //              descendant panel or by an overlapping panel in
-                //              front or by a view input filter.
-                //            * It is a touch event, and the first touch
-                //              position lies within the panel and all its
-                //              ancestors, and the event has not been eaten by a
-                //              descendant panel or by an overlapping panel in
-                //              front or by a view input filter. Normally, touch
-                //              events are converted to mouse events by a view
+                //              position lies within the substance rectangles of
+                //              the panel and of all of its ancestors, and the
+                //              event has not been eaten by a descendant panel
+                //              or by an overlapping panel in front or by a view
                 //              input filter.
+                //            * It is a touch event, and the first touch
+                //              position lies within the substance rectangles of
+                //              the panel and of all of its ancestors, and the
+                //              event has not been eaten by a descendant panel
+                //              or by an overlapping panel in front or by a view
+                //              input filter. Normally, touch events are
+                //              converted to mouse events by a view input
+                //              filter.
                 //            * It is a keyboard key event, and this panel is in
                 //              focused path, and the event has not been eaten
                 //              by a descendant panel or by a view input filter.
@@ -753,53 +779,53 @@
         </SPAN><SPAN CLASS=k>return </SPAN>Name;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetView()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetView() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetViewContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetRootContext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetRootContext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View.GetRootContext();
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetWindow()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetWindow() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View.GetWindow();
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetScreen()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScreen_h.html#emScreen">emScreen</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetScreen() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>View.GetScreen();
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetParent()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetParent() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Parent;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetFirstChild()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetFirstChild() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>FirstChild;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLastChild()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetLastChild() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>LastChild;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetPrev()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetPrev() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Prev;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetNext()
-<SPAN CLASS=b>{
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetNext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Next;
 <SPAN CLASS=b>}
 

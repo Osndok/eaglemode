@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.h
 //
-// Copyright (C) 2006-2008,2010-2011,2015 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,7 +41,7 @@ protected:
 	);
 	virtual void GetBorderSizes(
 		double * pL, double * pT, double * pR, double * pB
-	);
+	) const;
 	virtual void RequestFocus();
 	virtual void Raise();
 	virtual emUInt64 GetInputClockMS();
@@ -83,8 +83,10 @@ private:
 	emWndsScreen & Screen;
 	emWndsWindowPort * Owner;
 	HWND HWnd;
+	emWindow::WindowFlags WindowFlags;
 	int MinPaneW,MinPaneH;
 	int PaneX,PaneY,PaneW,PaneH;
+	int RestoreX,RestoreY,RestoreW,RestoreH;
 	double ClipX1,ClipY1,ClipX2,ClipY2;
 	emString Title;
 	emCursor Cursor;

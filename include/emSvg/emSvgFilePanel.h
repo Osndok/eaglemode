@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.h
 //
-// Copyright (C) 2010 Oliver Hamann.
+// Copyright (C) 2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,6 +46,8 @@ public:
 
 	virtual void SetFileModel(emFileModel * fileModel,
 	                          bool updateFileModel=true);
+
+	virtual emString GetIconFileName();
 
 	virtual void GetEssenceRect(double * pX, double * pY,
 	                            double * pW, double * pH);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.h
 //
-// Copyright (C) 2006-2012 Oliver Hamann.
+// Copyright (C) 2006-2012,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,8 +21,12 @@
 #ifndef emMainWindow_h
 #define emMainWindow_h
 
-#ifndef emWindow_h
-#include <emCore/emWindow.h>
+#ifndef emViewAnimator_h
+#include <emCore/emViewAnimator.h>
+#endif
+
+#ifndef emWindowStateSaver_h
+#include <emCore/emWindowStateSaver.h>
 #endif
 
 #ifndef emBookmarks_h
@@ -38,17 +42,21 @@ class emMainWindow : public emWindow {
 
 public:
 
-	emMainWindow(emContext & parentContext);
+	emMainWindow(
+		emContext & parentContext,
+		const char * visitIdentity=NULL,
+		double visitRelX=0.0,
+		double visitRelY=0.0,
+		double visitRelA=0.0,
+		bool visitAdherent=false,
+		const char * visitSubject=NULL,
+		emColor ceColor=0
+	);
 	virtual ~emMainWindow();
 
 	virtual emString GetTitle();
 
-	emMainPanel & GetMainPanel();
-	emView & GetControlView();
-	emView & GetContentView();
-
 	emMainWindow * Duplicate();
-
 	void ToggleFullscreen();
 	void ReloadFiles();
 	void ToggleControlView();
@@ -68,29 +76,46 @@ private:
 	static void RecreateContentPanels(emScreen & screen);
 	void CreateControlWindow();
 
+	class StartupEngineClass : public emEngine {
+	public:
+		StartupEngineClass(
+			emMainWindow & mainWin,
+			const char * visitIdentity,
+			double visitRelX,
+			double visitRelY,
+			double visitRelA,
+			bool visitAdherent,
+			const char * visitSubject,
+			emColor ceColor
+		);
+		virtual ~StartupEngineClass();
+	protected:
+		virtual bool Cycle();
+	private:
+		emMainWindow & MainWin;
+		bool VisitValid;
+		emString VisitIdentity;
+		double VisitRelX;
+		double VisitRelY;
+		double VisitRelA;
+		bool VisitAdherent;
+		emString VisitSubject;
+		emColor CeColor;
+		emVisitingViewAnimator * VisitingVA;
+		int State;
+		emUInt64 Clk;
+	};
+	friend class StartupEngineClass;
+
+	emWindowStateSaver WindowStateSaver;
 	emRef<emBookmarksModel> BookmarksModel;
 	bool ToClose;
-
 	emMainPanel * MainPanel;
 	emPanel * ControlPanel;
 	emPanel * ContentPanel;
 	emCrossPtr<emWindow> ControlWindow;
+	StartupEngineClass * StartupEngine;
 };
-
-inline emMainPanel & emMainWindow::GetMainPanel()
-{
-	return *MainPanel;
-}
-
-inline emView & emMainWindow::GetControlView()
-{
-	return MainPanel->GetControlView();
-}
-
-inline emView & emMainWindow::GetContentView()
-{
-	return MainPanel->GetContentView();
-}
 
 
 #endif

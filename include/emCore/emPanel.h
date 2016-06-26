@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.h
 //
-// Copyright (C) 2004-2008,2010-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -131,38 +131,45 @@ public:
 		// implementation of this method asks the parent panel. See
 		// also: InvalidateTitle()
 
-	emView & GetView();
+	virtual emString GetIconFileName();
+		// Get the file name of an icon for this panel. For example,
+		// this is used in bookmarks. The returned string can be the
+		// name of a file in the default icon directory, or an absolute
+		// file path. An empty string means to have no icon. The default
+		// implementation of this method asks the parent panel.
+
+	emView & GetView() const;
 		// Get the view.
 
-	emContext & GetViewContext();
+	emContext & GetViewContext() const;
 		// Get the context of the view, this is just like GetView()
 		// because emView is an emContext. (Yes, this method is
 		// unnecessary)
 
-	emRootContext & GetRootContext();
+	emRootContext & GetRootContext() const;
 		// Get the root context (don't confuse with root panel).
 
-	emWindow * GetWindow();
-	emScreen * GetScreen();
+	emWindow * GetWindow() const;
+	emScreen * GetScreen() const;
 		// These are short cuts for GetView().GetWindow() and
 		// GetView().GetScreen().
 
-	emPanel * GetParent();
+	emPanel * GetParent() const;
 		// Get the parent panel. Returns NULL if this is the root panel.
 
-	emPanel * GetChild(const char * name);
+	emPanel * GetChild(const char * name) const;
 		// Search a child panel by name. Returns NULL if there is no
 		// such panel.
 
-	emPanel * GetFirstChild();
-	emPanel * GetLastChild();
+	emPanel * GetFirstChild() const;
+	emPanel * GetLastChild() const;
 		// Get the first or last child panel. The first child panel is
 		// painted at first, and the last one is painted at last (first
 		// means bottom, last means top). Returns NULL if this panel has
 		// no children.
 
-	emPanel * GetPrev();
-	emPanel * GetNext();
+	emPanel * GetPrev() const;
+	emPanel * GetNext() const;
 		// Get the previous or next panel within the list of the
 		// parent's list of children. It is painted before or after this
 		// panel, respectively. Returns NULL if this is the first or
@@ -239,13 +246,30 @@ public:
 		// height/width ratios instead of width/height ratios. Let's
 		// call it "tallness".
 
+	virtual void GetSubstanceRect(double * pX, double * pY,
+	                              double * pW, double * pH,
+	                              double * pR);
+		// Get the substance rectangle of this panel. This should
+		// surround everything except empty margins and shadows. It is
+		// used by emView to paint the focus rectangle, and it is used
+		// to filter mouse and touch events (the panel will not get such
+		// events outside of the rectangle). The returned rectangle is
+		// in the coordinate system of this panel. It can have round
+		// corners (*pR is set to the radius). The default
+		// implementation returns the whole panel rectangle with zero
+		// radius.
+
+	bool IsPointInSubstanceRect(double x, double y);
+		// Ask if a point lies within the substance rectangle. The point
+		// must be given in the coordinate system of this panel.
+
 	virtual void GetEssenceRect(double * pX, double * pY,
 	                            double * pW, double * pH);
 		// Get the essence rectangle of this panel. When the panel is to
 		// be shown full-sized in the view, this rectangular part of the
 		// panel is actually shown full-sized. The returned rectangle is
 		// in the coordinate system of this panel. The default
-		// implementation returns the whole panel rectangle.
+		// implementation calls GetSubstanceRect(...).
 
 	bool IsViewed() const;
 	bool IsInViewedPath() const;
@@ -358,11 +382,11 @@ public:
 		// root panel must always be focusable. Thus, it has no effect
 		// to call SetFocusable(false) on the root panel.
 
-	emPanel * GetFocusableParent();
-	emPanel * GetFocusableFirstChild();
-	emPanel * GetFocusableLastChild();
-	emPanel * GetFocusablePrev();
-	emPanel * GetFocusableNext();
+	emPanel * GetFocusableParent() const;
+	emPanel * GetFocusableFirstChild() const;
+	emPanel * GetFocusableLastChild() const;
+	emPanel * GetFocusablePrev() const;
+	emPanel * GetFocusableNext() const;
 		// Like GetParent, GetFirstChild and so on, but these methods
 		// behave like if all non-focusable panels would have been
 		// removed from the panel tree. At such a thought removal, the
@@ -499,17 +523,19 @@ protected:
 		// Arguments:
 		//   event  - An input event. This is non-empty only if:
 		//            * It is a mouse button event, and the mouse
-		//              position lies within the panel and all its
-		//              ancestors, and the event has not been eaten by a
-		//              descendant panel or by an overlapping panel in
-		//              front or by a view input filter.
-		//            * It is a touch event, and the first touch
-		//              position lies within the panel and all its
-		//              ancestors, and the event has not been eaten by a
-		//              descendant panel or by an overlapping panel in
-		//              front or by a view input filter. Normally, touch
-		//              events are converted to mouse events by a view
+		//              position lies within the substance rectangles of
+		//              the panel and of all of its ancestors, and the
+		//              event has not been eaten by a descendant panel
+		//              or by an overlapping panel in front or by a view
 		//              input filter.
+		//            * It is a touch event, and the first touch
+		//              position lies within the substance rectangles of
+		//              the panel and of all of its ancestors, and the
+		//              event has not been eaten by a descendant panel
+		//              or by an overlapping panel in front or by a view
+		//              input filter. Normally, touch events are
+		//              converted to mouse events by a view input
+		//              filter.
 		//            * It is a keyboard key event, and this panel is in
 		//              focused path, and the event has not been eaten
 		//              by a descendant panel or by a view input filter.
@@ -744,52 +770,52 @@ inline const emString & emPanel::GetName() const
 	return Name;
 }
 
-inline emView & emPanel::GetView()
+inline emView & emPanel::GetView() const
 {
 	return View;
 }
 
-inline emContext & emPanel::GetViewContext()
+inline emContext & emPanel::GetViewContext() const
 {
 	return View;
 }
 
-inline emRootContext & emPanel::GetRootContext()
+inline emRootContext & emPanel::GetRootContext() const
 {
 	return View.GetRootContext();
 }
 
-inline emWindow * emPanel::GetWindow()
+inline emWindow * emPanel::GetWindow() const
 {
 	return View.GetWindow();
 }
 
-inline emScreen * emPanel::GetScreen()
+inline emScreen * emPanel::GetScreen() const
 {
 	return View.GetScreen();
 }
 
-inline emPanel * emPanel::GetParent()
+inline emPanel * emPanel::GetParent() const
 {
 	return Parent;
 }
 
-inline emPanel * emPanel::GetFirstChild()
+inline emPanel * emPanel::GetFirstChild() const
 {
 	return FirstChild;
 }
 
-inline emPanel * emPanel::GetLastChild()
+inline emPanel * emPanel::GetLastChild() const
 {
 	return LastChild;
 }
 
-inline emPanel * emPanel::GetPrev()
+inline emPanel * emPanel::GetPrev() const
 {
 	return Prev;
 }
 
-inline emPanel * emPanel::GetNext()
+inline emPanel * emPanel::GetNext() const
 {
 	return Next;
 }

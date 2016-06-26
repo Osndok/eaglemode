@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSplitter.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,7 +98,7 @@ private:
 		double contentX, double contentY, double contentW,
 		double contentH, double * pX, double * pY, double * pW,
 		double * pH
-	);
+	) const;
 
 	bool Vertical;
 	double MinPos;

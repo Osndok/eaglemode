@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -132,7 +132,7 @@ protected:
 
 private:
 
-	emString GetCommonPath();
+	static emString GetCommonPath();
 	void DeleteDeadDirectories();
 	void StartOwnDirectory();
 

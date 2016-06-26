@@ -248,7 +248,7 @@ void emScalarField::Input(
 	}
 	else if (
 		inArea && event.IsKey(EM_KEY_LEFT_BUTTON) && IsEditable() &&
-		IsEnabled() && GetViewCondition(VCT_MIN_EXT)>=4.0
+		IsEnabled() && GetViewCondition(VCT_MIN_EXT)>=8.0
 	) {
 		Pressed=true;
 		InvalidatePainting();

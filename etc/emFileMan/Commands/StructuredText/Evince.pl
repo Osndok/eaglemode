@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 3.0
+# Order = 2.0
 # Interpreter = perl
 # DefaultFor = .dvi:.pdf:.ps:.eps
 # Caption = Evince
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files to be opened.
+# Icon = thirdparty/evince.tga
 #[[END PROPERTIES]]
 
 use strict;

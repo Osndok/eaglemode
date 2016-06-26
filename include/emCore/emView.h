@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2012,2014 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -168,7 +168,7 @@ public:
 	bool IsFocused() const;
 		// Whether this view has the focus.
 
-	const emSignal & GetFocusSignal();
+	const emSignal & GetFocusSignal() const;
 		// This signal is signaled when the focus of this view has
 		// changed.
 
@@ -177,13 +177,13 @@ public:
 		// emViewPort implementation. Hint: If this is an emWindow, you
 		// may want to call Raise() before.
 
-	emWindow * GetWindow();
+	emWindow * GetWindow() const;
 		// Get the window of this view. It returns the nearest window
 		// within the path of contexts to this view. If this view itself
 		// is a window, that window is returned. If no window can be
 		// found, NULL is returned. The result is cached internally.
 
-	emScreen * GetScreen();
+	emScreen * GetScreen() const;
 		// Get the screen of this view. If GetWindow() returns non-NULL,
 		// the screen of that window is returned. Otherwise the call is
 		// forwarded to emScreen::LookupInherited(*this). The result is
@@ -221,8 +221,16 @@ public:
 		// This signal is signaled when the home geometry or the current
 		// geometry of this view has changed.
 
-	emViewInputFilter * GetFirstVIF();
-	emViewInputFilter * GetLastVIF();
+	void GetMaxPopupViewRect(double * pX, double * pY,
+	                         double * pW, double * pH) const;
+		// Get the pixel coordinates of the maximum visible rectangle of
+		// a popup. This is the bounding rectangle of all display
+		// monitors, which intersect the home rectangle of the view. The
+		// given pointers are for returning the rectangle coordinates
+		// (x,y,w,h). NULL pointers are allowed.
+
+	emViewInputFilter * GetFirstVIF() const;
+	emViewInputFilter * GetLastVIF() const;
 		// Get the first or last view input filter (VIF) in the chain of
 		// the VIFs of this view. The default chain (after constructing
 		// the view) contains emDefaultTouchVIF, emCheatVIF,
@@ -235,18 +243,18 @@ public:
 		// possibility of parent and child views (=>emSubViewPanel).
 		// Parent views should always have VF_NO_ZOOM.
 
-	emPanel * GetRootPanel();
+	emPanel * GetRootPanel() const;
 		// Get the root panel of this view. Returns NULL when this view
 		// has no panels.
 
-	emPanel * GetSupremeViewedPanel();
+	emPanel * GetSupremeViewedPanel() const;
 		// Get the supreme viewed panel. It is the upper-most panel in
 		// the panel tree which has IsViewed()==true. Returns NULL when
 		// this view has no panels. The supreme viewed panel is always
 		// chosen automatically by the view, depending on the visit
 		// state.
 
-	emPanel * GetActivePanel();
+	emPanel * GetActivePanel() const;
 		// Get the active panel. The active panel is the panel which is
 		// focused when the view is focused. Returns NULL when this view
 		// has no panels.
@@ -266,18 +274,22 @@ public:
 		// activation is adherent, the activation is changed only if it
 		// is really too bad.
 
-	emPanel * GetPanelByIdentity(const char * identity);
+	emPanel * GetPanelByIdentity(const char * identity) const;
 		// Search for a panel by identity (see emPanel::GetIdentity()).
 		// Returns NULL if not found.
 
-	emPanel * GetPanelAt(double x, double y);
+	emPanel * GetPanelAt(double x, double y) const;
 		// Get the uppermost panel at the given point.
 
-	emPanel * GetFocusablePanelAt(double x, double y);
-		// Get the uppermost focusable panel at the given point.
+	emPanel * GetFocusablePanelAt(double x, double y,
+	                              bool checkSubstance) const;
+		// Get the uppermost focusable panel at the given point. If
+		// checkSubstance is true, the substance rectangles of the
+		// panels are checked. Otherwise the whole panel rectangles are
+		// checked.
 
 	emPanel * GetVisitedPanel(double * pRelX=NULL, double * pRelY=NULL,
-	                          double * pRelA=NULL);
+	                          double * pRelA=NULL) const;
 		// Get the visited panel and optionally relative coordinates.
 		// The visited panel is the one on which the view is currently
 		// anchored. That means, if any panel layout is changed, the
@@ -401,7 +413,7 @@ public:
 		//   pDeltaZDone - Pointer for returning the number of pixels by
 		//                 which the view actually has been zoomed.
 
-	double GetZoomFactorLogarithmPerPixel();
+	double GetZoomFactorLogarithmPerPixel() const;
 		// How much zooming feels the same amount of motion to the user
 		// as scrolling one pixel, returned as natural logarithm of zoom
 		// factor.
@@ -415,7 +427,7 @@ public:
 		// Like ZoomOut(), but without aborting animations and without
 		// changing the active panel.
 
-	bool IsZoomedOut();
+	bool IsZoomedOut() const;
 		// Whether the view is currently zoomed out completely.
 
 	bool IsPoppedUp() const;
@@ -525,11 +537,14 @@ private:
 	friend class emCheatVIF;
 	friend class emPanel;
 	friend class emSubViewPanel;
+	friend class emWindow;
 
 	struct PanelRingNode {
 		PanelRingNode * Prev;
 		PanelRingNode * Next;
 	};
+
+	void SetWindowAndScreen(emWindow * window=NULL);
 
 	void SetFocused(bool focused);
 	void SetGeometry(double x, double y, double width, double height,
@@ -540,11 +555,11 @@ private:
 	void Update();
 
 	void CalcVisitCoords(emPanel * panel, double * pRelX,
-	                     double * pRelY, double * pRelA);
+	                     double * pRelY, double * pRelA) const;
 
 	void CalcVisitFullsizedCoords(emPanel * panel, double * pRelX,
 	                              double * pRelY, double * pRelA,
-	                              bool utilizeView=false);
+	                              bool utilizeView=false) const;
 
 	void RawVisit(emPanel * panel, double relX, double relY, double relA,
 	              bool forceViewingUpdate);
@@ -553,9 +568,9 @@ private:
 	void RawZoomOut(bool forceViewingUpdate);
 
 	void FindBestSVP(emPanel * * pPanel, double * pVx, double * pVy,
-	                 double * pVw);
+	                 double * pVw) const;
 	bool FindBestSVPInTree(emPanel * * pPanel, double * pVx, double * pVy,
-	                       double * pVw, bool covering);
+	                       double * pVw, bool covering) const;
 
 	void SwapViewPorts(bool swapFocus);
 
@@ -565,10 +580,27 @@ private:
 	                  const emInputState & state);
 
 	void InvalidateHighlight();
-	void PaintHighlight(const emPainter & painter);
+	void PaintHighlight(const emPainter & painter) const;
+	void PaintHighlightArrowsOnLine(
+		const emPainter & painter, double x, double y,
+		double dx, double dy, double pos, double delta,
+		int count, double goalX, double goalY, double arrowSize,
+		emColor shadowColor, emColor arrowColor
+	) const;
+	void PaintHighlightArrowsOnBow(
+		const emPainter & painter, double x, double y, double radius,
+		int quadrant, double pos, double delta, int count,
+		double goalX, double goalY, double arrowSize,
+		emColor shadowColor, emColor arrowColor
+	) const;
+	void PaintHighlightArrow(
+		const emPainter & painter, double x, double y,
+		double goalX, double goalY, double arrowSize,
+		emColor shadowColor, emColor arrowColor
+	) const;
 
 	void SetSeekPos(emPanel * panel, const char * childName);
-	bool IsHopeForSeeking();
+	bool IsHopeForSeeking() const;
 
 	class UpdateEngineClass : public emEngine {
 	public:
@@ -612,10 +644,8 @@ private:
 	emViewPort * DummyViewPort;
 	emViewPort * HomeViewPort;
 	emViewPort * CurrentViewPort;
-	emWindow * WindowPtrCache;
-	emRef<emModel> ScreenRefCache;
-	bool WindowPtrValid;
-	bool ScreenRefValid;
+	emWindow * Window;
+	emRef<emModel> ScreenRef;
 	emWindow * PopupWindow;
 	emViewInputFilter * FirstVIF;
 	emViewInputFilter * LastVIF;
@@ -719,9 +749,9 @@ protected:
 
 	void InputToView(emInputEvent & event, const emInputState & state);
 
-	emCursor GetViewCursor();
+	emCursor GetViewCursor() const;
 
-	void PaintView(const emPainter & painter, emColor canvasColor);
+	void PaintView(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void InvalidateCursor();
 
@@ -776,9 +806,14 @@ inline bool emView::IsFocused() const
 	return Focused;
 }
 
-inline const emSignal & emView::GetFocusSignal()
+inline const emSignal & emView::GetFocusSignal() const
 {
 	return FocusSignal;
+}
+
+inline emWindow * emView::GetWindow() const
+{
+	return Window;
 }
 
 inline double emView::GetHomeX() const
@@ -846,27 +881,27 @@ inline const emSignal & emView::GetGeometrySignal() const
 	return GeometrySignal;
 }
 
-inline emViewInputFilter * emView::GetFirstVIF()
+inline emViewInputFilter * emView::GetFirstVIF() const
 {
 	return FirstVIF;
 }
 
-inline emViewInputFilter * emView::GetLastVIF()
+inline emViewInputFilter * emView::GetLastVIF() const
 {
 	return LastVIF;
 }
 
-inline emPanel * emView::GetRootPanel()
+inline emPanel * emView::GetRootPanel() const
 {
 	return RootPanel;
 }
 
-inline emPanel * emView::GetSupremeViewedPanel()
+inline emPanel * emView::GetSupremeViewedPanel() const
 {
 	return SupremeViewedPanel;
 }
 
-inline emPanel * emView::GetActivePanel()
+inline emPanel * emView::GetActivePanel() const
 {
 	return ActivePanel;
 }
@@ -958,14 +993,14 @@ inline void emViewPort::SetViewFocused(bool focused)
 	CurrentView->SetFocused(focused);
 }
 
-inline emCursor emViewPort::GetViewCursor()
+inline emCursor emViewPort::GetViewCursor() const
 {
 	return CurrentView->GetCursor();
 }
 
 inline void emViewPort::PaintView(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	CurrentView->Paint(painter,canvasColor);
 }

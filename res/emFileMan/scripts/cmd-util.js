@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2012 Oliver Hamann.
+// Copyright (C) 2008-2012,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -52,8 +52,6 @@ var Tgt=new Array;
 	}
 	for (j=0; j<srcCnt; j++) Src[j]=WScript.Arguments(i+j);
 	for (j=0; j<tgtCnt; j++) Tgt[j]=WScript.Arguments(i+srcCnt+j);
-	CheckEnvProblem(Src);
-	CheckEnvProblem(Tgt);
 }
 
 
@@ -152,67 +150,92 @@ function GetTgtListing()
 
 //============================== General Helpers ===============================
 
-function CommandFromArgs(argsArray)
+function BasicQuoteArg(arg)
 {
-	var i,j,k,c,cmd,arg;
+	var str,res,i,k,c;
+
+	str=arg.toString();
+	for (i=str.length-1; i>=0; i--) {
+		c=str.charAt(i);
+		if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
+		    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-') break;
+	}
+	if (i<0 && str.length>0) {
+		res=str;
+	}
+	else {
+		res='"';
+		k=0;
+		for (i=0; i<str.length; i++) {
+			c=str.charAt(i);
+			if (c=='"') {
+				while (k>0) { res+='\\'; k--; }
+				res+='\\';
+			}
+			else if (c=='\\') k++;
+			else k=0;
+			res+=c;
+		}
+		while (k>0) { res+='\\'; k--; }
+		res+='"';
+	}
+	return (res);
+}
+
+
+function BatQuoteArg(arg)
+{
+	var str,i;
+
+	str=BasicQuoteArg(arg);
+	for (i=str.length-1; i>=0; i--) {
+		if (str.charAt(i)=='%') {
+			str=str.substr(0,i)+'%'+str.substr(i);
+		}
+	}
+	return (str);
+}
+
+
+function WshShellQuoteArg(arg)
+{
+	var str,i;
+
+	str=BasicQuoteArg(arg);
+	for (i=str.length-1; i>=0; i--) {
+		if (str.charAt(i)=='%') {
+			var env=WshShell.Environment("PROCESS");
+			if (env("PERCENT_SIGN")!="%") env("PERCENT_SIGN")="%";
+			str=str.substr(0,i)+'%PERCENT_SIGN'+str.substr(i);
+		}
+	}
+	return (str);
+}
+
+
+function BatCmdFromArgs(argsArray)
+{
+	var cmd,i;
 
 	cmd="";
 	for (i=0; i<argsArray.length; i++) {
 		if (i>0) cmd+=" ";
-		arg=argsArray[i];
-		for (j=arg.length-1; j>=0; j--) {
-			c=arg.charAt(j);
-			if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
-			    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-' && c!='+') break;
-		}
-		if (j<0 && arg.length>0) {
-			cmd+=arg;
-		}
-		else {
-			cmd+='"';
-			k=0;
-			for (j=0; j<arg.length; j++) {
-				c=arg.charAt(j);
-				if (c=='"') {
-					while (k>0) { cmd+='\\'; k--; }
-					cmd+='\\';
-				}
-				else if (c=='\\') k++;
-				else k=0;
-				cmd+=c;
-			}
-			while (k>0) { cmd+='\\'; k--; }
-			cmd+='"';
-		}
+		cmd+=BatQuoteArg(argsArray[i]);
 	}
 	return (cmd);
 }
 
 
-function QuoteArg(arg)
+function WshShellCmdFromArgs(argsArray)
 {
-	return (CommandFromArgs([arg]));
-}
+	var cmd,i;
 
-
-function CheckEnvProblem(argOrArgs)
-{
-	if (typeof argOrArgs == "string") {
-		if (argOrArgs.indexOf('%')>=0) {
-			WScript.Echo(
-				"ERROR: An argument contains a percent character: "+
-				argOrArgs+". "+
-				"This is not handled because of the danger of "+
-				"accidentally resolving of an environment variable."
-			);
-			WScript.Quit(1);
-		}
+	cmd="";
+	for (i=0; i<argsArray.length; i++) {
+		if (i>0) cmd+=" ";
+		cmd+=WshShellQuoteArg(argsArray[i]);
 	}
-	else {
-		for (var i=0; i<argOrArgs.length; i++) {
-			CheckEnvProblem(argOrArgs[i]);
-		}
-	}
+	return (cmd);
 }
 
 
@@ -356,7 +379,7 @@ function Send(cmd,files)
 		args[3]=env("EM_COMMAND_RUN_ID");
 		args=args.concat(files);
 	}
-	WshShell.Run(CommandFromArgs(args),1,true);
+	WshShell.Run(WshShellCmdFromArgs(args),1,true);
 }
 
 
@@ -401,14 +424,12 @@ function StartDlg(argsArray)
 	h=300;
 	x=Math.round(parseInt(env("EM_X"))+(parseInt(env("EM_WIDTH"))-w)/2);
 	y=Math.round(parseInt(env("EM_Y"))+(parseInt(env("EM_HEIGHT"))-h)/2);
-	if (x<0) x=0;
-	if (y<0) y=0;
 	allArgs=new Array;
 	allArgs[0]=env("EM_DIR") + "\\bin\\emShowStdDlg.exe";
 	allArgs[1]="-geometry";
 	allArgs[2]=w+"x"+h+"+"+x+"+"+y;
 	for (i=0; i<argsArray.length; i++) allArgs[3+i]=argsArray[i];
-	return (WshShell.Exec(CommandFromArgs(allArgs)));
+	return (WshShell.Exec(WshShellCmdFromArgs(allArgs)));
 }
 
 
@@ -471,7 +492,6 @@ function Edit(title,text,initial)
 
 	res=DlgRead(["edit",title,text,initial]);
 	if (res==null) WScript.Quit(1);
-	CheckEnvProblem(res);
 	return (res);
 }
 
@@ -721,7 +741,7 @@ function BatEnd()
 		"echo SUCCESS!\n"+
 		"echo.\n"+
 		"cscript /nologo " +
-			QuoteArg(
+			BatQuoteArg(
 				WshShell.ExpandEnvironmentStrings(
 					"%EM_DIR%\\res\\emFileMan\\scripts\\msleep.js"
 				)
@@ -733,7 +753,7 @@ function BatEnd()
 		BatFileHandle=undefined;
 	}
 	if (BatFilePath) {
-		WshShell.Run(CommandFromArgs(["cmd","/C",BatFilePath,"key892345289"]),1,true);
+		WshShell.Run(WshShellCmdFromArgs(["cmd","/C",BatFilePath,"key892345289"]),1,true);
 		FileSys.GetFile(BatFilePath).Delete(true);
 		BatFilePath=undefined;
 	}
@@ -781,13 +801,13 @@ function BatWriteLineEchoed(line)
 
 function BatWriteCmd(argsArray)
 {
-	BatWriteLine(CommandFromArgs(argsArray));
+	BatWriteLine(BatCmdFromArgs(argsArray));
 }
 
 
 function BatWriteCmdEchoed(argsArray)
 {
-	BatWriteLineEchoed(CommandFromArgs(argsArray));
+	BatWriteLineEchoed(BatCmdFromArgs(argsArray));
 }
 
 
@@ -868,7 +888,7 @@ function BatWritePack(format,archive,dir,names)
 {
 	BatWriteCmdEchoed(['cd','/D',dir]);
 	BatWriteLine("if errorlevel 1 goto _L_PACK_ERROR");
-	BatWriteLine("if exist " + QuoteArg(archive) + " (");
+	BatWriteLine("if exist " + BatQuoteArg(archive) + " (");
 	BatWriteCmdEchoed(["del","/F","/Q",archive]);
 	BatWriteLine("if errorlevel 1 goto _L_PACK_ERROR");
 	BatWriteLine(")");
@@ -914,20 +934,20 @@ function BatWritePack(format,archive,dir,names)
 		BatWriteCmdEchoed(ConcatArrays(['lha','av',archive],names));
 	}
 	else if (TestEnding(f,'tar')) {
-		BatWriteLineEchoed("tar cvf - "+CommandFromArgs(names)+" > "+QuoteArg(archive));
+		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar.bz2') || TestEnding(f,'tbz2') ||
 	         TestEnding(f,'tgj')) {
-		BatWriteLineEchoed("tar cvf - "+CommandFromArgs(names)+" | bzip2 -c > "+QuoteArg(archive));
+		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | bzip2 -c > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar.gz') || TestEnding(f,'tgz')) {
-		BatWriteLineEchoed("tar cvf - "+CommandFromArgs(names)+" | gzip -c > "+QuoteArg(archive));
+		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | gzip -c > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz')) {
-		BatWriteLineEchoed("tar cvf - "+CommandFromArgs(names)+" | xz --stdout --format=lzma > "+QuoteArg(archive));
+		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | xz --stdout --format=lzma > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
-		BatWriteLineEchoed("tar cvf - "+CommandFromArgs(names)+" | xz --stdout > "+QuoteArg(archive));
+		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | xz --stdout > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
 		if (!HasAnyEnding(archive)) {
@@ -947,7 +967,7 @@ function BatWritePack(format,archive,dir,names)
 			BatAbort();
 			Error("Cannot pack a directory with bzip2.");
 		}
-		BatWriteLineEchoed("bzip2 -c "+QuoteArg(names[0])+" > "+QuoteArg(archive));
+		BatWriteLineEchoed("bzip2 -c "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'gz')) {
 		if (names.length>1) {
@@ -958,7 +978,7 @@ function BatWritePack(format,archive,dir,names)
 			BatAbort();
 			Error("Cannot pack a directory with gzip.");
 		}
-		BatWriteLineEchoed("gzip -c "+QuoteArg(names[0])+" > "+QuoteArg(archive));
+		BatWriteLineEchoed("gzip -c "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'lzma')) {
 		if (names.length>1) {
@@ -969,7 +989,7 @@ function BatWritePack(format,archive,dir,names)
 			BatAbort();
 			Error("Cannot pack a directory with lzma.");
 		}
-		BatWriteLineEchoed("xz --stdout --format=lzma "+QuoteArg(names[0])+" > "+QuoteArg(archive));
+		BatWriteLineEchoed("xz --stdout --format=lzma "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'xz')) {
 		if (names.length>1) {
@@ -980,7 +1000,7 @@ function BatWritePack(format,archive,dir,names)
 			BatAbort();
 			Error("Cannot pack a directory with xz.");
 		}
-		BatWriteLineEchoed("xz --stdout "+QuoteArg(names[0])+" > "+QuoteArg(archive));
+		BatWriteLineEchoed("xz --stdout "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
 	}
 	else {
 		BatAbort();
@@ -1015,20 +1035,20 @@ function BatWriteUnpack(format,archive,dir)
 		BatWriteCmdEchoed(['lha','xv',archive]);
 	}
 	else if (TestEnding(f,'tar')) {
-		BatWriteLineEchoed("tar xvf - < "+QuoteArg(archive));
+		BatWriteLineEchoed("tar xvf - < "+BatQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar.bz2') || TestEnding(f,'tbz2') ||
 	         TestEnding(f,'tgj') || TestEnding(f,'tar.bz') ||
 	         TestEnding(f,'tbz')) {
-		BatWriteLineEchoed("bzip2 -d -c < "+QuoteArg(archive)+" | tar xvf -");
+		BatWriteLineEchoed("bzip2 -d -c < "+BatQuoteArg(archive)+" | tar xvf -");
 	}
 	else if (TestEnding(f,'tar.gz') || TestEnding(f,'tgz') ||
 	         TestEnding(f,'tar.z') || TestEnding(f,'taz')) {
-		BatWriteLineEchoed("gzip -d -c < "+QuoteArg(archive)+" | tar xvf -");
+		BatWriteLineEchoed("gzip -d -c < "+BatQuoteArg(archive)+" | tar xvf -");
 	}
 	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz') ||
 	         TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
-		BatWriteLineEchoed("xz --decompress --stdout < "+QuoteArg(archive)+" | tar xvf -");
+		BatWriteLineEchoed("xz --decompress --stdout < "+BatQuoteArg(archive)+" | tar xvf -");
 	}
 	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
 		BatWriteCmdEchoed(['unzip',archive]);
@@ -1052,7 +1072,7 @@ function BatWriteUnpack(format,archive,dir)
 			BatAbort();
 			Error("File already exists: "+n);
 		}
-		BatWriteLineEchoed("bzip2 -d -c < "+QuoteArg(archive)+" > "+QuoteArg(n));
+		BatWriteLineEchoed("bzip2 -d -c < "+BatQuoteArg(archive)+" > "+BatQuoteArg(n));
 	}
 	else if (TestEnding(f,'gz') || TestEnding(f,'z')) {
 		var n=GetNameInPath(archive);
@@ -1072,7 +1092,7 @@ function BatWriteUnpack(format,archive,dir)
 			BatAbort();
 			Error("File already exists: "+n);
 		}
-		BatWriteLineEchoed("gzip -d -c < "+QuoteArg(archive)+" > "+QuoteArg(n));
+		BatWriteLineEchoed("gzip -d -c < "+BatQuoteArg(archive)+" > "+BatQuoteArg(n));
 	}
 	else if (TestEnding(f,'lzma') || TestEnding(f,'xz')) {
 		var n=GetNameInPath(archive);
@@ -1092,7 +1112,7 @@ function BatWriteUnpack(format,archive,dir)
 			BatAbort();
 			Error("File already exists: "+n);
 		}
-		BatWriteLineEchoed("xz --decompress --stdout < "+QuoteArg(archive)+" > "+QuoteArg(n));
+		BatWriteLineEchoed("xz --decompress --stdout < "+BatQuoteArg(archive)+" > "+BatQuoteArg(n));
 	}
 	else {
 		BatAbort();
@@ -1111,7 +1131,7 @@ function OpenSingleTargetFileWith(argsArray)
 	ErrorIfTargetsNotFiles();
 	WshShell.CurrentDirectory=GetParentPath(Tgt[0]);
 	RestoreOrigPath();
-	WshShell.Run(CommandFromArgs(argsArray.concat(Tgt)));
+	WshShell.Run(WshShellCmdFromArgs(argsArray.concat(Tgt)));
 	WScript.Quit(0);
 }
 
@@ -1121,7 +1141,7 @@ function OpenSingleTargetDirWith(argsArray)
 	ErrorIfNotSingleTarget();
 	ErrorIfTargetsNotDirs();
 	RestoreOrigPath();
-	WshShell.Run(CommandFromArgs(argsArray.concat(Tgt)));
+	WshShell.Run(WshShellCmdFromArgs(argsArray.concat(Tgt)));
 	WScript.Quit(0);
 }
 
@@ -1130,7 +1150,7 @@ function OpenSingleTargetWith(argsArray)
 {
 	ErrorIfNotSingleTarget();
 	RestoreOrigPath();
-	WshShell.Run(CommandFromArgs(argsArray.concat(Tgt)));
+	WshShell.Run(WshShellCmdFromArgs(argsArray.concat(Tgt)));
 	WScript.Quit(0);
 }
 
@@ -1142,7 +1162,7 @@ function OpenTargetFilesWith(argsArray)
 	ConfirmToOpenIfManyTargets();
 	WshShell.CurrentDirectory=GetParentPath(Tgt[0]);
 	RestoreOrigPath();
-	WshShell.Run(CommandFromArgs(argsArray.concat(Tgt)));
+	WshShell.Run(WshShellCmdFromArgs(argsArray.concat(Tgt)));
 	WScript.Quit(0);
 }
 
@@ -1153,7 +1173,7 @@ function OpenTargetDirsWith(argsArray)
 	ErrorIfTargetsNotDirs();
 	ConfirmToOpenIfManyTargets();
 	RestoreOrigPath();
-	WshShell.Run(CommandFromArgs(argsArray.concat(Tgt)));
+	WshShell.Run(WshShellCmdFromArgs(argsArray.concat(Tgt)));
 	WScript.Quit(0);
 }
 
@@ -1163,7 +1183,7 @@ function OpenTargetsWith(argsArray)
 	ErrorIfNoTargets();
 	ConfirmToOpenIfManyTargets();
 	RestoreOrigPath();
-	WshShell.Run(CommandFromArgs(argsArray.concat(Tgt)));
+	WshShell.Run(WshShellCmdFromArgs(argsArray.concat(Tgt)));
 	WScript.Quit(0);
 }
 
@@ -1197,7 +1217,7 @@ function PackType(type)
 
 	BatBegin("Pack "+type);
 	BatWritePack(type,path,srcDir,srcNames);
-	BatWriteLine("if exist " + QuoteArg(path) + " (");
+	BatWriteLine("if exist " + BatQuoteArg(path) + " (");
 	BatWriteSendSelect(path);
 	BatWriteLine(") else (");
 	BatWriteSetErrored();

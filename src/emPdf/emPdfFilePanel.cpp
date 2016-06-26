@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.cpp
 //
-// Copyright (C) 2011-2014 Oliver Hamann.
+// Copyright (C) 2011-2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emPdf/emPdfFilePanel.h>
+#include <emCore/emRes.h>
 
 
 emPdfFilePanel::emPdfFilePanel(
@@ -30,6 +31,7 @@ emPdfFilePanel::emPdfFilePanel(
 	BGColor=emColor(0,0,0,0);
 	FGColor=emColor(0,0,0);
 	LayoutValid=false;
+	ShadowImage=emGetInsResImage(GetRootContext(),"emPs","page_shadow.tga");
 	AddWakeUpSignal(GetVirFileStateSignal());
 	CalcLayout();
 	UpdatePagePanels();
@@ -77,15 +79,9 @@ void emPdfFilePanel::SetFGColor(emColor fgColor)
 }
 
 
-void emPdfFilePanel::Notice(NoticeFlags flags)
+emString emPdfFilePanel::GetIconFileName()
 {
-	emFilePanel::Notice(flags);
-	if (flags&(NF_LAYOUT_CHANGED|NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED)) {
-		if (LayoutValid && (flags&NF_LAYOUT_CHANGED)!=0) {
-			CalcLayout();
-		}
-		UpdatePagePanels();
-	}
+	return "document.tga";
 }
 
 
@@ -96,6 +92,18 @@ bool emPdfFilePanel::Cycle()
 		UpdatePagePanels();
 	}
 	return emFilePanel::Cycle();
+}
+
+
+void emPdfFilePanel::Notice(NoticeFlags flags)
+{
+	emFilePanel::Notice(flags);
+	if (flags&(NF_LAYOUT_CHANGED|NF_VIEWING_CHANGED|NF_SOUGHT_NAME_CHANGED)) {
+		if (LayoutValid && (flags&NF_LAYOUT_CHANGED)!=0) {
+			CalcLayout();
+		}
+		UpdatePagePanels();
+	}
 }
 
 
@@ -113,8 +121,7 @@ bool emPdfFilePanel::IsOpaque()
 void emPdfFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 {
 	emPdfFileModel * fm;
-	double xy[6*2];
-	double cx,cy,tx,ty,tw,th,pw,ph;
+	double f,cx,cy,bx1,by1,bx2,by2,tx,ty,tw,th,pw,ph;
 	int i,n;
 
 	if (!IsVFSGood() || !LayoutValid) {
@@ -134,10 +141,22 @@ void emPdfFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 		pw=fm->GetPageWidth(i)*PerPoint;
 		ph=fm->GetPageHeight(i)*PerPoint;
 		if (i<PagePanels.GetCount() && PagePanels[i]) {
+			f=ShadowSize/151.0;
+			bx1=cx+PgX-64.0*f;
+			by1=cy+PgY-63.0*f;
+			bx2=cx+PgX+pw+131.0*f;
+			by2=cy+PgY+ph+151.0*f;
+			painter.PaintBorderShape(
+				bx1,by1,bx2-bx1,by2-by1,
+				337.0*f,337.0*f,391.0*f,410.0*f,
+				ShadowImage,
+				337.0,337.0,391.0,410.0,
+				0,emColor(0,0,0,180),canvasColor,0757
+			);
 			if (n>1) {
 				tx=cx;
 				ty=cy+PgY;
-				tw=PgX*0.94;
+				tw=emMin(PgX*0.94,bx1-tx);
 				th=emMin(ph,tw*0.6);
 				painter.PaintTextBoxed(
 					tx,
@@ -151,19 +170,6 @@ void emPdfFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 					EM_ALIGN_TOP_RIGHT
 				);
 			}
-			xy[ 0]=cx+PgX+pw;
-			xy[ 1]=cy+PgY+ShadowSize;
-			xy[ 2]=cx+PgX+pw+ShadowSize;
-			xy[ 3]=cy+PgY+ShadowSize;
-			xy[ 4]=cx+PgX+pw+ShadowSize;
-			xy[ 5]=cy+PgY+ph+ShadowSize;
-			xy[ 6]=cx+PgX+ShadowSize;
-			xy[ 7]=cy+PgY+ph+ShadowSize;
-			xy[ 8]=cx+PgX+ShadowSize;
-			xy[ 9]=cy+PgY+ph;
-			xy[10]=cx+PgX+pw;
-			xy[11]=cy+PgY+ph;
-			painter.PaintPolygon(xy,6,emColor(0,0,0,160),canvasColor);
 		}
 		else {
 			painter.PaintRect(
@@ -249,7 +255,7 @@ void emPdfFilePanel::CalcLayout()
 	CellH=pgH+f;
 	PgX=f*0.5;
 	PgY=f*0.5;
-	ShadowSize=emMin(pgW,pgH)*0.02;
+	ShadowSize=emMin(pgW,pgH)*0.04;
 	if (n>1) {
 		f*=2;
 		CellW+=f;

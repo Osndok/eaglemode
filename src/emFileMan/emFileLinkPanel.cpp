@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkPanel.cpp
 //
-// Copyright (C) 2007-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,8 +44,9 @@ emFileLinkPanel::emFileLinkPanel(
 	Model=fileModel;
 	UpdateSignalModel=emFileModel::AcquireUpdateSignalModel(GetRootContext());
 	Config=emFileManViewConfig::Acquire(GetView());
-	ChildPanel=NULL;
+	HaveDirEntryPanel=false;
 	DirEntryUpToDate=false;
+	ChildPanel=NULL;
 
 	AddWakeUpSignal(UpdateSignalModel->Sig);
 	AddWakeUpSignal(GetVirFileStateSignal());
@@ -67,26 +68,21 @@ void emFileLinkPanel::SetFileModel(
 	Model=dynamic_cast<emFileLinkModel*>(fileModel);
 	emFilePanel::SetFileModel(Model,updateFileModel);
 	if (Model) AddWakeUpSignal(Model->GetChangeSignal());
-	CachedFullPath.Clear();
-	DirEntryUpToDate=false;
-	InvalidatePainting();
-	UpdateChildPanel(true);
+	UpdateDataAndChildPanel();
 }
 
 
 bool emFileLinkPanel::Cycle()
 {
-	bool busy,doUpdate,fromScratch;
+	bool busy,doUpdate;
 
 	busy=emFilePanel::Cycle();
 
 	doUpdate=false;
-	fromScratch=false;
 
 	if (IsSignaled(GetVirFileStateSignal())) {
-		doUpdate=true;
 		InvalidatePainting();
-		InvalidateChildrenLayout();
+		doUpdate=true;
 	}
 
 	if (IsSignaled(UpdateSignalModel->Sig)) {
@@ -100,14 +96,10 @@ bool emFileLinkPanel::Cycle()
 	}
 
 	if (Model && IsSignaled(Model->GetChangeSignal())) {
-		CachedFullPath.Clear();
-		DirEntryUpToDate=false;
 		doUpdate=true;
-		fromScratch=true;
-		InvalidatePainting();
 	}
 
-	if (doUpdate) UpdateChildPanel(fromScratch);
+	if (doUpdate) UpdateDataAndChildPanel();
 
 	return busy;
 }
@@ -116,19 +108,19 @@ bool emFileLinkPanel::Cycle()
 void emFileLinkPanel::Notice(NoticeFlags flags)
 {
 	emFilePanel::Notice(flags);
-	if (flags&NF_VIEWING_CHANGED) UpdateChildPanel();
+	if (flags&NF_VIEWING_CHANGED) UpdateDataAndChildPanel();
 }
 
 
 bool emFileLinkPanel::IsOpaque()
 {
-	if (!IsVFSGood()) {
+	if (!IsVFSGood() && !ChildPanel) {
 		return emFilePanel::IsOpaque();
 	}
 	else if (HaveBorder) {
 		return BorderBgColor.IsOpaque();
 	}
-	else if (Model->HaveDirEntry) {
+	else if (HaveDirEntryPanel) {
 		return Config->GetTheme().DirContentColor.Get().IsOpaque();
 	}
 	else {
@@ -141,7 +133,7 @@ void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor)
 {
 	double x,y,w,h,d,t;
 
-	if (!IsVFSGood()) {
+	if (!IsVFSGood() && !ChildPanel) {
 		emFilePanel::Paint(painter,canvasColor);
 		return;
 	}
@@ -160,13 +152,12 @@ void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor)
 			t,
 			BorderFgColor
 		);
-		if (CachedFullPath.IsEmpty()) CachedFullPath=Model->GetFullPath();
 		t=emMin(x,y)*0.2;
 		painter.PaintTextBoxed(
 			t,0.0,1.0-t*2.0,y-t,
 			emString::Format(
 				"emFileLink to %s",
-				CachedFullPath.Get()
+				FullPath.Get()
 			),
 			(y-t)*0.9,
 			BorderFgColor,
@@ -174,11 +165,11 @@ void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor)
 			EM_ALIGN_CENTER,
 			EM_ALIGN_CENTER
 		);
-		if (Model->HaveDirEntry) {
+		if (HaveDirEntryPanel) {
 			painter.PaintRect(x,y,w,h,Config->GetTheme().DirContentColor,canvasColor);
 		}
 	}
-	else if (Model->HaveDirEntry) {
+	else if (HaveDirEntryPanel) {
 		painter.Clear(Config->GetTheme().DirContentColor,canvasColor);
 	}
 }
@@ -194,7 +185,8 @@ void emFileLinkPanel::CalcContentCoords(
 	double * pX, double * pY, double * pW, double * pH
 )
 {
-	double t,x,y,w,h;
+	const emFileManTheme * theme;
+	double t,x,y,w,h,pl,pt,pr,pb;
 
 	if (HaveBorder) {
 		x=0.15;
@@ -208,8 +200,19 @@ void emFileLinkPanel::CalcContentCoords(
 		w=1.0;
 		h=GetHeight();
 	}
-	if (IsVFSGood() && Model->HaveDirEntry) {
-		t=Config->GetTheme().Height;
+	if (HaveDirEntryPanel) {
+		theme = &Config->GetTheme();
+		t=theme->Height;
+		if (!HaveBorder) {
+			pl=theme->LnkPaddingL;
+			pt=theme->LnkPaddingT;
+			pr=theme->LnkPaddingR;
+			pb=theme->LnkPaddingB;
+			w/=(pl+1+pr);
+			h/=(pt+t+pb)/t;
+			x+=pl*w;
+			y+=pt*h/t;
+		}
 		if (h>w*t) {
 			y+=(h-w*t)*0.5;
 			h=w*t;
@@ -226,48 +229,86 @@ void emFileLinkPanel::CalcContentCoords(
 }
 
 
-void emFileLinkPanel::UpdateChildPanel(bool forceRecreation)
+void emFileLinkPanel::UpdateDataAndChildPanel()
 {
-	emRef<emFpPluginList> fppl;
 	emDirEntryPanel * dep;
-	emString str;
-	bool haveIt;
+	emString fullPath;
+	bool haveDirEntryPanel,viewConditionGood;
 
-	haveIt = (IsVFSGood() && GetViewCondition()>=60.0);
+	viewConditionGood = (GetViewCondition()>=60.0);
+	if (!viewConditionGood) {
+		DeleteChildPanel();
+	}
 
-	emDirEntry oldDirEntry(DirEntry);
-
-	if (haveIt) {
-		if (CachedFullPath.IsEmpty()) CachedFullPath=Model->GetFullPath();
-		if (!DirEntryUpToDate) {
-			DirEntry=emDirEntry(CachedFullPath);
-			DirEntryUpToDate=true;
-			if (DirEntry!=oldDirEntry && ChildPanel && !forceRecreation) {
-				dep=dynamic_cast<emDirEntryPanel*>(ChildPanel);
-				if (dep) {
-					dep->UpdateDirEntry(DirEntry);
-				}
-				else if (
-					DirEntry.GetPath()!=oldDirEntry.GetPath() ||
-					DirEntry.GetStatErrNo()!=oldDirEntry.GetStatErrNo() ||
-					DirEntry.GetStat()->st_mode!=oldDirEntry.GetStat()->st_mode
-				) {
-					forceRecreation=true;
-				}
+	if (IsVFSGood()) {
+		fullPath=Model->GetFullPath();
+		haveDirEntryPanel=Model->HaveDirEntry.Get();
+		if (HaveDirEntryPanel!=haveDirEntryPanel || FullPath!=fullPath) {
+			DeleteChildPanel();
+			FullPath=fullPath;
+			HaveDirEntryPanel=haveDirEntryPanel;
+			DirEntryUpToDate=false;
+			InvalidatePainting();
+		}
+	}
+	else {
+		if (
+			ChildPanel &&
+			!ChildPanel->IsInActivePath() && (
+				!ChildPanel->IsInViewedPath() || IsViewed()
+			)
+		) {
+			DeleteChildPanel();
+		}
+		if (!ChildPanel) {
+			fullPath="";
+			haveDirEntryPanel=false;
+			if (HaveDirEntryPanel!=haveDirEntryPanel || FullPath!=fullPath) {
+				FullPath=fullPath;
+				HaveDirEntryPanel=haveDirEntryPanel;
+				DirEntryUpToDate=false;
+				InvalidatePainting();
 			}
 		}
 	}
 
-	if (!haveIt || forceRecreation) {
-		if (ChildPanel) {
-			if (!HaveBorder) SetFocusable(true);
-			delete ChildPanel;
-			ChildPanel=NULL;
+	if (ChildPanel && !DirEntryUpToDate) {
+		emDirEntry oldDirEntry(DirEntry);
+		DirEntry=emDirEntry(FullPath);
+		DirEntryUpToDate=true;
+		if (DirEntry!=oldDirEntry) {
+			if (HaveDirEntryPanel) {
+				dep=dynamic_cast<emDirEntryPanel*>(ChildPanel);
+				if (dep) {
+					dep->UpdateDirEntry(DirEntry);
+				}
+			}
+			else if (
+				DirEntry.GetPath()!=oldDirEntry.GetPath() ||
+				DirEntry.GetStatErrNo()!=oldDirEntry.GetStatErrNo() ||
+				(DirEntry.GetStat()->st_mode&S_IFMT)!=(oldDirEntry.GetStat()->st_mode&S_IFMT)
+			) {
+				DeleteChildPanel();
+			}
 		}
 	}
 
-	if (haveIt && !ChildPanel) {
-		if (Model->HaveDirEntry) {
+	if (!ChildPanel && IsVFSGood() && viewConditionGood) {
+		if (!DirEntryUpToDate) {
+			DirEntry=emDirEntry(FullPath);
+			DirEntryUpToDate=true;
+		}
+		CreateChildPanel();
+	}
+}
+
+
+void emFileLinkPanel::CreateChildPanel()
+{
+	emRef<emFpPluginList> fppl;
+
+	if (!ChildPanel) {
+		if (HaveDirEntryPanel) {
 			ChildPanel=new emDirEntryPanel(this,"",DirEntry);
 		}
 		else {
@@ -286,6 +327,18 @@ void emFileLinkPanel::UpdateChildPanel(bool forceRecreation)
 			}
 			SetFocusable(false);
 		}
+		InvalidatePainting();
+	}
+}
+
+
+void emFileLinkPanel::DeleteChildPanel()
+{
+	if (ChildPanel) {
+		if (!HaveBorder) SetFocusable(true);
+		delete ChildPanel;
+		ChildPanel=NULL;
+		InvalidatePainting();
 	}
 }
 
@@ -298,7 +351,7 @@ void emFileLinkPanel::LayoutChildPanel()
 		CalcContentCoords(&x,&y,&w,&h);
 		ChildPanel->Layout(
 			x,y,w,h,
-			Model->HaveDirEntry ? Config->GetTheme().DirContentColor.Get() :
+			HaveDirEntryPanel ? Config->GetTheme().DirContentColor.Get() :
 			HaveBorder ? BorderBgColor :
 			GetCanvasColor()
 		);

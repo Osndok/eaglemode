@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -573,14 +573,14 @@ public:
 	const char * GetIdentifier() const;
 		// Get the identifier for the current value.
 
-	int GetIdentifierCount();
+	int GetIdentifierCount() const;
 		// Get number of possible values.
 
-	const char * GetIdentifierOf(int value);
+	const char * GetIdentifierOf(int value) const;
 		// Get the identifier for the given value. Returns NULL if the
 		// value is out of range.
 
-	int GetValueOf(const char * identifier);
+	int GetValueOf(const char * identifier) const;
 		// Get the value for the given identifier. Returns -1 if there
 		// is no such identifier.
 
@@ -624,7 +624,7 @@ inline const char * emEnumRec::GetIdentifier() const
 	return Identifiers[Value];
 }
 
-inline int emEnumRec::GetIdentifierCount()
+inline int emEnumRec::GetIdentifierCount() const
 {
 	return IdentifierCount;
 }
@@ -670,14 +670,14 @@ public:
 	emFlagsRec & operator = (int value);
 		// Set the value. Undefined flag bits are set to zero.
 
-	int GetIdentifierCount();
+	int GetIdentifierCount() const;
 		// Get number of possible flag bits.
 
-	const char * GetIdentifierOf(int bit);
+	const char * GetIdentifierOf(int bit) const;
 		// Get the identifier for the given flag bit (0...31). Returns
 		// NULL when no identifier has been defined for the bit.
 
-	int GetBitOf(const char * identifier);
+	int GetBitOf(const char * identifier) const;
 		// Get the flag bit for the given identifier. Returns -1 if
 		// there is no such identifier.
 
@@ -716,7 +716,7 @@ inline emFlagsRec & emFlagsRec::operator = (int value)
 	return *this;
 }
 
-inline int emFlagsRec::GetIdentifierCount()
+inline int emFlagsRec::GetIdentifierCount() const
 {
 	return IdentifierCount;
 }
@@ -950,15 +950,15 @@ public:
 		// Get a reference to a member. The index must be within the
 		// range of 0 to GetCount()-1.
 
-	const char * GetIdentifierOf(int index);
+	const char * GetIdentifierOf(int index) const;
 		// Get the identifier for the given member index. Returns NULL
 		// if the index is out of range.
 
-	int GetIndexOf(emRec * member);
+	int GetIndexOf(const emRec * member) const;
 		// Get the member index for the given member pointer. Returns -1
 		// if there is no such member.
 
-	int GetIndexOf(const char * identifier);
+	int GetIndexOf(const char * identifier) const;
 		// Get the member index for the given identifier. Returns -1 if
 		// there is no such identifier.
 
@@ -1076,11 +1076,11 @@ public:
 	int GetVariantCount() const;
 		// Get number of variants.
 
-	const char * GetIdentifierOf(int variant);
+	const char * GetIdentifierOf(int variant) const;
 		// Get the identifier for the given variant index. Returns NULL
 		// if there is no such variant.
 
-	int GetVariantOf(const char * identifier);
+	int GetVariantOf(const char * identifier) const;
 		// Get the variant index for the given identifier. Returns -1 if
 		// there is no such identifier.
 
@@ -1348,7 +1348,7 @@ public:
 	ElementType TryPeekNext(char * pDelimiter=NULL) throw(emException);
 		// Peek for the type of the next syntactical element to be read.
 		// If it is ET_DELIMITER and if pDelimiter is not NULL,
-		// *pDelimiter is set to the delimiter character,
+		// *pDelimiter is set to the delimiter character.
 
 	char TryReadDelimiter() throw(emException);
 		// Read the next syntactical element as a delimiter or throw an

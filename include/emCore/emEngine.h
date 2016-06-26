@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emEngine.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -154,7 +154,7 @@ public:
 	virtual ~emEngine();
 		// Destructor.
 
-	emScheduler & GetScheduler();
+	emScheduler & GetScheduler() const;
 		// Get the scheduler.
 
 	void WakeUp();
@@ -262,7 +262,7 @@ private:
 		// State of emScheduler::Clock after last call to Cycle().
 };
 
-inline emScheduler & emEngine::GetScheduler()
+inline emScheduler & emEngine::GetScheduler() const
 {
 	return Scheduler;
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emListBox.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -210,7 +210,7 @@ public:
 		virtual ~ItemPanelInterface();
 			// Destructor.
 
-		emListBox & GetListBox();
+		emListBox & GetListBox() const;
 			// Get the list box.
 
 		int GetItemIndex() const;
@@ -372,7 +372,7 @@ inline int emListBox::GetTriggeredItemIndex() const
 	return TriggeredItemIndex;
 }
 
-inline emListBox & emListBox::ItemPanelInterface::GetListBox()
+inline emListBox & emListBox::ItemPanelInterface::GetListBox() const
 {
 	return ListBox;
 }

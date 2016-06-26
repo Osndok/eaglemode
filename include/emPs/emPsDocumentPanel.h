@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocumentPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,6 +65,7 @@ private:
 	double CellX0,CellY0,CellW,CellH;
 	double PgX,PgY,PerPoint;
 	double ShadowSize;
+	emImage ShadowImage;
 	emPsPagePanel * * PagePanels;
 };
 

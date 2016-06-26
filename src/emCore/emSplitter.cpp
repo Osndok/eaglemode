@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSplitter.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -183,7 +183,7 @@ void emSplitter::PaintContent(
 		Pressed ?
 			GetTkResources().ImgSplitterPressed :
 			GetTkResources().ImgSplitter,
-		50.0,50.0,50.0,50.0,
+		150.0,150.0,149.0,149.0,
 		IsEnabled() ? 255 : 64,
 		btBgCol,
 		0757
@@ -247,7 +247,7 @@ void emSplitter::LayoutChildren()
 void emSplitter::CalcGripRect(
 	double contentX, double contentY, double contentW, double contentH,
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	double gs;
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRef.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -43,13 +43,6 @@ public:
 	// the model increments and decrements an internal reference counter,
 	// and it deletes itself through Free when the reference counter gets
 	// zero. Note that a common emModel is also referred by its emContext.
-
-	//??? Four variants of this template class could exist:
-	//???   emRef   - ref to non-constant, can be NULL
-	//???   emVRef  - ref to non-constant, cannot be NULL ("V" means valid)
-	//???   emCRef  - ref to constant, can be NULL
-	//???   emCVRef - ref to constant, cannot be NULL
-	//??? But maybe this would be a little bit too sophisticated.
 
 	emRef();
 		// Construct a NULL reference.

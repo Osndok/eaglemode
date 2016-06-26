@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.h
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -80,10 +80,10 @@ public:
 	virtual ~emGUIFramework();
 		// Destructor.
 
-	emScheduler & GetScheduler();
+	emScheduler & GetScheduler() const;
 		// Get the scheduler.
 
-	emRootContext & GetRootContext();
+	emRootContext & GetRootContext() const;
 		// Get the root context. It has an emScreen and an emClipboard.
 
 	void EnableAutoTermination(bool autoTermination=true);
@@ -110,12 +110,12 @@ private:
 	AutoTerminatorClass * AutoTerminator;
 };
 
-inline emScheduler & emGUIFramework::GetScheduler()
+inline emScheduler & emGUIFramework::GetScheduler() const
 {
 	return *Scheduler;
 }
 
-inline emRootContext & emGUIFramework::GetRootContext()
+inline emRootContext & emGUIFramework::GetRootContext() const
 {
 	return *RootContext;
 }

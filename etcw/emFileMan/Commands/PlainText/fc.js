@@ -11,7 +11,7 @@
 # Descr =  Source: First file.
 # Descr =
 # Descr =  Target: Second file.
-# ButtonBgColor = #BBB
+# Icon = diff.tga
 #[[END PROPERTIES]]
 */
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 2.0
+# Order = 3.0
 # Interpreter = perl
 # Caption = Create ISO
 # Descr =Create an ISO file and copy files into it. The name of the new ISO
@@ -17,6 +17,7 @@
 # Descr =This command uses genisoimage to create an ISO9660 image file,
 # Descr =which can be burned to a CD or DVD. The Joliet and Rock Ridge
 # Descr =extensions are included (options -J and -r).
+# Icon = create_iso_file.tga
 #[[END PROPERTIES]]
 
 use strict;

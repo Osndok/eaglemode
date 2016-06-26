@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.h
 //
-// Copyright (C) 2006-2011 Oliver Hamann.
+// Copyright (C) 2006-2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -43,13 +43,17 @@ public:
 
 	static void Install(emContext & context);
 
-	virtual double GetWidth();
-	virtual double GetHeight();
+	virtual void GetDesktopRect(
+		double * pX, double * pY, double * pW, double * pH
+	) const;
 
-	virtual void GetVisibleRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	virtual int GetMonitorCount() const;
 
-	virtual double GetDPI();
+	virtual void GetMonitorRect(
+		int index, double * pX, double * pY, double * pW, double * pH
+	) const;
+
+	virtual double GetDPI() const;
 
 	virtual void MoveMousePointer(double dx, double dy);
 
@@ -79,6 +83,10 @@ private:
 	static LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	                                   LPARAM lParam);
 
+	void UpdateGeometry();
+	static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor,
+	                                     LPRECT lprcMonitor, LPARAM dwData);
+
 	void UpdateKeymapAndInputState();
 	void UpdateInputStateFromKeymap();
 
@@ -100,7 +108,7 @@ private:
 	{
 	public:
 		WaitCursorThread();
-		~WaitCursorThread();
+		virtual ~WaitCursorThread();
 		void SignOfLife();
 		bool CursorToRestore();
 	private:
@@ -119,13 +127,18 @@ private:
 	emWndsScheduler * WndsScheduler;
 	WaitCursorThread * WCThread;
 	emString WinClassName;
-	int Width, Height;
+
+	RECT DesktopRect;
+	emArray<RECT> MonitorRects;
 	double DPI;
 	double PixelTallness;
+	emUInt64 GeometryUpdateTime;
+
 	int BufWidth,BufHeight;
 	BITMAPINFOHEADER BufInfo[2];
 	emUInt32 * BufMap[2];
 	emPainter BufPainter[2];
+
 	emArray<CursorMapElement> CursorMap;
 	bool InputStateToBeFlushed;
 	emInputState InputState;

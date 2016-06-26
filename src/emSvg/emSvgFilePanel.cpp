@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,6 +58,12 @@ void emSvgFilePanel::SetFileModel(
 		fileModel=NULL;
 	}
 	emFilePanel::SetFileModel(fileModel,updateFileModel);
+}
+
+
+emString emSvgFilePanel::GetIconFileName()
+{
+	return "drawing.tga";
 }
 
 

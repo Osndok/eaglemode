@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,6 +85,7 @@ private:
 	bool IsFSDialogDone();
 	void SetFSDialogDone();
 	emString GetLAPath();
+	void CheckIfInstalledOverOfOldVersion();
 
 	emContext & Context;
 
@@ -150,10 +151,12 @@ emString emMain::CalcServerName()
 void emMain::NewWindow(int argc, const char * const argv[])
 {
 	const char * opt, * optGeometry, * optCEColor, * optVisit;
-	bool optFullscreen,optUndecorated;
+	bool optMaximized,optFullscreen,optUndecorated;
 	emMainWindow * w;
-	emColor col;
+	emColor ceColor;
 	int i;
+
+	CheckIfInstalledOverOfOldVersion();
 
 	if (!IsFSDialogDone()) {
 		if (!FSDialog) {
@@ -166,6 +169,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 
 	optGeometry=NULL;
 	optCEColor=NULL;
+	optMaximized=false;
 	optFullscreen=false;
 	optUndecorated=false;
 	optVisit=NULL;
@@ -177,6 +181,9 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		}
 		else if (strcmp(opt,"-cecolor")==0 && i<argc) {
 			optCEColor=argv[i++];
+		}
+		else if (strcmp(opt,"-maximized")==0) {
+			optMaximized=true;
 		}
 		else if (strcmp(opt,"-fullscreen")==0) {
 			optFullscreen=true;
@@ -200,10 +207,32 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		}
 	}
 
-	w=new emMainWindow(Context);
+	if (optCEColor) {
+		try {
+			ceColor.TryParse(optCEColor);
+		}
+		catch (emException & exception) {
+			emWarning(
+				"emMain::NewWindow: Could not interpret cecolor option value: %s",
+				exception.GetText()
+			);
+			ceColor=0;
+		}
+	}
+	else {
+		ceColor=0;
+	}
+
+	w=new emMainWindow(
+		Context,
+		optVisit,0.0,0.0,0.0,false,NULL,
+		ceColor
+	);
+
 	if (optUndecorated) {
 		w->SetWindowFlags(w->GetWindowFlags()|emWindow::WF_UNDECORATED);
 	}
+
 	if (optGeometry) {
 		if (!w->SetWinPosViewSize(optGeometry)) {
 			emWarning(
@@ -212,24 +241,13 @@ void emMain::NewWindow(int argc, const char * const argv[])
 			);
 		}
 	}
-	if (optCEColor) {
-		try {
-			col.TryParse(optCEColor);
-		}
-		catch (emException & exception) {
-			emWarning(
-				"emMain::NewWindow: Could not interpret cecolor option value: %s",
-				exception.GetText()
-			);
-			col=0;
-		}
-		if (col.GetAlpha()) w->GetMainPanel().SetControlEdgesColor(col);
+
+	if (optMaximized) {
+		w->SetWindowFlags(w->GetWindowFlags()|emWindow::WF_MAXIMIZED);
 	}
+
 	if (optFullscreen) {
 		w->SetWindowFlags(w->GetWindowFlags()|emWindow::WF_FULLSCREEN);
-	}
-	if (optVisit) {
-		w->GetContentView().VisitFullsized(optVisit,false);
 	}
 }
 
@@ -280,18 +298,17 @@ void emMain::CreateFSDialog()
 {
 	static const char * const textFormat=
 		"This seems to be your first start of Eagle Mode. Before continuing,\n"
-		"you really should have read at least these documents on Eagle Mode:\n"
+		"you should have read at least these documents:\n"
 		"\n"
 		"  * License\n"
 		"  * System Requirements\n"
-		"  * General User Guide (especially the Navigation chapter)\n"
+		"  * General User Guide\n"
 		"\n"
 		"For reading the documents, please open this file in a web-browser:\n"
 		"\n"
 		"  %s\n"
 		"\n"
-		"Or visit the homepage (may not be compatible if this version of\n"
-		"Eagle Mode is out of date):\n"
+		"Or visit the homepage:\n"
 		"\n"
 		"  http://eaglemode.sourceforge.net/\n"
 		"\n"
@@ -366,6 +383,59 @@ emString emMain::GetLAPath()
 }
 
 
+void emMain::CheckIfInstalledOverOfOldVersion()
+{
+	static const struct {
+		emInstallDirType type;
+		const char * prj;
+		const char * subPath;
+		emUInt32 crc32;
+	} indicators[] = {
+		{ EM_IDT_HOST_CONFIG, "emFileMan", "Commands/Archive/MorePackCommands.props", 0xA7548E07 },
+		{ EM_IDT_RES        , "emFileMan", "themes/Simple.emFileManTheme"           , 0x4FFBEF2D },
+#if defined(_WIN32)
+		{ EM_IDT_HOST_CONFIG, "emMain"   , "VcItems/HomeDir.emVcItem"               , 0x0C05ADDB },
+#endif
+		{ EM_IDT_RES        , NULL       , NULL                                     , 0 }
+	};
+
+	int i;
+	emUInt32 crc32;
+	emString path;
+	emArray<char> file;
+
+	for (i=0; indicators[i].prj; i++) {
+		path=emGetInstallPath(
+			indicators[i].type, indicators[i].prj, indicators[i].subPath
+		);
+		if (!emIsRegularFile(path)) continue;
+		try {
+			file=emTryLoadFile(path);
+		}
+		catch (emException &) {
+			continue;
+		}
+		crc32=emCalcCRC32(file.Get(),file.GetCount());
+		emDLog(
+			"emMain::CheckIfInstalledOverOfOldVersion: found %s, crc=0x%lX",
+			path.Get(),
+			(unsigned long)crc32
+		);
+		if (indicators[i].crc32!=crc32) continue;
+		emFatalError(
+				"Deprecated files found...\n"
+				"\n"
+				"It seems that Eagle Mode has been installed\n"
+				"over an old version in the same directory.\n"
+				"Unfortunately, Eagle Mode would not appear\n"
+				"proper that way.\n"
+				"\n"
+				"Please reinstall to a clean directory."
+		);
+	}
+}
+
+
 //==============================================================================
 //=========================== main/WinMain function ============================
 //==============================================================================
@@ -406,6 +476,7 @@ static int wrapped_main(int argc, char * argv[])
 				"  -geometry <geometry>    Set geometry of window (e.g. \"700x500+10+10\").\n"
 				"  -cecolor <color>        Set color of unused areas beside control view\n"
 				"                          (could be used to indicate root privileges).\n"
+				"  -maximized              Show the window maximized.\n"
 				"  -fullscreen             Show the window in fullscreen mode.\n"
 				"  -undecorated            Show the window without decorations.\n"
 				"  -visit <panel identity> Panel to be visited initially.\n"
@@ -437,6 +508,9 @@ static int wrapped_main(int argc, char * argv[])
 		else if (strcmp(opt,"-cecolor")==0 && i<argc) {
 			forwardArgs.Add(opt);
 			forwardArgs.Add(argv[i++]);
+		}
+		else if (strcmp(opt,"-maximized")==0) {
+			forwardArgs.Add(opt);
 		}
 		else if (strcmp(opt,"-fullscreen")==0) {
 			forwardArgs.Add(opt);

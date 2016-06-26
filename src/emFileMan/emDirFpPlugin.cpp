@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,3 +36,21 @@ extern "C" {
 		return new emDirPanel(parent,name,path);
 	}
 }
+
+
+#if defined(_WIN32)
+extern "C" {
+	emPanel * emDiskDrivesFpPluginFunc(
+		emPanel::ParentArg parent, const emString & name,
+		const emString & path, emFpPlugin * plugin,
+		emString * errorBuf
+	)
+	{
+		if (plugin->Properties.GetCount()) {
+			*errorBuf="emDiskDrivesFpPlugin: No properties allowed.";
+			return NULL;
+		}
+		return new emDirPanel(parent,name,emDirModel::NAME_OF_DRIVE_LISTING);
+	}
+}
+#endif

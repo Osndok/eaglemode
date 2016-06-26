@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 1.0
+# Order = 3.0
 # Interpreter = perl
 # DefaultFor = .bitmap:.bmp:.g3:.gbr:.gif:.gih:.gpb:.ico:.icon:.im1:.im24:.im32:.im8:.jpeg:.jpg:.pat:.pbm:.pcx:.pgm:.png:.pnm:.ppm:.psd:.ras:.rgb:.sgi:.tga:.tif:.tiff:.xbm:.xcf:.xcfbz2:.xcf.bz2:.xcfgz:.xcf.gz:.xjt:.xjtbz2:.xjtgz:.xpm:.xwd
 # Caption = The GIMP
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The bitmap files to be opened.
+# Icon = thirdparty/gimp.tga
 #[[END PROPERTIES]]
 
 use strict;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileDialog.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -92,12 +92,12 @@ bool emFileDialog::Cycle()
 		case POSITIVE:
 			OverwriteConfirmed=OverwriteAsked;
 			OverwriteAsked.Clear();
-			delete OverwriteDialog;
+			delete OverwriteDialog.Get();
 			Finish(POSITIVE);
 			break;
 		case NEGATIVE:
 			OverwriteAsked.Clear();
-			delete OverwriteDialog;
+			delete OverwriteDialog.Get();
 			break;
 		}
 	}
@@ -183,7 +183,7 @@ bool emFileDialog::CheckFinish(int result)
 				text+=pathsToOverwrite[i];
 			}
 			if (text!=OverwriteConfirmed) {
-				if (OverwriteDialog) delete OverwriteDialog;
+				if (OverwriteDialog) delete OverwriteDialog.Get();
 				OverwriteAsked=text;
 				OverwriteDialog=new emDialog((emContext&)*this);
 				OverwriteDialog->SetRootTitle("File Exists");

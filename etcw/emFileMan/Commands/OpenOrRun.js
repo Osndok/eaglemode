@@ -1,7 +1,7 @@
 /*
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 0.0
+# Order = 13.0
 # Interpreter = wscript
 # DefaultFor = file
 # Caption = Open or Run
@@ -16,8 +16,7 @@
 # Descr =
 # Descr =Hint: The current working directory is set to the parent
 # Descr =directory of the target file.
-# ButtonBgColor = #B9D
-# ButtonFgColor = #000
+# Icon = open_or_run.tga
 # Hotkey = Ctrl+R
 #[[END PROPERTIES]]
 */
@@ -35,4 +34,4 @@ ErrorIfNotSingleTarget();
 WshShell.CurrentDirectory=GetParentPath(Tgt[0]);
 
 RestoreOrigPath();
-WshShell.Run(CommandFromArgs([Tgt[0]]));
+WshShell.Run(WshShellCmdFromArgs([Tgt[0]]));

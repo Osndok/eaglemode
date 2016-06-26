@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emMiniIpc.h - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2008,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -82,8 +82,7 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>();
                 <SPAN CLASS=c>// Destructor: stops any serving.
 
-        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler() <SPAN CLASS=t>const</SPAN>;
-        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler();
+        </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; GetScheduler() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the scheduler.
 
         </SPAN><SPAN CLASS=t>void </SPAN>StartServing(<SPAN CLASS=t>const char </SPAN>* userDefinedServerName=<SPAN CLASS=u>NULL</SPAN>);
@@ -139,13 +138,8 @@
         <SPAN CLASS=t>bool </SPAN>* PtrStoppedOrDestructed;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::GetScheduler() <SPAN CLASS=t>const
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::GetScheduler() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Scheduler;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; <A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A>::GetScheduler()
-<SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Scheduler;
 <SPAN CLASS=b>}
 

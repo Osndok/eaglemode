@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.h
 //
-// Copyright (C) 2005-2010 Oliver Hamann.
+// Copyright (C) 2005-2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,12 +58,17 @@ public:
 		WF_POPUP       = (1<<2),
 			// Like WF_UNDECORATED, but the close signal is
 			// generated as soon as the focus is lost.
-		WF_FULLSCREEN  = (1<<3),
-			// Like WF_UNDECORATED, but the window covers the whole
-			// screen.
-		WF_AUTO_DELETE = (1<<4)
-			// The window deletes itself automatically three time slices
-			// after the close signal is signaled.
+		WF_MAXIMIZED   = (1<<3),
+			// The window covers the whole work area of the desktop.
+			// This flag may have no effect when combined with
+			// WF_UNDECORATED, WF_POPUP or WF_FULLSCREEN.
+		WF_FULLSCREEN  = (1<<4),
+			// The window covers the whole screen. This flag may
+			// have no effect when combined with WF_UNDECORATED or
+			// WF_POPUP.
+		WF_AUTO_DELETE = (1<<5)
+			// The window deletes itself automatically three time
+			// slices after the close signal is signaled.
 	};
 
 	emWindow(
@@ -97,7 +102,7 @@ public:
 	void LinkCrossPtr(emCrossPtrPrivate & crossPtr);
 		// This means emCrossPtr<emWindow> is possible.
 
-	emScreen & GetScreen();
+	emScreen & GetScreen() const;
 		// Get the screen where this window is shown.
 
 	WindowFlags GetWindowFlags() const;
@@ -111,7 +116,7 @@ public:
 	const emString & GetWMResName() const;
 		// Get the resource name of this window.
 
-	emWindowPort & GetWindowPort();
+	emWindowPort & GetWindowPort() const;
 		// Get the window port of this window.
 
 	const emSignal & GetCloseSignal() const;
@@ -147,9 +152,12 @@ public:
 		// returned.
 
 	void GetBorderSizes(double * pL, double * pT, double * pR,
-	                    double * pB);
+	                    double * pB) const;
 		// Get the best known size (thickness) of the left, top, right
 		// and bottom edges of the window border.
+
+	int GetMonitorIndex() const;
+		// Get the index of the display monitor on which this window is.
 
 	const emImage & GetWindowIcon() const;
 	void SetWindowIcon(const emImage & windowIcon);
@@ -192,8 +200,6 @@ private:
 	emSignal WindowFlagsSignal;
 	emSignal CloseSignal;
 	AutoDeleteEngineClass AutoDeleteEngine;
-	double PrevVPX,PrevVPY,PrevVPW,PrevVPH;
-	bool PrevVPValid;
 };
 
 
@@ -214,7 +220,7 @@ public:
 		// Only to be called through overloaded versions of
 		// emScreen::CreateWindowPort.
 
-	emWindow & GetWindow();
+	emWindow & GetWindow() const;
 
 protected:
 
@@ -222,7 +228,7 @@ protected:
 
 	const emString & GetWMResName() const;
 
-	emString GetWindowTitle();
+	emString GetWindowTitle() const;
 
 	const emImage & GetWindowIcon() const;
 
@@ -242,7 +248,7 @@ protected:
 
 	virtual void GetBorderSizes(
 		double * pL, double * pT, double * pR, double * pB
-	) = 0;
+	) const = 0;
 
 	virtual void Raise() = 0;
 
@@ -269,7 +275,7 @@ inline void emWindow::LinkCrossPtr(emCrossPtrPrivate & crossPtr)
 	CrossPtrList.LinkCrossPtr(crossPtr);
 }
 
-inline emScreen & emWindow::GetScreen()
+inline emScreen & emWindow::GetScreen() const
 {
 	return *(Screen.Get());
 }
@@ -284,7 +290,7 @@ inline const emString & emWindow::GetWMResName() const
 	return WMResName;
 }
 
-inline emWindowPort & emWindow::GetWindowPort()
+inline emWindowPort & emWindow::GetWindowPort() const
 {
 	return *WindowPort;
 }
@@ -357,7 +363,7 @@ inline void emWindow::SetWinPosViewSize(double x, double y, double w, double h)
 
 inline void emWindow::GetBorderSizes(
 	double * pL, double * pT, double * pR, double * pB
-)
+) const
 {
 	WindowPort->GetBorderSizes(pL,pT,pR,pB);
 }
@@ -375,7 +381,7 @@ inline void emWindow::Raise()
 
 //-------------------------------- emWindowPort --------------------------------
 
-inline emWindow & emWindowPort::GetWindow()
+inline emWindow & emWindowPort::GetWindow() const
 {
 	return Window;
 }
@@ -395,7 +401,7 @@ inline const emString & emWindowPort::GetWMResName() const
 	return Window.GetWMResName();
 }
 
-inline emString emWindowPort::GetWindowTitle()
+inline emString emWindowPort::GetWindowTitle() const
 {
 	return Window.GetTitle();
 }

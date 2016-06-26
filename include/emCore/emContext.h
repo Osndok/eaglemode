@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,21 +62,22 @@ public:
 	void LinkCrossPtr(emCrossPtrPrivate & crossPtr);
 		// This means emCrossPtr<emContext> is possible.
 
-	emRootContext & GetRootContext();
+	emRootContext & GetRootContext() const;
 		// Get the root context.
 
-	emContext * GetParentContext();
+	emContext * GetParentContext() const;
 		// Get the parent context. Returns NULL if this is the root
 		// context.
 
-	emContext * GetFirstChildContext();
-	emContext * GetLastChildContext();
-	emContext * GetPrevContext();
-	emContext * GetNextContext();
+	emContext * GetFirstChildContext() const;
+	emContext * GetLastChildContext() const;
+	emContext * GetPrevContext() const;
+	emContext * GetNextContext() const;
 		// Get the first or last child context, or the previous or next
 		// brother context, NULL if none.
 
-	emModel * Lookup(const type_info & modelClass, const char * name);
+	emModel * Lookup(const type_info & modelClass,
+	                 const char * name) const;
 		// Search for a common model within this context.
 		// Arguments:
 		//   modelClass - Final class of the model.
@@ -84,7 +85,7 @@ public:
 		// Returns: The model, or NULL if not found.
 
 	emModel * LookupInherited(const type_info & modelClass,
-	                          const char * name);
+	                          const char * name) const;
 		// Like Lookup, but if the model is not found in this context,
 		// the parent context is searched, then the grad-parent, and so
 		// on.
@@ -93,7 +94,7 @@ public:
 		// Just for debugging: Get a listing of all common models.
 
 	void GetModelInfo(int * pCommonCount, int * pPrivateCount=NULL,
-	                  emModel * * * pArrayOfCommon=NULL);
+	                  emModel * * * pArrayOfCommon=NULL) const;
 		// Just for debugging: Get the number of common and private
 		// models, and create an array of pointers to all common models.
 		// The array must be deleted by the caller.
@@ -115,8 +116,8 @@ private:
 	void UnregisterModel(emModel * model);
 	static int CalcHashCode(const type_info & modelClass,
 	                        const char * name);
-	emModel * SearchUnused();
-	emModel * SearchUnused(int minHash);
+	emModel * SearchUnused() const;
+	emModel * SearchUnused(int minHash) const;
 	emModel * SearchGarbage();
 	emModel * SearchGarbage(int minHash);
 	void CollectGarbage();
@@ -173,32 +174,32 @@ inline void emContext::LinkCrossPtr(emCrossPtrPrivate & crossPtr)
 	CrossPtrList.LinkCrossPtr(crossPtr);
 }
 
-inline emRootContext & emContext::GetRootContext()
+inline emRootContext & emContext::GetRootContext() const
 {
 	return RootContext;
 }
 
-inline emContext * emContext::GetParentContext()
+inline emContext * emContext::GetParentContext() const
 {
 	return ParentContext;
 }
 
-inline emContext * emContext::GetFirstChildContext()
+inline emContext * emContext::GetFirstChildContext() const
 {
 	return FirstChildContext;
 }
 
-inline emContext * emContext::GetLastChildContext()
+inline emContext * emContext::GetLastChildContext() const
 {
 	return LastChildContext;
 }
 
-inline emContext * emContext::GetPrevContext()
+inline emContext * emContext::GetPrevContext() const
 {
 	return PrevContext;
 }
 
-inline emContext * emContext::GetNextContext()
+inline emContext * emContext::GetNextContext() const
 {
 	return NextContext;
 }

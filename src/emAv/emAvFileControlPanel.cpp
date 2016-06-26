@@ -36,7 +36,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 
 	SetMinChildTallness(0.1);
 	SetMaxChildTallness(0.5);
-	SetAlignment(EM_ALIGN_TOP_LEFT);
+	SetAlignment(EM_ALIGN_TOP);
 
 	mainGroup=new emPackGroup(this,"","emAv - Audio & Video Player");
 	mainGroup->SetPrefChildTallness(0,0.1);

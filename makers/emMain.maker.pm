@@ -50,7 +50,6 @@ sub Build
 		"--type"          , "wexe",
 		"--name"          , "eaglemode",
 		"src/emMain/emBookmarks.cpp",
-		"src/emMain/emCoreConfigPanel.cpp",
 		"src/emMain/emMain.cpp",
 		"src/emMain/emMainConfig.cpp",
 		"src/emMain/emMainContentPanel.cpp",

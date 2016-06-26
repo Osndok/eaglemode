@@ -60,7 +60,7 @@ sub Build
 	my @librsvgFlags=();
 	my $str=readpipe('pkg-config --cflags --libs librsvg-2.0');
 	if (!$str) { return 0; }
-	foreach my $f (split(/ /,$str)) {
+	foreach my $f (split(/\s+/,$str)) {
 		if (substr($f,0,2) eq '-I') {
 			push(@librsvgFlags,'--inc-search-dir',substr($f,2));
 		}

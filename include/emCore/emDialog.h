@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDialog.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,7 +62,7 @@ public:
 		// content panel with another title, and if it gets focus, that
 		// title is shown. The default title is an empty string.
 
-	emLinearLayout * GetContentPanel();
+	emLinearLayout * GetContentPanel() const;
 		// This panel makes up the content area of the dialog, not
 		// including the buttons. For convenience, it is an emLinearLayout
 		// with default properties, except that the inner border is set
@@ -97,17 +97,17 @@ public:
 		// AddOKCancelButtons() is like AddOKButton() plus
 		// AddCancelButton().
 
-	emButton * GetButton(int index);
+	emButton * GetButton(int index) const;
 		// Get a button. The index is: 0 for the first added button, 1
 		// for the second added button, and so on.
 
-	emButton * GetButtonForResult(int result);
+	emButton * GetButtonForResult(int result) const;
 		// Get the first button, whose result is the given result.
 
-	emButton * GetOKButton();
+	emButton * GetOKButton() const;
 		// Get the first button with positive result.
 
-	emButton * GetCancelButton();
+	emButton * GetCancelButton() const;
 		// Get the first button with negative result.
 
 	const emSignal & GetFinishSignal() const;
@@ -136,7 +136,7 @@ public:
 		// by a call to CheckFinish(result).
 
 	void EnableAutoDeletion(bool autoDelete=true);
-	bool IsAutoDeletionEnabled();
+	bool IsAutoDeletionEnabled() const;
 		// Whether to delete this object automatically a few time slices
 		// after the dialog has finished.
 
@@ -216,17 +216,17 @@ private:
 	bool ADEnabled;
 };
 
-inline emLinearLayout * emDialog::GetContentPanel()
+inline emLinearLayout * emDialog::GetContentPanel() const
 {
 	return ((DlgPanel*)GetRootPanel())->ContentPanel;
 }
 
-inline emButton * emDialog::GetOKButton()
+inline emButton * emDialog::GetOKButton() const
 {
 	return GetButtonForResult(POSITIVE);
 }
 
-inline emButton * emDialog::GetCancelButton()
+inline emButton * emDialog::GetCancelButton() const
 {
 	return GetButtonForResult(NEGATIVE);
 }
@@ -241,7 +241,7 @@ inline int emDialog::GetResult() const
 	return Result;
 }
 
-inline bool emDialog::IsAutoDeletionEnabled()
+inline bool emDialog::IsAutoDeletionEnabled() const
 {
 	return ADEnabled;
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesPanel.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,6 +46,12 @@ emMinesPanel::~emMinesPanel()
 emString emMinesPanel::GetTitle()
 {
 	return "Mines";
+}
+
+
+emString emMinesPanel::GetIconFileName()
+{
+	return "mines.tga";
 }
 
 

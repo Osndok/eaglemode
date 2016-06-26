@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsPagePanel.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,8 +18,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <emCore/emRes.h>
 #include <emPs/emPsPagePanel.h>
+#include <emCore/emRes.h>
 
 
 emPsPagePanel::emPsPagePanel(

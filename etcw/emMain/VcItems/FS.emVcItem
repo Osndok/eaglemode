@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "File System"
+
+PosX  = 0.38
+PosY  = 0.447
+Width = 0.24
+ContentTallness = 0.375
+
+BorderScaling = 2.9
+
+BackgroundColor = "#BBB"
+BorderColor = "#333"
+TitleColor = "#BBB"
+
+FileName = "FS.emDiskDrives"
+CopyToUser = false

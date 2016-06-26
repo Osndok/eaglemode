@@ -12,8 +12,7 @@
 # Descr =
 # Descr =  Target: The directory in which the new subdirectory
 # Descr =          shall be created.
-# ButtonBgColor = #88C
-# ButtonFgColor = #000
+# Icon = new_dir.tga
 # Hotkey = Ctrl+D
 #[[END PROPERTIES]]
 

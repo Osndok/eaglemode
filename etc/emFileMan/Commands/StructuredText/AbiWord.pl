@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 #[[BEGIN PROPERTIES]]
 # Type = Command
-# Order = 5.0
+# Order = 1.0
 # Interpreter = perl
-# DefaultFor = .abw:.aw:.awt:.bzabw:.cwk:.dbk:.doc:.dot:.fo:.htm:.html:.hwp:.ics:.icsii:.kwd:.mif:.pdb:.pdf:.rtf:.wml:.wpd:.wri:.zabw
+# DefaultFor = .abw:.aw:.awt:.bzabw:.cwk:.dbk:.doc:.dot:.fo:.hwp:.ics:.icsii:.kwd:.mif:.pdb:.rtf:.wml:.wpd:.wri:.zabw
 # Caption = AbiWord
 # Descr =Open files in AbiWord.
 # Descr =
@@ -12,6 +12,7 @@
 # Descr =  Source: Ignored.
 # Descr =
 # Descr =  Target: The files to be opened.
+# Icon = thirdparty/abiword.tga
 #[[END PROPERTIES]]
 
 use strict;

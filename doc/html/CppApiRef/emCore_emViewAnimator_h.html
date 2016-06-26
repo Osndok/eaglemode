@@ -1,0 +1,411 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emViewAnimator.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>.h
+//
+// Copyright (C) 2014-2015 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emViewAnimator_h
+#define emViewAnimator_h
+
+#ifndef emView_h
+#include &lt;<A CLASS=f HREF="emCore_emView_h.html">emCore/emView.h</A>&gt;
+#endif
+
+
+<A NAME="emViewAnimator"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>();
+
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>bool </SPAN>IsActive() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>Activate();
+        <SPAN CLASS=t>virtual void </SPAN>Deactivate();
+
+        <SPAN CLASS=t>bool </SPAN>IsDeactivatingWhenIdle() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDeactivateWhenIdle(<SPAN CLASS=t>bool </SPAN>deactivateWhenIdle=<SPAN CLASS=k>true</SPAN>);
+
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+        <SPAN CLASS=t>virtual bool </SPAN>CycleAnimation(<SPAN CLASS=t>double </SPAN>dt) = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>InvalidatePainting();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+        emUInt64 LastTSC;
+        emUInt64 LastClk;
+        <SPAN CLASS=t>bool </SPAN>DeactivateWhenIdle;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::GetView() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::IsActive() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>View.ActiveAnimator==<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::IsDeactivatingWhenIdle() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DeactivateWhenIdle;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::InvalidatePainting()
+<SPAN CLASS=b>{
+        </SPAN>View.InvalidatePainting();
+<SPAN CLASS=b>}
+
+
+<A NAME="emKineticViewAnimator"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A> ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A>();
+
+        <SPAN CLASS=t>virtual void </SPAN>Activate();
+        <SPAN CLASS=t>virtual void </SPAN>Deactivate();
+
+        <SPAN CLASS=t>double </SPAN>GetVelocity(<SPAN CLASS=t>int </SPAN>dimension) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetAbsVelocity() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetVelocity(<SPAN CLASS=t>int </SPAN>dimension, <SPAN CLASS=t>double </SPAN>velocity);
+
+        <SPAN CLASS=t>void </SPAN>CenterZoomFixPoint();
+        <SPAN CLASS=t>void </SPAN>SetZoomFixPoint(<SPAN CLASS=t>double </SPAN>zoomFixX, <SPAN CLASS=t>double </SPAN>zoomFixY);
+
+        <SPAN CLASS=t>void </SPAN>SetFrictionEnabled(<SPAN CLASS=t>bool </SPAN>enabled);
+        <SPAN CLASS=t>bool </SPAN>IsFrictionEnabled() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetFriction() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetFriction(<SPAN CLASS=t>double </SPAN>friction);
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>CycleAnimation(<SPAN CLASS=t>double </SPAN>dt);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>UpdateBusyState();
+        <SPAN CLASS=t>void </SPAN>UpdateZoomFixPoint();
+
+        <SPAN CLASS=t>double </SPAN>Velocity[<SPAN CLASS=u>3</SPAN>];
+        <SPAN CLASS=t>bool </SPAN>ZoomFixPointCentered;
+        <SPAN CLASS=t>double </SPAN>ZoomFixX,ZoomFixY;
+        <SPAN CLASS=t>bool </SPAN>FrictionEnabled;
+        <SPAN CLASS=t>double </SPAN>Friction;
+        <SPAN CLASS=t>bool </SPAN>Busy;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A>::GetVelocity(<SPAN CLASS=t>int </SPAN>dimension) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Velocity[dimension];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A>::IsFrictionEnabled() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FrictionEnabled;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A>::GetFriction() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Friction;
+<SPAN CLASS=b>}
+
+
+
+
+<A NAME="emSpeedingViewAnimator"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A>();
+
+        <SPAN CLASS=t>virtual void </SPAN>Activate();
+        <SPAN CLASS=t>virtual void </SPAN>Deactivate();
+
+        <SPAN CLASS=t>double </SPAN>GetTargetVelocity(<SPAN CLASS=t>int </SPAN>dimension) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>double </SPAN>GetAbsTargetVelocity() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetTargetVelocity(<SPAN CLASS=t>int </SPAN>dimension, <SPAN CLASS=t>double </SPAN>targetVelocity);
+
+        <SPAN CLASS=t>double </SPAN>GetAcceleration() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAcceleration(<SPAN CLASS=t>double </SPAN>acceleration);
+
+        <SPAN CLASS=t>double </SPAN>GetReverseAcceleration() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetReverseAcceleration(<SPAN CLASS=t>double </SPAN>reverseAcceleration);
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>CycleAnimation(<SPAN CLASS=t>double </SPAN>dt);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>UpdateBusyState();
+
+        <SPAN CLASS=t>double </SPAN>TargetVelocity[<SPAN CLASS=u>3</SPAN>];
+        <SPAN CLASS=t>double </SPAN>Acceleration;
+        <SPAN CLASS=t>double </SPAN>ReverseAcceleration;
+        <SPAN CLASS=t>bool </SPAN>Busy;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A>::GetTargetVelocity(<SPAN CLASS=t>int </SPAN>dimension) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TargetVelocity[dimension];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A>::GetAcceleration() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Acceleration;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSpeedingViewAnimator">emSpeedingViewAnimator</A>::GetReverseAcceleration() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ReverseAcceleration;
+<SPAN CLASS=b>}
+
+
+<A NAME="emSwipingViewAnimator"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A> ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A>();
+
+        <SPAN CLASS=t>virtual void </SPAN>Activate();
+        <SPAN CLASS=t>virtual void </SPAN>Deactivate();
+
+        <SPAN CLASS=t>bool </SPAN>IsGripped() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetGripped(<SPAN CLASS=t>bool </SPAN>gripped);
+
+        <SPAN CLASS=t>void </SPAN>MoveGrip(<SPAN CLASS=t>int </SPAN>dimension, <SPAN CLASS=t>double </SPAN>distance);
+
+        <SPAN CLASS=t>double </SPAN>GetSpringConstant() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSpringConstant(<SPAN CLASS=t>double </SPAN>springConstant);
+
+        <SPAN CLASS=t>double </SPAN>GetAbsSpringExtension() <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>CycleAnimation(<SPAN CLASS=t>double </SPAN>dt);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>UpdateBusyState();
+
+        <SPAN CLASS=t>bool </SPAN>Gripped;
+        <SPAN CLASS=t>double </SPAN>SpringExtension[<SPAN CLASS=u>3</SPAN>];
+        <SPAN CLASS=t>double </SPAN>InstantaneousVelocity[<SPAN CLASS=u>3</SPAN>];
+        <SPAN CLASS=t>double </SPAN>SpringConstant;
+        <SPAN CLASS=t>bool </SPAN>Busy;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A>::IsGripped() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Gripped;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emSwipingViewAnimator">emSwipingViewAnimator</A>::GetSpringConstant() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SpringConstant;
+<SPAN CLASS=b>}
+
+
+<A NAME="emMagneticViewAnimator"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emViewAnimator_h.html#emMagneticViewAnimator">emMagneticViewAnimator</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emMagneticViewAnimator">emMagneticViewAnimator</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emKineticViewAnimator">emKineticViewAnimator</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emMagneticViewAnimator">emMagneticViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emMagneticViewAnimator">emMagneticViewAnimator</A>();
+
+        <SPAN CLASS=t>virtual void </SPAN>Activate();
+        <SPAN CLASS=t>virtual void </SPAN>Deactivate();
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>CycleAnimation(<SPAN CLASS=t>double </SPAN>dt);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>double </SPAN>CalculateDistance(<SPAN CLASS=t>double </SPAN>* pDX, <SPAN CLASS=t>double </SPAN>* pDY, <SPAN CLASS=t>double </SPAN>* pDZ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>GetViewRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                         <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH) <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
+        <SPAN CLASS=t>bool </SPAN>MagnetismActive;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emVisitingViewAnimator"></A><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>();
+
+        <SPAN CLASS=t>void </SPAN>SetAnimated(<SPAN CLASS=t>bool </SPAN>animated=<SPAN CLASS=k>true</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SetAcceleration(<SPAN CLASS=t>double </SPAN>acceleration);
+        <SPAN CLASS=t>void </SPAN>SetMaxCuspSpeed(<SPAN CLASS=t>double </SPAN>maxCuspSpeed);
+        <SPAN CLASS=t>void </SPAN>SetMaxAbsoluteSpeed(<SPAN CLASS=t>double </SPAN>maxAbsoluteSpeed);
+        <SPAN CLASS=t>void </SPAN>SetAnimParamsByCoreConfig(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> &amp; coreConfig);
+
+        <SPAN CLASS=t>void </SPAN>SetGoal(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
+                     <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SetGoal(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
+                     <SPAN CLASS=t>bool </SPAN>adherent, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>SetGoalFullsized(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
+                              <SPAN CLASS=t>bool </SPAN>utilizeView=<SPAN CLASS=k>false</SPAN>, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+
+        <SPAN CLASS=t>virtual void </SPAN>Activate();
+        <SPAN CLASS=t>virtual void </SPAN>Deactivate();
+        <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+
+<SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>CycleAnimation(<SPAN CLASS=t>double </SPAN>dt);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>enum </SPAN>StateEnum <SPAN CLASS=b>{
+                </SPAN>ST_CURVE,
+                ST_DIRECT,
+                ST_SEEK,
+                ST_GIVE_UP
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>VisitTypeEnum <SPAN CLASS=b>{
+                </SPAN>VT_VISIT,
+                VT_VISIT_REL,
+                VT_VISIT_FULLSIZED
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>CurvePoint <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>double </SPAN>X;
+                <SPAN CLASS=t>double </SPAN>Z;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>SetGoal(
+                VisitTypeEnum visitType, <SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY,
+                <SPAN CLASS=t>double </SPAN>relA, <SPAN CLASS=t>bool </SPAN>adherent, <SPAN CLASS=t>bool </SPAN>utilizeView, <SPAN CLASS=t>const char </SPAN>* subject
+        );
+
+        <SPAN CLASS=t>void </SPAN>UpdateSpeed(
+                <SPAN CLASS=t>double </SPAN>pos, <SPAN CLASS=t>double </SPAN>dist, <SPAN CLASS=t>int </SPAN>panelsAfter, <SPAN CLASS=t>double </SPAN>distFinal, <SPAN CLASS=t>double </SPAN>dt
+        );
+
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetNearestExistingPanel(
+                <SPAN CLASS=t>double </SPAN>* pRelX, <SPAN CLASS=t>double </SPAN>* pRelY, <SPAN CLASS=t>double </SPAN>* pRelA, <SPAN CLASS=t>bool </SPAN>* pAdherent,
+                <SPAN CLASS=t>int </SPAN>* pDepth, <SPAN CLASS=t>int </SPAN>* pPanelsAfter, <SPAN CLASS=t>double </SPAN>* pDistFinal
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetNearestViewedPanel(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * nearestExistingPanel) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>GetDistanceTo(
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>double </SPAN>relX, <SPAN CLASS=t>double </SPAN>relY, <SPAN CLASS=t>double </SPAN>relA,
+                <SPAN CLASS=t>double </SPAN>* pDirX, <SPAN CLASS=t>double </SPAN>* pDirY, <SPAN CLASS=t>double </SPAN>* pDistXY, <SPAN CLASS=t>double </SPAN>* pDistZ
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>GetViewRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>static double </SPAN>GetDirectDist(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>z);
+
+        <SPAN CLASS=t>static void </SPAN>GetDirectPoint(
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>z, <SPAN CLASS=t>double </SPAN>d,
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pZ
+        );
+
+        <SPAN CLASS=t>static void </SPAN>GetCurvePosDist(
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>z, <SPAN CLASS=t>double </SPAN>* pCurvePos, <SPAN CLASS=t>double </SPAN>* pCurveDist
+        );
+
+        <SPAN CLASS=t>static </SPAN>CurvePoint GetCurvePoint(<SPAN CLASS=t>double </SPAN>d);
+
+        <SPAN CLASS=t>bool </SPAN>Animated;
+        <SPAN CLASS=t>double </SPAN>Acceleration;
+        <SPAN CLASS=t>double </SPAN>MaxCuspSpeed;
+        <SPAN CLASS=t>double </SPAN>MaxAbsoluteSpeed;
+        VisitTypeEnum VisitType;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Identity;
+        <SPAN CLASS=t>double </SPAN>RelX,RelY,RelA;
+        <SPAN CLASS=t>bool </SPAN>Adherent;
+        <SPAN CLASS=t>bool </SPAN>UtilizeView;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Subject;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; Names;
+        StateEnum State;
+        <SPAN CLASS=t>int </SPAN>MaxDepthSeen;
+        <SPAN CLASS=t>double </SPAN>Speed;
+        <SPAN CLASS=t>int </SPAN>TimeSlicesWithoutHope;
+        emUInt64 GiveUpClock;
+
+        <SPAN CLASS=t>static const double </SPAN>CurveDeltaDist;
+        <SPAN CLASS=t>static const </SPAN>CurvePoint CurvePoints[];
+        <SPAN CLASS=t>static const int </SPAN>CurveMaxIndex;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emWindowStateSaver.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emWindowStateSaver_h.html#emWindowStateSaver">emWindowStateSaver</A>.h
+//
+// Copyright (C) 2016 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emWindowStateSaver_h
+#define emWindowStateSaver_h
+
+#ifndef emWindow_h
+#include &lt;<A CLASS=f HREF="emCore_emWindow_h.html">emCore/emWindow.h</A>&gt;
+#endif
+
+
+<A NAME="emWindowStateSaver"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emWindowStateSaver_h.html#emWindowStateSaver">emWindowStateSaver</A> =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emWindowStateSaver_h.html#emWindowStateSaver">emWindowStateSaver</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emEngine_h.html#emEngine">emEngine</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for making the geometry of a window (class) persistent. This
+        // saves the position, size and maximization state in a file. For using
+        // this class, simply create an instance of it as a member of your
+        // window. The state is restored up-on construction (if file valid), and
+        // it is saved on each geometry change or focusing of the window.
+        // Actually the saving happens immediately to a shared internal model
+        // and with delay to the file.
+
+        </SPAN><A CLASS=l HREF="emCore_emWindowStateSaver_h.html#emWindowStateSaver">emWindowStateSaver</A>(
+                <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; window, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath,
+                <SPAN CLASS=t>bool </SPAN>allowRestoreFullscreen=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Constructor.
+                // Arguments:
+                //   window                 - The window whose state is to be
+                //                            restored and saved by this window
+                //                            state saver.
+                //   filePath               - Path and name for the file. This
+                //                            should be unique for the window
+                //                            class. The file has an <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>
+                //                            format.
+                //   allowRestoreFullscreen - Whether to allow restoring
+                //                            fullscreen mode.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emWindowStateSaver_h.html#emWindowStateSaver">emWindowStateSaver</A>();
+                <SPAN CLASS=c>// Destructor.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>Save();
+        <SPAN CLASS=t>void </SPAN>Restore();
+
+        <SPAN CLASS=t>class </SPAN>ModelClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>, <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;ModelClass&gt; Acquire(
+                        <A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext,
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath
+                );
+
+                <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> ViewX;
+                <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> ViewY;
+                <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> ViewWidth;
+                <A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> ViewHeight;
+                <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> Maximized;
+                <A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> Fullscreen;
+
+                <SPAN CLASS=t>virtual const char </SPAN>* GetFormatName() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>protected</SPAN>:
+
+                ModelClass(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);
+                <SPAN CLASS=t>virtual </SPAN>~ModelClass();
+        <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; Window;
+        <SPAN CLASS=t>bool </SPAN>AllowRestoreFullscreen;
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;ModelClass&gt; Model;
+        <SPAN CLASS=t>double </SPAN>OwnNormalX,OwnNormalY,OwnNormalW,OwnNormalH;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

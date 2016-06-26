@@ -70,6 +70,7 @@ sub Build
 		"src/emCore/emConfigModel.cpp",
 		"src/emCore/emContext.cpp",
 		"src/emCore/emCoreConfig.cpp",
+		"src/emCore/emCoreConfigPanel.cpp",
 		"src/emCore/emCrossPtr.cpp",
 		"src/emCore/emCursor.cpp",
 		"src/emCore/emDialog.cpp",
@@ -127,7 +128,8 @@ sub Build
 		"src/emCore/emView.cpp",
 		"src/emCore/emViewAnimator.cpp",
 		"src/emCore/emViewInputFilter.cpp",
-		"src/emCore/emWindow.cpp"
+		"src/emCore/emWindow.cpp",
+		"src/emCore/emWindowStateSaver.cpp"
 	)==0 or return 0;
 
 	return 1;

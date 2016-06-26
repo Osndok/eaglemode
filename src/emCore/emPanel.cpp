@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -324,7 +324,14 @@ emString emPanel::GetTitle()
 }
 
 
-emPanel * emPanel::GetChild(const char * name)
+emString emPanel::GetIconFileName()
+{
+	if (Parent) return Parent->GetIconFileName();
+	else return emString();
+}
+
+
+emPanel * emPanel::GetChild(const char * name) const
 {
 	EM_AVL_SEARCH_VARS(emPanel)
 	int d;
@@ -599,14 +606,45 @@ void emPanel::Layout(
 }
 
 
-void emPanel::GetEssenceRect(
-	double * pX, double * pY, double * pW, double * pH
+void emPanel::GetSubstanceRect(
+	double * pX, double * pY, double * pW, double * pH, double * pR
 )
 {
 	*pX=0.0;
 	*pY=0.0;
 	*pW=1.0;
 	*pH=GetHeight();
+	*pR=0.0;
+}
+
+
+bool emPanel::IsPointInSubstanceRect(double x, double y)
+{
+	double sx,sy,sw,sh,sr,dx,dy,sw2,sh2;
+
+	if (x<0.0 || x>=1.0 || y<0.0 || y>=GetHeight()) return false;
+	GetSubstanceRect(&sx,&sy,&sw,&sh,&sr);
+	sw2=sw*0.5;
+	dx=fabs(x-sx-sw2);
+	if (dx>sw2) return false;
+	sh2=sh*0.5;
+	dy=fabs(y-sy-sh2);
+	if (dy>sh2) return false;
+	if (sr>sw2) sr=sw2;
+	if (sr>sh2) sr=sh2;
+	dx-=sw2-sr;
+	dy-=sh2-sr;
+	return dx<0.0 || dy<0.0 || dx*dx+dy*dy <= sr*sr;
+}
+
+
+void emPanel::GetEssenceRect(
+	double * pX, double * pY, double * pW, double * pH
+)
+{
+	double r;
+
+	GetSubstanceRect(pX,pY,pW,pH,&r);
 }
 
 
@@ -710,26 +748,26 @@ void emPanel::SetFocusable(bool focusable)
 }
 
 
-emPanel * emPanel::GetFocusableParent()
+emPanel * emPanel::GetFocusableParent() const
 {
-	emPanel * p;
+	const emPanel * p;
 
 	p=this;
 	do {
 		p=p->Parent;
 	} while (p && !p->Focusable);
-	return p;
+	return (emPanel*)p;
 }
 
 
-emPanel * emPanel::GetFocusableFirstChild()
+emPanel * emPanel::GetFocusableFirstChild() const
 {
-	emPanel * p;
+	const emPanel * p;
 
 	p=FirstChild;
 	if (!p) return NULL;
 	for (;;) {
-		if (p->Focusable) return p;
+		if (p->Focusable) return (emPanel*)p;
 		if (p->FirstChild) p=p->FirstChild;
 		else {
 			while (!p->Next) {
@@ -742,14 +780,14 @@ emPanel * emPanel::GetFocusableFirstChild()
 }
 
 
-emPanel * emPanel::GetFocusableLastChild()
+emPanel * emPanel::GetFocusableLastChild() const
 {
-	emPanel * p;
+	const emPanel * p;
 
 	p=LastChild;
 	if (!p) return NULL;
 	for (;;) {
-		if (p->Focusable) return p;
+		if (p->Focusable) return (emPanel*)p;
 		if (p->LastChild) p=p->LastChild;
 		else {
 			while (!p->Prev) {
@@ -762,9 +800,9 @@ emPanel * emPanel::GetFocusableLastChild()
 }
 
 
-emPanel * emPanel::GetFocusablePrev()
+emPanel * emPanel::GetFocusablePrev() const
 {
-	emPanel * p;
+	const emPanel * p;
 
 	for (p=this;;) {
 		while (!p->Prev) {
@@ -773,7 +811,7 @@ emPanel * emPanel::GetFocusablePrev()
 		}
 		p=p->Prev;
 		for (;;) {
-			if (p->Focusable) return p;
+			if (p->Focusable) return (emPanel*)p;
 			if (!p->LastChild) break;
 			p=p->LastChild;
 		}
@@ -781,9 +819,9 @@ emPanel * emPanel::GetFocusablePrev()
 }
 
 
-emPanel * emPanel::GetFocusableNext()
+emPanel * emPanel::GetFocusableNext() const
 {
-	emPanel * p;
+	const emPanel * p;
 
 	for (p=this;;) {
 		while (!p->Next) {
@@ -792,7 +830,7 @@ emPanel * emPanel::GetFocusableNext()
 		}
 		p=p->Next;
 		for (;;) {
-			if (p->Focusable) return p;
+			if (p->Focusable) return (emPanel*)p;
 			if (!p->FirstChild) break;
 			p=p->FirstChild;
 		}
