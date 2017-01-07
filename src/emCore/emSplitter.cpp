@@ -153,7 +153,7 @@ void emSplitter::Input(
 }
 
 
-emCursor emSplitter::GetCursor()
+emCursor emSplitter::GetCursor() const
 {
 	if ((!MouseInGrip && !Pressed) || !IsEnabled()) return emBorder::GetCursor();
 	else if (Vertical) return emCursor::UP_DOWN_ARROW;
@@ -164,7 +164,7 @@ emCursor emSplitter::GetCursor()
 void emSplitter::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	double gx,gy,gw,gh,d;
 	emColor btBgCol;

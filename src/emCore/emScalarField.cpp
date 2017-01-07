@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -269,13 +269,13 @@ void emScalarField::Input(
 }
 
 
-bool emScalarField::HasHowTo()
+bool emScalarField::HasHowTo() const
 {
 	return true;
 }
 
 
-emString emScalarField::GetHowTo()
+emString emScalarField::GetHowTo() const
 {
 	emString h;
 
@@ -289,7 +289,7 @@ emString emScalarField::GetHowTo()
 void emScalarField::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	DoScalarField(
 		SCALAR_FIELD_FUNC_PAINT,&painter,canvasColor,0.0,0.0,NULL,NULL
@@ -299,7 +299,7 @@ void emScalarField::PaintContent(
 
 bool emScalarField::CheckMouse(
 	double mx, double my, emInt64 * pValue
-)
+) const
 {
 	bool b;
 
@@ -311,7 +311,7 @@ bool emScalarField::CheckMouse(
 void emScalarField::DoScalarField(
 	DoScalarFieldFunc func, const emPainter * painter, emColor canvasColor,
 	double mx, double my, emInt64 * pValue, bool * pHit
-)
+) const
 {
 	emColor bgCol,fgCol,col;
 	double x,y,w,h,r,tx,ty,tw,th,s,d,e,f,ax,ay,aw,ah,dx,dy;

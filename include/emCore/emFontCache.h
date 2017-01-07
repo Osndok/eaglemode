@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.h
 //
-// Copyright (C) 2009 Oliver Hamann.
+// Copyright (C) 2009,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,10 @@
 #include <emCore/emImage.h>
 #endif
 
+#ifndef emThread_h
+#include <emCore/emThread.h>
+#endif
+
 
 class emFontCache : public emModel {
 
@@ -48,36 +52,36 @@ protected:
 	emFontCache(emContext & context, const emString & name);
 	virtual ~emFontCache();
 
+	virtual bool Cycle();
+
 private:
 
-	struct RingNode {
-		RingNode * Next;
-		RingNode * Prev;
-	};
-
-	struct Entry : RingNode {
+	struct Entry {
 		emString FilePath;
 		int FirstCode, LastCode;
 		int CharWidth, CharHeight;
 		bool Loaded;
+		bool LoadedInEarlierTimeSlice;
 		int ColumnCount;
+		emUInt64 LastUseClock;
 		emUInt64 MemoryNeed;
 		emImage Image;
 	};
 
 	void LoadEntry(Entry * entry);
 	void UnloadEntry(Entry * entry);
-	void TouchEntry(Entry * entry);
 	void LoadFontDir();
 	void Clear();
 
 	emString FontDir;
 	emImage ImgUnknownChar;
 	emImage ImgCostlyChar;
+	emThreadMutex Mutex;
+	bool SomeLoadedNewly;
 	Entry * * EntryArray;
 	int EntryCount;
-	RingNode LRURing;
 	double Stress;
+	emUInt64 Clock;
 	emUInt64 LastLoadTime;
 	emUInt64 MemoryUse;
 

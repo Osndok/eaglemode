@@ -115,7 +115,7 @@ void emImageFilePanel::SetFileModel(
 }
 
 
-emString emImageFilePanel::GetIconFileName()
+emString emImageFilePanel::GetIconFileName() const
 {
 	return "picture.tga";
 }
@@ -123,7 +123,7 @@ emString emImageFilePanel::GetIconFileName()
 
 void emImageFilePanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	emImageFileModel * fm;
 	const emImage * img;
@@ -178,7 +178,7 @@ bool emImageFilePanel::Cycle()
 }
 
 
-bool emImageFilePanel::IsOpaque()
+bool emImageFilePanel::IsOpaque() const
 {
 	if (IsVFSGood()) {
 		return false;
@@ -189,7 +189,9 @@ bool emImageFilePanel::IsOpaque()
 }
 
 
-void emImageFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emImageFilePanel::Paint(
+	const emPainter & painter, emColor canvasColor
+) const
 {
 	emImageFileModel * fm;
 	const emImage * img;

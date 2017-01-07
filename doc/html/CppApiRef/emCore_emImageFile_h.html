@@ -128,18 +128,18 @@
         <SPAN CLASS=t>virtual void </SPAN>SetFileModel(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * fileModel,
                                   <SPAN CLASS=t>bool </SPAN>updateFileModel=<SPAN CLASS=k>true</SPAN>);
 
-        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName() <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>GetEssenceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
-                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH);
+                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH) <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual bool </SPAN>Cycle();
 
-        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * CreateControlPanel(ParentArg parent,
                                              <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);

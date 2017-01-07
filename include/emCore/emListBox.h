@@ -267,10 +267,10 @@ public:
 		                   const emInputState & state,
 		                   double mx, double my);
 
-		virtual bool IsOpaque();
+		virtual bool IsOpaque() const;
 
 		virtual void Paint(const emPainter & painter,
-		                   emColor canvasColor);
+		                   emColor canvasColor) const;
 
 		virtual void ItemTextChanged();
 
@@ -292,11 +292,11 @@ protected:
 		// Get the name for an item panel. The default implementation
 		// simply converts the index to a decimal string.
 
-	virtual emPanel * GetItemPanel(int index);
+	virtual emPanel * GetItemPanel(int index) const;
 		// Get an item panel. The default implementation calls
 		// GetChild(..) with the name of the item panel.
 
-	virtual ItemPanelInterface * GetItemPanelInterface(int index);
+	virtual ItemPanelInterface * GetItemPanelInterface(int index) const;
 		// Get the ItemPanelInterface for an item panel. The default
 		// implementation calls GetItemPanel and does a dynamic cast.
 
@@ -306,6 +306,15 @@ protected:
 	                   double mx, double my);
 
 	virtual void AutoExpand();
+
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+	virtual emPanel * GetItemPanel(int index) final;
+	virtual ItemPanelInterface * GetItemPanelInterface(int index) final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 private:
 

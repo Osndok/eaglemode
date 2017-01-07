@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockPanel.cpp
 //
-// Copyright (C) 2006-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -86,7 +86,7 @@ void emAlarmClockPanel::SetFgColor(emColor fgColor)
 }
 
 
-emString emAlarmClockPanel::GetTitle()
+emString emAlarmClockPanel::GetTitle() const
 {
 	return "Alarm Clock";
 }
@@ -146,13 +146,13 @@ bool emAlarmClockPanel::Cycle()
 }
 
 
-bool emAlarmClockPanel::IsOpaque()
+bool emAlarmClockPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emAlarmClockPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emAlarmClockPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double h;
 

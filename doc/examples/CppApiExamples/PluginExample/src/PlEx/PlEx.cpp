@@ -132,8 +132,8 @@ protected:
 	virtual bool Cycle();
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);
 private:
@@ -205,13 +205,13 @@ void PlExFilePanel::Input(
 	emFilePanel::Input(event,state,mx,my);
 }
 
-bool PlExFilePanel::IsOpaque()
+bool PlExFilePanel::IsOpaque() const
 {
 	if (IsVFSGood()) return true;
 	else return emFilePanel::IsOpaque();
 }
 
-void PlExFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void PlExFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (IsVFSGood()) {
 		painter.Clear(emColor::WHITE,canvasColor);

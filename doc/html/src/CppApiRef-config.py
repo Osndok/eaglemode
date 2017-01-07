@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2016 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2017 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -82,7 +82,7 @@ Topics=[
 			AutoSectionsFile("emCore/emCrossPtr.h")
 		]
 	),
-	Topic(text="CPU Sharing",
+	Topic(text="CPU Control",
 		files=[
 			AutoSectionsFile("emCore/emEngine.h"),
 			AutoSectionsFile("emCore/emSignal.h"),
@@ -91,7 +91,8 @@ Topics=[
 			AutoSectionsFile("emCore/emPriSchedAgent.h"),
 			AutoSectionsFile("emCore/emThread.h"),
 			AutoSectionsFile("emCore/emProcess.h"),
-			AutoSectionsFile("emCore/emMiniIpc.h")
+			AutoSectionsFile("emCore/emMiniIpc.h"),
+			AutoSectionsFile("emCore/emRenderThreadPool.h")
 		]
 	),
 	Topic(text="Graphics",
@@ -131,6 +132,7 @@ Topics=[
 			AutoSectionsFile("emCore/emGUIFramework.h"),
 			AutoSectionsFile("emCore/emViewAnimator.h"),
 			AutoSectionsFile("emCore/emViewInputFilter.h"),
+			AutoSectionsFile("emCore/emViewRenderer.h"),
 			AutoSectionsFile("emCore/emWindowStateSaver.h")
 		]
 	),

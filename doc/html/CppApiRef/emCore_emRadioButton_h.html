@@ -106,8 +106,7 @@
                         <SPAN CLASS=c>// This signal is signaled whenever there was a change
                         // in the result of GetChecked().
 
-                </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetChecked();
-                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetChecked() <SPAN CLASS=t>const</SPAN>;
+                </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetChecked() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>void </SPAN>SetChecked(<A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * radioButton);
                         <SPAN CLASS=c>// Get/set the member button which is currently checked.
                         // NULL means to have no member button checked.
@@ -121,8 +120,7 @@
                 </SPAN><SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
                         <SPAN CLASS=c>// Get number of member buttons.
 
-                </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index);
-                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+                </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * GetButton(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
                         <SPAN CLASS=c>// Get a member button by index.
 
                 </SPAN><SPAN CLASS=t>int </SPAN>GetIndexOf(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * button) <SPAN CLASS=t>const</SPAN>;
@@ -219,7 +217,7 @@
 
         <SPAN CLASS=t>virtual void </SPAN>CheckChanged();
 
-        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo() <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>private</SPAN>:
 
@@ -236,12 +234,7 @@
         </SPAN><SPAN CLASS=k>return </SPAN>CheckSignal;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * <A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetChecked()
-<SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * <A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetChecked() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A> * <A CLASS=l HREF="emCore_emRadioButton_h.html#emRadioButton">emRadioButton</A>::Mechanism::GetChecked() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>CheckIndex&gt;=<SPAN CLASS=u>0 </SPAN>? Array[CheckIndex] : <SPAN CLASS=u>NULL</SPAN>;
 <SPAN CLASS=b>}

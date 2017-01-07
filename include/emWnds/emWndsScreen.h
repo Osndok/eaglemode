@@ -33,8 +33,9 @@
 #include <windows.h>
 #endif
 
-class emWndsWindowPort;
 class emWndsScheduler;
+class emWndsViewRenderer;
+class emWndsWindowPort;
 
 
 class emWndsScreen : public emScreen {
@@ -96,12 +97,6 @@ private:
 
 	HCURSOR GetCursorHandle(int cursorId);
 
-	void CreateSendBufThread();
-	void DestroySendBufThread();
-	void BeginSendBuf(HDC hdc, int bufIndex, int x, int y, int w, int h);
-	void WaitSendBuf();
-	static DWORD CALLBACK SendBufThreadFunc(LPVOID lpParameter);
-
 	static emInputKey ConvertKey(unsigned vk, int * pVariant);
 
 	class WaitCursorThread : private emThread
@@ -134,11 +129,6 @@ private:
 	double PixelTallness;
 	emUInt64 GeometryUpdateTime;
 
-	int BufWidth,BufHeight;
-	BITMAPINFOHEADER BufInfo[2];
-	emUInt32 * BufMap[2];
-	emPainter BufPainter[2];
-
 	emArray<CursorMapElement> CursorMap;
 	bool InputStateToBeFlushed;
 	emInputState InputState;
@@ -148,13 +138,7 @@ private:
 	int ScreensaverDisableCounter;
 	emArray<emWndsWindowPort*> WinPorts;
 
-	bool SendBufExitRequest;
-	HDC SendBufHdc;
-	int SendBufIndex;
-	int SendBufX,SendBufY,SendBufW,SendBufH;
-	HANDLE SendBufEvent;
-	HANDLE SendBufDoneEvent;
-	HANDLE SendBufThread;
+	emWndsViewRenderer * ViewRenderer;
 };
 
 

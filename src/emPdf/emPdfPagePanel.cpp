@@ -71,7 +71,7 @@ bool emPdfPagePanel::Cycle()
 }
 
 
-bool emPdfPagePanel::IsOpaque()
+bool emPdfPagePanel::IsOpaque() const
 {
 	return true;
 }
@@ -79,7 +79,7 @@ bool emPdfPagePanel::IsOpaque()
 
 void emPdfPagePanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	static const emColor bgCol=emColor(221,255,255);
 	double h,fw,fh,ox,oy,ow,oh,sx,sy,sw,sh,ix,iy,iw,ih,t;

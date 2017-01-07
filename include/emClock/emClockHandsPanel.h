@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockHandsPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,9 +41,9 @@ public:
 
 protected:
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 

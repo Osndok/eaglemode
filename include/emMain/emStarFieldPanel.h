@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStarFieldPanel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,13 +35,13 @@ public:
 
 	virtual ~emStarFieldPanel();
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
 protected:
 
 	virtual void Notice(NoticeFlags flags);
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 
@@ -57,9 +57,9 @@ private:
 		virtual void Input(emInputEvent & event,
 		                   const emInputState & state,
 		                   double mx, double my);
-		virtual bool IsOpaque();
+		virtual bool IsOpaque() const;
 		virtual void Paint(const emPainter & painter,
-		                   emColor canvasColor);
+		                   emColor canvasColor) const;
 	};
 	friend class OverlayPanel;
 
@@ -67,14 +67,14 @@ private:
 	public:
 		TicTacToePanel(emStarFieldPanel * parent,
 		               const emString & name);
-		virtual emString GetTitle();
+		virtual emString GetTitle() const;
 	protected:
 		virtual void Input(emInputEvent & event,
 		                   const emInputState & state,
 		                   double mx, double my);
-		virtual bool IsOpaque();
+		virtual bool IsOpaque() const;
 		virtual void Paint(const emPainter & painter,
-		                   emColor canvasColor);
+		                   emColor canvasColor) const;
 	private:
 		static int DeepCheckState(int state, int turn);
 		static int CheckState(int state);

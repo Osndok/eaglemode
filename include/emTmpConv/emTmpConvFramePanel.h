@@ -43,9 +43,9 @@ protected:
 
 	virtual bool Cycle();
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 
@@ -57,7 +57,7 @@ private:
 		const emPainter & painter,
 		double x, double y, double w, double h,
 		emColor canvasColor
-	);
+	) const;
 
 	double InnerScale;
 	emColor BGColor;

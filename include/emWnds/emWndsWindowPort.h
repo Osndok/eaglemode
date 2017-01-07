@@ -44,7 +44,7 @@ protected:
 	) const;
 	virtual void RequestFocus();
 	virtual void Raise();
-	virtual emUInt64 GetInputClockMS();
+	virtual emUInt64 GetInputClockMS() const;
 	virtual void InvalidateTitle();
 	virtual void InvalidateIcon();
 	virtual void InvalidateCursor();

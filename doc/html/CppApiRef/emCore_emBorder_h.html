@@ -229,19 +229,19 @@
         </SPAN><SPAN CLASS=t>void </SPAN>GetAuxRect(
                 <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
-        </SPAN>);
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the coordinates and canvas color of the auxiliary area.
                 // Valid only if HasAux()==true.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetSubstanceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
                                       <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
-                                      <SPAN CLASS=t>double </SPAN>* pR);
+                                      <SPAN CLASS=t>double </SPAN>* pR) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Overloaded from <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A> (read there).
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRoundRect(
                 <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
-        </SPAN>);
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the coordinates and canvas color of the content area as a
                 // round rectangle (argument pR is for returning the radius of
                 // the corners).
@@ -249,7 +249,7 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRect(
                 <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
-        </SPAN>);
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the coordinates and canvas color of the content area as a
                 // rectangle. If the inner border has round corners, the
                 // rectangle returned here is smaller than with
@@ -259,7 +259,7 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetContentRectUnobscured(
                 <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
-        </SPAN>);
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the coordinates and canvas color of the unobscured part
                 // of the content area. Some border types are painting an
                 // overlay like a shadow at the edges of the content area, after
@@ -272,15 +272,15 @@
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
-        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
-        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>. Hint: For painting the content area, please
                 // overload PaintContent instead of Paint, because with certain
                 // border types, a shadow is painted over the content area.
 
-        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
-        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasHowTo() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// This is about a text describing how to use this panel. If
                 // HasHowTo()==true, the text returned by GetHowTo() is shown
                 // very small in the center of the left edge of the border. When
@@ -296,18 +296,18 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>PaintContent(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// This can be overloaded for painting the content area. The
                 // default implementation does nothing. The coordinates x,y,w,h
                 // are like from GetContentRect, but you could even use the
                 // coordinates returned by GetContentRoundRect.
 
-        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasLabel();
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>HasLabel() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Whether this panel has a label. The default implementation
                 // checks whether at least one of caption, description and icon
                 // is not empty.
 
-        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetBestLabelTallness();
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetBestLabelTallness() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the ideal tallness for the label area. The default
                 // implementation calculates this for the default implementation
                 // of PaintLabel.
@@ -315,7 +315,7 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>PaintLabel(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint the label. The default implementation paints the
                 // caption, description and icon. This could be overloaded to
                 // paint something else for the label.
@@ -354,6 +354,39 @@
                 // This is more or less private stuff - do not use in custom
                 // classes.
 
+        // - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+        // The following virtual non-const methods have been replaced by const
+        // methods (see above). The old versions still exist here with the
+        // "final" keyword added, so that old overridings will fail to compile.
+        // If you run into this, please adapt your overridings by adding "const".
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>virtual void </SPAN>GetContentRoundRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>) final;
+        <SPAN CLASS=t>virtual void </SPAN>GetContentRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>) final;
+        <SPAN CLASS=t>virtual void </SPAN>GetContentRectUnobscured(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>) final;
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo() final;
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo() final;
+        <SPAN CLASS=t>virtual void </SPAN>PaintContent(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) final;
+        <SPAN CLASS=t>virtual bool </SPAN>HasLabel() final;
+        <SPAN CLASS=t>virtual double </SPAN>GetBestLabelTallness() final;
+        <SPAN CLASS=t>virtual void </SPAN>PaintLabel(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
+                <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) final;
+        <SPAN CLASS=c>// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>enum </SPAN>DoBorderFunc <SPAN CLASS=b>{
@@ -368,7 +401,7 @@
                 DoBorderFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
                 <SPAN CLASS=t>double </SPAN>* pH, <SPAN CLASS=t>double </SPAN>* pR, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>enum </SPAN>DoLabelFunc <SPAN CLASS=b>{
                 </SPAN>LABEL_FUNC_PAINT,
@@ -378,7 +411,7 @@
                 DoLabelFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y,
                 <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
                 <SPAN CLASS=t>double </SPAN>* pBestTallness
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>struct </SPAN>AuxData <SPAN CLASS=b>{
                 </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> PanelName;

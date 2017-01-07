@@ -79,7 +79,7 @@ void emAvFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 }
 
 
-emString emAvFilePanel::GetIconFileName()
+emString emAvFilePanel::GetIconFileName() const
 {
 	emAvFileModel * fm;
 
@@ -94,7 +94,7 @@ emString emAvFilePanel::GetIconFileName()
 
 void emAvFilePanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	if (GetVirFileState()==VFS_LOADED) {
 		*pX=EX;
@@ -431,21 +431,21 @@ void emAvFilePanel::Input(
 }
 
 
-emCursor emAvFilePanel::GetCursor()
+emCursor emAvFilePanel::GetCursor() const
 {
 	if (CursorHidden) return emCursor::INVISIBLE;
 	else return emFilePanel::GetCursor();
 }
 
 
-bool emAvFilePanel::IsOpaque()
+bool emAvFilePanel::IsOpaque() const
 {
 	if (GetVirFileState()==VFS_LOADED) return true;
 	else return emFilePanel::IsOpaque();
 }
 
 
-void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emAvFileModel * fm;
 	const emImage * image;

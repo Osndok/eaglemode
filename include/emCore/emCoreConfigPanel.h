@@ -168,6 +168,22 @@ private:
 	private:
 		emRef<emCoreConfig> Config;
 	};
+
+	class PerformanceGroup : public emRasterGroup, private emRecListener {
+	public:
+		PerformanceGroup(ParentArg parent, const emString & name,
+		                 emCoreConfig * config);
+		virtual ~PerformanceGroup();
+	protected:
+		virtual void OnRecChanged();
+		virtual bool Cycle();
+		virtual void AutoExpand();
+		virtual void AutoShrink();
+	private:
+		void UpdateOutput();
+		emRef<emCoreConfig> Config;
+		emScalarField * MaxRenderThreadsField;
+	};
 };
 
 

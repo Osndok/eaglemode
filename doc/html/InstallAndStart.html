@@ -7,7 +7,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Install and Start</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2008-2010,2015-2016 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2008-2010,2015-2017 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -16,8 +16,7 @@ Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourcefor
 <A HREF="#2">2 How to start Eagle Mode</A><BR>
 <A HREF="#3">3 Special cases</A><BR>
 <SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.1">3.1 Proper installation to /usr</A></SMALL><BR>
-<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 FreeBSD</A></SMALL><BR>
-<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.3">3.3 Cygwin</A></SMALL><BR>
+<SMALL>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#3.2">3.2 Cygwin</A></SMALL><BR>
 
 <H1><A NAME="1"></A>1 How to install Eagle Mode</H1>
 First of all, before installing a new version of Eagle Mode, please uninstall
@@ -104,18 +103,7 @@ do it like in this example:
 <TT>ln -s ../lib/eaglemode/include/* .</TT><BR>
 </SMALL></BLOCKQUOTE>
 
-<H2><A NAME="3.2"></A>3.2 FreeBSD</H2>
-Before building Eagle Mode on FreeBSD, you should execute the following
-commands, otherwise certain plugins may fail to build.
-<P>
-<BLOCKQUOTE>
-<TT>CPATH=/usr/local/include</TT><BR>
-<TT>export CPATH</TT><BR>
-<TT>LIBRARY_PATH=/usr/local/lib</TT><BR>
-<TT>export LIBRARY_PATH</TT><BR>
-</BLOCKQUOTE>
-
-<H2><A NAME="3.3"></A>3.3 Cygwin</H2>
+<H2><A NAME="3.2"></A>3.2 Cygwin</H2>
 <U>Rebase DLLs!</U>
 <P>
 After installing Eagle Mode on Cygwin, and before starting it for the first

@@ -7,8 +7,8 @@ class MyPanel : public emPanel {
 public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 private:
 	emImage EagleIcon;
 };
@@ -19,12 +19,12 @@ MyPanel::MyPanel(ParentArg parent, const emString & name)
 	EagleIcon=emGetInsResImage(GetRootContext(),"icons","eaglemode.tga");
 }
 
-bool MyPanel::IsOpaque()
+bool MyPanel::IsOpaque() const
 {
 	return true;
 }
 
-void MyPanel::Paint(const emPainter & painter, emColor canvasColor)
+void MyPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	painter.Clear(emColor::WHITE,canvasColor);
 	canvasColor=emColor::WHITE;

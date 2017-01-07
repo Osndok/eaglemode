@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStopwatchPanel.cpp
 //
-// Copyright (C) 2006-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -64,7 +64,7 @@ void emStopwatchPanel::SetFgColor(emColor fgColor)
 }
 
 
-emString emStopwatchPanel::GetTitle()
+emString emStopwatchPanel::GetTitle() const
 {
 	return "Stopwatch";
 }
@@ -103,13 +103,13 @@ bool emStopwatchPanel::Cycle()
 }
 
 
-bool emStopwatchPanel::IsOpaque()
+bool emStopwatchPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emStopwatchPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emStopwatchPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double h;
 

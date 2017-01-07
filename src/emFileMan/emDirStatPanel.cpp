@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirStatPanel.cpp
 //
-// Copyright (C) 2007-2008,2010 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,14 +65,14 @@ bool emDirStatPanel::Cycle()
 }
 
 
-bool emDirStatPanel::IsOpaque()
+bool emDirStatPanel::IsOpaque() const
 {
 	if (GetVirFileState()!=VFS_LOADED) return emFilePanel::IsOpaque();
 	return Config->GetTheme().BackgroundColor.Get().IsOpaque();
 }
 
 
-void emDirStatPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emDirStatPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	char tmp[1024];
 

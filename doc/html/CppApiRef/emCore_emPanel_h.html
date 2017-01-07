@@ -134,13 +134,13 @@
                 // They are delimited by colons, while colons and backslashes in
                 // the names are quoted by backslashes.
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the title of this panel. Normally, the title of the
                 // active panel is shown as the title of the view. The default
                 // implementation of this method asks the parent panel. See
                 // also: InvalidateTitle()
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName();
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the file name of an icon for this panel. For example,
                 // this is used in bookmarks. The returned string can be the
                 // name of a file in the default icon directory, or an absolute
@@ -257,7 +257,7 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetSubstanceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
                                       <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
-                                      <SPAN CLASS=t>double </SPAN>* pR);
+                                      <SPAN CLASS=t>double </SPAN>* pR) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the substance rectangle of this panel. This should
                 // surround everything except empty margins and shadows. It is
                 // used by <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A> to paint the focus rectangle, and it is used
@@ -268,12 +268,12 @@
                 // implementation returns the whole panel rectangle with zero
                 // radius.
 
-        </SPAN><SPAN CLASS=t>bool </SPAN>IsPointInSubstanceRect(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y);
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsPointInSubstanceRect(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Ask if a point lies within the substance rectangle. The point
                 // must be given in the coordinate system of this panel.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetEssenceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
-                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH);
+                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the essence rectangle of this panel. When the panel is to
                 // be shown full-sized in the view, this rectangular part of the
                 // panel is actually shown full-sized. The returned rectangle is
@@ -461,7 +461,7 @@
                 // time is measured in milliseconds and starts anywhere, but it
                 // should never overflow.
 
-        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the priority of this panel for receiving touch events.
                 // This is used by certain view input filters to decide whether
                 // to eat touch events for their purpose. Remember the
@@ -557,23 +557,37 @@
                 //   mx, my - Position of the mouse in the coordinate system of
                 //            this panel. Valid only if IsInViewedPath().
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the mouse cursor to be shown for this panel. The default
                 // implementation asks the parent panel. See also:
                 // InvalidateCursor()
 
-        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Whether this panel is completely opaque by its painting or by
                 // its child panels. If true, the background may not be
                 // initialized when the panel is painted. It even helps the view
                 // to choose a better supreme viewed panel. The default
                 // implementation returns false. See also: InvalidatePainting()
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint this panel. The default implementation does nothing.
                 // Note that for a single painting of the whole panel, this
                 // method may be called multiple times with different clipping
                 // rectangles in order to optimize cache usage.
+                //
+                // ***************** CAUTION: MULTI-THREADING ******************
+                // * In order to improve the graphics performance on           *
+                // * multi-core CPUs, Paint may be called by multiple threads  *
+                // * in parallel, but in a way that there is always at most    *
+                // * one thread at a time in user code, outside any call to    *
+                // * <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>. There is a shared mutex which is entered       *
+                // * before a thread calls an <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::Paint. It is left only  *
+                // * while the thread is in a call to a method of <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>    *
+                // * and re-entered before such a call returns.                *
+                // * Please prepare your code for this. Ideally, do not modify *
+                // * any shared data in an implementation of Paint.            *
+                // *************************************************************
+                //
                 // Arguments:
                 //   painter     - A painter for painting the panel to the
                 //                 screen. Origin and scaling of this painter
@@ -641,7 +655,7 @@
                 // method returns the name of the sought child panel. Otherwise
                 // it returns NULL.
 
-        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking();
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// While the view is seeking for a still non-existent child of
                 // this panel, this method is called by the view on every time
                 // slice for asking whether there is any hope that the desired
@@ -688,6 +702,29 @@
                 <SPAN CLASS=c>// Indicate a change in the results of CreateControlPanel().
                 // After calling this, the control panel will be re-created, but
                 // only if it is shown.
+
+        // - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+        // The following virtual non-const methods have been replaced by const
+        // methods (see above). The old versions still exist here with the
+        // "final" keyword added, so that old overridings will fail to compile.
+        // If you run into this, please adapt your overridings by adding
+        // "const". Besides, please read the new comments about multi-threading
+        // in Paint more above.
+</SPAN><SPAN CLASS=t>public</SPAN>:
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle() final;
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName() final;
+        <SPAN CLASS=t>virtual void </SPAN>GetSubstanceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                      <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                                      <SPAN CLASS=t>double </SPAN>* pR) final;
+        <SPAN CLASS=t>virtual void </SPAN>GetEssenceRect(<SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY,
+                                    <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH) final;
+        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY) final;
+<SPAN CLASS=t>protected</SPAN>:
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor() final;
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() final;
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) final;
+        <SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking() final;
+        <SPAN CLASS=c>// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -94,13 +94,13 @@ protected:
 	virtual void AutoShrink();
 	virtual void LayoutChildren();
 
-	virtual bool HasHowTo();
-	virtual emString GetHowTo();
+	virtual bool HasHowTo() const;
+	virtual emString GetHowTo() const;
 
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 
 private:
 

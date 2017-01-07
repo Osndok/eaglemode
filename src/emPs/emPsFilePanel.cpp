@@ -49,7 +49,7 @@ void emPsFilePanel::SetFileModel(
 }
 
 
-emString emPsFilePanel::GetIconFileName()
+emString emPsFilePanel::GetIconFileName() const
 {
 	return "document.tga";
 }
@@ -62,14 +62,14 @@ bool emPsFilePanel::Cycle()
 }
 
 
-bool emPsFilePanel::IsOpaque()
+bool emPsFilePanel::IsOpaque() const
 {
 	if (!DocPanel) return emFilePanel::IsOpaque();
 	return false;
 }
 
 
-void emPsFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emPsFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (!DocPanel) emFilePanel::Paint(painter,canvasColor);
 }

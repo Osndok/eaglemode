@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -144,15 +144,15 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool HasHowTo();
-	virtual emString GetHowTo();
+	virtual bool HasHowTo() const;
+	virtual emString GetHowTo() const;
 
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 
-	virtual bool CheckMouse(double mx, double my, emInt64 * pValue);
+	virtual bool CheckMouse(double mx, double my, emInt64 * pValue) const;
 
 private:
 
@@ -164,7 +164,7 @@ private:
 		DoScalarFieldFunc func, const emPainter * painter,
 		emColor canvasColor,
 		double mx, double my, emInt64 * pValue, bool * pHit
-	);
+	) const;
 
 	void StepByKeyboard(int dir);
 

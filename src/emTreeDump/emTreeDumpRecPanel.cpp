@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRecPanel.cpp
 //
-// Copyright (C) 2007-2008,2011,2015 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2015-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,13 +47,13 @@ double emTreeDumpRecPanel::GetBestHeight()
 }
 
 
-bool emTreeDumpRecPanel::IsOpaque()
+bool emTreeDumpRecPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emTreeDumpRecPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emTreeDumpRecPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double xy[6*2];
 	double x,y,w,h,t,r;

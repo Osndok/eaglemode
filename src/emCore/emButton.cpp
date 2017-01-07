@@ -118,13 +118,13 @@ void emButton::Input(
 }
 
 
-bool emButton::HasHowTo()
+bool emButton::HasHowTo() const
 {
 	return true;
 }
 
 
-emString emButton::GetHowTo()
+emString emButton::GetHowTo() const
 {
 	emString h;
 
@@ -138,7 +138,7 @@ emString emButton::GetHowTo()
 void emButton::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	DoButton(BUTTON_FUNC_PAINT,&painter,canvasColor,0,0,NULL);
 }
@@ -147,7 +147,7 @@ void emButton::PaintContent(
 void emButton::PaintBoxSymbol(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	double d;
 
@@ -187,7 +187,7 @@ void emButton::PaintBoxSymbol(
 }
 
 
-bool emButton::CheckMouse(double mx, double my)
+bool emButton::CheckMouse(double mx, double my) const
 {
 	bool b;
 
@@ -223,10 +223,16 @@ void emButton::SetShownRadioed(bool shownRadioed)
 }
 
 
+bool emButton::CheckMouse(double mx, double my)
+{
+	return ((const emButton*)this)->CheckMouse(mx,my);
+}
+
+
 void emButton::DoButton(
 	DoButtonFunc func, const emPainter * painter,
 	emColor canvasColor, double mx, double my, bool * pHit
-)
+) const
 {
 	double x,y,w,h,r,d,f,bx,by,bw,bh,fx,fy,fw,fh,fr,lx,ly,lw,lh,dx,dy;
 	emColor color;

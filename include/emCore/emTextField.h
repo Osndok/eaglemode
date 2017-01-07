@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -119,15 +119,25 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool HasHowTo();
-	virtual emString GetHowTo();
+	virtual bool HasHowTo() const;
+	virtual emString GetHowTo() const;
 
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 
-	virtual bool CheckMouse(double mx, double my, double * pCol, double * pRow);
+	virtual bool CheckMouse(double mx, double my,
+	                        double * pCol, double * pRow) const;
+
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+	virtual bool CheckMouse(double mx, double my,
+	                        double * pCol, double * pRow) final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 private:
 
@@ -140,7 +150,7 @@ private:
 		DoTextFieldFunc func, const emPainter * painter,
 		emColor canvasColor,
 		double xIn, double yIn, double * pXOut, double * pYOut, bool * pHit
-	);
+	) const;
 
 	enum DragModeType {
 		DM_NONE,

@@ -130,13 +130,13 @@ void emDirEntryAltPanel::Input(
 }
 
 
-bool emDirEntryAltPanel::IsOpaque()
+bool emDirEntryAltPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	char tmp[256];
 	const emFileManTheme * theme;

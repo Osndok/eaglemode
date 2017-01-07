@@ -34,8 +34,8 @@ public:
 
 	virtual ~emMainContentPanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 	virtual void Layout(double layoutX, double layoutY,
 	                    double layoutWidth, double layoutHeight,
@@ -43,8 +43,8 @@ public:
 
 protected:
 
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 

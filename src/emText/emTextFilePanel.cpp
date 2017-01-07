@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,7 +44,7 @@ void emTextFilePanel::SetFileModel(
 }
 
 
-emString emTextFilePanel::GetIconFileName()
+emString emTextFilePanel::GetIconFileName() const
 {
 	if (IsVFSGood()) {
 		if (Model->GetCharEncoding()!=emTextFileModel::CE_BINARY) {
@@ -84,7 +84,7 @@ bool emTextFilePanel::Cycle()
 }
 
 
-bool emTextFilePanel::IsOpaque()
+bool emTextFilePanel::IsOpaque() const
 {
 	if (IsVFSGood()) {
 		return false;
@@ -95,15 +95,21 @@ bool emTextFilePanel::IsOpaque()
 }
 
 
-void emTextFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emTextFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (IsVFSGood()) {
+
+		painter.LeaveUserSpace(); //!!!
+
 		if (Model->GetCharEncoding()==emTextFileModel::CE_BINARY || AlternativeView) {
 			PaintAsHex(painter,canvasColor);
 		}
 		else {
 			PaintAsText(painter,canvasColor);
 		}
+
+		painter.EnterUserSpace(); //!!!
+
 	}
 	else {
 		emFilePanel::Paint(painter,canvasColor);
@@ -193,7 +199,7 @@ emPanel * emTextFilePanel::CreateControlPanel(
 
 void emTextFilePanel::PaintAsText(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	static const emColor textBgColor(255,255,255);
 	static const emColor textFgColor(0,0,0);
@@ -605,7 +611,7 @@ int emTextFilePanel::PaintTextUtf16(
 
 void emTextFilePanel::PaintAsHex(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	static const emColor colBg(0,0,0);
 	static const emColor colAddr(64,128,64);

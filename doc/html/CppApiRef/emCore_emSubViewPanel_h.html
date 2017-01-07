@@ -59,9 +59,9 @@
         </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetSubView() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the sub-view.
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle();
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetTitle() <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY) <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 
@@ -70,11 +70,11 @@
         <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                            <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
 
-        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor();
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetCursor() <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>private</SPAN>:
 
@@ -99,12 +99,12 @@
                 <SPAN CLASS=t>void </SPAN>InputToView(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
                                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
                 <A CLASS=l HREF="emCore_emCursor_h.html#emCursor">emCursor</A> GetViewCursor() <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=t>void </SPAN>PaintView(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                <SPAN CLASS=t>void </SPAN>PaintView(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual void </SPAN>RequestFocus();
-                <SPAN CLASS=t>virtual bool </SPAN>IsSoftKeyboardShown();
+                <SPAN CLASS=t>virtual bool </SPAN>IsSoftKeyboardShown() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>virtual void </SPAN>ShowSoftKeyboard(<SPAN CLASS=t>bool </SPAN>show);
-                <SPAN CLASS=t>virtual </SPAN>emUInt64 GetInputClockMS();
+                <SPAN CLASS=t>virtual </SPAN>emUInt64 GetInputClockMS() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>virtual void </SPAN>InvalidateCursor();
                 <SPAN CLASS=t>virtual void </SPAN>InvalidatePainting(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                                                 <SPAN CLASS=t>double </SPAN>h);
@@ -159,8 +159,8 @@
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::SubViewPortClass::PaintView(
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-)
-<SPAN CLASS=b>{
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>::PaintView(painter,canvasColor);
 <SPAN CLASS=b>}
 

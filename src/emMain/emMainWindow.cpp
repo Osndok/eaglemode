@@ -82,7 +82,7 @@ emMainWindow::~emMainWindow()
 }
 
 
-emString emMainWindow::GetTitle()
+emString emMainWindow::GetTitle() const
 {
 	if (MainPanel && !StartupEngine) {
 		return "Eagle Mode - " + MainPanel->GetContentView().GetTitle();

@@ -64,9 +64,9 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 

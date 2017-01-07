@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2011 Oliver Hamann.
+// Copyright (C) 2001,2003-2011,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,6 +35,8 @@ emPainter::emPainter()
 	OriginY=0;
 	ScaleX=0;
 	ScaleY=0;
+	UserSpaceMutex=NULL;
+	USMLockedByThisThread=NULL;
 }
 
 
@@ -52,6 +54,8 @@ emPainter::emPainter(const emPainter & painter)
 	OriginY=painter.OriginY;
 	ScaleX=painter.ScaleX;
 	ScaleY=painter.ScaleY;
+	UserSpaceMutex=painter.UserSpaceMutex;
+	USMLockedByThisThread=painter.USMLockedByThisThread;
 	FontCache=painter.FontCache;
 }
 
@@ -73,6 +77,8 @@ emPainter::emPainter(
 	OriginY=painter.OriginY;
 	ScaleX=painter.ScaleX;
 	ScaleY=painter.ScaleY;
+	UserSpaceMutex=painter.UserSpaceMutex;
+	USMLockedByThisThread=painter.USMLockedByThisThread;
 	FontCache=painter.FontCache;
 }
 
@@ -95,6 +101,8 @@ emPainter::emPainter(
 	OriginY=originY;
 	ScaleX=scaleX;
 	ScaleY=scaleY;
+	UserSpaceMutex=painter.UserSpaceMutex;
+	USMLockedByThisThread=painter.USMLockedByThisThread;
 	FontCache=painter.FontCache;
 }
 
@@ -104,7 +112,8 @@ emPainter::emPainter(
 	int bytesPerPixel, emUInt32 redMask, emUInt32 greenMask,
 	emUInt32 blueMask, double clipX1, double clipY1, double clipX2,
 	double clipY2, double originX, double originY, double scaleX,
-	double scaleY
+	double scaleY, emThreadMiniMutex * userSpaceMutex,
+	bool * usmLockedByThisThread
 )
 {
 	emUInt32 redRange,greenRange,blueRange;
@@ -136,6 +145,8 @@ emPainter::emPainter(
 	OriginY=originY;
 	ScaleX=scaleX;
 	ScaleY=scaleY;
+	UserSpaceMutex=userSpaceMutex;
+	USMLockedByThisThread=usmLockedByThisThread;
 	FontCache=emFontCache::Acquire(rootContext);
 
 	redRange=redMask;
@@ -261,6 +272,8 @@ emPainter & emPainter::operator = (const emPainter & painter)
 	OriginY=painter.OriginY;
 	ScaleX=painter.ScaleX;
 	ScaleY=painter.ScaleY;
+	UserSpaceMutex=painter.UserSpaceMutex;
+	USMLockedByThisThread=painter.USMLockedByThisThread;
 	FontCache=painter.FontCache;
 	return *this;
 }
@@ -302,6 +315,16 @@ double emPainter::RoundUpY(double y) const
 }
 
 
+void emPainter::SetUserSpaceMutex(
+		emThreadMiniMutex * userSpaceMutex,
+		bool * usmLockedByThisThread
+)
+{
+	UserSpaceMutex=userSpaceMutex;
+	USMLockedByThisThread=usmLockedByThisThread;
+}
+
+
 void emPainter::Clear(emColor color, emColor canvasColor) const
 {
 	PaintRect(
@@ -326,6 +349,7 @@ void emPainter::PaintRect(
 	emUInt32 pix,rmsk,gmsk,bmsk;
 	int i,alpha,a,bpp,ox1,oy1,ox2,oy2,ix1,iy1,ix2,iy2;
 	int ax1,ay1,ax2,ay2,rsh,gsh,bsh,t;
+	bool wasInUserSpace;
 
 	x=x*ScaleX+OriginX;
 	x2=x+w*ScaleX;
@@ -341,13 +365,18 @@ void emPainter::PaintRect(
 	alpha=color.GetAlpha();
 	if (alpha==0) return;
 
+	wasInUserSpace=LeaveUserSpace();
+
 	i=(int)(x*0x10000);
 	ox1=i>>16;
 	ix1=(i+0xffff)>>16;
 	ax1=(((-i)&0xffff)*alpha+0x7fff)>>16;
 	i=(int)(x2*0x10000);
 	ox2=(i+0xffff)>>16;
-	if (ox1>=ox2) return;
+	if (ox1>=ox2) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 	ix2=i>>16;
 	ax2=((i&0xffff)*alpha+0x8000)>>16;
 	if (ix1>ix2) { ax1+=ax2-alpha; ix2++; }
@@ -357,7 +386,10 @@ void emPainter::PaintRect(
 	ay1=(((-i)&0xffff)*alpha+0x7fff)>>16;
 	i=(int)(y2*0x10000);
 	oy2=(i+0xffff)>>16;
-	if (oy1>=oy2) return;
+	if (oy1>=oy2) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 	iy2=i>>16;
 	ay2=((i&0xffff)*alpha+0x8000)>>16;
 	if (iy1>iy2) { ay1+=ay2-alpha; iy2++; }
@@ -611,6 +643,8 @@ void emPainter::PaintRect(
 			PR_ADD_SUB_TEMPLATE(emUInt8)
 		}
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -644,6 +678,7 @@ void emPainter::PaintPolygon(
 	double ex1[2],ey1[2],ex2[2],ey2[2];
 	emUInt32 pix,rmsk,gmsk,bmsk;
 	int i,alpha,bpp,sly1,sly2,sx,sy,sx2,sy2,rsh,gsh,bsh;
+	bool wasInUserSpace;
 
 	if (!color.GetAlpha()) return;
 	if (n<3) return;
@@ -666,6 +701,8 @@ void emPainter::PaintPolygon(
 	maxX=maxX*ScaleX+OriginX;
 	if (maxX>ClipX2-0.0001) maxX=ClipX2-0.0001;
 	if (minX>=maxX) return;
+
+	wasInUserSpace=LeaveUserSpace();
 
 	sly1=(int)minY;
 	sly2=(int)ceil(maxY);
@@ -984,6 +1021,8 @@ void emPainter::PaintPolygon(
 		seChunks=psec->Next;
 		free(psec);
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -998,6 +1037,7 @@ void emPainter::PaintEdgeCorrection(
 	emUInt32 pix,rmsk,gmsk,bmsk;
 	int sy,sx,bpp,rsh,gsh,bsh,alpha1,alpha2,alpha3;
 	emColor tc;
+	bool wasInUserSpace;
 
 	x1=x1*ScaleX+OriginX;
 	y1=y1*ScaleY+OriginY;
@@ -1070,6 +1110,9 @@ void emPainter::PaintEdgeCorrection(
 	}
 
 	if (color1.IsTotallyTransparent() || color2.IsTotallyTransparent()) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	ac1=color1.GetAlpha()*(1.0/255.0);
 	ac2=color2.GetAlpha()*(1.0/255.0);
 
@@ -1178,6 +1221,8 @@ void emPainter::PaintEdgeCorrection(
 		if (sy>=cy2) break;
 		p=((char*)p)+BytesPerRow;
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1189,12 +1234,16 @@ void emPainter::PaintEllipse(
 	double xy[256*2];
 	double f,rx,ry;
 	int i,n;
+	bool wasInUserSpace;
 
 	if (x*ScaleX+OriginX>=ClipX2) return;
 	if ((x+w)*ScaleX+OriginX<=ClipX1) return;
 	if (y*ScaleY+OriginY>=ClipY2) return;
 	if ((y+h)*ScaleY+OriginY<=ClipY1) return;
 	if (w<=0.0 || h<=0.0) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	rx=w*0.5;
 	ry=h*0.5;
 	x+=rx;
@@ -1209,6 +1258,8 @@ void emPainter::PaintEllipse(
 		xy[i*2+1]=sin(f*i)*ry+y;
 	}
 	PaintPolygon(xy,n,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1220,6 +1271,7 @@ void emPainter::PaintEllipse(
 	double xy[258*2];
 	double f,rx,ry;
 	int i,n;
+	bool wasInUserSpace;
 
 	startAngle*=M_PI/180.0;
 	rangeAngle*=M_PI/180.0;
@@ -1237,6 +1289,9 @@ void emPainter::PaintEllipse(
 	if (y*ScaleY+OriginY>=ClipY2) return;
 	if ((y+h)*ScaleY+OriginY<=ClipY1) return;
 	if (w<=0.0 || h<=0.0) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	rx=w*0.5;
 	ry=h*0.5;
 	x+=rx;
@@ -1255,6 +1310,8 @@ void emPainter::PaintEllipse(
 	xy[(n+1)*2]=x;
 	xy[(n+1)*2+1]=y;
 	PaintPolygon(xy,n+2,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1266,6 +1323,7 @@ void emPainter::PaintRoundRect(
 	double xy[260*2];
 	double x2,y2,f,dx,dy;
 	int i,n;
+	bool wasInUserSpace;
 
 	if (w<=0.0) return;
 	if (x*ScaleX+OriginX>=ClipX2) return;
@@ -1279,6 +1337,9 @@ void emPainter::PaintRoundRect(
 		PaintRect(x,y,w,h,color,canvasColor);
 		return;
 	}
+
+	wasInUserSpace=LeaveUserSpace();
+
 	if (rx>w*0.5) rx=w*0.5;
 	if (ry>h*0.5) ry=h*0.5;
 	f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
@@ -1303,6 +1364,8 @@ void emPainter::PaintRoundRect(
 		xy[(3*n+3+i)*2+1]=y2+dx*ry;
 	}
 	PaintPolygon(xy,4*n+4,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1314,6 +1377,7 @@ void emPainter::PaintLine(
 	double xy[258*2];
 	double f,dx,dy,c,s;
 	int i,m,n;
+	bool wasInUserSpace;
 
 	if (thickness<=0.0) return;
 	f=thickness*0.71;
@@ -1335,6 +1399,9 @@ void emPainter::PaintLine(
 		if ((y2-f)*ScaleY+OriginY>=ClipY2) return;
 		if ((y1+f)*ScaleY+OriginY<=ClipY1) return;
 	}
+
+	wasInUserSpace=LeaveUserSpace();
+
 	f=sqrt(dx*dx+dy*dy);
 	if (f<1E-20) {
 		dx=thickness*0.5;
@@ -1422,6 +1489,8 @@ void emPainter::PaintLine(
 		}
 	}
 	PaintPolygon(xy,n,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1432,6 +1501,7 @@ void emPainter::PaintRectOutline(
 {
 	double xy[10*2];
 	double x1,y1,x2,y2,t2;
+	bool wasInUserSpace;
 
 	if (thickness<=0.0) return;
 	t2=thickness/2.0;
@@ -1455,6 +1525,9 @@ void emPainter::PaintRectOutline(
 		PaintPolygon(xy,4,color,canvasColor);
 		return;
 	}
+
+	wasInUserSpace=LeaveUserSpace();
+
 	xy[ 8]=xy[0]; xy[ 9]=xy[1];
 	xy[10]=x1;    xy[11]=y1;
 	xy[12]=x1;    xy[13]=y2;
@@ -1462,6 +1535,8 @@ void emPainter::PaintRectOutline(
 	xy[16]=x2;    xy[17]=y1;
 	xy[18]=x1;    xy[19]=y1;
 	PaintPolygon(xy,10,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1470,7 +1545,10 @@ void emPainter::PaintPolygonOutline(
 	emColor canvasColor
 ) const
 {
+	bool wasInUserSpace;
 	int i;
+
+	wasInUserSpace=LeaveUserSpace();
 
 	for (i=0; i<n; i++) {
 		PaintLine(
@@ -1482,6 +1560,8 @@ void emPainter::PaintPolygonOutline(
 			color
 		);
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1492,6 +1572,7 @@ void emPainter::PaintEllipseOutline(
 {
 	double xy[514*2];
 	double x1,y1,x2,y2,f,t2,cx,cy,rx,ry;
+	bool wasInUserSpace;
 	int i,n,m;
 
 	if (thickness<=0.0) return;
@@ -1506,6 +1587,9 @@ void emPainter::PaintEllipseOutline(
 	y2=y+h+t2;
 	if (y2*ScaleY+OriginY<=ClipY1) return;
 	if (y1>=y2) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	cx=(x1+x2)*0.5;
 	cy=(y1+y2)*0.5;
 	rx=x2-cx;
@@ -1523,22 +1607,25 @@ void emPainter::PaintEllipseOutline(
 	ry-=thickness;
 	if (rx<=0.0 || ry<=0.0) {
 		PaintPolygon(xy,n,color,canvasColor);
-		return;
 	}
-	xy[n*2]=xy[0];
-	xy[n*2+1]=xy[1];
-	f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
-	if (f<=3.0) m=3;
-	else if (f>=256.0) m=256;
-	else m=(int)(f+0.5);
-	f=2*M_PI/m;
-	for (i=0; i<m; i++) {
-		xy[(n+m+1-i)*2]=cos(f*i)*rx+cx;
-		xy[(n+m+1-i)*2+1]=sin(f*i)*ry+cy;
+	else {
+		xy[n*2]=xy[0];
+		xy[n*2+1]=xy[1];
+		f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
+		if (f<=3.0) m=3;
+		else if (f>=256.0) m=256;
+		else m=(int)(f+0.5);
+		f=2*M_PI/m;
+		for (i=0; i<m; i++) {
+			xy[(n+m+1-i)*2]=cos(f*i)*rx+cx;
+			xy[(n+m+1-i)*2+1]=sin(f*i)*ry+cy;
+		}
+		xy[(n+1)*2]=xy[(n+m+1)*2];
+		xy[(n+1)*2+1]=xy[(n+m+1)*2+1];
+		PaintPolygon(xy,n+m+2,color,canvasColor);
 	}
-	xy[(n+1)*2]=xy[(n+m+1)*2];
-	xy[(n+1)*2+1]=xy[(n+m+1)*2+1];
-	PaintPolygon(xy,n+m+2,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1550,6 +1637,7 @@ void emPainter::PaintEllipseOutline(
 {
 	double xy[514*2];
 	double x1,y1,x2,y2,f,t2,cx,cy,rx,ry;
+	bool wasInUserSpace;
 	int i,m,n;
 
 	startAngle*=M_PI/180.0;
@@ -1575,6 +1663,9 @@ void emPainter::PaintEllipseOutline(
 	y2=y+h+t2;
 	if (y2*ScaleY+OriginY<=ClipY1) return;
 	if (y1>=y2) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	cx=(x1+x2)*0.5;
 	cy=(y1+y2)*0.5;
 	rx=x2-cx;
@@ -1596,20 +1687,23 @@ void emPainter::PaintEllipseOutline(
 		xy[(n+1)*2]=cx;
 		xy[(n+1)*2+1]=cy;
 		PaintPolygon(xy,n+2,color,canvasColor);
-		return;
 	}
-	f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
-	if (f>256.0) f=256.0;
-	f=f*rangeAngle/(2*M_PI);
-	if (f<=3.0) m=3;
-	else if (f>=256.0) m=256;
-	else m=(int)(f+0.5);
-	f=rangeAngle/m;
-	for (i=0; i<=m; i++) {
-		xy[(n+m+1-i)*2]=cos(startAngle+f*i)*rx+cx;
-		xy[(n+m+1-i)*2+1]=sin(startAngle+f*i)*ry+cy;
+	else {
+		f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
+		if (f>256.0) f=256.0;
+		f=f*rangeAngle/(2*M_PI);
+		if (f<=3.0) m=3;
+		else if (f>=256.0) m=256;
+		else m=(int)(f+0.5);
+		f=rangeAngle/m;
+		for (i=0; i<=m; i++) {
+			xy[(n+m+1-i)*2]=cos(startAngle+f*i)*rx+cx;
+			xy[(n+m+1-i)*2+1]=sin(startAngle+f*i)*ry+cy;
+		}
+		PaintPolygon(xy,n+m+2,color,canvasColor);
 	}
-	PaintPolygon(xy,n+m+2,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1620,6 +1714,7 @@ void emPainter::PaintRoundRectOutline(
 {
 	double xy[522*2];
 	double x1,y1,x2,y2,f,t2,dx,dy;
+	bool wasInUserSpace;
 	int i,m,n;
 
 	if (thickness<=0.0) return;
@@ -1639,6 +1734,9 @@ void emPainter::PaintRoundRectOutline(
 	y2=y+h+t2;
 	if (y2*ScaleY+OriginY<=ClipY1) return;
 	if (y1>=y2) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	if (rx>(x2-x1)*0.5) rx=(x2-x1)*0.5;
 	if (ry>(y2-y1)*0.5) ry=(y2-y1)*0.5;
 	f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
@@ -1674,32 +1772,35 @@ void emPainter::PaintRoundRectOutline(
 	}
 	if (x1-rx>=x2+rx || y1-ry>=y2+ry) {
 		PaintPolygon(xy,4*n+4,color,canvasColor);
-		return;
 	}
-	xy[(4*n+4)*2]=xy[0];
-	xy[(4*n+4)*2+1]=xy[1];
-	f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
-	if (f>256.0) f=256.0;
-	f*=0.25;
-	if (f<=1.0) m=1;
-	else if (f>=64.0) m=64;
-	else m=(int)(f+0.5);
-	f=0.5*M_PI/m;
-	for (i=0; i<=m; i++) {
-		dx=cos(f*i);
-		dy=sin(f*i);
-		xy[(4*n+4*m+9-i)*2]=x1-dx*rx;
-		xy[(4*n+4*m+9-i)*2+1]=y1-dy*ry;
-		xy[(4*n+3*m+8-i)*2]=x2+dy*rx;
-		xy[(4*n+3*m+8-i)*2+1]=y1-dx*ry;
-		xy[(4*n+2*m+7-i)*2]=x2+dx*rx;
-		xy[(4*n+2*m+7-i)*2+1]=y2+dy*ry;
-		xy[(4*n+m+6-i)*2]=x1-dy*rx;
-		xy[(4*n+m+6-i)*2+1]=y2+dx*ry;
+	else {
+		xy[(4*n+4)*2]=xy[0];
+		xy[(4*n+4)*2+1]=xy[1];
+		f=CircleQuality*sqrt(rx*ScaleX+ry*ScaleY);
+		if (f>256.0) f=256.0;
+		f*=0.25;
+		if (f<=1.0) m=1;
+		else if (f>=64.0) m=64;
+		else m=(int)(f+0.5);
+		f=0.5*M_PI/m;
+		for (i=0; i<=m; i++) {
+			dx=cos(f*i);
+			dy=sin(f*i);
+			xy[(4*n+4*m+9-i)*2]=x1-dx*rx;
+			xy[(4*n+4*m+9-i)*2+1]=y1-dy*ry;
+			xy[(4*n+3*m+8-i)*2]=x2+dy*rx;
+			xy[(4*n+3*m+8-i)*2+1]=y1-dx*ry;
+			xy[(4*n+2*m+7-i)*2]=x2+dx*rx;
+			xy[(4*n+2*m+7-i)*2+1]=y2+dy*ry;
+			xy[(4*n+m+6-i)*2]=x1-dy*rx;
+			xy[(4*n+m+6-i)*2+1]=y2+dx*ry;
+		}
+		xy[(4*n+5)*2]=xy[(4*n+4*m+9)*2];
+		xy[(4*n+5)*2+1]=xy[(4*n+4*m+9)*2+1];
+		PaintPolygon(xy,4*n+4*m+10,color,canvasColor);
 	}
-	xy[(4*n+5)*2]=xy[(4*n+4*m+9)*2];
-	xy[(4*n+5)*2+1]=xy[(4*n+4*m+9)*2+1];
-	PaintPolygon(xy,4*n+4*m+10,color,canvasColor);
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -1718,6 +1819,7 @@ void emPainter::PaintShape(
 	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c,t,alpha257;
 	emUInt32 pix,rmsk,gmsk,bmsk;
 	double x2,y2,srcX2,srcY2,f,s;
+	bool wasInUserSpace;
 
 	if (w<=0.0 || srcW<=0.0) return;
 	x=x*ScaleX+OriginX;
@@ -1745,6 +1847,8 @@ void emPainter::PaintShape(
 
 	alpha=color.GetAlpha();
 	if (alpha==0) return;
+
+	wasInUserSpace=LeaveUserSpace();
 
 	pixelDelta=img.GetChannelCount();
 	if ((unsigned int)channel>=(unsigned int)pixelDelta) {
@@ -1791,7 +1895,10 @@ void emPainter::PaintShape(
 	}
 	btx1=btx1>>16;
 	btx2=(btx2+0xffff)>>16;
-	if (btx1>=btx2) return;
+	if (btx1>=btx2) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 	if (btx1+1==btx2) ctx1-=0x10000-ctx2;
 
 	n=(emInt32)srcY;
@@ -1825,7 +1932,10 @@ void emPainter::PaintShape(
 	}
 	bty1=bty1>>16;
 	bty2=(bty2+0xffff)>>16;
-	if (bty1>=bty2) return;
+	if (bty1>=bty2) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 	if (bty1+1==bty2) cty1-=0x10000-cty2;
 
 	bpp=PixelFormat->BytesPerPixel;
@@ -2050,6 +2160,8 @@ void emPainter::PaintShape(
 			}
 		}
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -2069,6 +2181,7 @@ void emPainter::PaintImage(
 	unsigned int ry,ryx,gy,gyx,by,byx,ay,ayx,t,alpha257;
 	emUInt32 rmsk,gmsk,bmsk;
 	double x2,y2,srcX2,srcY2,f,s;
+	bool wasInUserSpace;
 
 	if (w<=0.0 || srcW<=0.0) return;
 	x=x*ScaleX+OriginX;
@@ -2095,6 +2208,8 @@ void emPainter::PaintImage(
 	if (y>=y2) return;
 
 	if (alpha<=0) return;
+
+	wasInUserSpace=LeaveUserSpace();
 
 	pixelDelta=img.GetChannelCount();
 	rowDelta=img.GetWidth()*pixelDelta;
@@ -2129,7 +2244,10 @@ void emPainter::PaintImage(
 	}
 	btx1=btx1>>16;
 	btx2=(btx2+0xffff)>>16;
-	if (btx1>=btx2) return;
+	if (btx1>=btx2) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 	if (btx1+1==btx2) ctx1-=0x10000-ctx2;
 
 	n=(emInt32)srcY;
@@ -2163,7 +2281,10 @@ void emPainter::PaintImage(
 	}
 	bty1=bty1>>16;
 	bty2=(bty2+0xffff)>>16;
-	if (bty1>=bty2) return;
+	if (bty1>=bty2) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 	if (bty1+1==bty2) cty1-=0x10000-cty2;
 
 	bpp=PixelFormat->BytesPerPixel;
@@ -2793,6 +2914,8 @@ void emPainter::PaintImage(
 			}
 		}
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -2804,7 +2927,10 @@ void emPainter::PaintBorderShape(
 	int whichSubRects
 ) const
 {
+	bool wasInUserSpace;
 	double f;
+
+	wasInUserSpace=LeaveUserSpace();
 
 	if (!canvasColor.IsOpaque()) {
 		//??? I'm not really satisfied with this.
@@ -2886,6 +3012,8 @@ void emPainter::PaintBorderShape(
 			channel,color,canvasColor
 		);
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -2896,7 +3024,10 @@ void emPainter::PaintBorderImage(
 	int alpha, emColor canvasColor, int whichSubRects
 ) const
 {
+	bool wasInUserSpace;
 	double f;
+
+	wasInUserSpace=LeaveUserSpace();
 
 	if (!canvasColor.IsOpaque()) {
 		//??? I'm not really satisfied with this.
@@ -2978,6 +3109,8 @@ void emPainter::PaintBorderImage(
 			alpha,canvasColor
 		);
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -2995,6 +3128,7 @@ void emPainter::PaintText(
 	};
 	double charWidth,showHeight,rcw,cx1,cx2,x1;
 	int i,n,c,cTestUtf8,imgX,imgY,imgW,imgH;
+	bool wasInUserSpace;
 	emImage * pImg;
 
 	if (
@@ -3006,6 +3140,9 @@ void emPainter::PaintText(
 		widthScale<=0.0 ||
 		FontCache==NULL
 	) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	rcw=charHeight/CharBoxTallness;
 	charWidth=rcw*widthScale;
 	cx1=(ClipX1-OriginX)/ScaleX;
@@ -3067,6 +3204,8 @@ void emPainter::PaintText(
 			PaintRect(x1,y,x-x1,charHeight,color,canvasColor);
 		}
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 
@@ -3080,10 +3219,14 @@ void emPainter::PaintTextBoxed(
 {
 	double tx,ty,tw,th,cw,ch,ws;
 	int c,i,j,k,n,cols,cTestUtf8;
+	bool wasInUserSpace;
 
 	ch=maxCharHeight;
 	tw=GetTextSize(text,ch,formatted,relLineSpace,&th,textLen);
 	if (tw<=0.0) return;
+
+	wasInUserSpace=LeaveUserSpace();
+
 	if (th>h) {
 		ch*=h/th;
 		tw*=h/th;
@@ -3179,6 +3322,8 @@ void emPainter::PaintTextBoxed(
 	else {
 		PaintText(x,y,text,ch,ws,color,canvasColor,textLen);
 	}
+
+	if (wasInUserSpace) EnterUserSpace();
 }
 
 

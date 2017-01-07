@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emErrorPanel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,13 +35,13 @@ emErrorPanel::~emErrorPanel()
 }
 
 
-bool emErrorPanel::IsOpaque()
+bool emErrorPanel::IsOpaque() const
 {
 	return true;
 }
 
 
-void emErrorPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emErrorPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	static const emColor bgColor(128,0,0);
 	static const emColor fgColor(255,255,0);

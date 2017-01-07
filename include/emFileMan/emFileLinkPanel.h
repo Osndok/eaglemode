@@ -56,15 +56,15 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 
 private:
 
-	void CalcContentCoords(double * pX, double * pY, double * pW, double * pH);
+	void CalcContentCoords(double * pX, double * pY, double * pW, double * pH) const;
 	void UpdateDataAndChildPanel();
 	void CreateChildPanel();
 	void DeleteChildPanel();

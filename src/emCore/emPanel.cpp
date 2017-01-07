@@ -317,14 +317,14 @@ emArray<emString> emPanel::DecodeIdentity(const char * identity)
 }
 
 
-emString emPanel::GetTitle()
+emString emPanel::GetTitle() const
 {
 	if (Parent) return Parent->GetTitle();
 	else return "untitled";
 }
 
 
-emString emPanel::GetIconFileName()
+emString emPanel::GetIconFileName() const
 {
 	if (Parent) return Parent->GetIconFileName();
 	else return emString();
@@ -608,7 +608,7 @@ void emPanel::Layout(
 
 void emPanel::GetSubstanceRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR
-)
+) const
 {
 	*pX=0.0;
 	*pY=0.0;
@@ -618,7 +618,7 @@ void emPanel::GetSubstanceRect(
 }
 
 
-bool emPanel::IsPointInSubstanceRect(double x, double y)
+bool emPanel::IsPointInSubstanceRect(double x, double y) const
 {
 	double sx,sy,sw,sh,sr,dx,dy,sw2,sh2;
 
@@ -640,7 +640,7 @@ bool emPanel::IsPointInSubstanceRect(double x, double y)
 
 void emPanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	double r;
 
@@ -1039,7 +1039,7 @@ emUInt64 emPanel::GetMemoryLimit() const
 }
 
 
-double emPanel::GetTouchEventPriority(double touchX, double touchY)
+double emPanel::GetTouchEventPriority(double touchX, double touchY) const
 {
 	return Focusable ? 1.0 : 0.0;
 }
@@ -1139,20 +1139,20 @@ void emPanel::Input(
 }
 
 
-emCursor emPanel::GetCursor()
+emCursor emPanel::GetCursor() const
 {
 	if (Parent) return Parent->GetCursor();
 	else return emCursor::NORMAL;
 }
 
 
-bool emPanel::IsOpaque()
+bool emPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 }
 
@@ -1193,7 +1193,7 @@ const char * emPanel::GetSoughtName() const
 }
 
 
-bool emPanel::IsHopeForSeeking()
+bool emPanel::IsHopeForSeeking() const
 {
 	return false;
 }
@@ -1261,6 +1261,64 @@ void emPanel::InvalidateAutoExpansion()
 void emPanel::InvalidateControlPanel()
 {
 	if (InActivePath) Signal(View.ControlPanelSignal);
+}
+
+
+emString emPanel::GetTitle()
+{
+	return ((const emPanel*)this)->GetTitle();
+}
+
+
+emString emPanel::GetIconFileName()
+{
+	return ((const emPanel*)this)->GetIconFileName();
+}
+
+
+void emPanel::GetSubstanceRect(
+	double * pX, double * pY, double * pW, double * pH, double * pR
+)
+{
+	return ((const emPanel*)this)->GetSubstanceRect(pX,pY,pW,pH,pR);
+}
+
+
+void emPanel::GetEssenceRect(
+	double * pX, double * pY, double * pW, double * pH
+)
+{
+	return ((const emPanel*)this)->GetEssenceRect(pX,pY,pW,pH);
+}
+
+
+double emPanel::GetTouchEventPriority(double touchX, double touchY)
+{
+	return ((const emPanel*)this)->GetTouchEventPriority(touchX,touchY);
+}
+
+
+emCursor emPanel::GetCursor()
+{
+	return ((const emPanel*)this)->GetCursor();
+}
+
+
+bool emPanel::IsOpaque()
+{
+	return ((const emPanel*)this)->IsOpaque();
+}
+
+
+void emPanel::Paint(const emPainter & painter, emColor canvasColor)
+{
+	((const emPanel*)this)->Paint(painter,canvasColor);
+}
+
+
+bool emPanel::IsHopeForSeeking()
+{
+	return ((const emPanel*)this)->IsHopeForSeeking();
 }
 
 

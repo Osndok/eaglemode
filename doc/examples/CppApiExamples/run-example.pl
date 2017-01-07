@@ -50,6 +50,7 @@ if ($Config{'osname'} eq 'MSWin32' || $Config{'osname'} eq 'cygwin') {
 my $err=system(
 	'gcc',
 	'-Wall',
+	'-std=c++11',
 	"-I$em_dir/include",
 	"-L$em_dir/lib",
 	$ARGV[0],

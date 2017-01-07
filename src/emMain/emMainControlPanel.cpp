@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainControlPanel.cpp
 //
-// Copyright (C) 2014-2016 Oliver Hamann.
+// Copyright (C) 2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,7 @@ emMainControlPanel::emMainControlPanel(
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2016 Oliver Hamann.\n"
+		"Copyright (C) 2001-2017 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"
@@ -226,7 +226,7 @@ emMainControlPanel::~emMainControlPanel()
 }
 
 
-emString emMainControlPanel::GetTitle()
+emString emMainControlPanel::GetTitle() const
 {
 	return "emMainControl";
 }

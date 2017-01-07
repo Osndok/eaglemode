@@ -11,7 +11,7 @@ public:
 protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 private:
 	emSignal ClickSignal;
 };
@@ -34,7 +34,7 @@ void MyButton::Input(
 	emPanel::Input(event,state,mx,my);
 }
 
-void MyButton::Paint(const emPainter & painter, emColor canvasColor)
+void MyButton::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	painter.Clear(0xC0C0C0FF,canvasColor);
 	painter.PaintTextBoxed(0,0,1,GetHeight(),"Click Me",1,emColor::GREEN);
@@ -48,7 +48,7 @@ public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
 	virtual bool Cycle();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 private:
 	unsigned Counter1, Counter2;
 	MyButton * Button;
@@ -81,7 +81,7 @@ bool MyPanel::Cycle()
 	return emPanel::Cycle();
 }
 
-void MyPanel::Paint(const emPainter & painter, emColor canvasColor)
+void MyPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emString str=emString::Format(
 		"Button Signals: %u\nTimer Signals: %u",Counter1,Counter2

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -153,15 +153,15 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                            <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
 
-        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
-        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo() <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>PaintContent(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, emInt64 * pValue);
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, emInt64 * pValue) <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>private</SPAN>:
 
@@ -173,7 +173,7 @@
                 DoScalarFieldFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
                 <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, emInt64 * pValue, <SPAN CLASS=t>bool </SPAN>* pHit
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>void </SPAN>StepByKeyboard(<SPAN CLASS=t>int </SPAN>dir);
 

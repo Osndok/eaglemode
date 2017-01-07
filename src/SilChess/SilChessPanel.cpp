@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.cpp
 //
-// Copyright (C) 2007-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,6 +28,7 @@ SilChessPanel::SilChessPanel(
 )
 	: emFilePanel(parent,name,model,true)
 {
+	RenderThreadPool=emRenderThreadPool::Acquire(GetRootContext());
 	Mdl=model;
 	HaveControlPanel=IsVFSGood();
 	SelX=-1;
@@ -43,13 +44,13 @@ SilChessPanel::~SilChessPanel()
 }
 
 
-emString SilChessPanel::GetTitle()
+emString SilChessPanel::GetTitle() const
 {
 	return "SilChess";
 }
 
 
-emString SilChessPanel::GetIconFileName()
+emString SilChessPanel::GetIconFileName() const
 {
 	return "silchess.tga";
 }
@@ -57,7 +58,7 @@ emString SilChessPanel::GetIconFileName()
 
 void SilChessPanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	*pX=EssenceX;
 	*pY=EssenceY;
@@ -68,7 +69,6 @@ void SilChessPanel::GetEssenceRect(
 
 bool SilChessPanel::Cycle()
 {
-	int w,h,msk;
 	bool busy,vfsGood;
 
 	if (IsSignaled(GetVirFileStateSignal())) {
@@ -90,62 +90,37 @@ bool SilChessPanel::Cycle()
 	}
 
 	if (!Image.IsEmpty() && PixStep>0) {
-		w=Image.GetWidth();
-		h=Image.GetHeight();
-		InvX1=w;
-		InvY1=h;
-		InvX2=0;
-		InvY2=0;
-		if (!ImageGood) {
-			do {
-				RenderPixel();
-				PixX+=PixStep+(PixStep&~PixY);
-				while (PixX>=w) {
-					PixY+=PixStep;
-					if (PixY>=h) {
-						PixStep>>=1;
-						if (PixStep==0) {
-							ImageGood=true;
-							break;
-						}
-						PixY=0;
-					}
-					PixX=PixStep&~PixY;
-				}
-			} while (!IsTimeSliceAtEnd() && PixStep>0);
+		CommonRenderVars crv;
+		crv.Panel=this;
+		crv.InvX1=Image.GetWidth();
+		crv.InvY1=Image.GetHeight();
+		crv.InvX2=0;
+		crv.InvY2=0;
+
+		while (
+			PixStep>0 &&
+			(!ImageGood || AnimCnt<AnimEnd) &&
+			!IsTimeSliceAtEnd()
+		) {
+			RenderThreadPool->CallParallel(ThreadRenderFunc, &crv);
+			if (PixY>=Image.GetHeight()) {
+				PixY=0;
+				PixStep>>=1;
+				PixX=PixStep&~PixY;
+				if (!PixStep) ImageGood=true;
+			}
 		}
-		else {
-			PixStep=1;
-			for (msk=0x3ff; msk<h-1; msk=(msk<<1)|1);
-			do {
-				RenderPixel();
-				PixX++;
-				if (PixX>=w) {
-					do { PixY=(PixY+269779)&msk; } while (PixY>=h);
-					if (PixY==0) {
-						PixStep=0;
-						break;
-					}
-					InvalidatePainting(
-						ViewToPanelX(ImgX1+InvX1),
-						ViewToPanelY(ImgY1+InvY1),
-						ViewToPanelDeltaX(InvX2-InvX1),
-						ViewToPanelDeltaY(InvY2-InvY1)
-					);
-					InvX1=w;
-					InvY1=h;
-					InvX2=0;
-					InvY2=0;
-					PixX=0;
-				}
-			} while (!IsTimeSliceAtEnd() && PixStep>0);
+
+		AnimEnd+=emMax(1,Image.GetHeight()/10);
+
+		if (crv.InvX1<crv.InvX2 && crv.InvY1<crv.InvY2) {
+			InvalidatePainting(
+				ViewToPanelX(ImgX1+crv.InvX1),
+				ViewToPanelY(ImgY1+crv.InvY1),
+				ViewToPanelDeltaX(crv.InvX2-crv.InvX1),
+				ViewToPanelDeltaY(crv.InvY2-crv.InvY1)
+			);
 		}
-		InvalidatePainting(
-			ViewToPanelX(ImgX1+InvX1),
-			ViewToPanelY(ImgY1+InvY1),
-			ViewToPanelDeltaX(InvX2-InvX1),
-			ViewToPanelDeltaY(InvY2-InvY1)
-		);
 	}
 
 	busy = !Image.IsEmpty() && PixStep>0;
@@ -320,7 +295,7 @@ void SilChessPanel::Input(
 }
 
 
-bool SilChessPanel::IsOpaque()
+bool SilChessPanel::IsOpaque() const
 {
 	if (!IsVFSGood() || Image.IsEmpty()) {
 		return emFilePanel::IsOpaque();
@@ -335,7 +310,7 @@ bool SilChessPanel::IsOpaque()
 }
 
 
-void SilChessPanel::Paint(const emPainter & painter, emColor canvasColor)
+void SilChessPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (!IsVFSGood() || Image.IsEmpty()) {
 		emFilePanel::Paint(painter,canvasColor);
@@ -411,10 +386,16 @@ void SilChessPanel::PrepareRendering(bool viewingChanged)
 	PixY=0;
 	PixX=0;
 
+	AnimCnt=0;
+	AnimEnd=0;
+
 	HumanIsWhite=Mdl->GetMachine()->IsHumanWhite();
 	RayTracer.SetWorld(Mdl->GetMachine());
 
-	if (ImageGood && !viewingChanged) return;
+	if (ImageGood && !viewingChanged) {
+		PixStep=1;
+		return;
+	}
 	ImageGood=false;
 
 	//---------- Camera Setup --------------
@@ -485,16 +466,100 @@ void SilChessPanel::PrepareRendering(bool viewingChanged)
 }
 
 
-void SilChessPanel::RenderPixel()
+void SilChessPanel::ThreadRenderFunc(void * data, int index)
+{
+	CommonRenderVars * crv=(CommonRenderVars*)data;
+	crv->Panel->ThreadRenderRun(*crv);
+}
+
+
+void SilChessPanel::ThreadRenderRun(CommonRenderVars & crv)
+{
+	static const int MAX_PIXELS_AT_ONCE = 1000;
+	ThreadRenderVars trv;
+	int x,y,s,dx,n,endX,msk;
+
+	crv.Mutex.Lock();
+
+	trv.ImgWidth=Image.GetWidth();
+	trv.ImgHeight=Image.GetHeight();
+	trv.ImgMap=Image.GetWritableMap();
+	trv.InvX1=crv.InvX1;
+	trv.InvY1=crv.InvY1;
+	trv.InvX2=crv.InvX2;
+	trv.InvY2=crv.InvY2;
+
+	if (!ImageGood) {
+		while (PixY<trv.ImgHeight && !IsTimeSliceAtEnd()) {
+			x=PixX;
+			y=PixY;
+			s=PixStep;
+
+			dx=s+(s&~y);
+			n=(trv.ImgWidth-x+dx-1)/dx;
+			if (n>MAX_PIXELS_AT_ONCE) n=MAX_PIXELS_AT_ONCE;
+			endX=x+n*dx;
+
+			PixX=endX;
+			if (PixX>=trv.ImgWidth) {
+				PixY+=PixStep;
+				PixX=PixStep&~PixY;
+			}
+
+			crv.Mutex.Unlock();
+			for (; x<endX; x+=dx) {
+				RenderPixel(trv,x,y,s);
+			}
+			crv.Mutex.Lock();
+		}
+	}
+	else {
+		while (PixY<trv.ImgHeight && AnimCnt<AnimEnd && !IsTimeSliceAtEnd()) {
+			x=PixX;
+			y=PixY;
+
+			n=trv.ImgWidth-x;
+			if (n>MAX_PIXELS_AT_ONCE) n=MAX_PIXELS_AT_ONCE;
+			endX=x+n;
+
+			PixX=endX;
+			if (PixX>=trv.ImgWidth) {
+				for (msk=0x3ff; msk<trv.ImgHeight-1; msk=(msk<<1)|1);
+				do { PixY=(PixY+269779)&msk; } while (PixY>=trv.ImgHeight);
+				if (PixY==0) PixY=trv.ImgHeight;
+				PixX=0;
+				AnimCnt++;
+			}
+
+			crv.Mutex.Unlock();
+			for (; x<endX; x++) {
+				RenderPixel(trv,x,y,1);
+			}
+			crv.Mutex.Lock();
+		}
+	}
+
+	if (crv.InvX1>trv.InvX1) crv.InvX1=trv.InvX1;
+	if (crv.InvY1>trv.InvY1) crv.InvY1=trv.InvY1;
+	if (crv.InvX2<trv.InvX2) crv.InvX2=trv.InvX2;
+	if (crv.InvY2<trv.InvY2) crv.InvY2=trv.InvY2;
+
+	crv.Mutex.Unlock();
+}
+
+
+void SilChessPanel::RenderPixel(
+	ThreadRenderVars & trv, int pixX, int pixY, int pixSize
+)
 {
 	SilChessRayTracer::Color col;
 	double k,rx,ry,rz;
 	emByte * p, * pxe;
 	int r,g,b,w,h,s,t;
 
-	rx=RayXA*(PixX+0.5)+RayXB;
-	ry=RayYA*(PixY+0.5)+RayYB;
-	rz=RayZA*(PixY+0.5)+RayZB;
+	rx=RayXA*(pixX+0.5)+RayXB;
+	ry=RayYA*(pixY+0.5)+RayYB;
+	rz=RayZA*(pixY+0.5)+RayZB;
 	k=1.0/sqrt(ry*ry+rz*rz+rx*rx);
 #ifdef DO_IT_WITH_ALPHA
 	int a;
@@ -507,24 +572,21 @@ void SilChessPanel::RenderPixel()
 	g=col.Green; if (g>255) g=255;
 	b=col.Blue ; if (b>255) b=255;
 
-	w=Image.GetWidth();
-	h=Image.GetHeight();
-	if (ImageGood) s=1;
-	else {
-		s=PixStep;
-		if (s>32) s=32;
-	}
+	w=trv.ImgWidth;
+	h=trv.ImgHeight;
+	s=pixSize;
+	if (s>32) s=32;
 	t=s;
-	if (s>w-PixX) s=w-PixX;
-	if (t>h-PixY) t=h-PixY;
-	if (InvX1>PixX) InvX1=PixX;
-	if (InvY1>PixY) InvY1=PixY;
-	if (InvX2<PixX+s) InvX2=PixX+s;
-	if (InvY2<PixY+t) InvY2=PixY+t;
+	if (s>w-pixX) s=w-pixX;
+	if (t>h-pixY) t=h-pixY;
+	if (trv.InvX1>pixX) trv.InvX1=pixX;
+	if (trv.InvY1>pixY) trv.InvY1=pixY;
+	if (trv.InvX2<pixX+s) trv.InvX2=pixX+s;
+	if (trv.InvY2<pixY+t) trv.InvY2=pixY+t;
 #ifdef DO_IT_WITH_ALPHA
 	w*=4;
 	s*=4;
-	p=Image.GetWritableMap()+PixY*w+PixX*4;
+	p=trv.ImgMap+pixY*w+pixX*4;
 	w-=s;
 	do {
 		pxe=p+s;
@@ -541,7 +603,7 @@ void SilChessPanel::RenderPixel()
 #else
 	w*=3;
 	s*=3;
-	p=Image.GetWritableMap()+PixY*w+PixX*3;
+	p=trv.ImgMap+pixY*w+pixX*3;
 	w-=s;
 	do {
 		pxe=p+s;
@@ -594,7 +656,7 @@ void SilChessPanel::BoardToPanel(double x, double y, double * px, double * py) c
 }
 
 
-void SilChessPanel::PaintSelection(const emPainter & painter)
+void SilChessPanel::PaintSelection(const emPainter & painter) const
 {
 	static const emColor col(0,0,0);
 	double xy[6*2];
@@ -639,7 +701,7 @@ void SilChessPanel::PaintSelection(const emPainter & painter)
 }
 
 
-void SilChessPanel::PaintArrow(const emPainter & painter)
+void SilChessPanel::PaintArrow(const emPainter & painter) const
 {
 	static const emColor mateColor =emColor(187,0,68,80);
 	static const emColor checkColor=emColor(187,0,68,80);

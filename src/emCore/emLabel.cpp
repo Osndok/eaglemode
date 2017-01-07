@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLabel.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,7 +36,7 @@ emLabel::emLabel(
 void emLabel::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	PaintLabel(
 		painter,

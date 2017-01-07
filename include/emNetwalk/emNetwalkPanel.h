@@ -43,11 +43,11 @@ public:
 
 	virtual ~emNetwalkPanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 	virtual void GetEssenceRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	                            double * pW, double * pH) const;
 
 protected:
 
@@ -58,11 +58,11 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual emCursor GetCursor();
+	virtual emCursor GetCursor() const;
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);
@@ -72,12 +72,12 @@ private:
 	void PaintPieceBackground(
 		const emPainter & painter, double x, double y, double w, double h,
 		int px, int py, emColor canvasColor
-	);
+	) const;
 
 	void PaintPiecePipe(
 		const emPainter & painter, double x, double y, double w, double h,
 		int px, int py
-	);
+	) const;
 
 	static void PaintShapeWithRoundedEdges(
 		const emPainter & painter, double x, double y, double w, double h,

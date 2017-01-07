@@ -119,18 +119,18 @@ public:
 	virtual void SetFileModel(emFileModel * fileModel,
 	                          bool updateFileModel=true);
 
-	virtual emString GetIconFileName();
+	virtual emString GetIconFileName() const;
 
 	virtual void GetEssenceRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	                            double * pW, double * pH) const;
 
 protected:
 
 	virtual bool Cycle();
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);

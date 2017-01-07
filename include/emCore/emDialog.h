@@ -187,7 +187,7 @@ private:
 		DlgPanel(ParentArg parent, const emString & name);
 		virtual ~DlgPanel();
 		void SetTitle(const emString & title);
-		virtual emString GetTitle();
+		virtual emString GetTitle() const;
 		emString Title;
 		emLinearLayout * ContentPanel;
 		emLinearLayout * ButtonsPanel;

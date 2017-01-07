@@ -663,7 +663,6 @@ void emProcessPrivate::ClosePipe(int index)
 //====================== UNIX implementation of emProcess ======================
 //==============================================================================
 
-#include <emCore/emThread.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -960,8 +959,6 @@ void emProcessPrivate::TryStart(
 	const char * dirPath, int flags, emProcessPrivate * managed
 ) throw(emException)
 {
-	static emThreadInitMutex sigHandlersInitMutex;
-	struct sigaction sa;
 	char buf[1024];
 	emString msg;
 	int pipeIn[2],pipeOut[2],pipeErr[2],pipeTmp[2];
@@ -994,27 +991,29 @@ void emProcessPrivate::TryStart(
 		flags&=~emProcess::SF_SHARE_STDERR;
 	}
 
-	if (sigHandlersInitMutex.Begin()) {
-		memset(&sa,0,sizeof(sa));
-		sa.sa_handler=EmptySigHandler;
-		sa.sa_flags=SA_RESTART;
-		if (sigaction(SIGCHLD,&sa,NULL)) {
-			emFatalError(
-				"emProcess: Failed to install handler for SIGCHLD: %s",
-				emGetErrorText(errno).Get()
-			);
+	static const struct SigHandlersInstaller {
+		SigHandlersInstaller() {
+			struct sigaction sa;
+			memset(&sa,0,sizeof(sa));
+			sa.sa_handler=EmptySigHandler;
+			sa.sa_flags=SA_RESTART;
+			if (sigaction(SIGCHLD,&sa,NULL)) {
+				emFatalError(
+					"emProcess: Failed to install handler for SIGCHLD: %s",
+					emGetErrorText(errno).Get()
+				);
+			}
+			memset(&sa,0,sizeof(sa));
+			sa.sa_handler=EmptySigHandler;
+			sa.sa_flags=SA_RESTART;
+			if (sigaction(SIGPIPE,&sa,NULL)) {
+				emFatalError(
+					"emProcess: Failed to install handler for SIGPIPE: %s",
+					emGetErrorText(errno).Get()
+				);
+			}
 		}
-		memset(&sa,0,sizeof(sa));
-		sa.sa_handler=EmptySigHandler;
-		sa.sa_flags=SA_RESTART;
-		if (sigaction(SIGPIPE,&sa,NULL)) {
-			emFatalError(
-				"emProcess: Failed to install handler for SIGPIPE: %s",
-				emGetErrorText(errno).Get()
-			);
-		}
-		sigHandlersInitMutex.End();
-	}
+	} sigHandlersInstaller;
 
 	pid=-1;
 	pipeIn[0]=-1;

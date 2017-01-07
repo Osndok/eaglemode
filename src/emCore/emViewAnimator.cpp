@@ -78,7 +78,7 @@ void emViewAnimator::Input(emInputEvent & event, const emInputState & state)
 }
 
 
-void emViewAnimator::Paint(const emPainter & painter)
+void emViewAnimator::Paint(const emPainter & painter) const
 {
 }
 
@@ -1004,7 +1004,7 @@ void emVisitingViewAnimator::Input(emInputEvent & event, const emInputState & st
 }
 
 
-void emVisitingViewAnimator::Paint(const emPainter & painter)
+void emVisitingViewAnimator::Paint(const emPainter & painter) const
 {
 	double vx,vy,vw,vh,f,x,y,w,h,ws,tw,ch;
 	emString str;

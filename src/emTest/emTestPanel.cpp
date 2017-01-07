@@ -50,7 +50,7 @@ emTestPanel::~emTestPanel()
 }
 
 
-emString emTestPanel::GetTitle()
+emString emTestPanel::GetTitle() const
 {
 	return "Test Panel";
 }
@@ -105,13 +105,13 @@ void emTestPanel::Input(
 }
 
 
-bool emTestPanel::IsOpaque()
+bool emTestPanel::IsOpaque() const
 {
 	return BgColor.IsOpaque();
 }
 
 
-void emTestPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	const emString * pstr;
 	emColor fgCol;

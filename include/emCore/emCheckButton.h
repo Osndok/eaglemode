@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCheckButton.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ protected:
 	virtual void CheckChanged();
 		// Called when the check state has changed.
 
-	virtual emString GetHowTo();
+	virtual emString GetHowTo() const;
 
 private:
 

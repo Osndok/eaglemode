@@ -190,7 +190,7 @@ void emView::SetBackgroundColor(emColor c)
 }
 
 
-emString emView::GetTitle()
+emString emView::GetTitle() const
 {
 	return Title;
 }
@@ -953,7 +953,7 @@ void emView::SignalEOIDelayed()
 
 double emView::GetTouchEventPriority(
 	double touchX, double touchY, bool afterVIFs
-)
+) const
 {
 	emPanel * p;
 	double pri,t;
@@ -1047,22 +1047,25 @@ void emView::Input(emInputEvent & event, const emInputState & state)
 }
 
 
-emCursor emView::GetCursor()
+emCursor emView::GetCursor() const
 {
 	return Cursor;
 }
 
 
-void emView::Paint(const emPainter & painter, emColor canvasColor)
+void emView::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emColor ncc;
 	emPainter pnt;
-	emPanel * p;
+	const emPanel * p;
 	double rx1,ry1,rx2,ry2,ox,oy,cx1,cy1,cx2,cy2;
+	bool wasNotInUserSpace;
 
 	if (painter.GetScaleX()!=1.0 || painter.GetScaleY()!=1.0) {
 		emFatalError("emView::Paint: Scaling not possible.");
 	}
+
+	wasNotInUserSpace=painter.EnterUserSpace();
 
 	if (!SupremeViewedPanel) {
 		painter.Clear(BackgroundColor,canvasColor);
@@ -1101,6 +1104,7 @@ void emView::Paint(const emPainter & painter, emColor canvasColor)
 				p->ViewedWidth/CurrentPixelTallness
 			);
 			p->Paint(pnt,canvasColor);
+			painter.LeaveUserSpace();
 			p=p->FirstChild;
 			if (p) {
 				for (;;) {
@@ -1118,7 +1122,9 @@ void emView::Paint(const emPainter & painter, emColor canvasColor)
 									p->ViewedWidth,
 									p->ViewedWidth/CurrentPixelTallness
 								);
+								painter.EnterUserSpace();
 								p->Paint(pnt,p->CanvasColor);
+								painter.LeaveUserSpace();
 								if (p->FirstChild) {
 									p=p->FirstChild;
 									continue;
@@ -1136,12 +1142,15 @@ void emView::Paint(const emPainter & painter, emColor canvasColor)
 					}
 				}
 			}
+			painter.EnterUserSpace();
 		}
 		PaintHighlight(painter);
 	}
 
 	if (ActiveAnimator) ActiveAnimator->Paint(painter);
 	if (StressTest) StressTest->PaintInfo(painter);
+
+	if (wasNotInUserSpace) painter.LeaveUserSpace();
 }
 
 
@@ -1163,6 +1172,32 @@ void emView::DoCustomCheat(const char * func)
 			break;
 		}
 	}
+}
+
+
+emString emView::GetTitle()
+{
+	return ((const emView*)this)->GetTitle();
+}
+
+
+double emView::GetTouchEventPriority(
+	double touchX, double touchY, bool afterVIFs
+)
+{
+	return ((const emView*)this)->GetTouchEventPriority(touchX,touchY,afterVIFs);
+}
+
+
+emCursor emView::GetCursor()
+{
+	return ((const emView*)this)->GetCursor();
+}
+
+
+void emView::Paint(const emPainter & painter, emColor canvasColor)
+{
+	((const emView*)this)->Paint(painter,canvasColor);
 }
 
 
@@ -1291,7 +1326,10 @@ void emView::Update()
 			SVPChoiceByOpacityInvalid=false;
 			if (!SVPChoiceInvalid && MinSVP!=MaxSVP) {
 				for (p=MinSVP; p!=MaxSVP; p=p->Parent) {
-					if (p->CanvasColor.IsOpaque() || p->IsOpaque()) break;
+					if (
+						p->CanvasColor.IsOpaque() ||
+						((const emPanel*)p)->IsOpaque()
+					) break;
 				}
 				if (SupremeViewedPanel!=p) {
 					emDLog("emView %p: SVP choice invalid by opacity.",this);
@@ -1342,12 +1380,12 @@ void emView::Update()
 
 
 void emView::CalcVisitCoords(
-	emPanel * panel, double * pRelX, double * pRelY, double * pRelA
+	const emPanel * panel, double * pRelX, double * pRelY, double * pRelA
 ) const
 {
 	static const double MIN_REL_DISTANCE=0.03;
 	static const double MIN_REL_CIRCUMFERENCE=0.05;
-	emPanel * p, * cp;
+	const emPanel * p, * cp;
 	double ph,dx,dy,sx,sy,sw,sh,minvw,maxvw,vx,vy,vw,vh;
 	double ctx,cty,ctw,cth,csx,csy,csw,csh;
 
@@ -1459,7 +1497,7 @@ void emView::CalcVisitCoords(
 
 
 void emView::CalcVisitFullsizedCoords(
-	emPanel * panel, double * pRelX, double * pRelY, double * pRelA,
+	const emPanel * panel, double * pRelX, double * pRelY, double * pRelA,
 	bool utilizeView
 ) const
 {
@@ -1869,7 +1907,10 @@ bool emView::FindBestSVPInTree(
 	tooLarge=(vs>MaxSVPSize);
 
 	if (!covering && !tooLarge) return false;
-	vc=(covering && (p->CanvasColor.IsOpaque() || p->IsOpaque()));
+	vc=(
+		covering &&
+		(p->CanvasColor.IsOpaque() || ((const emPanel*)p)->IsOpaque())
+	);
 
 	p=p->LastChild;
 	if (!p) return vc;
@@ -2151,7 +2192,7 @@ void emView::PaintHighlight(const emPainter & painter) const
 	vw=ActivePanel->GetViewedWidth();
 	vh=ActivePanel->GetViewedHeight()*CurrentPixelTallness;
 
-	ActivePanel->GetSubstanceRect(&sx,&sy,&sw,&sh,&sr);
+	((const emPanel*)ActivePanel)->GetSubstanceRect(&sx,&sy,&sw,&sh,&sr);
 	sx=vx+sx*vw;
 	sy=vy+sy*vw;
 	sw*=vw;
@@ -2175,6 +2216,8 @@ void emView::PaintHighlight(const emPainter & painter) const
 	cx2=pnt.GetUserClipX2()+arrowSize*2.0;
 	cy2=pnt.GetUserClipY2()+arrowSize*2.0;
 	if (sx>=cx2 || sx+sw<=cx1 || sy>=cy2 || sy+sh<=cy1) return;
+
+	pnt.LeaveUserSpace();
 
 	shadowColor=emColor(0,0,0,192);
 	if (ActivationAdherent) arrowColor=adherentHighlightColor;
@@ -2265,6 +2308,8 @@ void emView::PaintHighlight(const emPainter & painter) const
 			pos-=l;
 		}
 	}
+
+	pnt.EnterUserSpace();
 }
 
 
@@ -2635,7 +2680,7 @@ void emViewPort::RequestFocus()
 }
 
 
-bool emViewPort::IsSoftKeyboardShown()
+bool emViewPort::IsSoftKeyboardShown() const
 {
 	return false;
 }
@@ -2646,7 +2691,7 @@ void emViewPort::ShowSoftKeyboard(bool show)
 }
 
 
-emUInt64 emViewPort::GetInputClockMS()
+emUInt64 emViewPort::GetInputClockMS() const
 {
 	return emGetClockMS();
 }
@@ -2668,6 +2713,18 @@ void emViewPort::InvalidateCursor()
 
 void emViewPort::InvalidatePainting(double x, double y, double w, double h)
 {
+}
+
+
+bool emViewPort::IsSoftKeyboardShown()
+{
+	return ((const emViewPort*)this)->IsSoftKeyboardShown();
+}
+
+
+emUInt64 emViewPort::GetInputClockMS()
+{
+	return ((const emViewPort*)this)->GetInputClockMS();
 }
 
 

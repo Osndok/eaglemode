@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,6 +26,7 @@ emFractalFilePanel::emFractalFilePanel(
 )
 	: emFilePanel(parent,name,fileModel,true)
 {
+	RenderThreadPool=emRenderThreadPool::Acquire(GetRootContext());
 	Mdl=fileModel;
 	AddWakeUpSignal(Mdl->GetChangeSignal());
 	AddWakeUpSignal(GetVirFileStateSignal());
@@ -39,13 +40,13 @@ emFractalFilePanel::~emFractalFilePanel()
 }
 
 
-emString emFractalFilePanel::GetTitle()
+emString emFractalFilePanel::GetTitle() const
 {
 	return "Fractal";
 }
 
 
-emString emFractalFilePanel::GetIconFileName()
+emString emFractalFilePanel::GetIconFileName() const
 {
 	return "fractal.tga";
 }
@@ -60,33 +61,40 @@ bool emFractalFilePanel::Cycle()
 		IsSignaled(GetVirFileStateSignal())
 	) Prepare();
 
-	if (!Image.IsEmpty() && PixStep>0) {
-		InvX1=Image.GetWidth();
-		InvY1=Image.GetHeight();
-		InvX2=0;
-		InvY2=0;
-		do {
-			PutPixel(CalcPixel());
-			PixX+=PixStep+(PixStep&~PixY);
-			while (PixX>=Image.GetWidth()) {
-				PixY+=PixStep;
-				if (PixY>=Image.GetHeight()) {
+	if (!Image.IsEmpty() && PixStep>=0) {
+		CommonRenderVars crv;
+		crv.Panel=this;
+		crv.InvX1=Image.GetWidth();
+		crv.InvY1=Image.GetHeight();
+		crv.InvX2=0;
+		crv.InvY2=0;
+
+		while (PixStep>=0 && !IsTimeSliceAtEnd()) {
+			RenderThreadPool->CallParallel(ThreadRenderFunc, &crv);
+			if (PixY>=Image.GetHeight()) {
+				PixY=0;
+				if (PixStep>0) {
 					PixStep>>=1;
-					if (PixStep==0) break;
-					PixY=0;
+					PixX=PixStep&~PixY;
 				}
-				PixX=PixStep&~PixY;
+				else {
+					PixStep--;
+					PixX=0;
+				}
 			}
-		} while (!IsTimeSliceAtEnd() && PixStep>0);
-		InvalidatePainting(
-			ViewToPanelX(ImgX1+InvX1),
-			ViewToPanelY(ImgY1+InvY1),
-			ViewToPanelDeltaX(InvX2-InvX1),
-			ViewToPanelDeltaY(InvY2-InvY1)
-		);
+		}
+
+		if (crv.InvX1<crv.InvX2 && crv.InvY1<crv.InvY2) {
+			InvalidatePainting(
+				ViewToPanelX(ImgX1+crv.InvX1),
+				ViewToPanelY(ImgY1+crv.InvY1),
+				ViewToPanelDeltaX(crv.InvX2-crv.InvX1),
+				ViewToPanelDeltaY(crv.InvY2-crv.InvY1)
+			);
+		}
 	}
 
-	busy = !Image.IsEmpty() && PixStep>0;
+	busy = !Image.IsEmpty() && PixStep>=0;
 	if (emFilePanel::Cycle()) busy=true;
 	return busy;
 }
@@ -102,7 +110,7 @@ void emFractalFilePanel::Notice(NoticeFlags flags)
 }
 
 
-bool emFractalFilePanel::IsOpaque()
+bool emFractalFilePanel::IsOpaque() const
 {
 	if (Image.IsEmpty()) {
 		return emFilePanel::IsOpaque();
@@ -113,7 +121,9 @@ bool emFractalFilePanel::IsOpaque()
 }
 
 
-void emFractalFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emFractalFilePanel::Paint(
+	const emPainter & painter, emColor canvasColor
+) const
 {
 	if (Image.IsEmpty()) {
 		emFilePanel::Paint(painter,canvasColor);
@@ -137,10 +147,10 @@ void emFractalFilePanel::Prepare()
 	emColor c1, c2;
 	int i,j,k,n,m,w,h;
 
-	ImgX1=GetClipX1();
-	ImgY1=GetClipY1();
-	ImgX2=GetClipX2();
-	ImgY2=GetClipY2();
+	ImgX1=floor(GetClipX1());
+	ImgY1=floor(GetClipY1());
+	ImgX2=ceil(GetClipX2());
+	ImgY2=ceil(GetClipY2());
 
 	if (!IsViewed() || !IsVFSGood() || ImgX1>=ImgX2-2 || ImgY1>=ImgY2-2) {
 		Image.Clear();
@@ -186,15 +196,125 @@ void emFractalFilePanel::Prepare()
 }
 
 
-emColor emFractalFilePanel::CalcPixel() const
+void emFractalFilePanel::ThreadRenderFunc(void * data, int index)
+{
+	CommonRenderVars * crv=(CommonRenderVars*)data;
+	crv->Panel->ThreadRenderRun(*crv);
+}
+
+
+void emFractalFilePanel::ThreadRenderRun(CommonRenderVars & crv)
+{
+	static const int MAX_PIXELS_AT_ONCE = 100;
+	ThreadRenderVars trv;
+	emColor c1,c2,c3,c4;
+	int x,y,s,dx,n,endX;
+
+	crv.Mutex.Lock();
+
+	trv.ImgWidth=Image.GetWidth();
+	trv.ImgHeight=Image.GetHeight();
+	trv.ImgMap=Image.GetWritableMap();
+	trv.InvX1=crv.InvX1;
+	trv.InvY1=crv.InvY1;
+	trv.InvX2=crv.InvX2;
+	trv.InvY2=crv.InvY2;
+
+	if (PixStep>0) {
+		while (PixY<trv.ImgHeight && !IsTimeSliceAtEnd()) {
+			x=PixX;
+			y=PixY;
+			s=PixStep;
+
+			dx=s+(s&~y);
+			n=(trv.ImgWidth-x+dx-1)/dx;
+			if (n>MAX_PIXELS_AT_ONCE) n=MAX_PIXELS_AT_ONCE;
+			endX=x+n*dx;
+
+			PixX=endX;
+			if (PixX>=trv.ImgWidth) {
+				PixY+=PixStep;
+				PixX=PixStep&~PixY;
+			}
+
+			crv.Mutex.Unlock();
+			for (; x<endX; x+=dx) {
+				PutPixel(trv,x,y,s,CalcPixel(x,y));
+			}
+			crv.Mutex.Lock();
+		}
+	}
+	else {
+		// Anti-aliasing...
+		while (PixY<trv.ImgHeight && !IsTimeSliceAtEnd()) {
+			x=PixX;
+			y=PixY;
+
+			n=trv.ImgWidth-x;
+			if (n>MAX_PIXELS_AT_ONCE/3) n=MAX_PIXELS_AT_ONCE/3;
+			endX=x+n;
+
+			PixX=endX;
+			if (PixX>=trv.ImgWidth) {
+				PixY++;
+				PixX=0;
+			}
+
+			crv.Mutex.Unlock();
+			for (; x<endX; x++) {
+				c1=PeekPixel(trv,x,y);
+				c2=CalcPixel(x+0.5,y);
+				c3=CalcPixel(x,y+0.5);
+				c4=CalcPixel(x+0.5,y+0.5);
+				PutPixel(
+					trv,x,y,1,
+					emColor(
+						(emByte)((
+							(unsigned)c1.GetRed()+
+							(unsigned)c2.GetRed()+
+							(unsigned)c3.GetRed()+
+							(unsigned)c4.GetRed()+
+							2
+						)>>2),
+						(emByte)((
+							(unsigned)c1.GetGreen()+
+							(unsigned)c2.GetGreen()+
+							(unsigned)c3.GetGreen()+
+							(unsigned)c4.GetGreen()+
+							2
+						)>>2),
+						(emByte)((
+							(unsigned)c1.GetBlue()+
+							(unsigned)c2.GetBlue()+
+							(unsigned)c3.GetBlue()+
+							(unsigned)c4.GetBlue()+
+							2
+						)>>2)
+					)
+				);
+			}
+			crv.Mutex.Lock();
+		}
+	}
+
+	if (crv.InvX1>trv.InvX1) crv.InvX1=trv.InvX1;
+	if (crv.InvY1>trv.InvY1) crv.InvY1=trv.InvY1;
+	if (crv.InvX2<trv.InvX2) crv.InvX2=trv.InvX2;
+	if (crv.InvY2<trv.InvY2) crv.InvY2=trv.InvY2;
+
+	crv.Mutex.Unlock();
+}
+
+
+emColor emFractalFilePanel::CalcPixel(double pixX, double pixY) const
 {
 	double x,y,r,s,rr,ss;
 	int d;
 
 	switch (Mdl->Type) {
 	case emFractalFileModel::MANDELBROT_TYPE:
-		x=FrcX+FrcSX*PixX;
-		y=FrcY+FrcSY*PixY;
+		x=FrcX+FrcSX*pixX;
+		y=FrcY+FrcSY*pixY;
 		r=0;
 		s=0;
 		rr=0;
@@ -212,8 +332,8 @@ emColor emFractalFilePanel::CalcPixel() const
 	case emFractalFileModel::JULIA_TYPE:
 		x=Mdl->JuliaX;
 		y=Mdl->JuliaY;
-		r=FrcX+FrcSX*PixX;
-		s=FrcY+FrcSY*PixY;
+		r=FrcX+FrcSX*pixX;
+		s=FrcY+FrcSY*pixY;
 		rr=r*r;
 		ss=s*s;
 		d=Mdl->Depth;
@@ -227,10 +347,10 @@ emColor emFractalFilePanel::CalcPixel() const
 		d=Mdl->Depth-d;
 		return Colors[d%Colors.GetCount()];
 	case emFractalFileModel::MULTI_JULIA_TYPE:
-		x=floor((FrcX+FrcSX*PixX)*100)/100;
-		y=floor((FrcY+FrcSY*PixY)*100)/100;
-		r=(x-(FrcX+FrcSX*PixX))*100*3.4+1.7;
-		s=(y-(FrcY+FrcSY*PixY))*100*3.4+1.7;
+		x=floor((FrcX+FrcSX*pixX)*100)/100;
+		y=floor((FrcY+FrcSY*pixY)*100)/100;
+		r=(x-(FrcX+FrcSX*pixX))*100*3.4+1.7;
+		s=(y-(FrcY+FrcSY*pixY))*100*3.4+1.7;
 		rr=r*r;
 		ss=s*s;
 		d=Mdl->Depth;
@@ -249,25 +369,26 @@ emColor emFractalFilePanel::CalcPixel() const
 }
 
 
-void emFractalFilePanel::PutPixel(emColor color)
+void emFractalFilePanel::PutPixel(
+	ThreadRenderVars & trv, int x, int y, int s, emColor color
+)
 {
 	emByte * p, * pxe;
-	int w,h,s,t;
+	int w,h,t;
 
-	w=Image.GetWidth();
-	h=Image.GetHeight();
-	s=PixStep;
+	w=trv.ImgWidth;
+	h=trv.ImgHeight;
 	if (s>32) s=32;
 	t=s;
-	if (s>w-PixX) s=w-PixX;
-	if (t>h-PixY) t=h-PixY;
-	if (InvX1>PixX) InvX1=PixX;
-	if (InvY1>PixY) InvY1=PixY;
-	if (InvX2<PixX+s) InvX2=PixX+s;
-	if (InvY2<PixY+t) InvY2=PixY+t;
+	if (s>w-x) s=w-x;
+	if (t>h-y) t=h-y;
+	if (trv.InvX1>x) trv.InvX1=x;
+	if (trv.InvY1>y) trv.InvY1=y;
+	if (trv.InvX2<x+s) trv.InvX2=x+s;
+	if (trv.InvY2<y+t) trv.InvY2=y+t;
 	w*=3;
 	s*=3;
-	p=Image.GetWritableMap()+PixY*w+PixX*3;
+	p=trv.ImgMap+y*w+x*3;
 	w-=s;
 	do {
 		pxe=p+s;
@@ -280,4 +401,23 @@ void emFractalFilePanel::PutPixel(emColor color)
 		p+=w;
 		t--;
 	} while (t>0);
+}
+
+
+emColor emFractalFilePanel::PeekPixel(
+	const ThreadRenderVars & trv, int x, int y
+)
+{
+	const emByte * p;
+	int w,h;
+
+	w=trv.ImgWidth;
+	h=trv.ImgHeight;
+	if (x>=0 && x<w && y>=0 && y<h) {
+		p=trv.ImgMap+(y*w+x)*3;
+		return emColor(p[0],p[1],p[2]);
+	}
+	else {
+		return 0;
+	}
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,7 +70,7 @@ void emCoreConfigPanel::AutoExpand()
 	new MouseGroup(content,"mouse",Config);
 	new KBGroup(content,"keyboard",Config);
 	new KineticGroup(content,"kinetic",Config);
-	new MaxMemTunnel(content,"maxmem",Config);
+	new PerformanceGroup(content,"performance",Config);
 
 	buttons=new emLinearLayout(this,"buttons");
 	buttons->SetChildTallness(0.2);
@@ -614,4 +614,86 @@ void emCoreConfigPanel::MaxMemTunnel::AutoExpand()
 	);
 	tunnel->SetChildTallness(0.7);
 	new MaxMemGroup(tunnel,"group",Config);
+}
+
+
+emCoreConfigPanel::PerformanceGroup::PerformanceGroup(
+	ParentArg parent, const emString & name, emCoreConfig * config
+)
+	: emRasterGroup(parent,name,"Performance"),
+	emRecListener(config),
+	Config(config)
+{
+	SetPrefChildTallness(0.2);
+	SetBorderScaling(3.0);
+	SetSpace(0.05,0.1,0.05,0.1);
+}
+
+
+emCoreConfigPanel::PerformanceGroup::~PerformanceGroup()
+{
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::OnRecChanged()
+{
+	UpdateOutput();
+}
+
+
+bool emCoreConfigPanel::PerformanceGroup::Cycle()
+{
+	bool busy;
+
+	busy=emRasterGroup::Cycle();
+
+	if (
+		MaxRenderThreadsField &&
+		IsSignaled(MaxRenderThreadsField->GetValueSignal())
+	) {
+		int val=(int)MaxRenderThreadsField->GetValue();
+		if (Config->MaxRenderThreads.Get() != val) {
+			Config->MaxRenderThreads.Set(val);
+			Config->Save();
+		}
+	}
+
+	return busy;
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::AutoExpand()
+{
+	emRasterGroup::AutoExpand();
+	new MaxMemTunnel(this,"maxmem",Config);
+
+	MaxRenderThreadsField=new emScalarField(
+		this,"MaxRenderThreads",
+		"Max Render Threads",
+		"Maximum number of CPU threads used for painting graphics.\n"
+		"In any case, no more threads are used than the hardware can\n"
+		"run concurrently by multiple CPUs, cores, or hyperthreads.\n"
+		"So this setting is just an additional limit, for the case\n"
+		"you want this program to use less CPU resources.",
+		emImage(),
+		1,32,Config->MaxRenderThreads.Get(),true
+	);
+	MaxRenderThreadsField->SetScaleMarkIntervals(1);
+	AddWakeUpSignal(MaxRenderThreadsField->GetValueSignal());
+	UpdateOutput();
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::AutoShrink()
+{
+	emRasterGroup::AutoShrink();
+	MaxRenderThreadsField=NULL;
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::UpdateOutput()
+{
+	if (MaxRenderThreadsField) {
+		MaxRenderThreadsField->SetValue(Config->MaxRenderThreads.Get());
+	}
 }

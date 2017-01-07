@@ -220,19 +220,19 @@ public:
 	void GetAuxRect(
 		double * pX, double * pY, double * pW, double * pH,
 		emColor * pCanvasColor=NULL
-	);
+	) const;
 		// Get the coordinates and canvas color of the auxiliary area.
 		// Valid only if HasAux()==true.
 
 	virtual void GetSubstanceRect(double * pX, double * pY,
 	                              double * pW, double * pH,
-	                              double * pR);
+	                              double * pR) const;
 		// Overloaded from emPanel (read there).
 
 	virtual void GetContentRoundRect(
 		double * pX, double * pY, double * pW, double * pH, double * pR,
 		emColor * pCanvasColor=NULL
-	);
+	) const;
 		// Get the coordinates and canvas color of the content area as a
 		// round rectangle (argument pR is for returning the radius of
 		// the corners).
@@ -240,7 +240,7 @@ public:
 	virtual void GetContentRect(
 		double * pX, double * pY, double * pW, double * pH,
 		emColor * pCanvasColor=NULL
-	);
+	) const;
 		// Get the coordinates and canvas color of the content area as a
 		// rectangle. If the inner border has round corners, the
 		// rectangle returned here is smaller than with
@@ -250,7 +250,7 @@ public:
 	virtual void GetContentRectUnobscured(
 		double * pX, double * pY, double * pW, double * pH,
 		emColor * pCanvasColor=NULL
-	);
+	) const;
 		// Get the coordinates and canvas color of the unobscured part
 		// of the content area. Some border types are painting an
 		// overlay like a shadow at the edges of the content area, after
@@ -263,15 +263,15 @@ public:
 protected:
 
 	virtual void Notice(NoticeFlags flags);
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 	virtual void LayoutChildren();
 		// See emPanel. Hint: For painting the content area, please
 		// overload PaintContent instead of Paint, because with certain
 		// border types, a shadow is painted over the content area.
 
-	virtual bool HasHowTo();
-	virtual emString GetHowTo();
+	virtual bool HasHowTo() const;
+	virtual emString GetHowTo() const;
 		// This is about a text describing how to use this panel. If
 		// HasHowTo()==true, the text returned by GetHowTo() is shown
 		// very small in the center of the left edge of the border. When
@@ -287,18 +287,18 @@ protected:
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 		// This can be overloaded for painting the content area. The
 		// default implementation does nothing. The coordinates x,y,w,h
 		// are like from GetContentRect, but you could even use the
 		// coordinates returned by GetContentRoundRect.
 
-	virtual bool HasLabel();
+	virtual bool HasLabel() const;
 		// Whether this panel has a label. The default implementation
 		// checks whether at least one of caption, description and icon
 		// is not empty.
 
-	virtual double GetBestLabelTallness();
+	virtual double GetBestLabelTallness() const;
 		// Get the ideal tallness for the label area. The default
 		// implementation calculates this for the default implementation
 		// of PaintLabel.
@@ -306,7 +306,7 @@ protected:
 	virtual void PaintLabel(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor color, emColor canvasColor
-	);
+	) const;
 		// Paint the label. The default implementation paints the
 		// caption, description and icon. This could be overloaded to
 		// paint something else for the label.
@@ -345,6 +345,39 @@ protected:
 		// This is more or less private stuff - do not use in custom
 		// classes.
 
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+public:
+	virtual void GetContentRoundRect(
+		double * pX, double * pY, double * pW, double * pH, double * pR,
+		emColor * pCanvasColor=NULL
+	) final;
+	virtual void GetContentRect(
+		double * pX, double * pY, double * pW, double * pH,
+		emColor * pCanvasColor=NULL
+	) final;
+	virtual void GetContentRectUnobscured(
+		double * pX, double * pY, double * pW, double * pH,
+		emColor * pCanvasColor=NULL
+	) final;
+protected:
+	virtual bool HasHowTo() final;
+	virtual emString GetHowTo() final;
+	virtual void PaintContent(
+		const emPainter & painter, double x, double y, double w,
+		double h, emColor canvasColor
+	) final;
+	virtual bool HasLabel() final;
+	virtual double GetBestLabelTallness() final;
+	virtual void PaintLabel(
+		const emPainter & painter, double x, double y, double w,
+		double h, emColor color, emColor canvasColor
+	) final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 private:
 
 	enum DoBorderFunc {
@@ -359,7 +392,7 @@ private:
 		DoBorderFunc func, const emPainter * painter,
 		emColor canvasColor, double * pX, double * pY, double * pW,
 		double * pH, double * pR, emColor * pCanvasColor
-	);
+	) const;
 
 	enum DoLabelFunc {
 		LABEL_FUNC_PAINT,
@@ -369,7 +402,7 @@ private:
 		DoLabelFunc func, const emPainter * painter, double x, double y,
 		double w, double h, emColor color, emColor canvasColor,
 		double * pBestTallness
-	);
+	) const;
 
 	struct AuxData {
 		emString PanelName;

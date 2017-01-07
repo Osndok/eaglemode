@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvPanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,9 +41,9 @@ public:
 	);
 	virtual ~emTmpConvPanel();
 
-	emTmpConvModel * GetModel();
+	emTmpConvModel * GetModel() const;
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
 protected:
 
@@ -51,17 +51,17 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 
-	virtual bool IsHopeForSeeking();
+	virtual bool IsHopeForSeeking() const;
 
 private:
 
-	emTmpConvModel::ConversionState GetVirtualConversionState();
+	emTmpConvModel::ConversionState GetVirtualConversionState() const;
 	void UpdateModelClientAndChildPanel();
 
 	emTmpConvModelClient ModelClient;
@@ -70,7 +70,7 @@ private:
 	double MinViewPercentForHolding;
 };
 
-inline emTmpConvModel * emTmpConvPanel::GetModel()
+inline emTmpConvModel * emTmpConvPanel::GetModel() const
 {
 	return (emTmpConvModel*)ModelClient.GetModel();
 }

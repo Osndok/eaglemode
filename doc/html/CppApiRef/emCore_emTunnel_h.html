@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTunnel_h.html#emTunnel">emTunnel</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,15 +71,26 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetChildRect(
                 <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
-        </SPAN>);
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get coordinates and canvas color of the end of the tunnel.
+
+        // - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+        // The following virtual non-const methods have been replaced by const
+        // methods (see above). The old versions still exist here with the
+        // "final" keyword added, so that old overridings will fail to compile.
+        // If you run into this, please adapt your overridings by adding "const".
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>GetChildRect(
+                <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW, <SPAN CLASS=t>double </SPAN>* pH,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor=<SPAN CLASS=u>NULL
+        </SPAN>) final;
+        <SPAN CLASS=c>// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual void </SPAN>PaintContent(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();
 
@@ -93,7 +104,7 @@
                 DoTunnelFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>double </SPAN>* pX, <SPAN CLASS=t>double </SPAN>* pY, <SPAN CLASS=t>double </SPAN>* pW,
                 <SPAN CLASS=t>double </SPAN>* pH, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> * pCanvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>double </SPAN>ChildTallness,Depth;
 <SPAN CLASS=b>}</SPAN>;

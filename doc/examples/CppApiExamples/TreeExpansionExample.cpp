@@ -6,8 +6,8 @@ class MyPanel : public emPanel {
 public:
 	MyPanel(ParentArg parent, const emString & name, emColor bgcolor=0xFFFFFFFF);
 protected:
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 	virtual void AutoExpand();
 	virtual void LayoutChildren();
 private:
@@ -21,12 +21,12 @@ MyPanel::MyPanel(ParentArg parent, const emString & name, emColor bgcolor)
 	BackgroundColor=bgcolor;
 }
 
-bool MyPanel::IsOpaque()
+bool MyPanel::IsOpaque() const
 {
 	return BackgroundColor.IsOpaque();
 }
 
-void MyPanel::Paint(const emPainter & painter, emColor canvasColor)
+void MyPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	painter.Clear(BackgroundColor,canvasColor);
 }

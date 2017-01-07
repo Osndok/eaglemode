@@ -5,9 +5,9 @@
 class MyPanel : public emPanel {
 public:
 	MyPanel(ParentArg parent, const emString & name);
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 protected:
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 };
 
 MyPanel::MyPanel(ParentArg parent, const emString & name)
@@ -15,12 +15,12 @@ MyPanel::MyPanel(ParentArg parent, const emString & name)
 {
 }
 
-emString MyPanel::GetTitle()
+emString MyPanel::GetTitle() const
 {
 	return "Hello World Example";
 }
 
-void MyPanel::Paint(const emPainter & painter, emColor canvasColor)
+void MyPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	painter.Clear(emColor::BLACK);
 	painter.PaintTextBoxed(0,0,1,GetHeight(),"Hello World!",.01,emColor::RED);

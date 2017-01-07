@@ -161,15 +161,15 @@ public:
 	emVirtualCosmosItemRec * GetItemRec() const;
 	void SetItemRec(emVirtualCosmosItemRec * itemRec);
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
 protected:
 
 	virtual bool Cycle();
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 	virtual void AutoExpand();
 	virtual void AutoShrink();
 	virtual void LayoutChildren();
@@ -207,14 +207,14 @@ public:
 	emVirtualCosmosPanel(ParentArg parent, const emString & name);
 	virtual ~emVirtualCosmosPanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 protected:
 
 	virtual bool Cycle();
 	virtual void Notice(NoticeFlags flags);
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
 private:
 

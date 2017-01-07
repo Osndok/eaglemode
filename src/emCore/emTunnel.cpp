@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTunnel.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,16 +57,25 @@ void emTunnel::SetDepth(double depth)
 void emTunnel::GetChildRect(
 	double * pX, double * pY, double * pW, double * pH,
 	emColor * pCanvasColor
-)
+) const
 {
 	DoTunnel(TUNNEL_FUNC_CHILD_RECT,NULL,0,pX,pY,pW,pH,pCanvasColor);
+}
+
+
+void emTunnel::GetChildRect(
+	double * pX, double * pY, double * pW, double * pH,
+	emColor * pCanvasColor
+)
+{
+	((const emTunnel*)this)->GetChildRect(pX,pY,pW,pH,pCanvasColor);
 }
 
 
 void emTunnel::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	DoTunnel(TUNNEL_FUNC_PAINT,&painter,canvasColor,NULL,NULL,NULL,NULL,NULL);
 }
@@ -98,7 +107,7 @@ void emTunnel::DoTunnel(
 	DoTunnelFunc func, const emPainter * painter, emColor canvasColor,
 	double * pX, double * pY, double * pW, double * pH,
 	emColor * pCanvasColor
-)
+) const
 {
 	double d,f,ax,ay,aw,ah,ar,bx,by,bw,bh,br,circleQuality,imgRY,imgRX,dx,dy;
 	double xy[4*2];

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -354,13 +354,13 @@ void emColorField::LayoutChildren()
 }
 
 
-bool emColorField::HasHowTo()
+bool emColorField::HasHowTo() const
 {
 	return true;
 }
 
 
-emString emColorField::GetHowTo()
+emString emColorField::GetHowTo() const
 {
 	emString h;
 
@@ -374,7 +374,7 @@ emString emColorField::GetHowTo()
 void emColorField::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	double d,r;
 

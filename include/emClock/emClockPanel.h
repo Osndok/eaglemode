@@ -58,15 +58,15 @@ public:
 
 	virtual ~emClockPanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 	virtual void GetSubstanceRect(double * pX, double * pY,
 	                              double * pW, double * pH,
-	                              double * pR);
+	                              double * pR) const;
 
 	virtual void GetEssenceRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	                            double * pW, double * pH) const;
 
 protected:
 
@@ -77,9 +77,9 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 

@@ -268,7 +268,7 @@ void emDialog::DlgPanel::SetTitle(const emString & title)
 }
 
 
-emString emDialog::DlgPanel::GetTitle()
+emString emDialog::DlgPanel::GetTitle() const
 {
 	return Title;
 }

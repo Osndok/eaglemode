@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.h
 //
-// Copyright (C) 2004-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,9 @@ public:
 	static emRef<emTextFileModel> Acquire(
 		emContext & context, const emString & name, bool common=true
 	);
+
+	// All the following getters may be called by multiple threads
+	// concurrently. See emTextFilePanel::Paint(..).
 
 	const emArray<char> & GetContent() const;
 

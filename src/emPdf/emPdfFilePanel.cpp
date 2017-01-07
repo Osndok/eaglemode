@@ -79,7 +79,7 @@ void emPdfFilePanel::SetFGColor(emColor fgColor)
 }
 
 
-emString emPdfFilePanel::GetIconFileName()
+emString emPdfFilePanel::GetIconFileName() const
 {
 	return "document.tga";
 }
@@ -107,7 +107,7 @@ void emPdfFilePanel::Notice(NoticeFlags flags)
 }
 
 
-bool emPdfFilePanel::IsOpaque()
+bool emPdfFilePanel::IsOpaque() const
 {
 	if (!IsVFSGood() || !LayoutValid) {
 		return emFilePanel::IsOpaque();
@@ -118,7 +118,7 @@ bool emPdfFilePanel::IsOpaque()
 }
 
 
-void emPdfFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emPdfFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emPdfFileModel * fm;
 	double f,cx,cy,bx1,by1,bx2,by2,tx,ty,tw,th,pw,ph;

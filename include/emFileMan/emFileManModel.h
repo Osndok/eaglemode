@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.h
 //
-// Copyright (C) 2004-2008,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,7 +79,7 @@ public:
 	void SelectionToClipboard(emView & contentView, bool source=false,
 	                          bool namesOnly=false);
 
-	const emString & GetMiniIpcServerName();
+	const emString & GetMiniIpcServerName() const;
 
 	enum CommandType {
 		CT_COMMAND,
@@ -252,7 +252,7 @@ inline const emString & emFileManModel::GetShiftTgtSelPath() const
 	return ShiftTgtSelPath;
 }
 
-inline const emString & emFileManModel::GetMiniIpcServerName()
+inline const emString & emFileManModel::GetMiniIpcServerName() const
 {
 	return IpcServer->GetServerName();
 }

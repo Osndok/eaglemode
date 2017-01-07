@@ -256,8 +256,8 @@ private:
 		virtual void Notice(NoticeFlags flags);
 		virtual void Input(emInputEvent & event, const emInputState & state,
 		                   double mx, double my);
-		virtual bool IsOpaque();
-		virtual void Paint(const emPainter & painter, emColor canvasColor);
+		virtual bool IsOpaque() const;
+		virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 		virtual void AutoExpand();
 		virtual void AutoShrink();
 		virtual void LayoutChildren();

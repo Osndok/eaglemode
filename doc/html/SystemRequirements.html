@@ -11,7 +11,11 @@ carefully.
 <TABLE BORDER=0 CELLPADDING=2 CELLSPACING=6>
 	<TR VALIGN="top">
 		<TD><B>CPU:</B></TD>
-		<TD>2 GHz, 1 MB cache.</TD>
+		<TD>Depends on screen resolution. Recommendation:<BR>
+		HD =&gt; single core, 2 GHz, 1 MB cache.<BR>
+		Full HD =&gt; dual core, 2.5 GHz, 2 MB cache.<BR>
+		Ultra HD =&gt; quad core, 3 GHz, 4 MB cache.
+		</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Memory:</B></TD>
@@ -25,15 +29,14 @@ carefully.
 		<TD><B>Disk:</B></TD>
 		<TD>About 60 MB disk space for installation, 1 GB for temporary
 		files at run-time. The disk should be quite fast and without
-		frequent sleep states (notebook hard disks are not so
+		frequent sleep states (old notebook hard disks are not so
 		suitable).</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Operating&nbsp;system:</B></TD>
 		<TD>An up-to-date Linux is recommended. Other UNIX-like systems
-		may also be suitable (tested were FreeBSD, OpenSolaris, Cygwin
-		and Mac OS X 10.5). Eagle Mode also runs on Windows &ge; 7, but
-		several features are not ported (UTF-8 encoding, time zones,
+		may also be suitable. Eagle Mode also runs on Windows &ge; 7,
+		but several features are not ported (UTF-8 encoding, time zones,
 		audio/video player, postscript viewer, PDF viewer, SVG viewer,
 		viewers that perform temporary conversion).</TD>
 	</TR>
@@ -43,7 +46,12 @@ carefully.
 		should be an accelerated X-Server with a fast XShm extension. 3D
 		acceleration is not needed. It is not recommended to use
 		something like a 3D desktop or composite manager, because that
-		could slow down Eagle Mode a lot.</TD>
+		could slow down Eagle Mode a lot.
+		<P><TABLE BORDER=1 CELLPADDING=2 CELLSPACING=2><TR><TD>
+		<B>Please do not run Eagle Mode on XWayland!</B> (Among other
+		flaws, often no keyboard input in popup zoom, and mouse clicks
+		sometimes go through to window behind!)
+		</TD></TR></TABLE></P></TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Mouse:</B></TD>
@@ -70,7 +78,7 @@ carefully.
 		<TD>By all means (but on Windows only for compilation)</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>gcc&nbsp;(GCC&nbsp;&ge;&nbsp;3.3)</TD>
+		<TD>gcc&nbsp;(GCC&nbsp;&ge;&nbsp;4.7)</TD>
 		<TD>g++</TD>
 		<TD>Only for compilation. If you want to use another compiler,
 		then please read the Compilers section at the end of

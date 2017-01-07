@@ -27,7 +27,6 @@
 #endif
 #include <emCore/emInstallInfo.h>
 #include <emCore/emToolkit.h>
-#include <emCore/emThread.h>
 
 
 static void emInitBaseInstallPaths(emString basePaths[EM_NUMBER_OF_IDTS])
@@ -121,14 +120,18 @@ emString emGetInstallPath(
 	emInstallDirType idt, const char * prj, const char * subPath
 )
 {
-	static emThreadInitMutex initMutex;
-	static emString basePaths[EM_NUMBER_OF_IDTS];
-	emString str;
+	static const struct BasePaths {
 
-	if (initMutex.Begin()) {
-		emInitBaseInstallPaths(basePaths);
-		initMutex.End();
-	}
+		emString paths[EM_NUMBER_OF_IDTS];
+
+		BasePaths() {
+			emInitBaseInstallPaths(paths);
+		}
+
+	} basePaths;
+
+
+	emString str;
 
 	if (!prj || !*prj) {
 		emFatalError("emGetInstallPath: Illegal prj argument.");
@@ -141,13 +144,13 @@ emString emGetInstallPath(
 		case EM_IDT_PS_DOC:
 		case EM_IDT_TMP:
 		case EM_IDT_HOME:
-			str=basePaths[idt];
+			str=basePaths.paths[idt];
 			break;
 		case EM_IDT_INCLUDE:
 		case EM_IDT_USER_CONFIG:
 		case EM_IDT_HOST_CONFIG:
 		case EM_IDT_RES:
-			str=emGetChildPath(basePaths[idt],prj);
+			str=emGetChildPath(basePaths.paths[idt],prj);
 			break;
 		default:
 			emFatalError("emGetInstallPath: Illegal idt argument.");

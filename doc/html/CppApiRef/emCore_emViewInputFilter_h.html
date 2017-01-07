@@ -68,7 +68,7 @@
                 <SPAN CLASS=c>// Get the previous or next filter in the list. NULL means this
                 // is the first or last filter.
 
-        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the maximum touch event priority of this view input
                 // filter and all its successors and all the panels of the view
                 // for a certain touch position. The default implementation
@@ -106,7 +106,7 @@
                 //            for that.
                 //   state  - The current input state.
 
-        </SPAN><SPAN CLASS=t>double </SPAN>GetForwardTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+        </SPAN><SPAN CLASS=t>double </SPAN>GetForwardTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the maximum touch event priority of succeeding filters
                 // and the panels. Actually this calls GetTouchEventPriority on
                 // the next filter, or on the view if this is the last filter.
@@ -146,8 +146,8 @@
 
 </SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A>::GetForwardTouchEventPriority(
         <SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY
-)
-<SPAN CLASS=b>{
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(!Next) <SPAN CLASS=k>return </SPAN>View.GetTouchEventPriority(touchX,touchY,<SPAN CLASS=k>true</SPAN>);
         <SPAN CLASS=k>else return </SPAN>Next-&gt;GetTouchEventPriority(touchX,touchY);
 <SPAN CLASS=b>}
@@ -270,7 +270,7 @@
         </SPAN><A CLASS=l HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view, <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * next=<SPAN CLASS=u>NULL</SPAN>);
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewInputFilter_h.html#emDefaultTouchVIF">emDefaultTouchVIF</A>();
 
-        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY);
+        <SPAN CLASS=t>virtual double </SPAN>GetTouchEventPriority(<SPAN CLASS=t>double </SPAN>touchX, <SPAN CLASS=t>double </SPAN>touchY) <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -84,20 +84,20 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool HasHowTo();
-	virtual emString GetHowTo();
+	virtual bool HasHowTo() const;
+	virtual emString GetHowTo() const;
 
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 
 	virtual void PaintBoxSymbol(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 
-	virtual bool CheckMouse(double mx, double my);
+	virtual bool CheckMouse(double mx, double my) const;
 
 	bool IsShownChecked() const;
 	bool IsShownBoxed() const;
@@ -107,6 +107,14 @@ protected:
 	void SetShownRadioed(bool shownRadioed);
 		// Yes, this class has the ability to paint all our button
 		// types.
+
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+	virtual bool CheckMouse(double mx, double my) final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 private:
 
@@ -118,7 +126,7 @@ private:
 		DoButtonFunc func, const emPainter * painter,
 		emColor canvasColor,
 		double mx, double my, bool * pHit
-	);
+	) const;
 
 	emSignal ClickSignal;
 	emSignal PressStateSignal;

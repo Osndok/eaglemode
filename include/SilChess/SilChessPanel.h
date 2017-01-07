@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.h
 //
-// Copyright (C) 2007-2008,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,10 @@
 #include <emCore/emFilePanel.h>
 #endif
 
+#ifndef emRenderThreadPool_h
+#include <emCore/emRenderThreadPool.h>
+#endif
+
 #ifndef SilChessModel_h
 #include <SilChess/SilChessModel.h>
 #endif
@@ -47,11 +51,11 @@ public:
 
 	virtual ~SilChessPanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 	virtual void GetEssenceRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	                            double * pW, double * pH) const;
 
 protected:
 
@@ -62,32 +66,50 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);
 
 private:
 
+	struct CommonRenderVars {
+		SilChessPanel * Panel;
+		emThreadMiniMutex Mutex;
+		int InvX1,InvY1,InvX2,InvY2;
+	};
+
+	struct ThreadRenderVars {
+		int ImgWidth,ImgHeight;
+		emByte * ImgMap;
+		int InvX1,InvY1,InvX2,InvY2;
+	};
+
 	void PrepareRendering(bool viewingChanged);
 
-	void RenderPixel();
+	static void ThreadRenderFunc(void * data, int index);
+
+	void ThreadRenderRun(CommonRenderVars & crv);
+
+	void RenderPixel(ThreadRenderVars & trv, int pixX, int pixY, int pixSize);
 
 	void PanelToBoard(double x, double y, int * bx, int * by) const;
 	void BoardToPanel(double x, double y, double * px, double * py) const;
 
-	void PaintSelection(const emPainter & painter);
-	void PaintArrow(const emPainter & painter);
+	void PaintSelection(const emPainter & painter) const;
+	void PaintArrow(const emPainter & painter) const;
 
+	emRef<emRenderThreadPool> RenderThreadPool;
 	SilChessModel * Mdl;
 	bool HaveControlPanel;
 	int SelX,SelY;
 	SilChessRayTracer RayTracer;
 	double ImgX1,ImgY1,ImgX2,ImgY2;
 	emImage Image;
-	int PixX,PixY,PixStep,InvX1,InvY1,InvX2,InvY2;
+	int PixX,PixY,PixStep;
+	int AnimCnt,AnimEnd;
 	bool ImageGood;
 	bool HumanIsWhite;
 	double EssenceX,EssenceY,EssenceW,EssenceH;

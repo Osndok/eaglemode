@@ -54,7 +54,7 @@ public:
 	);
 	virtual ~emMainWindow();
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
 	emMainWindow * Duplicate();
 	void ToggleFullscreen();

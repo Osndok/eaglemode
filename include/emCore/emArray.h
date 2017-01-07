@@ -61,7 +61,7 @@ template <class OBJ> bool emSortArray(
 
 
 template <class OBJ, class KEY> int emBinarySearch(
-	OBJ * array, int count, KEY key,
+	const OBJ * array, int count, KEY key,
 	int(*compare)(const OBJ * obj, KEY key, void * context),
 	void * context
 );
@@ -551,7 +551,7 @@ template <class OBJ> bool emSortArray(
 
 
 template <class OBJ, class KEY> int emBinarySearch(
-	OBJ * array, int count, KEY key,
+	const OBJ * array, int count, KEY key,
 	int(*compare)(const OBJ * obj, KEY key, void * context),
 	void * context
 )

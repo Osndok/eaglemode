@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.h
 //
-// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -141,7 +141,9 @@ public:
 	          int bytesPerPixel, emUInt32 redMask, emUInt32 greenMask,
 	          emUInt32 blueMask, double clipX1, double clipY1,
 	          double clipX2, double clipY2, double originX=0,
-	          double originY=0, double scaleX=1, double scaleY=1);
+	          double originY=0, double scaleX=1, double scaleY=1,
+	          emThreadMiniMutex * userSpaceMutex=NULL,
+	          bool * usmLockedByThisThread=NULL);
 		// Construct a painter from scratch. The output bitmap is
 		// addressed with:
 		//   pixelValue = ((TYPE*)(map+y*bytesPerRow)))[x]
@@ -170,6 +172,8 @@ public:
 		//                     SetClipping).
 		//   originX,originY - The origin (see SetOrigin).
 		//   scaleX,scaleY   - The scale factors (see SetScaling).
+		//   userSpaceMutex  - See SetUserSpaceMutex.
+		//   usmLockedByThisThread - See SetUserSpaceMutex.
 
 	// Even have a look at emImage::PreparePainter
 
@@ -218,6 +222,34 @@ public:
 	double RoundUpX(double x) const;
 	double RoundUpY(double y) const;
 		// Round user coordinates to pixel boundary.
+
+	void SetUserSpaceMutex(
+		emThreadMiniMutex * userSpaceMutex,
+		bool * usmLockedByThisThread
+	);
+		// Set the pointer to the user space mutex, and the pointer to a
+		// variable which always says whether the mutex is currently
+		// locked by the thread which owns this emPainter. Both pointers
+		// can be NULL for single-threaded mode. This method is normally
+		// only to be called by emViewRenderer.
+
+	bool LeaveUserSpace() const;
+		// Unlock the user space mutex. Returns true if it was locked.
+		// In multi-threaded mode, each thread has it's own emPainter on
+		// an own output region. The mutex is unlocked when a thread is
+		// deeply in a paint method of emPainter, so that the low-level
+		// painting can happen concurrently. Normally, the mutex is
+		// always locked while one thread is in some code which "uses"
+		// emPainter (i.e. emPanel::Paint implementation), so that the
+		// user code must not be so thread-safe. But advanced user code
+		// which is fully thread-safe, may call LeaveUserSpace() and
+		// EnterUserSpace() in order to be concurrent. All paint methods
+		// of emPainter can be called with or without having the mutex
+		// locked, and they always return with the same lock state as
+		// they were called.
+
+	bool EnterUserSpace() const;
+		// Lock the user space mutex. Returns true if it was unlocked.
 
 
 	//-------------------- Painting areas in uni-color ---------------------
@@ -555,6 +587,8 @@ private:
 	SharedPixelFormat * PixelFormat;
 	double ClipX1, ClipY1, ClipX2, ClipY2;
 	double OriginX, OriginY, ScaleX, ScaleY;
+	emThreadMiniMutex * UserSpaceMutex;
+	bool * USMLockedByThisThread;
 	emRef<emFontCache> FontCache;
 
 	static const double CharBoxTallness;
@@ -664,6 +698,26 @@ inline void emPainter::SetTransformation(
 	OriginY=originY;
 	ScaleX=scaleX;
 	ScaleY=scaleY;
+}
+
+inline bool emPainter::LeaveUserSpace() const
+{
+	if (USMLockedByThisThread && *USMLockedByThisThread) {
+		*USMLockedByThisThread=false;
+		UserSpaceMutex->Unlock();
+		return true;
+	}
+	return false;
+}
+
+inline bool emPainter::EnterUserSpace() const
+{
+	if (USMLockedByThisThread && !*USMLockedByThisThread) {
+		UserSpaceMutex->Lock();
+		*USMLockedByThisThread=true;
+		return true;
+	}
+	return false;
 }
 
 inline void emPainter::PaintShape(

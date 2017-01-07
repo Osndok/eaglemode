@@ -80,7 +80,7 @@ void emGifFilePanel::ContinuePlaying()
 }
 
 
-emString emGifFilePanel::GetIconFileName()
+emString emGifFilePanel::GetIconFileName() const
 {
 	return "picture.tga";
 }
@@ -88,7 +88,7 @@ emString emGifFilePanel::GetIconFileName()
 
 void emGifFilePanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	if (Image.IsEmpty() || !GetFileModel()) {
 		emFilePanel::GetEssenceRect(pX,pY,pW,pH);
@@ -223,14 +223,14 @@ void emGifFilePanel::Input(
 }
 
 
-bool emGifFilePanel::IsOpaque()
+bool emGifFilePanel::IsOpaque() const
 {
 	if (Image.IsEmpty()) return emFilePanel::IsOpaque();
 	else return false;
 }
 
 
-void emGifFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emGifFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double x,y,w,h;
 

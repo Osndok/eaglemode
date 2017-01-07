@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emWnds/emWndsWindowPort.h>
+#include <emWnds/emWndsViewRenderer.h>
 
 #ifndef WM_UNICHAR
 #	define WM_UNICHAR 0x0109
@@ -113,10 +114,12 @@ void emWndsWindowPort::WindowFlagsChanged()
 			(WindowFlags&emWindow::WF_FULLSCREEN)==0 &&
 			RestoreW>0 && RestoreH>0
 		) {
-			SetPosSize(
-				RestoreX,RestoreY,PSAS_VIEW,
-				RestoreW,RestoreH,PSAS_VIEW
-			);
+			SetViewGeometry(RestoreX,RestoreY,RestoreW,RestoreH,Screen.PixelTallness);
+			PosForced=true;
+			PosPending=true;
+			SizeForced=true;
+			SizePending=true;
+			WakeUp();
 		}
 
 		return;
@@ -237,7 +240,7 @@ void emWndsWindowPort::Raise()
 }
 
 
-emUInt64 emWndsWindowPort::GetInputClockMS()
+emUInt64 emWndsWindowPort::GetInputClockMS() const
 {
 	return emGetClockMS(); // ???
 }
@@ -448,8 +451,8 @@ void emWndsWindowPort::PreConstruct()
 		if (Owner) {
 			exStyleFlags=0;
 			styleFlags=WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX;
-			x=CW_USEDEFAULT;
-			y=CW_USEDEFAULT;
+			x=PaneX;
+			y=PaneY;
 			w=PaneW;
 			h=PaneH;
 		}
@@ -1114,36 +1117,14 @@ bool emWndsWindowPort::Cycle()
 
 void emWndsWindowPort::UpdatePainting()
 {
-	const emClipRects<int>::Rect * r;
-	HDC hdc;
-	int bufIdx,rx1,ry1,rx2,ry2,x,y,w,h;
-
-	if (InvalidRects.IsEmpty()) return;
 	InvalidRects.Sort();
-	hdc=GetDC(HWnd);
-	bufIdx=0;
-	for (r=InvalidRects.GetFirst(); r; r=r->GetNext()) {
-		rx1=r->GetX1();
-		ry1=r->GetY1();
-		rx2=r->GetX2();
-		ry2=r->GetY2();
-		y=ry1;
-		do {
-			h=ry2-y;
-			if (h>Screen.BufHeight) h=Screen.BufHeight;
-			x=rx1;
-			do {
-				w=rx2-x;
-				if (w>Screen.BufWidth) w=Screen.BufWidth;
-				PaintView(emPainter(Screen.BufPainter[bufIdx],0,0,w,h,-x,-y,1,1),0);
-				Screen.BeginSendBuf(hdc,bufIdx,x-PaneX,y-PaneY,w,h);
-				bufIdx^=1;
-				x+=w;
-			} while (x<rx2);
-			y+=h;
-		} while (y<ry2);
-	}
-	Screen.WaitSendBuf();
+
+	Screen.ViewRenderer->RenderView(
+		*this,
+		InvalidRects,
+		GetDC(HWnd)
+	);
+
 	InvalidRects.Clear();
 }
 

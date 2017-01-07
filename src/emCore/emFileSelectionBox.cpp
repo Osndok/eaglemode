@@ -923,7 +923,7 @@ void emFileSelectionBox::FileItemPanel::Input(
 }
 
 
-bool emFileSelectionBox::FileItemPanel::IsOpaque()
+bool emFileSelectionBox::FileItemPanel::IsOpaque() const
 {
 	return false;
 }
@@ -931,7 +931,7 @@ bool emFileSelectionBox::FileItemPanel::IsOpaque()
 
 void emFileSelectionBox::FileItemPanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	double h,fx,fy,fw,fh,r,t;
 	const FileItemData * data;

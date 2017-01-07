@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSubViewPanel.cpp
 //
-// Copyright (C) 2006-2008,2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,13 +36,13 @@ emSubViewPanel::~emSubViewPanel()
 }
 
 
-emString emSubViewPanel::GetTitle()
+emString emSubViewPanel::GetTitle() const
 {
 	return SubView->GetTitle();
 }
 
 
-double emSubViewPanel::GetTouchEventPriority(double touchX, double touchY)
+double emSubViewPanel::GetTouchEventPriority(double touchX, double touchY) const
 {
 	return SubView->GetTouchEventPriority(touchX,touchY);
 }
@@ -81,19 +81,19 @@ void emSubViewPanel::Input(
 }
 
 
-emCursor emSubViewPanel::GetCursor()
+emCursor emSubViewPanel::GetCursor() const
 {
 	return SubViewPort->GetViewCursor();
 }
 
 
-bool emSubViewPanel::IsOpaque()
+bool emSubViewPanel::IsOpaque() const
 {
 	return true;
 }
 
 
-void emSubViewPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emSubViewPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	SubViewPort->PaintView(
 		emPainter(
@@ -146,7 +146,7 @@ void emSubViewPanel::SubViewPortClass::RequestFocus()
 }
 
 
-bool emSubViewPanel::SubViewPortClass::IsSoftKeyboardShown()
+bool emSubViewPanel::SubViewPortClass::IsSoftKeyboardShown() const
 {
 	return SuperPanel.GetView().IsSoftKeyboardShown();
 }
@@ -157,7 +157,7 @@ void emSubViewPanel::SubViewPortClass::ShowSoftKeyboard(bool show)
 	SuperPanel.GetView().ShowSoftKeyboard(show);
 }
 
-emUInt64 emSubViewPanel::SubViewPortClass::GetInputClockMS()
+emUInt64 emSubViewPanel::SubViewPortClass::GetInputClockMS() const
 {
 	return SuperPanel.GetInputClockMS();
 }

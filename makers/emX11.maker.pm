@@ -74,6 +74,7 @@ sub Build
 		"src/emX11/emX11ExtDynamic.cpp",
 		"src/emX11/emX11GUIFramework.cpp",
 		"src/emX11/emX11Screen.cpp",
+		"src/emX11/emX11ViewRenderer.cpp",
 		"src/emX11/emX11WindowPort.cpp"
 	)==0 or return 0;
 

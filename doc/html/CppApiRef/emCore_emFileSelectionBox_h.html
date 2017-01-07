@@ -265,8 +265,8 @@
                 <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
                 <SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                                    <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
-                <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
-                <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
                 <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
                 <SPAN CLASS=t>virtual void </SPAN>LayoutChildren();

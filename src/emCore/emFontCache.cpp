@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.cpp
 //
-// Copyright (C) 2009,2014-2015 Oliver Hamann.
+// Copyright (C) 2009,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,6 +34,9 @@ void emFontCache::GetChar(
 	int * pImgX, int * pImgY, int * pImgW, int * pImgH
 )
 {
+	// Must be thread-safe.
+	// Returned pointer must be valid until end of paint phase.
+
 	Entry * entry;
 	int i1,i2,i,cc,cw,ch;
 	emUInt64 t;
@@ -56,34 +59,36 @@ void emFontCache::GetChar(
 		else break;
 	}
 
-	if (!entry->Loaded) {
-		t=emGetClockMS()-LastLoadTime;
-		if (t>0) {
-			Stress*=pow(0.5,((double)t)/StressHalfLifePeriodMS);
-			LastLoadTime+=t;
-		}
-		if (MemoryUse+entry->MemoryNeed>((emUInt64)MaxMegabytes)*1024*1024) {
-			if (Stress*StressSensitivity>emMax(tgtW,tgtH)) {
-				*ppImg=&ImgCostlyChar;
-				*pImgX=0;
-				*pImgY=0;
-				*pImgW=ImgCostlyChar.GetWidth();
-				*pImgH=ImgCostlyChar.GetHeight();
-				return;
+	if (!entry->LoadedInEarlierTimeSlice) {
+		Mutex.Lock();
+		if (!entry->Loaded) {
+			t=emGetClockMS()-LastLoadTime;
+			if (t>0) {
+				Stress*=pow(0.5,((double)t)/StressHalfLifePeriodMS);
+				LastLoadTime+=t;
 			}
-			while (
-				MemoryUse+entry->MemoryNeed>((emUInt64)MaxMegabytes)*1024*1024 &&
-				LRURing.Next!=&LRURing
-			) {
-				UnloadEntry((Entry*)LRURing.Next);
+			if (MemoryUse+entry->MemoryNeed>((emUInt64)MaxMegabytes)*1024*1024) {
+				if (
+					Stress*StressSensitivity>emMax(tgtW,tgtH) ||
+					MemoryUse+entry->MemoryNeed>((emUInt64)MaxMegabytes)*1024*1024*2
+				) {
+					*ppImg=&ImgCostlyChar;
+					*pImgX=0;
+					*pImgY=0;
+					*pImgW=ImgCostlyChar.GetWidth();
+					*pImgH=ImgCostlyChar.GetHeight();
+					Mutex.Unlock();
+					return;
+				}
 			}
+			LoadEntry(entry);
+			Stress+=1.0;
+			SomeLoadedNewly=true;
 		}
-		LoadEntry(entry);
-		Stress+=1.0;
+		Mutex.Unlock();
 	}
-	else {
-		TouchEntry(entry);
-	}
+
+	entry->LastUseClock=Clock;
 
 	*ppImg=&entry->Image;
 	i=unicode-entry->FirstCode;
@@ -111,15 +116,16 @@ emFontCache::emFontCache(emContext & context, const emString & name)
 		emGetChildPath(FontDir,"CostlyChar.tga"),
 		1
 	);
+	SomeLoadedNewly=false;
 	EntryArray=NULL;
 	EntryCount=0;
-	LRURing.Next=&LRURing;
-	LRURing.Prev=&LRURing;
 	Stress=0.0;
+	Clock=0;
 	LastLoadTime=0;
 	MemoryUse=0;
 	LoadFontDir();
 	SetMinCommonLifetime(20);
+	WakeUp();
 }
 
 
@@ -129,9 +135,44 @@ emFontCache::~emFontCache()
 }
 
 
+bool emFontCache::Cycle()
+{
+	int i,j;
+
+	Clock++;
+
+	if (SomeLoadedNewly) {
+		SomeLoadedNewly=false;
+
+		while (MemoryUse>((emUInt64)MaxMegabytes)*1024*1024) {
+			j=-1;
+			for (i=EntryCount-1; i>=0; i--) {
+				if (EntryArray[i]->Loaded) {
+					if (
+						j<0 ||
+						EntryArray[j]->LastUseClock>EntryArray[i]->LastUseClock
+					) {
+						j=i;
+					}
+				}
+			}
+			if (j < 0) break;
+			UnloadEntry(EntryArray[j]);
+		}
+
+		for (i=EntryCount-1; i>=0; i--) {
+			if (EntryArray[i]->Loaded) {
+				EntryArray[i]->LoadedInEarlierTimeSlice=true;
+			}
+		}
+	}
+
+	return true;
+}
+
+
 void emFontCache::LoadEntry(Entry * entry)
 {
-	RingNode * p;
 	emArray<char> buf;
 
 	if (!entry->Loaded) {
@@ -164,51 +205,22 @@ void emFontCache::LoadEntry(Entry * entry)
 		buf.Clear();
 		entry->ColumnCount=entry->Image.GetWidth()/entry->CharWidth;
 		if (entry->ColumnCount<1) entry->ColumnCount=1;
+		entry->LastUseClock=Clock;
 		entry->MemoryNeed=((emUInt64)entry->Image.GetWidth())*entry->Image.GetHeight();
-		p=LRURing.Prev;
-		entry->Prev=p;
-		p->Next=entry;
-		entry->Next=&LRURing;
-		LRURing.Prev=entry;
 		entry->Loaded=true;
+		entry->LoadedInEarlierTimeSlice=false;
 		MemoryUse+=entry->MemoryNeed;
-	}
-	else {
-		TouchEntry(entry);
 	}
 }
 
 
 void emFontCache::UnloadEntry(Entry * entry)
 {
-	RingNode * p, * n;
-
 	if (entry->Loaded) {
-		n=entry->Next;
-		p=entry->Prev;
-		n->Prev=p;
-		p->Next=n;
 		entry->Image.Clear();
 		entry->Loaded=false;
+		entry->LoadedInEarlierTimeSlice=false;
 		MemoryUse-=entry->MemoryNeed;
-	}
-}
-
-
-void emFontCache::TouchEntry(Entry * entry)
-{
-	RingNode * p, * n;
-
-	n=entry->Next;
-	if (n!=&LRURing && entry->Loaded) {
-		p=entry->Prev;
-		n->Prev=p;
-		p->Next=n;
-		p=LRURing.Prev;
-		entry->Prev=p;
-		p->Next=entry;
-		entry->Next=&LRURing;
-		LRURing.Prev=entry;
 	}
 }
 
@@ -237,15 +249,15 @@ void emFontCache::LoadFontDir()
 		if (sscanf(name.Get(),"%X-%X_%dx%d",&fc,&lc,&cw,&ch)<4) continue;
 		if (fc>lc || cw<=0 || ch<=0) continue;
 		entry=new Entry;
-		entry->Next=NULL;
-		entry->Prev=NULL;
 		entry->FilePath=path;
 		entry->FirstCode=fc;
 		entry->LastCode=lc;
 		entry->CharWidth=cw;
 		entry->CharHeight=ch;
 		entry->Loaded=false;
+		entry->LoadedInEarlierTimeSlice=false;
 		entry->ColumnCount=1;
+		entry->LastUseClock=0;
 		entry->MemoryNeed=((emUInt64)(lc-fc+1))*cw*ch;
 		for (j=EntryCount; j>0; j--) {
 			if (EntryArray[j-1]->FirstCode<=fc) break;
@@ -267,8 +279,6 @@ void emFontCache::Clear()
 	}
 	EntryArray=NULL;
 	EntryCount=0;
-	LRURing.Next=&LRURing;
-	LRURing.Prev=&LRURing;
 	Stress=0.0;
 	LastLoadTime=0;
 	MemoryUse=0;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -255,80 +255,88 @@ emUInt64 emGetClockMS()
 emUInt64 emGetCPUTSC()
 {
 #if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
-	static volatile int haveRDTSC=-1;
+	static const struct Detector {
+
+		bool haveRDTSC;
+
+		Detector()
+		{
+			emUInt32 d;
+			asm volatile (
+#				if defined(__x86_64__)
+					"push %%rbx\n"
+					"pushfq\n"
+					"movl (%%rsp),%%eax\n"
+					"movl %%eax,%%ebx\n"
+					"xorl $0x00200000,%%eax\n"
+					"movl %%eax,(%%rsp)\n"
+					"popfq\n"
+					"pushfq\n"
+					"movl (%%rsp),%%eax\n"
+					"xorl %%ebx,%%eax\n"
+					"movl %%ebx,(%%rsp)\n"
+					"popfq\n"
+#				else
+					"push %%ebx\n"
+					"pushfl\n"
+					"popl %%eax\n"
+					"movl %%eax,%%ebx\n"
+					"xorl $0x00200000,%%eax\n"
+					"pushl %%eax\n"
+					"popfl\n"
+					"pushfl\n"
+					"popl %%eax\n"
+					"xorl %%ebx,%%eax\n"
+					"pushl %%ebx\n"
+					"popfl\n"
+#				endif
+				"testl $0x00200000,%%eax\n"
+				"je 3f\n"
+				"xorl %%eax,%%eax\n"
+				"cpuid\n"
+				"cmpl $0x756e6547,%%ebx\n"
+				"jne 1f\n"
+				"cmpl $0x49656e69,%%edx\n"
+				"jne 1f\n"
+				"cmpl $0x6c65746e,%%ecx\n"
+				"je 2f\n"
+				"1:\n"
+				"cmpl $0x68747541,%%ebx\n"
+				"jne 3f\n"
+				"cmpl $0x69746e65,%%edx\n"
+				"jne 3f\n"
+				"cmpl $0x444d4163,%%ecx\n"
+				"jne 3f\n"
+				"2:\n"
+				"movl $1,%%eax\n"
+				"cpuid\n"
+				"jmp 4f\n"
+				"3:\n"
+				"xorl %%edx,%%edx\n"
+				"4:\n"
+#				if defined(__x86_64__)
+					"pop %%rbx\n"
+#				else
+					"pop %%ebx\n"
+#				endif
+				: "=d"(d) : : "eax","ecx","cc"
+			);
+			haveRDTSC=((d>>4)&1)!=0;
+		}
+
+	} detector;
+
 	emUInt32 a,d;
 
-	while (haveRDTSC<=0) {
-		if (haveRDTSC==0) return 0;
+	if (detector.haveRDTSC) {
 		asm volatile (
-#			if defined(__x86_64__)
-				"push %%rbx\n"
-				"pushfq\n"
-				"movl (%%rsp),%%eax\n"
-				"movl %%eax,%%ebx\n"
-				"xorl $0x00200000,%%eax\n"
-				"movl %%eax,(%%rsp)\n"
-				"popfq\n"
-				"pushfq\n"
-				"movl (%%rsp),%%eax\n"
-				"xorl %%ebx,%%eax\n"
-				"movl %%ebx,(%%rsp)\n"
-				"popfq\n"
-#			else
-				"push %%ebx\n"
-				"pushfl\n"
-				"popl %%eax\n"
-				"movl %%eax,%%ebx\n"
-				"xorl $0x00200000,%%eax\n"
-				"pushl %%eax\n"
-				"popfl\n"
-				"pushfl\n"
-				"popl %%eax\n"
-				"xorl %%ebx,%%eax\n"
-				"pushl %%ebx\n"
-				"popfl\n"
-#			endif
-			"testl $0x00200000,%%eax\n"
-			"je 3f\n"
-			"xorl %%eax,%%eax\n"
-			"cpuid\n"
-			"cmpl $0x756e6547,%%ebx\n"
-			"jne 1f\n"
-			"cmpl $0x49656e69,%%edx\n"
-			"jne 1f\n"
-			"cmpl $0x6c65746e,%%ecx\n"
-			"je 2f\n"
-			"1:\n"
-			"cmpl $0x68747541,%%ebx\n"
-			"jne 3f\n"
-			"cmpl $0x69746e65,%%edx\n"
-			"jne 3f\n"
-			"cmpl $0x444d4163,%%ecx\n"
-			"jne 3f\n"
-			"2:\n"
-			"movl $1,%%eax\n"
-			"cpuid\n"
-			"jmp 4f\n"
-			"3:\n"
-			"xorl %%edx,%%edx\n"
-			"4:\n"
-#			if defined(__x86_64__)
-				"pop %%rbx\n"
-#			else
-				"pop %%ebx\n"
-#			endif
-			: "=d"(d) : : "eax","ecx","cc"
+			"rdtsc\n"
+			: "=a"(a),"=d"(d) : : "cc"
 		);
-		haveRDTSC=(d>>4)&1;
+		return (((emUInt64)d)<<32)|a;
 	}
-	asm volatile (
-		"rdtsc\n"
-		: "=a"(a),"=d"(d) : : "cc"
-	);
-	return (((emUInt64)d)<<32)|a;
-#else
-	return 0;
 #endif
+	return 0;
 }
 
 
@@ -1283,28 +1291,33 @@ emUInt32 emCalcAdler32(const char * src, int srcLen, emUInt32 start)
 
 emUInt32 emCalcCRC32(const char * src, int srcLen, emUInt32 start)
 {
-	static emThreadInitMutex initMutex;
-	static emUInt32 tab[256];
+	static const struct CRC32Table {
+
+		emUInt32 tab[256];
+
+		CRC32Table()
+		{
+			emUInt32 r;
+			int i,j;
+			for (i=0; i<256; i++) {
+				for (r=i, j=0; j<8; j++) {
+					if ((r&1)!=0) r=(r>>1)^0xEDB88320; else r>>=1;
+				}
+				tab[i]=r;
+			}
+		}
+
+	} crc32Table;
+
 	const char * end;
 	emUInt32 r;
-	int i,j;
-
-	if (initMutex.Begin()) {
-		for (i=0; i<256; i++) {
-			for (r=i, j=0; j<8; j++) {
-				if ((r&1)!=0) r=(r>>1)^0xEDB88320; else r>>=1;
-			}
-			tab[i]=r;
-		}
-		initMutex.End();
-	}
 
 	r=start;
 	if (srcLen>0) {
 		r=~r;
 		end=src+srcLen;
 		do {
-			r=tab[((emUInt8)*src++)^((emUInt8)r)]^(r>>8);
+			r=crc32Table.tab[((emUInt8)*src++)^((emUInt8)r)]^(r>>8);
 		} while (src<end);
 		r=~r;
 	}
@@ -1314,29 +1327,34 @@ emUInt32 emCalcCRC32(const char * src, int srcLen, emUInt32 start)
 
 emUInt64 emCalcCRC64(const char * src, int srcLen, emUInt64 start)
 {
-	static emThreadInitMutex initMutex;
-	static emUInt64 tab[256];
+	static const struct CRC64Table {
+
+		emUInt64 tab[256];
+
+		CRC64Table()
+		{
+			emUInt64 r;
+			int i,j;
+			for (i=0; i<256; i++) {
+				for (r=i, j=0; j<8; j++) {
+					if ((r&1)!=0) r=(r>>1)^(((emUInt64)0xD8000000)<<32);
+					else r>>=1;
+				}
+				tab[i]=r;
+			}
+		}
+
+	} crc64Table;
+
 	const char * end;
 	emUInt64 r;
-	int i,j;
-
-	if (initMutex.Begin()) {
-		for (i=0; i<256; i++) {
-			for (r=i, j=0; j<8; j++) {
-				if ((r&1)!=0) r=(r>>1)^(((emUInt64)0xD8000000)<<32);
-				else r>>=1;
-			}
-			tab[i]=r;
-		}
-		initMutex.End();
-	}
 
 	r=start;
 	if (srcLen>0) {
 		r=~r;
 		end=src+srcLen;
 		do {
-			r=tab[((emUInt8)*src++)^((emUInt8)r)]^(r>>8);
+			r=crc64Table.tab[((emUInt8)*src++)^((emUInt8)r)]^(r>>8);
 		} while (src<end);
 		r=~r;
 	}

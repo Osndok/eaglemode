@@ -61,7 +61,7 @@ void emSvgFilePanel::SetFileModel(
 }
 
 
-emString emSvgFilePanel::GetIconFileName()
+emString emSvgFilePanel::GetIconFileName() const
 {
 	return "drawing.tga";
 }
@@ -69,7 +69,7 @@ emString emSvgFilePanel::GetIconFileName()
 
 void emSvgFilePanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	if (IsVFSGood() && RenderError.IsEmpty()) {
 		GetOutputRect(pX,pY,pW,pH);
@@ -107,7 +107,7 @@ void emSvgFilePanel::Notice(NoticeFlags flags)
 }
 
 
-bool emSvgFilePanel::IsOpaque()
+bool emSvgFilePanel::IsOpaque() const
 {
 	if (!IsVFSGood()) {
 		return emFilePanel::IsOpaque();
@@ -121,7 +121,7 @@ bool emSvgFilePanel::IsOpaque()
 }
 
 
-void emSvgFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emSvgFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	static const emColor RENDER_COLOR=emColor(0xEEEEFFFF);
 	emSvgFileModel * fm;
@@ -297,13 +297,13 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 
 void emSvgFilePanel::GetOutputRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
-	emSvgFileModel * fm;
+	const emSvgFileModel * fm;
 	double x,y,w,h,d,fw,fh;
 
 	if (IsVFSGood()) {
-		fm=(emSvgFileModel*)GetFileModel();
+		fm=(const emSvgFileModel*)GetFileModel();
 		fw=fm->GetWidth();
 		fh=fm->GetHeight();
 	}

@@ -90,7 +90,7 @@ void emPsDocumentPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emPsDocumentPanel::IsOpaque()
+bool emPsDocumentPanel::IsOpaque() const
 {
 	return BGColor.IsOpaque();
 }
@@ -98,7 +98,7 @@ bool emPsDocumentPanel::IsOpaque()
 
 void emPsDocumentPanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	double f,cx,cy,bx1,by1,bx2,by2,tx,ty,tw,th,pw,ph;
 	int i,n;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -721,13 +721,13 @@ void emTextField::Input(
 }
 
 
-bool emTextField::HasHowTo()
+bool emTextField::HasHowTo() const
 {
 	return true;
 }
 
 
-emString emTextField::GetHowTo()
+emString emTextField::GetHowTo() const
 {
 	emString h;
 
@@ -742,13 +742,15 @@ emString emTextField::GetHowTo()
 void emTextField::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	DoTextField(TEXT_FIELD_FUNC_PAINT,&painter,canvasColor,0.0,0.0,NULL,NULL,NULL);
 }
 
 
-bool emTextField::CheckMouse(double mx, double my, double * pCol, double * pRow)
+bool emTextField::CheckMouse(
+	double mx, double my, double * pCol, double * pRow
+) const
 {
 	bool b;
 
@@ -757,10 +759,18 @@ bool emTextField::CheckMouse(double mx, double my, double * pCol, double * pRow)
 }
 
 
+bool emTextField::CheckMouse(
+	double mx, double my, double * pCol, double * pRow
+)
+{
+	return ((const emTextField*)this)->CheckMouse(mx,my,pCol,pRow);
+}
+
+
 void emTextField::DoTextField(
 	DoTextFieldFunc func, const emPainter * painter, emColor canvasColor,
 	double xIn, double yIn, double * pXOut, double * pYOut, bool * pHit
-)
+) const
 {
 	emColor bgColor,fgColor,hlColor,selColor,curColor;
 	emString txt;

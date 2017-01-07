@@ -19,8 +19,9 @@
 //------------------------------------------------------------------------------
 
 #include <emWnds/emWndsScreen.h>
-#include <emWnds/emWndsWindowPort.h>
 #include <emWnds/emWndsScheduler.h>
+#include <emWnds/emWndsViewRenderer.h>
+#include <emWnds/emWndsWindowPort.h>
 
 #ifndef IDC_HAND
 #	define IDC_HAND MAKEINTRESOURCE(32649)
@@ -125,7 +126,6 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	: emScreen(context,name)
 {
 	WNDCLASS wc;
-	RECT rect;
 	int i;
 
 	InstanceListMutex.Lock();
@@ -164,42 +164,6 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	UpdateGeometry();
 	GeometryUpdateTime=emGetClockMS();
 
-	GetWindowRect(GetDesktopWindow(),&rect);
-	BufWidth=rect.right-rect.left;
-	BufHeight=150;
-		// Optimum depends on CPU cache size, pixel size, window width
-		// and the type and complexity of painting. But there is really
-		// no necessity for making this user-configurable or
-		// auto-adapted. The constant value 150 is a good compromise: It
-		// is a little too small for some type of extensive vector
-		// painting, and it is a little too large for a CPU with even
-		// 4 MB cache when painting high-res images.
-
-	for (i=0; i<2; i++) {
-		memset(&BufInfo[i],0,sizeof(BITMAPINFOHEADER));
-		BufInfo[i].biSize=sizeof(BITMAPINFOHEADER);
-		BufInfo[i].biWidth=BufWidth;
-		BufInfo[i].biHeight=-BufHeight;
-		BufInfo[i].biPlanes=1;
-		BufInfo[i].biBitCount=32;
-		BufInfo[i].biCompression=BI_RGB;
-		BufMap[i]=new emUInt32[BufWidth*BufHeight];
-		memset(BufMap[i],0,BufWidth*BufHeight*4);
-		BufPainter[i]=emPainter(
-			GetRootContext(),
-			BufMap[i],
-			BufWidth*4,
-			4,
-			0x00ff0000,
-			0x0000ff00,
-			0x000000ff,
-			0,
-			0,
-			BufWidth,
-			BufHeight
-		);
-	}
-
 	CursorMap.SetTuningLevel(4);
 
 	InputStateToBeFlushed=false;
@@ -215,7 +179,7 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 
 	WinPorts.SetTuningLevel(4);
 
-	CreateSendBufThread();
+	ViewRenderer = new emWndsViewRenderer(*this);
 
 	SetEnginePriority(emEngine::VERY_HIGH_PRIORITY);
 
@@ -227,9 +191,12 @@ emWndsScreen::~emWndsScreen()
 {
 	emWndsScreen * * pp;
 
-	DestroySendBufThread();
 	delete WCThread;
 	WCThread=NULL;
+
+	delete ViewRenderer;
+	ViewRenderer=NULL;
+
 	UnregisterClass(WinClassName.Get(),NULL);
 	InstanceListMutex.Lock();
 	for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
@@ -519,114 +486,6 @@ HCURSOR emWndsScreen::GetCursorHandle(int cursorId)
 	CursorMap.GetWritable(idx).CursorId=cursorId;
 	CursorMap.GetWritable(idx).CursorHandle=hcur;
 	return hcur;
-}
-
-
-void emWndsScreen::CreateSendBufThread()
-{
-	DWORD threadId;
-
-	SendBufExitRequest=false;
-	SendBufHdc=NULL;
-	SendBufIndex=0;
-	SendBufX=0;
-	SendBufY=0;
-	SendBufW=0;
-	SendBufH=0;
-	SendBufEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
-	if (!SendBufEvent) {
-		emFatalError(
-			"emWndsScreen: CreateEvent failed: %s",
-			emGetErrorText(GetLastError()).Get()
-		);
-	}
-	SendBufDoneEvent=CreateEvent(NULL,FALSE,FALSE,NULL);
-	if (!SendBufDoneEvent) {
-		emFatalError(
-			"emWndsScreen: CreateEvent failed: %s",
-			emGetErrorText(GetLastError()).Get()
-		);
-	}
-	SendBufThread=CreateThread(
-		NULL,
-		65536,
-		SendBufThreadFunc,
-		this,
-		0,
-		&threadId
-	);
-	if (!SendBufThread) {
-		emFatalError(
-			"emWndsScreen: CreateThread failed: %s",
-			emGetErrorText(GetLastError()).Get()
-		);
-	}
-}
-
-
-void emWndsScreen::DestroySendBufThread()
-{
-	WaitSendBuf();
-	SendBufExitRequest=true;
-	SetEvent(SendBufEvent);
-	WaitForSingleObject(SendBufThread,INFINITE);
-	CloseHandle(SendBufThread);
-	CloseHandle(SendBufEvent);
-	CloseHandle(SendBufDoneEvent);
-}
-
-
-void emWndsScreen::BeginSendBuf(HDC hdc, int bufIndex, int x, int y, int w, int h)
-{
-	WaitSendBuf();
-	SendBufHdc=hdc;
-	SendBufIndex=bufIndex;
-	SendBufX=x;
-	SendBufY=y;
-	SendBufW=w;
-	SendBufH=h;
-	SetEvent(SendBufEvent);
-}
-
-
-void emWndsScreen::WaitSendBuf()
-{
-	if (SendBufHdc) {
-		WaitForSingleObject(SendBufDoneEvent,INFINITE);
-		SendBufHdc=NULL;
-	}
-}
-
-
-DWORD CALLBACK emWndsScreen::SendBufThreadFunc(LPVOID lpParameter)
-{
-	emWndsScreen * screen;
-
-	screen=(emWndsScreen*)lpParameter;
-	for (;;) {
-		WaitForSingleObject(screen->SendBufEvent,INFINITE);
-		if (screen->SendBufExitRequest) break;
-		if (screen->SendBufHdc) {
-			StretchDIBits(
-				screen->SendBufHdc,
-				screen->SendBufX,
-				screen->SendBufY,
-				screen->SendBufW,
-				screen->SendBufH,
-				0,
-				0,
-				screen->SendBufW,
-				screen->SendBufH,
-				screen->BufMap[screen->SendBufIndex],
-				(BITMAPINFO*)&screen->BufInfo[screen->SendBufIndex],
-				0,
-				SRCCOPY
-			);
-			GdiFlush();
-		}
-		SetEvent(screen->SendBufDoneEvent);
-	}
-	return 0;
 }
 
 

@@ -55,12 +55,12 @@ public:
 
 	void UpdateDirEntry(const emDirEntry & dirEntry);
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 	virtual void GetSubstanceRect(double * pX, double * pY,
 	                              double * pW, double * pH,
-	                              double * pR);
+	                              double * pR) const;
 
 protected:
 
@@ -71,9 +71,9 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);
@@ -83,7 +83,7 @@ private:
 	virtual void PaintInfo(
 		const emPainter & painter, double infoX, double infoY,
 		double infoW, double infoH, emAlignment alignment, emColor canvasColor
-	);
+	) const;
 
 	void UpdateContentPanel(bool forceRecreation=false, bool forceRelayout=false);
 	void UpdateAltPanel(bool forceRecreation=false, bool forceRelayout=false);

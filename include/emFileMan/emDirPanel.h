@@ -47,14 +47,14 @@ public:
 
 	virtual ~emDirPanel();
 
-	const emString & GetPath();
+	const emString & GetPath() const;
 
 	bool IsContentComplete() const;
 
 	void SelectAll();
 		// Works only if IsContentComplete().
 
-	virtual emString GetIconFileName();
+	virtual emString GetIconFileName() const;
 
 protected:
 
@@ -65,9 +65,9 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 
@@ -97,7 +97,7 @@ private:
 	KeyWalkStateType * KeyWalkState;
 };
 
-inline const emString & emDirPanel::GetPath()
+inline const emString & emDirPanel::GetPath() const
 {
 	return Path;
 }

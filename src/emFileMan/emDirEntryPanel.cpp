@@ -92,13 +92,13 @@ void emDirEntryPanel::UpdateDirEntry(const emDirEntry & dirEntry)
 }
 
 
-emString emDirEntryPanel::GetTitle()
+emString emDirEntryPanel::GetTitle() const
 {
 	return DirEntry.GetPath();
 }
 
 
-emString emDirEntryPanel::GetIconFileName()
+emString emDirEntryPanel::GetIconFileName() const
 {
 	static int recursive = 0; //??? Not good
 	emString icon;
@@ -123,7 +123,7 @@ void emDirEntryPanel::GetSubstanceRect(
 	double * pX, double * pY,
 	double * pW, double * pH,
 	double * pR
-)
+) const
 {
 	const emFileManTheme * theme;
 
@@ -251,7 +251,7 @@ void emDirEntryPanel::Input(
 }
 
 
-bool emDirEntryPanel::IsOpaque()
+bool emDirEntryPanel::IsOpaque() const
 {
 	const emFileManTheme * theme;
 
@@ -269,7 +269,7 @@ bool emDirEntryPanel::IsOpaque()
 }
 
 
-void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	const emFileManTheme * theme;
 	emColor color;
@@ -473,7 +473,7 @@ emPanel * emDirEntryPanel::CreateControlPanel(
 void emDirEntryPanel::PaintInfo(
 	const emPainter & painter, double infoX, double infoY,
 	double infoW, double infoH, emAlignment alignment, emColor canvasColor
-)
+) const
 {
 	const char * label[6] = {
 		"Type",

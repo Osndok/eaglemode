@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpFilePanel.cpp
 //
-// Copyright (C) 2007-2008,2011 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,7 +71,7 @@ bool emTreeDumpFilePanel::Cycle()
 }
 
 
-bool emTreeDumpFilePanel::IsOpaque()
+bool emTreeDumpFilePanel::IsOpaque() const
 {
 	if (!IsVFSGood()) {
 		return emFilePanel::IsOpaque();
@@ -80,7 +80,7 @@ bool emTreeDumpFilePanel::IsOpaque()
 }
 
 
-void emTreeDumpFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emTreeDumpFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (!IsVFSGood()) {
 		emFilePanel::Paint(painter,canvasColor);

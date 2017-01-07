@@ -59,7 +59,7 @@ public:
 		// Get the previous or next filter in the list. NULL means this
 		// is the first or last filter.
 
-	virtual double GetTouchEventPriority(double touchX, double touchY);
+	virtual double GetTouchEventPriority(double touchX, double touchY) const;
 		// Get the maximum touch event priority of this view input
 		// filter and all its successors and all the panels of the view
 		// for a certain touch position. The default implementation
@@ -97,7 +97,7 @@ protected:
 		//            for that.
 		//   state  - The current input state.
 
-	double GetForwardTouchEventPriority(double touchX, double touchY);
+	double GetForwardTouchEventPriority(double touchX, double touchY) const;
 		// Get the maximum touch event priority of succeeding filters
 		// and the panels. Actually this calls GetTouchEventPriority on
 		// the next filter, or on the view if this is the last filter.
@@ -137,7 +137,7 @@ inline void emViewInputFilter::ForwardInput(
 
 inline double emViewInputFilter::GetForwardTouchEventPriority(
 	double touchX, double touchY
-)
+) const
 {
 	if (!Next) return View.GetTouchEventPriority(touchX,touchY,true);
 	else return Next->GetTouchEventPriority(touchX,touchY);
@@ -261,7 +261,7 @@ public:
 	emDefaultTouchVIF(emView & view, emViewInputFilter * next=NULL);
 	virtual ~emDefaultTouchVIF();
 
-	virtual double GetTouchEventPriority(double touchX, double touchY);
+	virtual double GetTouchEventPriority(double touchX, double touchY) const;
 
 protected:
 

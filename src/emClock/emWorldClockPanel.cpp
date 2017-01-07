@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWorldClockPanel.cpp
 //
-// Copyright (C) 2006-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ emWorldClockPanel::~emWorldClockPanel()
 }
 
 
-emString emWorldClockPanel::GetTitle()
+emString emWorldClockPanel::GetTitle() const
 {
 	return "World Clock";
 }
@@ -85,14 +85,14 @@ void emWorldClockPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emWorldClockPanel::IsOpaque()
+bool emWorldClockPanel::IsOpaque() const
 {
 	if (!IsVFSGood()) return emFilePanel::IsOpaque();
 	return false;
 }
 
 
-void emWorldClockPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emWorldClockPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emColor wcol,lcol,scol;
 	int i;

@@ -53,7 +53,7 @@ public:
 	emColor GetFGColor() const;
 	void SetFGColor(emColor fgColor);
 
-	virtual emString GetIconFileName();
+	virtual emString GetIconFileName() const;
 
 protected:
 
@@ -61,9 +61,9 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 

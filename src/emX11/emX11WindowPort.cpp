@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emX11/emX11WindowPort.h>
+#include <emX11/emX11ViewRenderer.h>
 #include <X11/Xatom.h>
 
 
@@ -163,7 +164,7 @@ void emX11WindowPort::Raise()
 }
 
 
-emUInt64 emX11WindowPort::GetInputClockMS()
+emUInt64 emX11WindowPort::GetInputClockMS() const
 {
 	return emGetClockMS(); // ???
 }
@@ -1065,70 +1066,15 @@ bool emX11WindowPort::Cycle()
 
 void emX11WindowPort::UpdatePainting()
 {
-	const emClipRects<int>::Rect * r;
-	int i,rx1,ry1,rx2,ry2,x,y,w,h;
-
-	if (InvalidRects.IsEmpty()) return;
 	InvalidRects.Sort();
-	for (r=InvalidRects.GetFirst(); r; r=r->GetNext()) {
-		rx1=r->GetX1();
-		ry1=r->GetY1();
-		rx2=r->GetX2();
-		ry2=r->GetY2();
-		y=ry1;
-		do {
-			h=ry2-y;
-			if (h>Screen.BufHeight) h=Screen.BufHeight;
-			x=rx1;
-			do {
-				w=rx2-x;
-				if (w>Screen.BufWidth) w=Screen.BufWidth;
-				if (Screen.UsingXShm) {
-					for (;;) {
-						if (!Screen.BufActive[0]) { i=0; break; }
-						if (Screen.BufImg[1] && !Screen.BufActive[1]) { i=1; break; }
-						Screen.WaitBufs();
-					}
-					PaintView(emPainter(Screen.BufPainter[i],0,0,w,h,-x,-y,1,1),0);
-					XMutex.Lock();
-					XShmPutImage(
-						Disp,
-						Win,
-						Gc,
-						Screen.BufImg[i],
-						0,0,
-						x-PaneX,y-PaneY,
-						w,h,
-						True
-					);
-					XFlush(Disp);
-					XMutex.Unlock();
-					Screen.BufActive[i]=true;
-				}
-				else {
-					PaintView(emPainter(Screen.BufPainter[0],0,0,w,h,-x,-y,1,1),0);
-					XMutex.Lock();
-					XPutImage(
-						Disp,
-						Win,
-						Gc,
-						Screen.BufImg[0],
-						0,0,
-						x-PaneX,y-PaneY,
-						w,h
-					);
-					XMutex.Unlock();
-				}
-				x+=w;
-			} while (x<rx2);
-			y+=h;
-		} while (y<ry2);
-	}
-	if (Screen.UsingXShm) {
-		while (Screen.BufActive[0] || Screen.BufActive[1]) {
-			Screen.WaitBufs();
-		}
-	}
+
+	Screen.ViewRenderer->RenderView(
+		*this,
+		InvalidRects,
+		Win,
+		Gc
+	);
+
 	InvalidRects.Clear();
 }
 

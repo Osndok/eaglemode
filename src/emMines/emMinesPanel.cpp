@@ -43,13 +43,13 @@ emMinesPanel::~emMinesPanel()
 }
 
 
-emString emMinesPanel::GetTitle()
+emString emMinesPanel::GetTitle() const
 {
 	return "Mines";
 }
 
 
-emString emMinesPanel::GetIconFileName()
+emString emMinesPanel::GetIconFileName() const
 {
 	return "mines.tga";
 }
@@ -57,7 +57,7 @@ emString emMinesPanel::GetIconFileName()
 
 void emMinesPanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	*pX=EssenceX;
 	*pY=EssenceY;
@@ -217,14 +217,14 @@ void emMinesPanel::Input(
 }
 
 
-bool emMinesPanel::IsOpaque()
+bool emMinesPanel::IsOpaque() const
 {
 	if (IsVFSGood()) return true;
 	else return emFilePanel::IsOpaque();
 }
 
 
-void emMinesPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emMinesPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emColor color;
 	double tx,ty,tz,tw,th;
@@ -328,20 +328,31 @@ emPanel * emMinesPanel::CreateControlPanel(
 
 void emMinesPanel::PaintField(
 	const emPainter & painter, int x, int y, int z, emColor color
-)
+) const
 {
 	static const double br=0.002;
 	static const double fr=0.08;
-	int xybeams;
+	int sizeX,sizeY,sizeZ,surroundings,xybeams;
+	bool isOpen,isMine,isMarked;
 
-	if (z+1<Mdl->GetSizeZ()) PaintZBeam(painter,x,y,z+fr,z+0.5,br,color);
+	sizeX=Mdl->GetSizeX();
+	sizeY=Mdl->GetSizeY();
+	sizeZ=Mdl->GetSizeZ();
+	surroundings=Mdl->GetSurroundings(x,y,z);
+	isOpen=Mdl->IsOpen(x,y,z);
+	isMine=Mdl->IsMine(x,y,z);
+	isMarked=Mdl->IsMarked(x,y,z);
+
+	painter.LeaveUserSpace();
+
+	if (z+1<sizeZ) PaintZBeam(painter,x,y,z+fr,z+0.5,br,color);
 
 	xybeams=0;
 	if (x>0) {
 		if (x-fr<=CameraX) PaintXBeam(painter,x-0.5,y,z,x-fr,br,color);
 		else xybeams|=1;
 	}
-	if (x+1<Mdl->GetSizeX()) {
+	if (x+1<sizeX) {
 		if (x+fr>=CameraX) PaintXBeam(painter,x+fr,y,z,x+0.5,br,color);
 		else xybeams|=2;
 	}
@@ -349,16 +360,16 @@ void emMinesPanel::PaintField(
 		if (y-fr<=CameraY) PaintYBeam(painter,x,y-0.5,z,y-fr,br,color);
 		else xybeams|=4;
 	}
-	if (y+1<Mdl->GetSizeY()) {
+	if (y+1<sizeY) {
 		if (y+fr>=CameraY) PaintYBeam(painter,x,y+fr,z,y+0.5,br,color);
 		else xybeams|=8;
 	}
 
-	if (Mdl->IsOpen(x,y,z)) {
-		if (Mdl->IsMine(x,y,z)) PaintExplodingField(painter,x,y,z,fr);
-		else PaintOpenField(painter,x,y,z,fr,Mdl->GetSurroundings(x,y,z),color);
+	if (isOpen) {
+		if (isMine) PaintExplodingField(painter,x,y,z,fr);
+		else PaintOpenField(painter,x,y,z,fr,surroundings,color);
 	}
-	else if (Mdl->IsMarked(x,y,z)) PaintMarkedField(painter,x,y,z,fr,color);
+	else if (isMarked) PaintMarkedField(painter,x,y,z,fr,color);
 	else PaintClosedField(painter,x,y,z,fr,color);
 
 	if ((xybeams&1)!=0) PaintXBeam(painter,x-0.5,y,z,x-fr,br,color);
@@ -366,13 +377,15 @@ void emMinesPanel::PaintField(
 	if ((xybeams&4)!=0) PaintYBeam(painter,x,y-0.5,z,y-fr,br,color);
 	if ((xybeams&8)!=0) PaintYBeam(painter,x,y+fr,z,y+0.5,br,color);
 	if (z>0) PaintZBeam(painter,x,y,z-0.5,z-fr,br,color);
+
+	painter.EnterUserSpace();
 }
 
 
 void emMinesPanel::PaintClosedField(
 	const emPainter & painter, double x, double y, double z, double r,
 	emColor color
-)
+) const
 {
 	double x11,y11,x12,y12,x21,y21,x22,y22;
 	double xy[4*2];
@@ -435,7 +448,7 @@ void emMinesPanel::PaintClosedField(
 void emMinesPanel::PaintMarkedField(
 	const emPainter & painter, double x, double y, double z, double r,
 	emColor color
-)
+) const
 {
 	static const float light[8]={-45,-40,-30,-20,-5,-10,-20,-30};
 	double x1[8],y1[8],x2[8],y2[8],x3[8],y3[8];
@@ -516,7 +529,7 @@ void emMinesPanel::PaintMarkedField(
 void emMinesPanel::PaintOpenField(
 	const emPainter & painter, double x, double y, double z, double r,
 	int number, emColor color
-)
+) const
 {
 	double x1,y1,x2,y2;
 	char numstr[64];
@@ -548,7 +561,7 @@ void emMinesPanel::PaintOpenField(
 
 void emMinesPanel::PaintExplodingField(
 	const emPainter & painter, double x, double y, double z, double r
-)
+) const
 {
 	static const struct { double x, y, z; } vertex[18]={
 		{1347.62,-575.08,-864.97},
@@ -614,7 +627,7 @@ void emMinesPanel::PaintExplodingField(
 void emMinesPanel::PaintXBeam(
 	const emPainter & painter, double x, double y, double z, double x2,
 	double r, emColor color
-)
+) const
 {
 	double x11,y11,x12,y12,x21,y21,x22,y22;
 	double xy[4*2];
@@ -648,7 +661,7 @@ void emMinesPanel::PaintXBeam(
 void emMinesPanel::PaintYBeam(
 	const emPainter & painter, double x, double y, double z, double y2,
 	double r, emColor color
-)
+) const
 {
 	double x11,y11,x12,y12,x21,y21,x22,y22;
 	double xy[4*2];
@@ -682,7 +695,7 @@ void emMinesPanel::PaintYBeam(
 void emMinesPanel::PaintZBeam(
 	const emPainter & painter, double x, double y, double z, double z2,
 	double r, emColor color
-)
+) const
 {
 	double x11,y11,x12,y12,x21,y21,x22,y22;
 	double xy[4*2];

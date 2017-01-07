@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.h
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,15 +39,15 @@ public:
 
 	virtual ~emPdfPagePanel();
 
-	emPdfFileModel * GetFileModel();
+	emPdfFileModel * GetFileModel() const;
 	int GetPageIndex() const;
 
 protected:
 
 	virtual void Notice(NoticeFlags flags);
 	virtual bool Cycle();
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 
@@ -76,7 +76,7 @@ private:
 	bool ShowIcon;
 };
 
-inline emPdfFileModel * emPdfPagePanel::GetFileModel()
+inline emPdfFileModel * emPdfPagePanel::GetFileModel() const
 {
 	return FileModel;
 }

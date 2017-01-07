@@ -59,7 +59,7 @@ bool emTmpConvFramePanel::Cycle()
 }
 
 
-bool emTmpConvFramePanel::IsOpaque()
+bool emTmpConvFramePanel::IsOpaque() const
 {
 	return BGColor.IsOpaque();
 }
@@ -67,7 +67,7 @@ bool emTmpConvFramePanel::IsOpaque()
 
 void emTmpConvFramePanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	double xy[4*2];
 	double h,b,d,fx,fy,fw,fh;
@@ -149,7 +149,7 @@ void emTmpConvFramePanel::UpdateBgColor()
 void emTmpConvFramePanel::PaintInfo(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 	static const emColor bgColor=emColor(204,204,204);
 	static const emColor frameColor=emColor(238,0,0);

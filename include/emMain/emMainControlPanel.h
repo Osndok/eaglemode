@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainControlPanel.h
 //
-// Copyright (C) 2014-2015 Oliver Hamann.
+// Copyright (C) 2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ public:
 
 	virtual ~emMainControlPanel();
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
 protected:
 

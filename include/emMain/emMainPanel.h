@@ -54,8 +54,8 @@ protected:
 	virtual void Notice(NoticeFlags flags);
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 	virtual void LayoutChildren();
 
 private:
@@ -74,9 +74,9 @@ private:
 		virtual void Input(emInputEvent & event,
 		                   const emInputState & state,
 		                   double mx, double my);
-		virtual emCursor GetCursor();
+		virtual emCursor GetCursor() const;
 		virtual void Paint(const emPainter & painter,
-		                   emColor canvasColor);
+		                   emColor canvasColor) const;
 		emMainPanel & MainPanel;
 		emImage SliderImage;
 		bool MouseOver,Pressed,Hidden;
@@ -91,10 +91,10 @@ private:
 		virtual void Input(emInputEvent & event,
 		                   const emInputState & state,
 		                   double mx, double my);
-		virtual emCursor GetCursor();
-		virtual bool IsOpaque();
+		virtual emCursor GetCursor() const;
+		virtual bool IsOpaque() const;
 		virtual void Paint(const emPainter & painter,
-		                   emColor canvasColor);
+		                   emColor canvasColor) const;
 	};
 
 	emRef<emMainConfig> MainConfig;

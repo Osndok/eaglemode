@@ -288,7 +288,7 @@ void emVirtualCosmosItemPanel::SetItemRec(emVirtualCosmosItemRec * itemRec)
 }
 
 
-emString emVirtualCosmosItemPanel::GetTitle()
+emString emVirtualCosmosItemPanel::GetTitle() const
 {
 	emVirtualCosmosItemRec * itemRec;
 
@@ -345,7 +345,7 @@ void emVirtualCosmosItemPanel::Input(
 }
 
 
-bool emVirtualCosmosItemPanel::IsOpaque()
+bool emVirtualCosmosItemPanel::IsOpaque() const
 {
 	emVirtualCosmosItemRec * itemRec;
 
@@ -359,7 +359,7 @@ bool emVirtualCosmosItemPanel::IsOpaque()
 }
 
 
-void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double xy[10*2];
 	emVirtualCosmosItemRec * itemRec;
@@ -582,13 +582,13 @@ emVirtualCosmosPanel::~emVirtualCosmosPanel()
 }
 
 
-emString emVirtualCosmosPanel::GetTitle()
+emString emVirtualCosmosPanel::GetTitle() const
 {
 	return emString("Virtual Cosmos");
 }
 
 
-emString emVirtualCosmosPanel::GetIconFileName()
+emString emVirtualCosmosPanel::GetIconFileName() const
 {
 	return "virtual_cosmos.tga";
 }
@@ -611,7 +611,7 @@ void emVirtualCosmosPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emVirtualCosmosPanel::IsOpaque()
+bool emVirtualCosmosPanel::IsOpaque() const
 {
 	return true; // By the background panel.
 }

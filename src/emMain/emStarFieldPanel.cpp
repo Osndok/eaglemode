@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStarFieldPanel.cpp
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,7 @@ emStarFieldPanel::~emStarFieldPanel()
 }
 
 
-emString emStarFieldPanel::GetTitle()
+emString emStarFieldPanel::GetTitle() const
 {
 	return "Star Field";
 }
@@ -88,13 +88,13 @@ void emStarFieldPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emStarFieldPanel::IsOpaque()
+bool emStarFieldPanel::IsOpaque() const
 {
 	return true;
 }
 
 
-void emStarFieldPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emStarFieldPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (BgColor!=canvasColor) painter.Clear(BgColor,canvasColor);
 }
@@ -106,6 +106,8 @@ void emStarFieldPanel::PaintOverlay(const emPainter & painter)
 	double r,vr,x,y,d;
 	float hue,sat,alpha;
 	int i;
+
+	painter.LeaveUserSpace();
 
 	for (i=0; i<StarCount; i++) {
 		r=Stars[i].Radius;
@@ -143,6 +145,8 @@ void emStarFieldPanel::PaintOverlay(const emPainter & painter)
 			}
 		}
 	}
+
+	painter.EnterUserSpace();
 }
 
 
@@ -230,7 +234,7 @@ void emStarFieldPanel::OverlayPanel::Input(
 }
 
 
-bool emStarFieldPanel::OverlayPanel::IsOpaque()
+bool emStarFieldPanel::OverlayPanel::IsOpaque() const
 {
 	return false;
 }
@@ -238,7 +242,7 @@ bool emStarFieldPanel::OverlayPanel::IsOpaque()
 
 void emStarFieldPanel::OverlayPanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	((emStarFieldPanel*)GetParent())->PaintOverlay(painter);
 }
@@ -255,7 +259,7 @@ emStarFieldPanel::TicTacToePanel::TicTacToePanel(
 }
 
 
-emString emStarFieldPanel::TicTacToePanel::GetTitle()
+emString emStarFieldPanel::TicTacToePanel::GetTitle() const
 {
 	return "Tic Tac Toe";
 }
@@ -304,7 +308,7 @@ void emStarFieldPanel::TicTacToePanel::Input(
 }
 
 
-bool emStarFieldPanel::TicTacToePanel::IsOpaque()
+bool emStarFieldPanel::TicTacToePanel::IsOpaque() const
 {
 	return false;
 }
@@ -312,7 +316,7 @@ bool emStarFieldPanel::TicTacToePanel::IsOpaque()
 
 void emStarFieldPanel::TicTacToePanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	double x,y,w,h,d,t;
 	emColor col;

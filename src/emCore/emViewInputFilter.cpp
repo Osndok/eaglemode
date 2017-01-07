@@ -54,7 +54,7 @@ emViewInputFilter::~emViewInputFilter()
 }
 
 
-double emViewInputFilter::GetTouchEventPriority(double touchX, double touchY)
+double emViewInputFilter::GetTouchEventPriority(double touchX, double touchY) const
 {
 	return GetForwardTouchEventPriority(touchX,touchY);
 }
@@ -835,7 +835,7 @@ emDefaultTouchVIF::~emDefaultTouchVIF()
 }
 
 
-double emDefaultTouchVIF::GetTouchEventPriority(double touchX, double touchY)
+double emDefaultTouchVIF::GetTouchEventPriority(double touchX, double touchY) const
 {
 	double pri;
 

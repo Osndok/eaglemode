@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStopwatchPanel.h
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,15 +45,15 @@ public:
 
 	void SetFgColor(emColor fgColor);
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
 protected:
 
 	virtual bool Cycle();
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual void LayoutChildren();
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2012,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -144,7 +144,7 @@ public:
 		// used for areas which are not covered by the panels, or where
 		// the panels are transparent. The default is some grey.
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 		// Get the title to be shown for this view. The default
 		// implementation returns the title of the active panel (not
 		// directly, but updated through an engine). See also:
@@ -457,7 +457,7 @@ public:
 
 	virtual double GetTouchEventPriority(
 		double touchX, double touchY, bool afterVIFs=false
-	);
+	) const;
 		// Get the touch event priority of this view for a certain touch
 		// position. (See emPanel::GetTouchEventPriority).
 		// Arguments:
@@ -487,12 +487,14 @@ protected:
 		//            for that.
 		//   state  - The current input state.
 
-	virtual emCursor GetCursor();
+	virtual emCursor GetCursor() const;
 		// Get the mouse cursor to be shown for this view. The default
 		// implementation returns the cursor of the panel where the
 		// mouse is. See also: InvalidateCursor()
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(
+		const emPainter & painter, emColor canvasColor
+	) const;
 		// Paint this view. The default implementation paints the
 		// panels, the focus and an info box when seeking.
 		// Arguments:
@@ -529,6 +531,21 @@ protected:
 		// implemented by default, see the implementation of
 		// emCheatVIF::Input.
 
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+public:
+	virtual emString GetTitle() final;
+	virtual double GetTouchEventPriority(
+		double touchX, double touchY, bool afterVIFs=false
+	) final;
+protected:
+	virtual emCursor GetCursor() final;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 private:
 	friend class emViewPort;
 	friend class emViewAnimator;
@@ -554,10 +571,10 @@ private:
 
 	void Update();
 
-	void CalcVisitCoords(emPanel * panel, double * pRelX,
+	void CalcVisitCoords(const emPanel * panel, double * pRelX,
 	                     double * pRelY, double * pRelA) const;
 
-	void CalcVisitFullsizedCoords(emPanel * panel, double * pRelX,
+	void CalcVisitFullsizedCoords(const emPanel * panel, double * pRelX,
 	                              double * pRelY, double * pRelA,
 	                              bool utilizeView=false) const;
 
@@ -729,33 +746,42 @@ public:
 
 	virtual ~emViewPort();
 
-protected:
-
-	void SetViewGeometry(double x, double y, double w, double h,
-	                     double pixelTallness);
-
 	double GetViewX() const;
 	double GetViewY() const;
 	double GetViewWidth() const;
 	double GetViewHeight() const;
 
-	void SetViewFocused(bool focused);
-	virtual void RequestFocus();
-
-	virtual bool IsSoftKeyboardShown();
-	virtual void ShowSoftKeyboard(bool show);
-
-	virtual emUInt64 GetInputClockMS();
-
-	void InputToView(emInputEvent & event, const emInputState & state);
-
 	emCursor GetViewCursor() const;
 
 	void PaintView(const emPainter & painter, emColor canvasColor) const;
 
+protected:
+
+	void SetViewGeometry(double x, double y, double w, double h,
+	                     double pixelTallness);
+
+	void SetViewFocused(bool focused);
+	virtual void RequestFocus();
+
+	virtual bool IsSoftKeyboardShown() const;
+	virtual void ShowSoftKeyboard(bool show);
+
+	virtual emUInt64 GetInputClockMS() const;
+
+	void InputToView(emInputEvent & event, const emInputState & state);
+
 	virtual void InvalidateCursor();
 
 	virtual void InvalidatePainting(double x, double y, double w, double h);
+
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+	virtual bool IsSoftKeyboardShown() final;
+	virtual emUInt64 GetInputClockMS() final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 private:
 	friend class emView;
@@ -961,13 +987,6 @@ inline void emView::InvalidatePainting(double x, double y, double w, double h)
 
 //--------------------------------- emViewPort ---------------------------------
 
-inline void emViewPort::SetViewGeometry(
-	double x, double y, double w, double h, double pixelTallness
-)
-{
-	CurrentView->SetGeometry(x,y,w,h,pixelTallness);
-}
-
 inline double emViewPort::GetViewX() const
 {
 	return CurrentView->GetCurrentX();
@@ -988,11 +1007,6 @@ inline double emViewPort::GetViewHeight() const
 	return CurrentView->GetCurrentHeight();
 }
 
-inline void emViewPort::SetViewFocused(bool focused)
-{
-	CurrentView->SetFocused(focused);
-}
-
 inline emCursor emViewPort::GetViewCursor() const
 {
 	return CurrentView->GetCursor();
@@ -1003,6 +1017,18 @@ inline void emViewPort::PaintView(
 ) const
 {
 	CurrentView->Paint(painter,canvasColor);
+}
+
+inline void emViewPort::SetViewGeometry(
+	double x, double y, double w, double h, double pixelTallness
+)
+{
+	CurrentView->SetGeometry(x,y,w,h,pixelTallness);
+}
+
+inline void emViewPort::SetViewFocused(bool focused)
+{
+	CurrentView->SetFocused(focused);
 }
 
 

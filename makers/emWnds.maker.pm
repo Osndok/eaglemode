@@ -51,6 +51,7 @@ sub Build
 		"src/emWnds/emWndsGUIFramework.cpp",
 		"src/emWnds/emWndsScheduler.cpp",
 		"src/emWnds/emWndsScreen.cpp",
+		"src/emWnds/emWndsViewRenderer.cpp",
 		"src/emWnds/emWndsWindowPort.cpp"
 	)==0 or return 0;
 

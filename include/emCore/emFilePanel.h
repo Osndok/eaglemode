@@ -113,7 +113,7 @@ public:
 		// It means that the file model data can safely be shown and
 		// modified.
 
-	virtual emString GetIconFileName();
+	virtual emString GetIconFileName() const;
 
 protected:
 
@@ -121,16 +121,16 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 		// Paints some info about the virtual file state including any
 		// error messages. Should be overloaded for showing the file
 		// model data when IsVFSGood()==true. InvalidatePainting is
 		// called automatically on each change of the virtual file
 		// state.
 
-	virtual bool IsHopeForSeeking();
+	virtual bool IsHopeForSeeking() const;
 		// Returns true if VFS_WAITING, VFS_LOADING or VFS_SAVING.
 
 private:

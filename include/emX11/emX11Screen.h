@@ -41,8 +41,9 @@
 #include <emCore/emThread.h>
 #endif
 
-class emX11WindowPort;
 class emX11Clipboard;
+class emX11ViewRenderer;
+class emX11WindowPort;
 
 
 class emX11Screen : public emScreen {
@@ -77,6 +78,7 @@ protected:
 private:
 
 	friend class emX11WindowPort;
+	friend class emX11ViewRenderer;
 	friend class emX11Clipboard;
 
 	emX11Screen(emContext & context, const emString & name);
@@ -99,10 +101,6 @@ private:
 	void UpdateInputStateFromKeymap();
 
 	void UpdateLastKnownTime(const XEvent & event);
-
-	void WaitBufs();
-
-	static Bool WaitPredicate(Display * display, XEvent * event, XPointer arg);
 
 	static int CompareCurMapElemAgainstKey(
 		const CursorMapElement * obj, void * key, void * context
@@ -159,8 +157,6 @@ private:
 	Atom      _NET_WM_STATE_FULLSCREEN;
 	bool      HaveXF86VidMode;
 	bool      HaveXinerama;
-	bool      UsingXShm;
-	int       ShmCompletionEventType;
 
 	Rect      DesktopRect;
 	emArray<Rect> MonitorRects;
@@ -168,13 +164,6 @@ private:
 	double    DPI;
 	double    PixelTallness;
 	emUInt64 GeometryUpdateTime;
-
-	int       BufWidth,BufHeight;
-	XImage *  BufImg[2];
-	XShmSegmentInfo BufSeg[2];
-	bool      BufActive[2];
-	bool      BufSegAutoRemoved;
-	emPainter BufPainter[2];
 
 	emArray<CursorMapElement> CursorMap;
 	emInputState InputState;
@@ -187,6 +176,8 @@ private:
 	emX11Clipboard * Clipboard;
 	int       ScreensaverDisableCounter;
 	emTimer   ScreensaverDisableTimer;
+
+	emX11ViewRenderer * ViewRenderer;
 
 	static emThreadMiniMutex ErrorHandlerMutex;
 	static bool ErrorHandlerCalled;

@@ -102,7 +102,7 @@ bool emFilePanel::IsVFSGood() const
 }
 
 
-emString emFilePanel::GetIconFileName()
+emString emFilePanel::GetIconFileName() const
 {
 	return "file.tga";
 }
@@ -143,7 +143,7 @@ void emFilePanel::Notice(NoticeFlags flags)
 }
 
 
-bool emFilePanel::IsOpaque()
+bool emFilePanel::IsOpaque() const
 {
 	switch (GetVirFileState()) {
 	case VFS_LOAD_ERROR:
@@ -156,7 +156,7 @@ bool emFilePanel::IsOpaque()
 }
 
 
-void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	char tmp[256];
 	emColor c;
@@ -363,7 +363,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor)
 }
 
 
-bool emFilePanel::IsHopeForSeeking()
+bool emFilePanel::IsHopeForSeeking() const
 {
 	VirtualFileState s;
 

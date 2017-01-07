@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockDatePanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,13 +70,13 @@ void emClockDatePanel::SetDate(
 }
 
 
-bool emClockDatePanel::IsOpaque()
+bool emClockDatePanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emClockDatePanel::Paint(const emPainter & painter, emColor canvasColor)
+void emClockDatePanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	static const char * weekDayNames[7]={
 		"Sunday", "Monday", "Tuesday", "Wednesday",

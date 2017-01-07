@@ -82,7 +82,7 @@ bool emPsPagePanel::Cycle()
 }
 
 
-bool emPsPagePanel::IsOpaque()
+bool emPsPagePanel::IsOpaque() const
 {
 	return true;
 }
@@ -90,7 +90,7 @@ bool emPsPagePanel::IsOpaque()
 
 void emPsPagePanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	static const emColor bgCol=emColor(221,255,255);
 	double h,ix,iy,iw,ih,t;

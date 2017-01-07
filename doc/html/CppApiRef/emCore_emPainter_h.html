@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>.h
 //
-// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -150,7 +150,9 @@
                   <SPAN CLASS=t>int </SPAN>bytesPerPixel, emUInt32 redMask, emUInt32 greenMask,
                   emUInt32 blueMask, <SPAN CLASS=t>double </SPAN>clipX1, <SPAN CLASS=t>double </SPAN>clipY1,
                   <SPAN CLASS=t>double </SPAN>clipX2, <SPAN CLASS=t>double </SPAN>clipY2, <SPAN CLASS=t>double </SPAN>originX=<SPAN CLASS=u>0</SPAN>,
-                  <SPAN CLASS=t>double </SPAN>originY=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>double </SPAN>scaleX=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>double </SPAN>scaleY=<SPAN CLASS=u>1</SPAN>);
+                  <SPAN CLASS=t>double </SPAN>originY=<SPAN CLASS=u>0</SPAN>, <SPAN CLASS=t>double </SPAN>scaleX=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>double </SPAN>scaleY=<SPAN CLASS=u>1</SPAN>,
+                  <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> * userSpaceMutex=<SPAN CLASS=u>NULL</SPAN>,
+                  <SPAN CLASS=t>bool </SPAN>* usmLockedByThisThread=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// Construct a painter from scratch. The output bitmap is
                 // addressed with:
                 //   pixelValue = ((TYPE*)(map+y*bytesPerRow)))[x]
@@ -179,6 +181,8 @@
                 //                     SetClipping).
                 //   originX,originY - The origin (see SetOrigin).
                 //   scaleX,scaleY   - The scale factors (see SetScaling).
+                //   userSpaceMutex  - See SetUserSpaceMutex.
+                //   usmLockedByThisThread - See SetUserSpaceMutex.
 
         // Even have a look at <A CLASS=m HREF="emCore_emImage_h.html#emImage">emImage</A>::PreparePainter
 
@@ -227,6 +231,34 @@
         <SPAN CLASS=t>double </SPAN>RoundUpX(<SPAN CLASS=t>double </SPAN>x) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>double </SPAN>RoundUpY(<SPAN CLASS=t>double </SPAN>y) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Round user coordinates to pixel boundary.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetUserSpaceMutex(
+                <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> * userSpaceMutex,
+                <SPAN CLASS=t>bool </SPAN>* usmLockedByThisThread
+        );
+                <SPAN CLASS=c>// Set the pointer to the user space mutex, and the pointer to a
+                // variable which always says whether the mutex is currently
+                // locked by the thread which owns this <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>. Both pointers
+                // can be NULL for single-threaded mode. This method is normally
+                // only to be called by <A CLASS=m HREF="emCore_emViewRenderer_h.html#emViewRenderer">emViewRenderer</A>.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>LeaveUserSpace() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Unlock the user space mutex. Returns true if it was locked.
+                // In multi-threaded mode, each thread has it's own <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A> on
+                // an own output region. The mutex is unlocked when a thread is
+                // deeply in a paint method of <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>, so that the low-level
+                // painting can happen concurrently. Normally, the mutex is
+                // always locked while one thread is in some code which "uses"
+                // <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A> (i.e. <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::Paint implementation), so that the
+                // user code must not be so thread-safe. But advanced user code
+                // which is fully thread-safe, may call LeaveUserSpace() and
+                // EnterUserSpace() in order to be concurrent. All paint methods
+                // of <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A> can be called with or without having the mutex
+                // locked, and they always return with the same lock state as
+                // they were called.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>EnterUserSpace() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Lock the user space mutex. Returns true if it was unlocked.
 
 
         //-------------------- Painting areas in uni-color ---------------------
@@ -564,6 +596,8 @@
         SharedPixelFormat * PixelFormat;
         <SPAN CLASS=t>double </SPAN>ClipX1, ClipY1, ClipX2, ClipY2;
         <SPAN CLASS=t>double </SPAN>OriginX, OriginY, ScaleX, ScaleY;
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> * UserSpaceMutex;
+        <SPAN CLASS=t>bool </SPAN>* USMLockedByThisThread;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emFontCache&gt; FontCache;
 
         <SPAN CLASS=t>static const double </SPAN>CharBoxTallness;
@@ -673,6 +707,26 @@
         OriginY=originY;
         ScaleX=scaleX;
         ScaleY=scaleY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::LeaveUserSpace() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(USMLockedByThisThread &amp;&amp; *USMLockedByThisThread) <SPAN CLASS=b>{
+                </SPAN>*USMLockedByThisThread=<SPAN CLASS=k>false</SPAN>;
+                UserSpaceMutex-&gt;Unlock();
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return false</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::EnterUserSpace() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(USMLockedByThisThread &amp;&amp; !*USMLockedByThisThread) <SPAN CLASS=b>{
+                </SPAN>UserSpaceMutex-&gt;Lock();
+                *USMLockedByThisThread=<SPAN CLASS=k>true</SPAN>;
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>return false</SPAN>;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintShape(

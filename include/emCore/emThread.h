@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.h
 //
-// Copyright (C) 2009-2010,2016 Oliver Hamann.
+// Copyright (C) 2009-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -109,6 +109,9 @@ public:
 	static void ExitCurrentThread(int exitStatus);
 		// Exit the calling thread.
 
+	static int GetHardwareThreadCount();
+		// Maximum number of threads the hardware can run concurrently.
+
 protected:
 
 	virtual int Run(void * arg);
@@ -212,7 +215,7 @@ public:
 private:
 
 	union {
-		volatile emInt64 Val;
+		emInt64 Val;
 		void * Ptr;
 	};
 };
@@ -442,60 +445,6 @@ private:
 inline bool emThreadRecursiveMutex::IsLocked() const
 {
 	return Event.GetCount()<=0;
-}
-
-
-//==============================================================================
-//============================= emThreadInitMutex ==============================
-//==============================================================================
-
-class emThreadInitMutex : public emUncopyable {
-
-public:
-
-	// Class for a special mutex which helps to execute initialization code
-	// once in a thread-safe way. It is best explained by a typical usage
-	// example:
-	//
-	//   void MyFunc()
-	//   {
-	//     static emThreadInitMutex initMutex;
-	//     static Something something;
-	//
-	//     if (initMutex.Begin()) {
-	//       something.Initialize();
-	//       initMutex.End();
-	//     }
-	//     something.Use();
-	//   }
-	//
-	// Only the first call to MyFunc() executes something.Initialize(). If
-	// further threads are calling MyFunc() simultaneously, they are blocked
-	// in initMutex.Begin() until the first thread calls initMutex.End(),
-	// so that it is guaranteed that something.Initialize() has finished
-	// before something.Use() is called by any thread.
-	//
-	// Note that blocking by Begin() may perform some kind of busy waiting,
-	// similar to emThreadMiniMutex.
-
-	emThreadInitMutex();
-	~emThreadInitMutex();
-
-	bool Begin();
-	void End();
-
-private:
-
-	bool BeginImp();
-
-	emThreadMiniMutex Mutex;
-	bool Active;
-	volatile bool Done;
-};
-
-inline bool emThreadInitMutex::Begin()
-{
-	return Done ? false : BeginImp();
 }
 
 

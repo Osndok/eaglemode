@@ -122,7 +122,7 @@
                 // It means that the file model data can safely be shown and
                 // modified.
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName();
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName() <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 
@@ -130,16 +130,16 @@
 
         <SPAN CLASS=t>virtual void </SPAN>Notice(NoticeFlags flags);
 
-        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+        <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+        <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paints some info about the virtual file state including any
                 // error messages. Should be overloaded for showing the file
                 // model data when IsVFSGood()==true. InvalidatePainting is
                 // called automatically on each change of the virtual file
                 // state.
 
-        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking();
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsHopeForSeeking() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Returns true if VFS_WAITING, VFS_LOADING or VFS_SAVING.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:

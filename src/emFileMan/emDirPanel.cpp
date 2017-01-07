@@ -61,7 +61,7 @@ void emDirPanel::SelectAll()
 }
 
 
-emString emDirPanel::GetIconFileName()
+emString emDirPanel::GetIconFileName() const
 {
 	return "directory.tga";
 }
@@ -145,14 +145,14 @@ void emDirPanel::Input(
 }
 
 
-bool emDirPanel::IsOpaque()
+bool emDirPanel::IsOpaque() const
 {
 	if (GetVirFileState()!=VFS_LOADED) return emFilePanel::IsOpaque();
 	else return Config->GetTheme().DirContentColor.Get().IsOpaque();
 }
 
 
-void emDirPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emDirPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (GetVirFileState()!=VFS_LOADED) emFilePanel::Paint(painter,canvasColor);
 	else painter.Clear(Config->GetTheme().DirContentColor);
@@ -270,7 +270,7 @@ void emDirPanel::UpdateChildren()
 	char * foundMap;
 	const emDirEntry * de;
 	const emDirModel * dm;
-	emPanel * p, * np;
+	emPanel * p, * np, * activeToDelete;
 	int i, count;
 
 	if (GetVirFileState()==VFS_LOADED) {
@@ -278,19 +278,20 @@ void emDirPanel::UpdateChildren()
 		count=dm->GetEntryCount();
 		foundMap=new char[count];
 		memset(foundMap,0,count);
+		activeToDelete=NULL;
 		for (p=GetFirstChild(); p; ) {
 			np=p->GetNext();
 			de=&((emDirEntryPanel*)p)->GetDirEntry();
-			if (de->IsHidden() && !Config->GetShowHiddenFiles()) {
-				delete p;
+			i=dm->GetEntryIndex(de->GetName());
+			if (i>=0 && (!de->IsHidden() || Config->GetShowHiddenFiles())) {
+				foundMap[i]=1;
+				((emDirEntryPanel*)p)->UpdateDirEntry(dm->GetEntry(i));
+			}
+			else if (p->IsInActivePath() && !activeToDelete) {
+				activeToDelete=p;
 			}
 			else {
-				i=dm->GetEntryIndex(de->GetName());
-				if (i>=0) {
-					foundMap[i]=1;
-					((emDirEntryPanel*)p)->UpdateDirEntry(dm->GetEntry(i));
-				}
-				else delete p;
+				delete p;
 			}
 			p=np;
 		}
@@ -305,6 +306,16 @@ void emDirPanel::UpdateChildren()
 		delete [] foundMap;
 		SortChildren();
 		ContentComplete=true;
+		if (activeToDelete) {
+			p=activeToDelete->GetNext();
+			if (!p) p=activeToDelete->GetPrev();
+			delete activeToDelete;
+			if (p) {
+				emDirPanel::LayoutChildren();
+				if (!p->IsViewed()) GetView().RawVisit(p);
+				p->Activate(false);
+			}
+		}
 		InvalidateChildrenLayout();
 	}
 	else {

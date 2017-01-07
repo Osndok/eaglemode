@@ -1,0 +1,123 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emViewRenderer.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emViewRenderer_h.html#emViewRenderer">emViewRenderer</A>.h
+//
+// Copyright (C) 2016-2017 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emViewRenderer_h
+#define emViewRenderer_h
+
+#ifndef emClipRects_h
+#include &lt;<A CLASS=f HREF="emCore_emClipRects_h.html">emCore/emClipRects.h</A>&gt;
+#endif
+
+#ifndef emRenderThreadPool_h
+#include &lt;<A CLASS=f HREF="emCore_emRenderThreadPool_h.html">emCore/emRenderThreadPool.h</A>&gt;
+#endif
+
+#ifndef emView_h
+#include &lt;<A CLASS=f HREF="emCore_emView_h.html">emCore/emView.h</A>&gt;
+#endif
+
+
+<A NAME="emViewRenderer"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emViewRenderer_h.html#emViewRenderer">emViewRenderer</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emViewRenderer_h.html#emViewRenderer">emViewRenderer</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Helper class for rendering views by multiple threads concurrently.
+        // This uses <A CLASS=m HREF="emCore_emRenderThreadPool_h.html#emRenderThreadPool">emRenderThreadPool</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emViewRenderer_h.html#emViewRenderer">emViewRenderer</A>(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewRenderer_h.html#emViewRenderer">emViewRenderer</A>();
+
+        <SPAN CLASS=t>void </SPAN>RenderView(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> &amp; viewPort,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>&lt;<SPAN CLASS=t>int</SPAN>&gt; &amp; invalidRects
+        );
+                <SPAN CLASS=c>// Render a view.
+                // Arguments:
+                //   viewPort     - The view port of the view.
+                //   invalidRects - Which parts of the view are to be rendered, in
+                //                  screen coordinates.
+
+</SPAN><SPAN CLASS=t>protected</SPAN>:
+
+        <SPAN CLASS=t>virtual void </SPAN>PrepareBuffers(
+                <SPAN CLASS=t>int </SPAN>bufCount, <SPAN CLASS=t>int </SPAN>maxWidth, <SPAN CLASS=t>int </SPAN>maxHeight
+        ) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Prepare image buffers for rendering. Called rarely.
+                // Arguments:
+                //   bufCount  - Number of buffers.
+                //   maxWidth  - Maximum used width of the buffer, in pixels.
+                //   maxHeight - Maximum used height of the buffer, in pixels.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> GetBufferPainter(
+                <SPAN CLASS=t>int </SPAN>bufIndex, <SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h
+        ) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Get a painter for painting to a buffer.
+                // Arguments:
+                //   bufIndex  - Buffer index.
+                //   x,y,w,h   - Rectangle on the screen to be updated.
+                //               w and h are never larger than said with
+                //               PrepareBuffers(...).
+
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>AsyncFlushBuffer(
+                <SPAN CLASS=t>int </SPAN>bufIndex, <SPAN CLASS=t>int </SPAN>x, <SPAN CLASS=t>int </SPAN>y, <SPAN CLASS=t>int </SPAN>w, <SPAN CLASS=t>int </SPAN>h
+        ) = <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Flush a buffer to the screen. This has to be thread-safe.
+                // The Arguments:
+                //   bufIndex  - Buffer index.
+                //   x,y,w,h   - Rectangle on the screen to be updated (same
+                //               as in call to GetBufferPainter(...) before).
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>TodoRect <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>int </SPAN>x,y,w,h;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>static void </SPAN>ThreadFunc(<SPAN CLASS=t>void </SPAN>* data, <SPAN CLASS=t>int </SPAN>bufIndex);
+        <SPAN CLASS=t>void </SPAN>ThreadRun(<SPAN CLASS=t>int </SPAN>bufIndex);
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emRenderThreadPool_h.html#emRenderThreadPool">emRenderThreadPool</A>&gt; ThreadPool;
+        <SPAN CLASS=t>int </SPAN>BufCount;
+        <SPAN CLASS=t>int </SPAN>BufWidth;
+        <SPAN CLASS=t>int </SPAN>BufHeight;
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * CurrentViewPort;
+        <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> UserSpaceMutex;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;TodoRect&gt; TodoRects;
+        <SPAN CLASS=t>int </SPAN>TrIndex;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

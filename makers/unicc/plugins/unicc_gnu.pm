@@ -115,6 +115,9 @@ sub Compile
 		push(@args,"gcc");
 		if (HaveDebug) { push(@args,"-g"); }
 		push(@args,"-O2");
+		if ($isCpp && $GccVersion>=4.7 && $GccVersion<6.1) {
+			push(@args,"-std=c++11");
+		}
 		if ($IsWinOrCygwin) { push(@args,"-mthreads"); }
 		if (!$IsWinOrCygwin) {
 			my $tgtType=GetTgtType;

@@ -112,7 +112,7 @@ void emFileLinkPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emFileLinkPanel::IsOpaque()
+bool emFileLinkPanel::IsOpaque() const
 {
 	if (!IsVFSGood() && !ChildPanel) {
 		return emFilePanel::IsOpaque();
@@ -129,7 +129,7 @@ bool emFileLinkPanel::IsOpaque()
 }
 
 
-void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double x,y,w,h,d,t;
 
@@ -183,7 +183,7 @@ void emFileLinkPanel::LayoutChildren()
 
 void emFileLinkPanel::CalcContentCoords(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	const emFileManTheme * theme;
 	double t,x,y,w,h,pl,pt,pr,pb;

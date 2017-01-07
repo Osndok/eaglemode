@@ -177,6 +177,22 @@
         <SPAN CLASS=t>private</SPAN>:
                 <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
         <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>PerformanceGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>, <SPAN CLASS=t>private </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                PerformanceGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                                 <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                <SPAN CLASS=t>virtual </SPAN>~PerformanceGroup();
+        <SPAN CLASS=t>protected</SPAN>:
+                <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
+                <SPAN CLASS=t>virtual bool </SPAN>Cycle();
+                <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
+                <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>void </SPAN>UpdateOutput();
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * MaxRenderThreadsField;
+        <SPAN CLASS=b>}</SPAN>;
 <SPAN CLASS=b>}</SPAN>;
 
 

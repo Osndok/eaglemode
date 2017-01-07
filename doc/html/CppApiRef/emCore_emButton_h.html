@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emButton_h.html#emButton">emButton</A>.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -93,20 +93,20 @@
         </SPAN><SPAN CLASS=t>virtual void </SPAN>Input(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                            <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
 
-        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo();
-        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo();
+        <SPAN CLASS=t>virtual bool </SPAN>HasHowTo() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetHowTo() <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>PaintContent(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>PaintBoxSymbol(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w,
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>bool </SPAN>IsShownChecked() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsShownBoxed() <SPAN CLASS=t>const</SPAN>;
@@ -116,6 +116,14 @@
         <SPAN CLASS=t>void </SPAN>SetShownRadioed(<SPAN CLASS=t>bool </SPAN>shownRadioed);
                 <SPAN CLASS=c>// Yes, this class has the ability to paint all our button
                 // types.
+
+        // - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+        // The following virtual non-const methods have been replaced by const
+        // methods (see above). The old versions still exist here with the
+        // "final" keyword added, so that old overridings will fail to compile.
+        // If you run into this, please adapt your overridings by adding "const".
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my) final;
+        <SPAN CLASS=c>// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
@@ -127,7 +135,7 @@
                 DoButtonFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
                 <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>bool </SPAN>* pHit
-        );
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ClickSignal;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> PressStateSignal;

@@ -59,7 +59,7 @@ emClockPanel::~emClockPanel()
 }
 
 
-emString emClockPanel::GetTitle()
+emString emClockPanel::GetTitle() const
 {
 	if (Zone==emTimeZonesModel::UTC_ZONE_ID) {
 		return "UTC";
@@ -73,7 +73,7 @@ emString emClockPanel::GetTitle()
 }
 
 
-emString emClockPanel::GetIconFileName()
+emString emClockPanel::GetIconFileName() const
 {
 	return "clock.tga";
 }
@@ -81,7 +81,7 @@ emString emClockPanel::GetIconFileName()
 
 void emClockPanel::GetSubstanceRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR
-)
+) const
 {
 	if (!IsVFSGood()) {
 		emFilePanel::GetSubstanceRect(pX,pY,pW,pH,pR);
@@ -97,7 +97,7 @@ void emClockPanel::GetSubstanceRect(
 
 void emClockPanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	if (!IsVFSGood()) {
 		emFilePanel::GetEssenceRect(pX,pY,pW,pH);
@@ -177,14 +177,14 @@ void emClockPanel::Input(
 }
 
 
-bool emClockPanel::IsOpaque()
+bool emClockPanel::IsOpaque() const
 {
 	if (!IsVFSGood()) return emFilePanel::IsOpaque();
 	return false;
 }
 
 
-void emClockPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emClockPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	char tmp[256];
 	double xy[4*2];

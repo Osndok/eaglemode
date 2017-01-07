@@ -38,13 +38,13 @@ emMainContentPanel::~emMainContentPanel()
 }
 
 
-emString emMainContentPanel::GetTitle()
+emString emMainContentPanel::GetTitle() const
 {
 	return "Eagle";
 }
 
 
-emString emMainContentPanel::GetIconFileName()
+emString emMainContentPanel::GetIconFileName() const
 {
 	return "virtual_cosmos.tga";
 }
@@ -69,13 +69,13 @@ void emMainContentPanel::Layout(
 }
 
 
-bool emMainContentPanel::IsOpaque()
+bool emMainContentPanel::IsOpaque() const
 {
 	return true;
 }
 
 
-void emMainContentPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emMainContentPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	painter.PaintImage(0,0,1,GetHeight(),SkyImage,255,canvasColor);
 	PaintEagle(

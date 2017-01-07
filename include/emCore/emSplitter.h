@@ -85,11 +85,11 @@ protected:
 
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
-	virtual emCursor GetCursor();
+	virtual emCursor GetCursor() const;
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 	virtual void LayoutChildren();
 
 private:

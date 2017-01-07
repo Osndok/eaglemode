@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.cpp
 //
-// Copyright (C) 2005-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,6 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emInput.h>
-#include <emCore/emThread.h>
 
 
 //==============================================================================
@@ -119,21 +118,25 @@ static const emInputKeyName emInputKeyNames[] = {
 
 const char * emInputKeyToString(emInputKey key)
 {
-	static emThreadInitMutex initMutex;
-	static const char * table[256];
-	int i;
+	static const struct KeyToStringTable {
 
-	if (initMutex.Begin()) {
-		for (i=0; i<256; i++) table[i]=NULL;
-		for (i=0; i<(int)(sizeof(emInputKeyNames)/sizeof(emInputKeyName)); i++) {
-			if ((emInputKeyNames[i].Key&~255)==0) {
-				table[emInputKeyNames[i].Key]=emInputKeyNames[i].Name;
+		const char * table[256];
+
+		KeyToStringTable()
+		{
+			int i;
+			for (i=0; i<256; i++) table[i]=NULL;
+			for (i=0; i<(int)(sizeof(emInputKeyNames)/sizeof(emInputKeyName)); i++) {
+				if ((emInputKeyNames[i].Key&~255)==0) {
+					table[emInputKeyNames[i].Key]=emInputKeyNames[i].Name;
+				}
 			}
 		}
-		initMutex.End();
-	}
+
+	} keyToStringTable;
+
 	if ((key&~255)!=0) return NULL;
-	return table[key];
+	return keyToStringTable.table[key];
 }
 
 
@@ -155,29 +158,33 @@ static int emCompareInputKeyNames(
 
 emInputKey emStringToInputKey(const char * str)
 {
-	static emThreadInitMutex initMutex;
-	static emInputKeyName table[sizeof(emInputKeyNames)/sizeof(emInputKeyName)];
+	static const struct StringToKeyTable {
+
+		emInputKeyName table[sizeof(emInputKeyNames)/sizeof(emInputKeyName)];
+
+		StringToKeyTable()
+		{
+			memcpy(table,emInputKeyNames,sizeof(emInputKeyNames));
+			emSortArray(
+				table,
+				(int)(sizeof(emInputKeyNames)/sizeof(emInputKeyName)),
+				emCompareInputKeyNames,
+				(void*)NULL
+			);
+		}
+
+	} stringToKeyTable;
+
 	int i;
 
-	if (initMutex.Begin()) {
-		memcpy(table,emInputKeyNames,sizeof(emInputKeyNames));
-		emSortArray(
-			table,
-			(int)(sizeof(emInputKeyNames)/sizeof(emInputKeyName)),
-			emCompareInputKeyNames,
-			(void*)NULL
-		);
-		initMutex.End();
-	}
-
 	i=emBinarySearch(
-		table,
+		stringToKeyTable.table,
 		(int)(sizeof(emInputKeyNames)/sizeof(emInputKeyName)),
 		str,
 		emCompareInputKeyNameToName,
 		(void*)NULL
 	);
-	return i>=0 ? table[i].Key : EM_KEY_NONE;
+	return i>=0 ? stringToKeyTable.table[i].Key : EM_KEY_NONE;
 }
 
 

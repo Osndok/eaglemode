@@ -101,13 +101,13 @@ void emFileManSelInfoPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emFileManSelInfoPanel::IsOpaque()
+bool emFileManSelInfoPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emFileManSelInfoPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emFileManSelInfoPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double xy[4*2];
 	emColor fgColor,bgColor1,bgColor2,fgColor1,fgColor2;
@@ -257,7 +257,7 @@ void emFileManSelInfoPanel::PaintDetails(
 	const emPainter & painter, double x, double y, double w, double h,
 	const char * caption, const DetailsType & details, emColor color,
 	emColor canvasColor
-)
+) const
 {
 	char tmp[256];
 	double d,w2;
@@ -341,7 +341,7 @@ void emFileManSelInfoPanel::PaintDetails(
 void emFileManSelInfoPanel::PaintSize(
 	const emPainter & painter, double x, double y, double w, double h,
 	emUInt64 size, emColor color, emColor canvasColor
-)
+) const
 {
 	emColor unitColor;
 	char tmp[128];

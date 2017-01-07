@@ -108,6 +108,7 @@ sub Build
 		"src/emCore/emRasterLayout.cpp",
 		"src/emCore/emRec.cpp",
 		"src/emCore/emRecFileModel.cpp",
+		"src/emCore/emRenderThreadPool.cpp",
 		"src/emCore/emRes.cpp",
 		"src/emCore/emScalarField.cpp",
 		"src/emCore/emScheduler.cpp",
@@ -128,6 +129,7 @@ sub Build
 		"src/emCore/emView.cpp",
 		"src/emCore/emViewAnimator.cpp",
 		"src/emCore/emViewInputFilter.cpp",
+		"src/emCore/emViewRenderer.cpp",
 		"src/emCore/emWindow.cpp",
 		"src/emCore/emWindowStateSaver.cpp"
 	)==0 or return 0;

@@ -175,7 +175,7 @@ void emRadioButton::Mechanism::SetCheckIndex(int index)
 }
 
 
-emRadioButton * emRadioButton::Mechanism::GetButton(int index)
+emRadioButton * emRadioButton::Mechanism::GetButton(int index) const
 {
 	if (index>=0 && index<Array.GetCount()) {
 		return Array[index];
@@ -183,14 +183,6 @@ emRadioButton * emRadioButton::Mechanism::GetButton(int index)
 	return NULL;
 }
 
-
-const emRadioButton * emRadioButton::Mechanism::GetButton(int index) const
-{
-	if (index>=0 && index<Array.GetCount()) {
-		return Array[index];
-	}
-	return NULL;
-}
 
 
 void emRadioButton::Mechanism::CheckChanged()
@@ -255,7 +247,7 @@ void emRadioButton::CheckChanged()
 }
 
 
-emString emRadioButton::GetHowTo()
+emString emRadioButton::GetHowTo() const
 {
 	emString h;
 

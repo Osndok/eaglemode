@@ -58,7 +58,8 @@ emCoreConfig::emCoreConfig(emContext & context, const emString & name)
 		1024,
 #endif
 		8,16384
-	)
+	),
+	MaxRenderThreads(this,"MaxRenderThreads",8,1,32)
 {
 	PostConstruct(
 		*this,

@@ -362,13 +362,15 @@ void emListBox::DefaultItemPanel::Input(emInputEvent & event, const emInputState
 }
 
 
-bool emListBox::DefaultItemPanel::IsOpaque()
+bool emListBox::DefaultItemPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emListBox::DefaultItemPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emListBox::DefaultItemPanel::Paint(
+	const emPainter & painter, emColor canvasColor
+) const
 {
 	double x,y,w,h,r,dx,dy;
 	emColor bgColor,fgColor,hlColor;
@@ -452,13 +454,13 @@ emString emListBox::GetItemPanelName(int index) const
 }
 
 
-emPanel * emListBox::GetItemPanel(int index)
+emPanel * emListBox::GetItemPanel(int index) const
 {
 	return GetChild(GetItemPanelName(index));
 }
 
 
-emListBox::ItemPanelInterface * emListBox::GetItemPanelInterface(int index)
+emListBox::ItemPanelInterface * emListBox::GetItemPanelInterface(int index) const
 {
 	emPanel * panel;
 	ItemPanelInterface * ipf;
@@ -525,6 +527,18 @@ void emListBox::AutoExpand()
 	for (i=0; i<Items.GetCount(); i++) {
 		CreateItemPanel(GetItemPanelName(i), i);
 	}
+}
+
+
+emPanel * emListBox::GetItemPanel(int index)
+{
+	return ((const emListBox*)this)->GetItemPanel(index);
+}
+
+
+emListBox::ItemPanelInterface * emListBox::GetItemPanelInterface(int index)
+{
+	return ((const emListBox*)this)->GetItemPanelInterface(index);
 }
 
 

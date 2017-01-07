@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockHandsPanel.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,13 +57,15 @@ void emClockHandsPanel::SetTime(int hour, int minute, int second)
 }
 
 
-bool emClockHandsPanel::IsOpaque()
+bool emClockHandsPanel::IsOpaque() const
 {
 	return false;
 }
 
 
-void emClockHandsPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emClockHandsPanel::Paint(
+	const emPainter & painter, emColor canvasColor
+) const
 {
 	double hxy[5*2];
 	double mxy[5*2];

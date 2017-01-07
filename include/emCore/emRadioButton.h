@@ -97,8 +97,7 @@ public:
 			// This signal is signaled whenever there was a change
 			// in the result of GetChecked().
 
-		emRadioButton * GetChecked();
-		const emRadioButton * GetChecked() const;
+		emRadioButton * GetChecked() const;
 		void SetChecked(emRadioButton * radioButton);
 			// Get/set the member button which is currently checked.
 			// NULL means to have no member button checked.
@@ -112,8 +111,7 @@ public:
 		int GetCount() const;
 			// Get number of member buttons.
 
-		emRadioButton * GetButton(int index);
-		const emRadioButton * GetButton(int index) const;
+		emRadioButton * GetButton(int index) const;
 			// Get a member button by index.
 
 		int GetIndexOf(const emRadioButton * button) const;
@@ -210,7 +208,7 @@ protected:
 
 	virtual void CheckChanged();
 
-	virtual emString GetHowTo();
+	virtual emString GetHowTo() const;
 
 private:
 
@@ -227,12 +225,7 @@ inline const emSignal & emRadioButton::Mechanism::GetCheckSignal() const
 	return CheckSignal;
 }
 
-inline emRadioButton * emRadioButton::Mechanism::GetChecked()
-{
-	return CheckIndex>=0 ? Array[CheckIndex] : NULL;
-}
-
-inline const emRadioButton * emRadioButton::Mechanism::GetChecked() const
+inline emRadioButton * emRadioButton::Mechanism::GetChecked() const
 {
 	return CheckIndex>=0 ? Array[CheckIndex] : NULL;
 }

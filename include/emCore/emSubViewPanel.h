@@ -50,9 +50,9 @@ public:
 	emView & GetSubView() const;
 		// Get the sub-view.
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 
-	virtual double GetTouchEventPriority(double touchX, double touchY);
+	virtual double GetTouchEventPriority(double touchX, double touchY) const;
 
 protected:
 
@@ -61,11 +61,11 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual emCursor GetCursor();
+	virtual emCursor GetCursor() const;
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 
@@ -90,12 +90,12 @@ private:
 		void InputToView(emInputEvent & event,
 		                 const emInputState & state);
 		emCursor GetViewCursor() const;
-		void PaintView(const emPainter & painter, emColor canvasColor);
+		void PaintView(const emPainter & painter, emColor canvasColor) const;
 	protected:
 		virtual void RequestFocus();
-		virtual bool IsSoftKeyboardShown();
+		virtual bool IsSoftKeyboardShown() const;
 		virtual void ShowSoftKeyboard(bool show);
-		virtual emUInt64 GetInputClockMS();
+		virtual emUInt64 GetInputClockMS() const;
 		virtual void InvalidateCursor();
 		virtual void InvalidatePainting(double x, double y, double w,
 		                                double h);
@@ -150,7 +150,7 @@ inline emCursor emSubViewPanel::SubViewPortClass::GetViewCursor() const
 
 inline void emSubViewPanel::SubViewPortClass::PaintView(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	emViewPort::PaintView(painter,canvasColor);
 }

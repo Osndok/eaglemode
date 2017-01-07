@@ -311,7 +311,7 @@ emPanel * emBorder::GetAuxPanel()
 void emBorder::GetAuxRect(
 	double * pX, double * pY, double * pW, double * pH,
 	emColor * pCanvasColor
-)
+) const
 {
 	if (!Aux) {
 		if (pX) *pX=0.0;
@@ -330,7 +330,7 @@ void emBorder::GetAuxRect(
 
 void emBorder::GetSubstanceRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR
-)
+) const
 {
 	DoBorder(
 		BORDER_FUNC_SUBSTANCE_ROUND_RECT,NULL,GetCanvasColor(),
@@ -342,7 +342,7 @@ void emBorder::GetSubstanceRect(
 void emBorder::GetContentRoundRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR,
 	emColor * pCanvasColor
-)
+) const
 {
 	DoBorder(
 		BORDER_FUNC_CONTENT_ROUND_RECT,NULL,GetCanvasColor(),
@@ -354,7 +354,7 @@ void emBorder::GetContentRoundRect(
 void emBorder::GetContentRect(
 	double * pX, double * pY, double * pW, double * pH,
 	emColor * pCanvasColor
-)
+) const
 {
 	DoBorder(
 		BORDER_FUNC_CONTENT_RECT,NULL,GetCanvasColor(),
@@ -366,7 +366,7 @@ void emBorder::GetContentRect(
 void emBorder::GetContentRectUnobscured(
 	double * pX, double * pY, double * pW, double * pH,
 	emColor * pCanvasColor
-)
+) const
 {
 	DoBorder(
 		BORDER_FUNC_CONTENT_RECT_UNOBSCURED,NULL,GetCanvasColor(),
@@ -389,7 +389,7 @@ void emBorder::Notice(NoticeFlags flags)
 }
 
 
-bool emBorder::IsOpaque()
+bool emBorder::IsOpaque() const
 {
 	switch (OuterBorder) {
 	case OBT_FILLED:
@@ -402,7 +402,7 @@ bool emBorder::IsOpaque()
 }
 
 
-void emBorder::Paint(const emPainter & painter, emColor canvasColor)
+void emBorder::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	DoBorder(BORDER_FUNC_PAINT,&painter,canvasColor,NULL,NULL,NULL,NULL,NULL,NULL);
 }
@@ -426,13 +426,13 @@ void emBorder::LayoutChildren()
 }
 
 
-bool emBorder::HasHowTo()
+bool emBorder::HasHowTo() const
 {
 	return false;
 }
 
 
-emString emBorder::GetHowTo()
+emString emBorder::GetHowTo() const
 {
 	emString h;
 
@@ -446,18 +446,18 @@ emString emBorder::GetHowTo()
 void emBorder::PaintContent(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor canvasColor
-)
+) const
 {
 }
 
 
-bool emBorder::HasLabel()
+bool emBorder::HasLabel() const
 {
 	return !Caption.IsEmpty() || !Description.IsEmpty() || !Icon.IsEmpty();
 }
 
 
-double emBorder::GetBestLabelTallness()
+double emBorder::GetBestLabelTallness() const
 {
 	double bestTallness;
 
@@ -472,7 +472,7 @@ double emBorder::GetBestLabelTallness()
 void emBorder::PaintLabel(
 	const emPainter & painter, double x, double y, double w, double h,
 	emColor color, emColor canvasColor
-)
+) const
 {
 	DoLabel(
 		LABEL_FUNC_PAINT,&painter,x,y,w,h,color,canvasColor,NULL
@@ -500,11 +500,79 @@ emBorder::TkResources::~TkResources()
 }
 
 
+void emBorder::GetContentRoundRect(
+	double * pX, double * pY, double * pW, double * pH, double * pR,
+	emColor * pCanvasColor
+)
+{
+	((const emBorder*)this)->GetContentRoundRect(pX,pY,pW,pH,pR,pCanvasColor);
+}
+
+
+void emBorder::GetContentRect(
+	double * pX, double * pY, double * pW, double * pH,
+	emColor * pCanvasColor
+)
+{
+	((const emBorder*)this)->GetContentRect(pX,pY,pW,pH,pCanvasColor);
+}
+
+
+void emBorder::GetContentRectUnobscured(
+	double * pX, double * pY, double * pW, double * pH,
+	emColor * pCanvasColor
+)
+{
+	((const emBorder*)this)->GetContentRectUnobscured(pX,pY,pW,pH,pCanvasColor);
+}
+
+bool emBorder::HasHowTo()
+{
+	return ((const emBorder*)this)->HasHowTo();
+}
+
+
+emString emBorder::GetHowTo()
+{
+	return ((const emBorder*)this)->GetHowTo();
+}
+
+
+void emBorder::PaintContent(
+	const emPainter & painter, double x, double y, double w, double h,
+	emColor canvasColor
+)
+{
+	((const emBorder*)this)->PaintContent(painter,x,y,w,h,canvasColor);
+}
+
+
+bool emBorder::HasLabel()
+{
+	return ((const emBorder*)this)->HasLabel();
+}
+
+
+double emBorder::GetBestLabelTallness()
+{
+	return ((const emBorder*)this)->GetBestLabelTallness();
+}
+
+
+void emBorder::PaintLabel(
+	const emPainter & painter, double x, double y, double w, double h,
+	emColor color, emColor canvasColor
+)
+{
+	((const emBorder*)this)->PaintLabel(painter,x,y,w,h,color,canvasColor);
+}
+
+
 void emBorder::DoBorder(
 	DoBorderFunc func, const emPainter * painter, emColor canvasColor,
 	double * pX, double * pY, double * pW, double * pH, double * pR,
 	emColor * pCanvasColor
-)
+) const
 {
 	double s,d,e,f,g,h,r,tx,ty,tw,th,tr;
 	double minSpace,howToSpace,labelSpace;
@@ -1131,7 +1199,7 @@ void emBorder::DoLabel(
 	DoLabelFunc func, const emPainter * painter, double x, double y,
 	double w, double h, emColor color, emColor canvasColor,
 	double * pBestTallness
-)
+) const
 {
 	double iconX,iconY,iconW,iconH,capX,capY,capW,capH,descX,descY,descW,descH;
 	double gap1,gap2,totalW,totalH,minTotalW,minWS,f,w2,h2;

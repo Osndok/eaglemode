@@ -276,10 +276,10 @@
                                    <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state,
                                    <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my);
 
-                <SPAN CLASS=t>virtual bool </SPAN>IsOpaque();
+                <SPAN CLASS=t>virtual bool </SPAN>IsOpaque() <SPAN CLASS=t>const</SPAN>;
 
                 <SPAN CLASS=t>virtual void </SPAN>Paint(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter,
-                                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor);
+                                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor) <SPAN CLASS=t>const</SPAN>;
 
                 <SPAN CLASS=t>virtual void </SPAN>ItemTextChanged();
 
@@ -301,11 +301,11 @@
                 <SPAN CLASS=c>// Get the name for an item panel. The default implementation
                 // simply converts the index to a decimal string.
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetItemPanel(<SPAN CLASS=t>int </SPAN>index);
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetItemPanel(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get an item panel. The default implementation calls
                 // GetChild(..) with the name of the item panel.
 
-        </SPAN><SPAN CLASS=t>virtual </SPAN>ItemPanelInterface * GetItemPanelInterface(<SPAN CLASS=t>int </SPAN>index);
+        </SPAN><SPAN CLASS=t>virtual </SPAN>ItemPanelInterface * GetItemPanelInterface(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the ItemPanelInterface for an item panel. The default
                 // implementation calls GetItemPanel and does a dynamic cast.
 
@@ -316,7 +316,16 @@
 
         <SPAN CLASS=t>virtual void </SPAN>AutoExpand();
 
-<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=c>// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+        // The following virtual non-const methods have been replaced by const
+        // methods (see above). The old versions still exist here with the
+        // "final" keyword added, so that old overridings will fail to compile.
+        // If you run into this, please adapt your overridings by adding "const".
+        </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * GetItemPanel(<SPAN CLASS=t>int </SPAN>index) final;
+        <SPAN CLASS=t>virtual </SPAN>ItemPanelInterface * GetItemPanelInterface(<SPAN CLASS=t>int </SPAN>index) final;
+        <SPAN CLASS=c>// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>friend class </SPAN>ItemPanelInterface;
 

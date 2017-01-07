@@ -20,8 +20,8 @@
 
 #include <emX11/emX11Screen.h>
 #include <emX11/emX11Clipboard.h>
+#include <emX11/emX11ViewRenderer.h>
 #include <emX11/emX11WindowPort.h>
-#include <sys/shm.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 
@@ -130,10 +130,8 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	const char * displayName, * modifiers;
 	XVisualInfo * viList, viTemplate, * vi;
 	int viCount,i,major,minor,bytesPerPixel,x,y,dc;
-	Bool xshmCanDoPixmaps,allowTwoBuffers;
 	XErrorHandler originalHandler;
 	XF86VidModeModeLine ml;
-	Status status;
 	void * data;
 	Bool xb;
 	int eventBase,errorBase;
@@ -305,216 +303,6 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	UpdateGeometry();
 	GeometryUpdateTime=emGetClockMS();
 
-	// --- Buffer Configuration ---
-
-	BufWidth=DisplayWidth(Disp,Scrn);
-	BufHeight=150;
-		// Optimum depends on CPU cache size, pixel size, window width
-		// and the type and complexity of painting. But there is really
-		// no necessity for making this user-configurable or
-		// auto-adapted. The constant value 150 is a good compromise: It
-		// is a little too small for some type of extensive vector
-		// painting, and it is a little too large for a CPU with even
-		// 4 MB cache when painting high-res images.
-
-	allowTwoBuffers=true;
-		// On single processor systems with small CPU cache, this could
-		// be set to false for a very little speed-up.
-
-	// --- End of Buffer Configuration ---
-
-	try {
-		emX11_TryLoadLibXext();
-	}
-	catch (emException & exception) {
-		emWarning("emX11Screen: %s",exception.GetText());
-	}
-	UsingXShm=false;
-	XMutex.Lock();
-	XSync(Disp,False);
-	ErrorHandlerMutex.Lock();
-	ErrorHandlerCalled=false;
-	originalHandler=XSetErrorHandler(ErrorHandler);
-	for (;;) {
-		if (!emX11_IsLibXextLoaded()) break;
-		if (!XShmQueryVersion(Disp,&major,&minor,&xshmCanDoPixmaps)) break;
-		if (ErrorHandlerCalled || major<1 || (minor<1 && major<=1)) break;
-		ShmCompletionEventType=XShmGetEventBase(Disp)+ShmCompletion;
-		if (ErrorHandlerCalled) break;
-		BufImg[0]=XShmCreateImage(
-			Disp,
-			Visu,
-			VisuDepth,
-			ZPixmap,
-			NULL,
-			&BufSeg[0],
-			BufWidth,
-			BufHeight
-		);
-		if (ErrorHandlerCalled || !BufImg[0]) break;
-		if (
-			BufImg[0]->bits_per_pixel!=bytesPerPixel<<3 ||
-#			if EM_BYTE_ORDER==4321
-				BufImg[0]->byte_order!=MSBFirst
-#			elif EM_BYTE_ORDER==1234
-				BufImg[0]->byte_order!=LSBFirst
-#			else
-#				error unexpected value for EM_BYTE_ORDER
-#			endif
-		) {
-			XFree(BufImg[0]);
-			break;
-		}
-		BufSeg[0].shmid=shmget(
-			IPC_PRIVATE,
-			BufImg[0]->bytes_per_line*BufImg[0]->height,
-			IPC_CREAT|0777
-		);
-		if (BufSeg[0].shmid==-1) {
-			XFree(BufImg[0]);
-			break;
-		}
-		BufSeg[0].shmaddr=(char*)shmat(BufSeg[0].shmid,0,0);
-		if (BufSeg[0].shmaddr==(char*)-1) {
-			shmctl(BufSeg[0].shmid,IPC_RMID,0);
-			XFree(BufImg[0]);
-			break;
-		}
-		BufImg[0]->data=BufSeg[0].shmaddr;
-		BufSeg[0].readOnly=True;
-		status=XShmAttach(Disp,&BufSeg[0]);
-		XSync(Disp,False);
-		if (!status || ErrorHandlerCalled) {
-			shmdt(BufSeg[0].shmaddr);
-			shmctl(BufSeg[0].shmid,IPC_RMID,0);
-			XFree(BufImg[0]);
-			break;
-		}
-#if defined(__linux__)
-		shmctl(BufSeg[0].shmid,IPC_RMID,0);
-		BufSegAutoRemoved=true;
-#else
-		BufSegAutoRemoved=false;
-#endif
-		BufImg[1]=NULL;
-		BufActive[0]=false;
-		BufActive[1]=false;
-		UsingXShm=true;
-		if (!allowTwoBuffers) break;
-		BufImg[1]=XShmCreateImage(
-			Disp,
-			Visu,
-			VisuDepth,
-			ZPixmap,
-			NULL,
-			&BufSeg[1],
-			BufWidth,
-			BufHeight
-		);
-		if (ErrorHandlerCalled || !BufImg[1]) {
-			break;
-		}
-		BufSeg[1].shmid=shmget(
-			IPC_PRIVATE,
-			BufImg[1]->bytes_per_line*BufImg[1]->height,
-			IPC_CREAT|0777
-		);
-		if (BufSeg[1].shmid==-1) {
-			XFree(BufImg[1]);
-			BufImg[1]=NULL;
-			break;
-		}
-		BufSeg[1].shmaddr=(char*)shmat(BufSeg[1].shmid,0,0);
-		if (BufSeg[1].shmaddr==(char*)-1) {
-			shmctl(BufSeg[1].shmid,IPC_RMID,0);
-			XFree(BufImg[1]);
-			BufImg[1]=NULL;
-			break;
-		}
-		BufImg[1]->data=BufSeg[1].shmaddr;
-		BufSeg[1].readOnly=True;
-		status=XShmAttach(Disp,&BufSeg[1]);
-		XSync(Disp,False);
-		if (!status || ErrorHandlerCalled) {
-			shmdt(BufSeg[1].shmaddr);
-			shmctl(BufSeg[1].shmid,IPC_RMID,0);
-			XFree(BufImg[1]);
-			BufImg[1]=NULL;
-			break;
-		}
-		if (BufSegAutoRemoved) shmctl(BufSeg[1].shmid,IPC_RMID,0);
-		break;
-	}
-	XSync(Disp,False);
-	XSetErrorHandler(originalHandler);
-	ErrorHandlerMutex.Unlock();
-	XMutex.Unlock();
-
-	if (!UsingXShm) {
-		emWarning("emX11Screen: no XShm (=>slow)");
-		XMutex.Lock();
-		BufImg[0]=XCreateImage(
-			Disp,
-			Visu,
-			VisuDepth,
-			ZPixmap,
-			0,
-			(char*)malloc(BufHeight*BufWidth*bytesPerPixel),
-			BufWidth,
-			BufHeight,
-			bytesPerPixel<<3,
-			BufWidth*bytesPerPixel
-		);
-		XMutex.Unlock();
-		if (
-			bytesPerPixel==4 &&
-			BufImg[0]->bits_per_pixel==24 &&
-			BufImg[0]->bitmap_unit==32 &&
-			BufImg[0]->bytes_per_line>=4*BufImg[0]->width
-		) {
-			//??? hack / workaround: Either there are buggy X-Servers,
-			//??? or it is true that it is allowed to have XImages with
-			//??? three bytes per pixel - no matter, force four bytes
-			//??? per pixel here. Unfortunately, this does not work for
-			//??? XShmCreateImage.
-			BufImg[0]->bits_per_pixel=32;
-		}
-		BufImg[1]=NULL;
-#		if EM_BYTE_ORDER==4321
-			BufImg[0]->byte_order=MSBFirst;
-#		elif EM_BYTE_ORDER==1234
-			BufImg[0]->byte_order=LSBFirst;
-#		else
-#			error unexpected value for EM_BYTE_ORDER
-#		endif
-	}
-	else if (allowTwoBuffers && !BufImg[1]) {
-		emWarning("emX11Screen: no double buffering via XShm");
-	}
-
-	for (i=0; i<2; i++) {
-		if (BufImg[i]) {
-			memset(
-				BufImg[i]->data,
-				0,
-				BufImg[i]->bytes_per_line*BufImg[i]->height
-			);
-			BufPainter[i]=emPainter(
-				GetRootContext(),
-				BufImg[i]->data+BufImg[i]->xoffset*bytesPerPixel,
-				BufImg[i]->bytes_per_line,
-				bytesPerPixel,
-				BufImg[i]->red_mask,
-				BufImg[i]->green_mask,
-				BufImg[i]->blue_mask,
-				0,
-				0,
-				BufImg[i]->width,
-				BufImg[i]->height
-			);
-		}
-	}
-
 	CursorMap.SetTuningLevel(4);
 
 	InputStateClock=0;
@@ -534,6 +322,8 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 
 	ScreensaverDisableCounter=0;
 
+	ViewRenderer = new emX11ViewRenderer(*this);
+
 	SetEnginePriority(emEngine::VERY_HIGH_PRIORITY);
 
 	AddWakeUpSignal(ScreensaverDisableTimer.GetSignal());
@@ -549,6 +339,9 @@ emX11Screen::~emX11Screen()
 	delete WCThread;
 	WCThread=NULL;
 
+	delete ViewRenderer;
+	ViewRenderer=NULL;
+
 	XMutex.Lock();
 
 	XSync(Disp,False);
@@ -557,25 +350,13 @@ emX11Screen::~emX11Screen()
 		XFreeCursor(Disp,CursorMap[i].XCursor);
 	}
 
-	for (i=0; i<2; i++) {
-		if (BufImg[i]) {
-			if (UsingXShm) {
-				XShmDetach(Disp,&BufSeg[i]);
-				shmdt(BufSeg[i].shmaddr);
-				if (!BufSegAutoRemoved) shmctl(BufSeg[i].shmid,IPC_RMID,0);
-			}
-			else {
-				free(BufImg[i]->data);
-			}
-			XFree(BufImg[i]);
-		}
-	}
-
 	XFreeColormap(Disp,Colmap);
 
 	if (InputMethod) XCloseIM(InputMethod);
 
 	XCloseDisplay(Disp);
+
+	XMutex.Unlock();
 }
 
 
@@ -935,47 +716,6 @@ void emX11Screen::UpdateLastKnownTime(const XEvent & event)
 		default: return;
 	}
 	if (t!=CurrentTime) LastKnownTime=t;
-}
-
-
-void emX11Screen::WaitBufs()
-{
-	union {
-		XEvent x;
-		XShmCompletionEvent xsc;
-	} event;
-
-	if (BufActive[0] || BufActive[1]) {
-		for (;;) {
-			XMutex.Lock();
-			XIfEvent(Disp,&event.x,WaitPredicate,(XPointer)this);
-			XMutex.Unlock();
-			if (event.x.type==ShmCompletionEventType) {
-				if (BufActive[0] && event.xsc.shmseg==BufSeg[0].shmseg) {
-					BufActive[0]=false;
-					break;
-				}
-				if (BufActive[1] && event.xsc.shmseg==BufSeg[1].shmseg) {
-					BufActive[1]=false;
-					break;
-				}
-			}
-		}
-	}
-}
-
-
-Bool emX11Screen::WaitPredicate(Display * display, XEvent * event, XPointer arg)
-{
-	emX11Screen * s;
-	XShmCompletionEvent * e;
-
-	s=(emX11Screen*)arg;
-	if (event->type!=s->ShmCompletionEventType) return false;
-	e=(XShmCompletionEvent*)event;
-	if (s->BufActive[0] && e->shmseg==s->BufSeg[0].shmseg) return true;
-	if (s->BufActive[1] && e->shmseg==s->BufSeg[1].shmseg) return true;
-	return false;
 }
 
 

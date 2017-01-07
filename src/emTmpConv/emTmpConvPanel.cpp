@@ -44,7 +44,7 @@ emTmpConvPanel::~emTmpConvPanel()
 }
 
 
-emString emTmpConvPanel::GetTitle()
+emString emTmpConvPanel::GetTitle() const
 {
 	if (GetVirtualConversionState()==emTmpConvModel::CS_UP) {
 		return GetModel()->GetOutputFilePath();
@@ -84,7 +84,7 @@ void emTmpConvPanel::Notice(NoticeFlags flags)
 }
 
 
-bool emTmpConvPanel::IsOpaque()
+bool emTmpConvPanel::IsOpaque() const
 {
 	switch (GetVirtualConversionState()) {
 	case emTmpConvModel::CS_ERROR:
@@ -95,7 +95,7 @@ bool emTmpConvPanel::IsOpaque()
 }
 
 
-void emTmpConvPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emTmpConvPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emColor c;
 
@@ -189,7 +189,7 @@ void emTmpConvPanel::LayoutChildren()
 }
 
 
-bool emTmpConvPanel::IsHopeForSeeking()
+bool emTmpConvPanel::IsHopeForSeeking() const
 {
 	switch (GetVirtualConversionState()) {
 	case emTmpConvModel::CS_WAITING:
@@ -201,7 +201,7 @@ bool emTmpConvPanel::IsHopeForSeeking()
 }
 
 
-emTmpConvModel::ConversionState emTmpConvPanel::GetVirtualConversionState()
+emTmpConvModel::ConversionState emTmpConvPanel::GetVirtualConversionState() const
 {
 	if (!ModelClient.IsConversionWanted()) {
 		return emTmpConvModel::CS_DOWN;

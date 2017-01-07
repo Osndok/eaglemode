@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFilePanel.h
 //
-// Copyright (C) 2004-2008,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,10 @@
 #include <emCore/emFilePanel.h>
 #endif
 
+#ifndef emRenderThreadPool_h
+#include <emCore/emRenderThreadPool.h>
+#endif
+
 #ifndef emFractalFileModel_h
 #include <emFractal/emFractalFileModel.h>
 #endif
@@ -41,8 +45,8 @@ public:
 
 	virtual ~emFractalFilePanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 protected:
 
@@ -50,24 +54,46 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 
+	struct CommonRenderVars {
+		emFractalFilePanel * Panel;
+		emThreadMiniMutex Mutex;
+		int InvX1,InvY1,InvX2,InvY2;
+	};
+
+	struct ThreadRenderVars {
+		int ImgWidth,ImgHeight;
+		emByte * ImgMap;
+		int InvX1,InvY1,InvX2,InvY2;
+	};
+
 	void Prepare();
 
-	emColor CalcPixel() const;
+	static void ThreadRenderFunc(void * data, int index);
 
-	void PutPixel(emColor color);
+	void ThreadRenderRun(CommonRenderVars & crv);
 
-	emFractalFileModel * Mdl;
+	emColor CalcPixel(double pixX, double pixY) const;
+
+	static void PutPixel(
+		ThreadRenderVars & trv, int x, int y, int s,
+		emColor color
+	);
+
+	static emColor PeekPixel(const ThreadRenderVars & trv, int x, int y);
+
+	emRef<emRenderThreadPool> RenderThreadPool;
+	const emFractalFileModel * Mdl;
 	emArray<emColor> Colors;
 	double ImgX1,ImgY1,ImgX2,ImgY2;
 	emImage Image;
 	double FrcX,FrcY,FrcSX,FrcSY;
-	int PixX,PixY,PixStep,InvX1,InvY1,InvX2,InvY2;
+	int PixX,PixY,PixStep;
 };
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsPagePanel.h
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,8 +48,8 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 	virtual bool Cycle();
-	virtual bool IsOpaque();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual bool IsOpaque() const;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 

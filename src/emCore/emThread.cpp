@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.cpp
 //
-// Copyright (C) 2009,2011,2016 Oliver Hamann.
+// Copyright (C) 2009,2011,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -316,6 +316,22 @@ void emThread::ExitCurrentThread(int exitStatus)
 }
 
 
+int emThread::GetHardwareThreadCount()
+{
+	int n;
+#if defined(_WIN32)
+	SYSTEM_INFO systemInfo;
+	memset(&systemInfo,0,sizeof(systemInfo));
+	::GetSystemInfo(&systemInfo);
+ 	n=(int)systemInfo.dwNumberOfProcessors;
+#else
+	n=(int)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+	if (n<1) n=1;
+	return n;
+}
+
+
 int emThread::Run(void * arg)
 {
 	if (P->Func) return P->Func(arg);
@@ -334,7 +350,7 @@ int emThread::Run(void * arg)
 	typedef int emTMM_XchgType;
 
 	static inline emTMM_XchgType emTMM_Xchg(
-		volatile emTMM_XchgType * ptr, emTMM_XchgType val
+		emTMM_XchgType * ptr, emTMM_XchgType val
 	)
 	{
 		asm volatile (
@@ -353,10 +369,10 @@ int emThread::Run(void * arg)
 	typedef LONG emTMM_XchgType;
 
 	static inline emTMM_XchgType emTMM_Xchg(
-		volatile emTMM_XchgType * ptr, emTMM_XchgType val
+		emTMM_XchgType * ptr, emTMM_XchgType val
 	)
 	{
-		return InterlockedExchange((LONG*)ptr,val);
+		return InterlockedExchange(ptr,val);
 	}
 
 #else
@@ -372,7 +388,7 @@ int emThread::Run(void * arg)
 
 	emThreadMiniMutex::emThreadMiniMutex()
 	{
-		Val=0;
+		emTMM_Xchg((emTMM_XchgType*)(void*)&Val,0);
 	}
 
 	emThreadMiniMutex::~emThreadMiniMutex()
@@ -381,14 +397,14 @@ int emThread::Run(void * arg)
 
 	void emThreadMiniMutex::Lock()
 	{
-		while (emTMM_Xchg((volatile emTMM_XchgType*)(void*)&Val,1)!=0) {
+		while (emTMM_Xchg((emTMM_XchgType*)(void*)&Val,1)!=0) {
 			emSleepMS(0); // Yields to another thread.
 		}
 	}
 
 	void emThreadMiniMutex::Unlock()
 	{
-		emTMM_Xchg((volatile emTMM_XchgType*)(void*)&Val,0);
+		emTMM_Xchg((emTMM_XchgType*)(void*)&Val,0);
 		// Just saying "Val=0" here would not be enough, because with
 		// some CPUs a memory barrier or fence is needed, which should
 		// be implemented in emTMM_Xchg.
@@ -458,58 +474,34 @@ int emThread::Run(void * arg)
 
 #else
 
+#	include <atomic>
+
 	emThreadMiniMutex::emThreadMiniMutex()
 	{
-		int e;
-
-		Ptr=malloc(sizeof(pthread_mutex_t));
-		e=pthread_mutex_init((pthread_mutex_t*)Ptr,NULL);
-		if (e) {
-			emFatalError(
-				"emThreadMiniMutex: pthread_mutex_init failed: %s",
-				emGetErrorText(e).Get()
-			);
-		}
+		std::atomic_flag * af = new std::atomic_flag;
+		Ptr=af;
+		af->clear(std::memory_order_release);
 	}
 
 	emThreadMiniMutex::~emThreadMiniMutex()
 	{
-		int e;
-
-		e=pthread_mutex_destroy((pthread_mutex_t*)Ptr);
-		if (e) {
-			emFatalError(
-				"emThreadMiniMutex: pthread_mutex_destroy failed: %s",
-				emGetErrorText(e).Get()
-			);
-		}
-		free(Ptr);
+		std::atomic_flag * af = (std::atomic_flag*)Ptr;
+		Ptr=NULL;
+		delete af;
 	}
 
 	void emThreadMiniMutex::Lock()
 	{
-		int e;
-
-		e=pthread_mutex_lock((pthread_mutex_t*)Ptr);
-		if (e) {
-			emFatalError(
-				"emThreadMiniMutex: pthread_mutex_lock failed: %s",
-				emGetErrorText(e).Get()
-			);
+		std::atomic_flag * af = (std::atomic_flag*)Ptr;
+		while (af->test_and_set(std::memory_order_acquire)) {
+			emSleepMS(0);
 		}
 	}
 
 	void emThreadMiniMutex::Unlock()
 	{
-		int e;
-
-		e=pthread_mutex_unlock((pthread_mutex_t*)Ptr);
-		if (e) {
-			emFatalError(
-				"emThreadMiniMutex: pthread_mutex_unlock failed: %s",
-				emGetErrorText(e).Get()
-			);
-		}
+		std::atomic_flag * af = (std::atomic_flag*)Ptr;
+		af->clear(std::memory_order_release);
 	}
 
 #endif
@@ -901,50 +893,4 @@ void emThreadRecursiveMutex::Unlock()
 	}
 	if (!--LockCount) Event.Send(1);
 	Mutex.Unlock();
-}
-
-
-//==============================================================================
-//============================= emThreadInitMutex ==============================
-//==============================================================================
-
-emThreadInitMutex::emThreadInitMutex()
-{
-	Active=false;
-	Done=false;
-}
-
-
-emThreadInitMutex::~emThreadInitMutex()
-{
-}
-
-
-void emThreadInitMutex::End()
-{
-	Mutex.Lock();
-	if (!Active) emFatalError("emThreadInitMutex: End without Begin");
-	Active=false;
-	Done=true;
-	Mutex.Unlock();
-}
-
-
-bool emThreadInitMutex::BeginImp()
-{
-	Mutex.Lock();
-	if (!Done) {
-		if (!Active) {
-			Active=true;
-			Mutex.Unlock();
-			return true;
-		}
-		do {
-			Mutex.Unlock();
-			emSleepMS(0);
-			Mutex.Lock();
-		} while(Active);
-	}
-	Mutex.Unlock();
-	return false;
 }

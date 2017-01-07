@@ -158,13 +158,13 @@ void emMainPanel::Input(
 }
 
 
-bool emMainPanel::IsOpaque()
+bool emMainPanel::IsOpaque() const
 {
 	return true;
 }
 
 
-void emMainPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emMainPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	double x1,y1,w1,h1,x2,y2,w2,h2,x,y,w,h,d;
 
@@ -452,14 +452,16 @@ void emMainPanel::SliderPanel::Input(
 }
 
 
-emCursor emMainPanel::SliderPanel::GetCursor()
+emCursor emMainPanel::SliderPanel::GetCursor() const
 {
 	//if (MouseOver) return emCursor::UP_DOWN_ARROW;
 	return emPanel::GetCursor();
 }
 
 
-void emMainPanel::SliderPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emMainPanel::SliderPanel::Paint(
+	const emPainter & painter, emColor canvasColor
+) const
 {
 	double xy[10*2];
 	double h,x1,y1,x2,y2;
@@ -525,13 +527,13 @@ void emMainPanel::StartupOverlayPanel::Input(
 }
 
 
-emCursor emMainPanel::StartupOverlayPanel::GetCursor()
+emCursor emMainPanel::StartupOverlayPanel::GetCursor() const
 {
 	return emCursor::WAIT;
 }
 
 
-bool emMainPanel::StartupOverlayPanel::IsOpaque()
+bool emMainPanel::StartupOverlayPanel::IsOpaque() const
 {
 	// Must be false. Otherwise the sub-view panels for content and control
 	// would get "non-viewed" state, and thereby the sub-views would be set
@@ -544,7 +546,7 @@ bool emMainPanel::StartupOverlayPanel::IsOpaque()
 
 void emMainPanel::StartupOverlayPanel::Paint(
 	const emPainter & painter, emColor canvasColor
-)
+) const
 {
 	emColor bgColor,fgColor;
 

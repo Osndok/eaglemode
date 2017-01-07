@@ -125,13 +125,13 @@ public:
 		// They are delimited by colons, while colons and backslashes in
 		// the names are quoted by backslashes.
 
-	virtual emString GetTitle();
+	virtual emString GetTitle() const;
 		// Get the title of this panel. Normally, the title of the
 		// active panel is shown as the title of the view. The default
 		// implementation of this method asks the parent panel. See
 		// also: InvalidateTitle()
 
-	virtual emString GetIconFileName();
+	virtual emString GetIconFileName() const;
 		// Get the file name of an icon for this panel. For example,
 		// this is used in bookmarks. The returned string can be the
 		// name of a file in the default icon directory, or an absolute
@@ -248,7 +248,7 @@ public:
 
 	virtual void GetSubstanceRect(double * pX, double * pY,
 	                              double * pW, double * pH,
-	                              double * pR);
+	                              double * pR) const;
 		// Get the substance rectangle of this panel. This should
 		// surround everything except empty margins and shadows. It is
 		// used by emView to paint the focus rectangle, and it is used
@@ -259,12 +259,12 @@ public:
 		// implementation returns the whole panel rectangle with zero
 		// radius.
 
-	bool IsPointInSubstanceRect(double x, double y);
+	bool IsPointInSubstanceRect(double x, double y) const;
 		// Ask if a point lies within the substance rectangle. The point
 		// must be given in the coordinate system of this panel.
 
 	virtual void GetEssenceRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	                            double * pW, double * pH) const;
 		// Get the essence rectangle of this panel. When the panel is to
 		// be shown full-sized in the view, this rectangular part of the
 		// panel is actually shown full-sized. The returned rectangle is
@@ -452,7 +452,7 @@ public:
 		// time is measured in milliseconds and starts anywhere, but it
 		// should never overflow.
 
-	virtual double GetTouchEventPriority(double touchX, double touchY);
+	virtual double GetTouchEventPriority(double touchX, double touchY) const;
 		// Get the priority of this panel for receiving touch events.
 		// This is used by certain view input filters to decide whether
 		// to eat touch events for their purpose. Remember the
@@ -548,23 +548,37 @@ protected:
 		//   mx, my - Position of the mouse in the coordinate system of
 		//            this panel. Valid only if IsInViewedPath().
 
-	virtual emCursor GetCursor();
+	virtual emCursor GetCursor() const;
 		// Get the mouse cursor to be shown for this panel. The default
 		// implementation asks the parent panel. See also:
 		// InvalidateCursor()
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 		// Whether this panel is completely opaque by its painting or by
 		// its child panels. If true, the background may not be
 		// initialized when the panel is painted. It even helps the view
 		// to choose a better supreme viewed panel. The default
 		// implementation returns false. See also: InvalidatePainting()
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 		// Paint this panel. The default implementation does nothing.
 		// Note that for a single painting of the whole panel, this
 		// method may be called multiple times with different clipping
 		// rectangles in order to optimize cache usage.
+		//
+		// ***************** CAUTION: MULTI-THREADING ******************
+		// * In order to improve the graphics performance on           *
+		// * multi-core CPUs, Paint may be called by multiple threads  *
+		// * in parallel, but in a way that there is always at most    *
+		// * one thread at a time in user code, outside any call to    *
+		// * emPainter. There is a shared mutex which is entered       *
+		// * before a thread calls an emPanel::Paint. It is left only  *
+		// * while the thread is in a call to a method of emPainter    *
+		// * and re-entered before such a call returns.                *
+		// * Please prepare your code for this. Ideally, do not modify *
+		// * any shared data in an implementation of Paint.            *
+		// *************************************************************
+		//
 		// Arguments:
 		//   painter     - A painter for painting the panel to the
 		//                 screen. Origin and scaling of this painter
@@ -632,7 +646,7 @@ protected:
 		// method returns the name of the sought child panel. Otherwise
 		// it returns NULL.
 
-	virtual bool IsHopeForSeeking();
+	virtual bool IsHopeForSeeking() const;
 		// While the view is seeking for a still non-existent child of
 		// this panel, this method is called by the view on every time
 		// slice for asking whether there is any hope that the desired
@@ -679,6 +693,29 @@ protected:
 		// Indicate a change in the results of CreateControlPanel().
 		// After calling this, the control panel will be re-created, but
 		// only if it is shown.
+
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding
+	// "const". Besides, please read the new comments about multi-threading
+	// in Paint more above.
+public:
+	virtual emString GetTitle() final;
+	virtual emString GetIconFileName() final;
+	virtual void GetSubstanceRect(double * pX, double * pY,
+	                              double * pW, double * pH,
+	                              double * pR) final;
+	virtual void GetEssenceRect(double * pX, double * pY,
+	                            double * pW, double * pH) final;
+	virtual double GetTouchEventPriority(double touchX, double touchY) final;
+protected:
+	virtual emCursor GetCursor() final;
+	virtual bool IsOpaque() final;
+	virtual void Paint(const emPainter & painter, emColor canvasColor) final;
+	virtual bool IsHopeForSeeking() final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 private:
 

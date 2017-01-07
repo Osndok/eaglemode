@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emThread_h.html#emThread">emThread</A>.h
 //
-// Copyright (C) 2009-2010,2016 Oliver Hamann.
+// Copyright (C) 2009-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -118,6 +118,9 @@
         </SPAN><SPAN CLASS=t>static void </SPAN>ExitCurrentThread(<SPAN CLASS=t>int </SPAN>exitStatus);
                 <SPAN CLASS=c>// Exit the calling thread.
 
+        </SPAN><SPAN CLASS=t>static int </SPAN>GetHardwareThreadCount();
+                <SPAN CLASS=c>// Maximum number of threads the hardware can run concurrently.
+
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual int </SPAN>Run(<SPAN CLASS=t>void </SPAN>* arg);
@@ -221,7 +224,7 @@
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{
-                </SPAN><SPAN CLASS=t>volatile </SPAN>emInt64 Val;
+                </SPAN>emInt64 Val;
                 <SPAN CLASS=t>void </SPAN>* Ptr;
         <SPAN CLASS=b>}</SPAN>;
 <SPAN CLASS=b>}</SPAN>;
@@ -451,60 +454,6 @@
 <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadRecursiveMutex">emThreadRecursiveMutex</A>::IsLocked() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Event.GetCount()&lt;=<SPAN CLASS=u>0</SPAN>;
-<SPAN CLASS=b>}
-
-
-<A NAME="emThreadInitMutex"></A></SPAN><SPAN CLASS=c>//==============================================================================
-//============================= <A CLASS=m HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A> ==============================
-//==============================================================================
-
-</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
-
-</SPAN><SPAN CLASS=t>public</SPAN>:
-
-        <SPAN CLASS=c>// Class for a special mutex which helps to execute initialization code
-        // once in a thread-safe way. It is best explained by a typical usage
-        // example:
-        //
-        //   void MyFunc()
-        //   {
-        //     static <A CLASS=m HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A> initMutex;
-        //     static Something something;
-        //
-        //     if (initMutex.Begin()) {
-        //       something.Initialize();
-        //       initMutex.End();
-        //     }
-        //     something.Use();
-        //   }
-        //
-        // Only the first call to MyFunc() executes something.Initialize(). If
-        // further threads are calling MyFunc() simultaneously, they are blocked
-        // in initMutex.Begin() until the first thread calls initMutex.End(),
-        // so that it is guaranteed that something.Initialize() has finished
-        // before something.Use() is called by any thread.
-        //
-        // Note that blocking by Begin() may perform some kind of busy waiting,
-        // similar to <A CLASS=m HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A>.
-
-        </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A>();
-        ~<A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A>();
-
-        <SPAN CLASS=t>bool </SPAN>Begin();
-        <SPAN CLASS=t>void </SPAN>End();
-
-<SPAN CLASS=t>private</SPAN>:
-
-        <SPAN CLASS=t>bool </SPAN>BeginImp();
-
-        <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> Mutex;
-        <SPAN CLASS=t>bool </SPAN>Active;
-        <SPAN CLASS=t>volatile bool </SPAN>Done;
-<SPAN CLASS=b>}</SPAN>;
-
-<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emThread_h.html#emThreadInitMutex">emThreadInitMutex</A>::Begin()
-<SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Done ? <SPAN CLASS=k>false </SPAN>: BeginImp();
 <SPAN CLASS=b>}
 
 

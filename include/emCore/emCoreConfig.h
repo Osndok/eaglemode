@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.h
 //
-// Copyright (C) 2006-2010,2014 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,6 +50,7 @@ public:
 	emDoubleRec MagnetismSpeed;
 	emDoubleRec VisitSpeed;
 	emIntRec MaxMegabytesPerView;
+	emIntRec MaxRenderThreads;
 
 	virtual const char * GetFormatName() const;
 

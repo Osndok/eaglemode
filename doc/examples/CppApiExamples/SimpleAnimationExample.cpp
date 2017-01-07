@@ -7,7 +7,7 @@ public:
 	MyPanel(ParentArg parent, const emString & name);
 protected:
 	virtual bool Cycle();
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 private:
 	unsigned Counter;
 };
@@ -27,7 +27,7 @@ bool MyPanel::Cycle()
 	return true;
 }
 
-void MyPanel::Paint(const emPainter & painter, emColor canvasColor)
+void MyPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	emString str=emString::Format("%u",Counter);
 	painter.PaintTextBoxed(0,0,1,GetHeight(),str,.41,0xFFFF80FF);

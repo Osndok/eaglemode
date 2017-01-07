@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTunnel.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,15 +62,26 @@ public:
 	virtual void GetChildRect(
 		double * pX, double * pY, double * pW, double * pH,
 		emColor * pCanvasColor=NULL
-	);
+	) const;
 		// Get coordinates and canvas color of the end of the tunnel.
+
+	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
+	// The following virtual non-const methods have been replaced by const
+	// methods (see above). The old versions still exist here with the
+	// "final" keyword added, so that old overridings will fail to compile.
+	// If you run into this, please adapt your overridings by adding "const".
+	virtual void GetChildRect(
+		double * pX, double * pY, double * pW, double * pH,
+		emColor * pCanvasColor=NULL
+	) final;
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 protected:
 
 	virtual void PaintContent(
 		const emPainter & painter, double x, double y, double w,
 		double h, emColor canvasColor
-	);
+	) const;
 
 	virtual void LayoutChildren();
 
@@ -84,7 +95,7 @@ private:
 		DoTunnelFunc func, const emPainter * painter,
 		emColor canvasColor, double * pX, double * pY, double * pW,
 		double * pH, emColor * pCanvasColor
-	);
+	) const;
 
 	double ChildTallness,Depth;
 };

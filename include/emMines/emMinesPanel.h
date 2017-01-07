@@ -43,11 +43,11 @@ public:
 
 	virtual ~emMinesPanel();
 
-	virtual emString GetTitle();
-	virtual emString GetIconFileName();
+	virtual emString GetTitle() const;
+	virtual emString GetIconFileName() const;
 
 	virtual void GetEssenceRect(double * pX, double * pY,
-	                            double * pW, double * pH);
+	                            double * pW, double * pH) const;
 
 protected:
 
@@ -58,9 +58,9 @@ protected:
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
-	virtual bool IsOpaque();
+	virtual bool IsOpaque() const;
 
-	virtual void Paint(const emPainter & painter, emColor canvasColor);
+	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);
@@ -68,23 +68,23 @@ protected:
 private:
 
 	void PaintField(const emPainter & painter, int x, int y, int z,
-	                emColor color);
+	                emColor color) const;
 
 	void PaintClosedField(const emPainter & painter, double x, double y,
-	                      double z, double r, emColor color);
+	                      double z, double r, emColor color) const;
 	void PaintMarkedField(const emPainter & painter, double x, double y,
-	                      double z, double r, emColor color);
+	                      double z, double r, emColor color) const;
 	void PaintOpenField(const emPainter & painter, double x, double y,
-	                    double z, double r, int number, emColor color);
+	                    double z, double r, int number, emColor color) const;
 	void PaintExplodingField(const emPainter & painter, double x, double y,
-	                         double z, double r);
+	                         double z, double r) const;
 
 	void PaintXBeam(const emPainter & painter, double x, double y, double z,
-	                double x2, double r, emColor color);
+	                double x2, double r, emColor color) const;
 	void PaintYBeam(const emPainter & painter, double x, double y, double z,
-	                double y2, double r, emColor color);
+	                double y2, double r, emColor color) const;
 	void PaintZBeam(const emPainter & painter, double x, double y, double z,
-	                double z2, double r, emColor color);
+	                double z2, double r, emColor color) const;
 
 	bool IsCursorValid() const;
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.h
 //
-// Copyright (C) 2014-2015 Oliver Hamann.
+// Copyright (C) 2014-2016 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,7 +47,7 @@ public:
 	void SetDeactivateWhenIdle(bool deactivateWhenIdle=true);
 
 	virtual void Input(emInputEvent & event, const emInputState & state);
-	virtual void Paint(const emPainter & painter);
+	virtual void Paint(const emPainter & painter) const;
 
 protected:
 
@@ -309,7 +309,7 @@ public:
 	virtual void Activate();
 	virtual void Deactivate();
 	virtual void Input(emInputEvent & event, const emInputState & state);
-	virtual void Paint(const emPainter & painter);
+	virtual void Paint(const emPainter & painter) const;
 
 protected:
 

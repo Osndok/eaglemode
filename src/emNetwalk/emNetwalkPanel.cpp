@@ -42,13 +42,13 @@ emNetwalkPanel::~emNetwalkPanel()
 }
 
 
-emString emNetwalkPanel::GetTitle()
+emString emNetwalkPanel::GetTitle() const
 {
 	return "Netwalk";
 }
 
 
-emString emNetwalkPanel::GetIconFileName()
+emString emNetwalkPanel::GetIconFileName() const
 {
 	return "netwalk.tga";
 }
@@ -56,7 +56,7 @@ emString emNetwalkPanel::GetIconFileName()
 
 void emNetwalkPanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
-)
+) const
 {
 	*pX=EssenceX;
 	*pY=EssenceY;
@@ -78,6 +78,21 @@ bool emNetwalkPanel::Cycle()
 		if (!vfsGood && Scrolling) {
 			Scrolling=false;
 			InvalidateCursor();
+		}
+		if (vfsGood && ImgSymbols.IsEmpty()) {
+			try {
+				ImgBackground=emTryGetInsResImage(GetRootContext(),"emNetwalk","Background.tga");
+				ImgBorder    =emTryGetInsResImage(GetRootContext(),"emNetwalk","Border.tga");
+				ImgLights    =emTryGetInsResImage(GetRootContext(),"emNetwalk","Lights.tga");
+				ImgMarks     =emTryGetInsResImage(GetRootContext(),"emNetwalk","Marks.tga");
+				ImgNoBorder  =emTryGetInsResImage(GetRootContext(),"emNetwalk","NoBorder.tga");
+				ImgPipes     =emTryGetInsResImage(GetRootContext(),"emNetwalk","Pipes.tga");
+				ImgSymbols   =emTryGetInsResImage(GetRootContext(),"emNetwalk","Symbols.tga");
+				InvalidatePainting();
+			}
+			catch (emException & exception) {
+				SetCustomError(exception.GetText());
+			}
 		}
 	}
 
@@ -179,46 +194,30 @@ void emNetwalkPanel::Input(
 }
 
 
-emCursor emNetwalkPanel::GetCursor()
+emCursor emNetwalkPanel::GetCursor() const
 {
 	if (Scrolling) return emCursor::LEFT_RIGHT_UP_DOWN_ARROW;
 	else return emFilePanel::GetCursor();
 }
 
 
-bool emNetwalkPanel::IsOpaque()
+bool emNetwalkPanel::IsOpaque() const
 {
 	if (IsVFSGood()) return true;
 	else return emFilePanel::IsOpaque();
 }
 
 
-void emNetwalkPanel::Paint(const emPainter & painter, emColor canvasColor)
+void emNetwalkPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	int x,y,x1,y1,x2,y2,w,h,d;
 	double fx1,fy1,fx2,fy2,gx1,gy1,gx2,gy2,bx,by;
 	emString str;
 	double t;
 
-	if (!IsVFSGood()) {
+	if (!IsVFSGood() || ImgSymbols.IsEmpty()) {
 		emFilePanel::Paint(painter,canvasColor);
 		return;
-	}
-
-	if (ImgSymbols.IsEmpty()) {
-		try {
-			ImgBackground=emTryGetInsResImage(GetRootContext(),"emNetwalk","Background.tga");
-			ImgBorder    =emTryGetInsResImage(GetRootContext(),"emNetwalk","Border.tga");
-			ImgLights    =emTryGetInsResImage(GetRootContext(),"emNetwalk","Lights.tga");
-			ImgMarks     =emTryGetInsResImage(GetRootContext(),"emNetwalk","Marks.tga");
-			ImgNoBorder  =emTryGetInsResImage(GetRootContext(),"emNetwalk","NoBorder.tga");
-			ImgPipes     =emTryGetInsResImage(GetRootContext(),"emNetwalk","Pipes.tga");
-			ImgSymbols   =emTryGetInsResImage(GetRootContext(),"emNetwalk","Symbols.tga");
-		}
-		catch (emException & exception) {
-			SetCustomError(exception.GetText());
-			return;
-		}
 	}
 
 	painter.Clear(BgColor,canvasColor);
@@ -318,7 +317,7 @@ emPanel * emNetwalkPanel::CreateControlPanel(
 void emNetwalkPanel::PaintPieceBackground(
 	const emPainter & painter, double x, double y, double w, double h,
 	int px, int py, emColor canvasColor
-)
+) const
 {
 	int piece,west,north,northwest,tileSize,tx,ty;
 	double w2,h2;
@@ -490,7 +489,7 @@ void emNetwalkPanel::PaintPieceBackground(
 void emNetwalkPanel::PaintPiecePipe(
 	const emPainter & painter, double x, double y, double w, double h,
 	int px, int py
-)
+) const
 {
 	int piece,east,west,south,north,tileSize,tx,ty;
 
