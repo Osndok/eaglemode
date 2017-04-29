@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2011,2014 Oliver Hamann.
+# Copyright (C) 2006-2011,2014,2017 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use Config;
 use Cwd;
+use Cwd 'abs_path';
 use File::Basename;
 use File::Copy;
 use File::Path;
@@ -125,7 +126,7 @@ sub Help
 		"      exe    - Windows setup executable.\n".
 		"      rpm    - Red Hat package.\n".
 		"      sb     - Slax bundle.\n".
-		"      tgz    - Slackware package.\n".
+		"      txz    - Slackware package.\n".
 		"      tar.bz2, tar.gz or zip - Source package.\n".
 		"    The packages are created in a subdirectory named \"packages\".\n".
 		"  perl $0 clean [<option>=<value>]...\n".
@@ -179,9 +180,13 @@ sub LoadAllMakers
 	# Do the maker files.
 	for (my $i=0; $i<@names; $i++) {
 		my $path=catfile($MakersDir,"$names[$i]$MakersEnding");
-		do("$path");
+		$path=abs_path($path); # do(..) may fail on relative path.
+		do($path);
 		if ($@) {
 			die("$@");
+		}
+		elsif ($!) {
+			die("Could not execute $path: $!, stopped");
 		}
 	}
 

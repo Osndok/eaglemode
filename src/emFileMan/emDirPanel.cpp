@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008,2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,6 +36,7 @@ emDirPanel::emDirPanel(
 	KeyWalkState=NULL;
 	AddWakeUpSignal(GetVirFileStateSignal());
 	AddWakeUpSignal(Config->GetChangeSignal());
+	SetAutoplayHandling(APH_DIRECTORY);
 }
 
 

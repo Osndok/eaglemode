@@ -319,7 +319,7 @@ void emThread::ExitCurrentThread(int exitStatus)
 int emThread::GetHardwareThreadCount()
 {
 	int n;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__CYGWIN__)
 	SYSTEM_INFO systemInfo;
 	memset(&systemInfo,0,sizeof(systemInfo));
 	::GetSystemInfo(&systemInfo);

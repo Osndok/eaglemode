@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.h
 //
-// Copyright (C) 2005-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,6 +97,7 @@ public:
 	static void StopAll(emRootContext & rootContext);
 	void PlaySolely();
 
+	bool IsStoppedAfterPlayingToEnd() const;
 
 	// - - - Play Pos - - -
 
@@ -194,6 +195,7 @@ private:
 
 	emSignal PlayStateSignal;
 	PlayStateType PlayState;
+	bool StoppedAfterPlayingToEnd;
 
 	emSignal PlayPosSignal;
 	int PlayPos;
@@ -283,6 +285,11 @@ inline void emAvFileModel::PlaySlow()
 inline void emAvFileModel::PlayFast()
 {
 	SetPlayState(PS_FAST);
+}
+
+inline bool emAvFileModel::IsStoppedAfterPlayingToEnd() const
+{
+	return StoppedAfterPlayingToEnd;
 }
 
 inline const emSignal & emAvFileModel::GetPlayPosSignal() const

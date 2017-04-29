@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2011,2015-2016 Oliver Hamann.
+// Copyright (C) 2006-2011,2015-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,18 +104,6 @@ void emWndsScreen::Beep()
 }
 
 
-void emWndsScreen::DisableScreensaver()
-{
-	ScreensaverDisableCounter++;
-}
-
-
-void emWndsScreen::EnableScreensaver()
-{
-	ScreensaverDisableCounter--;
-}
-
-
 emWindowPort * emWndsScreen::CreateWindowPort(emWindow & window)
 {
 	return new emWndsWindowPort(window);
@@ -174,8 +162,6 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 
 	MouseWarpX=0.0;
 	MouseWarpY=0.0;
-
-	ScreensaverDisableCounter=0;
 
 	WinPorts.SetTuningLevel(4);
 
@@ -260,14 +246,6 @@ LRESULT CALLBACK emWndsScreen::WindowProc(
 
 	InstanceListMutex.Lock();
 	for (s=InstanceList, i=-1; s; s=s->NextInstance) {
-		if (
-			s->ScreensaverDisableCounter>0 &&
-			uMsg==WM_SYSCOMMAND &&
-			(wParam==SC_SCREENSAVE || wParam==SC_MONITORPOWER)
-		) {
-			InstanceListMutex.Unlock();
-			return 0;
-		}
 		for (i=s->WinPorts.GetCount()-1; i>=0; i--) {
 			if (s->WinPorts[i]->HWnd==hWnd) break;
 		}
@@ -342,13 +320,15 @@ void emWndsScreen::UpdateGeometry()
 		rp=&DesktopRect;
 		emDLog(
 			"emWndsScreen::UpdateGeometry: Desktop: x=%ld y=%ld w=%ld h=%ld",
-			rp->left, rp->top, rp->right-rp->left, rp->bottom-rp->top
+			(long)rp->left, (long)rp->top, (long)(rp->right-rp->left),
+			(long)(rp->bottom-rp->top)
 		);
 		for (i=0; i<MonitorRects.GetCount(); i++) {
 			rp=&MonitorRects[i];
 			emDLog(
 				"emWndsScreen::UpdateGeometry: Monitor %d: x=%ld y=%ld w=%ld h=%ld",
-				i, rp->left, rp->top, rp->right-rp->left, rp->bottom-rp->top
+				i, (long)rp->left, (long)rp->top, (long)(rp->right-rp->left),
+				(long)(rp->bottom-rp->top)
 			);
 		}
 	}

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.h
 //
-// Copyright (C) 2004-2010,2016 Oliver Hamann.
+// Copyright (C) 2004-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,6 +61,8 @@ public:
 	virtual void GetSubstanceRect(double * pX, double * pY,
 	                              double * pW, double * pH,
 	                              double * pR) const;
+
+	virtual bool IsContentReady(bool * pReadying=NULL) const;
 
 protected:
 

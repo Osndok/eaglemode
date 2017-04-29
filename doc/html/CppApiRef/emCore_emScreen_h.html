@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>.h
 //
-// Copyright (C) 2005-2011,2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,12 +117,6 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>Beep() = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Give an acoustic warning to the user, if possible.
-
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>DisableScreensaver() = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>EnableScreensaver() = <SPAN CLASS=u>0</SPAN>;
-                <SPAN CLASS=c>// Disable or re-enable the screensaver. This should implement
-                // an internal counter for calls to DisableScreensaver() which
-                // have not yet been taken back by calls to EnableScreensaver().
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>*&gt; &amp; GetWindows() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get an array of pointers to all windows on the screen, which

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2011,2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,9 +68,6 @@ public:
 
 	virtual void Beep();
 
-	virtual void DisableScreensaver();
-	virtual void EnableScreensaver();
-
 protected:
 
 	virtual emWindowPort * CreateWindowPort(emWindow & window);
@@ -101,6 +98,9 @@ private:
 	void UpdateInputStateFromKeymap();
 
 	void UpdateLastKnownTime(const XEvent & event);
+
+	void UpdateScreensaver();
+	void WakeUpScreensaverUpdating();
 
 	static int CompareCurMapElemAgainstKey(
 		const CursorMapElement * obj, void * key, void * context
@@ -174,8 +174,7 @@ private:
 	emArray<emX11WindowPort*> WinPorts;
 	emX11WindowPort * GrabbingWinPort;
 	emX11Clipboard * Clipboard;
-	int       ScreensaverDisableCounter;
-	emTimer   ScreensaverDisableTimer;
+	emTimer   ScreensaverUpdateTimer;
 
 	emX11ViewRenderer * ViewRenderer;
 

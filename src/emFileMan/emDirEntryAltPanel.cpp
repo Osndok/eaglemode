@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2007-2010,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,6 +37,7 @@ emDirEntryAltPanel::emDirEntryAltPanel(
 	AddWakeUpSignal(Config->GetChangeSignal());
 
 	SetFocusable(false);
+	SetAutoplayHandling(APH_CUTOFF);
 }
 
 
@@ -69,6 +70,14 @@ void emDirEntryAltPanel::UpdateDirEntry(const emDirEntry & dirEntry)
 	if (p) {
 		((emDirEntryAltPanel*)p)->UpdateDirEntry(dirEntry);
 	}
+}
+
+
+bool emDirEntryAltPanel::IsContentReady(bool * pReadying) const
+{
+	if (!emPanel::IsContentReady(pReadying)) return false;
+	if (pReadying) *pReadying=false;
+	return GetChild(ContentName)!=NULL;
 }
 
 

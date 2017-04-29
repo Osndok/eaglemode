@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.cpp
 //
-// Copyright (C) 2006-2009,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -220,7 +220,6 @@ bool emTimeZonesModel::Cycle()
 
 emTimeZonesModel::City::City()
 {
-	CountryCode[0]=0;
 	Latitude=0.0;
 	Longitude=0.0;
 	TzFileChecked=0;
@@ -267,7 +266,11 @@ void emTimeZonesModel::InitCities()
 	for (;;) {
 		zoneTabPath=ZoneInfoDir+"/zone.tab";
 		if (emIsRegularFile(zoneTabPath)) break;
+		zoneTabPath=ZoneInfoDir+"/zone1970.tab";
+		if (emIsRegularFile(zoneTabPath)) break;
 		zoneTabPath=ZoneInfoDir+"/tab/zone.tab";
+		if (emIsRegularFile(zoneTabPath)) break;
+		zoneTabPath=ZoneInfoDir+"/tab/zone1970.tab";
 		if (emIsRegularFile(zoneTabPath)) break;
 		zoneTabPath=ZoneInfoDir+"/tab/zone_sun.tab";
 		if (emIsRegularFile(zoneTabPath)) break;
@@ -295,10 +298,14 @@ void emTimeZonesModel::InitCities()
 
 		while (*p && (emByte)*p<=32) { p++; }
 		if (*p=='#' || (emByte)*p<=32) continue;
-		city->CountryCode[0]=*p++;
-		if ((emByte)*p<=32) continue;
-		city->CountryCode[1]=*p++;
-		city->CountryCode[2]=0;
+		for (l=0;;l++) {
+			if ((emByte)p[l]<=32) break;
+			if ((emByte)p[l+1]<=32) break;
+			l+=2;
+			if (p[l]!=',') break;
+		}
+		city->CountryCodes=emString(p,l);
+		p+=l;
 		if ((emByte)*p>32) continue;
 
 		while (*p && (emByte)*p<=32) { p++; }

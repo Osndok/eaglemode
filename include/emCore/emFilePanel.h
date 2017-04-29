@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.h
 //
-// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -114,6 +114,8 @@ public:
 		// modified.
 
 	virtual emString GetIconFileName() const;
+
+	virtual bool IsContentReady(bool * pReadying=NULL) const;
 
 protected:
 

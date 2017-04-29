@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -164,6 +164,21 @@ void emX11WindowPort::Raise()
 }
 
 
+void emX11WindowPort::InhibitScreensaver()
+{
+	ScreensaverInhibitCount++;
+	if (ScreensaverInhibitCount==1) {
+		Screen.WakeUpScreensaverUpdating();
+	}
+}
+
+
+void emX11WindowPort::AllowScreensaver()
+{
+	ScreensaverInhibitCount--;
+}
+
+
 emUInt64 emX11WindowPort::GetInputClockMS() const
 {
 	return emGetClockMS(); // ???
@@ -270,6 +285,7 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	memset(&ComposeStatus,0,sizeof(ComposeStatus));
 	ModalState=false;
 	ModalDescendants=0;
+	ScreensaverInhibitCount=0;
 
 	Screen.WinPorts.Add(this);
 

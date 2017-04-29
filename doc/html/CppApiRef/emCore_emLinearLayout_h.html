@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -100,8 +100,12 @@
 
         </SPAN><SPAN CLASS=t>double </SPAN>GetOrientationThresholdTallness() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetOrientationThresholdTallness(<SPAN CLASS=t>double </SPAN>tallness);
+                <SPAN CLASS=c>// Threshold tallness for deciding the orientation of the of
+                // layout. If the tallness of the content area of the panel is
+                // greater than this threshold, the orientation is vertical,
+                // otherwise it is horizontal.
 
-        <SPAN CLASS=t>int </SPAN>GetMinCellCount() <SPAN CLASS=t>const</SPAN>;
+        </SPAN><SPAN CLASS=t>int </SPAN>GetMinCellCount() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetMinCellCount(<SPAN CLASS=t>int </SPAN>minCellCount);
                 <SPAN CLASS=c>// Minimum number of cells to be generated. The layout algorithm
                 // behaves like if there were at least this number of child

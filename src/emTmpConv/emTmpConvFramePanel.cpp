@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFramePanel.cpp
 //
-// Copyright (C) 2006-2009,2016 Oliver Hamann.
+// Copyright (C) 2006-2009,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,6 +38,7 @@ emTmpConvFramePanel::emTmpConvFramePanel(
 	);
 	FileManViewConfig=emFileManViewConfig::Acquire(GetView());
 	AddWakeUpSignal(FileManViewConfig->GetChangeSignal());
+	SetAutoplayHandling(APH_CUTOFF);
 	UpdateBgColor();
 }
 

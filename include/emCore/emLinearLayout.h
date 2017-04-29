@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLinearLayout.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -91,6 +91,10 @@ public:
 
 	double GetOrientationThresholdTallness() const;
 	void SetOrientationThresholdTallness(double tallness);
+		// Threshold tallness for deciding the orientation of the of
+		// layout. If the tallness of the content area of the panel is
+		// greater than this threshold, the orientation is vertical,
+		// otherwise it is horizontal.
 
 	int GetMinCellCount() const;
 	void SetMinCellCount(int minCellCount);

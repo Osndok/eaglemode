@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvPanel.h
 //
-// Copyright (C) 2006-2008,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,8 @@ public:
 	emTmpConvModel * GetModel() const;
 
 	virtual emString GetTitle() const;
+
+	virtual bool IsContentReady(bool * pReadying=NULL) const;
 
 protected:
 

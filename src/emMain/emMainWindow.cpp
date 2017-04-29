@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -74,6 +74,7 @@ emMainWindow::emMainWindow(
 
 emMainWindow::~emMainWindow()
 {
+	AutoplayViewModel=NULL;
 	if (StartupEngine) delete StartupEngine;
 	if (ControlWindow.Get()) delete ControlWindow.Get();
 	if (ControlPanel) delete ControlPanel;
@@ -237,6 +238,10 @@ void emMainWindow::Input(emInputEvent & event, const emInputState & state)
 		break;
 	}
 
+	if (AutoplayViewModel) {
+		AutoplayViewModel->Input(event,state);
+	}
+
 	if (BookmarksModel && MainPanel) {
 		bmRec=BookmarksModel->SearchBookmarkByHotkey(emInputHotkey(event,state));
 		if (bmRec) {
@@ -369,12 +374,18 @@ bool emMainWindow::StartupEngineClass::Cycle()
 		State++;
 		return true;
 	case 3:
-		MainWin.MainPanel=new emMainPanel(&MainWin,"main",1.0/18.0);
+		MainWin.MainPanel=new emMainPanel(&MainWin,"main",0.0538);
 		MainWin.AddWakeUpSignal(MainWin.MainPanel->GetContentView().GetTitleSignal());
 		if (CeColor.GetAlpha()!=0) {
 			MainWin.MainPanel->SetControlEdgesColor(CeColor);
 		}
 		MainWin.MainPanel->SetStartupOverlay(true);
+		MainWin.AutoplayViewModel=emAutoplayViewModel::Acquire(
+			MainWin.MainPanel->GetContentView()
+		);
+		MainWin.AutoplayViewModel->SetConfigFilePath(
+			emGetInstallPath(EM_IDT_USER_CONFIG,"emMain","autoplay.rec")
+		);
 		State++;
 		return true;
 	case 4:

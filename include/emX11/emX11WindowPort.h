@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.h
 //
-// Copyright (C) 2005-2012,2016 Oliver Hamann.
+// Copyright (C) 2005-2012,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,8 @@ protected:
 	) const;
 	virtual void RequestFocus();
 	virtual void Raise();
+	virtual void InhibitScreensaver();
+	virtual void AllowScreensaver();
 	virtual emUInt64 GetInputClockMS() const;
 	virtual void InvalidateTitle();
 	virtual void InvalidateIcon();
@@ -130,6 +132,7 @@ private:
 	XComposeStatus ComposeStatus;
 	bool ModalState;
 	int ModalDescendants;
+	int ScreensaverInhibitCount;
 };
 
 

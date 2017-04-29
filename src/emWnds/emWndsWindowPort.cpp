@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -240,6 +240,18 @@ void emWndsWindowPort::Raise()
 }
 
 
+void emWndsWindowPort::InhibitScreensaver()
+{
+	ScreensaverInhibitCount++;
+}
+
+
+void emWndsWindowPort::AllowScreensaver()
+{
+	ScreensaverInhibitCount--;
+}
+
+
 emUInt64 emWndsWindowPort::GetInputClockMS() const
 {
 	return emGetClockMS(); // ???
@@ -345,6 +357,7 @@ emWndsWindowPort::emWndsWindowPort(emWindow & window)
 	ModalDescendants=0;
 	BigIcon=NULL;
 	SmallIcon=NULL;
+	ScreensaverInhibitCount=0;
 
 	Screen.WinPorts.Add(this);
 
@@ -861,6 +874,11 @@ LRESULT emWndsWindowPort::WindowProc(
 	case WM_SYSDEADCHAR:
 	case WM_UNICHAR:
 		return 0;
+	case WM_SYSCOMMAND:
+		if (wParam==SC_SCREENSAVE || wParam==SC_MONITORPOWER) {
+			if (IsScreensaverReallyToInhibit()) return 0;
+		}
+		return DefWindowProc(HWnd,uMsg,wParam,lParam);
 	case WM_PAINT:
 		hdc=BeginPaint(HWnd,&ps);
 		if (hdc) {
@@ -1126,6 +1144,34 @@ void emWndsWindowPort::UpdatePainting()
 	);
 
 	InvalidRects.Clear();
+}
+
+
+bool emWndsWindowPort::IsScreensaverReallyToInhibit()
+{
+	double x1,y1,x2,y2,vx,vy,vw,vh,mx,my,mw,mh;
+	int i,n;
+
+	if (ScreensaverInhibitCount<=0) return false;
+
+	if (::IsIconic(HWnd)) return false;
+
+	vx=GetViewX();
+	vy=GetViewY();
+	vw=GetViewWidth();
+	vh=GetViewHeight();
+	n=Screen.GetMonitorCount();
+	for (i=0; i<n; i++) {
+		Screen.GetMonitorRect(i,&mx,&my,&mw,&mh);
+		x1=emMax(vx,mx);
+		y1=emMax(vy,my);
+		x2=emMin(vx+vw,mx+mw);
+		y2=emMin(vy+vh,my+mh);
+		if (x1<x2 && y1<y2 && (x2-x1)*(y2-y1)>=0.6*mw*mh) {
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ extern "C" {
 		return new emAvFilePanel(
 			parent,name,
 			emAvFileModel::Acquire(
-				parent.GetRootContext(),
+				parent.GetView(),
 				path,
 				emGetChildPath(
 					emGetInstallPath(EM_IDT_LIB,"emAv","emAv"),

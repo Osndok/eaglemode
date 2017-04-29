@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -105,6 +105,24 @@ bool emFilePanel::IsVFSGood() const
 emString emFilePanel::GetIconFileName() const
 {
 	return "file.tga";
+}
+
+
+bool emFilePanel::IsContentReady(bool * pReadying) const
+{
+	switch (GetVirFileState()) {
+	case VFS_WAITING:
+	case VFS_LOADING:
+		if (pReadying) *pReadying=true;
+		return false;
+	case VFS_LOADED:
+	case VFS_UNSAVED:
+	case VFS_SAVING:
+		return emPanel::IsContentReady(pReadying);
+	default:
+		if (pReadying) *pReadying=false;
+		return false;
+	}
 }
 
 

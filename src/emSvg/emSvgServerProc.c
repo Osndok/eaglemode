@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emSvgServerProc.c
 //
-// Copyright (C) 2010-2011 Oliver Hamann.
+// Copyright (C) 2010-2011,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,7 +25,14 @@
 #include <locale.h>
 #include <sys/shm.h>
 #include <librsvg/rsvg.h>
-#include <librsvg/rsvg-cairo.h>
+#if defined(LIBRSVG_CHECK_VERSION)
+#	if !LIBRSVG_CHECK_VERSION(2,36,2)
+#		include <librsvg/rsvg-cairo.h>
+#	endif
+#else
+#	include <librsvg/librsvg-features.h>
+#	include <librsvg/rsvg-cairo.h>
+#endif
 
 
 typedef struct {
@@ -87,7 +94,7 @@ static void emSvgPrintQuoted(const char * str)
 
 static void emSvgOpen(const char * args)
 {
-	const char * filePath;
+	const char * filePath, * title, * desc;
 	GError * err;
 	emSvgInst * inst;
 	int instId;
@@ -149,15 +156,25 @@ static void emSvgOpen(const char * args)
 	}
 	emSvgInstArray[instId]=inst;
 
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+	title = rsvg_handle_get_title(inst->handle);
+	desc = rsvg_handle_get_desc(inst->handle);
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
+#	pragma GCC diagnostic pop
+#endif
+
 	printf(
 		"opened: %d %d %d ",
 		instId,
 		inst->dimData.width,
 		inst->dimData.height
 	);
-	emSvgPrintQuoted(rsvg_handle_get_title(inst->handle));
+	emSvgPrintQuoted(title);
 	putchar(' ');
-	emSvgPrintQuoted(rsvg_handle_get_desc(inst->handle));
+	emSvgPrintQuoted(desc);
 	putchar('\n');
 }
 
@@ -263,7 +280,20 @@ int main(int argc, char * argv[])
 	char * args;
 	int len;
 
+#if defined(LIBRSVG_CHECK_VERSION)
+#	if !LIBRSVG_CHECK_VERSION(2,35,0)
 	rsvg_init();
+#	elif defined(GLIB_CHECK_VERSION)
+#		if !GLIB_CHECK_VERSION(2,36,0)
+	g_type_init();
+#		endif
+#	else
+	g_type_init();
+#	endif
+#else
+	rsvg_init();
+#endif
+
 	setlocale(LC_NUMERIC,"C");
 
 	while (fgets(buf,sizeof(buf),stdin)) {
@@ -283,7 +313,13 @@ int main(int argc, char * argv[])
 		fflush(stdout);
 	}
 
+#if defined(LIBRSVG_CHECK_VERSION)
+#	if !LIBRSVG_CHECK_VERSION(2,35,0)
 	rsvg_term();
+#	endif
+#else
+	rsvg_term();
+#endif
 
 	return 0;
 }

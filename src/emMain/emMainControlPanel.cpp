@@ -21,6 +21,7 @@
 #include <emMain/emMainControlPanel.h>
 #include <emCore/emRes.h>
 #include <emCore/emCoreConfigPanel.h>
+#include <emMain/emAutoplay.h>
 #include <emMain/emMainWindow.h>
 
 
@@ -54,9 +55,10 @@ emMainControlPanel::emMainControlPanel(
 	emLinearGroup * grAbout;
 	emPackGroup * grCommands;
 	emRasterGroup * grFullscreenPrefs;
-	emLinearLayout * lMain, * lAbtCfgCmd, * lAbtCfg;
+	emLinearLayout * lMain, * lAbtCfgCmd, * lAbtCfg, * lCloseQuit;
 	emCoreConfigPanel * coreConfigPanel;
 	emLabel * iconLabel, * textLabel;
+	emAutoplayControlPanel * apc;
 	emLook look;
 
 	ContentControlPanel=NULL;
@@ -68,20 +70,20 @@ emMainControlPanel::emMainControlPanel(
 	SetInnerBorderType(emBorder::IBT_NONE);
 	SetMinCellCount(2);
 	SetOrientationThresholdTallness(1.0);
-	SetChildWeight(0,10.32);
+	SetChildWeight(0,11.37);
 	SetChildWeight(1,21.32);
-	SetInnerSpace(0.01,0.01);
+	SetInnerSpace(0.0098,0.0098);
 
 	lMain=new emLinearLayout(this,"general");
-	lMain->SetOrientationThresholdTallness(1.0);
-	lMain->SetChildWeight(0,3.66);
+	lMain->SetOrientationThresholdTallness(0.8);
+	lMain->SetChildWeight(0,4.71);
 	lMain->SetChildWeight(1,6.5);
-	lMain->SetInnerSpace(0.031,0.031);
+	lMain->SetInnerSpace(0.0281,0.0281);
 		lAbtCfgCmd=new emLinearLayout(lMain,"l");
-		lAbtCfgCmd->SetOrientationThresholdTallness(1.0);
+		lAbtCfgCmd->SetOrientationThresholdTallness(0.8);
 		lAbtCfgCmd->SetChildWeight(0,1.5);
-		lAbtCfgCmd->SetChildWeight(1,2.0);
-		lAbtCfgCmd->SetInnerSpace(0.091,0.091);
+		lAbtCfgCmd->SetChildWeight(1,3.05);
+		lAbtCfgCmd->SetInnerSpace(0.07,0.07);
 		new emBookmarksPanel(
 			lMain,"bookmarks",
 			&ContentView,
@@ -115,10 +117,10 @@ emMainControlPanel::emMainControlPanel(
 	grCommands=new emPackGroup(lAbtCfgCmd,"commands","Main Commands");
 		grCommands->SetPrefChildTallness(0.7);
 		grCommands->SetChildWeight(0,1.0);
-		grCommands->SetChildWeight(1,1.0);
-		grCommands->SetChildWeight(2,1.09);
-		grCommands->SetChildWeight(3,0.51);
-		grCommands->SetChildWeight(4,0.4);
+		grCommands->SetChildWeight(1,1.09);
+		grCommands->SetChildWeight(2,1.0);
+		grCommands->SetChildWeight(3,2.09);
+		grCommands->SetChildWeight(4,1.0);
 		BtNewWindow=new emButton(
 			grCommands,"new window",
 			"New Window",
@@ -129,19 +131,6 @@ emMainControlPanel::emMainControlPanel(
 		);
 		BtNewWindow->SetIconAboveCaption();
 		BtNewWindow->SetBorderScaling(0.5);
-		BtReload=new emButton(
-			grCommands,"reload",
-			"Reload Files",
-			"Reload files and directories which are currently shown by this program. You\n"
-			"should trigger this function after you have modified files or directories\n"
-			"with another program. This function does not really reload all files, but it\n"
-			"checks file modification time stamps to see which files are to be reloaded.\n"
-			"\n"
-			"Hotkey: F5",
-			emGetInsResImage(GetRootContext(),"emMain","ReloadFiles.tga")
-		);
-		BtReload->SetIconAboveCaption();
-		BtReload->SetBorderScaling(0.5);
 		BtFullscreen=new emCheckButton(
 			grCommands,"fullscreen",
 			"Fullscreen",
@@ -180,26 +169,46 @@ emMainControlPanel::emMainControlPanel(
 				);
 				BtAutoHideSlider->SetNoEOI();
 				BtAutoHideSlider->SetChecked(MainConfig->AutoHideSlider);
-		BtClose=new emButton(
-			grCommands,"close",
-			"Close",
-			"Close this window.\n"
+		BtReload=new emButton(
+			grCommands,"reload",
+			"Reload Files",
+			"Reload files and directories which are currently shown by this program. You\n"
+			"should trigger this function after you have modified files or directories\n"
+			"with another program. This function does not really reload all files, but it\n"
+			"checks file modification time stamps to see which files are to be reloaded.\n"
 			"\n"
-			"Hotkey: Alt+F4",
-			emGetInsResImage(GetRootContext(),"emMain","CloseWindow.tga")
+			"Hotkey: F5",
+			emGetInsResImage(GetRootContext(),"emMain","ReloadFiles.tga")
 		);
-		BtClose->SetIconAboveCaption();
-		BtClose->SetBorderScaling(0.5);
-		BtQuit=new emButton(
-			grCommands,"quit",
-			"Quit",
-			"Close all windows of this process (and terminate this process).\n"
-			"\n"
-			"Hotkey: Shift+Alt+F4",
-			emGetInsResImage(GetRootContext(),"emMain","Quit.tga")
-		);
-		BtQuit->SetIconAboveCaption();
-		BtQuit->SetBorderScaling(0.5);
+		BtReload->SetIconAboveCaption();
+		BtReload->SetBorderScaling(0.5);
+		apc=new emAutoplayControlPanel(grCommands,"autoplay",ContentView);
+		apc->SetBorderScaling(0.2);
+		apc->SetFocusable(false);
+		lCloseQuit=new emLinearLayout(grCommands,"close_quit");
+		lCloseQuit->SetOrientationThresholdTallness(0.7);
+		lCloseQuit->SetChildWeight(0,1.0);
+		lCloseQuit->SetChildWeight(1,0.8);
+			BtClose=new emButton(
+				lCloseQuit,"close",
+				"Close",
+				"Close this window.\n"
+				"\n"
+				"Hotkey: Alt+F4",
+				emGetInsResImage(GetRootContext(),"emMain","CloseWindow.tga")
+			);
+			BtClose->SetIconAboveCaption();
+			BtClose->SetBorderScaling(0.5);
+			BtQuit=new emButton(
+				lCloseQuit,"quit",
+				"Quit",
+				"Close all windows of this process (and terminate this process).\n"
+				"\n"
+				"Hotkey: Shift+Alt+F4",
+				emGetInsResImage(GetRootContext(),"emMain","Quit.tga")
+			);
+			BtQuit->SetIconAboveCaption();
+			BtQuit->SetBorderScaling(0.5);
 
 
 	AddWakeUpSignal(ContentView.GetControlPanelSignal());

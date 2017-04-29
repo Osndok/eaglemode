@@ -111,7 +111,7 @@ bool SilChessPanel::Cycle()
 			}
 		}
 
-		AnimEnd+=emMax(1,Image.GetHeight()/10);
+		AnimEnd+=emMax(1,Image.GetHeight()/60);
 
 		if (crv.InvX1<crv.InvX2 && crv.InvY1<crv.InvY2) {
 			InvalidatePainting(
@@ -352,10 +352,10 @@ void SilChessPanel::PrepareRendering(bool viewingChanged)
 	double ppy,ppz,ppny,ppnz,ppd;
 	int imgW,imgH;
 
-	ImgX1=GetClipX1();
-	ImgY1=GetClipY1();
-	ImgX2=GetClipX2();
-	ImgY2=GetClipY2();
+	ImgX1=floor(GetClipX1());
+	ImgY1=floor(GetClipY1());
+	ImgX2=ceil(GetClipX2());
+	ImgY2=ceil(GetClipY2());
 
 	if (!IsViewed() || !IsVFSGood() || ImgX1>=ImgX2-2 || ImgY1>=ImgY2-2) {
 		Image.Clear();

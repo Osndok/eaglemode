@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.h
 //
-// Copyright (C) 2005-2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -52,6 +52,9 @@ public:
 	virtual void GetEssenceRect(double * pX, double * pY,
 	                            double * pW, double * pH) const;
 
+	virtual bool GetPlaybackState(bool * pPlaying, double * pPos=NULL) const;
+	virtual bool SetPlaybackState(bool playing, double pos=-1.0);
+
 protected:
 
 	virtual bool Cycle();
@@ -76,12 +79,12 @@ private:
 
 	void UpdateCursorHiding(bool restart);
 
-	void UpdateScreensaverDisabling();
+	void UpdateScreensaverInhibiting();
 
 	emImage BgImage;
 	emTimer CursorTimer;
 	bool CursorHidden;
-	bool ScreensaverDisabled;
+	bool ScreensaverInhibited;
 	bool HaveControlPanel;
 	emString WarningText;
 	emUInt64 WarningStartTime;

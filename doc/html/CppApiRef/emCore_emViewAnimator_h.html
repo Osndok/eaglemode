@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>.h
 //
-// Copyright (C) 2014-2016 Oliver Hamann.
+// Copyright (C) 2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,6 +48,10 @@
 
         <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; GetView() <SPAN CLASS=t>const</SPAN>;
 
+        <SPAN CLASS=t>void </SPAN>SetMaster(<A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * master);
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * GetMaster() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * GetActiveSlave() <SPAN CLASS=t>const</SPAN>;
+
         <SPAN CLASS=t>bool </SPAN>IsActive() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>Activate();
         <SPAN CLASS=t>virtual void </SPAN>Deactivate();
@@ -69,6 +73,9 @@
 <SPAN CLASS=t>private</SPAN>:
 
         <A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; View;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * Master;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * ActiveSlave;
+        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * * UpperActivePtr;
         emUInt64 LastTSC;
         emUInt64 LastClk;
         <SPAN CLASS=t>bool </SPAN>DeactivateWhenIdle;
@@ -79,9 +86,19 @@
         </SPAN><SPAN CLASS=k>return </SPAN>View;
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::GetMaster() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Master;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::GetActiveSlave() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ActiveSlave;
+<SPAN CLASS=b>}
+
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::IsActive() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>View.ActiveAnimator==<SPAN CLASS=k>this</SPAN>;
+        </SPAN><SPAN CLASS=k>return </SPAN>*UpperActivePtr==<SPAN CLASS=k>this</SPAN>;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A>::IsDeactivatingWhenIdle() <SPAN CLASS=t>const
@@ -302,10 +319,18 @@
         <A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>();
 
+        <SPAN CLASS=t>bool </SPAN>IsAnimated() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetAnimated(<SPAN CLASS=t>bool </SPAN>animated=<SPAN CLASS=k>true</SPAN>);
+
+        <SPAN CLASS=t>double </SPAN>GetAcceleration() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetAcceleration(<SPAN CLASS=t>double </SPAN>acceleration);
+
+        <SPAN CLASS=t>double </SPAN>GetMaxCuspSpeed() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetMaxCuspSpeed(<SPAN CLASS=t>double </SPAN>maxCuspSpeed);
+
+        <SPAN CLASS=t>double </SPAN>GetMaxAbsoluteSpeed() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetMaxAbsoluteSpeed(<SPAN CLASS=t>double </SPAN>maxAbsoluteSpeed);
+
         <SPAN CLASS=t>void </SPAN>SetAnimParamsByCoreConfig(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> &amp; coreConfig);
 
         <SPAN CLASS=t>void </SPAN>SetGoal(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
@@ -314,6 +339,11 @@
                      <SPAN CLASS=t>bool </SPAN>adherent, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
         <SPAN CLASS=t>void </SPAN>SetGoalFullsized(<SPAN CLASS=t>const char </SPAN>* identity, <SPAN CLASS=t>bool </SPAN>adherent,
                               <SPAN CLASS=t>bool </SPAN>utilizeView=<SPAN CLASS=k>false</SPAN>, <SPAN CLASS=t>const char </SPAN>* subject=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>ClearGoal();
+
+        <SPAN CLASS=t>bool </SPAN>HasGoal() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>HasReachedGoal() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>bool </SPAN>HasGivenUp() <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>Activate();
         <SPAN CLASS=t>virtual void </SPAN>Deactivate();
@@ -327,10 +357,13 @@
 <SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>enum </SPAN>StateEnum <SPAN CLASS=b>{
-                </SPAN>ST_CURVE,
+                </SPAN>ST_NO_GOAL,
+                ST_CURVE,
                 ST_DIRECT,
                 ST_SEEK,
-                ST_GIVE_UP
+                ST_GIVING_UP,
+                ST_GIVEN_UP,
+                ST_GOAL_REACHED
         <SPAN CLASS=b>}</SPAN>;
 
         <SPAN CLASS=t>enum </SPAN>VisitTypeEnum <SPAN CLASS=b>{
@@ -386,6 +419,7 @@
         <SPAN CLASS=t>double </SPAN>Acceleration;
         <SPAN CLASS=t>double </SPAN>MaxCuspSpeed;
         <SPAN CLASS=t>double </SPAN>MaxAbsoluteSpeed;
+        StateEnum State;
         VisitTypeEnum VisitType;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Identity;
         <SPAN CLASS=t>double </SPAN>RelX,RelY,RelA;
@@ -393,7 +427,6 @@
         <SPAN CLASS=t>bool </SPAN>UtilizeView;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Subject;
         <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; Names;
-        StateEnum State;
         <SPAN CLASS=t>int </SPAN>MaxDepthSeen;
         <SPAN CLASS=t>double </SPAN>Speed;
         <SPAN CLASS=t>int </SPAN>TimeSlicesWithoutHope;
@@ -404,8 +437,43 @@
         <SPAN CLASS=t>static const int </SPAN>CurveMaxIndex;
 <SPAN CLASS=b>}</SPAN>;
 
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::IsAnimated() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Animated;
+<SPAN CLASS=b>}
 
-<SPAN CLASS=p>#endif
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::GetAcceleration() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Acceleration;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::GetMaxCuspSpeed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxCuspSpeed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::GetMaxAbsoluteSpeed() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>MaxAbsoluteSpeed;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::HasGoal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>State!=ST_NO_GOAL;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::HasReachedGoal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>State==ST_GOAL_REACHED;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>::HasGivenUp() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>State==ST_GIVEN_UP;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
 </SPAN></SPAN></TT></PRE>
 </BODY>
 </HTML>

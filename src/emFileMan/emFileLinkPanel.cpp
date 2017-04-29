@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkPanel.cpp
 //
-// Copyright (C) 2007-2008,2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,6 +47,8 @@ emFileLinkPanel::emFileLinkPanel(
 	HaveDirEntryPanel=false;
 	DirEntryUpToDate=false;
 	ChildPanel=NULL;
+
+	SetAutoplayHandling(0);
 
 	AddWakeUpSignal(UpdateSignalModel->Sig);
 	AddWakeUpSignal(GetVirFileStateSignal());
@@ -310,6 +312,11 @@ void emFileLinkPanel::CreateChildPanel()
 	if (!ChildPanel) {
 		if (HaveDirEntryPanel) {
 			ChildPanel=new emDirEntryPanel(this,"",DirEntry);
+			if (!HaveBorder) {
+				ChildPanel->SetAutoplayHandling(
+					ChildPanel->GetAutoplayHandling() | APH_ITEM
+				);
+			}
 		}
 		else {
 			fppl=emFpPluginList::Acquire(GetRootContext());
@@ -320,6 +327,13 @@ void emFileLinkPanel::CreateChildPanel()
 				DirEntry.GetStatErrNo(),
 				DirEntry.GetStat()->st_mode
 			);
+			if (!HaveBorder) {
+				if (ChildPanel->GetAutoplayHandling() & APH_DIRECTORY) {
+					ChildPanel->SetAutoplayHandling(
+						ChildPanel->GetAutoplayHandling() | APH_ITEM
+					);
+				}
+			}
 		}
 		if (!HaveBorder) {
 			if (IsActive()) {

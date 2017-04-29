@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>.h
 //
-// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -123,6 +123,8 @@
                 // modified.
 
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>virtual bool </SPAN>IsContentReady(<SPAN CLASS=t>bool </SPAN>* pReadying=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 

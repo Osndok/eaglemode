@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,6 +71,7 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		AEExpanded=0;
 		CreatedByAE=Parent->AECalling;
 		AEThresholdType=VCT_AREA;
+		AutoplayHandling=APH_ITEM;
 		Parent->AvlInsertChild(this);
 		Parent->AddPendingNotice(NF_CHILD_LIST_CHANGED);
 		AddPendingNotice(
@@ -135,6 +136,7 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 		AEExpanded=0;
 		CreatedByAE=0;
 		AEThresholdType=VCT_AREA;
+		AutoplayHandling=APH_ITEM;
 		InvalidatePainting();
 		AddPendingNotice(
 			NF_CHILD_LIST_CHANGED |
@@ -1042,6 +1044,33 @@ emUInt64 emPanel::GetMemoryLimit() const
 double emPanel::GetTouchEventPriority(double touchX, double touchY) const
 {
 	return Focusable ? 1.0 : 0.0;
+}
+
+
+void emPanel::SetAutoplayHandling(AutoplayHandlingFlags flags)
+{
+	AutoplayHandling=flags;
+}
+
+
+bool emPanel::IsContentReady(bool * pReadying) const
+{
+	if (pReadying) *pReadying=false;
+	return IsAutoExpanded();
+}
+
+
+bool emPanel::GetPlaybackState(bool * pPlaying, double * pPos) const
+{
+	if (pPlaying) *pPlaying=false;
+	if (pPos) *pPos=0.0;
+	return false;
+}
+
+
+bool emPanel::SetPlaybackState(bool playing, double pos)
+{
+	return false;
 }
 
 

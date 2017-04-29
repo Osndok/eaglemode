@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.h
 //
-// Copyright (C) 2014-2016 Oliver Hamann.
+// Copyright (C) 2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,6 +39,10 @@ public:
 
 	emView & GetView() const;
 
+	void SetMaster(emViewAnimator * master);
+	emViewAnimator * GetMaster() const;
+	emViewAnimator * GetActiveSlave() const;
+
 	bool IsActive() const;
 	virtual void Activate();
 	virtual void Deactivate();
@@ -60,6 +64,9 @@ protected:
 private:
 
 	emView & View;
+	emViewAnimator * Master;
+	emViewAnimator * ActiveSlave;
+	emViewAnimator * * UpperActivePtr;
 	emUInt64 LastTSC;
 	emUInt64 LastClk;
 	bool DeactivateWhenIdle;
@@ -70,9 +77,19 @@ inline emView & emViewAnimator::GetView() const
 	return View;
 }
 
+inline emViewAnimator * emViewAnimator::GetMaster() const
+{
+	return Master;
+}
+
+inline emViewAnimator * emViewAnimator::GetActiveSlave() const
+{
+	return ActiveSlave;
+}
+
 inline bool emViewAnimator::IsActive() const
 {
-	return View.ActiveAnimator==this;
+	return *UpperActivePtr==this;
 }
 
 inline bool emViewAnimator::IsDeactivatingWhenIdle() const
@@ -293,10 +310,18 @@ public:
 	emVisitingViewAnimator(emView & view);
 	virtual ~emVisitingViewAnimator();
 
+	bool IsAnimated() const;
 	void SetAnimated(bool animated=true);
+
+	double GetAcceleration() const;
 	void SetAcceleration(double acceleration);
+
+	double GetMaxCuspSpeed() const;
 	void SetMaxCuspSpeed(double maxCuspSpeed);
+
+	double GetMaxAbsoluteSpeed() const;
 	void SetMaxAbsoluteSpeed(double maxAbsoluteSpeed);
+
 	void SetAnimParamsByCoreConfig(const emCoreConfig & coreConfig);
 
 	void SetGoal(const char * identity, bool adherent,
@@ -305,6 +330,11 @@ public:
 	             bool adherent, const char * subject=NULL);
 	void SetGoalFullsized(const char * identity, bool adherent,
 	                      bool utilizeView=false, const char * subject=NULL);
+	void ClearGoal();
+
+	bool HasGoal() const;
+	bool HasReachedGoal() const;
+	bool HasGivenUp() const;
 
 	virtual void Activate();
 	virtual void Deactivate();
@@ -318,10 +348,13 @@ protected:
 private:
 
 	enum StateEnum {
+		ST_NO_GOAL,
 		ST_CURVE,
 		ST_DIRECT,
 		ST_SEEK,
-		ST_GIVE_UP
+		ST_GIVING_UP,
+		ST_GIVEN_UP,
+		ST_GOAL_REACHED
 	};
 
 	enum VisitTypeEnum {
@@ -377,6 +410,7 @@ private:
 	double Acceleration;
 	double MaxCuspSpeed;
 	double MaxAbsoluteSpeed;
+	StateEnum State;
 	VisitTypeEnum VisitType;
 	emString Identity;
 	double RelX,RelY,RelA;
@@ -384,7 +418,6 @@ private:
 	bool UtilizeView;
 	emString Subject;
 	emArray<emString> Names;
-	StateEnum State;
 	int MaxDepthSeen;
 	double Speed;
 	int TimeSlicesWithoutHope;
@@ -394,6 +427,41 @@ private:
 	static const CurvePoint CurvePoints[];
 	static const int CurveMaxIndex;
 };
+
+inline bool emVisitingViewAnimator::IsAnimated() const
+{
+	return Animated;
+}
+
+inline double emVisitingViewAnimator::GetAcceleration() const
+{
+	return Acceleration;
+}
+
+inline double emVisitingViewAnimator::GetMaxCuspSpeed() const
+{
+	return MaxCuspSpeed;
+}
+
+inline double emVisitingViewAnimator::GetMaxAbsoluteSpeed() const
+{
+	return MaxAbsoluteSpeed;
+}
+
+inline bool emVisitingViewAnimator::HasGoal() const
+{
+	return State!=ST_NO_GOAL;
+}
+
+inline bool emVisitingViewAnimator::HasReachedGoal() const
+{
+	return State==ST_GOAL_REACHED;
+}
+
+inline bool emVisitingViewAnimator::HasGivenUp() const
+{
+	return State==ST_GIVEN_UP;
+}
 
 
 #endif

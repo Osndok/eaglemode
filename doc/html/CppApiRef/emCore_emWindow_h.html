@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>.h
 //
-// Copyright (C) 2005-2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -179,6 +179,14 @@
                 <SPAN CLASS=c>// Bring this window to the top of the stacking order. The
                 // window is even restored from any iconified state.
 
+        </SPAN><SPAN CLASS=t>void </SPAN>InhibitScreensaver();
+        <SPAN CLASS=t>void </SPAN>AllowScreensaver();
+                <SPAN CLASS=c>// Inhibit or re-allow the screensaver. This should implement an
+                // internal counter for calls to InhibitScreensaver() which have
+                // not yet been taken back by calls to AllowScreensaver().
+                // Inhibiting only works while the window is shown quite large
+                // and not iconified.
+
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <SPAN CLASS=t>virtual void </SPAN>InvalidateTitle();
@@ -260,6 +268,9 @@
         ) <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>Raise() = <SPAN CLASS=u>0</SPAN>;
+
+        <SPAN CLASS=t>virtual void </SPAN>InhibitScreensaver() = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>AllowScreensaver() = <SPAN CLASS=u>0</SPAN>;
 
         <SPAN CLASS=t>virtual void </SPAN>InvalidateTitle() = <SPAN CLASS=u>0</SPAN>;
 
@@ -385,6 +396,16 @@
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::Raise()
 <SPAN CLASS=b>{
         </SPAN>WindowPort-&gt;Raise();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::InhibitScreensaver()
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;InhibitScreensaver();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::AllowScreensaver()
+<SPAN CLASS=b>{
+        </SPAN>WindowPort-&gt;AllowScreensaver();
 <SPAN CLASS=b>}
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.h
 //
-// Copyright (C) 2006-2009,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -95,7 +95,7 @@ private:
 
 	struct City {
 		City();
-		char CountryCode[4];
+		emString CountryCodes;
 		double Latitude;
 		double Longitude;
 		emString Name;

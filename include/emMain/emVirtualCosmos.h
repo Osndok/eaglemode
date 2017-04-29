@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.h
 //
-// Copyright (C) 2007-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -209,6 +209,8 @@ public:
 
 	virtual emString GetTitle() const;
 	virtual emString GetIconFileName() const;
+
+	virtual bool IsContentReady(bool * pReadying=NULL) const;
 
 protected:
 

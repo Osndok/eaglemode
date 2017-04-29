@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainConfig.cpp
 //
-// Copyright (C) 2010,2016 Oliver Hamann.
+// Copyright (C) 2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,7 +39,7 @@ emMainConfig::emMainConfig(emContext & context, const emString & name)
 	emStructRec(),
 	AutoHideControlView(this,"AutoHideControlView",false),
 	AutoHideSlider(this,"AutoHideSlider",false),
-	ControlViewSize(this,"ControlViewSize",0.53,0.0,1.0)
+	ControlViewSize(this,"ControlViewSize",0.515,0.0,1.0)
 {
 	PostConstruct(
 		*this,

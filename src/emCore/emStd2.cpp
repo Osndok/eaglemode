@@ -629,22 +629,25 @@ emString emGetCurrentDirectory()
 }
 
 
+struct emDirHandleContent {
 #if defined(_WIN32)
-struct emWndsDirHandleContent {
 	HANDLE handle;
 	WIN32_FIND_DATA data;
 	bool first;
-};
+#else
+	DIR * dir;
+	struct dirent * deBuf;
 #endif
+};
 
 
 emDirHandle emTryOpenDir(const char * path) throw(emException)
 {
 #if defined(_WIN32)
-	emWndsDirHandleContent * hc;
+	emDirHandleContent * hc;
 	DWORD d;
 
-	hc=new emWndsDirHandleContent;
+	hc=new emDirHandleContent;
 	hc->handle=FindFirstFile(
 		emGetChildPath(path,"*.*"),
 		&hc->data
@@ -663,17 +666,26 @@ emDirHandle emTryOpenDir(const char * path) throw(emException)
 	hc->first=true;
 	return hc;
 #else
-	DIR * dir;
+	emDirHandleContent * hc;
+	size_t bufSize;
 
-	dir=opendir(path);
-	if (!dir) {
+	hc=new emDirHandleContent;
+	hc->dir=opendir(path);
+	if (!hc->dir) {
+		delete hc;
 		throw emException(
 			"Failed to read directory \"%s\": %s",
 			path,
 			emGetErrorText(errno).Get()
 		);
 	}
-	return dir;
+
+	// Hint: On some systems, the size of dirent.d_name is 1.
+	bufSize=sizeof(struct dirent)+100000;
+	hc->deBuf=(struct dirent *)malloc(bufSize);
+	memset(hc->deBuf,0,bufSize);
+
+	return hc;
 #endif
 }
 
@@ -681,9 +693,9 @@ emDirHandle emTryOpenDir(const char * path) throw(emException)
 emString emTryReadDir(emDirHandle dirHandle) throw(emException)
 {
 #if defined(_WIN32)
-	emWndsDirHandleContent * hc;
+	emDirHandleContent * hc;
 
-	hc=(emWndsDirHandleContent*)dirHandle;
+	hc=(emDirHandleContent*)dirHandle;
 	for (;;) {
 		if (hc->handle==INVALID_HANDLE_VALUE) return emString();
 		if (hc->first) {
@@ -709,17 +721,13 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emException)
 		) return emString(hc->data.cFileName);
 	}
 #else
-	struct dirent * buf, * de;
+	emDirHandleContent * hc;
+	struct dirent * de;
 	emString res;
-	DIR * dir;
 
-	// Hint: On some systems, the size of dirent.d_name is 1 and must be
-	// extended when creating a buffer for use with readdir_r.
-	buf=(struct dirent *)malloc(sizeof(struct dirent)+513);
-	dir=(DIR*)dirHandle;
+	hc=(emDirHandleContent*)dirHandle;
 	for (;;) {
-		if (readdir_r(dir,buf,&de)!=0) {
-			free(buf);
+		if (readdir_r(hc->dir,hc->deBuf,&de)!=0) {
 			throw emException(
 				"Failed to read directory: %s",
 				emGetErrorText(errno).Get()
@@ -735,7 +743,6 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emException)
 			break;
 		}
 	}
-	free(buf);
 	return res;
 #endif
 }
@@ -744,15 +751,20 @@ emString emTryReadDir(emDirHandle dirHandle) throw(emException)
 void emCloseDir(emDirHandle dirHandle)
 {
 #if defined(_WIN32)
-	emWndsDirHandleContent * hc;
+	emDirHandleContent * hc;
 
-	hc=(emWndsDirHandleContent*)dirHandle;
+	hc=(emDirHandleContent*)dirHandle;
 	if (hc->handle!=INVALID_HANDLE_VALUE) {
 		FindClose(hc->handle);
 	}
 	delete hc;
 #else
-	closedir((DIR*)dirHandle);
+	emDirHandleContent * hc;
+
+	hc=(emDirHandleContent*)dirHandle;
+	free(hc->deBuf);
+	closedir(hc->dir);
+	delete hc;
 #endif
 }
 

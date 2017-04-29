@@ -49,6 +49,7 @@ sub Build
 		"--link"          , "emCore",
 		"--type"          , "wexe",
 		"--name"          , "eaglemode",
+		"src/emMain/emAutoplay.cpp",
 		"src/emMain/emBookmarks.cpp",
 		"src/emMain/emMain.cpp",
 		"src/emMain/emMainConfig.cpp",

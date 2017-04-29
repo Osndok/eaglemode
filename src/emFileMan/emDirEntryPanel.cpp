@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2012,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,6 +53,8 @@ emDirEntryPanel::emDirEntryPanel(
 
 	AddWakeUpSignal(FileMan->GetSelectionSignal());
 	AddWakeUpSignal(Config->GetChangeSignal());
+
+	SetAutoplayHandling(APH_CUTOFF_AT_SUBITEMS);
 
 	UpdateBgColor();
 }
@@ -133,6 +135,14 @@ void emDirEntryPanel::GetSubstanceRect(
 	*pW=theme->BackgroundW;
 	*pH=theme->BackgroundH;
 	*pR=emMin(theme->BackgroundRX.Get(),theme->BackgroundRY.Get());
+}
+
+
+bool emDirEntryPanel::IsContentReady(bool * pReadying) const
+{
+	if (!emPanel::IsContentReady(pReadying)) return false;
+	if (pReadying) *pReadying=false;
+	return GetChild(ContentName)!=NULL;
 }
 
 

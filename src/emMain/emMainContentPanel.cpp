@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainContentPanel.cpp
 //
-// Copyright (C) 2007-2008,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,6 +28,7 @@ emMainContentPanel::emMainContentPanel(ParentArg parent, const emString & name)
 {
 	SkyImage=emGetInsResImage(GetRootContext(),"emMain","Sky.tga",3);
 	new emVirtualCosmosPanel(this,"");
+	if (!GetParent()) SetAutoplayHandling(APH_DIRECTORY);
 	UpdateCoordinates();
 	UpdateChildLayout();
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.h
 //
-// Copyright (C) 2007-2010,2016 Oliver Hamann.
+// Copyright (C) 2007-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,6 +54,8 @@ public:
 	const emDirEntry & GetDirEntry() const;
 
 	void UpdateDirEntry(const emDirEntry & dirEntry);
+
+	virtual bool IsContentReady(bool * pReadying=NULL) const;
 
 protected:
 

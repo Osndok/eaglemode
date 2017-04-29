@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.cpp
 //
-// Copyright (C) 2014-2016 Oliver Hamann.
+// Copyright (C) 2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,6 +30,9 @@ emViewAnimator::emViewAnimator(emView & view)
 	: emEngine(view.GetScheduler()),
 	View(view)
 {
+	Master=NULL;
+	ActiveSlave=NULL;
+	UpperActivePtr=&View.ActiveAnimator;
 	LastTSC=0;
 	LastClk=0;
 	DeactivateWhenIdle=false;
@@ -43,15 +46,38 @@ emViewAnimator::~emViewAnimator()
 }
 
 
+void emViewAnimator::SetMaster(emViewAnimator * master)
+{
+	emViewAnimator * va;
+
+	if (Master!=master) {
+		if (IsActive()) Deactivate();
+		if (Master) {
+			Master=NULL;
+			UpperActivePtr=&View.ActiveAnimator;
+		}
+		if (master) {
+			for (va=master; va; va=va->Master) if (va==this) return;
+			Master=master;
+			UpperActivePtr=&Master->ActiveSlave;
+		}
+	}
+}
+
+
 void emViewAnimator::Activate()
 {
-	if (!IsActive()) {
-		if (View.ActiveAnimator) {
-			LastTSC=View.ActiveAnimator->LastTSC;
-			LastClk=View.ActiveAnimator->LastClk;
-			View.ActiveAnimator->Deactivate();
+	if (!IsActive() && (!Master || Master->IsActive())) {
+		if (*UpperActivePtr) {
+			LastTSC=(*UpperActivePtr)->LastTSC;
+			LastClk=(*UpperActivePtr)->LastClk;
+			(*UpperActivePtr)->Deactivate();
 		}
-		View.ActiveAnimator=this;
+		else if (Master) {
+			LastTSC=Master->LastTSC;
+			LastClk=Master->LastClk;
+		}
+		*UpperActivePtr=this;
 		WakeUp();
 		emDLog("emViewAnimator::Activate: class = %s",typeid(*this).name());
 	}
@@ -60,8 +86,12 @@ void emViewAnimator::Activate()
 
 void emViewAnimator::Deactivate()
 {
-	if (View.ActiveAnimator==this) {
-		View.ActiveAnimator=NULL;
+	if (ActiveSlave) {
+		ActiveSlave->Deactivate();
+	}
+
+	if (*UpperActivePtr==this) {
+		*UpperActivePtr=NULL;
 		emDLog("emViewAnimator::Deactivate: class = %s",typeid(*this).name());
 	}
 }
@@ -69,17 +99,24 @@ void emViewAnimator::Deactivate()
 
 void emViewAnimator::SetDeactivateWhenIdle(bool deactivateWhenIdle)
 {
-	DeactivateWhenIdle=deactivateWhenIdle;
+	if (DeactivateWhenIdle!=deactivateWhenIdle) {
+		DeactivateWhenIdle=deactivateWhenIdle;
+		if (DeactivateWhenIdle && IsActive()) {
+			WakeUp(); // To be sure to deactivate soon if already idle.
+		}
+	}
 }
 
 
 void emViewAnimator::Input(emInputEvent & event, const emInputState & state)
 {
+	if (ActiveSlave) ActiveSlave->Input(event,state);
 }
 
 
 void emViewAnimator::Paint(const emPainter & painter) const
 {
+	if (ActiveSlave) ActiveSlave->Paint(painter);
 }
 
 
@@ -151,11 +188,16 @@ emKineticViewAnimator::~emKineticViewAnimator()
 void emKineticViewAnimator::Activate()
 {
 	emKineticViewAnimator * oldKVA;
+	emViewAnimator * va;
 	double fixX,fixY;
 	bool fixCentered;
 
 	if (!IsActive()) {
-		oldKVA=dynamic_cast<emKineticViewAnimator*>(GetView().GetActiveAnimator());
+		oldKVA=NULL;
+		for (va=GetView().GetActiveAnimator(); va; va=va->GetActiveSlave()) {
+			oldKVA=dynamic_cast<emKineticViewAnimator*>(va);
+			if (oldKVA) break;
+		}
 		if (oldKVA) {
 			fixCentered=ZoomFixPointCentered;
 			fixX=ZoomFixX;
@@ -643,10 +685,15 @@ emMagneticViewAnimator::~emMagneticViewAnimator()
 void emMagneticViewAnimator::Activate()
 {
 	emKineticViewAnimator * oldKVA;
+	emViewAnimator * va;
 
 	if (!IsActive()) {
 		MagnetismActive=false;
-		oldKVA=dynamic_cast<emKineticViewAnimator*>(GetView().GetActiveAnimator());
+		oldKVA=NULL;
+		for (va=GetView().GetActiveAnimator(); va; va=va->GetActiveSlave()) {
+			oldKVA=dynamic_cast<emKineticViewAnimator*>(va);
+			if (oldKVA) break;
+		}
 		if (oldKVA) {
 			SetFriction(oldKVA->GetFriction());
 			SetFrictionEnabled(oldKVA->IsFrictionEnabled());
@@ -887,11 +934,11 @@ emVisitingViewAnimator::emVisitingViewAnimator(emView & view)
 	Acceleration=5.0;
 	MaxCuspSpeed=2.0;
 	MaxAbsoluteSpeed=5.0;
+	State=ST_NO_GOAL;
 	VisitType=VT_VISIT;
 	RelX=RelY=RelA=0;
 	Adherent=false;
 	UtilizeView=false;
-	State=ST_CURVE;
 	MaxDepthSeen=-1;
 	Speed=0.0;
 	TimeSlicesWithoutHope=0;
@@ -968,16 +1015,40 @@ void emVisitingViewAnimator::SetGoalFullsized(
 }
 
 
+void emVisitingViewAnimator::ClearGoal()
+{
+	if (State!=ST_NO_GOAL) {
+		State=ST_NO_GOAL;
+		VisitType=VT_VISIT;
+		Identity.Clear();
+		RelX=RelY=RelA=0;
+		Adherent=false;
+		UtilizeView=false;
+		Subject.Clear();
+		Names.Clear();
+		if (IsActive()) {
+			GetView().SetSeekPos(NULL,NULL);
+			MaxDepthSeen=-1;
+			TimeSlicesWithoutHope=0;
+			GiveUpClock=0;
+			InvalidatePainting();
+		}
+	}
+}
+
+
 void emVisitingViewAnimator::Activate()
 {
 	if (!IsActive()) {
 		emViewAnimator::Activate();
-		State=ST_CURVE;
-		MaxDepthSeen=-1;
-		TimeSlicesWithoutHope=0;
-		GiveUpClock=0;
-		Speed=0.0;
-		WakeUp();
+		if (State!=ST_NO_GOAL) {
+			State=ST_CURVE;
+			MaxDepthSeen=-1;
+			TimeSlicesWithoutHope=0;
+			GiveUpClock=0;
+			Speed=0.0;
+			WakeUp();
+		}
 	}
 }
 
@@ -994,8 +1065,7 @@ void emVisitingViewAnimator::Deactivate()
 
 void emVisitingViewAnimator::Input(emInputEvent & event, const emInputState & state)
 {
-	// ??? Maybe it should be aborted by input in all states?
-	if (!IsActive() || (State!=ST_SEEK && State!=ST_GIVE_UP)) return;
+	if (!IsActive() || (State!=ST_SEEK && State!=ST_GIVING_UP)) return;
 
 	if (!event.IsEmpty()) {
 		event.Eat();
@@ -1010,7 +1080,7 @@ void emVisitingViewAnimator::Paint(const emPainter & painter) const
 	emString str;
 	int l1,l2;
 
-	if (!IsActive() || (State!=ST_SEEK && State!=ST_GIVE_UP)) return;
+	if (!IsActive() || (State!=ST_SEEK && State!=ST_GIVING_UP)) return;
 
 	vx=GetView().GetCurrentX();
 	vy=GetView().GetCurrentY();
@@ -1049,7 +1119,7 @@ void emVisitingViewAnimator::Paint(const emPainter & painter) const
 	w-=h*0.4;
 	h-=h*0.2;
 
-	if (State == ST_GIVE_UP) {
+	if (State == ST_GIVING_UP) {
 		painter.PaintTextBoxed(
 			x,y,w,h,
 			"Not found",
@@ -1130,18 +1200,28 @@ bool emVisitingViewAnimator::CycleAnimation(double dt)
 	bool adherent;
 	emPanel * nep, * panel;
 
-	if (State==ST_GIVE_UP) {
+	switch (State) {
+	case ST_NO_GOAL:
+	case ST_GIVEN_UP:
+	case ST_GOAL_REACHED:
+		return false;
+	case ST_GIVING_UP:
 		if (emGetClockMS()<GiveUpClock+1500) {
 			return true;
 		}
+		State=ST_GIVEN_UP;
 		return false;
+	case ST_CURVE:
+	case ST_DIRECT:
+	case ST_SEEK:
+		break;
 	}
 
 	nep=GetNearestExistingPanel(
 		&relX,&relY,&relA,&adherent,&depth,&panelsAfter,&distFinal
 	);
 	if (!nep) {
-		State=ST_GIVE_UP;
+		State=ST_GIVING_UP;
 		GiveUpClock=emGetClockMS();
 		InvalidatePainting();
 		return true;
@@ -1225,6 +1305,7 @@ bool emVisitingViewAnimator::CycleAnimation(double dt)
 				State=ST_SEEK;
 			}
 			else {
+				State=ST_GOAL_REACHED;
 				return false;
 			}
 		}
@@ -1241,6 +1322,7 @@ bool emVisitingViewAnimator::CycleAnimation(double dt)
 	if (State==ST_SEEK) {
 		if (depth+1>=Names.GetCount()) {
 			GetView().RawVisit(nep,relX,relY,relA);
+			State=ST_GOAL_REACHED;
 			return false;
 		}
 		else if (GetView().SeekPosPanel!=nep) {
@@ -1255,7 +1337,7 @@ bool emVisitingViewAnimator::CycleAnimation(double dt)
 		else {
 			TimeSlicesWithoutHope++;
 			if (TimeSlicesWithoutHope>10) {
-				State=ST_GIVE_UP;
+				State=ST_GIVING_UP;
 				GiveUpClock=emGetClockMS();
 				InvalidatePainting();
 			}
@@ -1278,12 +1360,12 @@ void emVisitingViewAnimator::SetGoal(
 	Adherent=adherent;
 	UtilizeView=utilizeView;
 	Subject=subject;
-	if (Identity != identity) {
+	if (State==ST_NO_GOAL || Identity != identity) {
+		State=ST_CURVE;
 		Identity=identity;
 		Names=emPanel::DecodeIdentity(Identity);
 		if (IsActive()) {
 			GetView().SetSeekPos(NULL,NULL);
-			State=ST_CURVE;
 			MaxDepthSeen=-1;
 			TimeSlicesWithoutHope=0;
 			GiveUpClock=0;

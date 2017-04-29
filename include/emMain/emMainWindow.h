@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.h
 //
-// Copyright (C) 2006-2012,2016 Oliver Hamann.
+// Copyright (C) 2006-2012,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,10 @@
 
 #ifndef emWindowStateSaver_h
 #include <emCore/emWindowStateSaver.h>
+#endif
+
+#ifndef emAutoplay_h
+#include <emMain/emAutoplay.h>
 #endif
 
 #ifndef emBookmarks_h
@@ -109,6 +113,7 @@ private:
 
 	emWindowStateSaver WindowStateSaver;
 	emRef<emBookmarksModel> BookmarksModel;
+	emRef<emAutoplayViewModel> AutoplayViewModel;
 	bool ToClose;
 	emMainPanel * MainPanel;
 	emPanel * ControlPanel;

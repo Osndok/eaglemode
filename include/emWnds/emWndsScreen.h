@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.h
 //
-// Copyright (C) 2006-2011,2016 Oliver Hamann.
+// Copyright (C) 2006-2011,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,9 +59,6 @@ public:
 	virtual void MoveMousePointer(double dx, double dy);
 
 	virtual void Beep();
-
-	virtual void DisableScreensaver();
-	virtual void EnableScreensaver();
 
 protected:
 
@@ -135,7 +132,6 @@ private:
 	emUInt64 InputStateClock;
 	BYTE Keymap[256];
 	double MouseWarpX,MouseWarpY;
-	int ScreensaverDisableCounter;
 	emArray<emWndsWindowPort*> WinPorts;
 
 	emWndsViewRenderer * ViewRenderer;

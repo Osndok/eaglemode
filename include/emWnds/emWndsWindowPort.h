@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.h
 //
-// Copyright (C) 2006-2008,2010-2011,2015-2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2015-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,8 @@ protected:
 	) const;
 	virtual void RequestFocus();
 	virtual void Raise();
+	virtual void InhibitScreensaver();
+	virtual void AllowScreensaver();
 	virtual emUInt64 GetInputClockMS() const;
 	virtual void InvalidateTitle();
 	virtual void InvalidateIcon();
@@ -71,6 +73,8 @@ private:
 	virtual bool Cycle();
 
 	void UpdatePainting();
+
+	bool IsScreensaverReallyToInhibit();
 
 	bool IsAncestorOf(emWndsWindowPort * wp);
 
@@ -116,6 +120,7 @@ private:
 	int ModalDescendants;
 	HICON BigIcon;
 	HICON SmallIcon;
+	int ScreensaverInhibitCount;
 };
 
 

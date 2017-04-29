@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.h
 //
-// Copyright (C) 2005-2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -170,6 +170,14 @@ public:
 		// Bring this window to the top of the stacking order. The
 		// window is even restored from any iconified state.
 
+	void InhibitScreensaver();
+	void AllowScreensaver();
+		// Inhibit or re-allow the screensaver. This should implement an
+		// internal counter for calls to InhibitScreensaver() which have
+		// not yet been taken back by calls to AllowScreensaver().
+		// Inhibiting only works while the window is shown quite large
+		// and not iconified.
+
 protected:
 
 	virtual void InvalidateTitle();
@@ -251,6 +259,9 @@ protected:
 	) const = 0;
 
 	virtual void Raise() = 0;
+
+	virtual void InhibitScreensaver() = 0;
+	virtual void AllowScreensaver() = 0;
 
 	virtual void InvalidateTitle() = 0;
 
@@ -376,6 +387,16 @@ inline const emImage & emWindow::GetWindowIcon() const
 inline void emWindow::Raise()
 {
 	WindowPort->Raise();
+}
+
+inline void emWindow::InhibitScreensaver()
+{
+	WindowPort->InhibitScreensaver();
+}
+
+inline void emWindow::AllowScreensaver()
+{
+	WindowPort->AllowScreensaver();
 }
 
 

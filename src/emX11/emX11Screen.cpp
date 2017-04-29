@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,6 +24,7 @@
 #include <emX11/emX11WindowPort.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h>
 
 #include "cursors/emCursorInvisible.xbm"
 
@@ -102,21 +103,6 @@ void emX11Screen::Beep()
 }
 
 
-void emX11Screen::DisableScreensaver()
-{
-	if (ScreensaverDisableCounter==0 && !ScreensaverDisableTimer.IsRunning()) {
-		ScreensaverDisableTimer.Start(0);
-	}
-	ScreensaverDisableCounter++;
-}
-
-
-void emX11Screen::EnableScreensaver()
-{
-	ScreensaverDisableCounter--;
-}
-
-
 emWindowPort * emX11Screen::CreateWindowPort(emWindow & window)
 {
 	return new emX11WindowPort(window);
@@ -125,7 +111,7 @@ emWindowPort * emX11Screen::CreateWindowPort(emWindow & window)
 
 emX11Screen::emX11Screen(emContext & context, const emString & name)
 	: emScreen(context,name),
-	ScreensaverDisableTimer(GetScheduler())
+	ScreensaverUpdateTimer(GetScheduler())
 {
 	const char * displayName, * modifiers;
 	XVisualInfo * viList, viTemplate, * vi;
@@ -320,13 +306,11 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 
 	Clipboard=NULL;
 
-	ScreensaverDisableCounter=0;
-
 	ViewRenderer = new emX11ViewRenderer(*this);
 
 	SetEnginePriority(emEngine::VERY_HIGH_PRIORITY);
 
-	AddWakeUpSignal(ScreensaverDisableTimer.GetSignal());
+	AddWakeUpSignal(ScreensaverUpdateTimer.GetSignal());
 
 	WakeUp();
 }
@@ -438,21 +422,8 @@ bool emX11Screen::Cycle()
 		MouseWarpY-=dy;
 	}
 
-	if (
-		ScreensaverDisableCounter>0 &&
-		IsSignaled(ScreensaverDisableTimer.GetSignal())
-	) {
-		ScreensaverDisableTimer.Start(59000);
-		emDLog("emX11Screen: Touching screensavers.");
-		// Against the built-in screensaver of the X server:
-		XMutex.Lock();
-		XResetScreenSaver(Disp);
-		XFlush(Disp);
-		XMutex.Unlock();
-		// Against xscreensaver:
-		if (system("xscreensaver-command -deactivate >&- 2>&- &")==-1) {
-			emDLog("Could not run xscreensaver-command: %s",emGetErrorText(errno).Get());
-		}
+	if (IsSignaled(ScreensaverUpdateTimer.GetSignal())) {
+		UpdateScreensaver();
 	}
 
 	return true;
@@ -654,7 +625,8 @@ void emX11Screen::UpdateInputStateFromKeymap()
 			for (j=0; j<8; j++) {
 				if ((Keymap[i]&(1<<j))!=0) {
 					XMutex.Lock();
-					ks=XKeycodeToKeysym(Disp,i*8+j,0);
+					//old: ks=XKeycodeToKeysym(Disp,i*8+j,0);
+					ks=XkbKeycodeToKeysym(Disp,i*8+j,0,0);
 					XMutex.Unlock();
 					k=(int)ConvertKey(ks);
 					if (k!=EM_KEY_NONE) keyStates[k>>3]|=1<<(k&7);
@@ -716,6 +688,68 @@ void emX11Screen::UpdateLastKnownTime(const XEvent & event)
 		default: return;
 	}
 	if (t!=CurrentTime) LastKnownTime=t;
+}
+
+
+void emX11Screen::UpdateScreensaver()
+{
+	bool keepUpdating,inhibit;
+	emX11WindowPort * w;
+	double x1,y1,x2,y2,vx,vy,vw,vh,mx,my,mw,mh;
+	int i,j,n;
+
+	keepUpdating=false;
+	inhibit=false;
+	for (i=WinPorts.GetCount()-1; i>=0; i--) {
+		w=WinPorts[i];
+		if (w->ScreensaverInhibitCount>0) {
+			keepUpdating=true;
+			if (w->Mapped) {
+				vx=w->GetViewX();
+				vy=w->GetViewY();
+				vw=w->GetViewWidth();
+				vh=w->GetViewHeight();
+				n=GetMonitorCount();
+				for (j=0; j<n; j++) {
+					GetMonitorRect(j,&mx,&my,&mw,&mh);
+					x1=emMax(vx,mx);
+					y1=emMax(vy,my);
+					x2=emMin(vx+vw,mx+mw);
+					y2=emMin(vy+vh,my+mh);
+					if (x1<x2 && y1<y2 && (x2-x1)*(y2-y1)>=0.6*mw*mh) {
+						inhibit=true;
+						break;
+					}
+				}
+				if (inhibit) break;
+			}
+		}
+	}
+
+	if (keepUpdating) {
+		ScreensaverUpdateTimer.Start(59000);
+	}
+
+	if (inhibit) {
+		emDLog("emX11Screen: Touching screensavers.");
+		// Against the built-in screensaver of the X server:
+		XMutex.Lock();
+		XResetScreenSaver(Disp);
+		XFlush(Disp);
+		XMutex.Unlock();
+		// Against xscreensaver:
+		if (system("xscreensaver-command -deactivate >&- 2>&- &")==-1) {
+			emDLog("Could not run xscreensaver-command: %s",emGetErrorText(errno).Get());
+		}
+	}
+}
+
+
+void emX11Screen::WakeUpScreensaverUpdating()
+{
+	if (!ScreensaverUpdateTimer.IsRunning()) {
+		ScreensaverUpdateTimer.Start(0);
+	}
 }
 
 

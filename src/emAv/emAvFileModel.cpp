@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.cpp
 //
-// Copyright (C) 2005-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,6 +70,7 @@ void emAvFileModel::SetPlayState(PlayStateType playState)
 	if (PlayState==playState) return;
 
 	PlayState=playState;
+	StoppedAfterPlayingToEnd=false;
 	Signal(PlayStateSignal);
 
 	if (PlayState==PS_STOPPED) {
@@ -247,11 +248,11 @@ emAvFileModel::emAvFileModel(
 	States=emAvStates::Acquire(GetRootContext());
 
 	ActiveList=emVarModel<emAvFileModel*>::Lookup(
-		GetRootContext(),"emAvFileModel::ActiveList"
+		context,"emAvFileModel::ActiveList"
 	);
 	if (!ActiveList) {
 		ActiveList=emVarModel<emAvFileModel*>::Acquire(
-			GetRootContext(),"emAvFileModel::ActiveList"
+			context,"emAvFileModel::ActiveList"
 		);
 		ActiveList->Var=NULL;
 	}
@@ -262,6 +263,7 @@ emAvFileModel::emAvFileModel(
 	Video=false;
 	PlayLength=0;
 	PlayState=PS_STOPPED;
+	StoppedAfterPlayingToEnd=false;
 	PlayPos=0;
 	AudioVolume=0;
 	AudioMute=false;
@@ -294,6 +296,7 @@ void emAvFileModel::ResetData()
 	Signal(InfoSignal);
 
 	PlayState=PS_STOPPED;
+	StoppedAfterPlayingToEnd=false;
 	RemoveFromActiveList();
 	Signal(PlayStateSignal);
 
@@ -389,6 +392,7 @@ void emAvFileModel::StreamStateChanged(StreamStateType streamState)
 		if (PlayState!=PS_STOPPED) {
 			RemoveFromActiveList();
 			PlayState=PS_STOPPED;
+			StoppedAfterPlayingToEnd=true;
 			Signal(PlayStateSignal);
 		}
 		if (PlayPos!=0) {
@@ -488,8 +492,14 @@ void emAvFileModel::PropertyChanged(const emString & name, const emString & valu
 		if (PlayState!=ps) {
 			PlayState=ps;
 			Signal(PlayStateSignal);
-			if (ps==PS_STOPPED) RemoveFromActiveList();
-			else AddToActiveList();
+			if (ps==PS_STOPPED) {
+				StoppedAfterPlayingToEnd=true;
+				RemoveFromActiveList();
+			}
+			else {
+				StoppedAfterPlayingToEnd=false;
+				AddToActiveList();
+			}
 			if (PlayState==PS_STOPPED && GetFileState()==FS_LOADED) {
 				CloseStream();
 				PlayPos=0;

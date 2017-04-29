@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,7 +31,7 @@ emAvFilePanel::emAvFilePanel(
 	CursorTimer(GetScheduler())
 {
 	CursorHidden=false;
-	ScreensaverDisabled=false;
+	ScreensaverInhibited=false;
 	HaveControlPanel=false;
 	WarningStartTime=0;
 	WarningAlpha=0;
@@ -46,9 +46,9 @@ emAvFilePanel::emAvFilePanel(
 
 emAvFilePanel::~emAvFilePanel()
 {
-	if (ScreensaverDisabled) {
-		ScreensaverDisabled=false;
-		if (GetScreen()) GetScreen()->EnableScreensaver();
+	if (ScreensaverInhibited) {
+		ScreensaverInhibited=false;
+		if (GetWindow()) GetWindow()->AllowScreensaver();
 	}
 }
 
@@ -105,6 +105,86 @@ void emAvFilePanel::GetEssenceRect(
 	else {
 		emFilePanel::GetEssenceRect(pX,pY,pW,pH);
 	}
+}
+
+
+bool emAvFilePanel::GetPlaybackState(bool * pPlaying, double * pPos) const
+{
+	emAvFileModel * fm;
+	int n;
+
+	if (GetVirFileState()!=VFS_LOADED) {
+		if (pPlaying) *pPlaying=false;
+		if (pPos) *pPos=0.0;
+		return false;
+	}
+
+	fm=(emAvFileModel*)GetFileModel();
+
+	if (pPlaying) {
+		switch (fm->GetPlayState()) {
+		case emAvFileModel::PS_NORMAL:
+		case emAvFileModel::PS_FAST:
+		case emAvFileModel::PS_SLOW:
+			*pPlaying=true;
+			break;
+		default:
+			*pPlaying=false;
+			break;
+		}
+	}
+
+	if (pPos) {
+		n=fm->GetPlayLength();
+		if (n>0) *pPos = ((double)fm->GetPlayPos()) / n;
+		else *pPos = 0.0;
+		if (fm->GetPlayState()==emAvFileModel::PS_STOPPED) {
+			if (fm->IsStoppedAfterPlayingToEnd()) *pPos=1.0;
+			else *pPos=0.0;
+		}
+		else if (fm->GetPlayState()==emAvFileModel::PS_PAUSED) {
+			if (*pPos<0.00001) *pPos=0.00001;
+			if (*pPos>0.99999) *pPos=0.99999;
+		}
+	}
+
+	return true;
+}
+
+
+bool emAvFilePanel::SetPlaybackState(bool playing, double pos)
+{
+	emAvFileModel * fm;
+	int n;
+
+	if (GetVirFileState()!=VFS_LOADED) {
+		return false;
+	}
+
+	fm=(emAvFileModel*)GetFileModel();
+
+	switch (fm->GetPlayState()) {
+	case emAvFileModel::PS_NORMAL:
+	case emAvFileModel::PS_FAST:
+	case emAvFileModel::PS_SLOW:
+		if (!playing) fm->Pause();
+		break;
+	default:
+		if (playing) fm->Play();
+		break;
+	}
+
+	if (pos>=0.0 && pos<=1.0) {
+		if (pos==0.0 && !playing) {
+			fm->Stop();
+		}
+		else {
+			n=fm->GetPlayLength();
+			fm->SetPlayPos((int)(n*pos+0.5));
+		}
+	}
+
+	return true;
 }
 
 
@@ -184,7 +264,7 @@ bool emAvFilePanel::Cycle()
 		(loaded && IsSignaled(fm->GetPlayStateSignal()))
 	) {
 		UpdateCursorHiding(false);
-		UpdateScreensaverDisabling();
+		UpdateScreensaverInhibiting();
 	}
 
 	return busy;
@@ -198,7 +278,7 @@ void emAvFilePanel::Notice(NoticeFlags flags)
 	if (flags&NF_FOCUS_CHANGED) UpdateCursorHiding(false);
 	if (flags&NF_VIEWING_CHANGED) {
 		UpdateCursorHiding(true);
-		UpdateScreensaverDisabling();
+		UpdateScreensaverInhibiting();
 	}
 }
 
@@ -665,17 +745,15 @@ void emAvFilePanel::UpdateCursorHiding(bool restart)
 }
 
 
-void emAvFilePanel::UpdateScreensaverDisabling()
+void emAvFilePanel::UpdateScreensaverInhibiting()
 {
-	emScreen * screen;
+	emWindow * window;
 	emAvFileModel * fm;
 	emAvFileModel::PlayStateType playState;
-	double x1,y1,x2,y2,mx,my,mw,mh;
-	bool onAnyMonitorBy60Percent;
-	int i,n;
+	double x1,y1,x2,y2,vx,vy,vw,vh;
 
-	screen=GetScreen();
-	if (!screen) return;
+	window=GetWindow();
+	if (!window) return;
 	for (;;) {
 		if (!IsViewed()) break;
 		if (GetVirFileState()!=VFS_LOADED) break;
@@ -684,30 +762,23 @@ void emAvFilePanel::UpdateScreensaverDisabling()
 		if (playState==emAvFileModel::PS_STOPPED) break;
 		if (playState==emAvFileModel::PS_PAUSED) break;
 		if (!fm->IsVideo()) break;
-
-		onAnyMonitorBy60Percent=false;
-		n=screen->GetMonitorCount();
-		for (i=0; i<n; i++) {
-			screen->GetMonitorRect(i,&mx,&my,&mw,&mh);
-			x1=emMax(GetClipX1(),mx);
-			y1=emMax(GetClipY1(),my);
-			x2=emMin(GetClipX2(),mx+mw);
-			y2=emMin(GetClipY2(),my+mh);
-			if (x1<x2 && y1<y2 && (x2-x1)*(y2-y1)>=0.6*mw*mh) {
-				onAnyMonitorBy60Percent=true;
-				break;
-			}
-		}
-		if (!onAnyMonitorBy60Percent) break;
-
-		if (!ScreensaverDisabled) {
-			ScreensaverDisabled=true;
-			screen->DisableScreensaver();
+		vx=GetView().GetCurrentX();
+		vy=GetView().GetCurrentY();
+		vw=GetView().GetCurrentWidth();
+		vh=GetView().GetCurrentHeight();
+		x1=emMax(GetClipX1(),vx);
+		y1=emMax(GetClipY1(),vy);
+		x2=emMin(GetClipX2(),vx+vw);
+		y2=emMin(GetClipY2(),vy+vh);
+		if (x1>=x2 || y1>=y2 || (x2-x1)*(y2-y1)<0.6*vw*vh) break;
+		if (!ScreensaverInhibited) {
+			ScreensaverInhibited=true;
+			window->InhibitScreensaver();
 		}
 		return;
 	}
-	if (ScreensaverDisabled) {
-		ScreensaverDisabled=false;
-		screen->EnableScreensaver();
+	if (ScreensaverInhibited) {
+		ScreensaverInhibited=false;
+		window->AllowScreensaver();
 	}
 }

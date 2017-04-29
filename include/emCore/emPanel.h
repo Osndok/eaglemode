@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.h
 //
-// Copyright (C) 2004-2008,2010-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010-2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -364,6 +364,10 @@ public:
 		// (see AutoExpand()). The default should be okay for normal
 		// cases.
 
+	bool IsAutoExpanded() const;
+		// Whether this panel is currently auto-expanded (see
+		// AutoExpand()).
+
 	virtual void SetEnableSwitch(bool enableSwitch);
 	bool GetEnableSwitch() const;
 	bool IsEnabled() const;
@@ -468,6 +472,65 @@ public:
 		// Arguments:
 		//   touchX, touchY - Position of a first touch in view
 		//                    coordinates.
+
+	typedef int AutoplayHandlingFlags;
+	enum {
+		APH_ITEM               = (1<<0),
+		APH_DIRECTORY          = (1<<1),
+		APH_CUTOFF             = (1<<2),
+		APH_CUTOFF_AT_SUBITEMS = (1<<3)
+	};
+	virtual void SetAutoplayHandling(AutoplayHandlingFlags flags);
+	AutoplayHandlingFlags GetAutoplayHandling() const;
+		// How this panel shall be handled by an autoplay function:
+		//  APH_ITEM               - This panel is worth to be shown or
+		//                           played by autoplay. This flag is set
+		//                           by default, but it is ignored if
+		//                           the panel is not focusable.
+		//  APH_DIRECTORY          - Autoplay shall enter or leave this
+		//                           sub-tree only when acting recursively.
+		//                           This flag is ignored if the panel is
+		//                           not focusable.
+		//  APH_CUTOFF             - Autoplay shall never enter or leave
+		//                           this sub-tree. If APH_ITEM is also
+		//                           set, the panel may be shown as part
+		//                           of the upper tree.
+		//  APH_CUTOFF_AT_SUBITEMS - Force any sub-items to act like
+		//                           APH_CUTOFF.
+
+	virtual bool IsContentReady(bool * pReadying=NULL) const;
+		// Ask if this panel has created all its child panels and if it
+		// is ready for showing or playback. If not, *pReadying is set
+		// to whether the panel will be ready later. Otherwise the panel
+		// may not be ready because it is not viewed completely or large
+		// enough. This method may be polled by autoplay. It should only
+		// be called through a low-priority engine. The default
+		// implementation returns IsAutoExpanded() and readying false.
+
+	virtual bool GetPlaybackState(bool * pPlaying, double * pPos=NULL) const;
+		// Get the playback state of this panel.
+		// Arguments:
+		//   pPlaying - Pointer for returning whether playpack is active.
+		//   pPos     - Optional pointer for returning the playback
+		//              position in the range of 0.0 to 1.0.
+		//              If *pPlaying is set to false, *pPos==0.0 means
+		//              stopped by user or never started, and *Pos==1.0
+		//              means stopped by playing to the end, and
+		//              0.0<*pPos<1.0 means paused by user at that
+		//              position.
+		// Returns:
+		//   Whether this panel supports playback. The default
+		//   implementation returns false.
+
+	virtual bool SetPlaybackState(bool playing, double pos=-1.0);
+		// Set the playback state of this panel.
+		// Arguments:
+		//   playing - Whether playpack shall be active or not.
+		//   pos     - Desired playback position in the range of 0.0 to
+		//             1.0. -1.0 means not to change the position.
+		// Returns:
+		//   Whether this panel supports playback. The default
+		//   implementation returns false.
 
 protected:
 
@@ -760,6 +823,7 @@ private:
 	unsigned AEExpanded : 1;
 	unsigned CreatedByAE : 1;
 	unsigned AEThresholdType : 3;
+	unsigned AutoplayHandling : 4;
 };
 
 inline emPanel::ParentArgClass::ParentArgClass(emPanel & panel)
@@ -1002,6 +1066,11 @@ inline emPanel::ViewConditionType emPanel::GetAutoExpansionThresholdType() const
 	return (ViewConditionType)AEThresholdType;
 }
 
+inline bool emPanel::IsAutoExpanded() const
+{
+	return AEExpanded;
+}
+
 inline bool emPanel::GetEnableSwitch() const
 {
 	return EnableSwitch;
@@ -1050,6 +1119,11 @@ inline bool emPanel::IsViewFocused() const
 inline emUInt64 emPanel::GetInputClockMS() const
 {
 	return View.GetInputClockMS();
+}
+
+inline emPanel::AutoplayHandlingFlags emPanel::GetAutoplayHandling() const
+{
+	return AutoplayHandling;
 }
 
 inline void emPanel::InvalidateChildrenLayout()

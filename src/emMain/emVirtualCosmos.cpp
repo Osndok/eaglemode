@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -594,6 +594,14 @@ emString emVirtualCosmosPanel::GetIconFileName() const
 }
 
 
+bool emVirtualCosmosPanel::IsContentReady(bool * pReadying) const
+{
+	if (!emPanel::IsContentReady(pReadying)) return false;
+	if (pReadying) *pReadying=false;
+	return IsViewed();
+}
+
+
 bool emVirtualCosmosPanel::Cycle()
 {
 	if (IsSignaled(Model->GetChangeSignal())) {
@@ -648,6 +656,7 @@ void emVirtualCosmosPanel::UpdateChildren()
 	if (!BackgroundPanel) {
 		BackgroundPanel=new emStarFieldPanel(*this,"_StarField");
 		BackgroundPanel->SetFocusable(false);
+		BackgroundPanel->SetAutoplayHandling(APH_CUTOFF);
 	}
 	BackgroundPanel->Layout(0.0,0.0,1.0,1.0,0);
 	BackgroundPanel->BeFirst();

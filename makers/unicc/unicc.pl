@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # unicc.pl
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2008,2017 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -24,6 +24,7 @@ package unicc;
 use strict;
 use warnings;
 use Config;
+use Cwd 'abs_path';
 use File::Basename;
 use File::Spec::Functions;
 use File::stat;
@@ -185,8 +186,15 @@ my $ModuleFile=dirname($0)."/plugins/unicc_$Compiler.pm";
 if (!-e $ModuleFile) {
 	die("Illegal value for --compiler option. \"$ModuleFile\" does not exist. Stopped");
 }
+
+$ModuleFile=abs_path($ModuleFile); # do(..) may fail on relative path.
 do($ModuleFile);
-if ($@) { die("$@"); }
+if ($@) {
+	die("$@");
+}
+elsif ($!) {
+	die("Could not execute $ModuleFile: $!, stopped");
+}
 
 
 #========================= Calculate output file paths =========================
