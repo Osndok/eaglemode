@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.h
 //
-// Copyright (C) 2006-2010,2014 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,7 +50,8 @@ public:
 		SF_SHARE_STDOUT = 1<<2,
 		SF_PIPE_STDOUT  = 1<<3,
 		SF_SHARE_STDERR = 1<<4,
-		SF_PIPE_STDERR  = 1<<5
+		SF_PIPE_STDERR  = 1<<5,
+		SF_NO_WINDOW    = 1<<6
 	};
 
 	void TryStart(
@@ -86,8 +87,10 @@ public:
 		//              handle from this process. SF_PIPE_STDIN means to
 		//              create a pipe (see methods TryWrite and
 		//              CloseWrite). Setting both flags is not allowed.
-		//              The other flags are for standard output and
-		//              standard error analogously.
+		//              The other SF_*_STD* flags are for standard
+		//              output and standard error analogously.
+		//              SF_NO_WINDOW means to omit the console window of
+		//              a console process on Windows.
 		// Throws: An error message on failure.
 
 	static void TryStartUnmanaged(
@@ -160,7 +163,9 @@ public:
 		// Send a termination request to the child process. On UNIX, the
 		// signal SIGTERM is sent to the child process. On Windows, the
 		// message WM_QUIT is sent to the primary thread of the child
-		// process.
+		// process. Note that this does not work with a normal Windows
+		// console program, except the latter is explicitly programmed
+		// for receiving WM_QUIT.
 
 	void SendKillSignal();
 		// Hardly kill the child process. Usually this should never be

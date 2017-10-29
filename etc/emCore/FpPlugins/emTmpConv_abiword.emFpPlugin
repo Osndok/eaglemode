@@ -6,6 +6,7 @@ FileTypes = {
  ".bzabw"
  ".dbk"
  ".doc"
+ ".docx"
  ".dot"
  ".odt"
  ".rtf"

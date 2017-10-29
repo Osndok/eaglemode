@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -699,7 +699,7 @@ void emFileManModel::LoadChildCommands(CommandNode * parent)
 {
 	emArray<emString> names;
 	emString path;
-	int i,l;
+	int i;
 
 	try {
 		names=emTryLoadDir(parent->Dir);
@@ -711,11 +711,34 @@ void emFileManModel::LoadChildCommands(CommandNode * parent)
 	for (i=0; i<names.GetCount(); i++) {
 		path=emGetChildPath(parent->Dir,names[i]);
 		if (!emIsRegularFile(path)) continue;
-		if ((l=names[i].GetLen())>0 && names[i][l-1]=='~') continue;
+		if (!CheckCommandFileEnding(emGetNameInPath(path))) continue;
 		LoadCommand(parent,path);
 	}
 	parent->DirCRC=CalcDirCRC(parent->Dir,names);
 	parent->Children.Sort(CompareCmds);
+}
+
+
+bool emFileManModel::CheckCommandFileEnding(const char * name)
+{
+	static const char * allowedEndings[] = {
+		".js",
+		".pl",
+		".props",
+		".py",
+		".sh",
+		NULL
+	};
+	int i,l,m;
+
+	l=strlen(name);
+	for (i=0; allowedEndings[i]; i++) {
+		m=strlen(allowedEndings[i]);
+		if (m<=l && strcasecmp(name+l-m,allowedEndings[i])==0) {
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_exe.pl
 #
-# Copyright (C) 2010-2011,2015-2016 Oliver Hamann.
+# Copyright (C) 2010-2011,2015-2017 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -21,8 +21,9 @@
 
 use strict;
 use warnings;
+use Cwd 'abs_path';
 use File::Basename;
-BEGIN { require (dirname($0).'/common.pm'); }
+BEGIN { require (abs_path(dirname($0).'/common.pm')); }
 
 # Have an empty temporary directory.
 my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-exe-packing');

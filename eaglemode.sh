@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # eaglemode.sh
 #
-# Copyright (C) 2006-2009 Oliver Hamann.
+# Copyright (C) 2006-2009,2017 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -49,7 +49,7 @@ extendPath ()
 
 # Have $EM_DIR/lib as the first in the corresponding search path.
 case "$OSTYPE" in
-	cygwin*)
+	cygwin*|msys)
 		PATH="`extendPath "$PATH" "$EM_DIR/lib"`"
 		export PATH
 	;;

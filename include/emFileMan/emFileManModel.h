@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.h
 //
-// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -164,6 +164,7 @@ private:
 	void ClearCommands();
 	void LoadCommands(const emString & rootDir);
 	void LoadChildCommands(CommandNode * parent);
+	static bool CheckCommandFileEnding(const char * name);
 	void LoadCommand(CommandNode * cmd, const emString & cmdPath);
 	static int CompareCmds(
 		const CommandNode * const * n1, const CommandNode * const * n2,

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,13 +85,22 @@ private:
 	bool IsFSDialogDone();
 	void SetFSDialogDone();
 	emString GetLAPath();
+
+	void CreateXWDialog();
+	bool IsXWDialogDone();
+	void SetXWDialogDone();
+
 	void CheckIfInstalledOverOfOldVersion();
 
 	emContext & Context;
 
 	bool FSDialogDone;
 	emDialog * FSDialog;
-	emArray<emString> FSArgs;
+
+	bool XWDialogDone;
+	emDialog * XWDialog;
+
+	emArray<emString> SavedArgs;
 };
 
 
@@ -105,6 +114,8 @@ emMain::emMain(emContext & context, bool serve)
 
 	FSDialogDone=false;
 	FSDialog=NULL;
+	XWDialogDone=false;
+	XWDialog=NULL;
 	if (serve) {
 		name=CalcServerName();
 		emDLog("emMain: MiniIPC server name is \"%s\".",name.Get());
@@ -160,9 +171,18 @@ void emMain::NewWindow(int argc, const char * const argv[])
 
 	if (!IsFSDialogDone()) {
 		if (!FSDialog) {
-			FSArgs.SetCount(argc,true);
-			for (i=0; i<argc; i++) FSArgs.Set(i,emString(argv[i]));
+			SavedArgs.SetCount(argc,true);
+			for (i=0; i<argc; i++) SavedArgs.Set(i,emString(argv[i]));
 			CreateFSDialog();
+		}
+		return;
+	}
+
+	if (!IsXWDialogDone()) {
+		if (!XWDialog) {
+			SavedArgs.SetCount(argc,true);
+			for (i=0; i<argc; i++) SavedArgs.Set(i,emString(argv[i]));
+			CreateXWDialog();
 		}
 		return;
 	}
@@ -262,15 +282,31 @@ bool emMain::Cycle()
 			delete FSDialog;
 			FSDialog=NULL;
 			SetFSDialogDone();
-			args.SetCount(FSArgs.GetCount(),true);
-			for (i=0; i<args.GetCount(); i++) args.Set(i,FSArgs[i].Get());
+			args.SetCount(SavedArgs.GetCount(),true);
+			for (i=0; i<args.GetCount(); i++) args.Set(i,SavedArgs[i].Get());
 			NewWindow(args.GetCount(),args.Get());
-			FSArgs.Clear(true);
+			SavedArgs.Clear(true);
 		}
 		else {
 			emEngine::GetScheduler().InitiateTermination(-1);
 		}
 	}
+
+	if (XWDialog && IsSignaled(XWDialog->GetFinishSignal())) {
+		if (XWDialog->GetResult()==emDialog::POSITIVE) {
+			delete XWDialog;
+			XWDialog=NULL;
+			SetXWDialogDone();
+			args.SetCount(SavedArgs.GetCount(),true);
+			for (i=0; i<args.GetCount(); i++) args.Set(i,SavedArgs[i].Get());
+			NewWindow(args.GetCount(),args.Get());
+			SavedArgs.Clear(true);
+		}
+		else {
+			emEngine::GetScheduler().InitiateTermination(-1);
+		}
+	}
+
 	return false;
 }
 
@@ -380,6 +416,62 @@ void emMain::SetFSDialogDone()
 emString emMain::GetLAPath()
 {
 	return emGetInstallPath(EM_IDT_USER_CONFIG,"emMain","LicenseAccepted");
+}
+
+
+void emMain::CreateXWDialog()
+{
+	static const char * const text=
+		"It seems you are running Eagle Mode on XWayland. This is\n"
+		"not recommended due to some incompatibilities or bugs!\n"
+		"(Among other flaws, often no keyboard input in popup\n"
+		"zoom, and mouse clicks sometimes go through to window\n"
+		"behind!)\n"
+		"\n"
+		"Please consider to run Eagle Mode on another type of X\n"
+		"server!\n"
+	;
+
+	if (XWDialog) return;
+
+	XWDialog=new emDialog(
+		Context,
+		emView::VF_ROOT_SAME_TALLNESS|emView::VF_NO_ZOOM,
+		emWindow::WF_MODAL,
+		"emXWaylandWarningDialog"
+	);
+	XWDialog->SetRootTitle("WARNING");
+	XWDialog->SetWindowIcon(
+		emGetInsResImage(Context.GetRootContext(),"icons","em-dialog48.tga")
+	);
+	XWDialog->AddPositiveButton("Continue");
+	XWDialog->AddNegativeButton("Abort");
+	new emLabel(XWDialog->GetContentPanel(),"text",text);
+	AddWakeUpSignal(XWDialog->GetFinishSignal());
+}
+
+
+bool emMain::IsXWDialogDone()
+{
+	if (XWDialogDone) return true;
+
+	bool(*func)(emContext&) = emVarModel<bool(*)(emContext&)>::Get(
+		Context,
+		"CheckIfUnreliableXWayland",
+		NULL
+	);
+	if (func && func(Context)) {
+		return false;
+	}
+
+	XWDialogDone=true;
+	return true;
+}
+
+
+void emMain::SetXWDialogDone()
+{
+	XWDialogDone=true;
 }
 
 

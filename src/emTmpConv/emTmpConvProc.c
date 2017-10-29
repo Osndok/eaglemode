@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTmpConvProc.c
 //
-// Copyright (C) 2006-2008,2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,22 +19,196 @@
 //----------------------------------------------------------------------------*/
 
 
+/*
+ * This slave process manages a child process which performs the file
+ * conversion. The child process is a /bin/sh (or %COMSPEC% on Windows) which
+ * runs the command. That child process gets its own process group for that we
+ * are able to terminate all processes in that group.
+ *
+ * This process also listens to several signals (or WM_QUIT on Windows) for
+ * terminating itself and the process group properly.
+ *
+ * Finally, the parent process should have created a pipe whose read end is
+ * STDIN for this process. We never get any data through that pipe, but we
+ * detect the closing of the write end. This way, this process automatically
+ * performs the termination as soon as the parent process closes the write end -
+ * and this even works when the parent process dies abnormally.
+ */
+
+
 #if defined(_WIN32)
 /*------------------------------ Windows variant -----------------------------*/
 
 #include <stdio.h>
+#include <windows.h>
+
+
+static DWORD WINAPI readingThreadProc(LPVOID data)
+{
+	char buf[64];
+	HANDLE h;
+	DWORD d;
+	BOOL b;
+
+	h=GetStdHandle(STD_INPUT_HANDLE);
+
+	do {
+		b=ReadFile(h,buf,sizeof(buf),&d,NULL);
+	} while(b);
+
+	return 0;
+}
+
 
 int main(int argc, char * argv[])
 {
-	/**
-	 * Hint: If this is ever developed, it should become a windowed
-	 * executable without window. Otherwise a console pops up on each run.
-	 * This also concerns all descendant processes like interpreters and
-	 * converters. (Or is it possible to run a console app without console?)
-	 */
+	HANDLE hReadingThread;
+	HANDLE handles[2];
+	const char * comSpec;
+	char * command;
+	PROCESS_INFORMATION pi;
+	STARTUPINFO si;
+	MSG msg;
+	DWORD d,exitCode;
+	BOOL b,gotWMQuit,childProcExited;
 
-	fprintf(stderr,"%s: Not functioning on Windows.\n",argv[0]);
-	return 255;
+	if (argc!=2) {
+		fprintf(stderr,"%s: Invalid arguments.\n",argv[0]);
+		ExitProcess(255);
+	}
+
+	comSpec=getenv("COMSPEC");
+	if (!comSpec) {
+		fprintf(stderr,"%s: COMSPEC not found\n",argv[0]);
+		ExitProcess(255);
+	}
+	if (
+		strlen(comSpec)<9 ||
+		stricmp(comSpec+strlen(comSpec)-8,"\\cmd.exe")!=0
+	) {
+		fprintf(
+			stderr,
+			"%s: COMSPEC does not end with \\cmd.exe - I am distrustful.\n"
+			"(COMSPEC is %s)\n",
+			argv[0],comSpec
+		);
+		ExitProcess(255);
+	}
+
+	command=malloc(strlen(comSpec)+strlen(argv[1])+64);
+	sprintf(command,"\"%s\" /C %s",comSpec,argv[1]);
+
+	/*???:*/
+	const char * p=getenv("EM_FORCE_TMP_CONV_PROC");
+	if (!p || stricmp(p,"yes")!=0) {
+		fprintf(
+			stderr,
+			"%s: This is not tested enough. (Would call: %s)\n",
+			argv[0],command
+		);
+		/*
+		 * And still no converters installed and configured in the
+		 * official release. And it is not yet documented that the
+		 * variables are %OUTFILE% and %INFILE% instead of $OUTFILE
+		 * and $INFILE.
+		 * Command example: "xwdtopnm < \"%INFILE%\" > \"%OUTFILE%\""
+		 */
+		ExitProcess(255);
+	}
+
+	memset(&si,0,sizeof(si));
+	si.cb=sizeof(si);
+	si.dwFlags=STARTF_USESTDHANDLES;
+	si.hStdInput=INVALID_HANDLE_VALUE;
+	si.hStdOutput=INVALID_HANDLE_VALUE;
+	si.hStdError=GetStdHandle(STD_ERROR_HANDLE);
+
+	b=CreateProcess(
+		NULL,
+		command,
+		NULL,
+		NULL,
+		TRUE,
+		CREATE_NEW_PROCESS_GROUP,
+		NULL,
+		NULL,
+		&si,
+		&pi
+	);
+	if (!b) {
+		fprintf(
+			stderr,
+			"%s: Failed to create child process (err=0x%lX)\n",
+			argv[0],(long)GetLastError()
+		);
+		ExitProcess(255);
+	}
+
+	hReadingThread=CreateThread(NULL,0,readingThreadProc,NULL,0,&d);
+
+	childProcExited=FALSE;
+	for (;;) {
+		gotWMQuit=FALSE;
+		while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
+			if (msg.message==WM_QUIT) gotWMQuit=TRUE;
+		}
+		if (gotWMQuit) break;
+		handles[0]=pi.hProcess;
+		handles[1]=hReadingThread;
+		SetLastError(ERROR_SUCCESS);
+		d=MsgWaitForMultipleObjects(2,handles,FALSE,INFINITE,QS_ALLPOSTMESSAGE);
+		if (d==WAIT_OBJECT_0) {
+			childProcExited=TRUE;
+			break;
+		}
+		else if (d==WAIT_OBJECT_0+1) {
+			break;
+		}
+		else if (d!=WAIT_OBJECT_0+2) {
+			fprintf(
+				stderr,
+				"%s: Wait failed (d=%ld, err=0x%lX)\n",
+				argv[0],d,(long)GetLastError()
+			);
+			GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT,pi.dwProcessId);
+			WaitForSingleObject(pi.hProcess,INFINITE);
+			ExitProcess(255);
+		}
+	}
+
+	if (!childProcExited) {
+		b=GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT,pi.dwProcessId);
+		if (!b) {
+			fprintf(
+				stderr,
+				"%s: Failed to send Ctrl+Break to child process (err=0x%lX)\n",
+				argv[0],(long)GetLastError()
+			);
+			ExitProcess(255);
+		}
+		SetLastError(ERROR_SUCCESS);
+		d=WaitForSingleObject(pi.hProcess,INFINITE);
+		if (d!=WAIT_OBJECT_0) {
+			fprintf(
+				stderr,
+				"%s: Failed to wait for child process (d=%ld, err=0x%lX)\n",
+				argv[0],d,(long)GetLastError()
+			);
+			ExitProcess(255);
+		}
+	}
+
+	if (!GetExitCodeProcess(pi.hProcess,&exitCode)) {
+		fprintf(
+			stderr,
+			"%s: Failed to get exit code from child process (error=0x%lX)\n",
+			argv[0],(long)GetLastError()
+		);
+		ExitProcess(255);
+	}
+
+	ExitProcess(exitCode);
+	return 0;
 }
 
 
@@ -52,23 +226,6 @@ int main(int argc, char * argv[])
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
-
-
-/**
- * This slave process manages a child process which performs the file
- * conversion. The child process is a /bin/sh running the command. That child
- * process gets its own process group for that we are able to terminate all
- * processes in that group.
- *
- * This process even listens to several signals for terminating itself and the
- * process group properly.
- *
- * Finally, the parent process should have created a pipe whose read end is
- * STDIN for this process. We never get any data through that pipe, but we
- * detect the closing of the write end. This way, this process automatically
- * performs the termination as soon as the parent process closes the write end -
- * and this even works when the parent process dies abnormally.
- */
 
 
 static void SigHandler(int signum)

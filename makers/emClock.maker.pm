@@ -2,7 +2,6 @@ package emClock;
 
 use strict;
 use warnings;
-use Config;
 
 sub GetDependencies
 {
@@ -53,22 +52,20 @@ sub Build
 		"src/emClock/emWorldClockPanel.cpp"
 	)==0 or return 0;
 
-	if ($Config{'osname'} ne "MSWin32") {
-		system(
-			'perl', "$options{'utils'}/MakeDirs.pl",
-			"lib/emClock"
-		)==0 or return 0;
-		system(
-			@{$options{'unicc_call'}},
-			"--bin-dir"       , "lib/emClock",
-			"--lib-dir"       , "lib",
-			"--obj-dir"       , "obj",
-			"--inc-search-dir", "include",
-			"--type"          , "cexe",
-			"--name"          , "emTimeZonesProc",
-			"src/emClock/emTimeZonesProc.c"
-		)==0 or return 0;
-	}
+	system(
+		'perl', "$options{'utils'}/MakeDirs.pl",
+		"lib/emClock"
+	)==0 or return 0;
+	system(
+		@{$options{'unicc_call'}},
+		"--bin-dir"       , "lib/emClock",
+		"--lib-dir"       , "lib",
+		"--obj-dir"       , "obj",
+		"--inc-search-dir", "include",
+		"--type"          , "cexe",
+		"--name"          , "emTimeZonesProc",
+		"src/emClock/emTimeZonesProc.c"
+	)==0 or return 0;
 
 	return 1;
 }

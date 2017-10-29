@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -207,7 +207,9 @@ void emTmpConvModel::TryStepConversion()
 			args,
 			extraEnv,
 			NULL,
-			emProcess::SF_PIPE_STDIN|emProcess::SF_PIPE_STDERR
+			emProcess::SF_PIPE_STDIN|
+			emProcess::SF_PIPE_STDERR|
+			emProcess::SF_NO_WINDOW
 		);
 		ConversionStage=3;
 		break;

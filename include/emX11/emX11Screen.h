@@ -138,6 +138,8 @@ private:
 		bool CursorChanged;
 	};
 
+	static bool CheckIfUnreliableXWayland(emContext & context);
+
 	emThreadMiniMutex XMutex; // (XInitThreads was too buggy for me...)
 	Display * Disp;
 	WaitCursorThread * WCThread;

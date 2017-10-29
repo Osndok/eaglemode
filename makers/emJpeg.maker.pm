@@ -2,7 +2,6 @@ package emJpeg;
 
 use strict;
 use warnings;
-use Config;
 
 sub GetDependencies
 {

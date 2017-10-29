@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_sb.pl
 #
-# Copyright (C) 2014 Oliver Hamann.
+# Copyright (C) 2014,2017 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -21,9 +21,10 @@
 
 use strict;
 use warnings;
+use Cwd 'abs_path';
 use File::Basename;
 use POSIX qw(uname);
-BEGIN { require (dirname($0).'/common.pm'); }
+BEGIN { require (abs_path(dirname($0).'/common.pm')); }
 
 # Dependencies
 my $tbzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2');

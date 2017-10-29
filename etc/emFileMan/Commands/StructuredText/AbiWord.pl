@@ -3,7 +3,7 @@
 # Type = Command
 # Order = 1.0
 # Interpreter = perl
-# DefaultFor = .abw:.aw:.awt:.bzabw:.cwk:.dbk:.doc:.dot:.fo:.hwp:.ics:.icsii:.kwd:.mif:.pdb:.rtf:.wml:.wpd:.wri:.zabw
+# DefaultFor = .abw:.aw:.awt:.bzabw:.cwk:.dbk:.doc:.docx:.dot:.fo:.hwp:.ics:.icsii:.kwd:.mif:.pdb:.rtf:.wml:.wpd:.wri:.zabw
 # Caption = AbiWord
 # Descr =Open files in AbiWord.
 # Descr =

@@ -70,14 +70,8 @@ void emTimeZonesModel::TryGetZoneTime(
 	if (zoneId>=0 && zoneId<Cities.GetCount()) {
 		if (ChildProcState==CP_ERRORED) throw emException("%s",ChildProcError.Get());
 		city=Cities[zoneId];
-		if (!city->TzFileChecked) {
-			city->TzFileExists=emIsRegularFile(
-				emGetChildPath(ZoneInfoDir,city->Name)
-			);
-			city->TzFileChecked=true;
-		}
-		if (!city->TzFileExists) {
-			throw emException("TZ file not found.");
+		if (!city->Error.IsEmpty()) {
+			throw emException(city->Error);
 		}
 		city->TimeNeeded=3;
 		if (!city->TimeValid) {
@@ -100,10 +94,10 @@ void emTimeZonesModel::TryGetZoneTime(
 			ptm=gmtime_r(&time,&tmbuf);
 		}
 		else {
-			throw emException("Illegal time zone ID.");
+			throw emException("Illegal time zone ID");
 		}
 		if (!ptm) {
-			throw emException("Time not available.");
+			throw emException("Time not available");
 		}
 		if (pYear     ) *pYear     =(int)ptm->tm_year+1900;
 		if (pMonth    ) *pMonth    =(int)ptm->tm_mon+1;
@@ -222,10 +216,8 @@ emTimeZonesModel::City::City()
 {
 	Latitude=0.0;
 	Longitude=0.0;
-	TzFileChecked=0;
-	TzFileExists=0;
-	TimeValid=0;
-	TimeRequested=0;
+	TimeValid=false;
+	TimeRequested=false;
 	TimeNeeded=0;
 	Year=0;
 	Month=0;
@@ -239,12 +231,6 @@ emTimeZonesModel::City::City()
 
 void emTimeZonesModel::InitCities()
 {
-#if defined(_WIN32)
-
-	//...???...
-
-#else
-
 	emString zoneTabPath;
 	FILE * f;
 	char * buf;
@@ -253,6 +239,12 @@ void emTimeZonesModel::InitCities()
 	City * city;
 
 	for (;;) {
+#if defined(_WIN32)
+		p=getenv("EM_DIR");
+		if (!p) return;
+		ZoneInfoDir=emString(p)+"\\thirdparty\\share\\zoneinfo";
+		if (emIsDirectory(ZoneInfoDir)) break;
+#else
 		ZoneInfoDir="/usr/share/zoneinfo";
 		if (emIsDirectory(ZoneInfoDir)) break;
 		ZoneInfoDir="/usr/share/lib/zoneinfo";
@@ -261,6 +253,7 @@ void emTimeZonesModel::InitCities()
 		if (emIsDirectory(ZoneInfoDir)) break;
 		ZoneInfoDir="/usr/zoneinfo";
 		if (emIsDirectory(ZoneInfoDir)) break;
+#endif
 		return;
 	}
 	for (;;) {
@@ -365,8 +358,7 @@ void emTimeZonesModel::InitCities()
 		while (l>0 && (emByte)p[l-1]<=32) l--;
 		city->Comment=emString(p,l);
 
-		city->TzFileChecked=false;
-		city->TzFileExists=false;
+		city->Error.Clear();
 
 		i=Cities.BinarySearchByKey((void*)city->Name.Get(),CmpCityAndName);
 		if (i<0) {
@@ -391,7 +383,6 @@ L_FileError:
 	if (f) fclose(f);
 	delete [] buf;
 	Cities.Clear(true);
-#endif
 }
 
 
@@ -422,6 +413,7 @@ bool emTimeZonesModel::ReplyCityTimes()
 	City * city;
 	char * p, * p2, * pEnd;
 	bool gotSome;
+	int n;
 
 	gotSome=false;
 	for (p=ReadBuf, pEnd=ReadBuf+ReadBufFill; p<pEnd; ) {
@@ -433,18 +425,48 @@ bool emTimeZonesModel::ReplyCityTimes()
 		while (p2<pEnd && *p2!=0x0a && *p2!=0x0d) p2++;
 		if (p2>=pEnd) break;
 		*p2=0;
-		sscanf(
-			p,
-			"%d-%d-%d %d %d:%d:%d",
-			&city->Year,
-			&city->Month,
-			&city->Day,
-			&city->DayOfWeek,
-			&city->Hour,
-			&city->Minute,
-			&city->Second
-		);
-		city->TimeValid=true;
+		if (strncmp(p,"ERROR:",6)==0) {
+			p+=6;
+			while (*p && (unsigned char)*p<=32) p++;
+			if (*p) city->Error=p;
+			else city->Error="unknown error";
+			city->TimeValid=false;
+			city->Year=0;
+			city->Month=0;
+			city->Day=0;
+			city->DayOfWeek=0;
+			city->Hour=0;
+			city->Minute=0;
+			city->Second=0;
+		}
+		else {
+			n=sscanf(
+				p,
+				"%d-%d-%d %d %d:%d:%d",
+				&city->Year,
+				&city->Month,
+				&city->Day,
+				&city->DayOfWeek,
+				&city->Hour,
+				&city->Minute,
+				&city->Second
+			);
+			if (n==7) {
+				city->Error.Clear();
+				city->TimeValid=true;
+			}
+			else {
+				city->Error="protocol error";
+				city->TimeValid=false;
+				city->Year=0;
+				city->Month=0;
+				city->Day=0;
+				city->DayOfWeek=0;
+				city->Hour=0;
+				city->Minute=0;
+				city->Second=0;
+			}
+		}
 		city->TimeRequested=false;
 		Requests.RemoveFirst();
 		p=p2+1;
@@ -472,19 +494,23 @@ void emTimeZonesModel::ManageChildProc()
 	}
 
 	if (ChildProcState==CP_STOPPED && WriteBufFill>0) {
+		emArray<emString> args;
+		args.Add(
+			emGetChildPath(
+				emGetInstallPath(EM_IDT_LIB,"emClock","emClock"),
+				"emTimeZonesProc"
+			)
+		);
+		args.Add(ZoneInfoDir);
 		try {
 			ChildProc.TryStart(
-				emArray<emString>(
-					emGetChildPath(
-						emGetInstallPath(EM_IDT_LIB,"emClock","emClock"),
-						"emTimeZonesProc"
-					)
-				),
+				args,
 				emArray<emString>(),
 				NULL,
 				emProcess::SF_PIPE_STDIN|
 				emProcess::SF_PIPE_STDOUT|
-				emProcess::SF_SHARE_STDERR
+				emProcess::SF_SHARE_STDERR|
+				emProcess::SF_NO_WINDOW
 			);
 			ChildProcState=CP_RUNNING;
 		}

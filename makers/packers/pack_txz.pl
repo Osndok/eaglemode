@@ -21,8 +21,9 @@
 
 use strict;
 use warnings;
+use Cwd 'abs_path';
 use File::Basename;
-BEGIN { require (dirname($0).'/common.pm'); }
+BEGIN { require (abs_path(dirname($0).'/common.pm')); }
 
 if ($>!=0) {
 	print(STDERR "Slackware package creation must be run as root!\n");

@@ -100,8 +100,7 @@ private:
 		double Longitude;
 		emString Name;
 		emString Comment;
-		bool TzFileChecked;
-		bool TzFileExists;
+		emString Error;
 		bool TimeValid;
 		bool TimeRequested;
 		int TimeNeeded;

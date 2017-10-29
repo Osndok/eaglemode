@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWorldClockPanel.cpp
 //
-// Copyright (C) 2006-2008,2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014,2016-2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -134,11 +134,7 @@ void emWorldClockPanel::Paint(const emPainter & painter, emColor canvasColor) co
 			GetHeight()/4,
 			0.5,
 			GetHeight()/2,
-#if defined(_WIN32)
-			"Error:\n\nTime zones not implemented\nfor this operating system.",
-#else
 			"Error:\n\nNo time zones found.",
-#endif
 			0.08,
 			emColor(255,0,0),
 			0,
@@ -153,9 +149,8 @@ void emWorldClockPanel::Paint(const emPainter & painter, emColor canvasColor) co
 			GetHeight()-0.025,
 			0.1,
 			0.007,
-			"Hint: The time zones and coordinates of the clocks in the world map\n"
-			"are from an operating system wide setup. If some overlap each other,\n"
-			"you can push a clock to the front or to the back by clicking on its\n"
+			"Hint: If some clocks overlap each other, you can push a\n"
+			"clock to the front or to the back by clicking on its\n"
 			"border with the left or right mouse button, respectively.",
 			1.0,
 			FileModel->ClockForegroundColor,

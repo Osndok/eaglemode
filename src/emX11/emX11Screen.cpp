@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emX11/emX11Screen.h>
+#include <emCore/emVarModel.h>
 #include <emX11/emX11Clipboard.h>
 #include <emX11/emX11ViewRenderer.h>
 #include <emX11/emX11WindowPort.h>
@@ -311,6 +312,13 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	SetEnginePriority(emEngine::VERY_HIGH_PRIORITY);
 
 	AddWakeUpSignal(ScreensaverUpdateTimer.GetSignal());
+
+	emVarModel<bool(*)(emContext&)>::Set(
+		GetContext(),
+		"CheckIfUnreliableXWayland",
+		CheckIfUnreliableXWayland,
+		UINT_MAX
+	);
 
 	WakeUp();
 }
@@ -1127,6 +1135,72 @@ int emX11Screen::WaitCursorThread::Run(void * arg)
 	XMutex.Unlock();
 
 	return 0;
+}
+
+
+bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
+{
+	emRef<emScreen> screen;
+	emX11Screen * x11Screen;
+	const char * p, * vendor, * procDir, * name;
+	emArray<emString> procNames;
+	emString path;
+	FILE * f;
+	char buf[1024];
+	int release,i,j,l;
+	bool found;
+
+	screen=emScreen::LookupInherited(context);
+	if (!screen) return false;
+	x11Screen=dynamic_cast<emX11Screen*>(screen.Get());
+	if (!x11Screen) return false;
+
+	p=getenv("EM_NO_WARN_XWAYLAND");
+	if (p && strcasecmp(p,"yes")==0) {
+		return false;
+	}
+
+	// Xwayland running on this system?
+	procDir="/proc";
+	try {
+		procNames=emTryLoadDir(procDir);
+	}
+	catch (...) {
+		return false;
+	}
+	found=false;
+	for (i=procNames.GetCount()-1; i>=0 && !found; i--) {
+		name=procNames[i].Get();
+		for (j=0; name[j]>='0' && name[j]<='9'; j++);
+		if (name[j]==0) {
+			path=emGetChildPath(emGetChildPath(procDir,name),"cmdline");
+			f=fopen(path.Get(),"rb");
+			if (f) {
+				l=fread(buf,1,sizeof(buf)-1,f);
+				if (l>0) {
+					buf[l]=0;
+					if (strcmp(emGetNameInPath(buf),"Xwayland")==0) found=true;
+				}
+				fclose(f);
+			}
+		}
+	}
+	if (!found) return false;
+
+	// Check X server vendor and release (can also be seen with xdpyinfo)
+	// Saw the buggy behavior with Xwayland on:
+	//  vendor="Fedora Project",       release=11900000 (Fedora 25)
+	//  vendor="Fedora Project",       release=11903000 (Fedora 26)
+	//  vendor="The X.Org Foundation", release=11905000 (Ubuntu 17.10)
+	vendor=ServerVendor(x11Screen->Disp);
+	release=VendorRelease(x11Screen->Disp);
+	if (
+		strcmp(vendor,"Fedora Project")!=0 &&
+		strcmp(vendor,"The X.Org Foundation")!=0
+	) return false;
+	//if (release>???) return false;
+
+	return true;
 }
 
 

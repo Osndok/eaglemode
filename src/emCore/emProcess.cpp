@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.cpp
 //
-// Copyright (C) 2006-2009,2012,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2012,2014,2017 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -214,7 +214,7 @@ void emProcess::TryStart(
 			NULL,
 			NULL,
 			TRUE,
-			0,
+			(flags&SF_NO_WINDOW) ? CREATE_NO_WINDOW : 0,
 			(LPVOID)envBlock.Get(),
 			useDir.Get(),
 			&si,

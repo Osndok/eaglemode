@@ -2,7 +2,6 @@ package emPng;
 
 use strict;
 use warnings;
-use Config;
 
 sub GetDependencies
 {

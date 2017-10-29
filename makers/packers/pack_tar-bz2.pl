@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_tar-bz2.pl
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2010,2017 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -21,8 +21,9 @@
 
 use strict;
 use warnings;
+use Cwd 'abs_path';
 use File::Basename;
-BEGIN { require (dirname($0).'/common.pm'); }
+BEGIN { require (abs_path(dirname($0).'/common.pm')); }
 
 # Don't do it on Windows.
 if ($Config{'osname'} eq "MSWin32" || $Config{'osname'} eq "cygwin") {

@@ -38,7 +38,7 @@
 
 #define EM_MAJOR_VERSION 0
 #define EM_MINOR_VERSION 93
-#define EM_MICRO_VERSION 0
+#define EM_MICRO_VERSION 1
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
