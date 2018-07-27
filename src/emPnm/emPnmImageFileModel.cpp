@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPnmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emPnmImageFileModel::~emPnmImageFileModel()
 }
 
 
-void emPnmImageFileModel::TryStartLoading() throw(emException)
+void emPnmImageFileModel::TryStartLoading()
 {
 	errno=0;
 
@@ -77,7 +77,7 @@ Err:
 }
 
 
-bool emPnmImageFileModel::TryContinueLoading() throw(emException)
+bool emPnmImageFileModel::TryContinueLoading()
 {
 	unsigned char * map, * mapEnd;
 	int i,n,v;
@@ -172,13 +172,13 @@ void emPnmImageFileModel::QuitLoading()
 }
 
 
-void emPnmImageFileModel::TryStartSaving() throw(emException)
+void emPnmImageFileModel::TryStartSaving()
 {
 	throw emException("emPnmImageFileModel: Saving not implemented.");
 }
 
 
-bool emPnmImageFileModel::TryContinueSaving() throw(emException)
+bool emPnmImageFileModel::TryContinueSaving()
 {
 	return true;
 }

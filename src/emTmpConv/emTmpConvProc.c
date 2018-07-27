@@ -72,6 +72,8 @@ int main(int argc, char * argv[])
 	DWORD d,exitCode;
 	BOOL b,gotWMQuit,childProcExited;
 
+	setbuf(stderr,NULL);
+
 	if (argc!=2) {
 		fprintf(stderr,"%s: Invalid arguments.\n",argv[0]);
 		ExitProcess(255);
@@ -138,8 +140,8 @@ int main(int argc, char * argv[])
 	if (!b) {
 		fprintf(
 			stderr,
-			"%s: Failed to create child process (err=0x%lX)\n",
-			argv[0],(long)GetLastError()
+			"%s: Failed to execute %s (err=0x%lX)\n",
+			argv[0],command,(long)GetLastError()
 		);
 		ExitProcess(255);
 	}

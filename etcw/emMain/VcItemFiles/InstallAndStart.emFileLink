@@ -1,6 +1,5 @@
 #%rec:emFileLink%#
 
-BasePathType=HtmlDoc
+BasePathType=PsDoc
 BasePathProject="emCore"
-Path=""
-HaveDirEntry=no
+Path="InstallAndStart.ps"

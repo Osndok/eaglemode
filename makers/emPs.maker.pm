@@ -2,6 +2,7 @@ package emPs;
 
 use strict;
 use warnings;
+use Config;
 
 sub GetDependencies
 {
@@ -48,6 +49,25 @@ sub Build
 		"src/emPs/emPsPagePanel.cpp",
 		"src/emPs/emPsRenderer.cpp"
 	)==0 or return 0;
+
+	if ($Config{'osname'} eq "MSWin32") {
+
+		system(
+			'perl', "$options{'utils'}/MakeDirs.pl",
+			"lib/emPs"
+		)==0 or return 0;
+
+		system(
+			@{$options{'unicc_call'}},
+			"--bin-dir"       , "lib/emPs",
+			"--lib-dir"       , "lib",
+			"--obj-dir"       , "obj",
+			"--inc-search-dir", "include",
+			"--type"          , "cexe",
+			"--name"          , "emPsWinAdapterProc",
+			"src/emPs/emPsWinAdapterProc.c"
+		)==0 or return 0;
+	}
 
 	return 1;
 }

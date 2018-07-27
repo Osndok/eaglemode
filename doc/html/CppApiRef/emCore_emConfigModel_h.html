@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>.h
 //
-// Copyright (C) 2006-2008,2010-2012,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2012,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,7 +63,7 @@
                 <SPAN CLASS=c>// Signaled on every modification of the record and even on
                 // change of IsUnsaved.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>);
         <SPAN CLASS=t>void </SPAN>Save(<SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>);
                 <SPAN CLASS=c>// Save the record to the install path. On error, the first
                 // version throws the error message, and the second version
@@ -98,7 +98,7 @@
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emConfigModel_h.html#emConfigModel">emConfigModel</A>();
                 <SPAN CLASS=c>// Destructor.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryLoad() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoad();
         <SPAN CLASS=t>void </SPAN>Load();
                 <SPAN CLASS=c>// Load the record from the install path. On error, the first
                 // version throws the error message, the second version calls
@@ -108,7 +108,7 @@
                 // its SetCustomError method, this is better than calling
                 // emFatalError.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryLoadOrInstall(<SPAN CLASS=t>const char </SPAN>* insSrcPath=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoadOrInstall(<SPAN CLASS=t>const char </SPAN>* insSrcPath=<SPAN CLASS=u>NULL</SPAN>);
         <SPAN CLASS=t>void </SPAN>LoadOrInstall(<SPAN CLASS=t>const char </SPAN>* insSrcPath=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// Like above, but if the file does not yet exist, an
                 // installation is performed: If insSrcPath is not NULL, that

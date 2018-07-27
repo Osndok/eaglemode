@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>.h
 //
-// Copyright (C) 2005-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,11 +76,11 @@
                 <SPAN CLASS=c>// Not valid before PostConstruct has been called.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>ResetData();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartLoading();
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueLoading();
         <SPAN CLASS=t>virtual void </SPAN>QuitLoading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartSaving();
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueSaving();
         <SPAN CLASS=t>virtual void </SPAN>QuitSaving();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcMemoryNeed();
         <SPAN CLASS=t>virtual double </SPAN>CalcFileProgress();

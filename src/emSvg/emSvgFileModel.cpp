@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFileModel.cpp
 //
-// Copyright (C) 2010,2014 Oliver Hamann.
+// Copyright (C) 2010,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,13 +63,13 @@ void emSvgFileModel::ResetData()
 }
 
 
-void emSvgFileModel::TryStartLoading() throw(emException)
+void emSvgFileModel::TryStartLoading()
 {
 	FileSize=emTryGetFileSize(GetFilePath());
 }
 
 
-bool emSvgFileModel::TryContinueLoading() throw(emException)
+bool emSvgFileModel::TryContinueLoading()
 {
 	if (!JobHandle) {
 		JobHandle=ServerModel->StartOpenJob(GetFilePath(),&SvgHandle);
@@ -101,13 +101,13 @@ void emSvgFileModel::QuitLoading()
 }
 
 
-void emSvgFileModel::TryStartSaving() throw(emException)
+void emSvgFileModel::TryStartSaving()
 {
 	throw emException("emSvgFileModel: Saving not supported.");
 }
 
 
-bool emSvgFileModel::TryContinueSaving() throw(emException)
+bool emSvgFileModel::TryContinueSaving()
 {
 	return true;
 }

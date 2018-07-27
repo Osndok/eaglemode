@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFileModel.h
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,11 +45,11 @@ protected:
 	emPsFileModel(emContext & context, const emString & name);
 	virtual ~emPsFileModel();
 	virtual void ResetData();
-	virtual void TryStartLoading() throw(emException);
-	virtual bool TryContinueLoading() throw(emException);
+	virtual void TryStartLoading();
+	virtual bool TryContinueLoading();
 	virtual void QuitLoading();
-	virtual void TryStartSaving() throw(emException);
-	virtual bool TryContinueSaving() throw(emException);
+	virtual void TryStartSaving();
+	virtual bool TryContinueSaving();
 	virtual void QuitSaving();
 	virtual emUInt64 CalcMemoryNeed();
 	virtual double CalcFileProgress();

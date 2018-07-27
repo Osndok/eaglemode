@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRgbImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emRgbImageFileModel::~emRgbImageFileModel()
 }
 
 
-void emRgbImageFileModel::TryStartLoading() throw(emException)
+void emRgbImageFileModel::TryStartLoading()
 {
 	int magic,dimension,colorMapId;
 
@@ -111,7 +111,7 @@ ErrUnsupported:
 }
 
 
-bool emRgbImageFileModel::TryContinueLoading() throw(emException)
+bool emRgbImageFileModel::TryContinueLoading()
 {
 	unsigned char * map;
 	int x,val,i,cnt,rpt;
@@ -204,13 +204,13 @@ void emRgbImageFileModel::QuitLoading()
 }
 
 
-void emRgbImageFileModel::TryStartSaving() throw(emException)
+void emRgbImageFileModel::TryStartSaving()
 {
 	throw emException("emRgbImageFileModel: Saving not implemented.");
 }
 
 
-bool emRgbImageFileModel::TryContinueSaving() throw(emException)
+bool emRgbImageFileModel::TryContinueSaving()
 {
 	return true;
 }

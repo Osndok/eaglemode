@@ -50,6 +50,10 @@ extendPath ()
 # Have $EM_DIR/lib as the first in the corresponding search path.
 case "$OSTYPE" in
 	cygwin*|msys)
+		THIRDPARTY_BIN="$EM_DIR/thirdparty/bin";
+		if test -d "$THIRDPARTY_BIN" ; then
+			PATH="`extendPath "$PATH" "$THIRDPARTY_BIN"`"
+		fi
 		PATH="`extendPath "$PATH" "$EM_DIR/lib"`"
 		export PATH
 	;;

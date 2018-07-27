@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.h
 //
-// Copyright (C) 2008-2009,2014,2016 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,7 +34,7 @@
 //========================= Dynamic access to libXext ==========================
 //==============================================================================
 
-void emX11_TryLoadLibXext() throw(emException);
+void emX11_TryLoadLibXext();
 bool emX11_IsLibXextLoaded();
 
 #define ShmCompletion 0
@@ -92,7 +92,7 @@ extern void * emX11_LibXextFunctions[6];
 //======================== Dynamic access to libXxf86vm ========================
 //==============================================================================
 
-void emX11_TryLoadLibXxf86vm() throw(emException);
+void emX11_TryLoadLibXxf86vm();
 bool emX11_IsLibXxf86vmLoaded();
 
 typedef struct {
@@ -134,7 +134,7 @@ extern void * emX11_LibXxf86vmFunctions[4];
 //======================= Dynamic access to libXinerama ========================
 //==============================================================================
 
-void emX11_TryLoadLibXinerama() throw(emException);
+void emX11_TryLoadLibXinerama();
 bool emX11_IsLibXineramaLoaded();
 
 typedef struct {

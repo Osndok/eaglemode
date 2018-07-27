@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.cpp
 //
-// Copyright (C) 2006-2012,2014,2016 Oliver Hamann.
+// Copyright (C) 2006-2012,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,7 +129,7 @@ public:
 };
 
 
-void emCoreConfig::TryLoadOldVersion() throw(emException)
+void emCoreConfig::TryLoadOldVersion()
 {
 	emCoreConfig_0_85_0 oldCfg;
 	oldCfg.TryLoad(GetInstallPath());

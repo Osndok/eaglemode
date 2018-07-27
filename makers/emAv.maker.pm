@@ -23,6 +23,12 @@ sub GetExtraBuildOptions
 {
 	return (
 		[
+			"emAv",
+			$Config{'osname'} eq "MSWin32" ? "vlc" : "xine",
+			"emAv=<name>[,<name>]...\n".
+			"  Which emAv server adapters to compile. Possible names are: xine, vlc"
+		],
+		[
 			"xine-inc-dir",
 			"",
 			"xine-inc-dir=<dir>\n".
@@ -41,11 +47,6 @@ sub Build
 {
 	shift;
 	my %options=@_;
-
-	if ($Config{'osname'} eq "MSWin32") {
-		print(STDERR "PROBLEM: emAv has not yet been ported to Windows.\n");
-		return 0;
-	}
 
 	system(
 		@{$options{'unicc_call'}},
@@ -73,27 +74,65 @@ sub Build
 		"lib/emAv"
 	)==0 or return 0;
 
-	system(
-		@{$options{'unicc_call'}},
-		"--math",
-		"--rtti",
-		"--exceptions",
-		"--bin-dir"       , "lib/emAv",
-		"--lib-dir"       , "lib",
-		"--obj-dir"       , "obj",
-		"--inc-search-dir", "include",
-		$options{'xine-inc-dir'} ne '' ? (
-			"--inc-search-dir", $options{'xine-inc-dir'}
-		) : (),
-		$options{'xine-lib-dir'} ne '' ? (
-			"--lib-search-dir", $options{'xine-lib-dir'}
-		) : (),
-		"--link"          , "xine",
-		"--link"          , "pthread",
-		"--type"          , "cexe",
-		"--name"          , "emAvServerProc_xine",
-		"src/emAv/emAvServerProc_xine.c"
-	)==0 or return 0;
+	foreach my $name (split(',', $options{'emAv'})) {
+		if ($name eq 'xine') {
+			system(
+				@{$options{'unicc_call'}},
+				"--math",
+				"--rtti",
+				"--exceptions",
+				"--bin-dir"       , "lib/emAv",
+				"--lib-dir"       , "lib",
+				"--obj-dir"       , "obj",
+				"--inc-search-dir", "include",
+				$options{'xine-inc-dir'} ne '' ? (
+					"--inc-search-dir", $options{'xine-inc-dir'}
+				) : (),
+				$options{'xine-lib-dir'} ne '' ? (
+					"--lib-search-dir", $options{'xine-lib-dir'}
+				) : (),
+				"--link"          , "xine",
+				"--link"          , "pthread",
+				"--type"          , "cexe",
+				"--name"          , "emAvServerProc_xine",
+				"src/emAv/emAvServerProc_xine.c"
+			)==0 or return 0;
+		}
+		elsif ($name eq 'vlc') {
+			my @libvlcFlags=();
+			my $str=readpipe('pkg-config --cflags --libs libvlc');
+			if (!$str) { return 0; }
+			foreach my $f (split(/\s+/,$str)) {
+				if (substr($f,0,2) eq '-I') {
+					push(@libvlcFlags,'--inc-search-dir',substr($f,2));
+				}
+				elsif (substr($f,0,2) eq '-L') {
+					push(@libvlcFlags,'--lib-search-dir',substr($f,2));
+				}
+				elsif (substr($f,0,2) eq '-l') {
+					push(@libvlcFlags,'--link',substr($f,2));
+				}
+			}
+			system(
+				@{$options{'unicc_call'}},
+				"--math",
+				"--rtti",
+				"--exceptions",
+				"--bin-dir"       , "lib/emAv",
+				"--lib-dir"       , "lib",
+				"--obj-dir"       , "obj",
+				"--inc-search-dir", "include",
+				@libvlcFlags,
+				"--type"          , "cexe",
+				"--name"          , "emAvServerProc_vlc",
+				"src/emAv/emAvServerProc_vlc.c"
+			)==0 or return 0;
+		}
+		else {
+			print(STDERR "Unkown value for emAv option: $name\n");
+			return 0;
+		}
+	}
 
 	return 1;
 }

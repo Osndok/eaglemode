@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessModel.cpp
 //
-// Copyright (C) 2007-2009,2014 Oliver Hamann.
+// Copyright (C) 2007-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,7 +81,7 @@ void SilChessModel::ResetData()
 }
 
 
-void SilChessModel::TryStartLoading() throw(emException)
+void SilChessModel::TryStartLoading()
 {
 	Machine=new SilChessMachine();
 	errno=0;
@@ -94,7 +94,7 @@ void SilChessModel::TryStartLoading() throw(emException)
 }
 
 
-bool SilChessModel::TryContinueLoading() throw(emException)
+bool SilChessModel::TryContinueLoading()
 {
 	return true;
 }
@@ -105,7 +105,7 @@ void SilChessModel::QuitLoading()
 }
 
 
-void SilChessModel::TryStartSaving() throw(emException)
+void SilChessModel::TryStartSaving()
 {
 	errno=0;
 	if (!Machine->Save(GetFilePath())) {
@@ -115,7 +115,7 @@ void SilChessModel::TryStartSaving() throw(emException)
 }
 
 
-bool SilChessModel::TryContinueSaving() throw(emException)
+bool SilChessModel::TryContinueSaving()
 {
 	return true;
 }

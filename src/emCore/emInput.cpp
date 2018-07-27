@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.cpp
 //
-// Copyright (C) 2005-2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -603,7 +603,7 @@ emInputHotkey::emInputHotkey(
 }
 
 
-void emInputHotkey::TryParse(const char * str) throw(emException)
+void emInputHotkey::TryParse(const char * str)
 {
 	char tmp[256];
 	const char * p;

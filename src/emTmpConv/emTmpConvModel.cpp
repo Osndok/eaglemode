@@ -199,7 +199,10 @@ void emTmpConvModel::TryStepConversion()
 		ConversionStage=2;
 		if (IsTimeSliceAtEnd()) break;
 	case 2:
-		args=emGetInstallPath(EM_IDT_LIB,"emTmpConv","emTmpConv/emTmpConvProc");
+		args+=emGetChildPath(
+			emGetInstallPath(EM_IDT_LIB,"emTmpConv","emTmpConv"),
+			"emTmpConvProc"
+		);
 		args+=Command;
 		extraEnv=emString::Format("INFILE=%s",InputFilePath.Get());
 		extraEnv+=emString::Format("OUTFILE=%s",TmpFile.GetPath().Get());

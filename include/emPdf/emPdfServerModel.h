@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.h
 //
-// Copyright (C) 2011,2014 Oliver Hamann.
+// Copyright (C) 2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -152,21 +152,21 @@ private:
 		int InstanceId;
 	};
 
-	void TryStartJobs() throw(emException);
-	void TryStartOpenJob(OpenJob * openJob) throw(emException);
-	void TryStartRenderJob(RenderJob * renderJob) throw(emException);
-	void TryStartCloseJob(CloseJobStruct * closeJob) throw(emException);
+	void TryStartJobs();
+	void TryStartOpenJob(OpenJob * openJob);
+	void TryStartRenderJob(RenderJob * renderJob);
+	void TryStartCloseJob(CloseJobStruct * closeJob);
 
-	void TryFinishJobs() throw(emException);
-	bool TryFinishOpenJob(OpenJob * job) throw(emException);
-	bool TryFinishRenderJob(RenderJob * job) throw(emException);
+	void TryFinishJobs();
+	bool TryFinishOpenJob(OpenJob * job);
+	bool TryFinishRenderJob(RenderJob * job);
 
 	void FailAllRunningJobs(emString errorText);
 	void FailAllJobs(emString errorText);
 
 	void WriteLineToProc(const char * str);
 	emString ReadLineFromProc();
-	bool TryProcIO() throw(emException);
+	bool TryProcIO();
 
 	Job * SearchBestNextJob() const;
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.h
 //
-// Copyright (C) 2006-2009,2014,2017 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -66,7 +66,7 @@ public:
 		int * pHour,
 		int * pMinute,
 		int * pSecond
-	) throw(emException);
+	);
 
 	void TryGetZoneTime(
 		time_t time,
@@ -78,7 +78,7 @@ public:
 		int * pHour,
 		int * pMinute,
 		int * pSecond
-	) throw(emException);
+	);
 
 	double GetJulianDate();
 	double GetJulianDate(time_t time);
@@ -153,7 +153,7 @@ inline time_t emTimeZonesModel::GetTime() const
 inline void emTimeZonesModel::TryGetZoneTime(
 	ZoneId zoneId, int * pYear, int * pMonth, int * pDay, int * pDayOfWeek,
 	int * pHour, int * pMinute, int * pSecond
-) throw(emException)
+)
 {
 	TryGetZoneTime(
 		Time,zoneId,pYear,pMonth,pDay,pDayOfWeek,pHour,pMinute,pSecond

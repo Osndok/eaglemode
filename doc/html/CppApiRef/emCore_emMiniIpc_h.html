@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emMiniIpc.h - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@
         <SPAN CLASS=c>// Client side of the minimalistic interprocess communication.
 
         </SPAN><SPAN CLASS=t>static void </SPAN>TrySend(<SPAN CLASS=t>const char </SPAN>* serverName, <SPAN CLASS=t>int </SPAN>argc,
-                            <SPAN CLASS=t>const char </SPAN>* <SPAN CLASS=t>const </SPAN>argv[]) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+                            <SPAN CLASS=t>const char </SPAN>* <SPAN CLASS=t>const </SPAN>argv[]);
                 <SPAN CLASS=c>// Send a message to a server which runs on the same host by the
                 // same user. The server must not be run by the same process and
                 // thread, otherwise a deadlock could happen. This is

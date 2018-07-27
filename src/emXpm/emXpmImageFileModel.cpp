@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXpmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emXpmImageFileModel::~emXpmImageFileModel()
 }
 
 
-void emXpmImageFileModel::TryStartLoading() throw(emException)
+void emXpmImageFileModel::TryStartLoading()
 {
 	emInt64 l;
 
@@ -66,7 +66,7 @@ Err:
 }
 
 
-bool emXpmImageFileModel::TryContinueLoading() throw(emException)
+bool emXpmImageFileModel::TryContinueLoading()
 {
 	int i,pos,len;
 
@@ -119,13 +119,13 @@ void emXpmImageFileModel::QuitLoading()
 }
 
 
-void emXpmImageFileModel::TryStartSaving() throw(emException)
+void emXpmImageFileModel::TryStartSaving()
 {
 	throw emException("emXpmImageFileModel: Saving not implemented.");
 }
 
 
-bool emXpmImageFileModel::TryContinueSaving() throw(emException)
+bool emXpmImageFileModel::TryContinueSaving()
 {
 	return true;
 }

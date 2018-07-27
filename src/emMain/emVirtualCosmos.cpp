@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,7 +62,7 @@ const char * emVirtualCosmosItemRec::GetFormatName() const
 
 void emVirtualCosmosItemRec::TryPrepareItemFile(
 	const emString & origDir, const emString & userDir
-) throw(emException)
+)
 {
 	emString srcPath,tgtDir;
 

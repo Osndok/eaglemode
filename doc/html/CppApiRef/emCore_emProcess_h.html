@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A>.h
 //
-// Copyright (C) 2006-2010,2014,2017 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,7 +68,7 @@
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; extraEnv=<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt;(),
                 <SPAN CLASS=t>const char </SPAN>* dirPath=<SPAN CLASS=u>NULL</SPAN>,
                 <SPAN CLASS=t>int </SPAN>flags=SF_SHARE_STDIN|SF_SHARE_STDOUT|SF_SHARE_STDERR
-        ) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        );
                 <SPAN CLASS=c>// Start a managed child process.
                 // Arguments:
                 //   args     - Program arguments for the child process. The
@@ -107,14 +107,14 @@
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt; &amp; extraEnv=<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A>&gt;(),
                 <SPAN CLASS=t>const char </SPAN>* dirPath=<SPAN CLASS=u>NULL</SPAN>,
                 <SPAN CLASS=t>int </SPAN>flags=SF_SHARE_STDIN|SF_SHARE_STDOUT|SF_SHARE_STDERR
-        ) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        );
                 <SPAN CLASS=c>// This function(!) is like the method TryStart, but the new
                 // process is not managed by an <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A> object. Pipelining is
                 // not possible with this. On UNIX, the new process is detached
                 // from this process, so that it does not become a child
                 // process.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>int </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len);
                 <SPAN CLASS=c>// Write to standard input of the child process, without
                 // blocking. The child process should have been started with
                 // SF_PIPE_STDIN.
@@ -129,7 +129,7 @@
                 //        process exited).
                 // Throws: An error message on failure.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen);
                 <SPAN CLASS=c>// Read from standard output of the child process, without
                 // blocking. The child process should have been started with
                 // SF_PIPE_STDOUT.
@@ -144,7 +144,7 @@
                 //        process exited).
                 // Throws: An error message on failure.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>TryReadErr(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>int </SPAN>TryReadErr(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen);
                 <SPAN CLASS=c>// Like TryRead, but for standard error (SF_PIPE_STDERR).
 
         </SPAN><SPAN CLASS=t>enum </SPAN>WaitFlags <SPAN CLASS=b>{

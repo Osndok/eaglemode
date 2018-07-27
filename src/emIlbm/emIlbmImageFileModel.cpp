@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emIlbmImageFileModel::~emIlbmImageFileModel()
 }
 
 
-void emIlbmImageFileModel::TryStartLoading() throw(emException)
+void emIlbmImageFileModel::TryStartLoading()
 {
 	int name;
 
@@ -74,7 +74,7 @@ void emIlbmImageFileModel::TryStartLoading() throw(emException)
 }
 
 
-bool emIlbmImageFileModel::TryContinueLoading() throw(emException)
+bool emIlbmImageFileModel::TryContinueLoading()
 {
 	unsigned char * map, * row, * bm, * p;
 	int name,size;
@@ -207,13 +207,13 @@ void emIlbmImageFileModel::QuitLoading()
 }
 
 
-void emIlbmImageFileModel::TryStartSaving() throw(emException)
+void emIlbmImageFileModel::TryStartSaving()
 {
 	throw emException("emIlbmImageFileModel: Saving not implemented.");
 }
 
 
-bool emIlbmImageFileModel::TryContinueSaving() throw(emException)
+bool emIlbmImageFileModel::TryContinueSaving()
 {
 	return true;
 }

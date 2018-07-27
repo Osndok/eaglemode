@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008-2010,2012,2014 Oliver Hamann.
+// Copyright (C) 2008-2010,2012,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,9 +18,14 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <sys/shm.h>
 #include <emAv/emAvServerModel.h>
 #include <emAv/emAvClient.h>
+#if defined(_WIN32) || defined(__CYGWIN__)
+#	include <emCore/emThread.h>
+#	include <windows.h>
+#else
+#	include <sys/shm.h>
+#endif
 
 
 emRef<emAvServerModel> emAvServerModel::Acquire(
@@ -103,7 +108,8 @@ L_ENTER_IDLE:
 					NULL,
 					emProcess::SF_PIPE_STDIN|
 					emProcess::SF_PIPE_STDOUT|
-					emProcess::SF_SHARE_STDERR
+					emProcess::SF_SHARE_STDERR|
+					emProcess::SF_NO_WINDOW
 				);
 			}
 			catch (emException & exception) {
@@ -202,7 +208,7 @@ L_ENTER_TERM_PROC:
 
 emAvServerModel::Instance * emAvServerModel::TryOpenInstance(
 	const char * audioDrv, const char * videoDrv, const char * filePath
-) throw(emException)
+)
 {
 	Instance * inst;
 	int i;
@@ -220,12 +226,17 @@ emAvServerModel::Instance * emAvServerModel::TryOpenInstance(
 	inst->ShmAttachState=SA_DETACHED;
 	inst->MinShmSize=0;
 	inst->ShmSize=0;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	inst->ShmId[0]=0;
+	inst->ShmHdl=NULL;
+#else
 	inst->ShmId=-1;
+#endif
 	inst->ShmAddr=NULL;
 	Instances[i]=inst;
 	InstanceCount++;
 	if (State==STATE_IDLE) WakeUp();
-	SendMessage(
+	SendCommand(
 		inst,
 		"open",
 		emString::Format("%s:%s:%s",audioDrv,videoDrv,filePath)
@@ -247,7 +258,7 @@ void emAvServerModel::DeleteInstance(int index)
 }
 
 
-void emAvServerModel::SendMessage(
+void emAvServerModel::SendCommand(
 	Instance * inst, const char * tag, const char * data
 )
 {
@@ -292,7 +303,7 @@ void emAvServerModel::SendMessage(
 }
 
 
-void emAvServerModel::TryDoPipeIO() throw(emException)
+void emAvServerModel::TryDoPipeIO()
 {
 	char * p, * p2, * p3, * p4, * pb, * pe;
 	bool progress;
@@ -447,7 +458,7 @@ void emAvServerModel::UpdateShm(Instance * inst)
 			DeleteShm(inst);
 			inst->ShmSize=inst->MinShmSize;
 		}
-		if (inst->ShmSize>0 && inst->ShmId==-1 && inst->Client) {
+		if (inst->ShmSize>0 && !inst->ShmAddr && inst->Client) {
 			try {
 				TryCreateShm(inst);
 			}
@@ -455,27 +466,79 @@ void emAvServerModel::UpdateShm(Instance * inst)
 				if (inst->Client) inst->Client->SetStreamErrored(exception.GetText());
 				return;
 			}
-			SendMessage(
+			SendCommand(
 				inst,"attachshm",
+#if defined(_WIN32) || defined(__CYGWIN__)
+				emString::Format("%s:%d",inst->ShmId,inst->ShmSize)
+#else
 				emString::Format("%d:%d",inst->ShmId,inst->ShmSize)
+#endif
 			);
 			inst->ShmAttachState=SA_ATTACHING;
 		}
 	}
 	else if (inst->ShmAttachState==SA_ATTACHED) {
 		if (inst->ShmSize<inst->MinShmSize || !inst->Client) {
-			SendMessage(inst,"detachshm","");
+			SendCommand(inst,"detachshm","");
 			inst->ShmAttachState=SA_DETACHING;
 		}
 	}
 }
 
 
-void emAvServerModel::TryCreateShm(Instance * inst) throw(emException)
+void emAvServerModel::TryCreateShm(Instance * inst)
 {
-#if defined(__CYGWIN__)
-	throw emException("shmget not tried as cygwin may abort the process.");
-#endif
+#if defined(_WIN32) || defined(__CYGWIN__)
+
+	static emThreadMiniMutex sharedCounterMutex;
+	static unsigned long sharedCounter=0;
+	unsigned long counter;
+
+	sharedCounterMutex.Lock();
+	counter=sharedCounter++;
+	sharedCounterMutex.Unlock();
+
+	sprintf(
+		inst->ShmId,
+		"Local\\emAv.%lX.%lX.%lX.%lX.%lX",
+		(unsigned long)GetCurrentProcessId(),
+		counter,
+		(unsigned long)inst->Index,
+		(unsigned long)GetTickCount(),
+		(unsigned long)emGetUInt64Random(0,0xffffffff) //???
+	);
+	emDLog("emAvServerModel: ShmId=%s",inst->ShmId);
+
+	SetLastError(ERROR_SUCCESS);
+	inst->ShmHdl=CreateFileMapping(
+		INVALID_HANDLE_VALUE,NULL,PAGE_READWRITE|SEC_COMMIT,
+		0,inst->ShmSize,inst->ShmId
+	);
+	if (!inst->ShmHdl || GetLastError()==ERROR_ALREADY_EXISTS) {
+		if (inst->ShmHdl) {
+			CloseHandle(inst->ShmHdl);
+			inst->ShmHdl=NULL;
+		}
+		inst->ShmId[0]=0;
+		throw emException(
+			"Failed to create shared memory segment: CreateFileMapping: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
+	}
+
+	inst->ShmAddr=(int*)MapViewOfFile(inst->ShmHdl,FILE_MAP_ALL_ACCESS,0,0,0);
+	if (!inst->ShmAddr) {
+		CloseHandle(inst->ShmHdl);
+		inst->ShmHdl=NULL;
+		inst->ShmId[0]=0;
+		throw emException(
+			"Failed to create shared memory segment: MapViewOfFile: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
+	}
+
+#else
+
 	inst->ShmId=shmget(IPC_PRIVATE,inst->ShmSize,IPC_CREAT|0600);
 	if (inst->ShmId==-1) {
 		throw emException(
@@ -483,6 +546,7 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emException)
 			emGetErrorText(errno).Get()
 		);
 	}
+
 	inst->ShmAddr=(int*)shmat(inst->ShmId,0,0);
 	if (inst->ShmAddr==(int*)-1) {
 		inst->ShmAddr=NULL;
@@ -493,6 +557,7 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emException)
 			emGetErrorText(errno).Get()
 		);
 	}
+
 #if defined(__linux__)
 	shmctl(inst->ShmId,IPC_RMID,0);
 	if (shmctl(inst->ShmId,IPC_RMID,0)!=0) {
@@ -502,12 +567,36 @@ void emAvServerModel::TryCreateShm(Instance * inst) throw(emException)
 		);
 	}
 #endif
+
+#endif
+
 	inst->ShmAddr[0]=0;
 }
 
 
 void emAvServerModel::DeleteShm(Instance * inst)
 {
+#if defined(_WIN32) || defined(__CYGWIN__)
+
+	if (inst->ShmId[0]!=0) {
+		if (inst->ShmAttachState!=SA_DETACHED && ServerProc.IsRunning()) {
+			emFatalError(
+				"emAvServerModel: DeleteShm called while server not detached."
+			);
+		}
+		if (inst->ShmAddr) {
+			UnmapViewOfFile(inst->ShmAddr);
+			inst->ShmAddr=NULL;
+		}
+		if (inst->ShmHdl) {
+			CloseHandle(inst->ShmHdl);
+			inst->ShmHdl=NULL;
+		}
+		inst->ShmId[0]=0;
+	}
+
+#else
+
 	if (inst->ShmId!=-1) {
 		if (inst->ShmAttachState!=SA_DETACHED && ServerProc.IsRunning()) {
 			emFatalError(
@@ -528,6 +617,9 @@ void emAvServerModel::DeleteShm(Instance * inst)
 #endif
 		inst->ShmId=-1;
 	}
+
+#endif
+
 	inst->ShmSize=0;
 }
 

@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Advanced Configuration"
+
+PosX  = 0.090
+PosY  = 0.147
+Width = 0.045
+ContentTallness = 0.116
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "AdvancedConfiguration.emFileLink"
+CopyToUser = false

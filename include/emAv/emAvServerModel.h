@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.h
 //
-// Copyright (C) 2008,2014 Oliver Hamann.
+// Copyright (C) 2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -83,7 +83,12 @@ private:
 		ShmAttachStateType ShmAttachState;
 		int MinShmSize;
 		int ShmSize;
+#if defined(_WIN32) || defined(__CYGWIN__)
+		char ShmId[256];
+		void * ShmHdl;
+#else
 		int ShmId;
+#endif
 		int * ShmAddr;
 		emImage Image;
 	};
@@ -98,19 +103,19 @@ private:
 	Instance * TryOpenInstance(
 		const char * audioDrv, const char * videoDrv,
 		const char * filePath
-	) throw(emException);
+	);
 
 	void DeleteInstance(int index);
 
-	void SendMessage(Instance * inst, const char * tag, const char * data);
+	void SendCommand(Instance * inst, const char * tag, const char * data);
 
-	void TryDoPipeIO() throw(emException);
+	void TryDoPipeIO();
 
 	void HandleMessage(int instIndex, const char * tag, const char * data);
 
 	void UpdateShm(Instance * inst);
 
-	void TryCreateShm(Instance * inst) throw(emException);
+	void TryCreateShm(Instance * inst);
 	void DeleteShm(Instance * inst);
 
 	void TransferFrames();

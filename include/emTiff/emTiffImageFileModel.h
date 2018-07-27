@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.h
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,18 +38,18 @@ protected:
 
 	emTiffImageFileModel(emContext & context, const emString & name);
 	virtual ~emTiffImageFileModel();
-	virtual void TryStartLoading() throw(emException);
-	virtual bool TryContinueLoading() throw(emException);
+	virtual void TryStartLoading();
+	virtual bool TryContinueLoading();
 	virtual void QuitLoading();
-	virtual void TryStartSaving() throw(emException);
-	virtual bool TryContinueSaving() throw(emException);
+	virtual void TryStartSaving();
+	virtual bool TryContinueSaving();
 	virtual void QuitSaving();
 	virtual emUInt64 CalcMemoryNeed();
 	virtual double CalcFileProgress();
 
 private:
 
-	static void ThrowTiffError() throw(emException);
+	static void ThrowTiffError();
 
 	struct LoadingState {
 		void * Tif;

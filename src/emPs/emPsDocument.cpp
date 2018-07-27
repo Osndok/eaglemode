@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocument.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,7 @@ void emPsDocument::Clear()
 }
 
 
-void emPsDocument::TrySetScript(const emArray<char> & script) throw(emException)
+void emPsDocument::TrySetScript(const emArray<char> & script)
 {
 	enum {
 		IN_STARTUP,

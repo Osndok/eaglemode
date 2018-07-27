@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -109,7 +109,7 @@ void emImage::SetUserMap(int width, int height, int channelCount, emByte * map)
 
 void emImage::TryParseXpm(
 	const char * const * xpm, int channelCount
-) throw(emException)
+)
 {
 	char tmp[256];
 	const char * s, * s2, * s3, * s4, * s5;
@@ -286,7 +286,7 @@ L_Error:
 
 void emImage::TryParseTga(
 	const unsigned char * tgaData, int tgaSize, int channelCount
-) throw(emException)
+)
 {
 	const unsigned char * tgaEnd, * p;
 	emColor * palette;

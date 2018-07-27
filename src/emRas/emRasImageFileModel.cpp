@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emRasImageFileModel::~emRasImageFileModel()
 }
 
 
-void emRasImageFileModel::TryStartLoading() throw(emException)
+void emRasImageFileModel::TryStartLoading()
 {
 	errno=0;
 
@@ -96,7 +96,7 @@ Err:
 }
 
 
-bool emRasImageFileModel::TryContinueLoading() throw(emException)
+bool emRasImageFileModel::TryContinueLoading()
 {
 	unsigned char * map;
 	int x,n;
@@ -210,13 +210,13 @@ void emRasImageFileModel::QuitLoading()
 }
 
 
-void emRasImageFileModel::TryStartSaving() throw(emException)
+void emRasImageFileModel::TryStartSaving()
 {
 	throw emException("emRasImageFileModel: Saving not implemented.");
 }
 
 
-bool emRasImageFileModel::TryContinueSaving() throw(emException)
+bool emRasImageFileModel::TryContinueSaving()
 {
 	return true;
 }

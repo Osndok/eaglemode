@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -160,20 +160,20 @@
                 // the beginning of the file. The default implementation returns
                 // NULL which means to have no file format magic.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryLoad(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoad(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);
+        <SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);
                 <SPAN CLASS=c>// Load or save this tree of records from or to a file.
                 // Arguments:
                 //   filePath - Path/name of the file.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryLoadFromMem(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>void </SPAN>TryLoadFromMem(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryLoadFromMem(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>void </SPAN>TryLoadFromMem(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf);
         <SPAN CLASS=t>void </SPAN>SaveToMem(<A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf);
                 <SPAN CLASS=c>// Load or save this tree of records from or to memory.
                 // SaveToMem adds the data to the array without emptying it
                 // first.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryCopy(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; source) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryCopy(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; source);
         <SPAN CLASS=t>void </SPAN>Copy(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; source);
                 <SPAN CLASS=c>// Copy the given tree of records to this tree of records via
                 // the SaveToMem and TryLoadFromMem methods. This is slow and
@@ -189,11 +189,11 @@
                 // writing an <A CLASS=m HREF="emCore_emRec_h.html#emStructRec">emStructRec</A>, members with default state may be
                 // omitted.
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) = <SPAN CLASS=u>0</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>QuitReading() = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) = <SPAN CLASS=u>0</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting() = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// This is only to be called by <A CLASS=m HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>/Writer and through
                 // recursion in the tree. Try to read or write this tree of
@@ -346,11 +346,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -416,11 +416,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -499,11 +499,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -595,11 +595,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -692,11 +692,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -765,11 +765,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -830,11 +830,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -895,11 +895,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -978,11 +978,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -1095,11 +1095,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -1198,11 +1198,11 @@
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
         <SPAN CLASS=t>virtual void </SPAN>QuitReading();
-        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> &amp; writer);
         <SPAN CLASS=t>virtual void </SPAN>QuitWriting();
         <SPAN CLASS=t>virtual </SPAN>emUInt64 CalcRecMemNeed() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.
@@ -1328,16 +1328,16 @@
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>();
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>();
 
-        <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root);
                 <SPAN CLASS=c>// Start reading.
                 // Arguments:
                 //   root - The root of the records to filled.
 
-        </SPAN><SPAN CLASS=t>bool </SPAN>TryContinueReading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>bool </SPAN>TryContinueReading();
                 <SPAN CLASS=c>// Continue reading. Returns true when ready, otherwise
                 // TryContinueReading has to be called again.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryFinishReading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryFinishReading();
                 <SPAN CLASS=c>// Continue reading until ready.
 
         </SPAN><SPAN CLASS=t>void </SPAN>QuitReading();
@@ -1354,43 +1354,43 @@
                 ET_END
         <SPAN CLASS=b>}</SPAN>;
 
-        ElementType TryPeekNext(<SPAN CLASS=t>char </SPAN>* pDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        ElementType TryPeekNext(<SPAN CLASS=t>char </SPAN>* pDelimiter=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// Peek for the type of the next syntactical element to be read.
                 // If it is ET_DELIMITER and if pDelimiter is not NULL,
                 // *pDelimiter is set to the delimiter character.
 
-        </SPAN><SPAN CLASS=t>char </SPAN>TryReadDelimiter() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>char </SPAN>TryReadDelimiter();
                 <SPAN CLASS=c>// Read the next syntactical element as a delimiter or throw an
                 // error. Currently, a delimiter can be any character except for
                 // white space, letters, digits, '#', '_' and '"'. The
                 // characters '.', '-' and '+' can be delimiters only if not
                 // confusable with numbers.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryReadCertainDelimiter(<SPAN CLASS=t>char </SPAN>delimiter) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryReadCertainDelimiter(<SPAN CLASS=t>char </SPAN>delimiter);
                 <SPAN CLASS=c>// Read the next syntactical element as the given delimiter or
                 // throw an error.
 
-        </SPAN><SPAN CLASS=t>const char </SPAN>* TryReadIdentifier() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>const char </SPAN>* TryReadIdentifier();
                 <SPAN CLASS=c>// Read the next syntactical element as an identifier or throw
                 // an error.
 
-        </SPAN><SPAN CLASS=t>int </SPAN>TryReadInt() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>int </SPAN>TryReadInt();
                 <SPAN CLASS=c>// Read the next syntactical element as an integer value or
                 // throw an error.
 
-        </SPAN><SPAN CLASS=t>double </SPAN>TryReadDouble() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>double </SPAN>TryReadDouble();
                 <SPAN CLASS=c>// Read the next syntactical element as a double value or throw
                 // an error.
 
-        </SPAN><SPAN CLASS=t>const char </SPAN>* TryReadQuoted() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>const char </SPAN>* TryReadQuoted();
                 <SPAN CLASS=c>// Read and unquote the next syntactical element as a quoted
                 // string or throw an error.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>ThrowElemError(<SPAN CLASS=t>const char </SPAN>* text) <SPAN CLASS=t>const </SPAN><SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>ThrowElemError(<SPAN CLASS=t>const char </SPAN>* text) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Throw an error containing the file name, the current line
                 // number and the given text.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>ThrowSyntaxError() <SPAN CLASS=t>const </SPAN><SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>ThrowSyntaxError() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Like ThrowElemError("syntax error")
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * GetRootRec() <SPAN CLASS=t>const</SPAN>;
@@ -1398,12 +1398,12 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Read up to maxLen bytes from the source into the given
                 // buffer, or throw an error. Return the number of bytes read,
                 // or 0 if the end of source has been reached.
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryClose() = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Close the source, or throw an error.
 
         </SPAN><SPAN CLASS=t>virtual const char </SPAN>* GetSourceName() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
@@ -1413,8 +1413,8 @@
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>void </SPAN>SetMinNextBufSize(<SPAN CLASS=t>int </SPAN>minSize);
-        <SPAN CLASS=t>void </SPAN>TryNextChar() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>void </SPAN>TryParseNext() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>void </SPAN>TryNextChar();
+        <SPAN CLASS=t>void </SPAN>TryParseNext();
 
         <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Root;
         <SPAN CLASS=t>bool </SPAN>RootQuitPending;
@@ -1450,16 +1450,16 @@
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>();
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A>();
 
-        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root);
                 <SPAN CLASS=c>// Start writing.
                 // Arguments:
                 //   root - The root of the records to be written.
 
-        </SPAN><SPAN CLASS=t>bool </SPAN>TryContinueWriting() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>bool </SPAN>TryContinueWriting();
                 <SPAN CLASS=c>// Continue writing. Returns true when ready, otherwise
                 // TryContinueWriting has to be called again.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryFinishWriting() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryFinishWriting();
                 <SPAN CLASS=c>// Continue writing until ready.
 
         </SPAN><SPAN CLASS=t>void </SPAN>QuitWriting();
@@ -1467,28 +1467,28 @@
 
         // - - The following things are for implementing <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A> derivatives - -
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteDelimiter(<SPAN CLASS=t>char </SPAN>c) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteDelimiter(<SPAN CLASS=t>char </SPAN>c);
                 <SPAN CLASS=c>// Write the given delimiter character.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteIdentifier(<SPAN CLASS=t>const char </SPAN>* idf) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteIdentifier(<SPAN CLASS=t>const char </SPAN>* idf);
                 <SPAN CLASS=c>// Write the given identifier.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteInt(<SPAN CLASS=t>int </SPAN>i) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteInt(<SPAN CLASS=t>int </SPAN>i);
                 <SPAN CLASS=c>// Write the given integer value.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteDouble(<SPAN CLASS=t>double </SPAN>d) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteDouble(<SPAN CLASS=t>double </SPAN>d);
                 <SPAN CLASS=c>// Write the given double value.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteQuoted(<SPAN CLASS=t>const char </SPAN>* q) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteQuoted(<SPAN CLASS=t>const char </SPAN>* q);
                 <SPAN CLASS=c>// Quote and write the given string.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteSpace() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteSpace();
                 <SPAN CLASS=c>// Write a space character.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteNewLine() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteNewLine();
                 <SPAN CLASS=c>// Write a new-line character.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteIndent() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TryWriteIndent();
                 <SPAN CLASS=c>// Write an indent (to be called only at beginning of a new
                 // line). It is a number of tabulator characters.
 
@@ -1502,11 +1502,11 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Write len bytes from the given buffer to the target, or throw
                 // an error.
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryClose() = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Flush and close the target, or throw an error.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
@@ -1550,7 +1550,7 @@
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A>();
 
         <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root,
-                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);
                 <SPAN CLASS=c>// Start reading.
                 // Arguments:
                 //   root     - The root of the tree of records to be read from
@@ -1568,8 +1568,8 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose();
         <SPAN CLASS=t>virtual const char </SPAN>* GetSourceName() <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>private</SPAN>:
@@ -1603,8 +1603,7 @@
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A>();
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A>();
 
-        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root,
-                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);
                 <SPAN CLASS=c>// Start writing.
                 // Arguments:
                 //   root     - The root of the tree of records to be written to
@@ -1613,8 +1612,8 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose();
 
 <SPAN CLASS=t>private</SPAN>:
 
@@ -1636,7 +1635,7 @@
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecMemReader">emRecMemReader</A>();
 
         <SPAN CLASS=t>void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root, <SPAN CLASS=t>const char </SPAN>* buf,
-                             <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+                             <SPAN CLASS=t>int </SPAN>len);
                 <SPAN CLASS=c>// Start reading.
                 // Arguments:
                 //   root  - The root of the tree of records to be read from
@@ -1647,8 +1646,8 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual int </SPAN>TryRead(<SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>maxLen);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose();
         <SPAN CLASS=t>virtual const char </SPAN>* GetSourceName() <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>private</SPAN>:
@@ -1670,8 +1669,7 @@
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecMemWriter">emRecMemWriter</A>();
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRec_h.html#emRecMemWriter">emRecMemWriter</A>();
 
-        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root,
-                             <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>void </SPAN>TryStartWriting(<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> &amp; root, <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<SPAN CLASS=t>char</SPAN>&gt; &amp; buf);
                 <SPAN CLASS=c>// Start writing. This and the other Try methods should never
                 // fail.
                 // Arguments:
@@ -1683,8 +1681,8 @@
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
-        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len) <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
-        <SPAN CLASS=t>virtual void </SPAN>TryClose() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        <SPAN CLASS=t>virtual void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>len);
+        <SPAN CLASS=t>virtual void </SPAN>TryClose();
 
 <SPAN CLASS=t>private</SPAN>:
 

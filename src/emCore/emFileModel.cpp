@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -267,7 +267,7 @@ void emFileModel::SetUnsavedState()
 }
 
 
-void emFileModel::TryFetchDate() throw(emException)
+void emFileModel::TryFetchDate()
 {
 	struct em_stat st;
 

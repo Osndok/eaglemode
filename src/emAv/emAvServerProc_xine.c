@@ -402,7 +402,6 @@ static void emAvEndMsg()
 }
 
 
-
 static void emAvSendMsg(
 	int instIndex, const char * tag, const char * format, ...
 )

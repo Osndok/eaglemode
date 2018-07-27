@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.h - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,7 +37,7 @@ public:
 	// Client side of the minimalistic interprocess communication.
 
 	static void TrySend(const char * serverName, int argc,
-	                    const char * const argv[]) throw(emException);
+	                    const char * const argv[]);
 		// Send a message to a server which runs on the same host by the
 		// same user. The server must not be run by the same process and
 		// thread, otherwise a deadlock could happen. This is

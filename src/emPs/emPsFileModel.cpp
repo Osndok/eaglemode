@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsFileModel.cpp
 //
-// Copyright (C) 2006-2009,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,7 +50,7 @@ void emPsFileModel::ResetData()
 }
 
 
-void emPsFileModel::TryStartLoading() throw(emException)
+void emPsFileModel::TryStartLoading()
 {
 	emInt64 l;
 
@@ -73,7 +73,7 @@ void emPsFileModel::TryStartLoading() throw(emException)
 }
 
 
-bool emPsFileModel::TryContinueLoading() throw(emException)
+bool emPsFileModel::TryContinueLoading()
 {
 	int len;
 
@@ -103,13 +103,13 @@ void emPsFileModel::QuitLoading()
 }
 
 
-void emPsFileModel::TryStartSaving() throw(emException)
+void emPsFileModel::TryStartSaving()
 {
 	throw emException("emPsFileModel: Saving not implemented.");
 }
 
 
-bool emPsFileModel::TryContinueSaving() throw(emException)
+bool emPsFileModel::TryContinueSaving()
 {
 	return true;
 }

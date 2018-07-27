@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.h
 //
-// Copyright (C) 2001,2003-2010,2014 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,8 +129,7 @@ public:
 	bool HasUserMap() const;
 		// Ask whether this image interfaces a user allocated pixel map.
 
-	void TryParseXpm(const char * const * xpm,
-	                 int channelCount=-1) throw(emException);
+	void TryParseXpm(const char * const * xpm, int channelCount=-1);
 		// Set this image by parsing an X Pixmap (XPM). The idea is to
 		// include an XPM file in the C++ source, and to convert it to
 		// an emImage at run-time using this method.
@@ -142,7 +141,7 @@ public:
 		// Throws: An error message on failure.
 
 	void TryParseTga(const unsigned char * tgaData, int tgaSize,
-	                 int channelCount=-1) throw(emException);
+	                 int channelCount=-1);
 		// -------------------------------------------------------------
 		// This method is deprecated and should not be used any longer.
 		// -------------------------------------------------------------

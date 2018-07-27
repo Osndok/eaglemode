@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emJpegImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,7 +85,7 @@ emJpegImageFileModel::~emJpegImageFileModel()
 }
 
 
-void emJpegImageFileModel::TryStartLoading() throw(emException)
+void emJpegImageFileModel::TryStartLoading()
 {
 	jpeg_saved_marker_ptr smp;
 	const char * csstr;
@@ -166,7 +166,7 @@ void emJpegImageFileModel::TryStartLoading() throw(emException)
 }
 
 
-bool emJpegImageFileModel::TryContinueLoading() throw(emException)
+bool emJpegImageFileModel::TryContinueLoading()
 {
 	JSAMPROW row;
 
@@ -216,13 +216,13 @@ void emJpegImageFileModel::QuitLoading()
 }
 
 
-void emJpegImageFileModel::TryStartSaving() throw(emException)
+void emJpegImageFileModel::TryStartSaving()
 {
 	throw emException("emJpegImageFileModel: Saving not implemented.");
 }
 
 
-bool emJpegImageFileModel::TryContinueSaving() throw(emException)
+bool emJpegImageFileModel::TryContinueSaving()
 {
 	return false;
 }

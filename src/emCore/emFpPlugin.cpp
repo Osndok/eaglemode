@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009,2011,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,7 +70,7 @@ emFpPlugin::PropertyRec * emFpPlugin::GetProperty(const char * name)
 
 emPanel * emFpPlugin::TryCreateFilePanel(
 	emPanel::ParentArg parent, const emString & name, const emString & path
-) throw(emException)
+)
 {
 	emString errorBuf;
 	emPanel * panel;

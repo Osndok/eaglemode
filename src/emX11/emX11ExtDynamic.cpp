@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.cpp
 //
-// Copyright (C) 2008-2009,2014,2016 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,7 +65,7 @@ static emThreadMiniMutex emX11_LibXextLoadMutex;
 static bool emX11_LibXextLoaded=false;
 
 
-void emX11_TryLoadLibXext() throw(emException)
+void emX11_TryLoadLibXext()
 {
 	emLibHandle h;
 	int i;
@@ -132,7 +132,7 @@ static emThreadMiniMutex emX11_LibXxf86vmLoadMutex;
 static bool emX11_LibXxf86vmLoaded=false;
 
 
-void emX11_TryLoadLibXxf86vm() throw(emException)
+void emX11_TryLoadLibXxf86vm()
 {
 	emLibHandle h;
 	int i;
@@ -199,7 +199,7 @@ static emThreadMiniMutex emX11_LibXineramaLoadMutex;
 static bool emX11_LibXineramaLoaded=false;
 
 
-void emX11_TryLoadLibXinerama() throw(emException)
+void emX11_TryLoadLibXinerama()
 {
 	emLibHandle h;
 	int i;

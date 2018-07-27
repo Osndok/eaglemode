@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvClient.cpp
 //
-// Copyright (C) 2008,2014 Oliver Hamann.
+// Copyright (C) 2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,7 +76,7 @@ void emAvClient::ResetAll()
 	int i;
 
 	if (Instance) {
-		ServerModel->SendMessage(Instance,"close","");
+		ServerModel->SendCommand(Instance,"close","");
 		Instance->Client=NULL;
 		Instance=NULL;
 	}
@@ -133,7 +133,7 @@ void emAvClient::SetProperty(
 
 	if (!fromServer) {
 		if (!prop->Sending) {
-			ServerModel->SendMessage(
+			ServerModel->SendCommand(
 				Instance,
 				"set",
 				emString::Format("%s:%s",prop->Name.Get(),prop->Value.Get())
@@ -160,7 +160,7 @@ void emAvClient::PropertyOKFromServer(const emString & name)
 	if (i<0) return;
 	prop=Properties[i];
 	if (prop->Resend) {
-		ServerModel->SendMessage(
+		ServerModel->SendCommand(
 			Instance,
 			"set",
 			emString::Format("%s:%s",prop->Name.Get(),prop->Value.Get())

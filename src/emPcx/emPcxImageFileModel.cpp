@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPcxImageFileModel.cpp
 //
-// Copyright (C) 2005-2009,2012,2014 Oliver Hamann.
+// Copyright (C) 2005-2009,2012,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emPcxImageFileModel::~emPcxImageFileModel()
 }
 
 
-void emPcxImageFileModel::TryStartLoading() throw(emException)
+void emPcxImageFileModel::TryStartLoading()
 {
 	int manufacturer,version,encoding;
 
@@ -109,7 +109,7 @@ Err:
 }
 
 
-bool emPcxImageFileModel::TryContinueLoading() throw(emException)
+bool emPcxImageFileModel::TryContinueLoading()
 {
 	unsigned char * map;
 	unsigned int val;
@@ -217,13 +217,13 @@ void emPcxImageFileModel::QuitLoading()
 }
 
 
-void emPcxImageFileModel::TryStartSaving() throw(emException)
+void emPcxImageFileModel::TryStartSaving()
 {
 	throw emException("emPcxImageFileModel: Saving not implemented.");
 }
 
 
-bool emPcxImageFileModel::TryContinueSaving() throw(emException)
+bool emPcxImageFileModel::TryContinueSaving()
 {
 	return true;
 }

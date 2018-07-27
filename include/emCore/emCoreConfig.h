@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.h
 //
-// Copyright (C) 2006-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,7 +61,7 @@ protected:
 
 private:
 
-	void TryLoadOldVersion() throw(emException);
+	void TryLoadOldVersion();
 };
 
 

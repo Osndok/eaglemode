@@ -2,7 +2,6 @@ package emSvg;
 
 use strict;
 use warnings;
-use Config;
 
 sub GetDependencies
 {
@@ -28,11 +27,6 @@ sub Build
 {
 	shift;
 	my %options=@_;
-
-	if ($Config{'osname'} eq "MSWin32") {
-		print(STDERR "PROBLEM: emSvg has not yet been ported to Windows.\n");
-		return 0;
-	}
 
 	system(
 		@{$options{'unicc_call'}},

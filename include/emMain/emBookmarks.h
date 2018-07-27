@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.h
 //
-// Copyright (C) 2007-2008,2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,7 +51,7 @@ public:
 	void InsertNewBookmark(int index, emView * contentView);
 	void InsertNewGroup(int index);
 	void CopyToClipboard(int index, emClipboard & clipboard);
-	void TryInsertFromClipboard(int index, emClipboard & clipboard) throw(emException);
+	void TryInsertFromClipboard(int index, emClipboard & clipboard);
 
 	emBookmarkRec * SearchBookmarkByHotkey(const emInputHotkey & hotkey);
 
@@ -92,7 +92,7 @@ public:
 	emBookmarksRec * GetBookmarksRec();
 	int GetIndexInBookmarksRec();
 
-	void TryPasteColorsFromClipboard(emClipboard & clipboard) throw(emException);
+	void TryPasteColorsFromClipboard(emClipboard & clipboard);
 };
 
 

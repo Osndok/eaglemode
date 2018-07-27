@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emSvgServerProc.c
 //
-// Copyright (C) 2010-2011,2017 Oliver Hamann.
+// Copyright (C) 2010-2011,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
-#include <sys/shm.h>
 #include <librsvg/rsvg.h>
 #if defined(LIBRSVG_CHECK_VERSION)
 #	if !LIBRSVG_CHECK_VERSION(2,36,2)
@@ -32,6 +31,15 @@
 #else
 #	include <librsvg/librsvg-features.h>
 #	include <librsvg/rsvg-cairo.h>
+#endif
+#if defined(_WIN32) || defined(__CYGWIN__)
+#	if defined(_WIN32)
+#		include <fcntl.h>
+#		include <io.h>
+#	endif
+#	include <windows.h>
+#else
+#	include <sys/shm.h>
 #endif
 
 
@@ -45,11 +53,46 @@ static emSvgInst * * emSvgInstArray=NULL;
 static int emSvgInstArraySize=0;
 
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+static HANDLE emSvgShmHdl=NULL;
+#endif
 static void * emSvgShmPtr=NULL;
 
 
 static void emSvgAttachShm(const char * args)
 {
+#if defined(_WIN32) || defined(__CYGWIN__)
+	if (emSvgShmPtr) {
+		UnmapViewOfFile(emSvgShmPtr);
+		emSvgShmPtr=NULL;
+	}
+
+	if (emSvgShmHdl) {
+		CloseHandle(emSvgShmHdl);
+		emSvgShmHdl=NULL;
+	}
+
+	if (*args) {
+		emSvgShmHdl=OpenFileMapping(FILE_MAP_ALL_ACCESS,FALSE,args);
+		if (!emSvgShmHdl) {
+			fprintf(
+				stderr,
+				"emSvgServerProc: Failed to attach shared memory (OpenFileMapping: 0x%lX)\n",
+				(long)GetLastError()
+			);
+			exit(1);
+		}
+		emSvgShmPtr=MapViewOfFile(emSvgShmHdl,FILE_MAP_ALL_ACCESS,0,0,0);
+		if (!emSvgShmPtr) {
+			fprintf(
+				stderr,
+				"emSvgServerProc: Failed to attach shared memory (MapViewOfFile: 0x%lX)\n",
+				(long)GetLastError()
+			);
+			exit(1);
+		}
+	}
+#else
 	int shmId;
 
 	if (sscanf(args,"%d",&shmId)!=1) {
@@ -57,7 +100,10 @@ static void emSvgAttachShm(const char * args)
 		exit(1);
 	}
 
-	if (emSvgShmPtr) shmdt(emSvgShmPtr);
+	if (emSvgShmPtr) {
+		shmdt(emSvgShmPtr);
+		emSvgShmPtr=NULL;
+	}
 
 	if (shmId!=-1) {
 		emSvgShmPtr=shmat(shmId,NULL,0);
@@ -71,6 +117,7 @@ static void emSvgAttachShm(const char * args)
 			exit(1);
 		}
 	}
+#endif
 }
 
 
@@ -109,7 +156,40 @@ static void emSvgOpen(const char * args)
 	memset(inst,0,sizeof(emSvgInst));
 
 	err=NULL;
+#ifdef _WIN32
+	/* On Windows, rsvg_handle_new_from_file(..) failed when having 8-bit
+	   characters in file path (because glib expects UTF-8 instead of
+	   current locale for file names on Windows). Simply load on our own to
+	   get out of that problem: */
+	FILE * file=fopen(filePath,"rb");
+	if (!file) {
+		printf("error: Failed to open %s (%s)\n",filePath,strerror(errno));
+		free(inst);
+		return;
+	}
+	fseek(file,0,SEEK_END);
+	long fileSize=ftell(file);
+	if (fileSize<0) {
+		printf("error: Failed to get file size of %s (%s)\n",filePath,strerror(errno));
+		fclose(file);
+		free(inst);
+		return;
+	}
+	rewind(file);
+	guint8 * fileBuf=(guint8 *)malloc(fileSize);
+	if (fread(fileBuf,1,fileSize,file)!=(size_t)fileSize) {
+		printf("error: Failed to load %s (%s)\n",filePath,strerror(errno));
+		free(fileBuf);
+		fclose(file);
+		free(inst);
+		return;
+	}
+	fclose(file);
+	inst->handle=rsvg_handle_new_from_data(fileBuf,fileSize,&err);
+	free(fileBuf);
+#else
 	inst->handle=rsvg_handle_new_from_file(filePath,&err);
+#endif
 	if (!inst->handle) {
 		printf(
 			"error: Failed to read %s (%s)\n",
@@ -274,7 +354,7 @@ static void emSvgRender(const char * args)
 }
 
 
-int main(int argc, char * argv[])
+int emSvgServe(int argc, char * argv[])
 {
 	char buf[1024];
 	char * args;
@@ -298,7 +378,7 @@ int main(int argc, char * argv[])
 
 	while (fgets(buf,sizeof(buf),stdin)) {
 		len=strlen(buf);
-		if (len>0 && buf[len-1]=='\n') buf[--len]=0;
+		while (len>0 && (unsigned char)buf[len-1]<32) buf[--len]=0;
 		args=strchr(buf,' ');
 		if (args) *args++=0;
 		else args=buf+len;
@@ -322,4 +402,39 @@ int main(int argc, char * argv[])
 #endif
 
 	return 0;
+}
+
+
+#ifdef _WIN32
+static DWORD WINAPI emSvgServeThreadProc(LPVOID data)
+{
+	return emSvgServe(__argc,__argv);
+}
+#endif
+
+
+int main(int argc, char * argv[])
+{
+#ifdef _WIN32
+	HANDLE hdl;
+	DWORD d;
+	MSG msg;
+
+	setmode(STDOUT_FILENO,O_BINARY);
+	setmode(STDIN_FILENO,O_BINARY);
+	setbuf(stderr,NULL);
+
+	hdl=CreateThread(NULL,0,emSvgServeThreadProc,NULL,0,&d);
+	do {
+		while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
+			if (msg.message==WM_QUIT) ExitProcess(143);
+		}
+		d=MsgWaitForMultipleObjects(1,&hdl,FALSE,INFINITE,QS_ALLPOSTMESSAGE);
+	} while(d==WAIT_OBJECT_0+1);
+	WaitForSingleObject(hdl,INFINITE);
+	GetExitCodeThread(hdl,&d);
+	return d;
+#else
+	return emSvgServe(argc,argv);
+#endif
 }

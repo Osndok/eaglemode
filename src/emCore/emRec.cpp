@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,7 +99,7 @@ const char * emRec::GetFormatName() const
 }
 
 
-void emRec::TryLoad(const emString & filePath) throw(emException)
+void emRec::TryLoad(const emString & filePath)
 {
 	emRecFileReader reader;
 
@@ -108,7 +108,7 @@ void emRec::TryLoad(const emString & filePath) throw(emException)
 }
 
 
-void emRec::TrySave(const emString & filePath) throw(emException)
+void emRec::TrySave(const emString & filePath)
 {
 	emRecFileWriter writer;
 
@@ -117,7 +117,7 @@ void emRec::TrySave(const emString & filePath) throw(emException)
 }
 
 
-void emRec::TryLoadFromMem(const char * buf, int len) throw(emException)
+void emRec::TryLoadFromMem(const char * buf, int len)
 {
 	emRecMemReader reader;
 
@@ -126,7 +126,7 @@ void emRec::TryLoadFromMem(const char * buf, int len) throw(emException)
 }
 
 
-void emRec::TryLoadFromMem(const emArray<char> & buf) throw(emException)
+void emRec::TryLoadFromMem(const emArray<char> & buf)
 {
 	TryLoadFromMem(buf.Get(),buf.GetCount());
 }
@@ -149,7 +149,7 @@ void emRec::SaveToMem(emArray<char> & buf)
 }
 
 
-void emRec::TryCopy(emRec & source) throw(emException)
+void emRec::TryCopy(emRec & source)
 {
 	emArray<char> buf;
 
@@ -331,7 +331,7 @@ bool emBoolRec::IsSetToDefault() const
 }
 
 
-void emBoolRec::TryStartReading(emRecReader & reader) throw(emException)
+void emBoolRec::TryStartReading(emRecReader & reader)
 {
 	const char * idf;
 	int i;
@@ -355,7 +355,7 @@ void emBoolRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emBoolRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emBoolRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -366,13 +366,13 @@ void emBoolRec::QuitReading()
 }
 
 
-void emBoolRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emBoolRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteIdentifier(Value ? "yes" : "no");
 }
 
 
-bool emBoolRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emBoolRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -444,7 +444,7 @@ bool emIntRec::IsSetToDefault() const
 }
 
 
-void emIntRec::TryStartReading(emRecReader & reader) throw(emException)
+void emIntRec::TryStartReading(emRecReader & reader)
 {
 	int i;
 
@@ -455,7 +455,7 @@ void emIntRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emIntRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emIntRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -466,13 +466,13 @@ void emIntRec::QuitReading()
 }
 
 
-void emIntRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emIntRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteInt(Value);
 }
 
 
-bool emIntRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emIntRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -549,7 +549,7 @@ bool emDoubleRec::IsSetToDefault() const
 }
 
 
-void emDoubleRec::TryStartReading(emRecReader & reader) throw(emException)
+void emDoubleRec::TryStartReading(emRecReader & reader)
 {
 	double d;
 
@@ -560,7 +560,7 @@ void emDoubleRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emDoubleRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emDoubleRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -571,13 +571,13 @@ void emDoubleRec::QuitReading()
 }
 
 
-void emDoubleRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emDoubleRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteDouble(Value);
 }
 
 
-bool emDoubleRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emDoubleRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -670,7 +670,7 @@ bool emEnumRec::IsSetToDefault() const
 }
 
 
-void emEnumRec::TryStartReading(emRecReader & reader) throw(emException)
+void emEnumRec::TryStartReading(emRecReader & reader)
 {
 	const char * idf;
 	int val;
@@ -690,7 +690,7 @@ void emEnumRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emEnumRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emEnumRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -701,13 +701,13 @@ void emEnumRec::QuitReading()
 }
 
 
-void emEnumRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emEnumRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteIdentifier(Identifiers[Value]);
 }
 
 
-bool emEnumRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emEnumRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -822,7 +822,7 @@ bool emFlagsRec::IsSetToDefault() const
 }
 
 
-void emFlagsRec::TryStartReading(emRecReader & reader) throw(emException)
+void emFlagsRec::TryStartReading(emRecReader & reader)
 {
 	const char * idf;
 	int val, bit;
@@ -848,7 +848,7 @@ void emFlagsRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emFlagsRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emFlagsRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -859,7 +859,7 @@ void emFlagsRec::QuitReading()
 }
 
 
-void emFlagsRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emFlagsRec::TryStartWriting(emRecWriter & writer)
 {
 	bool addSpaceBeforeNext;
 	int bit;
@@ -877,7 +877,7 @@ void emFlagsRec::TryStartWriting(emRecWriter & writer) throw(emException)
 }
 
 
-bool emFlagsRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emFlagsRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -964,7 +964,7 @@ bool emAlignmentRec::IsSetToDefault() const
 }
 
 
-void emAlignmentRec::TryStartReading(emRecReader & reader) throw(emException)
+void emAlignmentRec::TryStartReading(emRecReader & reader)
 {
 	const char * idf;
 	char delimiter;
@@ -987,7 +987,7 @@ void emAlignmentRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emAlignmentRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emAlignmentRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -998,7 +998,7 @@ void emAlignmentRec::QuitReading()
 }
 
 
-void emAlignmentRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emAlignmentRec::TryStartWriting(emRecWriter & writer)
 {
 	bool someWritten;
 
@@ -1026,7 +1026,7 @@ void emAlignmentRec::TryStartWriting(emRecWriter & writer) throw(emException)
 }
 
 
-bool emAlignmentRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emAlignmentRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -1090,7 +1090,7 @@ bool emStringRec::IsSetToDefault() const
 }
 
 
-void emStringRec::TryStartReading(emRecReader & reader) throw(emException)
+void emStringRec::TryStartReading(emRecReader & reader)
 {
 	const char * val;
 
@@ -1099,7 +1099,7 @@ void emStringRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emStringRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emStringRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -1110,13 +1110,13 @@ void emStringRec::QuitReading()
 }
 
 
-void emStringRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emStringRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteQuoted(Value);
 }
 
 
-bool emStringRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emStringRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -1181,7 +1181,7 @@ bool emColorRec::IsSetToDefault() const
 }
 
 
-void emColorRec::TryStartReading(emRecReader & reader) throw(emException)
+void emColorRec::TryStartReading(emRecReader & reader)
 {
 	const char * str;
 	emColor val;
@@ -1224,7 +1224,7 @@ void emColorRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emColorRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emColorRec::TryContinueReading(emRecReader & reader)
 {
 	return true;
 }
@@ -1235,7 +1235,7 @@ void emColorRec::QuitReading()
 }
 
 
-void emColorRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emColorRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteDelimiter('{');
 	writer.TryWriteInt(Value.GetRed());
@@ -1251,7 +1251,7 @@ void emColorRec::TryStartWriting(emRecWriter & writer) throw(emException)
 }
 
 
-bool emColorRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emColorRec::TryContinueWriting(emRecWriter & writer)
 {
 	return true;
 }
@@ -1358,7 +1358,7 @@ bool emStructRec::IsSetToDefault() const
 }
 
 
-void emStructRec::TryStartReading(emRecReader & reader) throw(emException)
+void emStructRec::TryStartReading(emRecReader & reader)
 {
 	if (RWState) {
 		free(RWState);
@@ -1375,7 +1375,7 @@ void emStructRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emStructRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emStructRec::TryContinueReading(emRecReader & reader)
 {
 	const char * idf;
 	char delimiter;
@@ -1425,7 +1425,7 @@ void emStructRec::QuitReading()
 }
 
 
-void emStructRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emStructRec::TryStartWriting(emRecWriter & writer)
 {
 	if (RWState) {
 		free(RWState);
@@ -1443,7 +1443,7 @@ void emStructRec::TryStartWriting(emRecWriter & writer) throw(emException)
 }
 
 
-bool emStructRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emStructRec::TryContinueWriting(emRecWriter & writer)
 {
 	if (!RWState->ChildReady) {
 		if (Members[RWState->Pos].Record->TryContinueWriting(writer)) {
@@ -1610,7 +1610,7 @@ bool emUnionRec::IsSetToDefault() const
 }
 
 
-void emUnionRec::TryStartReading(emRecReader & reader) throw(emException)
+void emUnionRec::TryStartReading(emRecReader & reader)
 {
 	const char * idf;
 	int v;
@@ -1624,7 +1624,7 @@ void emUnionRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emUnionRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emUnionRec::TryContinueReading(emRecReader & reader)
 {
 	return Record->TryContinueReading(reader);
 }
@@ -1636,7 +1636,7 @@ void emUnionRec::QuitReading()
 }
 
 
-void emUnionRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emUnionRec::TryStartWriting(emRecWriter & writer)
 {
 	writer.TryWriteIdentifier(TypeArray[Variant].Identifier);
 	writer.TryWriteDelimiter(':');
@@ -1645,7 +1645,7 @@ void emUnionRec::TryStartWriting(emRecWriter & writer) throw(emException)
 }
 
 
-bool emUnionRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emUnionRec::TryContinueWriting(emRecWriter & writer)
 {
 	return Record->TryContinueWriting(writer);
 }
@@ -1820,7 +1820,7 @@ bool emArrayRec::IsSetToDefault() const
 }
 
 
-void emArrayRec::TryStartReading(emRecReader & reader) throw(emException)
+void emArrayRec::TryStartReading(emRecReader & reader)
 {
 	SetCount(MinCount);
 	if (reader.GetRootRec()!=this) {
@@ -1831,7 +1831,7 @@ void emArrayRec::TryStartReading(emRecReader & reader) throw(emException)
 }
 
 
-bool emArrayRec::TryContinueReading(emRecReader & reader) throw(emException)
+bool emArrayRec::TryContinueReading(emRecReader & reader)
 {
 	char delimiter;
 	int i;
@@ -1882,7 +1882,7 @@ void emArrayRec::QuitReading()
 }
 
 
-void emArrayRec::TryStartWriting(emRecWriter & writer) throw(emException)
+void emArrayRec::TryStartWriting(emRecWriter & writer)
 {
 	if (writer.GetRootRec()!=this) {
 		writer.TryWriteDelimiter('{');
@@ -1893,7 +1893,7 @@ void emArrayRec::TryStartWriting(emRecWriter & writer) throw(emException)
 }
 
 
-bool emArrayRec::TryContinueWriting(emRecWriter & writer) throw(emException)
+bool emArrayRec::TryContinueWriting(emRecWriter & writer)
 {
 	if (!RWChildReady) {
 		if (Array[RWPos]->TryContinueWriting(writer)) {
@@ -2004,7 +2004,7 @@ emRecReader::~emRecReader()
 }
 
 
-void emRecReader::TryStartReading(emRec & root) throw(emException)
+void emRecReader::TryStartReading(emRec & root)
 {
 	const char * formatName;
 	emString magic;
@@ -2042,7 +2042,7 @@ void emRecReader::TryStartReading(emRec & root) throw(emException)
 }
 
 
-bool emRecReader::TryContinueReading() throw(emException)
+bool emRecReader::TryContinueReading()
 {
 	try {
 		if (Root) {
@@ -2065,7 +2065,7 @@ bool emRecReader::TryContinueReading() throw(emException)
 }
 
 
-void emRecReader::TryFinishReading() throw(emException)
+void emRecReader::TryFinishReading()
 {
 	for (;;) {
 		if (TryContinueReading()) break;
@@ -2104,7 +2104,7 @@ void emRecReader::QuitReading()
 
 emRecReader::ElementType emRecReader::TryPeekNext(
 	char * pDelimiter
-) throw(emException)
+)
 {
 	if (NextEaten) TryParseNext();
 	if (pDelimiter) {
@@ -2115,7 +2115,7 @@ emRecReader::ElementType emRecReader::TryPeekNext(
 }
 
 
-char emRecReader::TryReadDelimiter() throw(emException)
+char emRecReader::TryReadDelimiter()
 {
 	if (NextEaten) TryParseNext();
 	Line=NextLine;
@@ -2125,7 +2125,7 @@ char emRecReader::TryReadDelimiter() throw(emException)
 }
 
 
-void emRecReader::TryReadCertainDelimiter(char delimiter) throw(emException)
+void emRecReader::TryReadCertainDelimiter(char delimiter)
 {
 	char tmp[256];
 
@@ -2139,7 +2139,7 @@ void emRecReader::TryReadCertainDelimiter(char delimiter) throw(emException)
 }
 
 
-const char * emRecReader::TryReadIdentifier() throw(emException)
+const char * emRecReader::TryReadIdentifier()
 {
 	if (NextEaten) TryParseNext();
 	Line=NextLine;
@@ -2149,7 +2149,7 @@ const char * emRecReader::TryReadIdentifier() throw(emException)
 }
 
 
-int emRecReader::TryReadInt() throw(emException)
+int emRecReader::TryReadInt()
 {
 	if (NextEaten) TryParseNext();
 	Line=NextLine;
@@ -2159,7 +2159,7 @@ int emRecReader::TryReadInt() throw(emException)
 }
 
 
-double emRecReader::TryReadDouble() throw(emException)
+double emRecReader::TryReadDouble()
 {
 	if (NextEaten) TryParseNext();
 	Line=NextLine;
@@ -2171,7 +2171,7 @@ double emRecReader::TryReadDouble() throw(emException)
 }
 
 
-const char * emRecReader::TryReadQuoted() throw(emException)
+const char * emRecReader::TryReadQuoted()
 {
 	if (NextEaten) TryParseNext();
 	Line=NextLine;
@@ -2181,13 +2181,13 @@ const char * emRecReader::TryReadQuoted() throw(emException)
 }
 
 
-void emRecReader::ThrowElemError(const char * text) const throw(emException)
+void emRecReader::ThrowElemError(const char * text) const
 {
 	throw emException("File \"%s\", line %d: %s",GetSourceName(),Line,text);
 }
 
 
-void emRecReader::ThrowSyntaxError() const throw(emException)
+void emRecReader::ThrowSyntaxError() const
 {
 	ThrowElemError("Syntax error.");
 }
@@ -2202,7 +2202,7 @@ void emRecReader::SetMinNextBufSize(int minSize)
 }
 
 
-void emRecReader::TryNextChar() throw(emException)
+void emRecReader::TryNextChar()
 {
 	char buf[1];
 
@@ -2211,7 +2211,7 @@ void emRecReader::TryNextChar() throw(emException)
 }
 
 
-void emRecReader::TryParseNext() throw(emException)
+void emRecReader::TryParseNext()
 {
 	int i,j,k,n;
 
@@ -2497,7 +2497,7 @@ emRecWriter::~emRecWriter()
 }
 
 
-void emRecWriter::TryStartWriting(emRec & root) throw(emException)
+void emRecWriter::TryStartWriting(emRec & root)
 {
 	const char * formatName;
 
@@ -2521,7 +2521,7 @@ void emRecWriter::TryStartWriting(emRec & root) throw(emException)
 }
 
 
-bool emRecWriter::TryContinueWriting() throw(emException)
+bool emRecWriter::TryContinueWriting()
 {
 	try {
 		if (Root) {
@@ -2542,7 +2542,7 @@ bool emRecWriter::TryContinueWriting() throw(emException)
 }
 
 
-void emRecWriter::TryFinishWriting() throw(emException)
+void emRecWriter::TryFinishWriting()
 {
 	for (;;) {
 		if (TryContinueWriting()) break;
@@ -2567,19 +2567,19 @@ void emRecWriter::QuitWriting()
 }
 
 
-void emRecWriter::TryWriteDelimiter(char c) throw(emException)
+void emRecWriter::TryWriteDelimiter(char c)
 {
 	TryWriteChar(c);
 }
 
 
-void emRecWriter::TryWriteIdentifier(const char * idf) throw(emException)
+void emRecWriter::TryWriteIdentifier(const char * idf)
 {
 	TryWriteString(idf);
 }
 
 
-void emRecWriter::TryWriteInt(int i) throw(emException)
+void emRecWriter::TryWriteInt(int i)
 {
 	char tmp[256];
 
@@ -2588,7 +2588,7 @@ void emRecWriter::TryWriteInt(int i) throw(emException)
 }
 
 
-void emRecWriter::TryWriteDouble(double d) throw(emException)
+void emRecWriter::TryWriteDouble(double d)
 {
 	char tmp[256];
 
@@ -2600,7 +2600,7 @@ void emRecWriter::TryWriteDouble(double d) throw(emException)
 }
 
 
-void emRecWriter::TryWriteQuoted(const char * q) throw(emException)
+void emRecWriter::TryWriteQuoted(const char * q)
 {
 	char c;
 
@@ -2633,19 +2633,19 @@ void emRecWriter::TryWriteQuoted(const char * q) throw(emException)
 }
 
 
-void emRecWriter::TryWriteSpace() throw(emException)
+void emRecWriter::TryWriteSpace()
 {
 	TryWriteChar(' ');
 }
 
 
-void emRecWriter::TryWriteNewLine() throw(emException)
+void emRecWriter::TryWriteNewLine()
 {
 	TryWriteChar('\n');
 }
 
 
-void emRecWriter::TryWriteIndent() throw(emException)
+void emRecWriter::TryWriteIndent()
 {
 	int i;
 
@@ -2685,7 +2685,7 @@ emRecFileReader::~emRecFileReader()
 
 void emRecFileReader::TryStartReading(
 	emRec & root, const emString & filePath
-) throw(emException)
+)
 {
 	emInt64 l;
 
@@ -2733,7 +2733,7 @@ double emRecFileReader::GetProgress() const
 }
 
 
-int emRecFileReader::TryRead(char * buf, int maxLen) throw(emException)
+int emRecFileReader::TryRead(char * buf, int maxLen)
 {
 	size_t sz;
 	int len;
@@ -2756,7 +2756,7 @@ int emRecFileReader::TryRead(char * buf, int maxLen) throw(emException)
 }
 
 
-void emRecFileReader::TryClose() throw(emException)
+void emRecFileReader::TryClose()
 {
 	int i;
 
@@ -2795,9 +2795,7 @@ emRecFileWriter::~emRecFileWriter()
 }
 
 
-void emRecFileWriter::TryStartWriting(
-	emRec & root, const emString & filePath
-) throw(emException)
+void emRecFileWriter::TryStartWriting(emRec & root, const emString & filePath)
 {
 	if (File) {
 		fclose(File);
@@ -2816,7 +2814,7 @@ void emRecFileWriter::TryStartWriting(
 }
 
 
-void emRecFileWriter::TryWrite(const char * buf, int len) throw(emException)
+void emRecFileWriter::TryWrite(const char * buf, int len)
 {
 	size_t sz;
 
@@ -2836,7 +2834,7 @@ void emRecFileWriter::TryWrite(const char * buf, int len) throw(emException)
 }
 
 
-void emRecFileWriter::TryClose() throw(emException)
+void emRecFileWriter::TryClose()
 {
 	int i;
 
@@ -2864,9 +2862,7 @@ emRecMemReader::emRecMemReader()
 }
 
 
-void emRecMemReader::TryStartReading(
-	emRec & root, const char * buf, int len
-) throw(emException)
+void emRecMemReader::TryStartReading(emRec & root, const char * buf, int len)
 {
 	MemPos=buf;
 	MemEnd=buf+len;
@@ -2874,7 +2870,7 @@ void emRecMemReader::TryStartReading(
 }
 
 
-int emRecMemReader::TryRead(char * buf, int maxLen) throw(emException)
+int emRecMemReader::TryRead(char * buf, int maxLen)
 {
 	int len;
 
@@ -2888,7 +2884,7 @@ int emRecMemReader::TryRead(char * buf, int maxLen) throw(emException)
 }
 
 
-void emRecMemReader::TryClose() throw(emException)
+void emRecMemReader::TryClose()
 {
 	MemPos=NULL;
 	MemEnd=NULL;
@@ -2916,23 +2912,21 @@ emRecMemWriter::~emRecMemWriter()
 }
 
 
-void emRecMemWriter::TryStartWriting(
-	emRec & root, emArray<char> & buf
-) throw(emException)
+void emRecMemWriter::TryStartWriting(emRec & root, emArray<char> & buf)
 {
 	Buf=&buf;
 	emRecWriter::TryStartWriting(root);
 }
 
 
-void emRecMemWriter::TryWrite(const char * buf, int len) throw(emException)
+void emRecMemWriter::TryWrite(const char * buf, int len)
 {
 	if (!Buf) return;
 	Buf->Add(buf,len);
 }
 
 
-void emRecMemWriter::TryClose() throw(emException)
+void emRecMemWriter::TryClose()
 {
 	Buf=NULL;
 }

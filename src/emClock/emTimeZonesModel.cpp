@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.cpp
 //
-// Copyright (C) 2006-2009,2014,2017 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,7 +61,7 @@ double emTimeZonesModel::GetCityLongitude(int cityIndex) const
 void emTimeZonesModel::TryGetZoneTime(
 	time_t time, ZoneId zoneId, int * pYear, int * pMonth, int * pDay,
 	int * pDayOfWeek, int * pHour, int * pMinute, int * pSecond
-) throw(emException)
+)
 {
 	struct tm tmbuf;
 	struct tm * ptm;
@@ -242,7 +242,7 @@ void emTimeZonesModel::InitCities()
 #if defined(_WIN32)
 		p=getenv("EM_DIR");
 		if (!p) return;
-		ZoneInfoDir=emString(p)+"\\thirdparty\\share\\zoneinfo";
+		ZoneInfoDir=emString(p)+"\\thirdparty\\zoneinfo";
 		if (emIsDirectory(ZoneInfoDir)) break;
 #else
 		ZoneInfoDir="/usr/share/zoneinfo";

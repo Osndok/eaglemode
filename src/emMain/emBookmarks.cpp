@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,9 +108,7 @@ void emBookmarksRec::CopyToClipboard(int index, emClipboard & clipboard)
 }
 
 
-void emBookmarksRec::TryInsertFromClipboard(
-	int index, emClipboard & clipboard
-) throw(emException)
+void emBookmarksRec::TryInsertFromClipboard(int index, emClipboard & clipboard)
 {
 	emString txt;
 	emBookmarksRec tmpRec;
@@ -324,9 +322,7 @@ int emBookmarkEntryRec::GetIndexInBookmarksRec()
 }
 
 
-void emBookmarkEntryRec::TryPasteColorsFromClipboard(
-	emClipboard & clipboard
-) throw(emException)
+void emBookmarkEntryRec::TryPasteColorsFromClipboard(emClipboard & clipboard)
 {
 	emBookmarksRec tmpRec;
 	emBookmarkEntryRec * e;

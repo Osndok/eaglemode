@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011-2013 Oliver Hamann.
+// Copyright (C) 2011-2013,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,11 @@
 #include <locale.h>
 #include <gtk/gtk.h>
 #include <poppler.h>
+#ifdef _WIN32
+#	include <fcntl.h>
+#	include <io.h>
+#	include <windows.h>
+#endif
 
 
 typedef struct {
@@ -55,14 +60,17 @@ static void emPdfPrintQuoted(const char * str)
 }
 
 
-static void emPdfEncodeFileUri(const char * filePath, char * uri)
+static void emPdfEncodeFileUri(const char * absFilePath, char * uri)
 {
 	int c;
 
-	strcpy(uri,"file:");
+	strcpy(uri,"file://");
 	uri+=strlen(uri);
-	while (*filePath) {
-		c=(*filePath++)&255;
+#ifdef _WIN32
+	*uri++='/';
+#endif
+	while (*absFilePath) {
+		c=(*absFilePath++)&255;
 		if (
 			c<32 ||
 			c==' ' ||
@@ -82,6 +90,11 @@ static void emPdfEncodeFileUri(const char * filePath, char * uri)
 			sprintf(uri,"%%%2X",c);
 			uri+=strlen(uri);
 		}
+#ifdef _WIN32
+		else if (c=='\\') {
+			*uri++='/';
+		}
+#endif
 		else {
 			*uri++=c;
 		}
@@ -104,11 +117,14 @@ static void emPdfOpen(const char * args)
 	int i,instId;
 
 	filePath=args;
-	if (!*filePath) {
+	if (!*filePath || strlen(filePath)>PATH_MAX-1) {
 		fprintf(stderr,"emPdfServerProc: emPdfOpen: illegal arguments.\n");
 		exit(1);
 	}
 
+#ifdef _WIN32
+	strcpy(absFilePath,filePath);
+#else
 	if (!realpath(filePath,absFilePath)) {
 		printf(
 			"error: Failed to read %s (%s)\n",
@@ -117,13 +133,33 @@ static void emPdfOpen(const char * args)
 		);
 		return;
 	}
+#endif
 
+	err=NULL;
+
+#ifdef _WIN32
+	/* On Windows, glib expects file names in UTF-8 instead of current locale. */
+	gchar * absFilePathConverted=g_locale_to_utf8(
+		absFilePath,strlen(absFilePath),NULL,NULL,&err
+	);
+	if (!absFilePathConverted) {
+		printf(
+			"error: Failed to convert file path %s (%s)\n",
+			absFilePath,
+			(err && err->message && err->message[0]) ? err->message : "unknown error"
+		);
+		if (err) g_error_free(err);
+		return;
+	}
+	emPdfEncodeFileUri(absFilePathConverted,uri);
+	g_free(absFilePathConverted);
+#else
 	emPdfEncodeFileUri(absFilePath,uri);
+#endif
 
 	inst=(emPdfInst*)malloc(sizeof(emPdfInst));
 	memset(inst,0,sizeof(emPdfInst));
 
-	err=NULL;
 	inst->doc=poppler_document_new_from_file(uri,NULL,&err);
 	if (!inst->doc) {
 		printf(
@@ -323,7 +359,7 @@ static void emPdfRender(const char * args)
 }
 
 
-int main(int argc, char * argv[])
+int emPdfServe(int argc, char * argv[])
 {
 	char buf[1024];
 	char * args;
@@ -334,7 +370,7 @@ int main(int argc, char * argv[])
 
 	while (fgets(buf,sizeof(buf),stdin)) {
 		len=strlen(buf);
-		if (len>0 && buf[len-1]=='\n') buf[--len]=0;
+		while (len>0 && (unsigned char)buf[len-1]<32) buf[--len]=0;
 		args=strchr(buf,' ');
 		if (args) *args++=0;
 		else args=buf+len;
@@ -349,4 +385,39 @@ int main(int argc, char * argv[])
 	}
 
 	return 0;
+}
+
+
+#ifdef _WIN32
+static DWORD WINAPI emPdfServeThreadProc(LPVOID data)
+{
+	return emPdfServe(__argc,__argv);
+}
+#endif
+
+
+int main(int argc, char * argv[])
+{
+#ifdef _WIN32
+	HANDLE hdl;
+	DWORD d;
+	MSG msg;
+
+	setmode(STDOUT_FILENO,O_BINARY);
+	setmode(STDIN_FILENO,O_BINARY);
+	setbuf(stderr,NULL);
+
+	hdl=CreateThread(NULL,0,emPdfServeThreadProc,NULL,0,&d);
+	do {
+		while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
+			if (msg.message==WM_QUIT) ExitProcess(143);
+		}
+		d=MsgWaitForMultipleObjects(1,&hdl,FALSE,INFINITE,QS_ALLPOSTMESSAGE);
+	} while(d==WAIT_OBJECT_0+1);
+	WaitForSingleObject(hdl,INFINITE);
+	GetExitCodeThread(hdl,&d);
+	return d;
+#else
+	return emPdfServe(argc,argv);
+#endif
 }

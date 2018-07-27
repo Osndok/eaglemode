@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.cpp
 //
-// Copyright (C) 2006-2009,2012,2014,2017 Oliver Hamann.
+// Copyright (C) 2006-2009,2012,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,7 +85,7 @@ emProcess::~emProcess()
 void emProcess::TryStart(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emException)
+)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
@@ -151,7 +151,7 @@ void emProcess::TryStart(
 		str=extraEnv[i];
 		p=strchr(str.Get(),'=');
 		if (p) k=p-str.Get();
-		else k=strlen(p);
+		else k=str.GetLen();
 		for (j=0; j<env.GetCount(); j++) {
 			if (
 				env[j].GetLen()>=k &&
@@ -246,7 +246,7 @@ void emProcess::TryStart(
 void emProcess::TryStartUnmanaged(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emException)
+)
 {
 	emProcess p;
 
@@ -264,7 +264,7 @@ void emProcess::TryStartUnmanaged(
 }
 
 
-int emProcess::TryWrite(const char * buf, int len) throw(emException)
+int emProcess::TryWrite(const char * buf, int len)
 {
 	emProcessPrivate::PipeStruct * pipe;
 	int done,l;
@@ -296,7 +296,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emException)
 }
 
 
-int emProcess::TryRead(char * buf, int maxLen) throw(emException)
+int emProcess::TryRead(char * buf, int maxLen)
 {
 	emProcessPrivate::PipeStruct * pipe;
 	int done,l;
@@ -328,7 +328,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emException)
 }
 
 
-int emProcess::TryReadErr(char * buf, int maxLen) throw(emException)
+int emProcess::TryReadErr(char * buf, int maxLen)
 {
 	emProcessPrivate::PipeStruct * pipe;
 	int done,l;
@@ -680,7 +680,7 @@ struct emProcessPrivate {
 		const char * dirPath,
 		int flags,
 		emProcessPrivate * managed
-	) throw(emException);
+	);
 
 	emString Arg0;
 	pid_t Pid;
@@ -712,7 +712,7 @@ emProcess::~emProcess()
 void emProcess::TryStart(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emException)
+)
 {
 	emProcessPrivate::TryStart(args,extraEnv,dirPath,flags,P);
 }
@@ -721,14 +721,14 @@ void emProcess::TryStart(
 void emProcess::TryStartUnmanaged(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags
-) throw(emException)
+)
 {
 	flags&=~(SF_PIPE_STDIN|SF_PIPE_STDOUT|SF_PIPE_STDERR);
 	emProcessPrivate::TryStart(args,extraEnv,dirPath,flags,NULL);
 }
 
 
-int emProcess::TryWrite(const char * buf, int len) throw(emException)
+int emProcess::TryWrite(const char * buf, int len)
 {
 	ssize_t r;
 	int e;
@@ -753,7 +753,7 @@ int emProcess::TryWrite(const char * buf, int len) throw(emException)
 }
 
 
-int emProcess::TryRead(char * buf, int maxLen) throw(emException)
+int emProcess::TryRead(char * buf, int maxLen)
 {
 	ssize_t r;
 	int e;
@@ -778,7 +778,7 @@ int emProcess::TryRead(char * buf, int maxLen) throw(emException)
 }
 
 
-int emProcess::TryReadErr(char * buf, int maxLen) throw(emException)
+int emProcess::TryReadErr(char * buf, int maxLen)
 {
 	ssize_t r;
 	int e;
@@ -957,7 +957,7 @@ void emProcessPrivate::EmptySigHandler(int signum)
 void emProcessPrivate::TryStart(
 	const emArray<emString> & args, const emArray<emString> & extraEnv,
 	const char * dirPath, int flags, emProcessPrivate * managed
-) throw(emException)
+)
 {
 	char buf[1024];
 	emString msg;

@@ -75,26 +75,14 @@ if ($Config{'osname'} eq "linux") {
 	if (defined($dist)) { ($dist)=($dist=~/^.*[:][\s]*([^\s].*)$/); }
 	if (!defined($dist)) { $dist=''; }
 }
-if (-f '/etc/debian_version' && `cat /etc/debian_version` < 9) {
-	$V{'DEB_BUILD_DEPENDS'}=
-		'debhelper (>= 5), g++ (>= 4), perl, libx11-dev, libjpeg62-dev, '.
-		'libpng12-dev, libtiff5-dev, libxine2-dev, librsvg2-dev, '.
-		'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
-	$V{'DEB_DEPENDS'}=
-		'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-		'libjpeg62, libpng12-0, libtiff5, libxine2, librsvg2-2, '.
-		'libpoppler-glib8, libfreetype6';
-}
-else {
-	$V{'DEB_BUILD_DEPENDS'}=
-		'debhelper (>= 5), g++ (>= 4), perl, libx11-dev, libjpeg-dev, '.
-		'libpng-dev, libtiff5-dev, libxine2-dev, librsvg2-dev, '.
-		'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
-	$V{'DEB_DEPENDS'}=
-		'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-		'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libxine2, librsvg2-2, '.
-		'libpoppler-glib8, libfreetype6';
-}
+$V{'DEB_BUILD_DEPENDS'}=
+	'debhelper (>= 5), g++ (>= 4), perl, libx11-dev, libjpeg-dev, '.
+	'libpng-dev, libtiff5-dev, libxine2-dev, librsvg2-dev, '.
+	'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
+$V{'DEB_DEPENDS'}=
+	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
+	'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libxine2, librsvg2-2, '.
+	'libpoppler-glib8, libfreetype6';
 $V{'DEB_RECOMMENDS'}=
 	'abiword, genisoimage, htmldoc, netpbm, transfig';
 
@@ -103,7 +91,7 @@ $V{'RPM_GROUP'}='System/GUI/Other';
 $V{'RPM_BUILD_REQUIRES'}=
 	"gcc-c++ perl\n".
 	"\%if 0\%{?suse_version}\n".
-	"BuildRequires: libX11-devel libxine-devel libjpeg62-devel libpng12-devel libtiff-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype-devel\n".
+	"BuildRequires: libX11-devel libxine-devel libjpeg62-devel libpng16-devel libtiff-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype-devel\n".
 	"\%else\n".
 	"BuildRequires: libX11-devel xine-lib-devel libjpeg-devel libpng-devel libtiff-devel librsvg2-devel gtk2-devel poppler-glib-devel freetype-devel\n".
 	"\%endif\n";
@@ -116,7 +104,7 @@ $V{'RPM_REQUIRES'}=
 	" libstdc++.so.6()(64bit)".
 	" libX11.so.6()(64bit)".
 	" libjpeg.so.62()(64bit)".
-	" libpng12.so.0()(64bit)".
+	" libpng16.so.16()(64bit)".
 	" libtiff.so.5()(64bit)".
 	" libxine.so.2()(64bit)".
 	" librsvg-2.so.2()(64bit)".
@@ -130,7 +118,7 @@ $V{'RPM_REQUIRES'}=
 	" libstdc++.so.6".
 	" libX11.so.6".
 	" libjpeg.so.62".
-	" libpng12.so.0".
+	" libpng16.so.16".
 	" libtiff.so.5".
 	" libxine.so.2".
 	" librsvg-2.so.2".

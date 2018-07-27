@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.h
 //
-// Copyright (C) 2010,2014 Oliver Hamann.
+// Copyright (C) 2010,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -144,25 +144,25 @@ private:
 		int InstanceId;
 	};
 
-	void TryStartJobs() throw(emException);
-	void TryStartOpenJob(OpenJob * openJob) throw(emException);
-	bool TryStartRenderJob(RenderJob * renderJob) throw(emException);
-	void TryStartCloseJob(CloseJobStruct * closeJob) throw(emException);
+	void TryStartJobs();
+	void TryStartOpenJob(OpenJob * openJob);
+	bool TryStartRenderJob(RenderJob * renderJob);
+	void TryStartCloseJob(CloseJobStruct * closeJob);
 
-	void TryFinishJobs() throw(emException);
-	void TryFinishOpenJob(OpenJob * openJob, const char * args) throw(emException);
-	void TryFinishRenderJob(RenderJob * renderJob) throw(emException);
+	void TryFinishJobs();
+	void TryFinishOpenJob(OpenJob * openJob, const char * args);
+	void TryFinishRenderJob(RenderJob * renderJob);
 
-	void TryWriteAttachShm() throw(emException);
+	void TryWriteAttachShm();
 
 	void FailAllRunningJobs(emString errorText);
 	void FailAllJobs(emString errorText);
 
 	void WriteLineToProc(const char * str);
 	emString ReadLineFromProc();
-	bool TryProcIO() throw(emException);
+	bool TryProcIO();
 
-	void TryAllocShm(int size) throw(emException);
+	void TryAllocShm(int size);
 	void FreeShm();
 
 	Job * SearchBestNextJob() const;
@@ -185,7 +185,14 @@ private:
 	Job * LastRunningJob;
 
 	int ShmSize;
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+	char ShmId[256];
+	void * ShmHdl;
+#else
 	int ShmId;
+#endif
+
 	emByte * ShmPtr;
 	int ShmAllocBegin;
 	int ShmAllocEnd;

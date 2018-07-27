@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emConfigModel.cpp
 //
-// Copyright (C) 2006-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,7 +21,7 @@
 #include <emCore/emConfigModel.h>
 
 
-void emConfigModel::TrySave(bool force) throw(emException)
+void emConfigModel::TrySave(bool force)
 {
 	if (Unsaved || force) {
 		GetRec().TrySave(InstallPath);
@@ -74,7 +74,7 @@ emConfigModel::~emConfigModel()
 }
 
 
-void emConfigModel::TryLoad() throw(emException)
+void emConfigModel::TryLoad()
 {
 	GetRec().TryLoad(InstallPath);
 	if (Unsaved) {
@@ -95,7 +95,7 @@ void emConfigModel::Load()
 }
 
 
-void emConfigModel::TryLoadOrInstall(const char * insSrcPath) throw(emException)
+void emConfigModel::TryLoadOrInstall(const char * insSrcPath)
 {
 	if (emIsExistingPath(InstallPath)) {
 		TryLoad();

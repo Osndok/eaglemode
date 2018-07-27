@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2017 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,7 +90,7 @@ private:
 	bool IsXWDialogDone();
 	void SetXWDialogDone();
 
-	void CheckIfInstalledOverOfOldVersion();
+	void CheckIfInstalledOverOldVersion();
 
 	emContext & Context;
 
@@ -167,7 +167,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 	emColor ceColor;
 	int i;
 
-	CheckIfInstalledOverOfOldVersion();
+	CheckIfInstalledOverOldVersion();
 
 	if (!IsFSDialogDone()) {
 		if (!FSDialog) {
@@ -475,7 +475,7 @@ void emMain::SetXWDialogDone()
 }
 
 
-void emMain::CheckIfInstalledOverOfOldVersion()
+void emMain::CheckIfInstalledOverOldVersion()
 {
 	static const struct {
 		emInstallDirType type;
@@ -487,6 +487,7 @@ void emMain::CheckIfInstalledOverOfOldVersion()
 		{ EM_IDT_RES        , "emFileMan", "themes/Simple.emFileManTheme"           , 0x4FFBEF2D },
 #if defined(_WIN32)
 		{ EM_IDT_HOST_CONFIG, "emMain"   , "VcItems/HomeDir.emVcItem"               , 0x0C05ADDB },
+		{ EM_IDT_HOST_CONFIG, "emMain"   , "VcItems/Doc.emVcItem"                   , 0x91CB8BB2 },
 #endif
 		{ EM_IDT_RES        , NULL       , NULL                                     , 0 }
 	};
@@ -509,7 +510,7 @@ void emMain::CheckIfInstalledOverOfOldVersion()
 		}
 		crc32=emCalcCRC32(file.Get(),file.GetCount());
 		emDLog(
-			"emMain::CheckIfInstalledOverOfOldVersion: found %s, crc=0x%lX",
+			"emMain::CheckIfInstalledOverOldVersion: found %s, crc=0x%lX",
 			path.Get(),
 			(unsigned long)crc32
 		);

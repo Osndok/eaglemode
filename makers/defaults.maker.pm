@@ -46,9 +46,6 @@ sub GetFileHandlingRules
 		# where a name ends with '.tmp'.
 		'+nobackup+private-install:\.tmp(/|$)',
 
-		# And do not install the postscript documentation on Windows.
-		$Config{'osname'} eq "MSWin32" ? ('-install:^doc/ps(/|$)') : ()
-
 	);
 }
 

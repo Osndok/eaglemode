@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2009,2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -204,7 +204,7 @@ static void emMiniIpc_CloseServer(emMiniIpc_ServerInstance * inst)
 
 static void emMiniIpc_TrySendAtomic(
 	const char * serverName, const char * data, int len
-) throw(emException)
+)
 {
 	emString pipePath;
 	HANDLE handle;
@@ -484,7 +484,7 @@ static void emMiniIpc_CloseServer(emMiniIpc_ServerInstance * inst)
 
 static void emMiniIpc_TrySendAtomic(
 	const char * serverName, const char * data, int len
-) throw(emException)
+)
 {
 	emString fifoDir,fifoBaseName,fifoPath,fifoLockPath;
 	struct stat statbuf;
@@ -647,7 +647,7 @@ static void emMiniIpc_CleanUpFiles()
 
 void emMiniIpcClient::TrySend(
 	const char * serverName, int argc, const char * const argv[]
-) throw(emException)
+)
 {
 	emArray<char> data;
 	char tmp[256];

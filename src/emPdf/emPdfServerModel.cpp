@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.cpp
 //
-// Copyright (C) 2011,2014 Oliver Hamann.
+// Copyright (C) 2011,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -168,7 +168,8 @@ void emPdfServerModel::Poll(unsigned maxMilliSecs)
 				NULL,
 				emProcess::SF_PIPE_STDIN|
 				emProcess::SF_PIPE_STDOUT|
-				emProcess::SF_SHARE_STDERR
+				emProcess::SF_SHARE_STDERR|
+				emProcess::SF_NO_WINDOW
 			);
 		}
 		TryStartJobs();
@@ -326,7 +327,7 @@ emPdfServerModel::CloseJobStruct::~CloseJobStruct()
 }
 
 
-void emPdfServerModel::TryStartJobs() throw(emException)
+void emPdfServerModel::TryStartJobs()
 {
 	Job * job;
 	int n;
@@ -353,7 +354,7 @@ void emPdfServerModel::TryStartJobs() throw(emException)
 }
 
 
-void emPdfServerModel::TryStartOpenJob(OpenJob * openJob) throw(emException)
+void emPdfServerModel::TryStartOpenJob(OpenJob * openJob)
 {
 	RemoveJobFromList(openJob);
 	if (openJob->Orphan) {
@@ -373,7 +374,7 @@ void emPdfServerModel::TryStartOpenJob(OpenJob * openJob) throw(emException)
 }
 
 
-void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emException)
+void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob)
 {
 	RemoveJobFromList(renderJob);
 	if (renderJob->Orphan) {
@@ -403,7 +404,7 @@ void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emExceptio
 }
 
 
-void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emException)
+void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob)
 {
 	RemoveJobFromList(closeJob);
 	if (closeJob->ProcRunId==ProcRunId) {
@@ -423,7 +424,7 @@ void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emExcep
 }
 
 
-void emPdfServerModel::TryFinishJobs() throw(emException)
+void emPdfServerModel::TryFinishJobs()
 {
 	Job * job;
 
@@ -443,7 +444,7 @@ void emPdfServerModel::TryFinishJobs() throw(emException)
 }
 
 
-bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emException)
+bool emPdfServerModel::TryFinishOpenJob(OpenJob * job)
 {
 	emString cmd,args;
 	const char * p;
@@ -521,7 +522,7 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job) throw(emException)
 }
 
 
-bool emPdfServerModel::TryFinishRenderJob(RenderJob * job) throw(emException)
+bool emPdfServerModel::TryFinishRenderJob(RenderJob * job)
 {
 	int len,total,type,width,height,maxColor;
 	emString line;
@@ -652,7 +653,7 @@ emString emPdfServerModel::ReadLineFromProc()
 }
 
 
-bool emPdfServerModel::TryProcIO() throw(emException)
+bool emPdfServerModel::TryProcIO()
 {
 	char buf[256];
 	bool progress;

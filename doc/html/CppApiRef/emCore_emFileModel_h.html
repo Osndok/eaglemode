@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>.h
 //
-// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -222,8 +222,8 @@
                 <SPAN CLASS=c>// Called for unloading the file. The implementation may free
                 // allocated memory or set the data to a default state.
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueLoading() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartLoading() = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueLoading() = <SPAN CLASS=u>0</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>QuitLoading() = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Called for loading the file. First, TryStartLoading is
                 // called, and then TryContinueLoading is called again and again
@@ -250,8 +250,8 @@
                 // through the destructor of <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> (=&gt; prepare the
                 // destructor of the derived class accordingly).
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
-        <SPAN CLASS=t>virtual bool </SPAN>TryContinueSaving() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>) = <SPAN CLASS=u>0</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryStartSaving() = <SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>TryContinueSaving() = <SPAN CLASS=u>0</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>QuitSaving() = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// This is just like above, but for saving. The memory need is
                 // not relevant here.
@@ -268,7 +268,7 @@
                 // the progress in percent. It's just an information for the
                 // user.
 
-        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryFetchDate() <SPAN CLASS=k>throw</SPAN>(<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>);
+        </SPAN><SPAN CLASS=t>virtual void </SPAN>TryFetchDate();
                 <SPAN CLASS=c>// Get and remember file information for IsOutOfDate(). The default
                 // implementation is for the default implementation of IsOutOfDate().
 

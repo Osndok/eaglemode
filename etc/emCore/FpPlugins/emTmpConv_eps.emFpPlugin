@@ -11,6 +11,6 @@ Properties = {
  }
  {
   Name="Command"
-  Value="exec gs -q -dNOPAUSE -dSAFER -sDEVICE=pswrite \"-sOutputFile=$OUTFILE\" - < \"$INFILE\""
+  Value="exec gs -q -dNOPAUSE -dSAFER -sDEVICE=ps2write \"-sOutputFile=$OUTFILE\" - < \"$INFILE\""
  }
 }

@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_exe.pl
 #
-# Copyright (C) 2010-2011,2015-2017 Oliver Hamann.
+# Copyright (C) 2010-2011,2015-2018 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -63,7 +63,7 @@ system(
 	catfile($srcDir,'make.pl'),
 	'build',
 	'continue=no',
-	'projects=not:emAv,emPdf,emSvg'
+	'projects=not:emAv'
 )==0 || exit 1;
 
 # Install it
@@ -110,15 +110,38 @@ sub list_helper
 }
 list_helper('');
 
+# ??? Better detect this...
+my $is64Bit = 1;
+
 # Generate the NSIS script.
 my $nsiFile=Var('NAME').'-'.Var('VERSION').'.nsi';
-my $exeFile=Var('NAME').'-'.Var('VERSION').'-setup.exe';
+my $exeFile=Var('NAME').'-'.Var('VERSION').'-setup'.($is64Bit?'64':'').'.exe';
 CreateFile(
 	catfile($tmpDir,$nsiFile),
+	( $is64Bit ?
+		'!include x64.nsh'."\n"
+	:
+		''
+	).
 	'Name "'.Var('TITLE').' '.Var('VERSION').'"'."\n".
 	'OutFile "'.$exeFile.'"'."\n".
-	'InstallDir "$PROGRAMFILES\\'.Var('TITLE').'"'."\n".
+	( $is64Bit ?
+		'InstallDir "$PROGRAMFILES64\\'.Var('TITLE').'"'."\n"
+	:
+		'InstallDir "$PROGRAMFILES\\'.Var('TITLE').'"'."\n"
+	).
 	'RequestExecutionLevel admin'."\n".
+	( $is64Bit ?
+	  'Function .onInit'."\n".
+	  '  ${If} ${RunningX64}'."\n".
+	  '  ${else}'."\n".
+	  '    MessageBox MB_OK "Installation not possible, because this is not a 64-bit (X64) Windows."'."\n".
+	  '    Abort'."\n".
+	  '  ${EndIf}'."\n".
+	  'FunctionEnd'."\n"
+	:
+		''
+	).
 	'Page components'."\n".
 	'Page directory "" "" F_CheckInstDir'."\n".
 	'Page instfiles'."\n".

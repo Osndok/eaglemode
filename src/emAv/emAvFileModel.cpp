@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.cpp
 //
-// Copyright (C) 2005-2008,2011,2014,2017 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -316,12 +316,12 @@ void emAvFileModel::ResetData()
 }
 
 
-void emAvFileModel::TryStartLoading() throw(emException)
+void emAvFileModel::TryStartLoading()
 {
 }
 
 
-bool emAvFileModel::TryContinueLoading() throw(emException)
+bool emAvFileModel::TryContinueLoading()
 {
 	switch (GetStreamState()) {
 	case STREAM_CLOSED:
@@ -350,13 +350,13 @@ void emAvFileModel::QuitLoading()
 }
 
 
-void emAvFileModel::TryStartSaving() throw(emException)
+void emAvFileModel::TryStartSaving()
 {
 	throw emException("emAvFileModel: Saving not possible.");
 }
 
 
-bool emAvFileModel::TryContinueSaving() throw(emException)
+bool emAvFileModel::TryContinueSaving()
 {
 	return false;
 }

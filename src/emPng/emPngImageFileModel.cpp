@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,7 +79,7 @@ emPngImageFileModel::~emPngImageFileModel()
 }
 
 
-void emPngImageFileModel::TryStartLoading() throw(emException)
+void emPngImageFileModel::TryStartLoading()
 {
 	emString colTypeStr;
 	int rowbytes,originalPixelSize;
@@ -161,7 +161,7 @@ void emPngImageFileModel::TryStartLoading() throw(emException)
 }
 
 
-bool emPngImageFileModel::TryContinueLoading() throw(emException)
+bool emPngImageFileModel::TryContinueLoading()
 {
 	png_textp t;
 	int e,i,n;
@@ -238,13 +238,13 @@ void emPngImageFileModel::QuitLoading()
 }
 
 
-void emPngImageFileModel::TryStartSaving() throw(emException)
+void emPngImageFileModel::TryStartSaving()
 {
 	throw emException("emPngImageFileModel: Saving not implemented.");
 }
 
 
-bool emPngImageFileModel::TryContinueSaving() throw(emException)
+bool emPngImageFileModel::TryContinueSaving()
 {
 	return true;
 }

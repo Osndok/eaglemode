@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.cpp
 //
-// Copyright (C) 2010-2012,2014 Oliver Hamann.
+// Copyright (C) 2010-2012,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -67,7 +67,7 @@ int emNetwalkModel::GetPiece(int x, int y) const
 void emNetwalkModel::TrySetup(
 	int width, int height, bool borderless, bool noFourWayJunctions,
 	int complexity, bool digMode, bool autoMark, bool saveFile
-) throw(emException)
+)
 {
 	emArray<char> undoBuf;
 	int i;
@@ -238,7 +238,7 @@ emNetwalkModel::~emNetwalkModel()
 }
 
 
-bool emNetwalkModel::TryContinueLoading() throw(emException)
+bool emNetwalkModel::TryContinueLoading()
 {
 	if (!emRecFileModel::TryContinueLoading()) return false;
 	if (Width.Get()*Height.Get()!=Raster.GetCount()) {

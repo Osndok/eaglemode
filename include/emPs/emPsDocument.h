@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocument.h
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,7 +41,7 @@ public:
 
 	void Clear();
 
-	void TrySetScript(const emArray<char> & script) throw(emException);
+	void TrySetScript(const emArray<char> & script);
 		// Set up the document from the given content of a PostScript
 		// file. It must follow the PostScript Document Structuring
 		// Conventions (the DSC comments are parsed by this method).

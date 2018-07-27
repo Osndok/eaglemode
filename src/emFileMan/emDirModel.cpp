@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirModel.cpp
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,7 +85,7 @@ void emDirModel::ResetData()
 }
 
 
-void emDirModel::TryStartLoading() throw(emException)
+void emDirModel::TryStartLoading()
 {
 #if defined(__APPLE__)
 	char buf[PATH_MAX+1];
@@ -113,7 +113,7 @@ void emDirModel::TryStartLoading() throw(emException)
 }
 
 
-bool emDirModel::TryContinueLoading() throw(emException)
+bool emDirModel::TryContinueLoading()
 {
 	NameNode * node;
 	emString name;
@@ -186,13 +186,13 @@ void emDirModel::QuitLoading()
 }
 
 
-void emDirModel::TryStartSaving() throw(emException)
+void emDirModel::TryStartSaving()
 {
 	throw emException("Saving an emDirModel is impossible.");
 }
 
 
-bool emDirModel::TryContinueSaving() throw(emException)
+bool emDirModel::TryContinueSaving()
 {
 	return true;
 }
@@ -220,7 +220,7 @@ double emDirModel::CalcFileProgress()
 }
 
 
-void emDirModel::TryFetchDate() throw(emException)
+void emDirModel::TryFetchDate()
 {
 }
 

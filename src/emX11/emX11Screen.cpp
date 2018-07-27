@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1192,6 +1192,7 @@ bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
 	//  vendor="Fedora Project",       release=11900000 (Fedora 25)
 	//  vendor="Fedora Project",       release=11903000 (Fedora 26)
 	//  vendor="The X.Org Foundation", release=11905000 (Ubuntu 17.10)
+	//  vendor="Fedora Project",       release=11906000 (Fedora 27 - 28)
 	vendor=ServerVendor(x11Screen->Disp);
 	release=VendorRelease(x11Screen->Disp);
 	if (

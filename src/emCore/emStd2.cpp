@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -588,7 +588,7 @@ bool emIsHiddenPath(const char * path)
 }
 
 
-emUInt64 emTryGetFileSize(const char * path) throw(emException)
+emUInt64 emTryGetFileSize(const char * path)
 {
 	struct em_stat st;
 
@@ -603,7 +603,7 @@ emUInt64 emTryGetFileSize(const char * path) throw(emException)
 }
 
 
-time_t emTryGetFileTime(const char * path) throw(emException)
+time_t emTryGetFileTime(const char * path)
 {
 	struct em_stat st;
 
@@ -641,7 +641,7 @@ struct emDirHandleContent {
 };
 
 
-emDirHandle emTryOpenDir(const char * path) throw(emException)
+emDirHandle emTryOpenDir(const char * path)
 {
 #if defined(_WIN32)
 	emDirHandleContent * hc;
@@ -690,7 +690,7 @@ emDirHandle emTryOpenDir(const char * path) throw(emException)
 }
 
 
-emString emTryReadDir(emDirHandle dirHandle) throw(emException)
+emString emTryReadDir(emDirHandle dirHandle)
 {
 #if defined(_WIN32)
 	emDirHandleContent * hc;
@@ -769,7 +769,7 @@ void emCloseDir(emDirHandle dirHandle)
 }
 
 
-emArray<emString> emTryLoadDir(const char * path) throw(emException)
+emArray<emString> emTryLoadDir(const char * path)
 {
 	emDirHandle dirHandle;
 	emArray<emString> names;
@@ -794,7 +794,7 @@ emArray<emString> emTryLoadDir(const char * path) throw(emException)
 }
 
 
-emArray<char> emTryLoadFile(const char * path) throw(emException)
+emArray<char> emTryLoadFile(const char * path)
 {
 	emArray<char> buf;
 	FILE * f;
@@ -826,9 +826,7 @@ L_Err:
 }
 
 
-void emTrySaveFile(
-	const char * path, const char * data, int len
-) throw(emException)
+void emTrySaveFile(const char * path, const char * data, int len)
 {
 	FILE * f;
 	int i;
@@ -853,15 +851,13 @@ L_Err:
 }
 
 
-void emTrySaveFile(
-	const char * path, const emArray<char> & data
-) throw(emException)
+void emTrySaveFile(const char * path, const emArray<char> & data)
 {
 	emTrySaveFile(path,data,data.GetCount());
 }
 
 
-void emTryMakeDirectories(const char * path, int mode) throw(emException)
+void emTryMakeDirectories(const char * path, int mode)
 {
 	emString parentPath;
 
@@ -883,7 +879,7 @@ void emTryMakeDirectories(const char * path, int mode) throw(emException)
 }
 
 
-void emTryRemoveFileOrTree(const char * path, bool force) throw(emException)
+void emTryRemoveFileOrTree(const char * path, bool force)
 {
 	emArray<emString> list;
 	struct em_stat st;
@@ -936,9 +932,7 @@ L_TryIt:
 }
 
 
-void emTryCopyFileOrTree(
-	const char * targetPath, const char * sourcePath
-) throw(emException)
+void emTryCopyFileOrTree(const char * targetPath, const char * sourcePath)
 {
 	emDirHandle dh;
 	emString nm;
@@ -1048,7 +1042,7 @@ static int emCompareLibEntryFilename(
 }
 
 
-emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emException)
+emLibHandle emTryOpenLib(const char * libName, bool isFilename)
 {
 	emLibTableEntry * e;
 	emString filename;
@@ -1127,9 +1121,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emExceptio
 }
 
 
-void * emTryResolveSymbolFromLib(
-	emLibHandle handle, const char * symbol
-) throw(emException)
+void * emTryResolveSymbolFromLib(emLibHandle handle, const char * symbol)
 {
 	emLibTableEntry * e;
 	void * r;
@@ -1202,7 +1194,7 @@ void emCloseLib(emLibHandle handle)
 
 void * emTryResolveSymbol(
 	const char * libName, bool isFilename, const char * symbol
-) throw(emException)
+)
 {
 	emLibTableEntry * e;
 	void * r;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2011,2014 Oliver Hamann.
+// Copyright (C) 2006-2011,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emPs/emPsRenderer.h>
+#include <emCore/emInstallInfo.h>
 
 
 emRef<emPsRenderer> emPsRenderer::Acquire(emRootContext & rootContext)
@@ -394,19 +395,28 @@ void emPsRenderer::UpdatePSPriority()
 }
 
 
-void emPsRenderer::TryStartProcess() throw(emException)
+void emPsRenderer::TryStartProcess()
 {
-#if defined(_WIN32)
-
-	throw emException(
-		"Ghostscript probably not available on this system. As a precaution, execution is not tried."
-	);
-
-#else
-
 	emArray<emString> args;
 
+#if defined(_WIN32)
+	args.Add(
+		emGetChildPath(
+			emGetInstallPath(EM_IDT_LIB,"emPs","emPs"),
+			"emPsWinAdapterProc"
+		)
+	);
+	const char * p=getenv("EM_DIR");
+	if (!p) throw emException("emPsRenderer: EM_DIR not set.");
+	emString gsPath=emString(p)+"\\thirdparty\\bin\\gs.exe";
+	if (!emIsRegularFile(gsPath)) {
+		// Otherwise we get a quite stupid error message.
+		throw emException("emPsRenderer: Cannot not find %s",gsPath.Get());
+	}
+	args.Add(gsPath);
+#else
 	args.Add("gs");
+#endif
 	args.Add("-q");
 	args.Add("-dNOPAUSE");
 	args.Add("-dSAFER");
@@ -426,10 +436,9 @@ void emPsRenderer::TryStartProcess() throw(emException)
 		NULL,
 		emProcess::SF_PIPE_STDIN|
 		emProcess::SF_PIPE_STDOUT|
-		emProcess::SF_SHARE_STDERR
+		emProcess::SF_SHARE_STDERR|
+		emProcess::SF_NO_WINDOW
 	);
-
-#endif
 }
 
 
@@ -470,7 +479,7 @@ void emPsRenderer::PrepareWritingPage()
 }
 
 
-bool emPsRenderer::TryWrite() throw(emException)
+bool emPsRenderer::TryWrite()
 {
 	const char * buf;
 	int len;
@@ -543,7 +552,7 @@ void emPsRenderer::PrepareReadingPage()
 }
 
 
-bool emPsRenderer::TryRead() throw(emException)
+bool emPsRenderer::TryRead()
 {
 	int len,syncLen,eat,r;
 	bool syncFound;

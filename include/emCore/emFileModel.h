@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.h
 //
-// Copyright (C) 2005-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -213,8 +213,8 @@ protected:
 		// Called for unloading the file. The implementation may free
 		// allocated memory or set the data to a default state.
 
-	virtual void TryStartLoading() throw(emException) = 0;
-	virtual bool TryContinueLoading() throw(emException) = 0;
+	virtual void TryStartLoading() = 0;
+	virtual bool TryContinueLoading() = 0;
 	virtual void QuitLoading() = 0;
 		// Called for loading the file. First, TryStartLoading is
 		// called, and then TryContinueLoading is called again and again
@@ -241,8 +241,8 @@ protected:
 		// through the destructor of emFileModel (=> prepare the
 		// destructor of the derived class accordingly).
 
-	virtual void TryStartSaving() throw(emException) = 0;
-	virtual bool TryContinueSaving() throw(emException) = 0;
+	virtual void TryStartSaving() = 0;
+	virtual bool TryContinueSaving() = 0;
 	virtual void QuitSaving() = 0;
 		// This is just like above, but for saving. The memory need is
 		// not relevant here.
@@ -259,7 +259,7 @@ protected:
 		// the progress in percent. It's just an information for the
 		// user.
 
-	virtual void TryFetchDate() throw(emException);
+	virtual void TryFetchDate();
 		// Get and remember file information for IsOutOfDate(). The default
 		// implementation is for the default implementation of IsOutOfDate().
 

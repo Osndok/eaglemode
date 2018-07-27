@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2004-2011,2014-2015,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -132,41 +132,40 @@ bool emIsHiddenPath(const char * path);
 	// Ask whether the given file path exists, whether it is readable and so
 	// on.
 
-emUInt64 emTryGetFileSize(const char * path) throw(emException);
+emUInt64 emTryGetFileSize(const char * path);
 	// Get the size of a file.
 
-time_t emTryGetFileTime(const char * path) throw(emException);
+time_t emTryGetFileTime(const char * path);
 	// Get the last modification time of a file.
 
 emString emGetCurrentDirectory();
 	// Get the absolute path of the current working directory.
 
 typedef void * emDirHandle;
-emDirHandle emTryOpenDir(const char * path) throw(emException);
-emString emTryReadDir(emDirHandle dirHandle) throw(emException);
+emDirHandle emTryOpenDir(const char * path);
+emString emTryReadDir(emDirHandle dirHandle);
 void emCloseDir(emDirHandle dirHandle);
 	// Read a directory step by step. An empty string indicates the end.
 
-emArray<emString> emTryLoadDir(const char * path) throw(emException);
+emArray<emString> emTryLoadDir(const char * path);
 	// Read a directory at once.
 
-emArray<char> emTryLoadFile(const char * path) throw(emException);
+emArray<char> emTryLoadFile(const char * path);
 void emTrySaveFile(const char * path,
-                   const char * data, int len) throw(emException);
+                   const char * data, int len);
 void emTrySaveFile(const char * path,
-                   const emArray<char> & data) throw(emException);
+                   const emArray<char> & data);
 	// Read or write a file at once.
 
-void emTryMakeDirectories(const char * path, int mode=0777) throw(emException);
+void emTryMakeDirectories(const char * path, int mode=0777);
 	// Create a directory and its ancestors, as far as they do not exist.
 	// On Windows, the mode argument is ignored.
 
-void emTryRemoveFileOrTree(const char * path, bool force=false) throw(emException);
+void emTryRemoveFileOrTree(const char * path, bool force=false);
 	// Delete a file or a directory recursively. force=true means to defeat
 	// file permissions if possible.
 
-void emTryCopyFileOrTree(const char * targetPath,
-                         const char * sourcePath) throw(emException);
+void emTryCopyFileOrTree(const char * targetPath, const char * sourcePath);
 	// Copy a file or a directory recursively. This does not copy any file
 	// attributes (maybe a future version will do so).
 
@@ -178,7 +177,7 @@ void emTryCopyFileOrTree(const char * targetPath,
 typedef void * emLibHandle;
 	// Data type for a handle on an opened dynamic library.
 
-emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emException);
+emLibHandle emTryOpenLib(const char * libName, bool isFilename);
 	// Open a dynamic library.
 	// Arguments:
 	//   libName    - Name of the dynamic library.
@@ -189,8 +188,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename) throw(emExceptio
 	// Returns:
 	//   An abstract handle for the opened library.
 
-void * emTryResolveSymbolFromLib(emLibHandle handle,
-                                 const char * symbol) throw(emException);
+void * emTryResolveSymbolFromLib(emLibHandle handle, const char * symbol);
 	// Get the address of a symbol in a dynamic library.
 	// Hint: C++ symbols have a compiler specific encoding. Best is to use
 	// C symbols only.
@@ -199,7 +197,7 @@ void emCloseLib(emLibHandle handle);
 	// Close a dynamic library.
 
 void * emTryResolveSymbol(const char * libName, bool isFilename,
-                          const char * symbol) throw(emException);
+                          const char * symbol);
 	// Similar to emTryOpenLib plus emTryResolveSymbolFromLib, but the
 	// library is never closed.
 

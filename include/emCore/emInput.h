@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInput.h
 //
-// Copyright (C) 2005-2012,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2015,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -375,7 +375,7 @@ public:
 	bool operator != (const emInputHotkey & hotkey) const;
 		// Comparison operators.
 
-	void TryParse(const char * str) throw(emException);
+	void TryParse(const char * str);
 		// Try to set this hotkey from a human-readable string
 		// representation (e.g. "Ctrl+C"). On failure, the hotkey is set
 		// invalid and an error message is thrown.

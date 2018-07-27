@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.cpp
 //
-// Copyright (C) 2001,2003-2008,2014 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -695,7 +695,7 @@ static const struct {
 };
 
 
-void emColor::TryParse(const char * str) throw(emException)
+void emColor::TryParse(const char * str)
 {
 	char buf[256];
 	int i,c,len,v,m,n;

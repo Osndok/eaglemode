@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRes.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ emImage emGetResImage(
 
 emImage emTryGetResImage(
 	emRootContext & rootContext, const emString & filePath, int channelCount
-) throw(emException)
+)
 {
 	emRef<emResModel<emImage> > m;
 	emArray<char> buf;
@@ -104,7 +104,7 @@ emImage emGetInsResImage(
 emImage emTryGetInsResImage(
 	emRootContext & rootContext, const char * prj, const char * subPath,
 	int channelCount
-) throw(emException)
+)
 {
 	return emTryGetResImage(
 		rootContext,

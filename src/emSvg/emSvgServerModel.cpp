@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011,2014 Oliver Hamann.
+// Copyright (C) 2010-2011,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,9 +18,14 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <sys/shm.h>
 #include <emSvg/emSvgServerModel.h>
 #include <emCore/emInstallInfo.h>
+#if defined(_WIN32) || defined(__CYGWIN__)
+#	include <emCore/emThread.h>
+#	include <windows.h>
+#else
+#	include <sys/shm.h>
+#endif
 
 
 emRef<emSvgServerModel> emSvgServerModel::Acquire(emRootContext & rootContext)
@@ -154,7 +159,8 @@ void emSvgServerModel::Poll(unsigned maxMilliSecs)
 				NULL,
 				emProcess::SF_PIPE_STDIN|
 				emProcess::SF_PIPE_STDOUT|
-				emProcess::SF_SHARE_STDERR
+				emProcess::SF_SHARE_STDERR|
+				emProcess::SF_NO_WINDOW
 			);
 			if (ShmSize<MinShmSize) {
 				TryAllocShm(MinShmSize);
@@ -198,7 +204,12 @@ emSvgServerModel::emSvgServerModel(emContext & context, const emString & name)
 	FirstRunningJob=NULL;
 	LastRunningJob=NULL;
 	ShmSize=0;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ShmId[0]=0;
+	ShmHdl=NULL;
+#else
 	ShmId=-1;
+#endif
 	ShmPtr=NULL;
 	ShmAllocBegin=0;
 	ShmAllocEnd=0;
@@ -320,7 +331,7 @@ emSvgServerModel::CloseJobStruct::~CloseJobStruct()
 }
 
 
-void emSvgServerModel::TryStartJobs() throw(emException)
+void emSvgServerModel::TryStartJobs()
 {
 	Job * job;
 
@@ -338,7 +349,7 @@ void emSvgServerModel::TryStartJobs() throw(emException)
 }
 
 
-void emSvgServerModel::TryStartOpenJob(OpenJob * openJob) throw(emException)
+void emSvgServerModel::TryStartOpenJob(OpenJob * openJob)
 {
 	if (openJob->Orphan) {
 		RemoveJobFromList(openJob);
@@ -358,7 +369,7 @@ void emSvgServerModel::TryStartOpenJob(OpenJob * openJob) throw(emException)
 }
 
 
-bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emException)
+bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob)
 {
 	emByte * t, * e;
 	emUInt32 u;
@@ -425,7 +436,7 @@ bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob) throw(emExceptio
 }
 
 
-void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emException)
+void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob)
 {
 	if (closeJob->ProcRunId==ProcRunId) {
 		WriteLineToProc(emString::Format(
@@ -444,7 +455,7 @@ void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob) throw(emExcep
 }
 
 
-void emSvgServerModel::TryFinishJobs() throw(emException)
+void emSvgServerModel::TryFinishJobs()
 {
 	emString cmd,args;
 	const char * p;
@@ -485,9 +496,7 @@ void emSvgServerModel::TryFinishJobs() throw(emException)
 }
 
 
-void emSvgServerModel::TryFinishOpenJob(
-	OpenJob * openJob, const char * args
-) throw(emException)
+void emSvgServerModel::TryFinishOpenJob(OpenJob * openJob, const char * args)
 {
 	int instId,pos,r;
 	double width,height;
@@ -546,7 +555,7 @@ void emSvgServerModel::TryFinishOpenJob(
 }
 
 
-void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob) throw(emException)
+void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob)
 {
 	emByte * s, * t, * e;
 	emImage * img;
@@ -581,9 +590,13 @@ void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob) throw(emExcepti
 }
 
 
-void emSvgServerModel::TryWriteAttachShm() throw(emException)
+void emSvgServerModel::TryWriteAttachShm()
 {
+#if defined(_WIN32) || defined(__CYGWIN__)
+	WriteLineToProc(emString::Format("attachshm %s",ShmId));
+#else
 	WriteLineToProc(emString::Format("attachshm %d",ShmId));
+#endif
 }
 
 
@@ -647,7 +660,7 @@ emString emSvgServerModel::ReadLineFromProc()
 }
 
 
-bool emSvgServerModel::TryProcIO() throw(emException)
+bool emSvgServerModel::TryProcIO()
 {
 	char buf[256];
 	bool progress;
@@ -676,12 +689,60 @@ bool emSvgServerModel::TryProcIO() throw(emException)
 }
 
 
-void emSvgServerModel::TryAllocShm(int size) throw(emException)
+void emSvgServerModel::TryAllocShm(int size)
 {
 	FreeShm();
-#if defined(__CYGWIN__)
-	throw emException("shmget not tried as cygwin may abort the process.");
-#endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+
+	static emThreadMiniMutex sharedCounterMutex;
+	static unsigned long sharedCounter=0;
+	unsigned long counter;
+
+	sharedCounterMutex.Lock();
+	counter=sharedCounter++;
+	sharedCounterMutex.Unlock();
+
+	sprintf(
+		ShmId,
+		"Local\\emSvg.%lX.%lX.%lX.%lX",
+		(unsigned long)GetCurrentProcessId(),
+		counter,
+		(unsigned long)GetTickCount(),
+		(unsigned long)emGetUInt64Random(0,0xffffffff) //???
+	);
+	emDLog("emSvgServerModel: ShmId=%s",ShmId);
+
+	SetLastError(ERROR_SUCCESS);
+	ShmHdl=CreateFileMapping(
+		INVALID_HANDLE_VALUE,NULL,PAGE_READWRITE|SEC_COMMIT,
+		0,size,ShmId
+	);
+	if (!ShmHdl || GetLastError()==ERROR_ALREADY_EXISTS) {
+		if (ShmHdl) {
+			CloseHandle(ShmHdl);
+			ShmHdl=NULL;
+		}
+		ShmId[0]=0;
+		throw emException(
+			"Failed to create shared memory segment: CreateFileMapping: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
+	}
+
+	ShmPtr=(emByte*)MapViewOfFile(ShmHdl,FILE_MAP_ALL_ACCESS,0,0,0);
+	if (!ShmPtr) {
+		CloseHandle(ShmHdl);
+		ShmHdl=NULL;
+		ShmId[0]=0;
+		throw emException(
+			"Failed to create shared memory segment: MapViewOfFile: %s",
+			emGetErrorText(GetLastError()).Get()
+		);
+	}
+
+#else
+
 	ShmId=shmget(IPC_PRIVATE,size,IPC_CREAT|0600);
 	if (ShmId==-1) {
 		throw emException(
@@ -689,6 +750,7 @@ void emSvgServerModel::TryAllocShm(int size) throw(emException)
 			emGetErrorText(errno).Get()
 		);
 	}
+
 	ShmPtr=(emByte*)shmat(ShmId,0,0);
 	if (ShmPtr==(emByte*)-1) {
 		ShmPtr=NULL;
@@ -699,6 +761,7 @@ void emSvgServerModel::TryAllocShm(int size) throw(emException)
 			emGetErrorText(errno).Get()
 		);
 	}
+
 #if defined(__linux__)
 	shmctl(ShmId,IPC_RMID,0);
 	if (shmctl(ShmId,IPC_RMID,0)!=0) {
@@ -708,12 +771,26 @@ void emSvgServerModel::TryAllocShm(int size) throw(emException)
 		);
 	}
 #endif
+
+#endif
+
 	ShmSize=size;
 }
 
 
 void emSvgServerModel::FreeShm()
 {
+#if defined(_WIN32) || defined(__CYGWIN__)
+	if (ShmPtr) {
+		UnmapViewOfFile(ShmPtr);
+		ShmPtr=NULL;
+	}
+	if (ShmHdl) {
+		CloseHandle(ShmHdl);
+		ShmHdl=NULL;
+	}
+	ShmId[0]=0;
+#else
 	if (ShmPtr) {
 		shmdt(ShmPtr);
 		ShmPtr=NULL;
@@ -729,6 +806,7 @@ void emSvgServerModel::FreeShm()
 #endif
 		ShmId=-1;
 	}
+#endif
 	ShmSize=0;
 	ShmAllocBegin=0;
 	ShmAllocEnd=0;

@@ -1,0 +1,15 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "Install And Start"
+
+PosX  = 0.125
+PosY  = 0.100
+Width = 0.010
+ContentTallness = 0.5
+
+BackgroundColor = "#998"
+BorderColor = "#666"
+TitleColor = "#EEF"
+
+FileName = "InstallAndStart.emFileLink"
+CopyToUser = false

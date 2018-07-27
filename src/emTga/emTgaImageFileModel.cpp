@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTgaImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,7 +45,7 @@ emTgaImageFileModel::~emTgaImageFileModel()
 }
 
 
-void emTgaImageFileModel::TryStartLoading() throw(emException)
+void emTgaImageFileModel::TryStartLoading()
 {
 	int i,c;
 
@@ -165,7 +165,7 @@ ErrFormat:
 }
 
 
-bool emTgaImageFileModel::TryContinueLoading() throw(emException)
+bool emTgaImageFileModel::TryContinueLoading()
 {
 	int i,x,c;
 
@@ -241,13 +241,13 @@ void emTgaImageFileModel::QuitLoading()
 }
 
 
-void emTgaImageFileModel::TryStartSaving() throw(emException)
+void emTgaImageFileModel::TryStartSaving()
 {
 	throw emException("emTgaImageFileModel: Saving not implemented.");
 }
 
 
-bool emTgaImageFileModel::TryContinueSaving() throw(emException)
+bool emTgaImageFileModel::TryContinueSaving()
 {
 	return true;
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.cpp
 //
-// Copyright (C) 2004-2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,7 +117,7 @@ void emTextFileModel::ResetData()
 }
 
 
-void emTextFileModel::TryStartLoading() throw(emException)
+void emTextFileModel::TryStartLoading()
 {
 	emInt64 l;
 
@@ -144,7 +144,7 @@ Err:
 }
 
 
-bool emTextFileModel::TryContinueLoading() throw(emException)
+bool emTextFileModel::TryContinueLoading()
 {
 	const char * p;
 	int * s;
@@ -596,13 +596,13 @@ void emTextFileModel::QuitLoading()
 }
 
 
-void emTextFileModel::TryStartSaving() throw(emException)
+void emTextFileModel::TryStartSaving()
 {
 	throw emException("emTextFileModel: Saving not supported.");
 }
 
 
-bool emTextFileModel::TryContinueSaving() throw(emException)
+bool emTextFileModel::TryContinueSaving()
 {
 	return true;
 }

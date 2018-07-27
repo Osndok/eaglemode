@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFileModel.cpp
 //
-// Copyright (C) 2011,2014 Oliver Hamann.
+// Copyright (C) 2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,13 +61,13 @@ void emPdfFileModel::ResetData()
 }
 
 
-void emPdfFileModel::TryStartLoading() throw(emException)
+void emPdfFileModel::TryStartLoading()
 {
 	FileSize=emTryGetFileSize(GetFilePath());
 }
 
 
-bool emPdfFileModel::TryContinueLoading() throw(emException)
+bool emPdfFileModel::TryContinueLoading()
 {
 	if (!JobHandle) {
 		JobHandle=ServerModel->StartOpenJob(GetFilePath(),&PdfHandle);
@@ -97,13 +97,13 @@ void emPdfFileModel::QuitLoading()
 }
 
 
-void emPdfFileModel::TryStartSaving() throw(emException)
+void emPdfFileModel::TryStartSaving()
 {
 	throw emException("emPdfFileModel: Saving not supported.");
 }
 
 
-bool emPdfFileModel::TryContinueSaving() throw(emException)
+bool emPdfFileModel::TryContinueSaving()
 {
 	return true;
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -308,7 +308,7 @@ void emGifFileModel::ResetData()
 }
 
 
-void emGifFileModel::TryStartLoading() throw(emException)
+void emGifFileModel::TryStartLoading()
 {
 	char sigver[6];
 	int i,flags,bgIndex,aspect;
@@ -361,7 +361,7 @@ Err:
 }
 
 
-bool emGifFileModel::TryContinueLoading() throw(emException)
+bool emGifFileModel::TryContinueLoading()
 {
 	char * p;
 	Render * r;
@@ -537,13 +537,13 @@ void emGifFileModel::QuitLoading()
 }
 
 
-void emGifFileModel::TryStartSaving() throw(emException)
+void emGifFileModel::TryStartSaving()
 {
 	throw emException("emGifFileModel: Saving not implemented.");
 }
 
 
-bool emGifFileModel::TryContinueSaving() throw(emException)
+bool emGifFileModel::TryContinueSaving()
 {
 	return true;
 }

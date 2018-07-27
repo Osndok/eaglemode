@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.h
 //
-// Copyright (C) 2006-2010,2014,2017 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,7 +59,7 @@ public:
 		const emArray<emString> & extraEnv=emArray<emString>(),
 		const char * dirPath=NULL,
 		int flags=SF_SHARE_STDIN|SF_SHARE_STDOUT|SF_SHARE_STDERR
-	) throw(emException);
+	);
 		// Start a managed child process.
 		// Arguments:
 		//   args     - Program arguments for the child process. The
@@ -98,14 +98,14 @@ public:
 		const emArray<emString> & extraEnv=emArray<emString>(),
 		const char * dirPath=NULL,
 		int flags=SF_SHARE_STDIN|SF_SHARE_STDOUT|SF_SHARE_STDERR
-	) throw(emException);
+	);
 		// This function(!) is like the method TryStart, but the new
 		// process is not managed by an emProcess object. Pipelining is
 		// not possible with this. On UNIX, the new process is detached
 		// from this process, so that it does not become a child
 		// process.
 
-	int TryWrite(const char * buf, int len) throw(emException);
+	int TryWrite(const char * buf, int len);
 		// Write to standard input of the child process, without
 		// blocking. The child process should have been started with
 		// SF_PIPE_STDIN.
@@ -120,7 +120,7 @@ public:
 		//        process exited).
 		// Throws: An error message on failure.
 
-	int TryRead(char * buf, int maxLen) throw(emException);
+	int TryRead(char * buf, int maxLen);
 		// Read from standard output of the child process, without
 		// blocking. The child process should have been started with
 		// SF_PIPE_STDOUT.
@@ -135,7 +135,7 @@ public:
 		//        process exited).
 		// Throws: An error message on failure.
 
-	int TryReadErr(char * buf, int maxLen) throw(emException);
+	int TryReadErr(char * buf, int maxLen);
 		// Like TryRead, but for standard error (SF_PIPE_STDERR).
 
 	enum WaitFlags {

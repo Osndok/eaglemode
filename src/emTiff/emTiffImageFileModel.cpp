@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,7 @@ emTiffImageFileModel::~emTiffImageFileModel()
 }
 
 
-void emTiffImageFileModel::TryStartLoading() throw(emException)
+void emTiffImageFileModel::TryStartLoading()
 {
 	int samplesPerPixel,bitsPerSample,compression,photometric;
 	emString compStr;
@@ -179,7 +179,7 @@ void emTiffImageFileModel::TryStartLoading() throw(emException)
 }
 
 
-bool emTiffImageFileModel::TryContinueLoading() throw(emException)
+bool emTiffImageFileModel::TryContinueLoading()
 {
 	TIFF * t;
 	unsigned char * map, * tgt;
@@ -286,13 +286,13 @@ void emTiffImageFileModel::QuitLoading()
 }
 
 
-void emTiffImageFileModel::TryStartSaving() throw(emException)
+void emTiffImageFileModel::TryStartSaving()
 {
 	throw emException("emTiffImageFileModel: Saving not implemented.");
 }
 
 
-bool emTiffImageFileModel::TryContinueSaving() throw(emException)
+bool emTiffImageFileModel::TryContinueSaving()
 {
 	return true;
 }
@@ -337,7 +337,7 @@ double emTiffImageFileModel::CalcFileProgress()
 }
 
 
-void emTiffImageFileModel::ThrowTiffError() throw(emException)
+void emTiffImageFileModel::ThrowTiffError()
 {
 	emString str;
 
