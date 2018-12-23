@@ -63,6 +63,7 @@ sub Build
 			"--lib-dir"       , "lib",
 			"--obj-dir"       , "obj",
 			"--inc-search-dir", "include",
+			"--link"          , "user32",
 			"--type"          , "cexe",
 			"--name"          , "emPsWinAdapterProc",
 			"src/emPs/emPsWinAdapterProc.c"

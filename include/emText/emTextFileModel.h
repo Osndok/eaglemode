@@ -109,6 +109,7 @@ private:
 		int Statistics[256];
 		int StartPos,Pos,Row,Col,Col1,Col2;
 		bool FoundCR,FoundLF,FoundCRLF;
+		emMBState MBState;
 	};
 	LoadingState * L;
 };

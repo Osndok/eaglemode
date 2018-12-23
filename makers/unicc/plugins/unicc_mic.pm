@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_mic.pm
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2008,2018 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -92,8 +92,10 @@ sub Compile
 		push(@args,"/wd4511");
 		push(@args,"/wd4512");
 		push(@args,"/wd4610");
+		push(@args,"/wd4996");
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"/I$s"); }
 		foreach my $s (@{GetDefines()}) { push(@args,"/D$s"); }
+		push(@args,"/D_NO_CRT_STDIO_INLINE");
 		push(@args,"/c");
 		push(@args,GetSrcFiles->[$index]);
 		push(@args,"/Fo".GetObjFiles->[$index]);
@@ -168,6 +170,7 @@ sub Link
 		push(@args,"/FIXED:NO"); #???
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"/LIBPATH:$s"); }
 		foreach my $s (@{GetLinkNames()}) { push(@args,"$s.lib"); }
+		push(@args,"legacy_stdio_definitions.lib");
 		my $objFiles=GetObjFiles;
 		my $srcTypes=GetSrcTypes;
 		my @resFiles=();

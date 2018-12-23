@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.cpp
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -214,4 +214,9 @@ emWindowPort::emWindowPort(emWindow & window)
 	if (Window.WindowPort) {
 		emFatalError("Illegal use of emWindowPort.");
 	}
+}
+
+
+emWindowPort::~emWindowPort()
+{
 }

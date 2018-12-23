@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsClipboard.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,34 +39,42 @@ void emWndsClipboard::Install(emContext & context)
 emInt64 emWndsClipboard::PutText(const emString & str, bool selection)
 {
 	HGLOBAL hglobal;
-	LPVOID mem;
+	LPWSTR mem;
+	int len;
 
 	if (selection) {
 		SelectionText=str;
 		CurrentSelectionId++;
 		return CurrentSelectionId;
 	}
-	else {
-		if (OpenClipboard(NULL)) {
-			EmptyClipboard();
-			if (!str.IsEmpty()) {
-				hglobal=GlobalAlloc(GMEM_MOVEABLE,str.GetLen()+1);
-				if (hglobal) {
-					mem=GlobalLock(hglobal);
-					if (mem) {
-						memcpy(mem,str.Get(),str.GetLen()+1);
-						GlobalUnlock(hglobal);
-						if (SetClipboardData(CF_TEXT,hglobal)) hglobal=NULL;
-					}
-					if (hglobal) {
-						GlobalFree(hglobal);
-					}
-				}
-			}
-			CloseClipboard();
-		}
+
+	if (!OpenClipboard(NULL)) {
 		return 0;
 	}
+
+	EmptyClipboard();
+
+	if (!str.IsEmpty()) {
+		len=MultiByteToWideChar(CP_ACP,0,str.Get(),str.GetLen(),NULL,0);
+		if (len>0) {
+			hglobal=GlobalAlloc(GMEM_MOVEABLE,(len+1)*sizeof(wchar_t));
+			if (hglobal) {
+				mem=(LPWSTR)GlobalLock(hglobal);
+				if (mem) {
+					memset(mem,0,(len+1)*sizeof(wchar_t));
+					MultiByteToWideChar(CP_ACP,0,str.Get(),str.GetLen(),mem,len);
+					GlobalUnlock(hglobal);
+					if (SetClipboardData(CF_UNICODETEXT,hglobal)) hglobal=NULL;
+				}
+				if (hglobal) {
+					GlobalFree(hglobal);
+				}
+			}
+		}
+	}
+
+	CloseClipboard();
+	return 0;
 }
 
 
@@ -90,27 +98,41 @@ void emWndsClipboard::Clear(bool selection, emInt64 selectionId)
 emString emWndsClipboard::GetText(bool selection)
 {
 	HGLOBAL hglobal;
-	LPVOID mem;
+	LPWSTR mem;
+	int lenW,lenC;
+	char * buf;
 	emString str;
 
 	if (selection) {
 		return SelectionText;
 	}
-	else {
-		str="";
-		if (OpenClipboard(NULL)) {
-			hglobal=GetClipboardData(CF_TEXT);
-			if (hglobal) {
-				mem=GlobalLock(hglobal);
-				if (mem) {
-					str=(const char*)mem;
-					GlobalUnlock(hglobal);
-				}
-			}
-			CloseClipboard();
-		}
+
+	str="";
+	if (!OpenClipboard(NULL)) {
 		return str;
 	}
+
+	hglobal=GetClipboardData(CF_UNICODETEXT);
+	if (hglobal) {
+		mem=(LPWSTR)GlobalLock(hglobal);
+		if (mem) {
+			lenW=(int)GlobalSize(hglobal)/2;
+			if (lenW>0) {
+				lenC=WideCharToMultiByte(CP_ACP,0,mem,lenW,NULL,0,NULL,NULL);
+				if (lenC>0) {
+					buf=(char*)malloc(lenC+1);
+					memset(buf,0,lenC+1);
+					WideCharToMultiByte(CP_ACP,0,mem,lenW,buf,lenC,NULL,NULL);
+					str=buf;
+					free(buf);
+				}
+			}
+			GlobalUnlock(hglobal);
+		}
+	}
+
+	CloseClipboard();
+	return str;
 }
 
 

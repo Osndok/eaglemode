@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasterGroup.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,4 +29,9 @@ emRasterGroup::emRasterGroup(
 {
 	SetFocusable(true);
 	SetBorderType(OBT_GROUP,IBT_GROUP);
+}
+
+
+emRasterGroup::~emRasterGroup()
+{
 }

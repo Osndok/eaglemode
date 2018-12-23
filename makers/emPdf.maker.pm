@@ -2,6 +2,7 @@ package emPdf;
 
 use strict;
 use warnings;
+use Config;
 
 sub GetDependencies
 {
@@ -77,6 +78,7 @@ sub Build
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
 		@libpopplerglibFlags,
+		$Config{'osname'} eq 'MSWin32' ? ("--link", "user32"):(),
 		"--type"          , "cexe",
 		"--name"          , "emPdfServerProc",
 		"src/emPdf/emPdfServerProc.c"

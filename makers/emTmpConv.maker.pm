@@ -2,6 +2,7 @@ package emTmpConv;
 
 use strict;
 use warnings;
+use Config;
 
 sub GetDependencies
 {
@@ -59,6 +60,7 @@ sub Build
 		"--lib-dir"       , "lib",
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
+		$Config{'osname'} eq 'MSWin32' ? ("--link", "user32"):(),
 		"--type"          , "cexe",
 		"--name"          , "emTmpConvProc",
 		"src/emTmpConv/emTmpConvProc.c"

@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Make System</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2011 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2011,2018 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -350,37 +350,32 @@ Here is a list of all possible values for the compiler option:
 <BLOCKQUOTE><DL>
 <DT><TT>bor</TT></DT>
 <DD>Use the Borland C/C++ compiler on Windows.
-<U>Please do not use this for compiling Eagle Mode!</U>
-It has been tested with Borland C++ 5.6.4 (C++BuilderX) and CodeGear C++ 5.9
-(C++Builder 2007), but Eagle Mode always crashes right away or it even fails
-to compile (seems difficult to solve).</DD>
+This is quite outdated and it never worked.</DD>
+<P>
+<DT><TT>clang</TT></DT>
+<DD>Use the Clang C/C++ compiler.
+This should work.</DD>
 <P>
 <DT><TT>gnu</TT></DT>
-<DD>Use the GNU C/C++ compiler (gcc). This has been successfully tested with many
-gcc versions. Minimum should be something like version 3.3. Cygwin and MinGW
-are also supported.</DD>
+<DD>Use the GNU C/C++ compiler (gcc). This is the default and it has been
+successfully tested with many gcc versions. Minimum should be something like
+version 4.7. Cygwin and MinGW are also supported.</DD>
 <P>
 <DT><TT>int</TT></DT>
-<DD>Use the Intel C/C++ compiler (icc) on Linux.<BR>
-Successfully tested with:<BR>
-&nbsp;* icc 9.1 on Linux, 64-bit</DD>
+<DD>Use the Intel C/C++ compiler (icc) on Linux.
+This is quite outdated and certainly not working anymore.</DD>
 <P>
 <DT><TT>mic</TT></DT>
-<DD>Use the Microsoft C/C++ compiler on Windows.<BR>
-Successfully tested with:<BR>
-&nbsp;* cl 13.10 (Visual Studio .NET 2003)<BR>
-&nbsp;* cl 14.00 AMD64 (Platform SDK for Server 2003 R2)</DD>
+<DD>Use the Microsoft C/C++ compiler on Windows.
+Tested with Visual Studio 2017 - not all plugins working.<BR>
 <P>
 <DT><TT>sun</TT></DT>
-<DD>Use the Sun C/C++ compiler on Linux.<BR>
-Successfully tested with:<BR>
-&nbsp;* Sun Studio 12 RC 1 on Linux, 64-bit</DD>
+<DD>Use the Sun C/C++ compiler on Linux.
+This is quite outdated and certainly not working anymore.</DD>
 <P>
 <DT><TT>wat</TT></DT>
-<DD>Use the Watcom or Open Watcom C/C++ compiler on Windows.<BR>
-Successfully tested with:<BR>
-&nbsp;* Watcom 11.0b<BR>
-&nbsp;* Open Watcom 1.7a</DD>
+<DD>Use the Watcom or Open Watcom C/C++ compiler on Windows.
+This is quite outdated and certainly not working anymore.</DD>
 </DL></BLOCKQUOTE>
 
 </BODY>

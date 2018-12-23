@@ -30,6 +30,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <wchar.h>
 
 
 //==============================================================================
@@ -37,8 +38,8 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 93
-#define EM_MICRO_VERSION 2
+#define EM_MINOR_VERSION 94
+#define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -248,13 +249,10 @@ void emInitLocale();
 	// doing anything else.
 
 
-//-------------------------- Low-level UTF-8 support ---------------------------
+//-------------------------- UTF-8 character encoding --------------------------
 
 bool emIsUtf8System();
-	// Ask whether it should be expected that filenames, text files,
-	// environment variables and so on are encoded in UTF-8. Otherwise we
-	// assume something like Latin-1. All strings in our program should be
-	// encoded in the same way.
+	// Ask whether the character encoding of the current locale is UTF-8.
 
 int emEncodeUtf8Char(char * utf8, int ucs4);
 	// Encode a UTF-8 string from a single 31-bit Unicode character.
@@ -280,22 +278,32 @@ int emDecodeUtf8Char(int * pUcs4, const char * utf8, int utf8Len=INT_MAX);
 	//   And if the UTF-8 string does not contain a valid and complete code
 	//   sequence, -1 is returned.
 
-//-------------------------- High-level UTF-8 support --------------------------
+//------------------ Character encoding of the current locale ------------------
 
-int emEncodeChar(char * str, int ucs4);
+struct emMBState {
+	emMBState();
+	void Clear();
+	mbstate_t State;
+};
+
+#define EM_MB_LEN_MAX (2*MB_LEN_MAX)
+	// Maximum number of bytes written by emEncodeChar(..).
+
+int emEncodeChar(char * str, int ucs4, emMBState * state=NULL);
 	// Encode a string from a single 31-bit Unicode character. The type of
-	// encoding depends on emIsUtf8System.
+	// encoding depends on the current locale.
 	// Arguments:
-	//   str  - Buffer for returning the encoded string.
-	//          It is _NOT_ terminated by a null. The buffer must
-	//          have space for at least 6 bytes.
-	//   ucs4 - The Unicode character.
-	// Returns: Number of bytes written to the buffer (1 - 6).
+	//   str   - Buffer for returning the encoded string.
+	//           It is _NOT_ terminated by a null. The buffer must
+	//           have space for at least EM_MB_LEN_MAX bytes.
+	//   ucs4  - The Unicode character.
+	//   state - Input and output of character encoding state or shift state.
+	// Returns: Number of bytes written to the buffer (1 - EM_MB_LEN_MAX).
 
-int emDecodeChar(int * pUcs4, const char * str, int strLen=INT_MAX);
+int emDecodeChar(int * pUcs4, const char * str, int strLen=INT_MAX,
+                 emMBState * state=NULL);
 	// Decode one 31-bit Unicode character from a string. The type of
-	// decoding depends on emIsUtf8System. Error characters in a UTF-8
-	// string are interpreted as Latin-1 here.
+	// decoding depends on the current locale.
 	// Arguments:
 	//   pUcs4  - Pointer for returning the Unicode character. On error,
 	//            str[0] is set here. And if the encoded string is empty,
@@ -303,12 +311,12 @@ int emDecodeChar(int * pUcs4, const char * str, int strLen=INT_MAX);
 	//   str    - The encoded string.
 	//   strLen - Maximum number of bytes to be read from the encoded
 	//            string, if it is not null-terminated.
-	// Returns: Number of bytes read from the encoded string (0 - 6).
+	//   state  - Input and output of character encoding state or shift state.
+	// Returns: Number of bytes read from the encoded string (>=0).
 
 int emGetDecodedCharCount(const char * str, int strLen=INT_MAX);
 	// Get the number of 31-bit Unicode characters which could be decoded
-	// from a string. The type of decoding depends on emIsUtf8System. Error
-	// characters in a UTF-8 string are interpreted as Latin-1 here.
+	// from a string by calling emDecodeChar(..) repeatedly.
 	// Arguments:
 	//   str    - The encoded string.
 	//   strLen - Maximum number of bytes to be read from the encoded
@@ -364,6 +372,9 @@ public:
 	emException(const char * format, ...) EM_FUNC_ATTR_PRINTF(2);
 		// Construct an exception with a formatted text.
 		// The arguments are like with printf.
+
+	emException(const emException & exception);
+		// Construct a copied exception.
 
 	virtual ~emException();
 		// Destructor.
@@ -463,6 +474,14 @@ emAlignment emStringToAlignment(const char * str);
 //==============================================================================
 //============================== Implementations ===============================
 //==============================================================================
+
+inline emMBState::emMBState() {
+	memset(&State,0,sizeof(State));
+}
+
+inline void emMBState::Clear() {
+	memset(&State,0,sizeof(State));
+}
 
 inline emException::emException()
 {

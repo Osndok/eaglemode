@@ -547,10 +547,10 @@ void emAvServerModel::TryCreateShm(Instance * inst)
 		);
 	}
 
-	inst->ShmAddr=(int*)shmat(inst->ShmId,0,0);
+	inst->ShmAddr=(int*)shmat(inst->ShmId,NULL,0);
 	if (inst->ShmAddr==(int*)-1) {
 		inst->ShmAddr=NULL;
-		shmctl(inst->ShmId,IPC_RMID,0);
+		shmctl(inst->ShmId,IPC_RMID,NULL);
 		inst->ShmId=-1;
 		throw emException(
 			"Failed to attach shared memory segment: %s",
@@ -559,8 +559,7 @@ void emAvServerModel::TryCreateShm(Instance * inst)
 	}
 
 #if defined(__linux__)
-	shmctl(inst->ShmId,IPC_RMID,0);
-	if (shmctl(inst->ShmId,IPC_RMID,0)!=0) {
+	if (shmctl(inst->ShmId,IPC_RMID,NULL)!=0) {
 		emFatalError(
 			"emAvServerModel: shmctl failed: %s",
 			emGetErrorText(errno).Get()
@@ -608,7 +607,7 @@ void emAvServerModel::DeleteShm(Instance * inst)
 			inst->ShmAddr=NULL;
 		}
 #if !defined(__linux__)
-		if (shmctl(inst->ShmId,IPC_RMID,0)!=0) {
+		if (shmctl(inst->ShmId,IPC_RMID,NULL)!=0) {
 			emFatalError(
 				"emAvServerModel: shmctl failed: %s",
 				emGetErrorText(errno).Get()

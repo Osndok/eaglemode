@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipboard.h
 //
-// Copyright (C) 2005-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -93,6 +93,9 @@ protected:
 
 	emClipboard(emContext & context, const emString & name);
 		// See emModel.
+
+	virtual ~emClipboard();
+		// Destructor.
 
 	void Install();
 		// Register this interface so that it can be found by

@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // font2em.c
 //
-// Copyright (C) 2009-2010 Oliver Hamann.
+// Copyright (C) 2009-2010,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -279,7 +279,7 @@ static void PutFTBitmap(
 			}
 			val+=map[tgtY*width+tgtX];
 			if (val>255) val=255; else if (val<0) val=0;
-			map[tgtY*width+tgtX]=val;
+			map[tgtY*width+tgtX]=(unsigned char)val;
 		}
 	}
 }
@@ -369,7 +369,7 @@ static void PutUnknown(
 		yb=yt*picH/h; ye=(yt+1)*picH/h; if (ye<=yb) ye++;
 		v=0;
 		for (xs=xb; xs<xe; xs++) for (ys=yb; ys<ye; ys++) v+=pic[ys*picW+xs]-'0';
-		map[(y+yt)*width+x+xt]=v*255/(11*(xe-xb)*(ye-yb));
+		map[(y+yt)*width+x+xt]=(unsigned char)(v*255/(11*(xe-xb)*(ye-yb)));
 	}
 }
 
@@ -467,15 +467,20 @@ static void ConvertFont(
 				err=FT_Load_Glyph(face,glyph,FT_LOAD_RENDER);
 				if (err) {
 					fprintf(stderr,"FT_Load_Char failed: %d\n",err);
-					exit(1);
+					PutUnknown(
+						mapWidth,mapHeight,map,
+						x,y,charWidth,charHeight
+					);
 				}
-				PutFTBitmap(
-					mapWidth,mapHeight,map,
-					x,y,x+charWidth,y+charHeight,
-					x+originX/64+face->glyph->bitmap_left,
-					y+originY/64-face->glyph->bitmap_top,
-					&face->glyph->bitmap
-				);
+				else {
+					PutFTBitmap(
+						mapWidth,mapHeight,map,
+						x,y,x+charWidth,y+charHeight,
+						x+originX/64+face->glyph->bitmap_left,
+						y+originY/64-face->glyph->bitmap_top,
+						&face->glyph->bitmap
+					);
+				}
 			}
 			else {
 				PutUnknown(

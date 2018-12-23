@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Clipboard.cpp
 //
-// Copyright (C) 2005-2008,2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -175,12 +175,8 @@ emString emX11Clipboard::GetText(bool selection)
 	if (format!=8) return emString();
 	str=emString((const char*)array.Get(),array.GetCount());
 	array.Clear();
-	if (emIsUtf8System()) {
-		if (target==XA_STRING) str=Latin1ToUtf8(str);
-	}
-	else {
-		if (target==MY_XA_UTF8_STRING) str=Utf8ToLatin1(str);
-	}
+	if (target==XA_STRING) str=Latin1ToCurrentLocale(str);
+	else if (target==MY_XA_UTF8_STRING) str=Utf8ToCurrentLocale(str);
 	return str;
 }
 
@@ -349,8 +345,7 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 		result=sre.property;
 	}
 	else if (sre.target==MY_XA_UTF8_STRING) {
-		str=LocalText[idx];
-		if (!emIsUtf8System()) str=Latin1ToUtf8(str);
+		str=CurrentLocaleToUtf8(LocalText[idx]);
 		XMutex->Lock();
 		XChangeProperty(
 			Disp,
@@ -366,8 +361,7 @@ void emX11Clipboard::HandleSelectionRequest(XSelectionRequestEvent & sre)
 		result=sre.property;
 	}
 	else if (sre.target==XA_STRING) {
-		str=LocalText[idx];
-		if (emIsUtf8System()) str=Utf8ToLatin1(str);
+		str=CurrentLocaleToLatin1(LocalText[idx]);
 		XMutex->Lock();
 		XChangeProperty(
 			Disp,
@@ -485,58 +479,134 @@ L_Error:
 }
 
 
-emString emX11Clipboard::Latin1ToUtf8(const emString & latin1)
+emString emX11Clipboard::CurrentLocaleToUtf8(const emString & str)
 {
-	emString res;
 	const char * s;
-	char * buf, * t;
-	int k,n,c;
+	char * buf;
+	int n,c,len,bufSize;
 
-	s=latin1.Get();
-	for (n=0, k=0; s[n]; n++) {
-		if ((s[n]&0x80)!=0) k++;
+	if (emIsUtf8System()) return str;
+
+	for (s=str.Get(); ((*s)&0x80)==0; s++) {
+		if (!*s) return str;
 	}
-	if (!k) return latin1;
-	buf=(char*)malloc(n+k*5+1);
-	t=buf;
-	do {
-		c=(unsigned char)*s;
-		s++;
-		n=emEncodeUtf8Char(t,c);
-		t+=n;
-	} while (c);
-	res=buf;
+
+	bufSize=1024;
+	buf=(char*)malloc(bufSize);
+	emMBState mbState;
+	for (s=str.Get(), len=0;;) {
+		n=emDecodeChar(&c,s,INT_MAX,&mbState);
+		if (n<=0) {
+			c=(unsigned char)*s;
+			if (!c) break;
+			n=1;
+		}
+		s+=n;
+		if (len+6>bufSize) {
+			bufSize*=2;
+			buf=(char*)realloc(buf,bufSize);
+		}
+		len+=emEncodeUtf8Char(buf+len,c);
+	};
+	emString res(buf,len);
 	free(buf);
 	return res;
 }
 
 
-emString emX11Clipboard::Utf8ToLatin1(const emString & utf8)
+emString emX11Clipboard::Utf8ToCurrentLocale(const emString & str)
 {
-	emString res;
 	const char * s;
-	char * buf, * t;
-	int k,n,c;
+	char * buf;
+	int n,c,len,bufSize;
 
-	s=utf8.Get();
-	for (n=0, k=0; s[n]; n++) {
-		if ((s[n]&0x80)!=0) k++;
+	if (emIsUtf8System()) return str;
+
+	for (s=str.Get(); ((*s)&0x80)==0; s++) {
+		if (!*s) return str;
 	}
-	if (!k) return utf8;
-	buf=(char*)malloc(n+1);
-	t=buf;
-	do {
+
+	bufSize=1024+EM_MB_LEN_MAX;
+	buf=(char*)malloc(bufSize);
+	emMBState mbState;
+	for (s=str.Get(), len=0;;) {
 		n=emDecodeUtf8Char(&c,s);
-		if (n<1) {
+		if (n<=0) {
 			c=(unsigned char)*s;
+			if (!c) break;
 			n=1;
 		}
-		if (c>255) c='?';
-		*t=(char)c;
 		s+=n;
-		t++;
-	} while (c);
-	res=buf;
+		if (len+EM_MB_LEN_MAX>bufSize) {
+			bufSize*=2;
+			buf=(char*)realloc(buf,bufSize);
+		}
+		len+=emEncodeChar(buf+len,c,&mbState);
+	};
+	emString res(buf,len);
+	free(buf);
+	return res;
+}
+
+
+emString emX11Clipboard::CurrentLocaleToLatin1(const emString & str)
+{
+	const char * s;
+	char * buf;
+	int n,c,len,bufSize;
+
+	for (s=str.Get(); ((*s)&0x80)==0; s++) {
+		if (!*s) return str;
+	}
+
+	bufSize=1024;
+	buf=(char*)malloc(bufSize);
+	emMBState mbState;
+	for (s=str.Get(), len=0;;) {
+		n=emDecodeChar(&c,s,INT_MAX,&mbState);
+		if (n<=0) {
+			c=(unsigned char)*s;
+			if (!c) break;
+			n=1;
+		}
+		s+=n;
+		if (len+1>bufSize) {
+			bufSize*=2;
+			buf=(char*)realloc(buf,bufSize);
+		}
+		if (c>255) c='?';
+		buf[len++]=(char)c;
+	};
+	emString res(buf,len);
+	free(buf);
+	return res;
+}
+
+
+emString emX11Clipboard::Latin1ToCurrentLocale(const emString & str)
+{
+	const char * s;
+	char * buf;
+	int c,len,bufSize;
+
+	for (s=str.Get(); ((*s)&0x80)==0; s++) {
+		if (!*s) return str;
+	}
+
+	bufSize=1024+EM_MB_LEN_MAX;
+	buf=(char*)malloc(bufSize);
+	emMBState mbState;
+	for (s=str.Get(), len=0;;) {
+		c=(unsigned char)*s;
+		if (!c) break;
+		s++;
+		if (len+EM_MB_LEN_MAX>bufSize) {
+			bufSize*=2;
+			buf=(char*)realloc(buf,bufSize);
+		}
+		len+=emEncodeChar(buf+len,c,&mbState);
+	};
+	emString res(buf,len);
 	free(buf);
 	return res;
 }

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTextField_h.html#emTextField">emTextField</A>.h
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -178,17 +178,19 @@
         <SPAN CLASS=t>void </SPAN>CalcTotalColsRows(<SPAN CLASS=t>int </SPAN>* pCols, <SPAN CLASS=t>int </SPAN>* pRows) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetNormalizedIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>ModifySelection(<SPAN CLASS=t>int </SPAN>oldColumn, <SPAN CLASS=t>int </SPAN>newColumn, <SPAN CLASS=t>bool </SPAN>publish);
-        <SPAN CLASS=t>int </SPAN>GetNextIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        emMBState GetMBStateAtIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextIndex(<SPAN CLASS=t>int </SPAN>index, emMBState * mbState=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetPrevIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetNextWordBoundaryIndex(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>bool </SPAN>* pIsDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextWordBoundaryIndex(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>bool </SPAN>* pIsDelimiter=<SPAN CLASS=u>NULL</SPAN>,
+                                     emMBState * mbState=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetPrevWordBoundaryIndex(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>bool </SPAN>* pIsDelimiter=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetNextWordIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextWordIndex(<SPAN CLASS=t>int </SPAN>index, emMBState * mbState=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetPrevWordIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetRowStartIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetRowEndIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetNextRowIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextRowIndex(<SPAN CLASS=t>int </SPAN>index, emMBState * mbState=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetPrevRowIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetNextParagraphIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>int </SPAN>GetNextParagraphIndex(<SPAN CLASS=t>int </SPAN>index, emMBState * mbState=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetPrevParagraphIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
 
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>&gt; Clipboard;

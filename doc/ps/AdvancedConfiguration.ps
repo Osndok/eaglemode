@@ -2,7 +2,7 @@
 %%BoundingBox: 0 0 595 792
 %%LanguageLevel: 2
 %%Creator: htmldoc 1.8.27 Copyright 1997-2006 Easy Software Products, All Rights Reserved.
-%%CreationDate: D:20180721201646-0200
+%%CreationDate: D:20181223074736-0100
 %%Title: Eagle Mode - Advanced Configuration
 %%Pages: 7
 %%DocumentProvidedResources:
@@ -9505,7 +9505,7 @@ GS
 72 36 T
 0.00 0.00 0.00 C 14 FS/F5 SF 203.838 706 M(Eagle Mode -)S
 24 FS/F5 SF 116.492 679.2 M(Advanced Configuration)S
-9 FS/F4 SF 86.851 652.2 M(Copyright \251 2010,2016 Oliver Hamann. Homepage: http://eaglemode.sourceforge.net/)S
+9 FS/F4 SF 76.726 652.2 M(Copyright \251 2010,2016,2018 Oliver Hamann. Homepage: http://eaglemode.sourceforge.net/)S
 20 FS/F9 SF 0 617.2 M(Contents)S
 11 FS/F4 SF 0 589 M(1 Font hacking)S
 8 FS/F4 SF 0 575.8 M(      1.1 Important hints)S
@@ -9528,23 +9528,21 @@ GS
 0 301 M(standard font files.)S
 17 FS/F9 SF 0 268.6 M(1.1 Important hints)S
 11 FS/F4 SF 0 241 M(First of all, note some important hints on the font hacking:)S
-36 214.6 M(Extending the built-in font is useful only if the system has UTF-8 locale. Otherwise Eagle Mode falls)S
-36 201.4 M(back to the 8-bit Latin-1 character set. The latter is always the case on Windows.)S
+36 214.6 M(Only mono spaced fonts \(aka fixed fonts\) are suitable for conversion.)S
 /F18 SF 28.19 214.6 M(\267 )S
-/F4 SF 36 175 M(Only mono spaced fonts \(aka fixed fonts\) are suitable for conversion.)S
-/F18 SF 28.19 175 M(\267 )S
-/F4 SF 36 148.6 M(font2em is a less-than-ideal solution and it lacks some options. Especially with vector fonts, it may)S
-36 135.4 M(cut off something from extended characters, or it may choose a too large character box.)S
-/F18 SF 28.19 148.6 M(\267 )S
-/F4 SF 36 109 M(You must make sure that the TGA files do not have too large dimensions, otherwise the font cache of)S
-36 95.8 M(Eagle Mode may not be able to hold the fonts at all, or the font cache may load and unload them too)S
-36 82.6 M(often. Especially CJK sets are problematic. If Eagle Mode often displays grey "Costly" boxes instead)S
-36 69.4 M(of correct characters, then you have a problem here and you should recreate your TGA files with a)S
-36 56.2 M(smaller character pixel height. Another chance would be to increase the maximum size of the font)S
-36 43 M(cache, but currently that would have to be made in the source code of Eagle Mode: It's at the end of)S
-/F0 SF 36 29.8 M($EM_DIR/src/emCore/emFontCache.cpp)S
+/F4 SF 36 188.2 M(font2em is a less-than-ideal solution and it lacks some options. Especially with vector fonts, it may)S
+36 175 M(cut off something from extended characters, or it may choose a too large character box.)S
+/F18 SF 28.19 188.2 M(\267 )S
+/F4 SF 36 148.6 M(You must make sure that the TGA files do not have too large dimensions, otherwise the font cache of)S
+36 135.4 M(Eagle Mode may not be able to hold the fonts at all, or the font cache may load and unload them too)S
+36 122.2 M(often. Especially CJK sets are problematic. If Eagle Mode often displays grey "Costly" boxes instead)S
+36 109 M(of correct characters, then you have a problem here and you should recreate your TGA files with a)S
+36 95.8 M(smaller character pixel height. Another chance would be to increase the maximum size of the font)S
+36 82.6 M(cache, but currently that would have to be made in the source code of Eagle Mode: It's at the end of)S
+/F0 SF 36 69.4 M($EM_DIR/src/emCore/emFontCache.cpp)S
 /F4 SF (, the variable named)S
-/F18 SF 28.19 109 M(\267 )S
+/F0 SF 36 56.2 M(emFontCache::MaxMegabytes.)S
+/F18 SF 28.19 148.6 M(\267 )S
 /F8 SF 480.884 0 M(1)S
 GR
 SP
@@ -9552,13 +9550,12 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 11 FS/F0 SF 36 709 M(emFontCache::MaxMegabytes.)S
-17 FS/F9 SF 0 676.6 M(1.2 The TGA files)S
-11 FS/F4 SF 0 649 M(The TGA files lie in )S
+0.00 0.00 0.00 C 17 FS/F9 SF 0 703 M(1.2 The TGA files)S
+11 FS/F4 SF 0 675.4 M(The TGA files lie in )S
 /F0 SF ($EM_DIR/res/emCore/font)S
 /F4 SF (. Each file defines another range of Unicode)S
-0 635.8 M(characters. Therefore, the names of the TGA files have the following form:)S
-/F6 SF 36 609.4 M(<first>)S
+0 662.2 M(characters. Therefore, the names of the TGA files have the following form:)S
+/F6 SF 36 635.8 M(<first>)S
 /F0 SF (-)S
 /F6 SF (<last>)S
 /F0 SF (_)S
@@ -9570,56 +9567,56 @@ GS
 /F0 SF (_)S
 /F6 SF (<desc2>)S
 /F0 SF (.tga)S
-/F4 SF 0 583 M(with:)S
-/F6 SF 36 556.6 M(<first>)S
+/F4 SF 0 609.4 M(with:)S
+/F6 SF 36 583 M(<first>)S
+/F4 SF 79.35 583 M( - )S
+89.513 583 M(Hexadecimal Unicode of first defined character.)S
+/F6 SF 36 569.8 M(<last>)S
+/F4 SF 79.35 569.8 M( - )S
+89.513 569.8 M(Hexadecimal Unicode of last defined character.)S
+/F6 SF 36 556.6 M(<width>)S
 /F4 SF 79.35 556.6 M( - )S
-89.513 556.6 M(Hexadecimal Unicode of first defined character.)S
-/F6 SF 36 543.4 M(<last>)S
+89.513 556.6 M(Decimal character width in pixels.)S
+/F6 SF 36 543.4 M(<height>)S
 /F4 SF 79.35 543.4 M( - )S
-89.513 543.4 M(Hexadecimal Unicode of last defined character.)S
-/F6 SF 36 530.2 M(<width>)S
+89.513 543.4 M(Decimal character height in pixels.)S
+/F6 SF 36 530.2 M(<desc1>)S
 /F4 SF 79.35 530.2 M( - )S
-89.513 530.2 M(Decimal character width in pixels.)S
-/F6 SF 36 517 M(<height>)S
+89.513 530.2 M(Description of the Unicode range.)S
+/F6 SF 36 517 M(<desc2>)S
 /F4 SF 79.35 517 M( - )S
-89.513 517 M(Decimal character height in pixels.)S
-/F6 SF 36 503.8 M(<desc1>)S
-/F4 SF 79.35 503.8 M( - )S
-89.513 503.8 M(Description of the Unicode range.)S
-/F6 SF 36 490.6 M(<desc2>)S
-/F4 SF 79.35 490.6 M( - )S
-89.513 490.6 M(Additional description \("original" means painted by me\).)S
-0 464.2 M(There are two additional files, which are always required: CostlyChar.tga and UnknownChar.tga. They are)S
-0 451 M(outside Unicode.)S
-0 424.6 M(All characters of a file have the same size. Each file contains the characters row-by-row. The number of)S
-0 411.4 M(columns is detected automatically.)S
-0 385 M(If files overlap in the range of Unicodes, the behavior is undefined.)S
-17 FS/F9 SF 0 352.6 M(1.3 font2em)S
-11 FS/F4 SF 0 325 M(font2em is a small kludgy tool which can be used to convert standard font files \(TTF, PCF, PFB,...\) to TGA)S
-0 311.8 M(files for use in Eagle Mode. It is based on the freetype library. Here comes an example of how to convert)S
-0 298.6 M(some Cyrillic and Japanese characters:)S
-8 FS/F0 SF 36 275.2 M($EM_DIR/bin/font2em /usr/share/fonts/truetype/DejaVuSansMono-Bold.ttf /tmp/deja 112)S
-36 265.6 M($EM_DIR/bin/font2em /usr/share/fonts/misc/18x18ja.pcf.gz /tmp/jap 18)S
-11 FS/F4 SF 0 239.8 M(The first command creates a )S
+89.513 517 M(Additional description \("original" means painted by me\).)S
+0 490.6 M(There are two additional files, which are always required: CostlyChar.tga and UnknownChar.tga. They are)S
+0 477.4 M(outside Unicode.)S
+0 451 M(All characters of a file have the same size. Each file contains the characters row-by-row. The number of)S
+0 437.8 M(columns is detected automatically.)S
+0 411.4 M(If files overlap in the range of Unicodes, the behavior is undefined.)S
+17 FS/F9 SF 0 379 M(1.3 font2em)S
+11 FS/F4 SF 0 351.4 M(font2em is a small kludgy tool which can be used to convert standard font files \(TTF, PCF, PFB,...\) to TGA)S
+0 338.2 M(files for use in Eagle Mode. It is based on the freetype library. Here comes an example of how to convert)S
+0 325 M(some Cyrillic and Japanese characters:)S
+8 FS/F0 SF 36 301.6 M($EM_DIR/bin/font2em /usr/share/fonts/truetype/DejaVuSansMono-Bold.ttf /tmp/deja 112)S
+36 292 M($EM_DIR/bin/font2em /usr/share/fonts/misc/18x18ja.pcf.gz /tmp/jap 18)S
+11 FS/F4 SF 0 266.2 M(The first command creates a )S
 /F0 SF (/tmp/deja)S
 /F4 SF ( directory with some TGA files which are converted from the)S
-0 226.6 M(DejaVuSansMono-Bold font. The pixel height of characters gets 112 \(the width is set automatically\). The)S
-0 213.4 M(second command creates )S
+0 253 M(DejaVuSansMono-Bold font. The pixel height of characters gets 112 \(the width is set automatically\). The)S
+0 239.8 M(second command creates )S
 /F0 SF (/tmp/jap)S
 /F4 SF ( from a Japanese font. There the height argument is just used for)S
-0 200.2 M(choosing a nearest possible height, because the source font is already a bitmap font.)S
-0 173.8 M(Have a look at the files in )S
+0 226.6 M(choosing a nearest possible height, because the source font is already a bitmap font.)S
+0 200.2 M(Have a look at the files in )S
 /F0 SF (/tmp/deja)S
 /F4 SF ( and )S
 /F0 SF (/tmp/jap)S
 /F4 SF (. Search for TGA files containing characters you)S
-0 160.6 M(want to install, and install them by copying to the font directory:)S
-/F0 SF 36 134.2 M(cp /tmp/deja/*Cyrillic*.tga $EM_DIR/res/emCore/font)S
-36 121 M(cp /tmp/jap/*CJK*.tga $EM_DIR/res/emCore/font)S
-36 107.8 M(cp /tmp/jap/*Hiragana*.tga $EM_DIR/res/emCore/font)S
-36 94.6 M(cp /tmp/jap/*Katakana*.tga $EM_DIR/res/emCore/font)S
-/F4 SF 0 68.2 M(Finally remove the temporary directories:)S
-/F0 SF 36 41.8 M(rm -r /tmp/deja /tmp/jap)S
+0 187 M(want to install, and install them by copying to the font directory:)S
+/F0 SF 36 160.6 M(cp /tmp/deja/*Cyrillic*.tga $EM_DIR/res/emCore/font)S
+36 147.4 M(cp /tmp/jap/*CJK*.tga $EM_DIR/res/emCore/font)S
+36 134.2 M(cp /tmp/jap/*Hiragana*.tga $EM_DIR/res/emCore/font)S
+36 121 M(cp /tmp/jap/*Katakana*.tga $EM_DIR/res/emCore/font)S
+/F4 SF 0 94.6 M(Finally remove the temporary directories:)S
+/F0 SF 36 68.2 M(rm -r /tmp/deja /tmp/jap)S
 /F8 SF 480.884 0 M(2)S
 GR
 SP

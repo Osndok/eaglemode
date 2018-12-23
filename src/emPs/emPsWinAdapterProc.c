@@ -34,8 +34,8 @@ int main(int argc, char * argv[])
 	BOOL b,gotWMQuit,childProcExited;
 	int cmdMemSize,cmdLen,len,i;
 
-	setmode(STDOUT_FILENO,O_BINARY);
-	setmode(STDIN_FILENO,O_BINARY);
+	setmode(fileno(stdout),O_BINARY);
+	setmode(fileno(stdin),O_BINARY);
 	setbuf(stderr,NULL);
 
 	if (argc<2) {

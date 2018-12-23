@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTimeZonesProc.c
 //
-// Copyright (C) 2008-2009,2017 Oliver Hamann.
+// Copyright (C) 2008-2009,2017-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -272,9 +272,9 @@ static int checkTzFileCached(const char * zoneInfoDir, const char * tz)
 
 
 #if defined(_WIN32)
-SYSTEMTIME tzBaseTime;
+static SYSTEMTIME tzBaseTime;
 #else
-time_t tzBaseTime;
+static time_t tzBaseTime;
 #endif
 
 
@@ -438,7 +438,7 @@ int tzServe(int argc, char * argv[])
 	static const int maxReplySize=256;
 	const char * zoneInfoDir;
 	char * rBuf, * wBuf, * request;
-	int rBufSize, wBufSize, rBufFill, wBufFill, i, j;
+	int fdIn, fdOut, rBufSize, wBufSize, rBufFill, wBufFill, i, j;
 
 	if (argc!=2) {
 		fprintf(stderr,"%s: Illegal arguments\n",argv[0]);
@@ -446,6 +446,8 @@ int tzServe(int argc, char * argv[])
 	}
 	zoneInfoDir=argv[1];
 
+	fdIn=fileno(stdin);
+	fdOut=fileno(stdout);
 	rBufSize=65536;
 	wBufSize=65536;
 	rBuf=(char*)malloc(rBufSize);
@@ -454,7 +456,7 @@ int tzServe(int argc, char * argv[])
 	wBufFill=0;
 	for (;;) {
 		if (rBufFill<rBufSize) {
-			i=(int)read(STDIN_FILENO,rBuf+rBufFill,rBufSize-rBufFill);
+			i=(int)read(fdIn,rBuf+rBufFill,rBufSize-rBufFill);
 			if (i<=0) break;
 			rBufFill+=i;
 		}
@@ -479,7 +481,7 @@ int tzServe(int argc, char * argv[])
 		rBufFill-=j;
 		if (rBufFill>0) memmove(rBuf,rBuf+j,rBufFill);
 		if (wBufFill>0) {
-			i=(int)write(STDOUT_FILENO,wBuf,wBufFill);
+			i=(int)write(fdOut,wBuf,wBufFill);
 			if (i<=0) break;
 			wBufFill-=i;
 			if (wBufFill>0) memmove(wBuf,wBuf+i,wBufFill);
@@ -506,8 +508,8 @@ int main(int argc, char * argv[])
 	DWORD d;
 	MSG msg;
 
-	setmode(STDOUT_FILENO,O_BINARY);
-	setmode(STDIN_FILENO,O_BINARY);
+	setmode(fileno(stdout),O_BINARY);
+	setmode(fileno(stdin),O_BINARY);
 	setbuf(stderr,NULL);
 
 	hdl=CreateThread(NULL,0,tzServeThreadProc,NULL,0,&d);

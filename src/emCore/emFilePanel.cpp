@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2016-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -242,7 +242,7 @@ void emFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 		);
 		break;
 	case VFS_SAVING:
-		sprintf(tmp,"Saving: %.1f%%",GetFileModel()->GetFileProgress()),
+		sprintf(tmp,"Saving: %.1f%%",GetFileModel()->GetFileProgress());
 		painter.PaintTextBoxed(
 			0,
 			0,

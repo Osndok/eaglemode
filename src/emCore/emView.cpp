@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2011,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -287,7 +287,7 @@ void emView::SetActivePanel(emPanel * panel, bool adherent)
 
 	if (ActivePanel!=panel) {
 		if (emIsDLogEnabled()) {
-			emDLog("emView %p: Active=\"%s\"",this,panel->GetIdentity().Get());
+			emDLog("emView %p: Active=\"%s\"",(const void*)this,panel->GetIdentity().Get());
 		}
 		if (ActivePanel) InvalidateHighlight();
 		flags=emPanel::NF_ACTIVE_CHANGED;
@@ -1041,7 +1041,7 @@ void emView::Input(emInputEvent & event, const emInputState & state)
 		RestartInputRecursion=false;
 		RecurseInput(event,state);
 		if (RestartInputRecursion) {
-			emDLog("emView %p: Restarting input recursion.",this);
+			emDLog("emView %p: Restarting input recursion.",(const void*)this);
 		}
 	} while (RestartInputRecursion);
 }
@@ -1332,7 +1332,7 @@ void emView::Update()
 					) break;
 				}
 				if (SupremeViewedPanel!=p) {
-					emDLog("emView %p: SVP choice invalid by opacity.",this);
+					emDLog("emView %p: SVP choice invalid by opacity.",(const void*)this);
 					SVPChoiceInvalid=true;
 				}
 			}
@@ -1764,7 +1764,7 @@ void emView::RawVisitAbs(
 			}
 		}
 		if (emIsDLogEnabled()) {
-			emDLog("emView %p: SVP=\"%s\"",this,vp->GetIdentity().Get());
+			emDLog("emView %p: SVP=\"%s\"",(const void*)this,vp->GetIdentity().Get());
 		}
 		p=SupremeViewedPanel;
 		if (p) {

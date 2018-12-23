@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFileModel.h
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,6 +49,7 @@ public:
 	class ColorRec : public emStructRec {
 	public:
 		ColorRec();
+		virtual ~ColorRec();
 		emColorRec Color;
 		emIntRec Fade;
 	};

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2011,2016-2017 Oliver Hamann.
+// Copyright (C) 2001,2003-2011,2016-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -3120,14 +3120,8 @@ void emPainter::PaintText(
 	int textLen
 ) const
 {
-	static const int tab8BitLatin0x80To0x9F[32]={
-		0x20AC,0x0081,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,
-		0x02C6,0x2030,0x0160,0x2039,0x0152,0x0164,0x017D,0x0179,
-		0x0090,0x2035,0x2032,0x2036,0x2033,0x2022,0x2013,0x2014,
-		0x02DC,0x2122,0x0161,0x203A,0x0153,0x0165,0x017E,0x0178
-	};
 	double charWidth,showHeight,rcw,cx1,cx2,x1;
-	int i,n,c,cTestUtf8,imgX,imgY,imgW,imgH;
+	int i,n,c,imgX,imgY,imgW,imgH;
 	bool wasInUserSpace;
 	emImage * pImg;
 
@@ -3146,19 +3140,14 @@ void emPainter::PaintText(
 	rcw=charHeight/CharBoxTallness;
 	charWidth=rcw*widthScale;
 	cx1=(ClipX1-OriginX)/ScaleX;
-	cTestUtf8=emIsUtf8System()?128:256;
+	emMBState mbState;
 	if (charHeight*ScaleY>=1.7) {
 		for (i=0; i<textLen; i++) {
 			c=(unsigned char)text[i];
 			if (!c) break;
 			if (c>=0x80) {
-				if (c>=cTestUtf8) {
-					n=emDecodeUtf8Char(&c,text+i,textLen-i);
-					if (n>1) i+=n-1;
-				}
-				else if (c<=0x9F) {
-					c=tab8BitLatin0x80To0x9F[c-0x80];
-				}
+				n=emDecodeChar(&c,text+i,textLen-i,&mbState);
+				if (n>1) i+=n-1;
 			}
 			x1=x;
 			x+=charWidth;
@@ -3193,9 +3182,9 @@ void emPainter::PaintText(
 				x1=x;
 			}
 			else {
-				if (c>=cTestUtf8) {
-					n=emDecodeUtf8Char(&c,text+i,textLen-i);
-					if (n>0) i+=n-1;
+				if (c>=0x80) {
+					n=emDecodeChar(&c,text+i,textLen-i,&mbState);
+					if (n>1) i+=n-1;
 				}
 				x+=charWidth;
 			}
@@ -3218,7 +3207,7 @@ void emPainter::PaintTextBoxed(
 ) const
 {
 	double tx,ty,tw,th,cw,ch,ws;
-	int c,i,j,k,n,cols,cTestUtf8;
+	int c,i,j,k,n,cols;
 	bool wasInUserSpace;
 
 	ch=maxCharHeight;
@@ -3262,11 +3251,12 @@ void emPainter::PaintTextBoxed(
 		else y+=(h-th+ch*relLineSpace)*0.5;
 	}
 	if (formatted) {
-		cTestUtf8=emIsUtf8System()?128:256;
 		cw=ch*ws/CharBoxTallness;
+		emMBState mbState;
 		for (ty=y, i=0; ; ty+=ch*(1.0+relLineSpace)) {
 			tx=x;
 			if ((textAlignment&EM_ALIGN_LEFT)==0) {
+				emMBState mbState2=mbState;
 				for (j=i, cols=-j; j<textLen; j++) {
 					c=(unsigned char)text[j];
 					if (c<=0x0d) {
@@ -3277,9 +3267,9 @@ void emPainter::PaintTextBoxed(
 							break;
 						}
 					}
-					else if (c>=cTestUtf8) {
-						n=emDecodeUtf8Char(&c,text+j,textLen-j);
-						if (n>0) {
+					else if (c>=0x80) {
+						n=emDecodeChar(&c,text+j,textLen-j,&mbState2);
+						if (n>1) {
 							j+=n-1;
 							cols-=n-1;
 						}
@@ -3305,9 +3295,9 @@ void emPainter::PaintTextBoxed(
 						break;
 					}
 				}
-				else if (c>=cTestUtf8) {
-					n=emDecodeUtf8Char(&c,text+i,textLen-i);
-					if (n>0) {
+				else if (c>=0x80) {
+					n=emDecodeChar(&c,text+i,textLen-i,&mbState);
+					if (n>1) {
 						i+=n-1;
 						k-=n-1;
 					}
@@ -3332,10 +3322,10 @@ double emPainter::GetTextSize(
 	double relLineSpace, double * pHeight, int textLen
 )
 {
-	int i,n,c,cTestUtf8,columns,rows,rowcols;
+	int i,n,c,columns,rows,rowcols;
 
-	cTestUtf8=emIsUtf8System()?128:256;
 	if (formatted) {
+		emMBState mbState;
 		for (i=0, columns=0, rows=1, rowcols=0; i<textLen; i++) {
 			c=(unsigned char)text[i];
 			if (c<=0x0d) {
@@ -3359,9 +3349,9 @@ double emPainter::GetTextSize(
 					break;
 				}
 			}
-			else if (c>=cTestUtf8) {
-				n=emDecodeUtf8Char(&c,text+i,textLen-i);
-				if (n>0) {
+			else if (c>=0x80) {
+				n=emDecodeChar(&c,text+i,textLen-i,&mbState);
+				if (n>1) {
 					i+=n-1;
 					rowcols-=n-1;
 				}
@@ -3371,18 +3361,7 @@ double emPainter::GetTextSize(
 		if (columns<rowcols) columns=rowcols;
 	}
 	else {
-		for (i=0, columns=0; i<textLen; i++) {
-			c=(unsigned char)text[i];
-			if (!c) break;
-			if (c>=cTestUtf8) {
-				n=emDecodeUtf8Char(&c,text+i,textLen-i);
-				if (n>0) {
-					i+=n-1;
-					columns-=n-1;
-				}
-			}
-		}
-		columns+=i;
+		columns=emGetDecodedCharCount(text,textLen);
 		rows=1;
 	}
 	if (pHeight) *pHeight=charHeight*(1.0+relLineSpace)*rows;

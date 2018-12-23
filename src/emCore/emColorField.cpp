@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -505,6 +505,8 @@ void emColorField::TextOfHueValue (
 )
 {
 	const char * name;
+	char degree[EM_MB_LEN_MAX+1];
+	int i;
 
 	if (markInterval>=6000) {
 		switch ((int)value) {
@@ -518,11 +520,11 @@ void emColorField::TextOfHueValue (
 		snprintf(buf,bufSize,"%s",name);
 	}
 	else {
-		snprintf(
-			buf,bufSize,
-			emIsUtf8System() ? "%G\302\260" : "%G\260",
-			value/100.0
-		);
+		emMBState mbState;
+		i=emEncodeChar(degree,0xB0,&mbState);
+		if (i==1 && (degree[0]&0x80)==0) i=0;
+		degree[i]=0;
+		snprintf(buf,bufSize,"%G%s",value/100.0,degree);
 	}
 }
 

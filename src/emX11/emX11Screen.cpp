@@ -449,7 +449,8 @@ void emX11Screen::UpdateGeometry()
 	Rect * wrp;
 	const char * api;
 	unsigned int width,height,border,depth;
-	int i,x,y,dc,count,d;
+	int i,x,y,dc,count;
+	double d;
 	bool anyChange,b;
 
 	anyChange=false;
@@ -634,7 +635,7 @@ void emX11Screen::UpdateInputStateFromKeymap()
 				if ((Keymap[i]&(1<<j))!=0) {
 					XMutex.Lock();
 					//old: ks=XKeycodeToKeysym(Disp,i*8+j,0);
-					ks=XkbKeycodeToKeysym(Disp,i*8+j,0,0);
+					ks=XkbKeycodeToKeysym(Disp,(emByte)(i*8+j),0,0);
 					XMutex.Unlock();
 					k=(int)ConvertKey(ks);
 					if (k!=EM_KEY_NONE) keyStates[k>>3]|=1<<(k&7);
@@ -1193,6 +1194,7 @@ bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
 	//  vendor="Fedora Project",       release=11903000 (Fedora 26)
 	//  vendor="The X.Org Foundation", release=11905000 (Ubuntu 17.10)
 	//  vendor="Fedora Project",       release=11906000 (Fedora 27 - 28)
+	//  vendor="Fedora Project",       release=12003000 (Fedora 29)
 	vendor=ServerVendor(x11Screen->Disp);
 	release=VendorRelease(x11Screen->Disp);
 	if (

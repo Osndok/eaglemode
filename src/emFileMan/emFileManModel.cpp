@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2017 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1197,5 +1197,5 @@ int emFileManModel::CheckDefaultCommand(
 
 emString emFileManModel::GetCommandRunId() const
 {
-	return emString::Format("%p-%u",this,SelCmdCounter);
+	return emString::Format("%p-%u",(const void*)this,SelCmdCounter);
 }

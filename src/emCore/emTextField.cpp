@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -867,8 +867,9 @@ void emTextField::DoTextField(
 	selected0=(i0>=selIdx && i0<selEnd);
 	row=0;
 	col=0;
+	emMBState mbState;
 	for (i=0;;) {
-		n=emDecodeChar(&c,Text.Get()+i);
+		n=emDecodeChar(&c,Text.Get()+i,INT_MAX,&mbState);
 		selected=(i>=selIdx && i<selEnd);
 		if (
 			(
@@ -1017,25 +1018,28 @@ int emTextField::ColRow2Index(double column, double row, bool forCursor) const
 	int i,j,k,n,c;
 
 	if (!MultiLineMode) {
+		emMBState mbState;
 		for (i=0; ; i+=n, column-=1.0) {
 			if (forCursor) { if (column<0.5) break; }
 			else           { if (column<1.0) break; }
-			n=emDecodeChar(&c,Text.Get()+i);
+			n=emDecodeChar(&c,Text.Get()+i,INT_MAX,&mbState);
 			if (c==0) break;
 		}
 	}
 	else {
+		emMBState mbState,mbState2;
 		for (j=0, i=0; row>=1.0; ) {
-			j+=emDecodeChar(&c,Text.Get()+j);
+			j+=emDecodeChar(&c,Text.Get()+j,INT_MAX,&mbState);
 			if (c==0x0a || c==0x0d) {
 				if (c==0x0d && Text[j]==0x0a) j++;
+				mbState2=mbState;
 				i=j;
 				row-=1.0;
 			}
 			if (c==0) break;
 		}
 		for (j=0; ; i+=n, j=k) {
-			n=emDecodeChar(&c,Text.Get()+i);
+			n=emDecodeChar(&c,Text.Get()+i,INT_MAX,&mbState2);
 			if (c==0x0a || c==0x0d || c==0) break;
 			k=j+1;
 			if (c==0x09) k=(k+7)&~7;
@@ -1061,8 +1065,9 @@ void emTextField::Index2ColRow(int index, int * pColumn, int * pRow) const
 	else {
 		col=0;
 		row=0;
+		emMBState mbState;
 		for (i=0; i<index; i+=n) {
-			n=emDecodeChar(&c,Text.Get()+i);
+			n=emDecodeChar(&c,Text.Get()+i,INT_MAX,&mbState);
 			if (c==0x09) {
 				col=(col+8)&~7;
 			}
@@ -1096,8 +1101,9 @@ void emTextField::CalcTotalColsRows(int * pCols, int * pRows) const
 		cols=0;
 		rows=1;
 		rowcols=0;
+		emMBState mbState;
 		for (i=0; ; i+=n) {
-			n=emDecodeChar(&c,Text.Get()+i);
+			n=emDecodeChar(&c,Text.Get()+i,INT_MAX,&mbState);
 			if (c==0x09) {
 				rowcols=(rowcols+8)&~7;
 			}
@@ -1128,8 +1134,9 @@ int emTextField::GetNormalizedIndex(int index) const
 {
 	int i,j;
 
+	emMBState mbState;
 	for (i=0; ; i=j) {
-		j=GetNextIndex(i);
+		j=GetNextIndex(i,&mbState);
 		if (j>index || j==i) return i;
 	}
 }
@@ -1150,11 +1157,29 @@ void emTextField::ModifySelection(int oldIndex, int newIndex, bool publish)
 }
 
 
-int emTextField::GetNextIndex(int index) const
+emMBState emTextField::GetMBStateAtIndex(int index) const
+{
+	int i,j;
+
+	emMBState mbState;
+	for (i=0; ; i=j) {
+		j=GetNextIndex(i,&mbState);
+		if (j>index || j==i) return mbState;
+	}
+}
+
+
+int emTextField::GetNextIndex(int index, emMBState * mbState) const
 {
 	int c;
 
-	index+=emDecodeChar(&c,Text.Get()+index);
+	emMBState ownMBState;
+	if (!mbState) {
+		ownMBState=GetMBStateAtIndex(index);
+		mbState=&ownMBState;
+	}
+
+	index+=emDecodeChar(&c,Text.Get()+index,INT_MAX,mbState);
 	if (c==0x0d && Text[index]==0x0a && MultiLineMode) index++;
 	return index;
 }
@@ -1164,28 +1189,37 @@ int emTextField::GetPrevIndex(int index) const
 {
 	int i,j;
 
+	emMBState mbState;
 	for (i=0; ; i=j) {
-		j=GetNextIndex(i);
+		j=GetNextIndex(i,&mbState);
 		if (j>=index || j==i) return i;
 	}
 }
 
 
 int emTextField::GetNextWordBoundaryIndex(
-	int index, bool * pIsDelimiter
+	int index, bool * pIsDelimiter, emMBState * mbState
 ) const
 {
 	const char * p;
 	int i,n,c;
 	bool prevDelim,delim,first;
 
+	emMBState ownMBState;
+	if (!mbState) {
+		ownMBState=GetMBStateAtIndex(index);
+		mbState=&ownMBState;
+	}
+
 	p=Text.Get();
 	i=index;
 	delim=false;
 	first=true;
 	for (;;) {
-		n=emDecodeChar(&c,p+i);
+		emMBState prevMBState(*mbState);
+		n=emDecodeChar(&c,p+i,INT_MAX,mbState);
 		if (n<=0) {
+			*mbState=prevMBState;
 			delim=true;
 			break;
 		}
@@ -1203,7 +1237,10 @@ int emTextField::GetNextWordBoundaryIndex(
 		else {
 			delim=true;
 		}
-		if (!first && delim!=prevDelim) break;
+		if (!first && delim!=prevDelim) {
+			*mbState=prevMBState;
+			break;
+		}
 		i+=n;
 		first=false;
 	}
@@ -1218,19 +1255,26 @@ int emTextField::GetPrevWordBoundaryIndex(
 {
 	int i,j;
 
+	emMBState mbState;
 	for (i=0; ; i=j) {
-		j=GetNextWordBoundaryIndex(i,pIsDelimiter);
+		j=GetNextWordBoundaryIndex(i,pIsDelimiter,&mbState);
 		if (j>=index || j==i) return i;
 	}
 }
 
 
-int emTextField::GetNextWordIndex(int index) const
+int emTextField::GetNextWordIndex(int index, emMBState * mbState) const
 {
 	bool isDelim;
 
+	emMBState ownMBState;
+	if (!mbState) {
+		ownMBState=GetMBStateAtIndex(index);
+		mbState=&ownMBState;
+	}
+
 	for (;;) {
-		index=GetNextWordBoundaryIndex(index,&isDelim);
+		index=GetNextWordBoundaryIndex(index,&isDelim,mbState);
 		if (!isDelim || index>=TextLen) break;
 	}
 	return index;
@@ -1241,8 +1285,9 @@ int emTextField::GetPrevWordIndex(int index) const
 {
 	int i,j;
 
+	emMBState mbState;
 	for (i=0; ; i=j) {
-		j=GetNextWordIndex(i);
+		j=GetNextWordIndex(i,&mbState);
 		if (j>=index || j==i) return i;
 	}
 }
@@ -1253,8 +1298,9 @@ int emTextField::GetRowStartIndex(int index) const
 	int i,j,c;
 
 	if (!MultiLineMode) return 0;
+	emMBState mbState;
 	for (i=0, j=0; ; ) {
-		i+=emDecodeChar(&c,Text.Get()+i);
+		i+=emDecodeChar(&c,Text.Get()+i,INT_MAX,&mbState);
 		if (c==0x0d && Text[i]==0x0a) i++;
 		if (c==0 || i>index) return j;
 		if (c==0x0a || c==0x0d) j=i;
@@ -1267,20 +1313,27 @@ int emTextField::GetRowEndIndex(int index) const
 	int n,c;
 
 	if (!MultiLineMode) return TextLen;
+	emMBState mbState=GetMBStateAtIndex(index);
 	for (;; index+=n) {
-		n=emDecodeChar(&c,Text.Get()+index);
+		n=emDecodeChar(&c,Text.Get()+index,INT_MAX,&mbState);
 		if (c==0 || c==0x0a || c==0x0d) return index;
 	}
 }
 
 
-int emTextField::GetNextRowIndex(int index) const
+int emTextField::GetNextRowIndex(int index, emMBState * mbState) const
 {
 	int c;
 
+	emMBState ownMBState;
+	if (!mbState) {
+		ownMBState=GetMBStateAtIndex(index);
+		mbState=&ownMBState;
+	}
+
 	if (!MultiLineMode) return TextLen;
 	for (;;) {
-		index+=emDecodeChar(&c,Text.Get()+index);
+		index+=emDecodeChar(&c,Text.Get()+index,INT_MAX,mbState);
 		if (c==0 || c==0x0a || c==0x0d) {
 			if (c==0x0d && Text[index]==0x0a) index++;
 			return index;
@@ -1293,20 +1346,28 @@ int emTextField::GetPrevRowIndex(int index) const
 {
 	int i,j;
 
+	emMBState mbState;
 	for (i=0; ; i=j) {
-		j=GetNextRowIndex(i);
+		j=GetNextRowIndex(i,&mbState);
 		if (j>=index || j==i) return i;
 	}
 }
 
 
-int emTextField::GetNextParagraphIndex(int index) const
+int emTextField::GetNextParagraphIndex(int index, emMBState * mbState) const
 {
 	bool e;
 
 	if (!MultiLineMode) return TextLen;
+
+	emMBState ownMBState;
+	if (!mbState) {
+		ownMBState=GetMBStateAtIndex(index);
+		mbState=&ownMBState;
+	}
+
 	for (e=false; index<TextLen; ) {
-		index=GetNextRowIndex(index);
+		index=GetNextRowIndex(index,mbState);
 		if (Text[index]==0x0a || Text[index]==0x0d) e=true;
 		else if (e) break;
 	}
@@ -1318,8 +1379,9 @@ int emTextField::GetPrevParagraphIndex(int index) const
 {
 	int i,j;
 
+	emMBState mbState;
 	for (i=0; ; i=j) {
-		j=GetNextParagraphIndex(i);
+		j=GetNextParagraphIndex(i,&mbState);
 		if (j>=index || j==i) return i;
 	}
 }

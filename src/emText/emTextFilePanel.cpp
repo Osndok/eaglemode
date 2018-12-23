@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2017 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -319,37 +319,9 @@ void emTextFilePanel::PaintAsText(
 					}
 					if (i1>=i2) break;
 					switch (Model->GetCharEncoding()) {
-					case emTextFileModel::CE_UTF8:
-						if (emIsUtf8System()) {
-							col+=PaintTextUtf8ToUtf8(
-								painter,
-								x+col*cw,
-								y,
-								cw,
-								ch,
-								pRow+i1,
-								i2-i1,
-								textFgColor,
-								textBgColor
-							);
-						}
-						else {
-							col+=PaintTextUtf8To8Bit(
-								painter,
-								x+col*cw,
-								y,
-								cw,
-								ch,
-								pRow+i1,
-								i2-i1,
-								textFgColor,
-								textBgColor
-							);
-						}
-						break;
 					case emTextFileModel::CE_8BIT:
 						if (emIsUtf8System()) {
-							col+=PaintText8BitToUtf8(
+							col+=PaintTextLatin1(
 								painter,
 								x+col*cw,
 								y,
@@ -372,8 +344,21 @@ void emTextFilePanel::PaintAsText(
 								textBgColor,
 								i2-i1
 							);
-							col+=i2-i1;
+							col+=emGetDecodedCharCount(pRow+i1,i2-i1);
 						}
+						break;
+					case emTextFileModel::CE_UTF8:
+						col+=PaintTextUtf8(
+							painter,
+							x+col*cw,
+							y,
+							cw,
+							ch,
+							pRow+i1,
+							i2-i1,
+							textFgColor,
+							textBgColor
+						);
 						break;
 					case emTextFileModel::CE_UTF16LE:
 					case emTextFileModel::CE_UTF16BE:
@@ -412,44 +397,20 @@ void emTextFilePanel::PaintAsText(
 }
 
 
-int emTextFilePanel::PaintTextUtf8ToUtf8(
+int emTextFilePanel::PaintTextLatin1(
 	const emPainter & painter, double x, double y, double charWidth,
 	double charHeight, const char * text, int textLen,
 	emColor color, emColor canvasColor
 ) const
 {
-	int i,columns,c,n;
-
-	painter.PaintText(x,y,text,charHeight,1.0,color,canvasColor,textLen);
-
-	columns=textLen;
-	for (i=0; i<textLen; i++) {
-		if (((signed char)text[i])<0) {
-			n=emDecodeUtf8Char(&c,text+i,textLen-i);
-			n--;
-			if (n>0) {
-				columns-=n;
-				i+=n;
-			}
-		}
-	}
-	return columns;
-}
-
-
-int emTextFilePanel::PaintText8BitToUtf8(
-	const emPainter & painter, double x, double y, double charWidth,
-	double charHeight, const char * text, int textLen,
-	emColor color, emColor canvasColor
-) const
-{
-	char buf[256];
+	char buf[256+EM_MB_LEN_MAX];
 	int i,l,c,bufPos;
 
 	bufPos=0;
 	l=0;
+	emMBState mbState;
 	for (i=0; i<textLen; i++) {
-		if (l>=(int)sizeof(buf)-6) {
+		if (l>=(int)sizeof(buf)-EM_MB_LEN_MAX) {
 			painter.PaintText(
 				x+bufPos*charWidth,
 				y,
@@ -464,8 +425,17 @@ int emTextFilePanel::PaintText8BitToUtf8(
 			l=0;
 		}
 		c=(unsigned char)text[i];
-		if (c>=128) {
-			l+=emEncodeUtf8Char(buf+l,c);
+		if (c>=0x80) {
+			if (c<=0x9F) {
+				static const int latin1ExtraTap[32]={
+					0x20AC,0x0081,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,
+					0x02C6,0x2030,0x0160,0x2039,0x0152,0x0164,0x017D,0x0179,
+					0x0090,0x2035,0x2032,0x2036,0x2033,0x2022,0x2013,0x2014,
+					0x02DC,0x2122,0x0161,0x203A,0x0153,0x0165,0x017E,0x0178
+				};
+				c=latin1ExtraTap[c-0x80];
+			}
+			l+=emEncodeChar(buf+l,c,&mbState);
 		}
 		else {
 			buf[l++]=(char)c;
@@ -487,20 +457,26 @@ int emTextFilePanel::PaintText8BitToUtf8(
 }
 
 
-int emTextFilePanel::PaintTextUtf8To8Bit(
+int emTextFilePanel::PaintTextUtf8(
 	const emPainter & painter, double x, double y, double charWidth,
 	double charHeight, const char * text, int textLen,
 	emColor color, emColor canvasColor
 ) const
 {
-	char buf[256];
-	int i,l,columns,c,n,bufPos;
+	char buf[256+EM_MB_LEN_MAX];
+	int i,l,c,pos,bufPos;
 
-	columns=textLen;
+	if (emIsUtf8System()) {
+		painter.PaintText(x,y,text,charHeight,1.0,color,canvasColor,textLen);
+		return emGetDecodedCharCount(text,textLen);
+	}
+
+	pos=0;
 	bufPos=0;
 	l=0;
-	for (i=0; i<textLen; i++) {
-		if (l>=(int)sizeof(buf)) {
+	emMBState mbState;
+	for (i=0; i<textLen; ) {
+		if (l>=(int)sizeof(buf)-EM_MB_LEN_MAX) {
 			painter.PaintText(
 				x+bufPos*charWidth,
 				y,
@@ -511,20 +487,19 @@ int emTextFilePanel::PaintTextUtf8To8Bit(
 				canvasColor,
 				l
 			);
-			bufPos=columns;
+			bufPos=pos;
 			l=0;
 		}
 		c=(unsigned char)text[i];
 		if (c>=128) {
-			n=emDecodeUtf8Char(&c,text+i,textLen-i);
-			n--;
-			if (n>0) {
-				columns-=n;
-				i+=n;
-			}
-			if (c>255) c='?';
+			i+=emDecodeUtf8Char(&c,text+i,textLen-i);
+			l+=emEncodeChar(buf+l,c,&mbState);
 		}
-		buf[l++]=(char)c;
+		else {
+			i++;
+			buf[l++]=(char)c;
+		}
+		pos++;
 	}
 	if (l>0) {
 		painter.PaintText(
@@ -538,7 +513,7 @@ int emTextFilePanel::PaintTextUtf8To8Bit(
 			l
 		);
 	}
-	return columns;
+	return pos;
 }
 
 
@@ -548,18 +523,17 @@ int emTextFilePanel::PaintTextUtf16(
 	emColor color, emColor canvasColor
 ) const
 {
-	char buf[256];
+	char buf[256+EM_MB_LEN_MAX];
 	int i,l,c,c2,pos,bufPos,sh1,sh2;
-	bool isUtf8;
 
 	if (Model->GetCharEncoding()==emTextFileModel::CE_UTF16LE) { sh1=0; sh2=8; }
 	else { sh1=8; sh2=0; }
-	isUtf8=emIsUtf8System();
 	pos=0;
 	bufPos=0;
 	l=0;
+	emMBState mbState;
 	for (i=0; i<textLen; ) {
-		if (l>=(int)sizeof(buf)-6) {
+		if (l>=(int)sizeof(buf)-EM_MB_LEN_MAX) {
 			painter.PaintText(
 				x+bufPos*charWidth,
 				y,
@@ -587,9 +561,7 @@ int emTextFilePanel::PaintTextUtf16(
 					c=0x10000+((c&0x03FF)<<10)+(c2&0x03FF);
 				}
 			}
-			if (isUtf8) l+=emEncodeUtf8Char(buf+l,c);
-			else if (c<256) buf[l++]=(char)c;
-			else buf[l++]='?';
+			l+=emEncodeChar(buf+l,c,&mbState);
 			pos++;
 		}
 	}

@@ -751,10 +751,10 @@ void emSvgServerModel::TryAllocShm(int size)
 		);
 	}
 
-	ShmPtr=(emByte*)shmat(ShmId,0,0);
+	ShmPtr=(emByte*)shmat(ShmId,NULL,0);
 	if (ShmPtr==(emByte*)-1) {
 		ShmPtr=NULL;
-		shmctl(ShmId,IPC_RMID,0);
+		shmctl(ShmId,IPC_RMID,NULL);
 		ShmId=-1;
 		throw emException(
 			"Failed to attach shared memory segment: %s",
@@ -763,8 +763,7 @@ void emSvgServerModel::TryAllocShm(int size)
 	}
 
 #if defined(__linux__)
-	shmctl(ShmId,IPC_RMID,0);
-	if (shmctl(ShmId,IPC_RMID,0)!=0) {
+	if (shmctl(ShmId,IPC_RMID,NULL)!=0) {
 		emFatalError(
 			"emSvgServerModel: shmctl failed: %s",
 			emGetErrorText(errno).Get()
@@ -797,7 +796,7 @@ void emSvgServerModel::FreeShm()
 	}
 	if (ShmId!=-1) {
 #if !defined(__linux__)
-		if (shmctl(ShmId,IPC_RMID,0)!=0) {
+		if (shmctl(ShmId,IPC_RMID,NULL)!=0) {
 			emFatalError(
 				"emSvgServerModel: shmctl failed: %s",
 				emGetErrorText(errno).Get()

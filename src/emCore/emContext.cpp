@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.cpp
 //
-// Copyright (C) 2005-2008,2012,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2012,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -387,7 +387,7 @@ void emContext::CollectGarbage()
 	int minHash;
 
 	if (DoGCOnModels) {
-		emDLog("emContext %p: Garbage Collection...",this);
+		emDLog("emContext %p: Garbage Collection...",(const void*)this);
 		DoGCOnModels=false;
 		while (AvlTree) {
 			m=SearchGarbage();
@@ -443,4 +443,9 @@ bool emContext::SharedTimingEngine::Cycle()
 		}
 	}
 	return false;
+}
+
+
+emRootContext::~emRootContext()
+{
 }

@@ -60,17 +60,21 @@ static void emPdfPrintQuoted(const char * str)
 }
 
 
-static void emPdfEncodeFileUri(const char * absFilePath, char * uri)
+static char * emPdfEncodeFileUri(const char * absFilePath)
 {
+	char * uri, * p;
 	int c;
 
-	strcpy(uri,"file://");
-	uri+=strlen(uri);
+	uri=malloc(16+3*strlen(absFilePath));
+
+	p=uri;
+	strcpy(p,"file://");
+	p+=strlen(p);
 #ifdef _WIN32
-	*uri++='/';
+	*p++='/';
 #endif
 	while (*absFilePath) {
-		c=(*absFilePath++)&255;
+		c=(unsigned char)*absFilePath++;
 		if (
 			c<32 ||
 			c==' ' ||
@@ -87,19 +91,21 @@ static void emPdfEncodeFileUri(const char * absFilePath, char * uri)
 			c=='@' ||
 			c==127
 		) {
-			sprintf(uri,"%%%2X",c);
-			uri+=strlen(uri);
+			sprintf(p,"%%%02X",c);
+			p+=3;
 		}
 #ifdef _WIN32
 		else if (c=='\\') {
-			*uri++='/';
+			*p++='/';
 		}
 #endif
 		else {
-			*uri++=c;
+			*p++=(char)c;
 		}
 	}
-	*uri=0;
+	*p=0;
+
+	return uri;
 }
 
 
@@ -108,8 +114,7 @@ static void emPdfOpen(const char * args)
 	const char * filePath;
 	const char * label;
 	char genericLabel[256];
-	char absFilePath[PATH_MAX];
-	char uri[64+3*PATH_MAX];
+	char * uri;
 	GError * err;
 	emPdfInst * inst;
 	PopplerPage * page;
@@ -117,15 +122,14 @@ static void emPdfOpen(const char * args)
 	int i,instId;
 
 	filePath=args;
-	if (!*filePath || strlen(filePath)>PATH_MAX-1) {
+	if (!*filePath) {
 		fprintf(stderr,"emPdfServerProc: emPdfOpen: illegal arguments.\n");
 		exit(1);
 	}
 
-#ifdef _WIN32
-	strcpy(absFilePath,filePath);
-#else
-	if (!realpath(filePath,absFilePath)) {
+#ifndef _WIN32
+	char realFilePath[PATH_MAX];
+	if (!realpath(filePath,realFilePath)) {
 		printf(
 			"error: Failed to read %s (%s)\n",
 			filePath,
@@ -133,34 +137,36 @@ static void emPdfOpen(const char * args)
 		);
 		return;
 	}
+	filePath=realFilePath;
 #endif
 
 	err=NULL;
 
 #ifdef _WIN32
 	/* On Windows, glib expects file names in UTF-8 instead of current locale. */
-	gchar * absFilePathConverted=g_locale_to_utf8(
-		absFilePath,strlen(absFilePath),NULL,NULL,&err
+	gchar * filePathConverted=g_locale_to_utf8(
+		filePath,strlen(filePath),NULL,NULL,&err
 	);
-	if (!absFilePathConverted) {
+	if (!filePathConverted) {
 		printf(
 			"error: Failed to convert file path %s (%s)\n",
-			absFilePath,
+			filePath,
 			(err && err->message && err->message[0]) ? err->message : "unknown error"
 		);
 		if (err) g_error_free(err);
 		return;
 	}
-	emPdfEncodeFileUri(absFilePathConverted,uri);
-	g_free(absFilePathConverted);
+	uri=emPdfEncodeFileUri(filePathConverted);
+	g_free(filePathConverted);
 #else
-	emPdfEncodeFileUri(absFilePath,uri);
+	uri=emPdfEncodeFileUri(filePath);
 #endif
 
 	inst=(emPdfInst*)malloc(sizeof(emPdfInst));
 	memset(inst,0,sizeof(emPdfInst));
 
 	inst->doc=poppler_document_new_from_file(uri,NULL,&err);
+	free(uri);
 	if (!inst->doc) {
 		printf(
 			"error: Failed to read %s (%s)\n",
@@ -403,8 +409,8 @@ int main(int argc, char * argv[])
 	DWORD d;
 	MSG msg;
 
-	setmode(STDOUT_FILENO,O_BINARY);
-	setmode(STDIN_FILENO,O_BINARY);
+	setmode(fileno(stdout),O_BINARY);
+	setmode(fileno(stdin),O_BINARY);
 	setbuf(stderr,NULL);
 
 	hdl=CreateThread(NULL,0,emPdfServeThreadProc,NULL,0,&d);

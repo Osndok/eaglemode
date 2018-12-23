@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
-# unicc_gnu.pm
+# unicc_clang.pm
 #
-# Copyright (C) 2006-2011,2013,2017-2018 Oliver Hamann.
+# Copyright (C) 2018 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -28,34 +28,18 @@ use File::Spec::Functions;
 BEGIN { unicc->import(); }
 
 
-my $GccVersion;
 my $IsWin;
 my $IsCygwin;
 my $IsWinOrCygwin;
 my $IsDarwin;
+my $IsFreeBSD;
 
 {
-	my $s=`gcc -dumpversion`; # Examples: "4.3", "2.95.3"
-	if ($? != 0) { exit(1); }
-	for (;; $s=substr($s,1)) {
-		if (length($s)==0) { die("Cannot determine GCC version, stopped"); }
-		if (ord($s)>=48 and ord($s)<=57) { last; }
-	}
-	my $l;
-	for ($l=1; $l<length($s); $l++) {
-		if (ord(substr($s,$l))<48 or ord(substr($s,$l))>57) { last; }
-	}
-	if (substr($s,$l,1) eq "." and ord(substr($s,$l+1))>=48 and
-	    ord(substr($s,$l+1))<=57) {
-		for ($l=$l+2; $l<length($s); $l++) {
-			if (ord(substr($s,$l))<48 or ord(substr($s,$l))>57) { last; }
-		}
-	}
-	$GccVersion=substr($s,0,$l);
 	$IsWin = $Config{'osname'} eq 'MSWin32' ? 1 : 0;
 	$IsCygwin = $Config{'osname'} eq 'cygwin' ? 1 : 0;
 	$IsWinOrCygwin = $IsWin || $IsCygwin;
 	$IsDarwin = $Config{'osname'} eq 'darwin' ? 1 : 0;
+	$IsFreeBSD = $Config{'osname'} eq 'freebsd' ? 1 : 0;
 }
 
 
@@ -112,10 +96,10 @@ sub Compile
 		push(@args,("-o",GetObjFiles->[$index]));
 	}
 	else {
-		push(@args,"gcc");
+		push(@args,"clang");
 		if (HaveDebug) { push(@args,"-g"); }
 		push(@args,"-O2");
-		if ($isCpp && $GccVersion>=4.7 && $GccVersion<6.1) {
+		if ($isCpp) {
 			push(@args,"-std=c++11");
 		}
 		if ($IsWinOrCygwin) { push(@args,"-mthreads"); }
@@ -126,24 +110,33 @@ sub Compile
 		if (!HaveRtti and $isCpp) { push(@args,"-fno-rtti"); }
 		if (HaveExceptions) { push(@args,"-fexceptions"); }
 		else { push(@args,"-fno-exceptions"); }
-		if ($GccVersion>=3.0) { push(@args,"-fmessage-length=0"); }
-		push(@args,"-Wall");
-		if ($GccVersion<4.3) { #??? GCC 4.3.0 does not inline several destructors.
-			push(@args,"-Winline");
-		}
-		push(@args,"-Wpointer-arith");
-		push(@args,"-Wredundant-decls");
-		push(@args,"-Wsign-compare");
-		push(@args,"-Wwrite-strings");
-		if ($isCpp) {
-			push(@args,"-Wsign-promo");
-			push(@args,"-Wsynth");
-			if ($GccVersion>=4.0) { push(@args,"-Wno-invalid-offsetof"); }
-			if ($GccVersion>=8.0) { push(@args,"-Wno-class-memaccess"); }
-		}
-		if ($GccVersion>=4.7) { push(@args,"-Wno-unused-but-set-variable"); }
+		push(@args,"-fmessage-length=0");
+		push(@args,"-Weverything");
+		push(@args,"-Wno-c++98-compat");
+		push(@args,"-Wno-c++98-compat-pedantic");
+		push(@args,"-Wno-cast-align");
+		push(@args,"-Wno-cast-qual");
+		push(@args,"-Wno-covered-switch-default");
+		push(@args,"-Wno-disabled-macro-expansion");
+		push(@args,"-Wno-documentation");
+		push(@args,"-Wno-documentation-unknown-command");
+		push(@args,"-Wno-exit-time-destructors");
+		push(@args,"-Wno-float-equal");
+		push(@args,"-Wno-global-constructors");
+		push(@args,"-Wno-implicit-fallthrough");
+		push(@args,"-Wno-invalid-offsetof");
+		push(@args,"-Wno-missing-noreturn");
+		push(@args,"-Wno-missing-prototypes");
+		push(@args,"-Wno-nested-anon-types");
+		push(@args,"-Wno-old-style-cast");
+		push(@args,"-Wno-padded");
+		push(@args,"-Wno-reserved-id-macro");
+		push(@args,"-Wno-shorten-64-to-32");
+		push(@args,"-Wno-sign-conversion");
+		push(@args,"-Wno-switch-enum");
+		push(@args,"-Wno-unused-parameter");
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-I$s"); }
-		if ($IsCygwin) { push(@args,"-D_GNU_SOURCE"); }
+		if ($IsFreeBSD) { push(@args,"-I/usr/local/include"); }
 		foreach my $s (@{GetDefines()}) { push(@args,"-D$s"); }
 		push(@args,"-c");
 		push(@args,GetSrcFiles->[$index]);
@@ -167,17 +160,18 @@ sub Link
 		push(@args,(@{GetObjFiles()}));
 	}
 	else {
-		push(@args,"gcc");
+		push(@args,"clang");
 		if (HaveDebug) { push(@args,"-g"); }
 		if ($type eq 'dynlib') {
 			push(@args,$IsDarwin ? "-dynamiclib" : "-shared");
 		}
 		if ($IsWinOrCygwin) {
 			push(@args,"-mthreads");
-			push(@args,"-shared-libgcc");
+			push(@args,"-shared-libclang");
 		}
 		if ($IsWin and $type eq 'wexe') { push(@args,"-mwindows"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }
+		if ($IsFreeBSD) { push(@args,"-L/usr/local/lib"); }
 		push(@args,(@{GetObjFiles()}));
 		foreach my $s (@{GetLinkNames()}) { push(@args,"-l$s"); }
 		if ($IsCygwin && -e "/lib/libcygipc.a") { push(@args,"-lcygipc"); }

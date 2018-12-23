@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFileModel.cpp
 //
-// Copyright (C) 2004-2008 Oliver Hamann.
+// Copyright (C) 2004-2008,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,11 @@ emFractalFileModel::ColorRec::ColorRec()
 	: emStructRec(),
 	Color(this,"color"),
 	Fade(this,"fade",0,0,255)
+{
+}
+
+
+emFractalFileModel::ColorRec::~ColorRec()
 {
 }
 

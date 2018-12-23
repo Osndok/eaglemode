@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCheckBox.h
 //
-// Copyright (C) 2005-2010,2014 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,8 @@ public:
 		const emString & description=emString(),
 		const emImage & icon=emImage()
 	);
+
+	virtual ~emCheckBox();
 };
 
 

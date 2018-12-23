@@ -1265,8 +1265,8 @@ int main(int argc, char * argv[])
 	DWORD d;
 	MSG msg;
 
-	setmode(STDOUT_FILENO,O_BINARY);
-	setmode(STDIN_FILENO,O_BINARY);
+	setmode(fileno(stdout),O_BINARY);
+	setmode(fileno(stdin),O_BINARY);
 	setbuf(stderr,NULL);
 
 	hdl=CreateThread(NULL,0,emAvServeThreadProc,NULL,0,&d);

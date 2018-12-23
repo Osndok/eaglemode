@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ViewRenderer.cpp
 //
-// Copyright (C) 2016-2017 Oliver Hamann.
+// Copyright (C) 2016-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -222,9 +222,9 @@ emX11ViewRenderer::Buffer * emX11ViewRenderer::CreateBuffer(
 				XFree(buf->Img);
 				break;
 			}
-			buf->Seg.shmaddr=(char*)shmat(buf->Seg.shmid,0,0);
+			buf->Seg.shmaddr=(char*)shmat(buf->Seg.shmid,NULL,0);
 			if (buf->Seg.shmaddr==(char*)-1) {
-				shmctl(buf->Seg.shmid,IPC_RMID,0);
+				shmctl(buf->Seg.shmid,IPC_RMID,NULL);
 				XFree(buf->Img);
 				break;
 			}
@@ -234,12 +234,12 @@ emX11ViewRenderer::Buffer * emX11ViewRenderer::CreateBuffer(
 			XSync(Disp,False);
 			if (!status || ErrorHandlerCalled) {
 				shmdt(buf->Seg.shmaddr);
-				shmctl(buf->Seg.shmid,IPC_RMID,0);
+				shmctl(buf->Seg.shmid,IPC_RMID,NULL);
 				XFree(buf->Img);
 				break;
 			}
 #			if defined(__linux__)
-				shmctl(buf->Seg.shmid,IPC_RMID,0);
+				shmctl(buf->Seg.shmid,IPC_RMID,NULL);
 				buf->SegAutoRemoved=true;
 #			else
 				buf->SegAutoRemoved=false;
@@ -328,7 +328,7 @@ void emX11ViewRenderer::DestroyBuffer(Buffer * buf)
 		if (buf->UsingXShm) {
 			XShmDetach(Disp,&buf->Seg);
 			shmdt(buf->Seg.shmaddr);
-			if (!buf->SegAutoRemoved) shmctl(buf->Seg.shmid,IPC_RMID,0);
+			if (!buf->SegAutoRemoved) shmctl(buf->Seg.shmid,IPC_RMID,NULL);
 		}
 		else {
 			free(buf->Img->data);

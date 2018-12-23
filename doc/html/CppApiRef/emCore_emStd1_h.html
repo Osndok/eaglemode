@@ -39,6 +39,7 @@
 #include &lt;string.h&gt;
 #include &lt;math.h&gt;
 #include &lt;time.h&gt;
+#include &lt;wchar.h&gt;
 
 
 <A NAME="Version"></A></SPAN><SPAN CLASS=c>//==============================================================================
@@ -46,8 +47,8 @@
 //==============================================================================
 
 </SPAN><SPAN CLASS=p>#define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 93
-#define EM_MICRO_VERSION 2
+#define EM_MINOR_VERSION 94
+#define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
         </SPAN><SPAN CLASS=c>// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -257,13 +258,10 @@
         // doing anything else.
 
 
-//-------------------------- Low-level UTF-8 support ---------------------------
+//-------------------------- UTF-8 character encoding --------------------------
 
 </SPAN><SPAN CLASS=t>bool </SPAN>emIsUtf8System();
-        <SPAN CLASS=c>// Ask whether it should be expected that filenames, text files,
-        // environment variables and so on are encoded in UTF-8. Otherwise we
-        // assume something like Latin-1. All strings in our program should be
-        // encoded in the same way.
+        <SPAN CLASS=c>// Ask whether the character encoding of the current locale is UTF-8.
 
 </SPAN><SPAN CLASS=t>int </SPAN>emEncodeUtf8Char(<SPAN CLASS=t>char </SPAN>* utf8, <SPAN CLASS=t>int </SPAN>ucs4);
         <SPAN CLASS=c>// Encode a UTF-8 string from a single 31-bit Unicode character.
@@ -289,22 +287,32 @@
         //   And if the UTF-8 string does not contain a valid and complete code
         //   sequence, -1 is returned.
 
-//-------------------------- High-level UTF-8 support --------------------------
+//------------------ Character encoding of the current locale ------------------
 
-</SPAN><SPAN CLASS=t>int </SPAN>emEncodeChar(<SPAN CLASS=t>char </SPAN>* str, <SPAN CLASS=t>int </SPAN>ucs4);
+</SPAN><SPAN CLASS=t>struct </SPAN>emMBState <SPAN CLASS=b>{
+        </SPAN>emMBState();
+        <SPAN CLASS=t>void </SPAN>Clear();
+        mbstate_t State;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=p>#define EM_MB_LEN_MAX (2*MB_LEN_MAX)
+        </SPAN><SPAN CLASS=c>// Maximum number of bytes written by emEncodeChar(..).
+
+</SPAN><SPAN CLASS=t>int </SPAN>emEncodeChar(<SPAN CLASS=t>char </SPAN>* str, <SPAN CLASS=t>int </SPAN>ucs4, emMBState * state=<SPAN CLASS=u>NULL</SPAN>);
         <SPAN CLASS=c>// Encode a string from a single 31-bit Unicode character. The type of
-        // encoding depends on emIsUtf8System.
+        // encoding depends on the current locale.
         // Arguments:
-        //   str  - Buffer for returning the encoded string.
-        //          It is _NOT_ terminated by a null. The buffer must
-        //          have space for at least 6 bytes.
-        //   ucs4 - The Unicode character.
-        // Returns: Number of bytes written to the buffer (1 - 6).
+        //   str   - Buffer for returning the encoded string.
+        //           It is _NOT_ terminated by a null. The buffer must
+        //           have space for at least EM_MB_LEN_MAX bytes.
+        //   ucs4  - The Unicode character.
+        //   state - Input and output of character encoding state or shift state.
+        // Returns: Number of bytes written to the buffer (1 - EM_MB_LEN_MAX).
 
-</SPAN><SPAN CLASS=t>int </SPAN>emDecodeChar(<SPAN CLASS=t>int </SPAN>* pUcs4, <SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX);
+</SPAN><SPAN CLASS=t>int </SPAN>emDecodeChar(<SPAN CLASS=t>int </SPAN>* pUcs4, <SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX,
+                 emMBState * state=<SPAN CLASS=u>NULL</SPAN>);
         <SPAN CLASS=c>// Decode one 31-bit Unicode character from a string. The type of
-        // decoding depends on emIsUtf8System. Error characters in a UTF-8
-        // string are interpreted as Latin-1 here.
+        // decoding depends on the current locale.
         // Arguments:
         //   pUcs4  - Pointer for returning the Unicode character. On error,
         //            str[0] is set here. And if the encoded string is empty,
@@ -312,12 +320,12 @@
         //   str    - The encoded string.
         //   strLen - Maximum number of bytes to be read from the encoded
         //            string, if it is not null-terminated.
-        // Returns: Number of bytes read from the encoded string (0 - 6).
+        //   state  - Input and output of character encoding state or shift state.
+        // Returns: Number of bytes read from the encoded string (&gt;=0).
 
 </SPAN><SPAN CLASS=t>int </SPAN>emGetDecodedCharCount(<SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX);
         <SPAN CLASS=c>// Get the number of 31-bit Unicode characters which could be decoded
-        // from a string. The type of decoding depends on emIsUtf8System. Error
-        // characters in a UTF-8 string are interpreted as Latin-1 here.
+        // from a string by calling emDecodeChar(..) repeatedly.
         // Arguments:
         //   str    - The encoded string.
         //   strLen - Maximum number of bytes to be read from the encoded
@@ -373,6 +381,9 @@
         </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>2</SPAN>);
                 <SPAN CLASS=c>// Construct an exception with a formatted text.
                 // The arguments are like with printf.
+
+        </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A> &amp; exception);
+                <SPAN CLASS=c>// Construct a copied exception.
 
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>();
                 <SPAN CLASS=c>// Destructor.
@@ -472,6 +483,14 @@
 //==============================================================================
 //============================== Implementations ===============================
 //==============================================================================
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emMBState::emMBState() <SPAN CLASS=b>{
+        </SPAN>memset(&amp;State,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>sizeof</SPAN>(State));
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN>emMBState::Clear() <SPAN CLASS=b>{
+        </SPAN>memset(&amp;State,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>sizeof</SPAN>(State));
+<SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>::<A CLASS=l HREF="emCore_emStd1_h.html#emException">emException</A>()
 <SPAN CLASS=b>{

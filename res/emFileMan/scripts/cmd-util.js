@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2012,2016 Oliver Hamann.
+// Copyright (C) 2008-2012,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -717,6 +717,7 @@ function BatBegin(title)
 		"chcp " + acp + "\n"+
 		"if errorlevel 1 goto _L_ERROR\n"+
 		"title " + title + "\n"+
+		"cls\n"+
 		"if %1==key892345289 goto _L_START\n"+
 		"echo Bad args\n"+
 		":_L_ERROR\n"+
@@ -775,7 +776,13 @@ function BatAbort()
 
 function BatWrite(str)
 {
-	if (BatFileHandle) BatFileHandle.Write(str);
+	if (BatFileHandle) {
+		// Line breaks must have carraige returns. Otherwise cmd.exe
+		// misinterprets UTF-8 bat (cp 65001) in a very dangerous way
+		// (seen in a test on Windows 10).
+		var strCrLf=str.replace(/[\n]/g,"\r\n").replace(/[\r][\r]/g,"\r");
+		BatFileHandle.Write(strCrLf);
+	}
 }
 
 

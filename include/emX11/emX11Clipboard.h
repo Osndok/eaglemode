@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Clipboard.h
 //
-// Copyright (C) 2005-2008,2010 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,8 +63,10 @@ private:
 		unsigned long * nitems_return
 	);
 
-	static emString Latin1ToUtf8(const emString & latin1);
-	static emString Utf8ToLatin1(const emString & utf8);
+	static emString CurrentLocaleToUtf8(const emString & str);
+	static emString Utf8ToCurrentLocale(const emString & str);
+	static emString CurrentLocaleToLatin1(const emString & str);
+	static emString Latin1ToCurrentLocale(const emString & str);
 		//??? These functions should move into a public module.
 
 	emRef<emX11Screen> Screen;

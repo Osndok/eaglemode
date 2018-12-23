@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestThreads.cpp
 //
-// Copyright (C) 2009 Oliver Hamann.
+// Copyright (C) 2009,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -288,8 +288,8 @@ static void Test5()
 
 //------------------------ Test6 (Dining Philosophers) -------------------------
 
-emThreadMutex PrintDataMutex;
-emThreadEvent PrintEvent;
+static emThreadMutex PrintDataMutex;
+static emThreadEvent PrintEvent;
 
 class DiningPhilosopher : private emThread {
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPackLayout.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,7 @@
 class emTestPackLayout : public emPackLayout {
 public:
 	emTestPackLayout(ParentArg parent, const emString & name, int panelCount);
+	virtual ~emTestPackLayout();
 };
 
 
@@ -52,6 +53,11 @@ emTestPackLayout::emTestPackLayout(
 		label->SetBorderType(OBT_FILLED,IBT_NONE);
 		label->SetLook(look);
 	}
+}
+
+
+emTestPackLayout::~emTestPackLayout()
+{
 }
 
 

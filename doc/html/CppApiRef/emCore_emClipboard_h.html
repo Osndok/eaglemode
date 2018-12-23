@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>.h
 //
-// Copyright (C) 2005-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -102,6 +102,9 @@
 
         <A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
                 <SPAN CLASS=c>// See <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emClipboard_h.html#emClipboard">emClipboard</A>();
+                <SPAN CLASS=c>// Destructor.
 
         </SPAN><SPAN CLASS=t>void </SPAN>Install();
                 <SPAN CLASS=c>// Register this interface so that it can be found by

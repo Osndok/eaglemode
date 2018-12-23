@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipboard.cpp
 //
-// Copyright (C) 2005-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,6 +38,11 @@ emRef<emClipboard> emClipboard::LookupInherited(emContext & context)
 
 emClipboard::emClipboard(emContext & context, const emString & name)
 	: emModel(context,name)
+{
+}
+
+
+emClipboard::~emClipboard()
 {
 }
 

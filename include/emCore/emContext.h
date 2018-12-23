@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.h
 //
-// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -162,6 +162,8 @@ public:
 	emRootContext(emScheduler & scheduler);
 		// Construct a root context.
 
+	virtual ~emRootContext();
+		// Destructor.
 };
 
 

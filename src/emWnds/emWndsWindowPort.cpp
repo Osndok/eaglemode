@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -860,8 +860,9 @@ LRESULT emWndsWindowPort::WindowProc(
 		if (wParam>=32 && wParam<255 && wParam!=127) {
 			if (goodCall) {
 				repeat=0; //???
-				tmp[0]=(char)wParam;
-				tmp[1]=0;
+				emMBState mbState;
+				i=emEncodeChar(tmp,wParam,&mbState);
+				tmp[i]=0;
 				inputEvent.Setup(EM_KEY_NONE,tmp,repeat,0);
 				InputStateClock=Screen.InputStateClock;
 				InputToView(inputEvent,Screen.InputState);

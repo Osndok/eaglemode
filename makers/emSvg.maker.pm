@@ -2,6 +2,7 @@ package emSvg;
 
 use strict;
 use warnings;
+use Config;
 
 sub GetDependencies
 {
@@ -76,6 +77,7 @@ sub Build
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
 		@librsvgFlags,
+		$Config{'osname'} eq 'MSWin32' ? ("--link", "user32"):(),
 		"--type"          , "cexe",
 		"--name"          , "emSvgServerProc",
 		"src/emSvg/emSvgServerProc.c"

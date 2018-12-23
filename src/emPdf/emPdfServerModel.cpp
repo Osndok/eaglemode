@@ -99,8 +99,27 @@ emPdfServerModel::PageInfo::PageInfo()
 }
 
 
+emPdfServerModel::PageInfo::PageInfo(const PageInfo & pageInfo)
+	: Width(pageInfo.Width),
+	Height(pageInfo.Height),
+	Label(pageInfo.Label)
+{
+}
+
+
 emPdfServerModel::PageInfo::~PageInfo()
 {
+}
+
+
+emPdfServerModel::PageInfo & emPdfServerModel::PageInfo::operator = (
+	const PageInfo & pageInfo
+)
+{
+	Width=pageInfo.Width;
+	Height=pageInfo.Height;
+	Label=pageInfo.Label;
+	return *this;
 }
 
 

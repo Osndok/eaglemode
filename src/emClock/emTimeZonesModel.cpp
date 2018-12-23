@@ -71,7 +71,7 @@ void emTimeZonesModel::TryGetZoneTime(
 		if (ChildProcState==CP_ERRORED) throw emException("%s",ChildProcError.Get());
 		city=Cities[zoneId];
 		if (!city->Error.IsEmpty()) {
-			throw emException(city->Error);
+			throw emException("%s",city->Error.Get());
 		}
 		city->TimeNeeded=3;
 		if (!city->TimeValid) {

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPackGroup.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,4 +29,9 @@ emPackGroup::emPackGroup(
 {
 	SetFocusable(true);
 	SetBorderType(OBT_GROUP,IBT_GROUP);
+}
+
+
+emPackGroup::~emPackGroup()
+{
 }

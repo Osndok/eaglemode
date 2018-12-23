@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.cpp
 //
-// Copyright (C) 2011-2012,2014-2016 Oliver Hamann.
+// Copyright (C) 2011-2012,2014-2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -795,7 +795,7 @@ void emCheatVIF::Input(emInputEvent & event, const emInputState & state)
 
 	// Crash by a segmentation fault: chEat:segfault!
 	else if (strcmp(func,"segfault")==0) {
-		*(char*)NULL=0;
+		*(volatile char*)NULL=0;
 	}
 
 	// Crash by an arithmetic exception: chEat:divzero!
@@ -876,7 +876,7 @@ void emDefaultTouchVIF::Input(emInputEvent & event, const emInputState & state)
 	}
 
 	//???:
-	emDLog("emDefaultTouchVIF[%p]::Input:",this);
+	emDLog("emDefaultTouchVIF[%p]::Input:",(const void*)this);
 	for (i=0; i<state.GetTouchCount(); i++) {
 		emDLog(
 			"  touch: id=%ld x=%g y=%g",

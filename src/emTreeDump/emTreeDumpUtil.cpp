@@ -39,7 +39,7 @@ static emString emTreeDump_GetClassName(const type_info & t)
 	char * buf;
 	int status;
 
-	buf=abi::__cxa_demangle(t.name(),NULL,0,&status);
+	buf=abi::__cxa_demangle(t.name(),NULL,NULL,&status);
 	if (buf!=NULL && status==0) name=buf;
 	else name=t.name();
 	if (buf) free(buf);
@@ -263,7 +263,7 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 			asPanel->GetLayoutHeight()
 		);
 		text+=emString::Format("\nHeight: %.9G",asPanel->GetHeight());
-		asPanel->GetEssenceRect(&d1,&d2,&d3,&d4),
+		asPanel->GetEssenceRect(&d1,&d2,&d3,&d4);
 		text+=emString::Format(
 			"\nEssence XYWH: %.9G, %.9G, %.9G, %.9G",
 			d1,d2,d3,d4

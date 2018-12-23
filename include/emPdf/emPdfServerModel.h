@@ -75,7 +75,9 @@ public:
 
 	struct PageInfo {
 		PageInfo();
+		PageInfo(const PageInfo & pageInfo);
 		~PageInfo();
+		PageInfo & operator = (const PageInfo & pageInfo);
 		double Width;
 		double Height;
 		emString Label;

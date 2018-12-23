@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>.h
 //
-// Copyright (C) 2005-2010,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -237,7 +237,9 @@
                 <SPAN CLASS=c>// Only to be called through overloaded versions of
                 // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>::CreateWindowPort.
 
-        </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; GetWindow() <SPAN CLASS=t>const</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>();
+
+        <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> &amp; GetWindow() <SPAN CLASS=t>const</SPAN>;
 
 <SPAN CLASS=t>protected</SPAN>:
 

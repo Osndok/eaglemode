@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.h
 //
-// Copyright (C) 2005-2010,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -227,6 +227,8 @@ public:
 	emWindowPort(emWindow & window);
 		// Only to be called through overloaded versions of
 		// emScreen::CreateWindowPort.
+
+	virtual ~emWindowPort();
 
 	emWindow & GetWindow() const;
 

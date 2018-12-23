@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.h
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -169,17 +169,19 @@ private:
 	void CalcTotalColsRows(int * pCols, int * pRows) const;
 	int GetNormalizedIndex(int index) const;
 	void ModifySelection(int oldColumn, int newColumn, bool publish);
-	int GetNextIndex(int index) const;
+	emMBState GetMBStateAtIndex(int index) const;
+	int GetNextIndex(int index, emMBState * mbState=NULL) const;
 	int GetPrevIndex(int index) const;
-	int GetNextWordBoundaryIndex(int index, bool * pIsDelimiter=NULL) const;
+	int GetNextWordBoundaryIndex(int index, bool * pIsDelimiter=NULL,
+	                             emMBState * mbState=NULL) const;
 	int GetPrevWordBoundaryIndex(int index, bool * pIsDelimiter=NULL) const;
-	int GetNextWordIndex(int index) const;
+	int GetNextWordIndex(int index, emMBState * mbState=NULL) const;
 	int GetPrevWordIndex(int index) const;
 	int GetRowStartIndex(int index) const;
 	int GetRowEndIndex(int index) const;
-	int GetNextRowIndex(int index) const;
+	int GetNextRowIndex(int index, emMBState * mbState=NULL) const;
 	int GetPrevRowIndex(int index) const;
-	int GetNextParagraphIndex(int index) const;
+	int GetNextParagraphIndex(int index, emMBState * mbState=NULL) const;
 	int GetPrevParagraphIndex(int index) const;
 
 	emRef<emClipboard> Clipboard;

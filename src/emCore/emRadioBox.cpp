@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioBox.cpp
 //
-// Copyright (C) 2005-2011,2014 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,4 +30,8 @@ emRadioBox::emRadioBox(
 	SetOuterBorderType(OBT_MARGIN);
 	SetLabelAlignment(EM_ALIGN_LEFT);
 	SetShownBoxed(true);
+}
+
+emRadioBox::~emRadioBox()
+{
 }

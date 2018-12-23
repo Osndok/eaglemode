@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasterGroup.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,8 @@ public:
 		const emString & description=emString(),
 		const emImage & icon=emImage()
 	);
+
+	virtual ~emRasterGroup();
 };
 
 

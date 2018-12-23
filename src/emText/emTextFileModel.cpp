@@ -422,6 +422,7 @@ bool emTextFileModel::TryContinueLoading()
 		L->Pos=L->StartPos;
 		L->Col=0;
 		L->Row=1;
+		L->MBState.Clear();
 		L->Stage=13;
 		break;
 	case 13:
@@ -464,6 +465,10 @@ bool emTextFileModel::TryContinueLoading()
 							n=emDecodeUtf8Char(&c,p+i-1,cnt-i+1);
 							if (n>1) i+=n-1;
 						}
+						else if (CharEncoding==CE_8BIT && !emIsUtf8System()) {
+							n=emDecodeChar(&c,p+i-1,cnt-i+1,&L->MBState);
+							if (n>1) i+=n-1;
+						}
 						else if (
 							c>=0xD800 && c<=0xDBFF && i<cnt &&
 							(CharEncoding==CE_UTF16LE || CharEncoding==CE_UTF16BE)
@@ -495,6 +500,7 @@ bool emTextFileModel::TryContinueLoading()
 		L->Col=0;
 		L->Col1=ColumnCount;
 		L->Col2=0;
+		L->MBState.Clear();
 		L->Stage=15;
 		break;
 	case 15:
@@ -546,6 +552,10 @@ bool emTextFileModel::TryContinueLoading()
 					if (c>=128) {
 						if (CharEncoding==CE_UTF8) {
 							n=emDecodeUtf8Char(&c,p+i-1,cnt-i+1);
+							if (n>1) i+=n-1;
+						}
+						else if (CharEncoding==CE_8BIT && !emIsUtf8System()) {
+							n=emDecodeChar(&c,p+i-1,cnt-i+1,&L->MBState);
 							if (n>1) i+=n-1;
 						}
 						else if (

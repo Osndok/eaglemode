@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2011,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016-2018 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -247,8 +247,8 @@ bool emAvFilePanel::Cycle()
 		t=emGetClockMS()-WarningStartTime;
 		t=emMin(128+127*t/500,255-(t-1500)*192/2500);
 		if (t<24) t=0; else if (t>216) t=216;
-		if (WarningAlpha!=t) {
-			WarningAlpha=t;
+		if (WarningAlpha!=(emByte)t) {
+			WarningAlpha=(emByte)t;
 			InvalidatePainting(EX,EY,EW,EH);
 		}
 		if (WarningAlpha>0) busy=true;
