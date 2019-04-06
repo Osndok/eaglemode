@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.cpp
 //
-// Copyright (C) 2008-2009,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,7 +81,7 @@ void emX11_TryLoadLibXext()
 				);
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emX11_LibXextLoadMutex.Unlock();
 			throw exception;
 		}
@@ -148,7 +148,7 @@ void emX11_TryLoadLibXxf86vm()
 				);
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emX11_LibXxf86vmLoadMutex.Unlock();
 			throw exception;
 		}
@@ -215,7 +215,7 @@ void emX11_TryLoadLibXinerama()
 				);
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emX11_LibXineramaLoadMutex.Unlock();
 			throw exception;
 		}

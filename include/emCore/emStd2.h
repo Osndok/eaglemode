@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011,2014-2015,2018 Oliver Hamann.
+// Copyright (C) 2004-2011,2014-2015,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -160,6 +160,12 @@ void emTrySaveFile(const char * path,
 void emTryMakeDirectories(const char * path, int mode=0777);
 	// Create a directory and its ancestors, as far as they do not exist.
 	// On Windows, the mode argument is ignored.
+
+void emTryRemoveFile(const char * path);
+	// Delete a file.
+
+void emTryRemoveDirectory(const char * path);
+	// Delete an empty directory.
 
 void emTryRemoveFileOrTree(const char * path, bool force=false);
 	// Delete a file or a directory recursively. force=true means to defeat

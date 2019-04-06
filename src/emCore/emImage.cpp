@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -197,7 +197,7 @@ void emImage::TryParseXpm(
 							col.TryParse(tmp);
 							colFound=true;
 						}
-						catch (emException &) {
+						catch (const emException &) {
 						}
 					}
 				}

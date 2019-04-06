@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2012,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -629,7 +629,7 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 		strcat(backupFilePath,backupFileName);
 		logFileMutex.Lock();
 		if (em_stat(logFilePath,&st)==0 && st.st_size>512*1024) {
-			remove(backupFilePath);
+			unlink(backupFilePath);
 			rename(logFilePath,backupFilePath);
 		}
 		f=fopen(logFilePath,"a");
@@ -760,7 +760,7 @@ void emFatalError(const char * format, ...)
 				try {
 					emProcess::TryStartUnmanaged(cmd);
 				}
-				catch (emException &) {
+				catch (const emException &) {
 				}
 			}
 #		endif

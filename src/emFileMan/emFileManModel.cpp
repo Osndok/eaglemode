@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -345,7 +345,7 @@ void emFileManModel::RunCommand(const CommandNode * cmd, emView & contentView)
 	try {
 		emProcess::TryStartUnmanaged(args,extraEnv);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emDialog::ShowMessage(contentView,"Error",exception.GetText());
 	}
 }
@@ -628,7 +628,7 @@ bool emFileManModel::CheckCRCs(const CommandNode * parent)
 	try {
 		names=emTryLoadDir(parent->Dir);
 	}
-	catch (emException &) {
+	catch (const emException &) {
 	}
 	names.Sort(emStdComparer<emString>::Compare);
 	if (parent->DirCRC!=CalcDirCRC(parent->Dir,names)) {
@@ -659,7 +659,7 @@ emUInt64 emFileManModel::CalcDirCRC(
 		try {
 			t=emTryGetFileTime(emGetChildPath(dir,name));
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			t=0;
 		}
 		crc=emCalcCRC64(name.Get(),name.GetLen(),crc);
@@ -704,7 +704,7 @@ void emFileManModel::LoadChildCommands(CommandNode * parent)
 	try {
 		names=emTryLoadDir(parent->Dir);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emWarning("%s",exception.GetText());
 	}
 	names.Sort(emStdComparer<emString>::Compare);
@@ -886,13 +886,13 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 					emGetAbsolutePath(p, emGetInstallPath(EM_IDT_RES,"icons"))
 				);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				try {
 					cmd->Icon=emTryGetInsResImage(
 						GetRootContext(),"icons","error_unknown_icon.tga"
 					);
 				}
-				catch (emException &) {
+				catch (const emException &) {
 				}
 			}
 		}
@@ -903,7 +903,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 				col.TryParse(p);
 				cmd->Look.SetBgColor(col);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				emWarning("In file \"%s\": unknown color: %s",cmdPath.Get(),p);
 			}
 		}
@@ -914,7 +914,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 				col.TryParse(p);
 				cmd->Look.SetFgColor(col);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				emWarning("In file \"%s\": unknown color: %s",cmdPath.Get(),p);
 			}
 		}
@@ -925,7 +925,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 				col.TryParse(p);
 				cmd->Look.SetButtonBgColor(col);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				emWarning("In file \"%s\": unknown color: %s",cmdPath.Get(),p);
 			}
 		}
@@ -936,7 +936,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 				col.TryParse(p);
 				cmd->Look.SetButtonFgColor(col);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				emWarning("In file \"%s\": unknown color: %s",cmdPath.Get(),p);
 			}
 		}
@@ -947,7 +947,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 			try {
 				cmd->Hotkey.TryParse(p);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				emWarning("In file \"%s\": unknown hotkey: %s",cmdPath.Get(),p);
 			}
 		}

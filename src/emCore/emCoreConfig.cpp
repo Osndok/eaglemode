@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.cpp
 //
-// Copyright (C) 2006-2012,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2006-2012,2014,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,12 +69,12 @@ emCoreConfig::emCoreConfig(emContext & context, const emString & name)
 	try {
 		TryLoadOrInstall();
 	}
-	catch (emException &) {
+	catch (const emException &) {
 		try {
 			TryLoadOldVersion();
 			Save(true);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			LoadOrInstall();
 		}
 	}

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -193,7 +193,7 @@ bool emColorField::Cycle()
 			try {
 				Color.TryParse(str);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				Color=oldColor;
 			}
 			Color.SetAlpha(oldColor.GetAlpha());

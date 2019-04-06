@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.cpp
 //
-// Copyright (C) 2006-2009,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -122,7 +122,7 @@ double emTimeZonesModel::GetJulianDate(time_t time)
 			time,UTC_ZONE_ID,&year,&month,&day,NULL,&hour,&minute,&second
 		);
 	}
-	catch (emException &) {
+	catch (const emException &) {
 		return 0.0;
 	}
 	if(month<=2) {
@@ -514,7 +514,7 @@ void emTimeZonesModel::ManageChildProc()
 			);
 			ChildProcState=CP_RUNNING;
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			ChildProc.Terminate();
 			ChildProcState=CP_ERRORED;
 			ChildProcError=exception.GetText();
@@ -542,7 +542,7 @@ void emTimeZonesModel::ManageChildProc()
 				ReadBuf=(char*)realloc(ReadBuf,ReadBufSize);
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			ChildProc.Terminate();
 			ChildProcState=CP_ERRORED;
 			ChildProcError=exception.GetText();

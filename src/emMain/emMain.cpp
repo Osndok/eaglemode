@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2018 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,7 +90,7 @@ private:
 	bool IsXWDialogDone();
 	void SetXWDialogDone();
 
-	void CheckIfInstalledOverOldVersion();
+	static void CheckIfInstalledOverOldVersion();
 
 	emContext & Context;
 
@@ -116,6 +116,9 @@ emMain::emMain(emContext & context, bool serve)
 	FSDialog=NULL;
 	XWDialogDone=false;
 	XWDialog=NULL;
+
+	CheckIfInstalledOverOldVersion();
+
 	if (serve) {
 		name=CalcServerName();
 		emDLog("emMain: MiniIPC server name is \"%s\".",name.Get());
@@ -166,8 +169,6 @@ void emMain::NewWindow(int argc, const char * const argv[])
 	emMainWindow * w;
 	emColor ceColor;
 	int i;
-
-	CheckIfInstalledOverOldVersion();
 
 	if (!IsFSDialogDone()) {
 		if (!FSDialog) {
@@ -231,7 +232,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		try {
 			ceColor.TryParse(optCEColor);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emWarning(
 				"emMain::NewWindow: Could not interpret cecolor option value: %s",
 				exception.GetText()
@@ -388,7 +389,7 @@ bool emMain::IsFSDialogDone()
 	try {
 		buf=emTryLoadFile(GetLAPath());
 	}
-	catch (emException &) {
+	catch (const emException &) {
 		return false;
 	}
 	if (emString(buf.Get(),buf.GetCount())!="yes\n") {
@@ -406,7 +407,7 @@ void emMain::SetFSDialogDone()
 		emTryMakeDirectories(emGetParentPath(GetLAPath()));
 		emTrySaveFile(GetLAPath(),"yes\n",4);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 	FSDialogDone=true;
@@ -505,7 +506,7 @@ void emMain::CheckIfInstalledOverOldVersion()
 		try {
 			file=emTryLoadFile(path);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			continue;
 		}
 		crc32=emCalcCRC32(file.Get(),file.GetCount());
@@ -634,7 +635,7 @@ static int wrapped_main(int argc, char * argv[])
 				sendArgs.Get()
 			);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			fprintf(stderr,"Failed to find server process.\n");
 			return 1;
 		}
@@ -657,7 +658,7 @@ static int wrapped_main(int argc, char * argv[])
 			);
 			return 0;
 		}
-		catch (emException &) {
+		catch (const emException &) {
 		}
 	}
 

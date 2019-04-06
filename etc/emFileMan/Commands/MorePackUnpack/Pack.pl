@@ -38,7 +38,7 @@ if (IsFirstPass()) {
 		$name = $srcName0 . ".";
 	}
 
-	$name=Edit(
+	$name=FilenameEdit(
 		"Pack",
 		"Please enter a file name for the new archive in:\n".
 		"\n".

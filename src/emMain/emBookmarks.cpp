@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014-2016,2018 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -119,7 +119,7 @@ void emBookmarksRec::TryInsertFromClipboard(int index, emClipboard & clipboard)
 	try {
 		tmpRec.TryLoadFromMem(txt.Get(),txt.GetLen());
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		throw emException(
 			"No valid bookmarks in clipboard (%s)",
 			exception.GetText()
@@ -157,7 +157,7 @@ emBookmarkRec * emBookmarksRec::SearchBookmarkByHotkey(const emInputHotkey & hot
 				try {
 					bmhk.TryParse(bm->Hotkey.Get().Get());
 				}
-				catch (emException &) {
+				catch (const emException &) {
 					bmhk=emInputHotkey();
 				}
 				if (bmhk==hotkey) return bm;
@@ -334,7 +334,7 @@ void emBookmarkEntryRec::TryPasteColorsFromClipboard(emClipboard & clipboard)
 	try {
 		tmpRec.TryLoadFromMem(txt.Get(),txt.GetLen());
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		throw emException(
 			"No valid bookmarks in clipboard (%s)",
 			exception.GetText()
@@ -457,37 +457,56 @@ emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 			interpreter="perl";
 			srcPath=emGetInstallPath(EM_IDT_HOST_CONFIG,"emMain","CreateInitialBookmarks.pl");
 #endif
+			if (!emIsExistingPath(srcPath)) {
+				emFatalError("File not found: %s",srcPath.Get());
+			}
 		}
 
-		if (emIsExistingPath(srcPath)) {
-			if (interpreter.IsEmpty()) {
-				try {
-					emTryMakeDirectories(emGetParentPath(recPath));
-					emTryCopyFileOrTree(recPath,srcPath);
-				}
-				catch (emException & exception) {
-					emWarning("%s",exception.GetText());
-				}
+		try {
+			emTryMakeDirectories(emGetParentPath(recPath));
+		}
+		catch (const emException & exception) {
+			emFatalError("%s",exception.GetText());
+		}
+
+		if (interpreter.IsEmpty()) {
+			try {
+				emTryCopyFileOrTree(recPath,srcPath);
 			}
-			else {
-				args.Clear();
-				args.Add(interpreter);
-				args.Add(srcPath);
-				args.Add(recPath);
-				try {
-					emTryMakeDirectories(emGetParentPath(recPath));
-					process.TryStart(args);
-					while (!process.WaitForTermination(60000)) {}
+			catch (const emException & exception) {
+				emFatalError("%s",exception.GetText());
+			}
+		}
+		else {
+			args.Clear();
+			args.Add(interpreter);
+			args.Add(srcPath);
+			args.Add(recPath);
+			try {
+				process.TryStart(args);
+			}
+			catch (const emException & exception) {
+				emFatalError("%s",exception.GetText());
+			}
+			process.WaitForTermination();
+			if (process.GetExitStatus()!=0 || !emIsExistingPath(recPath)) {
+				if (emIsExistingPath(recPath)) {
+					try {
+						emTryRemoveFile(recPath);
+					}
+					catch (const emException &) {
+					}
 				}
-				catch (emException & exception) {
-					emWarning("%s",exception.GetText());
-				}
+				emFatalError(
+					"Failed to create bookmarks by running:\n%s %s %s",
+					interpreter.Get(),srcPath.Get(),recPath.Get()
+				);
 			}
 		}
 	}
 
 	PostConstruct(*this,recPath);
-	LoadOrInstall(NULL);
+	Load();
 
 	Update_0_90_0();
 	Update_0_91_0();
@@ -818,7 +837,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				modified=true;
 				zoomOut=true;
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -904,7 +923,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				entryRec->TryPasteColorsFromClipboard(*clipboard);
 				modified=true;
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -958,7 +977,7 @@ bool emBookmarkEntryAuxPanel::Cycle()
 				modified=true;
 				zoomOut=true;
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -1380,7 +1399,7 @@ bool emBookmarksAuxPanel::Cycle()
 				modified=true;
 				zoomOut=true;
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				if (GetScreen()) GetScreen()->Beep();
 			}
 		}
@@ -1553,13 +1572,13 @@ void emBookmarkButton::Update()
 				)
 			);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			try {
 				img=emTryGetInsResImage(
 					GetRootContext(),"icons","error_unknown_icon.tga"
 				);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				img.Clear();
 			}
 		}
@@ -1758,13 +1777,13 @@ void emBookmarksPanel::Update()
 					)
 				);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				try {
 					img=emTryGetInsResImage(
 						GetRootContext(),"icons","error_unknown_icon.tga"
 					);
 				}
-				catch (emException &) {
+				catch (const emException &) {
 					img.Clear();
 				}
 			}

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008-2010,2012,2014,2018 Oliver Hamann.
+// Copyright (C) 2008-2010,2012,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,7 @@
 
 #include <emAv/emAvServerModel.h>
 #include <emAv/emAvClient.h>
+#include <emAv/emAvImageConverter.h>
 #if defined(_WIN32) || defined(__CYGWIN__)
 #	include <emCore/emThread.h>
 #	include <windows.h>
@@ -54,6 +55,7 @@ emAvServerModel::emAvServerModel(
 	InBufFill=0;
 	OutBufFill=0;
 	OutBufOverflowed=false;
+	ThreadPool=emRenderThreadPool::Acquire(GetRootContext());
 }
 
 
@@ -69,7 +71,7 @@ emAvServerModel::~emAvServerModel()
 			try {
 				r=ServerProc.TryRead(buf,sizeof(buf));
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				break;
 			}
 			if (r>0) continue;
@@ -112,7 +114,7 @@ L_ENTER_IDLE:
 					emProcess::SF_NO_WINDOW
 				);
 			}
-			catch (emException & exception) {
+			catch (const emException & exception) {
 				termProcReason=exception.GetText();
 				goto L_ENTER_TERM_PROC;
 			}
@@ -134,7 +136,7 @@ L_ENTER_BUSY:
 		try {
 			TryDoPipeIO();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			termProcReason=exception.GetText();
 			goto L_ENTER_TERM_PROC;
 		}
@@ -177,7 +179,7 @@ L_ENTER_TERM_PROC:
 			try {
 				r=ServerProc.TryRead(buf,sizeof(buf));
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				break;
 			}
 			if (r<=0) break;
@@ -462,7 +464,7 @@ void emAvServerModel::UpdateShm(Instance * inst)
 			try {
 				TryCreateShm(inst);
 			}
-			catch (emException & exception) {
+			catch (const emException & exception) {
 				if (inst->Client) inst->Client->SetStreamErrored(exception.GetText());
 				return;
 			}
@@ -642,10 +644,9 @@ void emAvServerModel::TransferFrames()
 void emAvServerModel::TransferFrame(Instance * inst)
 {
 	int * shm;
-	emByte * src, * src2, * src3, * map;
-	emByte * t1, * t2, * t3, * s1, * s2, * s3, * s4;
+	const emByte * src, * src2, * src3;
 	int width,height,aspectRatio,format,bpl,bpl2,width2,height2;
-	int w,h,cy,cu,cv,cr,cg,cb,c;
+	emAvImageConverter converter;
 
 	shm=inst->ShmAddr;
 
@@ -675,170 +676,38 @@ void emAvServerModel::TransferFrame(Instance * inst)
 		bpl=shm[5];
 		if (bpl<3*width) goto L_BAD_DATA;
 		if ((int)sizeof(int)*6+bpl*height>inst->ShmSize) goto L_BAD_DATA;
-		w=width;
-		h=height;
-		if (
-			inst->Image.GetWidth()!=w || inst->Image.GetHeight()!=h ||
-			inst->Image.GetChannelCount()!=3
-		) {
-			inst->Image.Setup(w,h,3);
-		}
 		src=(emByte*)(shm+6);
-		map=inst->Image.GetWritableMap();
-		do {
-			h--;
-			memcpy(map+w*3*h,src+bpl*h,w*3);
-		} while(h>0);
+		converter.SetSourceRGB(width,height,bpl,src);
 	}
 	else if (format==1) { // YV12
 		bpl=shm[5];
 		bpl2=shm[6];
 		height2=(height+1)/2;
 		width2=(width+1)/2;
+		if (width<2 || height<2) goto L_BAD_DATA;
 		if (bpl<width) goto L_BAD_DATA;
 		if (bpl2<width2) goto L_BAD_DATA;
 		if ((int)sizeof(int)*7+bpl*height+2*bpl2*height2>inst->ShmSize) goto L_BAD_DATA;
-		w=width&~1;
-		h=height&~1;
-		if (w<=0 || h<=0) goto L_BAD_DATA;
-		if (
-			inst->Image.GetWidth()!=w || inst->Image.GetHeight()!=h ||
-			inst->Image.GetChannelCount()!=3
-		) {
-			inst->Image.Setup(w,h,3);
-		}
-		w>>=1; h>>=1;
 		src=(emByte*)(shm+7);
 		src2=src+bpl*height;
 		src3=src2+bpl2*height2;
-		map=inst->Image.GetWritableMap();
-		do {
-			h--;
-			s1=src+h*2*bpl;
-			s2=s1+bpl;
-			s3=src2+h*bpl2;
-			s4=src3+h*bpl2;
-			t1=map+h*2*w*6;
-			t2=t1+w*6;
-			t3=t2+w*6;
-			do {
-				cu=s3[0]-128;
-				cv=s4[0]-128;
-				cr=409*cv+128;
-				cg=-100*cu-208*cv+128;
-				cb=516*cu+128;
-
-				cy=(s1[0]-16)*298;
-				c=(cr+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[0]=(emByte)c;
-				c=(cg+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[1]=(emByte)c;
-				c=(cb+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[2]=(emByte)c;
-
-				cy=(s1[1]-16)*298;
-				c=(cr+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[3]=(emByte)c;
-				c=(cg+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[4]=(emByte)c;
-				c=(cb+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[5]=(emByte)c;
-
-				cy=(s2[0]-16)*298;
-				c=(cr+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t2[0]=(emByte)c;
-				c=(cg+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t2[1]=(emByte)c;
-				c=(cb+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t2[2]=(emByte)c;
-
-				cy=(s2[1]-16)*298;
-				c=(cr+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t2[3]=(emByte)c;
-				c=(cg+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t2[4]=(emByte)c;
-				c=(cb+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t2[5]=(emByte)c;
-
-				s1+=2;
-				s2+=2;
-				s3++;
-				s4++;
-				t1+=6;
-				t2+=6;
-			} while (t2<t3);
-		} while(h>0);
+		converter.SetSourceI420(width,height,bpl,bpl2,src,src2,src3);
 	}
 	else if (format==2) { // YUY2
 		bpl=shm[5];
+		if (width<2) goto L_BAD_DATA;
 		if (bpl<2*width) goto L_BAD_DATA;
 		if ((int)sizeof(int)*6+bpl*height>inst->ShmSize) goto L_BAD_DATA;
-		w=width&~1;
-		h=height;
-		if (w<=0) goto L_BAD_DATA;
-		if (
-			inst->Image.GetWidth()!=w || inst->Image.GetHeight()!=h ||
-			inst->Image.GetChannelCount()!=3
-		) {
-			inst->Image.Setup(w,h,3);
-		}
-		w>>=1;
 		src=(emByte*)(shm+6);
-		map=inst->Image.GetWritableMap();
-		do {
-			h--;
-			s1=src+h*bpl;
-			t1=map+h*w*6;
-			t2=t1+w*6;
-			do {
-				cu=s1[1]-128;
-				cv=s1[3]-128;
-				cr=409*cv+128;
-				cg=-100*cu-208*cv+128;
-				cb=516*cu+128;
-
-				cy=(s1[0]-16)*298;
-				c=(cr+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[0]=(emByte)c;
-				c=(cg+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[1]=(emByte)c;
-				c=(cb+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[2]=(emByte)c;
-
-				cy=(s1[2]-16)*298;
-				c=(cr+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[3]=(emByte)c;
-				c=(cg+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[4]=(emByte)c;
-				c=(cb+cy)>>8;
-				if ((unsigned)c>255) c=(-c)>>16;
-				t1[5]=(emByte)c;
-
-				s1+=4;
-				t1+=6;
-			} while (t1<t2);
-		} while(h>0);
+		converter.SetSourceYUY2(width,height,bpl,src);
 	}
 	else {
 		goto L_BAD_DATA;
 	}
+
+	converter.SetTarget(&inst->Image);
+
+	converter.Convert(ThreadPool);
 
 	if (inst->Client) {
 		inst->Client->ShowFrame(inst->Image,65536.0/aspectRatio);

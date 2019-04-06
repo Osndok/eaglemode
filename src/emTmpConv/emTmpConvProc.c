@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTmpConvProc.c
 //
-// Copyright (C) 2006-2008,2011,2017 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2017,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,9 +21,9 @@
 
 /*
  * This slave process manages a child process which performs the file
- * conversion. The child process is a /bin/sh (or %COMSPEC% on Windows) which
- * runs the command. That child process gets its own process group for that we
- * are able to terminate all processes in that group.
+ * conversion. The child process is a /bin/sh (or cmd on Windows) which runs the
+ * command. That child process gets its own process group for that we are able
+ * to terminate all processes in that group.
  *
  * This process also listens to several signals (or WM_QUIT on Windows) for
  * terminating itself and the process group properly.
@@ -64,7 +64,6 @@ int main(int argc, char * argv[])
 {
 	HANDLE hReadingThread;
 	HANDLE handles[2];
-	const char * comSpec;
 	char * command;
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
@@ -79,26 +78,10 @@ int main(int argc, char * argv[])
 		ExitProcess(255);
 	}
 
-	comSpec=getenv("COMSPEC");
-	if (!comSpec) {
-		fprintf(stderr,"%s: COMSPEC not found\n",argv[0]);
-		ExitProcess(255);
-	}
-	if (
-		strlen(comSpec)<9 ||
-		stricmp(comSpec+strlen(comSpec)-8,"\\cmd.exe")!=0
-	) {
-		fprintf(
-			stderr,
-			"%s: COMSPEC does not end with \\cmd.exe - I am distrustful.\n"
-			"(COMSPEC is %s)\n",
-			argv[0],comSpec
-		);
-		ExitProcess(255);
-	}
-
-	command=malloc(strlen(comSpec)+strlen(argv[1])+64);
-	sprintf(command,"\"%s\" /C %s",comSpec,argv[1]);
+	/* Note: If we ever say /V:ON below, somehow a quoting of exclamation
+	   marks in file names in %INFILE% and %OUTFILE% would be required. */
+	command=malloc(strlen(argv[1])+64);
+	sprintf(command,"cmd /E:ON /F:OFF /V:OFF /C %s",argv[1]);
 
 	/*???:*/
 	const char * p=getenv("EM_FORCE_TMP_CONV_PROC");

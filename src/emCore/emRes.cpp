@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRes.cpp
 //
-// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,7 +33,7 @@ emImage emGetResImage(
 	try {
 		return emTryGetResImage(rootContext,filePath,channelCount);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 		return emImage();
 	}
@@ -64,7 +64,7 @@ emImage emTryGetResImage(
 				buf.GetCount()
 			);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			throw emException(
 				"Could not read image file \"%s\": %s",
 				absPath.Get(),

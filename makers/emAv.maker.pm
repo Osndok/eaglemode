@@ -16,7 +16,7 @@ sub IsEssential
 
 sub GetFileHandlingRules
 {
-	return ('+exec:^lib/emAv/emAvServerProc_xine$');
+	return ('+exec:^lib/emAv/emAvServerProc_(xine|vlc)$');
 }
 
 sub GetExtraBuildOptions
@@ -65,6 +65,7 @@ sub Build
 		"src/emAv/emAvFileModel.cpp",
 		"src/emAv/emAvFilePanel.cpp",
 		"src/emAv/emAvFpPlugin.cpp",
+		"src/emAv/emAvImageConverter.cpp",
 		"src/emAv/emAvServerModel.cpp",
 		"src/emAv/emAvStates.cpp"
 	)==0 or return 0;

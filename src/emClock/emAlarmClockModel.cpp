@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAlarmClockModel.cpp
 //
-// Copyright (C) 2006-2009,2014 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -135,7 +135,7 @@ bool emAlarmClockModel::Cycle()
 					&hour,&minute,&second
 				);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				hour=minute=second=0;
 			}
 			d=hour*3600+minute*60+second-AlarmSecOfDay;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emConfigModel.cpp
 //
-// Copyright (C) 2006-2008,2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,7 +38,7 @@ void emConfigModel::Save(bool force)
 	try {
 		TrySave(force);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 }
@@ -89,7 +89,7 @@ void emConfigModel::Load()
 	try {
 		TryLoad();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 }
@@ -119,7 +119,7 @@ void emConfigModel::LoadOrInstall(const char * insSrcPath)
 	try {
 		TryLoadOrInstall(insSrcPath);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 }

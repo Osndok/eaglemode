@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011,2014-2015,2018 Oliver Hamann.
+// Copyright (C) 2004-2011,2014-2015,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -169,6 +169,12 @@ emDirHandle emTryOpenDir(<SPAN CLASS=t>const char </SPAN>* path);
 </SPAN><SPAN CLASS=t>void </SPAN>emTryMakeDirectories(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>int </SPAN>mode=<SPAN CLASS=u>0777</SPAN>);
         <SPAN CLASS=c>// Create a directory and its ancestors, as far as they do not exist.
         // On Windows, the mode argument is ignored.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emTryRemoveFile(<SPAN CLASS=t>const char </SPAN>* path);
+        <SPAN CLASS=c>// Delete a file.
+
+</SPAN><SPAN CLASS=t>void </SPAN>emTryRemoveDirectory(<SPAN CLASS=t>const char </SPAN>* path);
+        <SPAN CLASS=c>// Delete an empty directory.
 
 </SPAN><SPAN CLASS=t>void </SPAN>emTryRemoveFileOrTree(<SPAN CLASS=t>const char </SPAN>* path, <SPAN CLASS=t>bool </SPAN>force=<SPAN CLASS=k>false</SPAN>);
         <SPAN CLASS=c>// Delete a file or a directory recursively. force=true means to defeat

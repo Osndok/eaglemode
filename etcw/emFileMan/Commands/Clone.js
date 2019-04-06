@@ -33,12 +33,11 @@ var oldPath=Tgt[0];
 var dir=GetParentPath(oldPath);
 var oldName=GetNameInPath(oldPath);
 
-var newName=Edit(
+var newName=FilenameEdit(
 	"Clone",
 	"Please enter a name for a copy of:\n\n" + oldPath,
 	oldName
 );
-CheckFilename(newName);
 
 var newPath=GetChildPath(dir,newName);
 

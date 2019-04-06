@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -140,7 +140,7 @@ void emRec::SaveToMem(emArray<char> & buf)
 		writer.TryStartWriting(*this,buf);
 		writer.TryFinishWriting();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError(
 			"Unexpected error from emRecMemWriter: %s",
 			exception.GetText()
@@ -164,7 +164,7 @@ void emRec::Copy(emRec & source)
 	try {
 		TryCopy(source);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 }
@@ -1193,7 +1193,7 @@ void emColorRec::TryStartReading(emRecReader & reader)
 		try {
 			val.TryParse(str);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			reader.ThrowElemError(exception.GetText());
 		}
 	}
@@ -2035,7 +2035,7 @@ void emRecReader::TryStartReading(emRec & root)
 		RootQuitPending=true;
 		Root->TryStartReading(*this);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		QuitReading();
 		throw exception;
 	}
@@ -2058,7 +2058,7 @@ bool emRecReader::TryContinueReading()
 		}
 		return true;
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		QuitReading();
 		throw exception;
 	}
@@ -2080,7 +2080,7 @@ void emRecReader::QuitReading()
 		try {
 			TryClose();
 		}
-		catch (emException &) {
+		catch (const emException &) {
 		}
 	}
 	Root=NULL;
@@ -2514,7 +2514,7 @@ void emRecWriter::TryStartWriting(emRec & root)
 		RootQuitPending=true;
 		Root->TryStartWriting(*this);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		QuitWriting();
 		throw exception;
 	}
@@ -2535,7 +2535,7 @@ bool emRecWriter::TryContinueWriting()
 		}
 		return true;
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		QuitWriting();
 		throw exception;
 	}
@@ -2557,7 +2557,7 @@ void emRecWriter::QuitWriting()
 		try {
 			TryClose();
 		}
-		catch (emException &) {
+		catch (const emException &) {
 		}
 	}
 	Root=NULL;

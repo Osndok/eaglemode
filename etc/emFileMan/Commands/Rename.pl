@@ -32,7 +32,7 @@ if (IsFirstPass()) {
 	if (@tgt==1) {
 		my $oldPath=$tgt[0];
 		my ($oldName,$dir)=fileparse($oldPath);
-		my $newName=Edit(
+		my $newName=FilenameEdit(
 			"Rename",
 			"Please enter a new name for:\n\n$oldPath",
 			$oldName
@@ -80,6 +80,7 @@ if (IsFirstPass()) {
 		for (my $i=0; $i<@tgt; $i++) {
 			($n,$d)=fileparse($tgt[$i]);
 			$n=$rp.substr($n,$pl,length($n)-$pl-$ql).$rq;
+			CheckFilename($n);
 			if (-e catfile($d,$n)) {
 				Error("A file or directory named \"$n\" already exists.");
 			}

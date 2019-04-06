@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // font2em.c
 //
-// Copyright (C) 2009-2010,2018 Oliver Hamann.
+// Copyright (C) 2009-2010,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -514,7 +514,7 @@ int main(int argc, char * * argv)
 {
 	const char * fontPath;
 	const char * targetDir;
-	int desiredCharHeight;
+	int desiredCharHeight,res;
 
 	if (argc<3 || argc>4) {
 		fprintf(
@@ -529,7 +529,12 @@ int main(int argc, char * * argv)
 	targetDir=argv[2];
 	desiredCharHeight=(argc>3 ? atoi(argv[3]) : 112);
 
-	if (mkdir(targetDir,0777)!=0 && errno!=EEXIST) {
+#if defined(_WIN32)
+	res=mkdir(targetDir);
+#else
+	res=mkdir(targetDir,0777);
+#endif
+	if (res!=0 && errno!=EEXIST) {
 		fprintf(
 			stderr,
 			"Failed to create directory \"%s\": %s\n",

@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011-2013,2017-2018 Oliver Hamann.
+// Copyright (C) 2011-2013,2017-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -367,14 +367,16 @@ static void emPdfRender(const char * args)
 
 int emPdfServe(int argc, char * argv[])
 {
-	char buf[1024];
-	char * args;
-	int len;
+	char * buf,* args;
+	int bufSize,len;
 
 	gtk_init_check(&argc,&argv);
 	setlocale(LC_NUMERIC,"C");
 
-	while (fgets(buf,sizeof(buf),stdin)) {
+	bufSize=16384;
+	buf=malloc(bufSize);
+
+	while (fgets(buf,bufSize,stdin)) {
 		len=strlen(buf);
 		while (len>0 && (unsigned char)buf[len-1]<32) buf[--len]=0;
 		args=strchr(buf,' ');
@@ -389,6 +391,8 @@ int emPdfServe(int argc, char * argv[])
 		}
 		fflush(stdout);
 	}
+
+	free(buf);
 
 	return 0;
 }

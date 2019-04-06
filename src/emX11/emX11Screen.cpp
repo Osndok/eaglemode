@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2018 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -219,7 +219,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	try {
 		emX11_TryLoadLibXxf86vm();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emWarning("emX11Screen: %s",exception.GetText());
 	}
 	HaveXF86VidMode=false;
@@ -255,7 +255,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	try {
 		emX11_TryLoadLibXinerama();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emWarning("emX11Screen: %s",exception.GetText());
 	}
 	HaveXinerama=false;

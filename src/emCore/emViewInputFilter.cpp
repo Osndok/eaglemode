@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.cpp
 //
-// Copyright (C) 2011-2012,2014-2016,2018 Oliver Hamann.
+// Copyright (C) 2011-2012,2014-2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -760,7 +760,7 @@ void emCheatVIF::Input(emInputEvent & event, const emInputState & state)
 				throw emException("%s",str.Get());
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emWarning("%s",exception.GetText());
 		}
 		if (lib) emCloseLib(lib);

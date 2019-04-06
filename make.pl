@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2011,2014,2017 Oliver Hamann.
+# Copyright (C) 2006-2011,2014,2017,2019 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -36,7 +36,7 @@ use IO::Handle;
 my $ProjectName = 'eaglemode';
 my $ProjectTitle = 'Eagle Mode';
 my $ProjectComment = 'Zoomable user interface with plugin applications';
-my $ProjectIcon = 'res/icons/eaglemode48.png';
+my $ProjectIcon = 'res/icons/eaglemode96.png';
 my $ProjectCategories = 'System;FileManager;';
 my $UniccDir = catfile("makers","unicc");
 my $UtilsDir = catfile("makers","utils");

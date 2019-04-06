@@ -49,7 +49,7 @@ else {
 	}
 }
 
-name=Edit(
+name=FilenameEdit(
 	"Unpack New Dir",
 	"Please enter a name for a new subdirectory in\n"+
 	"\n"+
@@ -62,7 +62,6 @@ name=Edit(
 	"into that new subdirectory.",
 	name
 );
-CheckFilename(name);
 
 var path=GetChildPath(Tgt[0],name);
 

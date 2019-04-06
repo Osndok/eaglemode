@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpUtil.cpp
 //
-// Copyright (C) 2007-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2007-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -433,7 +433,7 @@ extern "C" {
 		try {
 			emTryTreeDumpFileFromRootContext(rootContext,filename);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			*errorBuf=exception.GetText();
 			return false;
 		}

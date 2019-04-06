@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2018 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #if defined(_WIN32)
+#	include <ctype.h>
 #	include <direct.h>
 #	include <io.h>
 #	include <windows.h>
@@ -415,9 +416,11 @@ emString emGetAbsolutePath(const emString & path, const char * cwd)
 			i=3;
 		}
 		else {
-			//??? Bug: could be the wrong drive:
 			if (cwd) absPath=cwd;
 			else absPath=emGetCurrentDirectory();
+			if (tolower(absPath[0])!=tolower(p[0]) || absPath[1]!=':') {
+				emFatalError("emGetAbsolutePath impossible for: %s", path.Get());
+			}
 			cool=false;
 			i=2;
 		}
@@ -429,9 +432,14 @@ emString emGetAbsolutePath(const emString & path, const char * cwd)
 			i=2;
 		}
 		else {
-			if (cwd && cwd[0] && cwd[1]==':') {
-				absPath=emString(cwd,2);
-				absPath+="\\";
+			if (cwd) {
+				if (cwd[0] && cwd[1]==':') {
+					absPath=emString(cwd,2);
+					absPath+="\\";
+				}
+				else {
+					emFatalError("emGetAbsolutePath for %s impossible with cwd %s", path.Get(), cwd);
+				}
 			}
 			else {
 				absPath=emGetCurrentDirectory().GetSubString(0,3);
@@ -767,7 +775,7 @@ emArray<emString> emTryLoadDir(const char * path)
 		try {
 			name=emTryReadDir(dirHandle);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emCloseDir(dirHandle);
 			throw exception;
 		}
@@ -865,55 +873,78 @@ void emTryMakeDirectories(const char * path, int mode)
 }
 
 
+void emTryRemoveFile(const char * path)
+{
+	if (!*path) {
+		throw emException("Cannot to remove file: empty path");
+	}
+	if (unlink(path)!=0) {
+		throw emException(
+			"Failed to remove \"%s\": %s",
+			path,
+			emGetErrorText(errno).Get()
+		);
+	}
+}
+
+
+void emTryRemoveDirectory(const char * path)
+{
+	if (!*path) {
+		throw emException("Cannot to remove directory: empty path");
+	}
+	if (rmdir(path)!=0) {
+		throw emException(
+			"Failed to remove directory \"%s\": %s",
+			path,
+			emGetErrorText(errno).Get()
+		);
+	}
+}
+
+
 void emTryRemoveFileOrTree(const char * path, bool force)
 {
 	emArray<emString> list;
 	struct em_stat st;
-	bool chmodDone;
 	int i;
 
-	if (!emIsExistingPath(path) && !emIsSymLinkPath(path)) {
-		return;
+	if (!*path) {
+		throw emException("Cannot remove file or directory: empty path");
 	}
 
-	chmodDone=false;
-L_TryIt:
-	try {
-		if (emIsDirectory(path) && !emIsSymLinkPath(path)) {
-			list=emTryLoadDir(path);
-			for (i=0; i<list.GetCount(); i++) {
-				emTryRemoveFileOrTree(emGetChildPath(path,list[i]),force);
-			}
-			if (rmdir(path)!=0) {
-				throw emException(
-					"Failed to remove directory \"%s\": %s",
-					path,
-					emGetErrorText(errno).Get()
-				);
-			}
+	if (em_lstat(path,&st)!=0) {
+		throw emException(
+			"Failed to get file information of \"%s\": %s",
+			path,
+			emGetErrorText(errno).Get()
+		);
+	}
+
+	if ((st.st_mode&S_IFMT)==S_IFDIR) {
+		if (force && (st.st_mode&0700)!=0700) {
+			chmod(path,(st.st_mode&07777)|0700);
 		}
-		else {
-			if (remove(path)!=0) {
-				throw emException(
-					"Failed to remove \"%s\": %s",
-					path,
-					emGetErrorText(errno).Get()
-				);
-			}
+		list=emTryLoadDir(path);
+		for (i=0; i<list.GetCount(); i++) {
+			emTryRemoveFileOrTree(emGetChildPath(path,list[i]),force);
+		}
+		if (rmdir(path)!=0) {
+			throw emException(
+				"Failed to remove directory \"%s\": %s",
+				path,
+				emGetErrorText(errno).Get()
+			);
 		}
 	}
-	catch (emException & exception) {
-		if (
-			!force ||
-			chmodDone ||
-			emIsSymLinkPath(path) ||
-			em_stat(path,&st)!=0
-		) {
-			throw exception;
+	else {
+		if (unlink(path)!=0) {
+			throw emException(
+				"Failed to remove \"%s\": %s",
+				path,
+				emGetErrorText(errno).Get()
+			);
 		}
-		chmod(path,(st.st_mode&07777)|0700);
-		chmodDone=true;
-		goto L_TryIt;
 	}
 }
 
@@ -939,7 +970,7 @@ void emTryCopyFileOrTree(const char * targetPath, const char * sourcePath)
 				);
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emCloseDir(dh);
 			throw exception;
 		}

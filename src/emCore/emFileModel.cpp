@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -370,7 +370,7 @@ bool emFileModel::StepLoading()
 		try {
 			ready=TryContinueLoading();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			EndPSAgent();
 			QuitLoading();
 			ResetData();
@@ -384,7 +384,7 @@ bool emFileModel::StepLoading()
 		try {
 			TryFetchDate();
 		}
-		catch (emException & e) {
+		catch (const emException & e) {
 			EndPSAgent();
 			State=FS_LOAD_ERROR;
 			ErrorText=e.GetText();
@@ -395,7 +395,7 @@ bool emFileModel::StepLoading()
 		try {
 			TryStartLoading();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			EndPSAgent();
 			QuitLoading();
 			ResetData();
@@ -435,7 +435,7 @@ bool emFileModel::StepSaving()
 		try {
 			ready=TryContinueSaving();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			EndPSAgent();
 			QuitSaving();
 			State=FS_SAVE_ERROR;
@@ -450,7 +450,7 @@ bool emFileModel::StepSaving()
 		try {
 			TryStartSaving();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			EndPSAgent();
 			QuitSaving();
 			State=FS_SAVE_ERROR;
@@ -468,7 +468,7 @@ bool emFileModel::StepSaving()
 	try {
 		TryFetchDate();
 	}
-	catch (emException & e) {
+	catch (const emException & e) {
 		State=FS_SAVE_ERROR;
 		ErrorText=e.GetText();
 		return true;

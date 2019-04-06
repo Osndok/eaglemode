@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014-2018 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -153,7 +153,7 @@ void emVirtualCosmosModel::Reload()
 	try {
 		fileNames=emTryLoadDir(itemsDir);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 	fileNames.Sort(emStdComparer<emString>::Compare);
@@ -169,7 +169,7 @@ void emVirtualCosmosModel::Reload()
 		try {
 			mt=emTryGetFileTime(path);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emFatalError("%s",exception.GetText());
 			mt=0;
 		}
@@ -201,7 +201,7 @@ void emVirtualCosmosModel::Reload()
 				Items[j].ItemRec->TryLoad(path);
 				Items[j].ItemRec->TryPrepareItemFile(itemFilesDir,itemFilesUserDir);
 			}
-			catch (emException & exception) {
+			catch (const emException & exception) {
 				emWarning("%s",exception.GetText());
 				delete Items[j].ItemRec;
 				Items.Remove(j);

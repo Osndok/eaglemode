@@ -30,6 +30,7 @@ FileTypes = {
  ".mpv"
  ".ogv"
  ".rm"
+ ".ts"
  ".vob"
  ".wmv"
 }

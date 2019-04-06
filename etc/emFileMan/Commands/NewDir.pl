@@ -35,7 +35,7 @@ if (IsFirstPass()) {
 		}
 	}
 
-	$name=Edit(
+	$name=FilenameEdit(
 		"New Dir",
 		"Please enter a name for a new subdirectory in:\n\n$dir",
 		$name

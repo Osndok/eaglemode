@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_gnu.pm
 #
-# Copyright (C) 2006-2011,2013,2017-2018 Oliver Hamann.
+# Copyright (C) 2006-2011,2013,2017-2019 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -143,7 +143,6 @@ sub Compile
 		}
 		if ($GccVersion>=4.7) { push(@args,"-Wno-unused-but-set-variable"); }
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-I$s"); }
-		if ($IsCygwin) { push(@args,"-D_GNU_SOURCE"); }
 		foreach my $s (@{GetDefines()}) { push(@args,"-D$s"); }
 		push(@args,"-c");
 		push(@args,GetSrcFiles->[$index]);

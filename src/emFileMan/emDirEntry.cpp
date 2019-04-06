@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.cpp
 //
-// Copyright (C) 2005-2012,2016 Oliver Hamann.
+// Copyright (C) 2005-2012,2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -141,13 +141,16 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 	Data->Path=path;
 	Data->Name=name;
 	Data->TargetPath=Data->Path;
+	if (IsWindowsDeviceName(name)) {
+		Data->LStatErrNo=ERROR_INVALID_NAME;
+		Data->StatErrNo=ERROR_INVALID_NAME;
+		return;
+	}
 	if (em_stat(Data->Path,&Data->Stat)) {
 		Data->LStatErrNo=errno;
 		Data->StatErrNo=errno;
 		memset(&Data->Stat,0,sizeof(struct em_stat));
 	}
-	Data->Owner="";
-	Data->Group="";
 	if (
 		GetNamedSecurityInfo(
 			(char*)Data->Path.Get(),SE_FILE_OBJECT,
@@ -189,7 +192,7 @@ void emDirEntry::PrivLoad(const emString & path, const emString & name)
 		}
 	}
 #else
-	char tmp[1024];
+	char tmp[PATH_MAX+1];
 #if !defined(ANDROID)
 	struct passwd pwbuf;
 	struct group grbuf;
@@ -260,6 +263,57 @@ void emDirEntry::FreeData()
 	EmptyData.RefCount=UINT_MAX/2;
 	if (Data!=&EmptyData) delete Data;
 }
+
+
+#if defined(_WIN32)
+bool emDirEntry::IsWindowsDeviceName(const char * name)
+{
+	switch (name[0]) {
+	case 'A': case 'a':
+		return
+			(name[1]=='U' || name[1]=='u') &&
+			(name[2]=='X' || name[2]=='x') &&
+			(name[3]=='.' || name[3]==0)
+		;
+	case 'C': case 'c':
+		return
+			(name[1]=='O' || name[1]=='o') &&
+			(
+				(
+					(name[2]=='M' || name[2]=='m') &&
+					name[3]>='0' && name[3]<='9' &&
+					(name[4]=='.' || name[4]==0)
+				) ||
+				(
+					(name[2]=='N' || name[2]=='n') &&
+					(name[3]=='.' || name[3]==0)
+				)
+			)
+		;
+	case 'L': case 'l':
+		return
+			(name[1]=='P' || name[1]=='p') &&
+			(name[2]=='T' || name[2]=='t') &&
+			name[3]>='0' && name[3]<='9' &&
+			(name[4]=='.' || name[4]==0)
+		;
+	case 'N': case 'n':
+		return
+			(name[1]=='U' || name[1]=='u') &&
+			(name[2]=='L' || name[2]=='l') &&
+			(name[3]=='.' || name[3]==0)
+		;
+	case 'P': case 'p':
+		return
+			(name[1]=='R' || name[1]=='r') &&
+			(name[2]=='N' || name[2]=='n') &&
+			(name[3]=='.' || name[3]==0)
+		;
+	default:
+		return false;
+	}
+}
+#endif
 
 
 emDirEntry::SharedData::SharedData()

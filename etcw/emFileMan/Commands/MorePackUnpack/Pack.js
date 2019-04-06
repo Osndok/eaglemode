@@ -40,7 +40,7 @@ for (var i=0; i<Src.length; i++) srcNames[i]=GetNameInPath(Src[i]);
 var name="";
 if (Src.length == 1) name=srcNames[0]+".";
 
-name=Edit(
+name=FilenameEdit(
 	"Pack",
 	"Please enter a file name for the new archive in:\n"+
 	"\n"+
@@ -63,7 +63,6 @@ name=Edit(
 	"  .zip | .jar\n",
 	name
 );
-CheckFilename(name);
 
 var path=GetChildPath(Tgt[0],name);
 if (IsExistingPath(path)) {

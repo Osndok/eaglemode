@@ -40,7 +40,7 @@ if (IsFirstPass()) {
 		}
 	}
 
-	$isoName=Edit(
+	$isoName=FilenameEdit(
 		"Create ISO",
 		"Please enter a name for the new ISO file in:\n\n$isoDir",
 		$isoName

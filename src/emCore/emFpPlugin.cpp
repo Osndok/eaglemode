@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009,2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2006-2009,2011,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -184,7 +184,7 @@ emPanel * emFpPluginList::CreateFilePanel(
 		try {
 			return found->TryCreateFilePanel(parent,name,absolutePath);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			return new emErrorPanel(parent,name,exception.GetText());
 		}
 	}
@@ -208,7 +208,7 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 	try {
 		dirList=emTryLoadDir(dirPath);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("emFpPluginList: %s",exception.GetText());
 	}
 	dirList.Sort(emStdComparer<emString>::Compare);
@@ -220,7 +220,7 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 			try {
 				plugin->TryLoad(pluginPath);
 			}
-			catch (emException & exception) {
+			catch (const emException & exception) {
 				delete plugin;
 				emFatalError("emFpPluginList: %s",exception.GetText());
 			}

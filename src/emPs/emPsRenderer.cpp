@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2011,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2006-2011,2014,2017-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -139,7 +139,7 @@ L_ENTER_PREPARE_PROCESS:
 		try {
 			TryStartProcess();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			FailAllJobs(exception.GetText());
 			goto L_ENTER_COLD_WAIT_JOB;
 		}
@@ -156,7 +156,7 @@ L_ENTER_PREPARE_PROCESS:
 			TryRead();
 			TryWrite();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			FailDocJobs(exception.GetText());
 			goto L_ENTER_QUIT_PROCESS;
 		}
@@ -192,7 +192,7 @@ L_ENTER_RUN_JOB:
 				readProceeded=TryRead();
 				writeProceeded=TryWrite();
 			}
-			catch (emException & exception) {
+			catch (const emException & exception) {
 				FailDocJobs(exception.GetText());
 				goto L_ENTER_QUIT_PROCESS;
 			}

@@ -55,7 +55,7 @@ if (IsFirstPass()) {
 		}
 	}
 
-	$name=Edit(
+	$name=FilenameEdit(
 		"Unpack New Dir",
 		"Please enter a name for a new subdirectory in\n".
 		"\n".

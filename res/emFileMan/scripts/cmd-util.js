@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2012,2016,2018 Oliver Hamann.
+// Copyright (C) 2008-2012,2016,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -17,6 +17,32 @@
 // You should have received a copy of the GNU General Public License version 3
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
+
+
+//=============================== Configuration ================================
+
+// Detect Windows version
+var WinVersion;
+var CurVerRegPath="HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
+try {
+	WinVersion=WshShell.RegRead(CurVerRegPath+"\\CurrentMajorVersionNumber");
+}
+catch (e) {
+	try {
+		WinVersion=WshShell.RegRead(CurVerRegPath+"\\CurrentVersion");
+	}
+	catch (e) {
+		WinVersion=0;
+	}
+}
+
+// Terminal colors.
+var TermBgFg ='70';
+var TCNormal =(WinVersion>=10 ? "\033[30m" : "");
+var TCInfo   =(WinVersion>=10 ? "\033[34m" : "");
+var TCSuccess=(WinVersion>=10 ? "\033[32m" : "");
+var TCError  =(WinVersion>=10 ? "\033[31m" : "");
+var TCClose  =(WinVersion>=10 ? "\033[97m" : "");
 
 
 //====================== Parse arguments / private stuff =======================
@@ -197,6 +223,30 @@ function BatQuoteArg(arg)
 }
 
 
+function BatQuoteForEcho(msg)
+{
+	var str,res,i,c;
+
+	str=msg.toString();
+	res="";
+	for (i=0; i<str.length; i++) {
+		c=str.charAt(i);
+		if (c=='%') {
+			res+='%';
+		}
+		else if (
+			c=='!' || c=='"' || c=='&' || c=='(' || c==')' || c==',' || c==';' ||
+			c=='<' || c=='=' || c=='>' || c=='[' || c=='\'' || c==']' || c=='^' ||
+			c=='`' || c=='{' || c=='|' || c=='}' || c=='~'
+		) {
+			res+='^';
+		}
+		res+=c;
+	}
+	return (res);
+}
+
+
 function WshShellQuoteArg(arg)
 {
 	var str,i;
@@ -247,11 +297,14 @@ function CheckFilename(name)
 			"characters: \" *  ? : < > / | \\"
 		);
 	}
+	if (/^\.?\.?$/.test(name)) {
+		Error("File names must not be empty or consist of just one or two periods.");
+	}
 	if (/[ .]$/.test(name)) {
-		Error("File names must not end with a space or a period.\n");
+		Error("File names must not end with a space or a period.");
 	}
 	if (/^(aux|(com[0-9])|con|(lpt[0-9])|nul|prn)($|\.)/i.test(name)) {
-		Error("The file name is not allowed because it matches a device name.\n");
+		Error("The file name is not allowed because it matches a device name.");
 	}
 }
 
@@ -492,7 +545,19 @@ function Edit(title,text,initial)
 
 	res=DlgRead(["edit",title,text,initial]);
 	if (res==null) WScript.Quit(1);
+	if (/[\x00-\x1F\x7F]/.test(res)) {
+		Error("The edited text contains a control character. That is not allowed.");
+	}
 	return (res);
+}
+
+
+function FilenameEdit(title,text,initial)
+	// Like Edit, but for editing a file or directory name.
+{
+	var name=Edit(title,text,initial);
+	CheckFilename(name);
+	return (name);
 }
 
 
@@ -503,6 +568,9 @@ function PasswordEdit(title,text,initial)
 
 	res=DlgRead(["pwedit",title,text,initial]);
 	if (res==null) WScript.Quit(1);
+	if (/[\x00-\x1F\x7F]/.test(res)) {
+		Error("The password contains a control character. That is not allowed.");
+	}
 	return (res);
 }
 
@@ -713,7 +781,7 @@ function BatBegin(title)
 	}
 	BatWrite(
 		"@echo off\n"+
-		"color 70\n"+
+		"color "+TermBgFg+"\n"+
 		"chcp " + acp + "\n"+
 		"if errorlevel 1 goto _L_ERROR\n"+
 		"title " + title + "\n"+
@@ -722,10 +790,10 @@ function BatBegin(title)
 		"echo Bad args\n"+
 		":_L_ERROR\n"+
 		"echo.\n"+
-		"echo ERROR!\n"+
+		"echo "+TCError+"ERROR!"+TCNormal+"\n"+
 		":_L_WAIT_USER\n"+
 		"echo.\n"+
-		"echo Read the messages, then press enter or close the window.\n"+
+		"echo "+TCClose+"Read the messages, then press enter or close the window."+TCNormal+"\n"+
 		"set /P X=\n"+
 		"exit 1\n"+
 		":_L_START\n"+
@@ -739,22 +807,24 @@ function BatEnd()
 	BatWrite(
 		"if not %ANY_ERROR%==0 goto _L_ERROR\n"+
 		"echo.\n"+
-		"echo SUCCESS!\n"+
+		"echo "+TCSuccess+"SUCCESS!"+TCNormal+"\n"+
 		"echo.\n"+
-		"cscript /nologo " +
+		"cscript " +
 			BatQuoteArg(
 				WshShell.ExpandEnvironmentStrings(
 					"%EM_DIR%\\res\\emFileMan\\scripts\\msleep.js"
 				)
 			) +
-			" 1000\n"
+			" //Nologo 1000\n"
 	);
 	if (BatFileHandle) {
 		BatFileHandle.Close();
 		BatFileHandle=undefined;
 	}
 	if (BatFilePath) {
-		WshShell.Run(WshShellCmdFromArgs(["cmd","/C",BatFilePath,"key892345289"]),1,true);
+		WshShell.Run(WshShellCmdFromArgs(
+			["cmd","/E:ON","/F:OFF","/V:OFF","/C",BatFilePath,"key892345289"]
+		),1,true);
 		FileSys.GetFile(BatFilePath).Delete(true);
 		BatFilePath=undefined;
 	}
@@ -795,12 +865,7 @@ function BatWriteLine(line)
 function BatWriteLineEchoed(line)
 {
 	BatWriteLine("echo.");
-	if (line.indexOf('>')>=0 || line.indexOf('<')>=0 || line.indexOf('|')>=0) {
-		BatWriteLine("echo Running: \"" + line + "\"");
-	}
-	else {
-		BatWriteLine("echo Running: " + line);
-	}
+	BatWriteLine("echo " + TCInfo + BatQuoteForEcho("Running: " + line) + TCNormal);
 	BatWriteLine("echo.");
 	BatWriteLine(line);
 }
@@ -894,129 +959,28 @@ function BatWriteSendSelectCS(files)
 function BatWritePack(format,archive,dir,names)
 {
 	BatWriteCmdEchoed(['cd','/D',dir]);
-	BatWriteLine("if errorlevel 1 goto _L_PACK_ERROR");
-	BatWriteLine("if exist " + BatQuoteArg(archive) + " (");
-	BatWriteCmdEchoed(["del","/F","/Q",archive]);
-	BatWriteLine("if errorlevel 1 goto _L_PACK_ERROR");
-	BatWriteLine(")");
-	var f='x.'+format;
-	if (TestEnding(f,'7z')) {
-		if (!HasAnyEnding(archive)) {
-			BatAbort();
-			Error("Archive file name has no suffix (e.g. \".7z\").");
-			// Otherwise 7z automatically appends ".7z" (would
-			// break the semantics of this script interface).
-		}
-		BatWriteCmdEchoed(ConcatArrays(['7za','a',archive],names));
-	}
-	else if (TestEnding(f,'arc')) {
-		if (!HasAnyEnding(archive) || !IsDosFilename(GetNameInPath(archive))) {
-			BatAbort();
-			Error("arc archive file name must be a DOS file name (<max 8 non-dot chars><dot><max 3 chars>).");
-			// Otherwise arc automatically shortens the file name and
-			// possibly appends ".arc" (would break the semantics of this
-			// script interface).
-		}
-		for (var i=0; i<names.length; i++) {
-			if (IsDirectory(GetChildPath(dir,names[i]))) {
-				BatAbort();
-				Error("Cannot pack a directory with arc.");
-			}
-		}
-		BatWriteCmdEchoed(ConcatArrays(['arc','a',archive],names));
-	}
-	else if (TestEnding(f,'arj')) {
-		if (!HasAnyEnding(archive)) {
-			BatAbort();
-			Error("Archive file name has no suffix (e.g. \".arj\").");
-			// Otherwise arj automatically appends ".arj" (would
-			// break the semantics of this script interface).
-		}
-		for (var i=0; i<names.length; i++) {
-			BatWriteCmdEchoed(['arj','a','-r',archive,names[i]]);
-			BatWriteLine("if errorlevel 1 goto _L_PACK_ERROR");
-		}
-	}
-	else if (TestEnding(f,'lzh') || TestEnding(f,'lha')) {
-		BatWriteCmdEchoed(ConcatArrays(['lha','av',archive],names));
-	}
-	else if (TestEnding(f,'tar')) {
-		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'tar.bz2') || TestEnding(f,'tbz2') ||
-	         TestEnding(f,'tgj')) {
-		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | bzip2 -c > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'tar.gz') || TestEnding(f,'tgz')) {
-		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | gzip -c > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz')) {
-		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | xz --stdout --format=lzma > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
-		BatWriteLineEchoed("tar cvf - "+BatCmdFromArgs(names)+" | xz --stdout > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
-		if (!HasAnyEnding(archive)) {
-			BatAbort();
-			Error("Archive file name has no suffix (e.g. \".zip\").");
-			// Otherwise zip automatically appends ".zip" (would
-			// break the semantics of this script interface).
-		}
-		BatWriteCmdEchoed(ConcatArrays(['zip','-r','-9',archive],names));
-	}
-	else if (TestEnding(f,'bz2')) {
-		if (names.length>1) {
-			BatAbort();
-			Error("Cannot pack multiple files with bzip2.");
-		}
-		if (IsDirectory(GetChildPath(dir,names[0]))) {
-			BatAbort();
-			Error("Cannot pack a directory with bzip2.");
-		}
-		BatWriteLineEchoed("bzip2 -c "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'gz')) {
-		if (names.length>1) {
-			BatAbort();
-			Error("Cannot pack multiple files with gzip.");
-		}
-		if (IsDirectory(GetChildPath(dir,names[0]))) {
-			BatAbort();
-			Error("Cannot pack a directory with gzip.");
-		}
-		BatWriteLineEchoed("gzip -c "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'lzma')) {
-		if (names.length>1) {
-			BatAbort();
-			Error("Cannot pack multiple files with lzma.");
-		}
-		if (IsDirectory(GetChildPath(dir,names[0]))) {
-			BatAbort();
-			Error("Cannot pack a directory with lzma.");
-		}
-		BatWriteLineEchoed("xz --stdout --format=lzma "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'xz')) {
-		if (names.length>1) {
-			BatAbort();
-			Error("Cannot pack multiple files with xz.");
-		}
-		if (IsDirectory(GetChildPath(dir,names[0]))) {
-			BatAbort();
-			Error("Cannot pack a directory with xz.");
-		}
-		BatWriteLineEchoed("xz --stdout "+BatQuoteArg(names[0])+" > "+BatQuoteArg(archive));
-	}
-	else {
-		BatAbort();
-		Error("Packing of "+format+" not supported");
-	}
-	BatWriteCheckError();
-	BatWriteLine("goto _L_PACK_END");
-	BatWriteLine(":_L_PACK_ERROR");
+	BatWriteLine("if errorlevel 1 (");
 	BatWriteSetErrored();
+	BatWriteLine("goto _L_PACK_END");
+	BatWriteLine(")");
+	BatWriteCmdEchoed(
+		ConcatArrays(
+			[
+				"cscript",
+				WshShell.ExpandEnvironmentStrings(
+					"%EM_DIR%\\res\\emFileMan\\scripts\\emArch.js"
+				),
+				"//Nologo",
+				"pack",
+				"-f",
+				format,
+				"--",
+				archive
+			],
+			names
+		)
+	);
+	BatWriteCheckError();
 	BatWriteLine(":_L_PACK_END");
 }
 
@@ -1028,103 +992,20 @@ function BatWriteUnpack(format,archive,dir)
 	BatWriteSetErrored();
 	BatWriteLine("goto _L_UNPACK_END");
 	BatWriteLine(")");
-	var f='x.'+format;
-	if (TestEnding(f,'7z')) {
-		BatWriteCmdEchoed(['7za','x',archive]);
-	}
-	else if (TestEnding(f,'arc')) {
-		BatWriteCmdEchoed(['arc','x',archive]);
-	}
-	else if (TestEnding(f,'arj')) {
-		BatWriteCmdEchoed(['arj','x','-y',archive]);
-	}
-	else if (TestEnding(f,'lzh') || TestEnding(f,'lha')) {
-		BatWriteCmdEchoed(['lha','xv',archive]);
-	}
-	else if (TestEnding(f,'tar')) {
-		BatWriteLineEchoed("tar xvf - < "+BatQuoteArg(archive));
-	}
-	else if (TestEnding(f,'tar.bz2') || TestEnding(f,'tbz2') ||
-	         TestEnding(f,'tgj') || TestEnding(f,'tar.bz') ||
-	         TestEnding(f,'tbz')) {
-		BatWriteLineEchoed("bzip2 -d -c < "+BatQuoteArg(archive)+" | tar xvf -");
-	}
-	else if (TestEnding(f,'tar.gz') || TestEnding(f,'tgz') ||
-	         TestEnding(f,'tar.z') || TestEnding(f,'taz')) {
-		BatWriteLineEchoed("gzip -d -c < "+BatQuoteArg(archive)+" | tar xvf -");
-	}
-	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz') ||
-	         TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
-		BatWriteLineEchoed("xz --decompress --stdout < "+BatQuoteArg(archive)+" | tar xvf -");
-	}
-	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
-		BatWriteCmdEchoed(['unzip',archive]);
-	}
-	else if (TestEnding(f,'bz2') || TestEnding(f,'bz')) {
-		var n=GetNameInPath(archive);
-		var e='';
-		i=n.lastIndexOf('.');
-		if (i>0) {
-			e=n.substr(i);
-			n=n.substr(0,i);
-		}
-		if (e.toLowerCase()=='.bz2') e='';
-		else if (e.toLowerCase()=='.bz') e='';
-		else if (e.toLowerCase()=='.tbz2') e='.tar';
-		else if (e.toLowerCase()=='.tbz') e='.tar';
-		else if (e.toLowerCase()=='.tgz')  e='.tar';
-		else e=e+'.unpacked';
-		n+=e;
-		if (IsExistingPath(n)) {
-			BatAbort();
-			Error("File already exists: "+n);
-		}
-		BatWriteLineEchoed("bzip2 -d -c < "+BatQuoteArg(archive)+" > "+BatQuoteArg(n));
-	}
-	else if (TestEnding(f,'gz') || TestEnding(f,'z')) {
-		var n=GetNameInPath(archive);
-		var e='';
-		i=n.lastIndexOf('.');
-		if (i>0) {
-			e=n.substr(i);
-			n=n.substr(0,i);
-		}
-		if (e.toLowerCase()=='.gz') e='';
-		else if (e.toLowerCase()=='.z') e='';
-		else if (e.toLowerCase()=='.tgz') e='.tar';
-		else if (e.toLowerCase()=='.taz') e='.tar';
-		else e=e+'.unpacked';
-		n+=e;
-		if (IsExistingPath(n)) {
-			BatAbort();
-			Error("File already exists: "+n);
-		}
-		BatWriteLineEchoed("gzip -d -c < "+BatQuoteArg(archive)+" > "+BatQuoteArg(n));
-	}
-	else if (TestEnding(f,'lzma') || TestEnding(f,'xz')) {
-		var n=GetNameInPath(archive);
-		var e='';
-		i=n.lastIndexOf('.');
-		if (i>0) {
-			e=n.substr(i);
-			n=n.substr(0,i);
-		}
-		if (e.toLowerCase()=='.lzma') e='';
-		else if (e.toLowerCase()=='.xz') e='';
-		else if (e.toLowerCase()=='.tlz') e='.tar';
-		else if (e.toLowerCase()=='.txz') e='.tar';
-		else e=e+'.unpacked';
-		n+=e;
-		if (IsExistingPath(n)) {
-			BatAbort();
-			Error("File already exists: "+n);
-		}
-		BatWriteLineEchoed("xz --decompress --stdout < "+BatQuoteArg(archive)+" > "+BatQuoteArg(n));
-	}
-	else {
-		BatAbort();
-		Error("Unpacking of "+format+" not supported");
-	}
+	BatWriteCmdEchoed(
+		[
+			"cscript",
+			WshShell.ExpandEnvironmentStrings(
+				"%EM_DIR%\\res\\emFileMan\\scripts\\emArch.js"
+			),
+			"//Nologo",
+			"unpack",
+			"-f",
+			format,
+			"--",
+			archive
+		]
+	);
 	BatWriteCheckError();
 	BatWriteLine(":_L_UNPACK_END");
 }
@@ -1211,7 +1092,7 @@ function PackType(type)
 	if (Src.length == 1) name = srcNames[0];
 	name = name + '.' + type;
 
-	name=Edit(
+	name=FilenameEdit(
 		"Pack "+type,
 		"Please enter a name for the new "+type+" archive in:\n\n"+Tgt[0],
 		name

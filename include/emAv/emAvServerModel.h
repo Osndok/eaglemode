@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.h
 //
-// Copyright (C) 2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2008,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,6 +37,10 @@
 #include <emCore/emModel.h>
 #endif
 
+#ifndef emRenderThreadPool_h
+#include <emCore/emRenderThreadPool.h>
+#endif
+
 class emAvClient;
 
 
@@ -60,7 +64,7 @@ private:
 	friend class emAvClient;
 
 	enum {
-		MAX_INSTANCES           =512,
+		MAX_INSTANCES           =100,
 		MAX_IN_BUF_SIZE         =65536,
 		MAX_OUT_BUF_SIZE        =1048576,
 		PROC_HOLD_MILLISECS     =5000,
@@ -131,7 +135,7 @@ private:
 	int InBufFill;
 	int OutBufFill;
 	bool OutBufOverflowed;
-
+	emRef<emRenderThreadPool> ThreadPool;
 };
 
 

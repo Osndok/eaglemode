@@ -35,7 +35,7 @@ if (IsFirstPass()) {
 		}
 	}
 
-	$name=Edit(
+	$name=FilenameEdit(
 		"New File",
 		"Please enter a name for a new empty file in:\n\n$dir",
 		$name

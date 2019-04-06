@@ -34,7 +34,7 @@ if (IsFirstPass()) {
 	my @tgt=GetTgt();
 	my $newDir=$tgt[0];
 
-	my $newName=Edit(
+	my $newName=FilenameEdit(
 		"Move As",
 		"Please enter a name for a movement of\n\n  $oldPath\n\ninto\n\n  $newDir",
 		$oldName

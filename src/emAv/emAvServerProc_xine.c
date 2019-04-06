@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2013,2015 Oliver Hamann.
+// Copyright (C) 2008,2010-2013,2015,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,7 +98,7 @@ typedef struct {
 	pthread_mutex_t mutex;
 	int min_shm_size;
 	int shm_size;
-	void volatile * shm_ptr;
+	void * shm_ptr;
 	int crop_left;
 	int crop_right;
 	int crop_top;
@@ -315,7 +315,7 @@ static void emAvInitPipe()
 	}
 
 	emAvPipeOut=dup(STDOUT_FILENO);
-	if (emAvPipeIn==-1) {
+	if (emAvPipeOut==-1) {
 		fprintf(
 			stderr,
 			"emAvServerProc_xine: dup(STDOUT_FILENO) failed: %s\n",
@@ -324,7 +324,7 @@ static void emAvInitPipe()
 		exit(255);
 	}
 	close(STDOUT_FILENO);
-	if (dup2(STDERR_FILENO,STDOUT_FILENO)!=STDOUT_FILENO) {
+	if (dup2(STDERR_FILENO,STDOUT_FILENO)==-1) {
 		fprintf(
 			stderr,
 			"emAvServerProc_xine: dup2(STDERR_FILENO,STDOUT_FILENO) failed: %s\n",
@@ -516,7 +516,7 @@ typedef struct {
 #define EM_AV_WARNING_NO_AUDIO_CODEC  (1<<1)
 #define EM_AV_WARNING_NO_VIDEO_CODEC  (1<<2)
 
-#define EM_AV_MAX_INSTANCES 512
+#define EM_AV_MAX_INSTANCES 100
 static emAvInstance * emAvInstances[EM_AV_MAX_INSTANCES];
 static int emAvInstanceCount=0;
 
@@ -824,7 +824,7 @@ static void emAvPollProperties(int instIndex, int initialize)
 		else {
 			w=xine_get_stream_info(inst->Stream,XINE_STREAM_INFO_VIDEO_WIDTH);
 			h=xine_get_stream_info(inst->Stream,XINE_STREAM_INFO_VIDEO_HEIGHT);
-			if (h) param=(w<<16)/h;
+			if (h) param=((w<<16)+h/2)/h;
 			if (param<=0) param=(4<<16)/3;
 		}
 		emAvSendMsg(instIndex,"set","aspect:%d",param);
@@ -1386,8 +1386,8 @@ static void emAvHandleMsg(int instIndex, const char * tag, const char * data)
 
 int main(int argc, char * argv[])
 {
-	static const int dtInc=1000;
-	static const int dtMax=50000;
+	static const int dtInc=  1000;
+	static const int dtMax= 25000;
 	static const int tPoll=200000;
 	const char * tag, * data;
 	int i,t,dt,instIndex;

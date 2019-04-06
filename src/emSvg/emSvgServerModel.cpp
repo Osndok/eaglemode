@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2010-2011,2014,2017-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -181,7 +181,7 @@ void emSvgServerModel::Poll(unsigned maxMilliSecs)
 			Process.WaitPipes(flags,(unsigned)(endTime-now));
 		}
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		if (!FirstRunningJob) FailAllJobs(exception.GetText());
 		else FailAllRunningJobs(exception.GetText());
 		Process.SendTerminationSignal();

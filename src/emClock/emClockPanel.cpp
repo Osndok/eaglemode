@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockPanel.cpp
 //
-// Copyright (C) 2006-2009,2014,2016 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -613,7 +613,7 @@ void emClockPanel::UpdateTime()
 				InvalidatePainting();
 			}
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			if (TimeError!=exception.GetText()) {
 				TimeError=exception.GetText();
 				CreateOrDestroyChildren();

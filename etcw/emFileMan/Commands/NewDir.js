@@ -35,12 +35,11 @@ for (var i=1; ; i++) {
 	if (!IsExistingPath(GetChildPath(dir,newName))) break;
 }
 
-newName=Edit(
+newName=FilenameEdit(
 	"New Dir",
 	"Please enter a name for a new subdirectory in:\n\n" + dir,
 	newName
 );
-CheckFilename(newName);
 
 var newPath=GetChildPath(dir,newName);
 if (IsExistingPath(newPath)) {

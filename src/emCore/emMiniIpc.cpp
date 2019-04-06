@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2009,2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -395,7 +395,7 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 	try {
 		emTryMakeDirectories(inst->FifoDir,0700);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("emMiniIpc_OpenServer: %s",exception.GetText());
 	}
 
@@ -410,9 +410,9 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 				break;
 			}
 			try {
-				emTryRemoveFileOrTree(inst->FifoPath);
+				emTryRemoveFile(inst->FifoPath);
 			}
-			catch (emException &) {
+			catch (const emException &) {
 				break;
 			}
 		}
@@ -470,10 +470,12 @@ static void emMiniIpc_CloseServer(emMiniIpc_ServerInstance * inst)
 	close(inst->FifoHandle);
 
 	try {
-		emTryRemoveFileOrTree(inst->FifoPath);
-		emTryRemoveFileOrTree(inst->FifoLockPath);
+		emTryRemoveFile(inst->FifoPath);
+		if (emIsExistingPath(inst->FifoLockPath)) {
+			emTryRemoveFile(inst->FifoLockPath);
+		}
 	}
-	catch (emException &) {
+	catch (const emException &) {
 	}
 
 	emMiniIpc_Unlock(lockHandle);
@@ -581,20 +583,25 @@ static void emMiniIpc_CleanUpFiles()
 
 	fifoDir=emMiniIpc_CalcFifoDir();
 
+	if (!emIsExistingPath(fifoDir)) {
+		return;
+	}
+
 	fifoCreationLockPath=emString::Format(
 		"%s/%s",
 		fifoDir.Get(),
 		emMiniIpc_FifoCreationLockFileName
 	);
 
+	lockHandle=emMiniIpc_Lock(fifoCreationLockPath);
+
 	try {
 		list=emTryLoadDir(fifoDir);
 	}
-	catch (emException &) {
+	catch (const emException &) {
+		emMiniIpc_Unlock(lockHandle);
 		return;
 	}
-
-	lockHandle=emMiniIpc_Lock(fifoCreationLockPath);
 
 	for (i=0; i<list.GetCount(); i++) {
 		name=list[i];
@@ -610,9 +617,9 @@ static void emMiniIpc_CleanUpFiles()
 			continue;
 		}
 		try {
-			emTryRemoveFileOrTree(fifoPath);
+			emTryRemoveFile(fifoPath);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 		}
 	}
 
@@ -628,9 +635,9 @@ static void emMiniIpc_CleanUpFiles()
 		if (emIsExistingPath(fifoPath)) continue;
 		fifoLockPath=emGetChildPath(fifoDir,name);
 		try {
-			emTryRemoveFileOrTree(fifoLockPath);
+			emTryRemoveFile(fifoLockPath);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 		}
 	}
 
@@ -661,7 +668,7 @@ void emMiniIpcClient::TrySend(
 	try {
 		emMiniIpc_TrySendAtomic(serverName,data.Get(),data.GetCount());
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		throw emException(
 			"Failed to find or access emMiniIpc server \"%s\" (%s)",
 			serverName,

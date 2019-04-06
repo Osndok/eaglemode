@@ -35,12 +35,11 @@ var oldPath=Src[0];
 var oldName=GetNameInPath(oldPath);
 var newDir=Tgt[0];
 
-var newName=Edit(
+var newName=FilenameEdit(
 	"Move As",
 	"Please enter a name for a movement of\n\n  " + oldPath + "\n\ninto\n\n  " + newDir,
 	oldName
 );
-CheckFilename(newName);
 
 var newPath=GetChildPath(newDir,newName);
 

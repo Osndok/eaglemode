@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.cpp
 //
-// Copyright (C) 2006-2008,2014 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,10 +69,12 @@ void emTmpFile::SetupCustomPath(const emString & customPath)
 void emTmpFile::Discard()
 {
 	if (!Path.IsEmpty()) {
-		try {
-			emTryRemoveFileOrTree(Path,true);
-		}
-		catch (emException &) {
+		if (emIsExistingPath(Path) || emIsSymLinkPath(Path)) {
+			try {
+				emTryRemoveFileOrTree(Path,true);
+			}
+			catch (const emException &) {
+			}
 		}
 		Path.Clear();
 	}
@@ -125,8 +127,11 @@ emTmpFileMaster::~emTmpFileMaster()
 		try {
 			emTryRemoveFileOrTree(DirPath,true);
 		}
-		catch (emException & exception) {
-			emFatalError("emTmpFileMaster: %s",exception.GetText());
+		catch (const emException & exception) {
+			emFatalError(
+				"Failed to remove temporary file or directory:\n%s",
+				exception.GetText()
+			);
 		}
 	}
 }
@@ -158,19 +163,19 @@ void emTmpFileMaster::DeleteDeadDirectories()
 	const char * args[10];
 	emString commonPath;
 	emArray<emString> list;
-	emString nm,srv;
-	int i,l1,l2;
+	emString nm,srv,errors;
+	int i,l1,l2,errCount;
 	bool srvOkay;
 
 	commonPath=GetCommonPath();
 	try {
 		list=emTryLoadDir(commonPath);
 	}
-	catch (emException &) {
+	catch (const emException &) {
 		return;
 	}
 
-	for (i=0; i<list.GetCount(); i++) {
+	for (i=0, errCount=0; i<list.GetCount(); i++) {
 		nm=list[i];
 		l1=strlen(DirNameEnding);
 		l2=nm.GetLen();
@@ -181,15 +186,25 @@ void emTmpFileMaster::DeleteDeadDirectories()
 		try {
 			emMiniIpcClient::TrySend(srv,1,args);
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			srvOkay=false;
 		}
 		if (srvOkay) continue;
 		try {
 			emTryRemoveFileOrTree(emGetChildPath(commonPath,nm),true);
 		}
-		catch (emException &) {
+		catch (const emException & exception) {
+			if (!errors.IsEmpty()) errors+='\n';
+			errors+=exception.GetText();
+			errCount++;
 		}
+	}
+
+	if (errCount>=2) {
+		emFatalError(
+			"Failed to remove old temporary directories:\n%s",
+			errors.Get()
+		);
 	}
 }
 
@@ -216,7 +231,7 @@ void emTmpFileMaster::StartOwnDirectory()
 	try {
 		emTryMakeDirectories(DirPath,0700);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("emTmpFileMaster: %s",exception.GetText());
 	}
 }

@@ -30,7 +30,7 @@ if (IsFirstPass()) {
 	my $oldPath=$tgt[0];
 	my ($oldName, $dir)=fileparse($oldPath);
 
-	my $newName=Edit(
+	my $newName=FilenameEdit(
 		"Clone",
 		"Please enter a name for a copy of:\n\n$oldPath",
 		$oldName

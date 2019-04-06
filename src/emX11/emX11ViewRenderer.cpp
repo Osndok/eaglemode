@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ViewRenderer.cpp
 //
-// Copyright (C) 2016-2018 Oliver Hamann.
+// Copyright (C) 2016-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,7 +39,7 @@ emX11ViewRenderer::emX11ViewRenderer(emX11Screen & screen)
 	try {
 		emX11_TryLoadLibXext();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emWarning("emX11ViewRenderer: %s",exception.GetText());
 	}
 

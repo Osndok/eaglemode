@@ -7,7 +7,7 @@
 Description="\
 emArch.sh
 
-Copyright (C) 2007-2008,2010-2011 Oliver Hamann.
+Copyright (C) 2007-2008,2010-2011,2019 Oliver Hamann.
 
 Homepage: http://eaglemode.sourceforge.net/
 
@@ -171,6 +171,10 @@ case "$Cmd" in
 	pack|p)
 		Cmd=pack
 	;;
+	-h|--help)
+		echo "$Description"
+		exit 0
+	;;
 	*)
 		ErrorBadArgs
 	;;
@@ -287,7 +291,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec 7z a "$ArchFile" "$@"
+exec 7z a -- "$ArchFile" "$@"
 
 ;;
 #----------------------------------- pack ar -----------------------------------
@@ -300,7 +304,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec ar rc "$ArchFile" "$@"
+exec ar rc -- "$ArchFile" "$@"
 
 ;;
 #---------------------------------- pack arc -----------------------------------
@@ -361,7 +365,7 @@ fi
 #   exec arj a -r "$ArchFile" "$@"
 # does not work with multiple directories (tested with ARJ32 v 3.10)
 for i in "$@" ; do
-	arj a -r "$ArchFile" "$i" || exit 1
+	arj a -r -- "$ArchFile" "$i" || exit 1
 done
 
 ;;
@@ -383,7 +387,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec tar cvf "$ArchFile" "$@"
+exec tar cvf "$ArchFile" -- "$@"
 
 ;;
 #-------------------------------- pack tar.bz2 ---------------------------------
@@ -397,7 +401,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - "$@" || SetErrorHint ; } | bzip2 -c > "$ArchFile"
+{ tar cvf - -- "$@" || SetErrorHint ; } | bzip2 -c > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -411,7 +415,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - "$@" || SetErrorHint ; } | gzip -c > "$ArchFile"
+{ tar cvf - -- "$@" || SetErrorHint ; } | gzip -c > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -425,7 +429,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - "$@" || SetErrorHint ; } | xz --stdout --format=lzma > "$ArchFile"
+{ tar cvf - -- "$@" || SetErrorHint ; } | xz --stdout --format=lzma > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -439,7 +443,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - "$@" || SetErrorHint ; } | lzop -c > "$ArchFile"
+{ tar cvf - -- "$@" || SetErrorHint ; } | lzop -c > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -453,7 +457,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - "$@" || SetErrorHint ; } | xz --stdout > "$ArchFile"
+{ tar cvf - -- "$@" || SetErrorHint ; } | xz --stdout > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -480,7 +484,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec zip -r -9 "$ArchFile" "$@"
+exec zip -r -9 "$ArchFile" -- "$@"
 
 ;;
 #---------------------------------- pack zoo -----------------------------------
@@ -530,7 +534,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec bzip2 -c "$1" > "$ArchFile"
+exec bzip2 -c -- "$1" > "$ArchFile"
 
 ;;
 #----------------------------------- pack gz -----------------------------------
@@ -547,7 +551,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec gzip -c "$1" > "$ArchFile"
+exec gzip -c -- "$1" > "$ArchFile"
 
 ;;
 #---------------------------------- pack lzma ----------------------------------
@@ -564,7 +568,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec xz --stdout --format=lzma "$1" > "$ArchFile"
+exec xz --stdout --format=lzma -- "$1" > "$ArchFile"
 
 ;;
 #---------------------------------- pack lzo -----------------------------------
@@ -581,7 +585,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec lzop -c "$1" > "$ArchFile"
+exec lzop -c -- "$1" > "$ArchFile"
 
 ;;
 #----------------------------------- pack xz -----------------------------------
@@ -598,7 +602,7 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec xz --stdout "$1" > "$ArchFile"
+exec xz --stdout -- "$1" > "$ArchFile"
 
 ;;
 #-------------------------------------------------------------------------------

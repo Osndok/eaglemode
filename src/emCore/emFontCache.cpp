@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.cpp
 //
-// Copyright (C) 2009,2014-2018 Oliver Hamann.
+// Copyright (C) 2009,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -180,7 +180,7 @@ void emFontCache::LoadEntry(Entry * entry)
 		try {
 			buf=emTryLoadFile(entry->FilePath);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emFatalError("%s",exception.GetText());
 		}
 		try {
@@ -189,7 +189,7 @@ void emFontCache::LoadEntry(Entry * entry)
 				buf.GetCount()
 			);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emFatalError(
 				"Could not read font file \"%s\": %s",
 				entry->FilePath.Get(),
@@ -236,7 +236,7 @@ void emFontCache::LoadFontDir()
 	try {
 		dir=emTryLoadDir(FontDir);
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText());
 	}
 	dir.Sort(emStdComparer<emString>::Compare);

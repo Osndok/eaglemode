@@ -20,7 +20,7 @@ sub GetFileHandlingRules
 		return ('-install:^res/emFileMan/scripts/(cmd-util\.pl|emArch\.sh)$');
 	}
 	else {
-		return ('-install:^res/emFileMan/scripts/(cmd-util\.js|msleep\.js)$');
+		return ('-install:^res/emFileMan/scripts/(cmd-util\.js|emArch\.js|msleep\.js)$');
 	}
 }
 

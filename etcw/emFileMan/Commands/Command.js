@@ -35,5 +35,9 @@ if (!IsDirectory(dir)) dir=GetParentPath(dir);
 
 WshShell.CurrentDirectory=dir;
 
+var env=WshShell.Environment("PROCESS");
+var interpreter=env("COMSPEC");
+if (interpreter=="") interpreter="cmd";
+
 RestoreOrigPath();
-WshShell.Run("cmd");
+WshShell.Run(WshShellCmdFromArgs([interpreter]));

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.cpp
 //
-// Copyright (C) 2007-2009,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2009,2014-2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -567,7 +567,7 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 			try {
 				DirHandle=emTryOpenDir(DirPath);
 			}
-			catch (emException & exception) {
+			catch (const emException & exception) {
 				RecursiveDetails.State=STATE_ERROR;
 				RecursiveDetails.ErrorMessage=exception.GetText();
 				DirStack.Clear();
@@ -581,7 +581,7 @@ bool emFileManSelInfoPanel::WorkOnDetails()
 		try {
 			name=emTryReadDir(DirHandle);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			RecursiveDetails.State=STATE_ERROR;
 			RecursiveDetails.ErrorMessage=exception.GetText();
 			DirStack.Clear();

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.cpp
 //
-// Copyright (C) 2006-2008,2014,2017 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2017,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -112,7 +112,7 @@ bool emTmpConvModel::Cycle()
 					Signal(ChangeSignal);
 				}
 			}
-			catch (emException &) {
+			catch (const emException &) {
 			}
 			break;
 		case CS_ERROR:
@@ -160,7 +160,7 @@ bool emTmpConvModel::Cycle()
 		try {
 			TryStepConversion();
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			EndPSAgent();
 			Process.Terminate();
 			ErrPipeBuf.Clear(true);
@@ -186,6 +186,7 @@ bool emTmpConvModel::Cycle()
 void emTmpConvModel::TryStepConversion()
 {
 	emArray<emString> args,extraEnv;
+	emString workingDir;
 	char buf[256];
 	int l,r;
 
@@ -206,10 +207,11 @@ void emTmpConvModel::TryStepConversion()
 		args+=Command;
 		extraEnv=emString::Format("INFILE=%s",InputFilePath.Get());
 		extraEnv+=emString::Format("OUTFILE=%s",TmpFile.GetPath().Get());
+		workingDir=emGetParentPath(TmpFile.GetPath());
 		Process.TryStart(
 			args,
 			extraEnv,
-			NULL,
+			workingDir,
 			emProcess::SF_PIPE_STDIN|
 			emProcess::SF_PIPE_STDERR|
 			emProcess::SF_NO_WINDOW

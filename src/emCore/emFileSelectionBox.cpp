@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.cpp
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -608,7 +608,7 @@ void emFileSelectionBox::ReloadListing()
 			names=emTryLoadDir(ParentDir);
 			dirValid=true;
 		}
-		catch (emException &) {
+		catch (const emException &) {
 			names.Clear();
 			dirValid=false;
 		}
@@ -620,7 +620,7 @@ void emFileSelectionBox::ReloadListing()
 		names=emTryLoadDir(ParentDir);
 		dirValid=true;
 	}
-	catch (emException &) {
+	catch (const emException &) {
 		names.Clear();
 		dirValid=false;
 	}

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManTheme.cpp
 //
-// Copyright (C) 2010-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -257,7 +257,7 @@ emFileManThemeNames::emFileManThemeNames(emContext & context, const emString & n
 	try {
 		names=emTryLoadDir(emFileManTheme::GetThemesDirPath());
 	}
-	catch (emException &) {
+	catch (const emException &) {
 		names.Clear();
 	}
 	eLen=strlen(emFileManTheme::ThemeFileEnding);

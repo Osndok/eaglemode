@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2018 Oliver Hamann.
+// Copyright (C) 2004-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,7 +39,7 @@
 
 #define EM_MAJOR_VERSION 0
 #define EM_MINOR_VERSION 94
-#define EM_MICRO_VERSION 0
+#define EM_MICRO_VERSION 1
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 

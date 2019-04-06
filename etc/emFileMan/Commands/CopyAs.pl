@@ -33,7 +33,7 @@ if (IsFirstPass()) {
 	my @tgt=GetTgt();
 	my $newDir=$tgt[0];
 
-	my $newName=Edit(
+	my $newName=FilenameEdit(
 		"Copy As",
 		"Please enter a name for a copy of\n\n  $oldPath\n\nin\n\n  $newDir",
 		$oldName

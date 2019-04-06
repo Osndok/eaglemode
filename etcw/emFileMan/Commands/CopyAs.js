@@ -34,12 +34,11 @@ var oldPath=Src[0];
 var oldName=GetNameInPath(oldPath);
 var newDir=Tgt[0];
 
-var newName=Edit(
+var newName=FilenameEdit(
 	"Copy As",
 	"Please enter a name for a copy of\n\n  " + oldPath + "\n\nin\n\n  " + newDir,
 	oldName
 );
-CheckFilename(newName);
 
 var newPath=GetChildPath(newDir,newName);
 

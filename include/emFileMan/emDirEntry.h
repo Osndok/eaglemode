@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntry.h
 //
-// Copyright (C) 2005-2008,2010-2011,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010-2011,2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -78,6 +78,10 @@ private:
 
 	void PrivLoad(const emString & path, const emString & name);
 	void FreeData();
+
+#if defined(_WIN32)
+	static bool IsWindowsDeviceName(const char * name);
+#endif
 
 	struct SharedData {
 		SharedData();

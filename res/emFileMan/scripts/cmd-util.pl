@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # cmd-util.pl
 #
-# Copyright (C) 2007-2008,2010,2012,2014 Oliver Hamann.
+# Copyright (C) 2007-2008,2010,2012,2014,2019 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -182,6 +182,19 @@ sub GetTgtListing
 	return $l;
 }
 
+#=============================== General Helpers ===============================
+
+sub CheckFilename
+{
+	my $name=shift;
+
+	if ($name =~ /\//) {
+		Error("File names must not contain slashes.");
+	}
+	if ($name =~ /^\.?\.?$/) {
+		Error("File names must not be empty or consist of just one or two periods.");
+	}
+}
 
 #======================== Sending commands to eaglemode ========================
 
@@ -330,7 +343,19 @@ sub Edit
 {
 	my $res=DlgRead("edit",@_);
 	if (!defined($res)) { exit(1); }
+	if ($res =~ /[\x00-\x1F\x7F]/) {
+		Error("The edited text contains a control character. That is not allowed.");
+	}
 	return $res;
+}
+
+
+sub FilenameEdit
+	# Like Edit, but for editing a file or directory name.
+{
+	my $name=Edit(@_);
+	CheckFilename($name);
+	return $name;
 }
 
 
@@ -339,6 +364,9 @@ sub PasswordEdit
 {
 	my $res=DlgRead("pwedit",@_);
 	if (!defined($res)) { exit(1); }
+	if ($res =~ /[\x00-\x1F\x7F]/) {
+		Error("The password contains a control character. That is not allowed.");
+	}
 	return $res;
 }
 
@@ -711,7 +739,7 @@ sub PackType
 		}
 		$name = $name . '.' . $type;
 
-		$name=Edit(
+		$name=FilenameEdit(
 			"Pack $type",
 			"Please enter a name for the new $type archive in:\n\n$dir",
 			$name

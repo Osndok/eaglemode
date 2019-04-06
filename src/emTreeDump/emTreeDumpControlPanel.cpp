@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpControlPanel.cpp
 //
-// Copyright (C) 2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2011,2014-2015,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,7 +97,7 @@ void emTreeDumpControlPanel::RunCommand(int index)
 		try {
 			emProcess::TryStartUnmanaged(args,emArray<emString>(),Dir);
 		}
-		catch (emException & exception) {
+		catch (const emException & exception) {
 			emDialog::ShowMessage(ContentView,"Error",exception.GetText());
 		}
 	}

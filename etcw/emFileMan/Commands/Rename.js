@@ -31,12 +31,11 @@ var oldPath=Tgt[0];
 var dir=GetParentPath(oldPath);
 var oldName=GetNameInPath(oldPath);
 
-var newName=Edit(
+var newName=FilenameEdit(
 	"Rename",
 	"Please enter a new name for:\n\n" + oldPath,
 	oldName
 );
-CheckFilename(newName);
 
 if (oldName == newName) WScript.Quit(0);
 var newPath=GetChildPath(dir,newName);

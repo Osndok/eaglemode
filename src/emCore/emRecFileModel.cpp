@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRecFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,7 +68,7 @@ void emRecFileModel::TryStartLoading()
 	try {
 		Reader->TryStartReading(GetRec(),GetFilePath());
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		ProtectFileState--;
 		throw exception;
 	}
@@ -86,7 +86,7 @@ bool emRecFileModel::TryContinueLoading()
 	try {
 		b=Reader->TryContinueReading();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		ProtectFileState--;
 		throw exception;
 	}
@@ -125,7 +125,7 @@ void emRecFileModel::TryStartSaving()
 	try {
 		Writer->TryStartWriting(GetRec(),GetFilePath());
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		ProtectFileState--;
 		throw exception;
 	}
@@ -141,7 +141,7 @@ bool emRecFileModel::TryContinueSaving()
 	try {
 		b=Writer->TryContinueWriting();
 	}
-	catch (emException & exception) {
+	catch (const emException & exception) {
 		ProtectFileState--;
 		throw exception;
 	}
