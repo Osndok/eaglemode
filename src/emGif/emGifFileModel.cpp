@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -83,7 +83,7 @@ void emGifFileModel::RenderImage(int index, emImage * image) const
 	sbits=8;
 	ccnt=image->GetChannelCount();
 	transp=r->Transparent;
-	t0=image->GetWritableMap()+(image->GetWidth()*r->Y+r->X)*ccnt;
+	t0=image->GetWritableMap()+(image->GetWidth()*(size_t)r->Y+r->X)*ccnt;
 	td1=r->Width*ccnt;
 	s=(emByte*)r->Data;
 	se=s+r->DataFill;
@@ -99,7 +99,7 @@ void emGifFileModel::RenderImage(int index, emImage * image) const
 				y=dy>>1;
 			}
 		}
-		t=t0+image->GetWidth()*y*ccnt;
+		t=t0+image->GetWidth()*(size_t)y*ccnt;
 		txe=t+td1;
 		do {
 			if (b>=be) {

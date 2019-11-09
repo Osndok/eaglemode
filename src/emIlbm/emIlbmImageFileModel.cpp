@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,9 +55,11 @@ void emIlbmImageFileModel::TryStartLoading()
 	L->Height=0;
 	L->Depth=0;
 	L->Compress=0;
+	L->NextY=0;
 	L->File=NULL;
 	L->Palette=NULL;
-	L->Body=NULL;
+	L->RowBuf=NULL;
+	L->BodyPos=0;
 
 	L->File=fopen(GetFilePath(),"rb");
 	if (!L->File) throw emException("%s",emGetErrorText(errno).Get());
@@ -76,16 +78,17 @@ void emIlbmImageFileModel::TryStartLoading()
 
 bool emIlbmImageFileModel::TryContinueLoading()
 {
-	unsigned char * map, * row, * bm, * p;
-	int name,size;
-	int x,y,bb,b,d,pbw,c,cb;
+	unsigned char * map, * row, * bm;
+	long size;
+	int name,x,y,bb,b,d,pbw,c,cb;
 
-	if (!L->HeaderFound || !L->Palette || !L->Body) {
+	if (!L->BodyPos || !L->Palette || !L->HeaderFound) {
 		name=Read32();
-		size=Read32();
+		size=(emUInt32)Read32();
 		if (ferror(L->File)) goto ErrFile;
 		if (feof(L->File)) goto ErrFormat;
 		if (name==0x424D4844/*BMHD*/) {
+			if (size<11) goto ErrFormat;
 			L->Width=Read16();
 			L->Height=Read16();
 			Read32();
@@ -99,17 +102,16 @@ bool emIlbmImageFileModel::TryContinueLoading()
 			L->HeaderFound=true;
 		}
 		else if (name==0x434D4150/*CMAP*/) {
-			if (!L->HeaderFound || L->Palette) goto ErrFormat;
+			if (!L->HeaderFound || L->Palette || size<(3<<L->Depth)) goto ErrFormat;
 			L->Palette=new unsigned char[3<<L->Depth];
 			if (fread(L->Palette,1,3<<L->Depth,L->File)!=(size_t)(3<<L->Depth)) goto ErrFormat;
 			fseek(L->File,((size+1)&~1)-(3<<L->Depth),SEEK_CUR);
 			if (ferror(L->File)) goto ErrFile;
 		}
 		else if (name==0x424F4459/*BODY*/) {
-			if (!L->HeaderFound || L->Body) goto ErrFormat;
-			L->Body=new unsigned char[size];
-			if (fread(L->Body,1,size,L->File)!=(size_t)size) goto ErrFormat;
-			fseek(L->File,((size+1)&~1)-size,SEEK_CUR);
+			if (!L->HeaderFound || L->BodyPos) goto ErrFormat;
+			L->BodyPos=ftell(L->File);
+			fseek(L->File,(size+1)&~1,SEEK_CUR);
 			if (ferror(L->File)) goto ErrFile;
 		}
 		else {
@@ -119,12 +121,18 @@ bool emIlbmImageFileModel::TryContinueLoading()
 		return false;
 	}
 
-	Image.Setup(L->Width,L->Height,3);
-	map=Image.GetWritableMap();
-	pbw=((L->Width+15)&0xfff0)>>3;
-	p=L->Body;
-	row=new unsigned char[L->Width+15];
-	for(y=0; y<L->Height; y++) {
+	if (!L->RowBuf) {
+		L->RowBuf=new unsigned char[L->Width+15];
+		fseek(L->File,L->BodyPos,SEEK_SET);
+		Image.Setup(L->Width,L->Height,3);
+		return false;
+	}
+
+	if (L->NextY<L->Height) {
+		y=L->NextY++;
+		map=Image.GetWritableMap()+y*(size_t)Image.GetWidth()*Image.GetChannelCount();
+		pbw=((L->Width+15)&0xfff0)>>3;
+		row=L->RowBuf;
 		memset(row,0,L->Width);
 		cb=1;
 		for(d=0; d<L->Depth; d++) {
@@ -132,7 +140,7 @@ bool emIlbmImageFileModel::TryContinueLoading()
 			x=0;
 			if (L->Compress==0) {
 				while (x<pbw) {
-					b=*(p++);
+					b=Read8();
 					for(bb=128; bb!=0; bb>>=1) {
 						if ( (b & bb) !=0) *bm|=(unsigned char)cb;
 						bm++;
@@ -142,11 +150,11 @@ bool emIlbmImageFileModel::TryContinueLoading()
 			}
 			else { // Compress==1
 				while(x<pbw) {
-					c=*(p++);
+					c=Read8();
 					if(c<128) {
 						c=c+x; if (c>=pbw) c=pbw-1;
 						while (x<=c) {
-							b=*(p++);
+							b=Read8();
 							for(bb=128; bb!=0; bb>>=1) {
 								if ( (b & bb) !=0) *bm|=(unsigned char)cb;
 								bm++;
@@ -156,7 +164,7 @@ bool emIlbmImageFileModel::TryContinueLoading()
 					}
 					else if (c!=128) {
 						c=256-c+x; if (c>=pbw) c=pbw-1;
-						b=*(p++);
+						b=Read8();
 						while (x<=c) {
 							for(bb=128; bb!=0; bb>>=1) {
 								if ( (b & bb) !=0) *bm|=(unsigned char)cb;
@@ -175,8 +183,8 @@ bool emIlbmImageFileModel::TryContinueLoading()
 			map[2]=L->Palette[row[x]*3+2];
 			map+=3;
 		}
+		return false;
 	}
-	delete [] row;
 
 	FileFormatInfo=emString::Format(
 		"ILBM %d-bit %s",
@@ -200,7 +208,7 @@ void emIlbmImageFileModel::QuitLoading()
 	if (L) {
 		if (L->File) fclose(L->File);
 		if (L->Palette) delete [] L->Palette;
-		if (L->Body) delete [] L->Body;
+		if (L->RowBuf) delete [] L->RowBuf;
 		delete L;
 		L=NULL;
 	}
@@ -227,7 +235,7 @@ void emIlbmImageFileModel::QuitSaving()
 emUInt64 emIlbmImageFileModel::CalcMemoryNeed()
 {
 	if (L) {
-		return ((emUInt64)L->Width)*L->Height*3;
+		return ((emUInt64)L->Width)*(L->Height*3+1);
 	}
 	else {
 		return ((emUInt64)Image.GetWidth())*
@@ -243,9 +251,11 @@ double emIlbmImageFileModel::CalcFileProgress()
 
 	progress=0.0;
 	if (L) {
-		if (L->HeaderFound) progress+=10.0;
-		if (L->Palette) progress+=30.0;
-		if (L->Body) progress+=59.0;
+		if (L->HeaderFound) progress+=5.0;
+		if (L->Palette) progress+=10.0;
+		if (L->Height>0) {
+			progress+=85.0*L->NextY/L->Height;
+		}
 	}
 	return progress;
 }

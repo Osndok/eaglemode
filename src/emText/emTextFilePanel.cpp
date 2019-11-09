@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2018 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -612,7 +612,7 @@ void emTextFilePanel::PaintAsHex(
 
 	painter.PaintRect(0,0,1,h,colBg,canvasColor);
 
-	rows=(count+15)/16;
+	rows=(int)(((unsigned)count+15)/16);
 	if (!rows) return;
 	cols=73;
 

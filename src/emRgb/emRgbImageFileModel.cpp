@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRgbImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -130,7 +130,7 @@ bool emRgbImageFileModel::TryContinueLoading()
 
 	map=
 		Image.GetWritableMap()+
-		(L->YSize-L->NextY-1)*L->XSize*L->ZUse+L->NextZ
+		(L->YSize-L->NextY-1)*(size_t)L->XSize*L->ZUse+L->NextZ
 	;
 
 	if (L->Storage==0) {

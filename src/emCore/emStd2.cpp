@@ -903,8 +903,180 @@ void emTryRemoveDirectory(const char * path)
 }
 
 
+#ifdef _WIN32
+static emString emW2A(const wchar_t * w)
+{
+	emString str;
+	char * p;
+	int i,l;
+
+	l=WideCharToMultiByte(CP_ACP,0,w,-1,NULL,0,NULL,NULL);
+	if (l>0) {
+		p=str.SetLenGetWritable(l);
+		l=WideCharToMultiByte(CP_ACP,0,w,-1,p,l,NULL,NULL);
+	}
+	if (l<=0) {
+		str.Clear();
+		for (i=0; w[i]; i++) str.Add(w[i]>=32 && w[i]<=126 ? (char)w[i] : '?');
+	}
+	return str;
+}
+#endif
+
+
+#ifdef _WIN32
+static void emTryRemoveFileOrTreeW(const wchar_t * path, bool force)
+{
+	emArray<wchar_t> subPath;
+	WIN32_FIND_DATAW data;
+	HANDLE h;
+	DWORD d;
+
+	if (!*path) {
+		throw emException("Cannot remove file or directory: empty path");
+	}
+
+	d=GetFileAttributesW(path);
+	if (d==INVALID_FILE_ATTRIBUTES) {
+		// Yes, even do not simply return successful on ERROR_FILE_NOT_FOUND,
+		// because we don't want to miss path conversion errors.
+		throw emException(
+			"Failed to get file attributes of \"%s\": %s",
+			emW2A(path).Get(),
+			emGetErrorText(GetLastError()).Get()
+		);
+	}
+	if (force && (d&FILE_ATTRIBUTE_READONLY)!=0) {
+		SetFileAttributesW(path,d&~FILE_ATTRIBUTE_READONLY);
+	}
+	if (d&FILE_ATTRIBUTE_DIRECTORY) {
+		subPath=emArray<wchar_t>(path,lstrlenW(path));
+		subPath.Add(L"\\*.*\0",5);
+		h=FindFirstFileW(subPath.Get(),&data);
+		if (h==INVALID_HANDLE_VALUE) {
+			d=GetLastError();
+			if (d!=ERROR_NO_MORE_FILES) {
+				throw emException(
+					"Failed to read directory \"%s\": %s",
+					emW2A(path).Get(),
+					emGetErrorText(d).Get()
+				);
+			}
+		}
+		else {
+			do {
+				if (
+					data.cFileName[0] &&
+					lstrcmpW(data.cFileName,L".")!=0 &&
+					lstrcmpW(data.cFileName,L"..")!=0
+				) {
+					subPath=emArray<wchar_t>(path,lstrlenW(path));
+					subPath.Add(L"\\",1);
+					subPath.Add(data.cFileName,lstrlenW(data.cFileName)+1);
+					emTryRemoveFileOrTreeW(subPath,force);
+				}
+			} while(FindNextFileW(h,&data));
+			if (GetLastError()!=ERROR_NO_MORE_FILES) {
+				FindClose(h);
+				throw emException(
+					"Failed to read directory: %s",
+					emGetErrorText(GetLastError()).Get()
+				);
+			}
+			FindClose(h);
+		}
+		if (!RemoveDirectoryW(path)) {
+			throw emException(
+				"Failed to remove directory \"%s\": %s",
+				emW2A(path).Get(),
+				emGetErrorText(GetLastError()).Get()
+			);
+		}
+	}
+	else {
+		if (!DeleteFileW(path)) {
+			throw emException(
+				"Failed to remove \"%s\": %s",
+				emW2A(path).Get(),
+				emGetErrorText(GetLastError()).Get()
+			);
+		}
+	}
+}
+#endif
+
+
 void emTryRemoveFileOrTree(const char * path, bool force)
 {
+#ifdef _WIN32
+	emArray<wchar_t> wPath;
+	emString absPath;
+	int i,l;
+
+	// For the (indirect) use by emTmpConv, removal of trees must be quite
+	// reliable. But on Windows, "normal" removal fails if:
+	//  - A path is longer than 260 bytes.
+	//  - A path contains Unicode characters not in the active code page.
+	//  - A file name equals a device name (aux, con, com1, com2, ...).
+	// All these problems can be solved by using wide char functions and
+	// prefixing the absolute path with "\\?\". But care must be taken
+	// because "\\?\" brings some certain behavior:
+	//  - Slashes are not implicitly converted to backslashes.
+	//  - "." and ".." are losing their meaning.
+	//  - File names can contain characters like "<", ">" and "|"
+	// (Hint: There is the alternative prefix "\\.\", but that one does not
+	// help with long paths.)
+
+	static const struct VersionTester {
+		bool result;
+		VersionTester()
+		{
+			// From which Windows version on is the \\?\ path prefix
+			// supported? I could not find it out, but I could test
+			// XP (5.1).
+			static const unsigned long minWinVer[2] = { 5, 1 };
+			OSVERSIONINFO osvi;
+			memset(&osvi,0,sizeof(osvi));
+			osvi.dwOSVersionInfoSize=sizeof(osvi);
+			GetVersionEx(&osvi);
+			result=
+				osvi.dwMajorVersion > minWinVer[0] || (
+					osvi.dwMajorVersion == minWinVer[0] &&
+					osvi.dwMinorVersion >= minWinVer[1]
+				)
+			;
+		}
+	} versionTester;
+
+	absPath=emGetAbsolutePath(path);
+
+	if (versionTester.result) {
+		if (absPath[0] && absPath[1]==':' && (absPath[2]=='\\' || absPath[2]=='/')) {
+			for (i=0; absPath[i]; i++) {
+				if (absPath[i]=='/') absPath.Replace(i,1,"\\");
+			}
+			absPath.Insert(0,"\\\\?\\");
+		}
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	l=MultiByteToWideChar(CP_ACP,0,absPath.Get(),-1,NULL,0);
+	if (l>0) {
+		wPath.SetCount(l+1);
+		wPath.Set(l,0);
+		l=MultiByteToWideChar(CP_ACP,0,absPath.Get(),-1,wPath.GetWritable(),l);
+	}
+	if (l<=0 || GetLastError()!=ERROR_SUCCESS) {
+		throw emException(
+			"Failed to convert path \"%s\" to wide char: %s",
+			absPath.Get(),emGetErrorText(GetLastError()).Get()
+		);
+	}
+
+	emTryRemoveFileOrTreeW(wPath,force);
+
+#else
+
 	emArray<emString> list;
 	struct em_stat st;
 	int i;
@@ -946,6 +1118,7 @@ void emTryRemoveFileOrTree(const char * path, bool force)
 			);
 		}
 	}
+#endif
 }
 
 

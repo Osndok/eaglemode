@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2010,2014-2017 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2017,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -452,7 +452,7 @@ void emCoreConfigPanel::KineticGroup::AutoExpand()
 		this,"VisitSpeed",
 		"Speed of changing location",
 		"This controls the speed of scrolling and zooming for logical\n"
-		"position changes by keys and bookmarks.",emImage(),
+		"position changes by keys, bookmarks, and autoplay.",emImage(),
 		Config,&Config->VisitSpeed
 	);
 }

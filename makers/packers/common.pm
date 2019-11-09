@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # common.pm
 #
-# Copyright (C) 2010-2014,2017 Oliver Hamann.
+# Copyright (C) 2010-2014,2017,2019 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -82,7 +82,7 @@ $V{'DEB_BUILD_DEPENDS'}=
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
 	'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libxine2, librsvg2-2, '.
-	'libpoppler-glib8, libfreetype6';
+	'libpoppler-glib8, libgtk2.0-0, libfreetype6';
 $V{'DEB_RECOMMENDS'}=
 	'abiword, genisoimage, htmldoc, netpbm, transfig';
 
@@ -109,6 +109,7 @@ $V{'RPM_REQUIRES'}=
 	" libxine.so.2()(64bit)".
 	" librsvg-2.so.2()(64bit)".
 	" libpoppler-glib.so.8()(64bit)".
+	" libgtk-x11-2.0.so.0()(64bit)".
 	" libfreetype.so.6()(64bit)".
 	"\n".
 	"\%else\n".
@@ -123,6 +124,7 @@ $V{'RPM_REQUIRES'}=
 	" libxine.so.2".
 	" librsvg-2.so.2".
 	" libpoppler-glib.so.8".
+	" libgtk-x11-2.0.so.0".
 	" libfreetype.so.6".
 	"\n".
 	"\%endif\n";

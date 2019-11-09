@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -147,7 +147,12 @@ void emPngImageFileModel::TryStartLoading()
 	png_read_update_info(L->png_ptr, L->info_ptr);
 	rowbytes=png_get_rowbytes(L->png_ptr,L->info_ptr);
 	L->bytes_per_pixel=rowbytes/L->width;
-	if (rowbytes%L->width!=0 || L->bytes_per_pixel<1 || L->bytes_per_pixel>4) {
+	if (
+		rowbytes%L->width!=0 ||
+		L->bytes_per_pixel<1 || L->bytes_per_pixel>4 ||
+		L->width<1 || L->width>0x7fffff ||
+		L->height<1 || L->height>0x7fffff
+	) {
 		throw emException("Unsupported PNG format.");
 	}
 
@@ -182,7 +187,7 @@ bool emPngImageFileModel::TryContinueLoading()
 	if (L->y<(int)L->height && L->pass<L->number_of_passes) {
 		png_read_row(
 			L->png_ptr,
-			Image.GetWritableMap()+L->y*Image.GetWidth()*Image.GetChannelCount(),
+			Image.GetWritableMap()+L->y*(size_t)Image.GetWidth()*Image.GetChannelCount(),
 			NULL
 		);
 		L->y++;

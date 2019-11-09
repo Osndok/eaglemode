@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Advanced Configuration</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010,2016,2018 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010,2016,2018-2019 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -228,11 +228,13 @@ The library is called <TT>emTmpConv</TT> and the function is
 
   { Name="Command" Value="insert your script here" }
     # Specifies the shell script for performing the conversion. It is executed
-    # by emTmpConv with /bin/sh -c &lt;script&gt;. Two important environment variables
-    # are defined:
-    #  $INFILE  - Absolute path of the original file to be read by the script.
-    #  $OUTFILE - Absolute path of the temporary file (or directory) to be
-    #             created by the script.
+    # by emTmpConv with /bin/sh -c &lt;script&gt; (on Windows: cmd /E:ON /F:OFF
+    # /V:ON /C &lt;script&gt;). Two important environment variables are defined:
+    #  $INFILE  (on Windows: %INFILE%)  - Absolute path of the original file to
+    #                                     be read by the script.
+    #  $OUTFILE (on Windows: %OUTFILE%) - Absolute path of the temporary file
+    #                                     (or directory) to be created by the
+    #                                     script.
     # On failure, the script should print an error message to stderr and it
     # should exit with a non-zero return value.
 }</TT></PRE>
@@ -244,12 +246,14 @@ Hints for making the shell scripts:
 <LI>It is always a good idea to resolve path variables with double-quotes, for
 the case a path contains spaces (and remember to quote the double-quotes). Thus,
 say <TT>\"$INFILE\"</TT> and <TT>\"$OUTFILE\"</TT> instead of just
-<TT>$INFILE</TT> and <TT>$OUTFILE</TT>.</LI><P>
+<TT>$INFILE</TT> and <TT>$OUTFILE</TT> (on Windows please say
+<TT>\"%INFILE%\"</TT> and <TT>\"%OUTFILE%\"</TT>).</LI><P>
 <LI>The script and the programs it calls should be quite stable and secure. No
 file must be created, modified or deleted falsely.</LI><P>
 <LI>The script should not depend on the current working directory. It is
 undefined per definition.</LI><P>
-<LI>It is allowed to insert line breaks within the script.</LI><P>
+<LI>On Windows, the script must not contain any line breaks.</LI><P>
+<LI>On Windows, a pipe (|) in the script won't work.</LI><P>
 </UL>
 <P>
 For examples of emTmpConv configurations, please see all the files named like

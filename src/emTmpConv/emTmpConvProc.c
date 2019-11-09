@@ -88,14 +88,14 @@ int main(int argc, char * argv[])
 	if (!p || stricmp(p,"yes")!=0) {
 		fprintf(
 			stderr,
-			"%s: This is not tested enough. (Would call: %s)\n",
+			"%s: This is not tested enough.\n"
+			"Would call: %s\n"
+			"To enable for a test, set environment variable EM_FORCE_TMP_CONV_PROC=yes\n",
 			argv[0],command
 		);
 		/*
 		 * And still no converters installed and configured in the
-		 * official release. And it is not yet documented that the
-		 * variables are %OUTFILE% and %INFILE% instead of $OUTFILE
-		 * and $INFILE.
+		 * official release.
 		 * Command example: "xwdtopnm < \"%INFILE%\" > \"%OUTFILE%\""
 		 */
 		ExitProcess(255);

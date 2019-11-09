@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2017,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -143,8 +143,11 @@ void emX11WindowPort::RequestFocus()
 	if (!Focused) {
 		if (PostConstructed) {
 			if (!MakeViewable()) return;
+			// The Inter-Client Communication Conventions Manual
+			// version 2.0 chapter "Input Focus" recommends to set
+			// RevertToParent always when calling XSetInputFocus.
 			XMutex.Lock();
-			XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
+			XSetInputFocus(Disp,Win,RevertToParent,Screen.LastKnownTime);
 			XMutex.Unlock();
 		}
 		Focused=true;
@@ -339,6 +342,7 @@ void emX11WindowPort::PreConstruct()
 	double vrx,vry,vrw,vrh,d;
 	int monitor,border;
 	bool haveBorder;
+	Atom atoms[2];
 
 	monitor=0;
 	if (Owner) monitor=Owner->GetWindow().GetMonitorIndex();
@@ -494,6 +498,8 @@ void emX11WindowPort::PreConstruct()
 	XmbSetWMProperties(Disp,Win,Title.Get(),NULL,NULL,0,&xsh,&xwmh,&xch);
 	XMutex.Unlock();
 
+	atoms[0]=Screen.WM_DELETE_WINDOW;
+	atoms[1]=Screen.WM_TAKE_FOCUS;
 	XMutex.Lock();
 	XChangeProperty(
 		Disp,
@@ -502,8 +508,8 @@ void emX11WindowPort::PreConstruct()
 		XA_ATOM,
 		32,
 		PropModeReplace,
-		(const unsigned char*)&Screen.WM_DELETE_WINDOW,
-		1
+		(const unsigned char*)&atoms[0],
+		2
 	);
 	XMutex.Unlock();
 
@@ -536,16 +542,9 @@ void emX11WindowPort::PostConstruct()
 
 	if (Focused) {
 		if (MakeViewable()) {
-			if ((WindowFlags&emWindow::WF_MODAL)!=0 && Owner) {
-				XMutex.Lock();
-				XSetInputFocus(Disp,Win,RevertToParent,CurrentTime);
-				XMutex.Unlock();
-			}
-			else {
-				XMutex.Lock();
-				XSetInputFocus(Disp,Win,RevertToNone,CurrentTime);
-				XMutex.Unlock();
-			}
+			XMutex.Lock();
+			XSetInputFocus(Disp,Win,RevertToParent,Screen.LastKnownTime);
+			XMutex.Unlock();
 		}
 		else {
 			Focused=false;
@@ -941,6 +940,9 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 		if (event.xclient.data.l[0]==(long)Screen.WM_DELETE_WINDOW) {
 			if (ModalDescendants<=0) SignalWindowClosing();
 			else FocusModalDescendant(true);
+		}
+		else if (event.xclient.data.l[0]==(long)Screen.WM_TAKE_FOCUS) {
+			RequestFocus();
 		}
 		return;
 	case PropertyNotify:

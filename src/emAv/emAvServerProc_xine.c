@@ -135,6 +135,15 @@ static void emAv_raw_output_cb(
 		y2=frame_height;
 	}
 
+	if (
+		frame_width<1 || frame_width>0x7fffff ||
+		frame_height<1 || frame_height>0x7fffff ||
+		frame_width*(long)frame_height > 0x3fffffff
+	) {
+		pthread_mutex_unlock(&visual->mutex);
+		return;
+	}
+
 	switch (frame_format) {
 	case XINE_VORAW_YV12:
 		pitch0=8*((frame_width+7)/8);
@@ -148,7 +157,7 @@ static void emAv_raw_output_cb(
 		size0=pitch0*(y2-y1);
 		size1=pitch1*((y2-y1+1)/2);
 		size2=pitch2*((y2-y1+1)/2);
-		headerSize=7*sizeof(int);
+		headerSize=10*sizeof(int);
 		break;
 	case XINE_VORAW_YUY2:
 		pitch0=8*((frame_width+3)/4);
@@ -159,7 +168,7 @@ static void emAv_raw_output_cb(
 		size0=pitch0*(y2-y1);
 		size1=0;
 		size2=0;
-		headerSize=6*sizeof(int);
+		headerSize=7*sizeof(int);
 		break;
 	case XINE_VORAW_RGB:
 		pitch0=3*frame_width;
@@ -169,9 +178,10 @@ static void emAv_raw_output_cb(
 		size0=pitch0*(y2-y1);
 		size1=0;
 		size2=0;
-		headerSize=6*sizeof(int);
+		headerSize=7*sizeof(int);
 		break;
 	default:
+		pthread_mutex_unlock(&visual->mutex);
 		return;
 	}
 	sz=headerSize+size0+size1+size2;
@@ -187,7 +197,10 @@ static void emAv_raw_output_cb(
 			pi[4]=1;
 			pi[5]=pitch0;
 			pi[6]=pitch1;
-			pc=(char volatile *)(pi+7);
+			pi[7]=0;
+			pi[8]=0;
+			pi[9]=0;
+			pc=(char*)(pi+10);
 			memcpy((void*)pc,data0,size0);
 			pc+=size0;
 			memcpy((void*)pc,data1,size1);
@@ -197,12 +210,14 @@ static void emAv_raw_output_cb(
 		case XINE_VORAW_YUY2:
 			pi[4]=2;
 			pi[5]=pitch0;
-			memcpy((void*)(pi+6),data0,size0);
+			pi[6]=0;
+			memcpy((void*)(pi+7),data0,size0);
 			break;
 		case XINE_VORAW_RGB:
 			pi[4]=0;
 			pi[5]=pitch0;
-			memcpy((void*)(pi+6),data0,size0);
+			pi[6]=0;
+			memcpy((void*)(pi+7),data0,size0);
 			break;
 		}
 		pi[0]=1;
@@ -540,90 +555,115 @@ static void emAvSendInfo(int instIndex)
 		int param;
 		const char * name;
 	} params[]={
-		{ XINE_PARAM_SPEED                 , "PARAM_SPEED                  " },
-		{ XINE_PARAM_AV_OFFSET             , "PARAM_AV_OFFSET              " },
-		{ XINE_PARAM_AUDIO_CHANNEL_LOGICAL , "PARAM_AUDIO_CHANNEL_LOGICAL  " },
-		{ XINE_PARAM_SPU_CHANNEL           , "PARAM_SPU_CHANNEL            " },
-		{ XINE_PARAM_VIDEO_CHANNEL         , "PARAM_VIDEO_CHANNEL          " },
-		{ XINE_PARAM_AUDIO_VOLUME          , "PARAM_AUDIO_VOLUME           " },
-		{ XINE_PARAM_AUDIO_MUTE            , "PARAM_AUDIO_MUTE             " },
-		{ XINE_PARAM_AUDIO_COMPR_LEVEL     , "PARAM_AUDIO_COMPR_LEVEL      " },
-		{ XINE_PARAM_AUDIO_AMP_LEVEL       , "PARAM_AUDIO_AMP_LEVEL        " },
-		{ XINE_PARAM_AUDIO_REPORT_LEVEL    , "PARAM_AUDIO_REPORT_LEVEL     " },
-		{ XINE_PARAM_VERBOSITY             , "PARAM_VERBOSITY              " },
-		{ XINE_PARAM_SPU_OFFSET            , "PARAM_SPU_OFFSET             " },
-		{ XINE_PARAM_IGNORE_VIDEO          , "PARAM_IGNORE_VIDEO           " },
-		{ XINE_PARAM_IGNORE_AUDIO          , "PARAM_IGNORE_AUDIO           " },
-		{ XINE_PARAM_IGNORE_SPU            , "PARAM_IGNORE_SPU             " },
-		{ XINE_PARAM_BROADCASTER_PORT      , "PARAM_BROADCASTER_PORT       " },
-		{ XINE_PARAM_METRONOM_PREBUFFER    , "PARAM_METRONOM_PREBUFFER     " },
-		{ XINE_PARAM_EQ_30HZ               , "PARAM_EQ_30HZ                " },
-		{ XINE_PARAM_EQ_60HZ               , "PARAM_EQ_60HZ                " },
-		{ XINE_PARAM_EQ_125HZ              , "PARAM_EQ_125HZ               " },
-		{ XINE_PARAM_EQ_250HZ              , "PARAM_EQ_250HZ               " },
-		{ XINE_PARAM_EQ_500HZ              , "PARAM_EQ_500HZ               " },
-		{ XINE_PARAM_EQ_1000HZ             , "PARAM_EQ_1000HZ              " },
-		{ XINE_PARAM_EQ_2000HZ             , "PARAM_EQ_2000HZ              " },
-		{ XINE_PARAM_EQ_4000HZ             , "PARAM_EQ_4000HZ              " },
-		{ XINE_PARAM_EQ_8000HZ             , "PARAM_EQ_8000HZ              " },
-		{ XINE_PARAM_EQ_16000HZ            , "PARAM_EQ_16000HZ             " },
-		{ XINE_PARAM_AUDIO_CLOSE_DEVICE    , "PARAM_AUDIO_CLOSE_DEVICE     " },
-		{ XINE_PARAM_AUDIO_AMP_MUTE        , "PARAM_AUDIO_AMP_MUTE         " },
-		{ XINE_PARAM_FINE_SPEED            , "PARAM_FINE_SPEED             " },
-		{ -1                               , NULL                            }
+		{ XINE_PARAM_SPEED                   , "PARAM_SPEED                   " },
+		{ XINE_PARAM_AV_OFFSET               , "PARAM_AV_OFFSET               " },
+		{ XINE_PARAM_AUDIO_CHANNEL_LOGICAL   , "PARAM_AUDIO_CHANNEL_LOGICAL   " },
+		{ XINE_PARAM_SPU_CHANNEL             , "PARAM_SPU_CHANNEL             " },
+		{ XINE_PARAM_VIDEO_CHANNEL           , "PARAM_VIDEO_CHANNEL           " },
+		{ XINE_PARAM_AUDIO_VOLUME            , "PARAM_AUDIO_VOLUME            " },
+		{ XINE_PARAM_AUDIO_MUTE              , "PARAM_AUDIO_MUTE              " },
+		{ XINE_PARAM_AUDIO_COMPR_LEVEL       , "PARAM_AUDIO_COMPR_LEVEL       " },
+		{ XINE_PARAM_AUDIO_AMP_LEVEL         , "PARAM_AUDIO_AMP_LEVEL         " },
+		{ XINE_PARAM_AUDIO_REPORT_LEVEL      , "PARAM_AUDIO_REPORT_LEVEL      " },
+		{ XINE_PARAM_VERBOSITY               , "PARAM_VERBOSITY               " },
+		{ XINE_PARAM_SPU_OFFSET              , "PARAM_SPU_OFFSET              " },
+		{ XINE_PARAM_IGNORE_VIDEO            , "PARAM_IGNORE_VIDEO            " },
+		{ XINE_PARAM_IGNORE_AUDIO            , "PARAM_IGNORE_AUDIO            " },
+		{ XINE_PARAM_IGNORE_SPU              , "PARAM_IGNORE_SPU              " },
+		{ XINE_PARAM_BROADCASTER_PORT        , "PARAM_BROADCASTER_PORT        " },
+		{ XINE_PARAM_METRONOM_PREBUFFER      , "PARAM_METRONOM_PREBUFFER      " },
+		{ XINE_PARAM_EQ_30HZ                 , "PARAM_EQ_30HZ                 " },
+		{ XINE_PARAM_EQ_60HZ                 , "PARAM_EQ_60HZ                 " },
+		{ XINE_PARAM_EQ_125HZ                , "PARAM_EQ_125HZ                " },
+		{ XINE_PARAM_EQ_250HZ                , "PARAM_EQ_250HZ                " },
+		{ XINE_PARAM_EQ_500HZ                , "PARAM_EQ_500HZ                " },
+		{ XINE_PARAM_EQ_1000HZ               , "PARAM_EQ_1000HZ               " },
+		{ XINE_PARAM_EQ_2000HZ               , "PARAM_EQ_2000HZ               " },
+		{ XINE_PARAM_EQ_4000HZ               , "PARAM_EQ_4000HZ               " },
+		{ XINE_PARAM_EQ_8000HZ               , "PARAM_EQ_8000HZ               " },
+		{ XINE_PARAM_EQ_16000HZ              , "PARAM_EQ_16000HZ              " },
+		{ XINE_PARAM_AUDIO_CLOSE_DEVICE      , "PARAM_AUDIO_CLOSE_DEVICE      " },
+		{ XINE_PARAM_AUDIO_AMP_MUTE          , "PARAM_AUDIO_AMP_MUTE          " },
+		{ XINE_PARAM_FINE_SPEED              , "PARAM_FINE_SPEED              " },
+		{ XINE_PARAM_EARLY_FINISHED_EVENT    , "PARAM_EARLY_FINISHED_EVENT    " },
+		{ XINE_PARAM_GAPLESS_SWITCH          , "PARAM_GAPLESS_SWITCH          " },
+		{ XINE_PARAM_DELAY_FINISHED_EVENT    , "PARAM_DELAY_FINISHED_EVENT    " },
+		{ -1                                 , NULL                             }
 	};
 	static struct {
 		int param;
 		const char * name;
 	} stream_infos[]={
-		{ XINE_STREAM_INFO_BITRATE          , "STREAM_INFO_BITRATE          " },
-		{ XINE_STREAM_INFO_SEEKABLE         , "STREAM_INFO_SEEKABLE         " },
-		{ XINE_STREAM_INFO_VIDEO_WIDTH      , "STREAM_INFO_VIDEO_WIDTH      " },
-		{ XINE_STREAM_INFO_VIDEO_HEIGHT     , "STREAM_INFO_VIDEO_HEIGHT     " },
-		{ XINE_STREAM_INFO_VIDEO_RATIO      , "STREAM_INFO_VIDEO_RATIO      " },
-		{ XINE_STREAM_INFO_VIDEO_CHANNELS   , "STREAM_INFO_VIDEO_CHANNELS   " },
-		{ XINE_STREAM_INFO_VIDEO_STREAMS    , "STREAM_INFO_VIDEO_STREAMS    " },
-		{ XINE_STREAM_INFO_VIDEO_BITRATE    , "STREAM_INFO_VIDEO_BITRATE    " },
-		{ XINE_STREAM_INFO_VIDEO_FOURCC     , "STREAM_INFO_VIDEO_FOURCC     " },
-		{ XINE_STREAM_INFO_VIDEO_HANDLED    , "STREAM_INFO_VIDEO_HANDLED    " },
-		{ XINE_STREAM_INFO_FRAME_DURATION   , "STREAM_INFO_FRAME_DURATION   " },
-		{ XINE_STREAM_INFO_AUDIO_CHANNELS   , "STREAM_INFO_AUDIO_CHANNELS   " },
-		{ XINE_STREAM_INFO_AUDIO_BITS       , "STREAM_INFO_AUDIO_BITS       " },
-		{ XINE_STREAM_INFO_AUDIO_SAMPLERATE , "STREAM_INFO_AUDIO_SAMPLERATE " },
-		{ XINE_STREAM_INFO_AUDIO_BITRATE    , "STREAM_INFO_AUDIO_BITRATE    " },
-		{ XINE_STREAM_INFO_AUDIO_FOURCC     , "STREAM_INFO_AUDIO_FOURCC     " },
-		{ XINE_STREAM_INFO_AUDIO_HANDLED    , "STREAM_INFO_AUDIO_HANDLED    " },
-		{ XINE_STREAM_INFO_HAS_CHAPTERS     , "STREAM_INFO_HAS_CHAPTERS     " },
-		{ XINE_STREAM_INFO_HAS_VIDEO        , "STREAM_INFO_HAS_VIDEO        " },
-		{ XINE_STREAM_INFO_HAS_AUDIO        , "STREAM_INFO_HAS_AUDIO        " },
-		{ XINE_STREAM_INFO_IGNORE_VIDEO     , "STREAM_INFO_IGNORE_VIDEO     " },
-		{ XINE_STREAM_INFO_IGNORE_AUDIO     , "STREAM_INFO_IGNORE_AUDIO     " },
-		{ XINE_STREAM_INFO_IGNORE_SPU       , "STREAM_INFO_IGNORE_SPU       " },
-		{ XINE_STREAM_INFO_VIDEO_HAS_STILL  , "STREAM_INFO_VIDEO_HAS_STILL  " },
-		{ XINE_STREAM_INFO_MAX_AUDIO_CHANNEL, "STREAM_INFO_MAX_AUDIO_CHANNEL" },
-		{ XINE_STREAM_INFO_MAX_SPU_CHANNEL  , "STREAM_INFO_MAX_SPU_CHANNEL  " },
-		{ XINE_STREAM_INFO_AUDIO_MODE       , "STREAM_INFO_AUDIO_MODE       " },
-		{ XINE_STREAM_INFO_SKIPPED_FRAMES   , "STREAM_INFO_SKIPPED_FRAMES   " },
-		{ XINE_STREAM_INFO_DISCARDED_FRAMES , "STREAM_INFO_DISCARDED_FRAMES " },
-		{ -1                                , NULL                            }
+		{ XINE_STREAM_INFO_BITRATE           , "STREAM_INFO_BITRATE           " },
+		{ XINE_STREAM_INFO_SEEKABLE          , "STREAM_INFO_SEEKABLE          " },
+		{ XINE_STREAM_INFO_VIDEO_WIDTH       , "STREAM_INFO_VIDEO_WIDTH       " },
+		{ XINE_STREAM_INFO_VIDEO_HEIGHT      , "STREAM_INFO_VIDEO_HEIGHT      " },
+		{ XINE_STREAM_INFO_VIDEO_RATIO       , "STREAM_INFO_VIDEO_RATIO       " },
+		{ XINE_STREAM_INFO_VIDEO_CHANNELS    , "STREAM_INFO_VIDEO_CHANNELS    " },
+		{ XINE_STREAM_INFO_VIDEO_STREAMS     , "STREAM_INFO_VIDEO_STREAMS     " },
+		{ XINE_STREAM_INFO_VIDEO_BITRATE     , "STREAM_INFO_VIDEO_BITRATE     " },
+		{ XINE_STREAM_INFO_VIDEO_FOURCC      , "STREAM_INFO_VIDEO_FOURCC      " },
+		{ XINE_STREAM_INFO_VIDEO_HANDLED     , "STREAM_INFO_VIDEO_HANDLED     " },
+		{ XINE_STREAM_INFO_FRAME_DURATION    , "STREAM_INFO_FRAME_DURATION    " },
+		{ XINE_STREAM_INFO_AUDIO_CHANNELS    , "STREAM_INFO_AUDIO_CHANNELS    " },
+		{ XINE_STREAM_INFO_AUDIO_BITS        , "STREAM_INFO_AUDIO_BITS        " },
+		{ XINE_STREAM_INFO_AUDIO_SAMPLERATE  , "STREAM_INFO_AUDIO_SAMPLERATE  " },
+		{ XINE_STREAM_INFO_AUDIO_BITRATE     , "STREAM_INFO_AUDIO_BITRATE     " },
+		{ XINE_STREAM_INFO_AUDIO_FOURCC      , "STREAM_INFO_AUDIO_FOURCC      " },
+		{ XINE_STREAM_INFO_AUDIO_HANDLED     , "STREAM_INFO_AUDIO_HANDLED     " },
+		{ XINE_STREAM_INFO_HAS_CHAPTERS      , "STREAM_INFO_HAS_CHAPTERS      " },
+		{ XINE_STREAM_INFO_HAS_VIDEO         , "STREAM_INFO_HAS_VIDEO         " },
+		{ XINE_STREAM_INFO_HAS_AUDIO         , "STREAM_INFO_HAS_AUDIO         " },
+		{ XINE_STREAM_INFO_IGNORE_VIDEO      , "STREAM_INFO_IGNORE_VIDEO      " },
+		{ XINE_STREAM_INFO_IGNORE_AUDIO      , "STREAM_INFO_IGNORE_AUDIO      " },
+		{ XINE_STREAM_INFO_IGNORE_SPU        , "STREAM_INFO_IGNORE_SPU        " },
+		{ XINE_STREAM_INFO_VIDEO_HAS_STILL   , "STREAM_INFO_VIDEO_HAS_STILL   " },
+		{ XINE_STREAM_INFO_MAX_AUDIO_CHANNEL , "STREAM_INFO_MAX_AUDIO_CHANNEL " },
+		{ XINE_STREAM_INFO_MAX_SPU_CHANNEL   , "STREAM_INFO_MAX_SPU_CHANNEL   " },
+		{ XINE_STREAM_INFO_AUDIO_MODE        , "STREAM_INFO_AUDIO_MODE        " },
+		{ XINE_STREAM_INFO_SKIPPED_FRAMES    , "STREAM_INFO_SKIPPED_FRAMES    " },
+		{ XINE_STREAM_INFO_DISCARDED_FRAMES  , "STREAM_INFO_DISCARDED_FRAMES  " },
+		{ XINE_STREAM_INFO_VIDEO_AFD         , "STREAM_INFO_VIDEO_AFD         " },
+		{ XINE_STREAM_INFO_DVD_TITLE_NUMBER  , "STREAM_INFO_DVD_TITLE_NUMBER  " },
+		{ XINE_STREAM_INFO_DVD_TITLE_COUNT   , "STREAM_INFO_DVD_TITLE_COUNT   " },
+		{ XINE_STREAM_INFO_DVD_CHAPTER_NUMBER, "STREAM_INFO_DVD_CHAPTER_NUMBER" },
+		{ XINE_STREAM_INFO_DVD_CHAPTER_COUNT , "STREAM_INFO_DVD_CHAPTER_COUNT " },
+		{ XINE_STREAM_INFO_DVD_ANGLE_NUMBER  , "STREAM_INFO_DVD_ANGLE_NUMBER  " },
+		{ XINE_STREAM_INFO_DVD_ANGLE_COUNT   , "STREAM_INFO_DVD_ANGLE_COUNT   " },
+		{ -1                                 , NULL                             }
 	};
 	static struct {
 		int param;
 		const char * name;
 	} meta_infos[]={
-		{ XINE_META_INFO_TITLE              , "META_INFO_TITLE              " },
-		{ XINE_META_INFO_COMMENT            , "META_INFO_COMMENT            " },
-		{ XINE_META_INFO_ARTIST             , "META_INFO_ARTIST             " },
-		{ XINE_META_INFO_GENRE              , "META_INFO_GENRE              " },
-		{ XINE_META_INFO_ALBUM              , "META_INFO_ALBUM              " },
-		{ XINE_META_INFO_YEAR               , "META_INFO_YEAR               " },
-		{ XINE_META_INFO_VIDEOCODEC         , "META_INFO_VIDEOCODEC         " },
-		{ XINE_META_INFO_AUDIOCODEC         , "META_INFO_AUDIOCODEC         " },
-		{ XINE_META_INFO_SYSTEMLAYER        , "META_INFO_SYSTEMLAYER        " },
-		{ XINE_META_INFO_INPUT_PLUGIN       , "META_INFO_INPUT_PLUGIN       " },
-		{ XINE_META_INFO_CDINDEX_DISCID     , "META_INFO_CDINDEX_DISCID     " },
-		{ XINE_META_INFO_TRACK_NUMBER       , "META_INFO_TRACK_NUMBER       " },
-		{ -1                                , NULL                            }
+		{ XINE_META_INFO_TITLE               , "META_INFO_TITLE               " },
+		{ XINE_META_INFO_COMMENT             , "META_INFO_COMMENT             " },
+		{ XINE_META_INFO_ARTIST              , "META_INFO_ARTIST              " },
+		{ XINE_META_INFO_GENRE               , "META_INFO_GENRE               " },
+		{ XINE_META_INFO_ALBUM               , "META_INFO_ALBUM               " },
+		{ XINE_META_INFO_YEAR                , "META_INFO_YEAR                " },
+		{ XINE_META_INFO_VIDEOCODEC          , "META_INFO_VIDEOCODEC          " },
+		{ XINE_META_INFO_AUDIOCODEC          , "META_INFO_AUDIOCODEC          " },
+		{ XINE_META_INFO_SYSTEMLAYER         , "META_INFO_SYSTEMLAYER         " },
+		{ XINE_META_INFO_INPUT_PLUGIN        , "META_INFO_INPUT_PLUGIN        " },
+		{ XINE_META_INFO_CDINDEX_DISCID      , "META_INFO_CDINDEX_DISCID      " },
+		{ XINE_META_INFO_TRACK_NUMBER        , "META_INFO_TRACK_NUMBER        " },
+		{ XINE_META_INFO_COMPOSER            , "META_INFO_COMPOSER            " },
+		{ XINE_META_INFO_PUBLISHER           , "META_INFO_PUBLISHER           " },
+		{ XINE_META_INFO_COPYRIGHT           , "META_INFO_COPYRIGHT           " },
+		{ XINE_META_INFO_LICENSE             , "META_INFO_LICENSE             " },
+		{ XINE_META_INFO_ARRANGER            , "META_INFO_ARRANGER            " },
+		{ XINE_META_INFO_LYRICIST            , "META_INFO_LYRICIST            " },
+		{ XINE_META_INFO_AUTHOR              , "META_INFO_AUTHOR              " },
+		{ XINE_META_INFO_CONDUCTOR           , "META_INFO_CONDUCTOR           " },
+		{ XINE_META_INFO_PERFORMER           , "META_INFO_PERFORMER           " },
+		{ XINE_META_INFO_ENSEMBLE            , "META_INFO_ENSEMBLE            " },
+		{ XINE_META_INFO_OPUS                , "META_INFO_OPUS                " },
+		{ XINE_META_INFO_PART                , "META_INFO_PART                " },
+		{ XINE_META_INFO_PARTNUMBER          , "META_INFO_PARTNUMBER          " },
+		{ XINE_META_INFO_LOCATION            , "META_INFO_LOCATION            " },
+		{ XINE_META_INFO_DISCNUMBER          , "META_INFO_DISCNUMBER          " },
+		{ -1                                 , NULL                             }
 	};
 	emAvInstance * inst;
 	xine_stream_t * s;

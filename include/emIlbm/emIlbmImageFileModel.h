@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,9 +55,10 @@ private:
 
 	struct LoadingState {
 		bool HeaderFound;
-		int Width,Height,Depth,Compress;
+		int Width,Height,Depth,Compress,NextY;
 		FILE * File;
-		unsigned char * Palette, * Body;
+		unsigned char * Palette, * RowBuf;
+		long BodyPos;
 	};
 
 	LoadingState * L;

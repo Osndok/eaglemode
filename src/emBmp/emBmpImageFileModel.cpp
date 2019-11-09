@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.cpp
 //
-// Copyright (C) 2004-2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2010,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,7 +47,8 @@ emBmpImageFileModel::~emBmpImageFileModel()
 
 void emBmpImageFileModel::TryStartLoading()
 {
-	int w,i,iconCnt,bestOffset,bihSize,bestSize,s,o;
+	long bestOffset,bihSize,bestSize,s,o;
+	int w,i,iconCnt;
 
 	errno=0;
 
@@ -77,8 +78,8 @@ void emBmpImageFileModel::TryStartLoading()
 		// BMP file.
 		Read32();
 		Read32();
-		L->BitsOffset=Read32();
-		bihSize=Read32();
+		L->BitsOffset=(emUInt32)Read32();
+		bihSize=(emUInt32)Read32();
 		L->ColsOffset=bihSize+14;
 	}
 	else if (w==0) {
@@ -92,8 +93,8 @@ void emBmpImageFileModel::TryStartLoading()
 		for (i=0; i<iconCnt; i++) {
 			Read32();
 			Read32();
-			s=Read32();
-			o=Read32();
+			s=(emUInt32)Read32();
+			o=(emUInt32)Read32();
 			if (bestSize==0 || bestSize<s) {
 				bestOffset=o;
 				bestSize=s;
@@ -103,7 +104,7 @@ void emBmpImageFileModel::TryStartLoading()
 		fseek(L->File,bestOffset,SEEK_SET);
 		if (ferror(L->File) || feof(L->File)) goto Err;
 		L->BitsOffset=0;
-		bihSize=Read32();
+		bihSize=(emUInt32)Read32();
 		L->ColsOffset=bestOffset+bihSize;
 		L->IsIcon=true;
 	}
@@ -145,6 +146,7 @@ void emBmpImageFileModel::TryStartLoading()
 		else L->Channels=3;
 	}
 	if (L->ColsUsed<0) goto Err;
+	if (L->BitsPerPixel<=8 && L->ColsUsed>(1<<L->BitsPerPixel)) goto Err;
 	if (L->ColsUsed==0 && L->BitsPerPixel<24) L->ColsUsed=1<<L->BitsPerPixel;
 	if (!L->BitsOffset) {
 		L->BitsOffset=L->ColsOffset;
@@ -153,7 +155,10 @@ void emBmpImageFileModel::TryStartLoading()
 	}
 
 	if (ferror(L->File) || feof(L->File)) goto Err;
-	if (L->Width<1 || L->Height<1) goto Err;
+	if (
+		L->Width<1 || L->Width>0x7fffff ||
+		L->Height<1 || L->Height>0x7fffff
+	) goto Err;
 	if (
 		L->BitsPerPixel!=1 && L->BitsPerPixel!=4 &&
 		L->BitsPerPixel!=8 && L->BitsPerPixel!=16 &&
@@ -228,7 +233,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 
 	if (L->NextY>=L->Height) return true;
 
-	map=Image.GetWritableMap()+(L->Height-L->NextY-1)*L->Width*L->Channels;
+	map=Image.GetWritableMap()+(L->Height-L->NextY-1)*(size_t)L->Width*L->Channels;
 
 	if (L->Compress==0) {
 		if (L->BitsPerPixel==32) {
@@ -386,7 +391,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 
 	if (L->Channels>3 && (L->BitsPerPixel!=32 || L->Compress!=0)) {
 		for (y=0; y<L->Height; y++) {
-			map=Image.GetWritableMap()+(L->Height-y-1)*L->Width*L->Channels;
+			map=Image.GetWritableMap()+(L->Height-y-1)*(size_t)L->Width*L->Channels;
 			for (n=0, x=0; x<L->Width; x++) {
 				if ((x&7)==0) n=Read8(); else n<<=1;
 				t=(n>>7)&1;

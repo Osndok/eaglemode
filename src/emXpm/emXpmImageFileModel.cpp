@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXpmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,7 +56,7 @@ void emXpmImageFileModel::TryStartLoading()
 	if (fseek(L->File,0,SEEK_END)) goto Err;
 	l=ftell(L->File);
 	if (l<0) goto Err;
-	if (l>INT_MAX) throw emException("File too large.");
+	if (l>INT_MAX-3) throw emException("File too large.");
 	L->FileSize=(int)l;
 	if (L->FileSize<0) goto Err;
 	if (fseek(L->File,0,SEEK_SET)) goto Err;
@@ -68,6 +68,8 @@ Err:
 
 bool emXpmImageFileModel::TryContinueLoading()
 {
+	char * p;
+	long w,h,c,s;
 	int i,pos,len;
 
 	if (!L->Buffer) {
@@ -98,6 +100,22 @@ bool emXpmImageFileModel::TryContinueLoading()
 		L->StringArray[i]=NULL;
 	}
 	else {
+		p=L->StringArray[0];
+		if (!p) throw emException("Illegal XPM file format.");
+		w=strtol(p,&p,0);
+		h=strtol(p,&p,0);
+		c=strtol(p,&p,0);
+		s=strtol(p,&p,0);
+		if (
+			w<1 || w>0x7fffff ||
+			h<1 || h>0x7fffff ||
+			c<1 || c>0x1000000 ||
+			s<1 || s>4 ||
+			(w*s+3)*(emInt64)h+c*(s+4)>L->BufferFill
+		) {
+			throw emException("Unsupported XPM file format.");
+		}
+
 		Image.TryParseXpm(L->StringArray);
 		FileFormatInfo="XPM";
 		Signal(ChangeSignal);
@@ -139,7 +157,7 @@ void emXpmImageFileModel::QuitSaving()
 emUInt64 emXpmImageFileModel::CalcMemoryNeed()
 {
 	if (L) {
-		return L->FileSize*5;
+		return L->FileSize*(emUInt64)5;
 	}
 	else {
 		return ((emUInt64)Image.GetWidth())*

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emJpegImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -159,8 +159,11 @@ void emJpegImageFileModel::TryStartLoading()
 	L->cinfo.dct_method=JDCT_FLOAT;
 	jpeg_start_decompress(&L->cinfo);
 
-	if (L->cinfo.output_components!=1 &&
-	    L->cinfo.output_components!=3) {
+	if (
+		(L->cinfo.output_components!=1 && L->cinfo.output_components!=3) ||
+		L->cinfo.output_width<1 || L->cinfo.output_width>0x7fffff ||
+		L->cinfo.output_height<1 || L->cinfo.output_height>0x7fffff
+	) {
 		throw emException("Unsupported JPEG file format.");
 	}
 }
@@ -185,7 +188,7 @@ bool emJpegImageFileModel::TryContinueLoading()
 	if (L->y<Image.GetHeight()) {
 		row=
 			(JSAMPROW)Image.GetWritableMap()+
-			L->y*Image.GetWidth()*Image.GetChannelCount()
+			L->y*(size_t)Image.GetWidth()*Image.GetChannelCount()
 		;
 		jpeg_read_scanlines(&L->cinfo,&row,1);
 		L->y++;

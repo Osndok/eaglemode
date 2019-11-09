@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPcxImageFileModel.cpp
 //
-// Copyright (C) 2005-2009,2012,2014,2018 Oliver Hamann.
+// Copyright (C) 2005-2009,2012,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -155,7 +155,7 @@ bool emPcxImageFileModel::TryContinueLoading()
 	} while (i<n);
 	if (ferror(L->File)) goto Err;
 
-	map=Image.GetWritableMap()+L->NextY*L->Width*L->Channels;
+	map=Image.GetWritableMap()+L->NextY*(size_t)L->Width*L->Channels;
 	for (x=0; x<L->Width; x++) {
 		val=0;
 		switch (L->PlanePixBits) {

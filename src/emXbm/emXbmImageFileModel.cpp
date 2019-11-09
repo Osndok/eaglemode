@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,7 +81,7 @@ bool emXbmImageFileModel::TryContinueLoading()
 	int i,x,y,m,c,len;
 
 	if (L->File) {
-		if (!L->Str) L->Str=(char*)malloc(L->StrMaxLen+1);
+		if (!L->Str) L->Str=(char*)malloc((size_t)L->StrMaxLen+1);
 		len=L->StrMaxLen-L->StrLen;
 		if (len>4096) len=4096;
 		if (len>0) len=fread(L->Str+L->StrLen,1,len,L->File);
@@ -105,11 +105,11 @@ bool emXbmImageFileModel::TryContinueLoading()
 		p=strstr(L->Str,"width");
 		if (!p) goto ErrFormat;
 		L->Width=(int)strtol(p+5,&p,0);
-		if (L->Width<1 || L->Width>65535) goto ErrFormat;
+		if (L->Width<1 || L->Width>0x7fffff) goto ErrFormat;
 		p=strstr(L->Str,"height");
 		if (!p) goto ErrFormat;
 		L->Height=(int)strtol(p+6,&p,0);
-		if (L->Height<1 || L->Height>65535) goto ErrFormat;
+		if (L->Height<1 || L->Height>0x7fffff) goto ErrFormat;
 		p=strstr(L->Str,"static");
 		if (!p) goto ErrFormat;
 		p=strstr(p,"char");

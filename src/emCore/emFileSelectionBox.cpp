@@ -465,7 +465,7 @@ void emFileSelectionBox::Input(
 		event.GetKey()==EM_KEY_ENTER &&
 		state.IsNoMod() &&
 		NameField &&
-		NameField->IsFocused() &&
+		NameField->IsActive() &&
 		!NameField->GetText().IsEmpty()
 	) {
 		if (emIsDirectory(emGetChildPath(ParentDir,NameField->GetText()))) {

@@ -56,7 +56,7 @@ bool emImage::operator == (const emImage & image) const
 	if (Data->Height!=image.Data->Height) return false;
 	if (Data->ChannelCount!=image.Data->ChannelCount) return false;
 	if (Data->Map==image.Data->Map) return true;
-	mapSize=Data->Width*Data->Height*Data->ChannelCount;
+	mapSize=Data->Width*(size_t)Data->Height*Data->ChannelCount;
 	if (!mapSize) return true;
 	if (memcmp(Data->Map,image.Data->Map,mapSize)!=0) return false;
 	return true;
@@ -76,7 +76,7 @@ void emImage::Setup(int width, int height, int channelCount)
 			Data=&EmptyData;
 		}
 		else {
-			Data=(SharedData*)malloc(sizeof(SharedData)+width*height*channelCount);
+			Data=(SharedData*)malloc(sizeof(SharedData)+width*(size_t)height*channelCount);
 			Data->RefCount=1;
 			Data->Width=width;
 			Data->Height=height;
@@ -291,6 +291,7 @@ void emImage::TryParseTga(
 	const unsigned char * tgaEnd, * p;
 	emColor * palette;
 	emColor runCol;
+	size_t n;
 	int runLen,i,x,y,c,w,h,idLen,palType,palBitsPP,bitsPP,desc,palSize;
 	int alphaMask,imgType,maxCC;
 
@@ -381,7 +382,7 @@ void emImage::TryParseTga(
 			runCol=0;
 			runLen=0;
 			p=tgaData;
-			for (x=h*w; x>0; x--) {
+			for (n=h*(size_t)w; n>0; n--) {
 				if ((imgType&8)!=0 && runLen<0) runLen++;
 				else {
 					if ((imgType&8)!=0 && runLen==0) {
@@ -500,16 +501,16 @@ emColor emImage::GetPixel(int x, int y) const
 		switch (Data->ChannelCount)
 		{
 		case 1:
-			p=Data->Map+y*Data->Width+x;
+			p=Data->Map+y*(size_t)Data->Width+x;
 			return emColor(p[0],p[0],p[0]);
 		case 2:
-			p=Data->Map+(y*Data->Width+x)*2;
+			p=Data->Map+(y*(size_t)Data->Width+x)*2;
 			return emColor(p[0],p[0],p[0],p[1]);
 		case 3:
-			p=Data->Map+(y*Data->Width+x)*3;
+			p=Data->Map+(y*(size_t)Data->Width+x)*3;
 			return emColor(p[0],p[1],p[2]);
 		default:
-			p=Data->Map+(y*Data->Width+x)*4;
+			p=Data->Map+(y*(size_t)Data->Width+x)*4;
 			return emColor(p[0],p[1],p[2],p[3]);
 		}
 	}
@@ -531,22 +532,22 @@ void emImage::SetPixel(int x, int y, emColor color)
 		switch (Data->ChannelCount)
 		{
 		case 1:
-			p=Data->Map+y*Data->Width+x;
+			p=Data->Map+y*(size_t)Data->Width+x;
 			p[0]=color.GetGrey();
 			break;
 		case 2:
-			p=Data->Map+(y*Data->Width+x)*2;
+			p=Data->Map+(y*(size_t)Data->Width+x)*2;
 			p[0]=color.GetGrey();
 			p[1]=color.GetAlpha();
 			break;
 		case 3:
-			p=Data->Map+(y*Data->Width+x)*3;
+			p=Data->Map+(y*(size_t)Data->Width+x)*3;
 			p[0]=color.GetRed();
 			p[1]=color.GetGreen();
 			p[2]=color.GetBlue();
 			break;
 		default:
-			p=Data->Map+(y*Data->Width+x)*4;
+			p=Data->Map+(y*(size_t)Data->Width+x)*4;
 			p[0]=color.GetRed();
 			p[1]=color.GetGreen();
 			p[2]=color.GetBlue();
@@ -563,7 +564,7 @@ emByte emImage::GetPixelChannel(int x, int y, int channel) const
 		(unsigned)y<(unsigned)Data->Height &&
 		(unsigned)channel<(unsigned)Data->ChannelCount
 	) {
-		return Data->Map[(y*Data->Width+x)*Data->ChannelCount+channel];
+		return Data->Map[(y*(size_t)Data->Width+x)*Data->ChannelCount+channel];
 	}
 	else {
 		return 0;
@@ -579,7 +580,7 @@ void emImage::SetPixelChannel(int x, int y, int channel, emByte value)
 		(unsigned)channel<(unsigned)Data->ChannelCount
 	) {
 		if (Data->RefCount>1) MakeWritable();
-		Data->Map[(y*Data->Width+x)*Data->ChannelCount+channel]=value;
+		Data->Map[(y*(size_t)Data->Width+x)*Data->ChannelCount+channel]=value;
 	}
 }
 
@@ -619,7 +620,7 @@ emColor emImage::GetPixelInterpolated(
 			a+=bgColor.GetAlpha()*ifx;
 		}
 		else {
-			py=Data->Map+((int)ym)*Data->Width*Data->ChannelCount;
+			py=Data->Map+((int)ym)*(size_t)Data->Width*Data->ChannelCount;
 			xm=floor(x);
 			xn=xm+1.0;
 			rw=fy/w;
@@ -719,8 +720,8 @@ void emImage::Fill(int x, int y, int w, int h, emColor color)
 	case 1:
 		d1=w;
 		d2=Data->Width-w;
-		p=Data->Map+y*Data->Width+x;
-		pye=p+h*Data->Width;
+		p=Data->Map+y*(size_t)Data->Width+x;
+		pye=p+h*(size_t)Data->Width;
 		v8=color.GetGrey();
 		do {
 			pxe=p+d1;
@@ -734,8 +735,8 @@ void emImage::Fill(int x, int y, int w, int h, emColor color)
 	case 2:
 		d1=w*2;
 		d2=(Data->Width-w)*2;
-		p=Data->Map+(y*Data->Width+x)*2;
-		pye=p+h*Data->Width*2;
+		p=Data->Map+(y*(size_t)Data->Width+x)*2;
+		pye=p+h*(size_t)Data->Width*2;
 		v16buf.b[0]=color.GetGrey();
 		v16buf.b[1]=color.GetAlpha();
 		v16=v16buf.v;
@@ -751,8 +752,8 @@ void emImage::Fill(int x, int y, int w, int h, emColor color)
 	case 3:
 		d1=w*3;
 		d2=(Data->Width-w)*3;
-		p=Data->Map+(y*Data->Width+x)*3;
-		pye=p+h*Data->Width*3;
+		p=Data->Map+(y*(size_t)Data->Width+x)*3;
+		pye=p+h*(size_t)Data->Width*3;
 		r=color.GetRed();
 		g=color.GetGreen();
 		b=color.GetBlue();
@@ -770,8 +771,8 @@ void emImage::Fill(int x, int y, int w, int h, emColor color)
 	default:
 		d1=w*4;
 		d2=(Data->Width-w)*4;
-		p=Data->Map+(y*Data->Width+x)*4;
-		pye=p+h*Data->Width*4;
+		p=Data->Map+(y*(size_t)Data->Width+x)*4;
+		pye=p+h*(size_t)Data->Width*4;
 		v32buf.b[0]=color.GetRed();
 		v32buf.b[1]=color.GetGreen();
 		v32buf.b[2]=color.GetBlue();
@@ -794,7 +795,7 @@ void emImage::FillChannel(
 )
 {
 	emByte * p, * pxe, * pye;
-	int d0, d1, d2;
+	unsigned d0, d1, d2;
 
 	if ((unsigned)channel>=(unsigned)Data->ChannelCount) return;
 
@@ -810,8 +811,8 @@ void emImage::FillChannel(
 	d0=Data->ChannelCount;
 	d1=w*d0;
 	d2=(Data->Width-w)*d0;
-	p=Data->Map+(y*Data->Width+x)*d0+channel;
-	pye=p+h*Data->Width*d0;
+	p=Data->Map+(y*(size_t)Data->Width+x)*d0+channel;
+	pye=p+h*(size_t)Data->Width*d0;
 	do {
 		pxe=p+d1;
 		do {
@@ -862,11 +863,11 @@ void emImage::Copy(
 
 	if (Data->RefCount>1) MakeWritable();
 
-	t=Data->Map+(y*Data->Width+x)*Data->ChannelCount;
+	t=Data->Map+(y*(size_t)Data->Width+x)*Data->ChannelCount;
 	td2=(Data->Width-w)*Data->ChannelCount;
 
-	s=img.Data->Map+(srcY*img.Data->Width+srcX)*img.Data->ChannelCount;
-	sye=s+h*img.Data->Width*img.Data->ChannelCount;
+	s=img.Data->Map+(srcY*(size_t)img.Data->Width+srcX)*img.Data->ChannelCount;
+	sye=s+h*(size_t)img.Data->Width*img.Data->ChannelCount;
 	sd1=w*img.Data->ChannelCount;
 	sd2=(img.Data->Width-w)*img.Data->ChannelCount;
 
@@ -881,12 +882,12 @@ void emImage::Copy(
 		} while(s!=sye);
 
 	if (t>s && t<sye && Data->ChannelCount==img.Data->ChannelCount) {
-		s+=((h-1)*img.Data->Width+w-1)*img.Data->ChannelCount;
-		t+=((h-1)*Data->Width+w-1)*Data->ChannelCount;
+		s+=((h-1)*(size_t)img.Data->Width+w-1)*img.Data->ChannelCount;
+		t+=((h-1)*(size_t)Data->Width+w-1)*Data->ChannelCount;
 		td2=-td2;
 		sd1=-sd1;
 		sd2=-sd2;
-		sye=s+h*(sd1+sd2);
+		sye=s+h*(size_t)(sd1+sd2);
 		switch (Data->ChannelCount) {
 		case 1:
 			EM_IMG_COPY_LOOP(-1,-1,
@@ -1050,22 +1051,22 @@ void emImage::CopyChannel(
 	sd0=img.Data->ChannelCount;
 	sd1=w*sd0;
 	sd2=(img.Data->Width-w)*sd0;
-	s=img.Data->Map+(srcY*img.Data->Width+srcX)*sd0+srcChannel;
-	sye=s+h*(sd1+sd2);
+	s=img.Data->Map+(srcY*(size_t)img.Data->Width+srcX)*sd0+srcChannel;
+	sye=s+h*(size_t)(sd1+sd2);
 
 	td0=Data->ChannelCount;
 	td2=(Data->Width-w)*td0;
-	t=Data->Map+(y*Data->Width+x)*td0+channel;
+	t=Data->Map+(y*(size_t)Data->Width+x)*td0+channel;
 
 	if (t>s && t<sye) {
-		s+=((h-1)*img.Data->Width+w-1)*sd0;
-		t+=((h-1)*Data->Width+w-1)*td0;
+		s+=((h-1)*(size_t)img.Data->Width+w-1)*sd0;
+		t+=((h-1)*(size_t)Data->Width+w-1)*td0;
 		td0=-td0;
 		td2=-td2;
 		sd0=-sd0;
 		sd1=-sd1;
 		sd2=-sd2;
-		sye=s+h*(sd1+sd2);
+		sye=s+h*(size_t)(sd1+sd2);
 	}
 
 	do {
@@ -1115,7 +1116,7 @@ void emImage::CopyTransformed(
 		sy=invAtm.TransY(x+0.5,y+0.5);
 		sxd=invAtm.Get(0,0);
 		syd=invAtm.Get(0,1);
-		p=Data->Map+(y*Data->Width+x)*cc;
+		p=Data->Map+(y*(size_t)Data->Width+x)*cc;
 		pe=p+w*cc;
 		if (interpolate) {
 			sx-=sw*0.5;
@@ -1156,7 +1157,7 @@ void emImage::CopyTransformed(
 			sx>=0.0 && sx<img.Data->Width &&
 			sx+sxd*(w-1)>=0.0 && sx+sxd*(w-1)<img.Data->Width
 		) {
-			imap=img.Data->Map+((int)sy)*img.Data->Width*cc;
+			imap=img.Data->Map+((int)sy)*(size_t)img.Data->Width*cc;
 			switch (cc)
 			{
 			case 1:
@@ -1204,7 +1205,7 @@ void emImage::CopyTransformed(
 					switch (icc)
 					{
 					case 1:
-						sp=imap+((int)sy)*iw+((int)sx);
+						sp=imap+((ssize_t)sy)*iw+((ssize_t)sx);
 						switch (cc)
 						{
 						case 1:
@@ -1231,7 +1232,7 @@ void emImage::CopyTransformed(
 						}
 						break;
 					case 2:
-						sp=imap+(((int)sy)*iw+((int)sx))*2;
+						sp=imap+(((ssize_t)sy)*iw+((ssize_t)sx))*2;
 						switch (cc)
 						{
 						case 1:
@@ -1257,7 +1258,7 @@ void emImage::CopyTransformed(
 						}
 						break;
 					case 3:
-						sp=imap+(((int)sy)*iw+((int)sx))*3;
+						sp=imap+(((ssize_t)sy)*iw+((ssize_t)sx))*3;
 						switch (cc)
 						{
 						case 1:
@@ -1284,7 +1285,7 @@ void emImage::CopyTransformed(
 						}
 						break;
 					default:
-						sp=imap+(((int)sy)*iw+((int)sx))*4;
+						sp=imap+(((ssize_t)sy)*iw+((ssize_t)sx))*4;
 						switch (cc)
 						{
 						case 1:
@@ -1444,7 +1445,7 @@ void emImage::CalcChannelMinMaxRect(
 	if (x2<=0) goto L_Empty;
 	for (;;) {
 		if (y1>=y2) goto L_Empty;
-		p=p0+y1*rs;
+		p=p0+y1*(size_t)rs;
 		pe=p+rs;
 		do {
 			if (p[0]!=bgValue) break;
@@ -1454,7 +1455,7 @@ void emImage::CalcChannelMinMaxRect(
 		y1++;
 	}
 	while (y1<y2-1) {
-		p=p0+(y2-1)*rs;
+		p=p0+(y2-1)*(size_t)rs;
 		pe=p+rs;
 		do {
 			if (p[0]!=bgValue) break;
@@ -1464,8 +1465,8 @@ void emImage::CalcChannelMinMaxRect(
 		y2--;
 	}
 	for (;;) {
-		p=p0+y1*rs+x1*cc;
-		pe=p+rs*(y2-y1);
+		p=p0+y1*(size_t)rs+x1*cc;
+		pe=p+rs*(size_t)(y2-y1);
 		do {
 			if (p[0]!=bgValue) break;
 			p+=rs;
@@ -1474,8 +1475,8 @@ void emImage::CalcChannelMinMaxRect(
 		x1++;
 	}
 	while (x1<x2-1) {
-		p=p0+y1*rs+(x2-1)*cc;
-		pe=p+rs*(y2-y1);
+		p=p0+y1*(size_t)rs+(x2-1)*cc;
+		pe=p+rs*(size_t)(y2-y1);
 		do {
 			if (p[0]!=bgValue) break;
 			p+=rs;
@@ -1593,7 +1594,7 @@ void emImage::MakeWritable()
 	size_t mapSize;
 
 	if (Data->RefCount>1 && Data!=&EmptyData) {
-		mapSize=Data->Width*Data->Height*Data->ChannelCount;
+		mapSize=Data->Width*(size_t)Data->Height*Data->ChannelCount;
 		d=(SharedData*)malloc(sizeof(SharedData)+mapSize);
 		d->RefCount=1;
 		d->Width=Data->Width;

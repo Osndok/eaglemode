@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -131,7 +131,10 @@ void emTiffImageFileModel::TryStartLoading()
 		TIFFGetFieldDefaulted(t,TIFFTAG_ROWSPERSTRIP,&u32);
 		L->PartH=(int)u32;
 	}
-	if (L->ImgW<L->PartW || L->ImgH<L->PartH || L->PartW<1 || L->PartH<1) {
+	if (
+		L->ImgW<L->PartW || L->ImgH<L->PartH || L->PartW<1 || L->PartH<1 ||
+		L->ImgW>0x7fffff || L->ImgH>0x7fffff
+	) {
 		throw emException("Unsupported TIFF file format.");
 	}
 
@@ -192,7 +195,7 @@ bool emTiffImageFileModel::TryContinueLoading()
 	t=(TIFF*)L->Tif;
 
 	if (!L->Buffer) {
-		L->Buffer=new uint32[L->PartW*L->PartH];
+		L->Buffer=new uint32[L->PartW*(size_t)L->PartH];
 		Image.Setup(L->ImgW,L->ImgH,L->Channels);
 		Signal(ChangeSignal);
 		return false;
@@ -214,8 +217,8 @@ bool emTiffImageFileModel::TryContinueLoading()
 	y2=L->CurrentY+L->PartH; if (y2>L->ImgH) y2=L->ImgH;
 	map=Image.GetWritableMap();
 	for (y=L->CurrentY; y<y2; y++) {
-		src=((uint32*)L->Buffer)+(y2-1-y)*L->PartW;
-		tgt=map+(y*L->ImgW+L->CurrentX)*L->Channels;
+		src=((uint32*)L->Buffer)+(y2-1-y)*(size_t)L->PartW;
+		tgt=map+(y*(size_t)L->ImgW+L->CurrentX)*L->Channels;
 		switch (L->Channels) {
 		case 1:
 			for (x=L->CurrentX; x<x2; x++) {
@@ -324,7 +327,7 @@ double emTiffImageFileModel::CalcFileProgress()
 	double progress;
 
 	if (L && L->ImgW>0 && L->ImgH>0) {
-		progress=L->CurrentY*L->ImgW+L->CurrentX*L->PartH;
+		progress=L->CurrentY*(double)L->ImgW+L->CurrentX*(double)L->PartH;
 		if (L->CurrentOp) progress+=0.5*L->PartW*L->PartH;
 		progress*=100.0/L->ImgW/L->ImgH;
 		if (progress<0.0) progress=0.0;

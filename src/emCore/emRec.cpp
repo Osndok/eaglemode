@@ -2260,6 +2260,10 @@ void emRecReader::TryParseNext()
 		do {
 			SetMinNextBufSize(n+1);
 			NextBuf[n++]=(char)NextChar;
+			if (n>10000000) {
+				Line=NextLine;
+				ThrowElemError("Identifier too long.");
+			}
 			TryNextChar();
 		} while (
 			(NextChar>='a' && NextChar<='z') ||

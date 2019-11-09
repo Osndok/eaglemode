@@ -646,6 +646,7 @@ void emAvServerModel::TransferFrame(Instance * inst)
 	int * shm;
 	const emByte * src, * src2, * src3;
 	int width,height,aspectRatio,format,bpl,bpl2,width2,height2;
+	int padding1,padding2,padding3;
 	emAvImageConverter converter;
 
 	shm=inst->ShmAddr;
@@ -674,31 +675,39 @@ void emAvServerModel::TransferFrame(Instance * inst)
 
 	if (format==0) { // RGB
 		bpl=shm[5];
+		padding1=shm[6];
 		if (bpl<3*width) goto L_BAD_DATA;
-		if ((int)sizeof(int)*6+bpl*height>inst->ShmSize) goto L_BAD_DATA;
-		src=(emByte*)(shm+6);
+		if ((int)sizeof(int)*7+padding1+bpl*height>inst->ShmSize) goto L_BAD_DATA;
+		src=((emByte*)(shm+7))+padding1;
 		converter.SetSourceRGB(width,height,bpl,src);
 	}
-	else if (format==1) { // YV12
+	else if (format==1) { // I420
 		bpl=shm[5];
 		bpl2=shm[6];
+		padding1=shm[7];
+		padding2=shm[8];
+		padding3=shm[9];
 		height2=(height+1)/2;
 		width2=(width+1)/2;
 		if (width<2 || height<2) goto L_BAD_DATA;
 		if (bpl<width) goto L_BAD_DATA;
 		if (bpl2<width2) goto L_BAD_DATA;
-		if ((int)sizeof(int)*7+bpl*height+2*bpl2*height2>inst->ShmSize) goto L_BAD_DATA;
-		src=(emByte*)(shm+7);
-		src2=src+bpl*height;
-		src3=src2+bpl2*height2;
+		if (
+			(int)sizeof(int)*10+padding1+padding2+padding3+bpl*height+2*bpl2*height2 >
+			inst->ShmSize
+		) goto L_BAD_DATA;
+		src=((emByte*)(shm+10))+padding1;
+		src2=src+bpl*height+padding2;
+		src3=src2+bpl2*height2+padding3;
 		converter.SetSourceI420(width,height,bpl,bpl2,src,src2,src3);
 	}
 	else if (format==2) { // YUY2
 		bpl=shm[5];
+		padding1=shm[6];
 		if (width<2) goto L_BAD_DATA;
 		if (bpl<2*width) goto L_BAD_DATA;
-		if ((int)sizeof(int)*6+bpl*height>inst->ShmSize) goto L_BAD_DATA;
-		src=(emByte*)(shm+6);
+		if ((int)sizeof(int)*7+padding1+bpl*height>inst->ShmSize) goto L_BAD_DATA;
+		src=((emByte*)(shm+7))+padding1;
 		converter.SetSourceYUY2(width,height,bpl,src);
 	}
 	else {

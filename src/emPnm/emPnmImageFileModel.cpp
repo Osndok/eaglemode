@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPnmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -62,7 +62,7 @@ void emPnmImageFileModel::TryStartLoading()
 	L->Width=ReadDecimal();
 	L->Height=ReadDecimal();
 	if (L->Width<1 || L->Height<1) goto Err;
-	if (L->Width>65535 || L->Height>65535) goto Err;
+	if (L->Width>0x7fffff || L->Height>0x7fffff) goto Err;
 
 	if (L->Format==2 || L->Format==3 || L->Format==5 || L->Format==6) {
 		L->MaxVal=ReadDecimal();
@@ -105,7 +105,7 @@ bool emPnmImageFileModel::TryContinueLoading()
 		return true;
 	}
 
-	map=Image.GetWritableMap()+L->NextY*L->Width*n;
+	map=Image.GetWritableMap()+L->NextY*(size_t)L->Width*n;
 	mapEnd=map+n*L->Width;
 
 	if (L->Format==1) {

@@ -158,17 +158,27 @@ a buffer for transferring the video frames to the client. The layout is:
 
 RGB:
   int: BytesPerLine (including an optional padding at the end of each line)
+  int: Padding
+  char[Padding]
   char[Height*BytesPerLine]: RGB data: 3 bytes per pixel.
 
-YV12:
+I420 (YV12 with U,V exchanged):
   int: BytesPerLine1 (including an optional padding at the end of each line)
   int: BytesPerLine2 (including an optional padding at the end of each line)
+  int: Padding1
+  int: Padding2
+  int: Padding3
+  char[Padding1]
   char[Height*BytesPerLine1]: Y data: one byte per Y, one Y per pixel.
+  char[Padding2]
   char[((Height+1)/2)*BytesPerLine2]: U data: one byte per U, one U per four
                                       pixels.
+  char[Padding3]
   char[((Height+1)/2)*BytesPerLine2]: V data: one byte per V, one V per four
                                       pixels.
 
 YUY2:
   int: BytesPerLine (including an optional padding at the end of each line)
+  int: Padding
+  char[Padding]
   char[Height*BytesPerLine]: YUYV data: four bytes = one YUYV = two pixels.

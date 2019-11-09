@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,7 +76,7 @@ void emRasImageFileModel::TryStartLoading()
 	L->ColMapSize=Read32();
 	if (ferror(L->File) || feof(L->File)) goto Err;
 	if (L->Width<1 || L->Height<1) goto Err;
-	if (L->Width>65535 || L->Height>65535) goto Err;
+	if (L->Width>0x7fffff || L->Height>0x7fffff) goto Err;
 	if (L->Depth!=1 && L->Depth!=8 && L->Depth!=24) goto Err;
 	if (L->PixMapType<0 || L->PixMapType>3) goto Err;
 	if (L->ColMapType<0 || L->ColMapType>1) goto Err;
@@ -120,7 +120,7 @@ bool emRasImageFileModel::TryContinueLoading()
 		return false;
 	}
 
-	map=Image.GetWritableMap()+(L->NextY*L->Width)*3;
+	map=Image.GetWritableMap()+(L->NextY*(size_t)L->Width)*3;
 
 	if (L->PixMapType==2) {
 		while (L->BufFill<L->RowSize) {

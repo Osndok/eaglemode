@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.h
 //
-// Copyright (C) 2004-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,7 +57,9 @@ private:
 
 	struct LoadingState {
 		int Width,Height,Channels;
-		int BitsPerPixel,BitsOffset,ColsOffset,ColSize,ColsUsed,Compress,NextY;
+		int BitsPerPixel;
+		long BitsOffset,ColsOffset;
+		int ColSize,ColsUsed,Compress,NextY;
 		int CMax[3],CPos[3];
 		bool IsIcon;
 		bool ImagePrepared;

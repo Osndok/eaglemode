@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.cpp
 //
-// Copyright (C) 2004-2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2018-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -238,7 +238,7 @@ bool emTextFileModel::TryContinueLoading()
 		cnt=Content.GetCount();
 		if (i<cnt) {
 			p=Content.Get();
-			end=emMin(i+10000,cnt);
+			end=i+emMin(cnt-i,65536);
 			for (; i<end; i+=2) {
 				c=(emByte)p[i];
 				c2=(emByte)p[i+1];
@@ -285,7 +285,7 @@ bool emTextFileModel::TryContinueLoading()
 		if (i<cnt) {
 			s=L->Statistics;
 			p=Content.Get();
-			end=emMin(i+10000,cnt);
+			end=i+emMin(cnt-i,65536);
 			for (; i<end; i++) s[(emByte)p[i]]++;
 			L->Pos=i;
 		}
@@ -324,7 +324,7 @@ bool emTextFileModel::TryContinueLoading()
 		cnt=Content.GetCount();
 		if (i<cnt) {
 			p=Content.Get();
-			end=emMin(i+10000,cnt);
+			end=i+emMin(cnt-i,65536);
 			for (; i<end; i++) {
 				if (((signed char)p[i])<0) {
 					n=emDecodeUtf8Char(&c,p+i,cnt-i);
@@ -366,7 +366,7 @@ bool emTextFileModel::TryContinueLoading()
 		p=Content.Get();
 		cnt=Content.GetCount();
 		if (i<cnt) {
-			end=emMin(i+10000,cnt);
+			end=i+emMin(cnt-i,65536);
 			while (i<end) {
 				c=(emByte)p[i++];
 				if (CharEncoding==CE_UTF16LE) c|=((emByte)p[i++])<<8;
@@ -433,7 +433,7 @@ bool emTextFileModel::TryContinueLoading()
 		row=L->Row;
 		if (i<cnt) {
 			p=Content.Get();
-			end=emMin(i+10000,cnt);
+			end=i+emMin(cnt-i,65536);
 			while (i<end) {
 				c=(emByte)p[i++];
 				if (CharEncoding==CE_UTF16LE) c|=((emByte)p[i++])<<8;
@@ -513,7 +513,7 @@ bool emTextFileModel::TryContinueLoading()
 		col2=L->Col2;
 		if (i<cnt) {
 			p=Content.Get();
-			end=emMin(i+10000,cnt);
+			end=i+emMin(cnt-i,65536);
 			while (i<end) {
 				c=(emByte)p[i++];
 				if (CharEncoding==CE_UTF16LE) c|=((emByte)p[i++])<<8;

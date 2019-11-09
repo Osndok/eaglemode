@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,7 +108,7 @@ void emButton::Input(
 	if (
 		event.IsKey(EM_KEY_ENTER) &&
 		(state.IsNoMod() || state.IsShiftMod()) &&
-		IsFocused() && IsEnabled() && GetViewCondition(VCT_MIN_EXT)>=minExt
+		IsActive() && IsEnabled() && GetViewCondition(VCT_MIN_EXT)>=minExt
 	) {
 		event.Eat();
 		Click(state.IsShiftMod());

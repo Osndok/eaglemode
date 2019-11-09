@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2011,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017,2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -152,6 +152,7 @@ private:
 	Colormap  Colmap;
 	Atom      WM_PROTOCOLS;
 	Atom      WM_DELETE_WINDOW;
+	Atom      WM_TAKE_FOCUS;
 	Atom      _NET_WM_ICON;
 	Atom      _NET_WM_STATE;
 	Atom      _NET_WM_STATE_MAXIMIZED_HORZ;

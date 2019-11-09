@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2011,2016-2018 Oliver Hamann.
+// Copyright (C) 2001,2003-2011,2016-2019 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1813,7 +1813,8 @@ void emPainter::PaintShape(
 	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
 	void * ptyx, * ptyx1, * ptyx2, * pty2x2;
 	const emByte * psy, * psyx, * psyxy;
-	int n,n1,n2,alpha,rowDelta,pixelDelta;
+	size_t rowDelta;
+	int n,n1,n2,alpha,pixelDelta;
 	int bpp,btx1,bty1,btx2,bty2,rsh,gsh,bsh;
 	unsigned int ay,ayx,csx,csxd,csx1,csxn,csyd,csy1,csy1c;
 	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c,t,alpha257;
@@ -2174,7 +2175,8 @@ void emPainter::PaintImage(
 	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
 	void * ptyx, * ptyx1, * ptyx2, * pty2x2;
 	const emByte * psy, * psyx, * psyxy;
-	int n,n1,n2,rowDelta,pixelDelta;
+	size_t rowDelta;
+	int n,n1,n2,pixelDelta;
 	int bpp,btx1,bty1,btx2,bty2,rsh,gsh,bsh;
 	unsigned int csx,csxd,csx1,csxn,csyd,csy1,csy1c;
 	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c;

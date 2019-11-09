@@ -209,6 +209,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	Colmap=XCreateColormap(Disp,RootWin,Visu,AllocNone);
 	WM_PROTOCOLS=XInternAtom(Disp,"WM_PROTOCOLS",False);
 	WM_DELETE_WINDOW=XInternAtom(Disp,"WM_DELETE_WINDOW",False);
+	WM_TAKE_FOCUS=XInternAtom(Disp,"WM_TAKE_FOCUS",False);
 	_NET_WM_ICON=XInternAtom(Disp,"_NET_WM_ICON",False);
 	_NET_WM_STATE=XInternAtom(Disp,"_NET_WM_STATE",False);
 	_NET_WM_STATE_MAXIMIZED_HORZ=XInternAtom(Disp,"_NET_WM_STATE_MAXIMIZED_HORZ",False);
@@ -694,7 +695,16 @@ void emX11Screen::UpdateLastKnownTime(const XEvent & event)
 		case KeyRelease    : t=event.xkey.time           ; break;
 		case SelectionClear: t=event.xselectionclear.time; break;
 		case PropertyNotify: t=event.xproperty.time      ; break;
-		default: return;
+		case ClientMessage :
+			if (event.xclient.data.l[0]==(long)WM_TAKE_FOCUS) {
+				t=event.xclient.data.l[1];
+				break;
+			}
+			else {
+				return;
+			}
+		default:
+			return;
 	}
 	if (t!=CurrentTime) LastKnownTime=t;
 }
@@ -1195,6 +1205,7 @@ bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
 	//  vendor="The X.Org Foundation", release=11905000 (Ubuntu 17.10)
 	//  vendor="Fedora Project",       release=11906000 (Fedora 27 - 28)
 	//  vendor="Fedora Project",       release=12003000 (Fedora 29)
+	//  vendor="Fedora Project",       release=12004000 (Fedora 30)
 	vendor=ServerVendor(x11Screen->Disp);
 	release=VendorRelease(x11Screen->Disp);
 	if (
