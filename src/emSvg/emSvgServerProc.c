@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emSvgServerProc.c
 //
-// Copyright (C) 2010-2011,2017-2019 Oliver Hamann.
+// Copyright (C) 2010-2011,2017-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -142,6 +142,7 @@ static void emSvgPrintQuoted(const char * str)
 static void emSvgOpen(const char * args)
 {
 	const char * filePath, * title, * desc;
+	char * msg, * p;
 	GError * err;
 	emSvgInst * inst;
 	int instId;
@@ -191,11 +192,15 @@ static void emSvgOpen(const char * args)
 	inst->handle=rsvg_handle_new_from_file(filePath,&err);
 #endif
 	if (!inst->handle) {
-		printf(
-			"error: Failed to read %s (%s)\n",
-			filePath,
+		msg=strdup(
 			(err && err->message && err->message[0]) ? err->message : "unknown error"
 		);
+		for (p=msg;;) {
+			if ((p=strchr(p,'\n'))==NULL) break;
+			*p=' ';
+		}
+		printf("error: Failed to read %s (%s)\n",filePath,msg);
+		free(msg);
 		if (err) g_error_free(err);
 		free(inst);
 		return;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLinearLayout.h
 //
-// Copyright (C) 2015,2017 Oliver Hamann.
+// Copyright (C) 2015,2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -120,7 +120,7 @@ public:
 		// Get or set the minimum tallness (height/width ratio) of a
 		// child panel. The index argument denotes a child panel. Zero
 		// means first child, one means second, and so on. The default
-		// minimum tallness is 0.0.
+		// minimum tallness is 1E-4.
 
 	void SetMinChildTallness(double minCT);
 		// Set the minimum tallness of all child panels to the given
@@ -131,7 +131,7 @@ public:
 		// Get or set the maximum tallness (height/width ratio) of a
 		// child panel. The index argument denotes a child panel. Zero
 		// means first child, one means second, and so on. The default
-		// maximum tallness is 1E100.
+		// maximum tallness is 1E4.
 
 	void SetMaxChildTallness(double maxCT);
 		// Set the maximum tallness of all child panels to the given

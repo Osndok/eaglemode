@@ -1,40 +1,45 @@
 #%rec:emFpPlugin%#
 
 FileTypes = {
- # Audio:
- ".aac"
- ".au"
- ".flac"
- ".it"
- ".mod"
- ".mp3"
- ".ogg"
- ".ra"
- ".s3m"
- ".stm"
- ".wav"
- ".wma"
- ".xm"
- # Video:
- ".asf"
- ".avi"
- ".fli"
- ".flv"
- ".m2t"
- ".m2v"
- ".mkv"
- ".mov"
- ".mp4"
- ".mpeg"
- ".mpg"
- ".mpv"
- ".ogv"
- ".rm"
- ".ts"
- ".vob"
- ".wmv"
+ ##########################################
+ ## All types commented out here because ##
+ ## we use VLC now. emAvServerProc_xine  ##
+ ## is no longer compiled by default.    ##
+ ##########################################
+ ## Audio:
+ #".aac"
+ #".au"
+ #".flac"
+ #".it"
+ #".mod"
+ #".mp3"
+ #".ogg"
+ #".ra"
+ #".s3m"
+ #".stm"
+ #".wav"
+ #".wma"
+ #".xm"
+ ## Video:
+ #".asf"
+ #".avi"
+ #".fli"
+ #".flv"
+ #".m2t"
+ #".m2v"
+ #".mkv"
+ #".mov"
+ #".mp4"
+ #".mpeg"
+ #".mpg"
+ #".mpv"
+ #".ogv"
+ #".rm"
+ #".ts"
+ #".vob"
+ #".wmv"
 }
-Priority = 1.0
+Priority = 1.01
 Library = "emAv"
 Function = "emAvFpPluginFunc"
 Properties = { { Name="ServerProc" Value="emAvServerProc_xine" } }

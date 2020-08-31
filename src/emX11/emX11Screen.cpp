@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2019 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -221,7 +221,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 		emX11_TryLoadLibXxf86vm();
 	}
 	catch (const emException & exception) {
-		emWarning("emX11Screen: %s",exception.GetText());
+		emWarning("emX11Screen: %s",exception.GetText().Get());
 	}
 	HaveXF86VidMode=false;
 	if (emX11_IsLibXxf86vmLoaded()) {
@@ -257,7 +257,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 		emX11_TryLoadLibXinerama();
 	}
 	catch (const emException & exception) {
-		emWarning("emX11Screen: %s",exception.GetText());
+		emWarning("emX11Screen: %s",exception.GetText().Get());
 	}
 	HaveXinerama=false;
 	if (emX11_IsLibXineramaLoaded()) {
@@ -1206,6 +1206,8 @@ bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
 	//  vendor="Fedora Project",       release=11906000 (Fedora 27 - 28)
 	//  vendor="Fedora Project",       release=12003000 (Fedora 29)
 	//  vendor="Fedora Project",       release=12004000 (Fedora 30)
+	//  vendor="Fedora Project",       release=12006000 (Fedora 31)
+	//  vendor="Fedora Project",       release=12008000 (Fedora 32)
 	vendor=ServerVendor(x11Screen->Disp);
 	release=VendorRelease(x11Screen->Disp);
 	if (

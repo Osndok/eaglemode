@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_vlc.c
 //
-// Copyright (C) 2018-2019 Oliver Hamann.
+// Copyright (C) 2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,9 +29,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <vlc/vlc.h>
 #include <vlc/libvlc_version.h>
+#include <vlc/vlc.h>
 #if defined(_WIN32) || defined(__CYGWIN__)
 #	if defined(_WIN32)
 #		include <fcntl.h>
@@ -64,6 +64,52 @@
 #else
 #	define EM_AV_LOG(...)
 #endif
+
+
+/*============================================================================*/
+/*============================== Timeout thread ==============================*/
+/*============================================================================*/
+
+static int emAvTimeoutThreadMilliseconds;
+static int emAvTimeoutThreadDone;
+static pthread_mutex_t emAvTimeoutMutex;
+static pthread_t emAvTimeoutThread;
+
+
+static void * emAvTimeoutThreadRoutine(void * arg)
+{
+	for (int i=0; ; i++) {
+		pthread_mutex_lock(&emAvTimeoutMutex);
+		int done=emAvTimeoutThreadDone;
+		pthread_mutex_unlock(&emAvTimeoutMutex);
+		if (done) break;
+		if (i*10>emAvTimeoutThreadMilliseconds) {
+			fprintf(stderr,"emAvServerProc_vlc: Function timed out: %s\n",(const char*)arg);
+			exit(255);
+		}
+		usleep(10000);
+	}
+	return NULL;
+}
+
+
+static void emAvStartTimeoutThread(int milliseconds, const char * purpose)
+{
+	emAvTimeoutThreadMilliseconds=milliseconds;
+	emAvTimeoutThreadDone=0;
+	pthread_mutex_init(&emAvTimeoutMutex,NULL);
+	pthread_create(&emAvTimeoutThread,NULL,emAvTimeoutThreadRoutine,(void*)purpose);
+}
+
+
+static void emAvStopTimeoutThread()
+{
+	pthread_mutex_lock(&emAvTimeoutMutex);
+	emAvTimeoutThreadDone=1;
+	pthread_mutex_unlock(&emAvTimeoutMutex);
+	pthread_join(emAvTimeoutThread,NULL);
+	pthread_mutex_destroy(&emAvTimeoutMutex);
+}
 
 
 /*============================================================================*/
@@ -1260,7 +1306,9 @@ static const char *  emAvSetProperty(
 		inst->VideoAdapter->Pause=(state==EMAV_PAUSED);
 		pthread_mutex_unlock(&inst->VideoAdapter->Mutex);
 		if (state==EMAV_STOPPED) {
+			emAvStartTimeoutThread(3000,"libvlc_media_player_stop in emAvSetProperty");
 			libvlc_media_player_stop(inst->VlcPlayer);
+			emAvStopTimeoutThread();
 		}
 		else {
 			libvlc_media_player_play(inst->VlcPlayer);
@@ -1476,7 +1524,9 @@ static void emAvCloseInstance(int instIndex)
 	if (!inst) return;
 
 	if (inst->VlcPlayer && inst->State!=EMAV_STOPPED) {
+		emAvStartTimeoutThread(3000,"libvlc_media_player_stop in emAvCloseInstance");
 		libvlc_media_player_stop(inst->VlcPlayer);
+		emAvStopTimeoutThread();
 	}
 
 	emAvDetachShm(instIndex);
@@ -1484,7 +1534,9 @@ static void emAvCloseInstance(int instIndex)
 	emAvReleaseTracks(inst);
 
 	if (inst->VlcPlayer) {
+		emAvStartTimeoutThread(3000,"libvlc_media_player_release in emAvCloseInstance");
 		libvlc_media_player_release(inst->VlcPlayer);
+		emAvStopTimeoutThread();
 		inst->VlcPlayer=NULL;
 	}
 
@@ -1553,7 +1605,12 @@ static const char * emAvOpenInstance(
 			msg=libvlc_errmsg();
 			snprintf(
 				errBuf,sizeof(errBuf),"libvlc_new failed: %s",
-				msg?msg:"unknown error (maybe vlc-plugin-base not installed?)"
+				msg?msg:
+#ifdef _WIN32
+				"unknown error (maybe VLC plugins not installed?)"
+#else
+				"unknown error (maybe vlc-plugin-base not installed?)"
+#endif
 			);
 			errBuf[sizeof(errBuf)-1]=0;
 			emAvCloseInstance(instIndex);
@@ -1734,7 +1791,9 @@ static const char * emAvOpenInstance(
 			usleep(10000);
 		}
 
+		emAvStartTimeoutThread(3000,"libvlc_media_player_stop in emAvOpenInstance");
 		libvlc_media_player_stop(inst->VlcPlayer);
+		emAvStopTimeoutThread();
 		EM_AV_LOG("Playing to no output stopped");
 
 		if (!audioEnabled) {
@@ -1743,7 +1802,9 @@ static const char * emAvOpenInstance(
 		}
 
 		/* Recreate player in order to undo libvlc_audio_set_callbacks(..) */
+		emAvStartTimeoutThread(3000,"libvlc_media_player_release in emAvOpenInstance");
 		libvlc_media_player_release(inst->VlcPlayer);
+		emAvStopTimeoutThread();
 		inst->VlcPlayer=NULL;
 	}
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.h
 //
-// Copyright (C) 2004-2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -78,6 +78,7 @@ public:
 		// Destructor.
 
 	static emString Format(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
+	static emString VFormat(const char * format, va_list args);
 		// This function creates a formatted string.
 		// Arguments:
 		//   format - The format (like with printf).

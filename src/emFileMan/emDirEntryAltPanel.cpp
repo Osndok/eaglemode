@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2010,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2007-2010,2014,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -213,7 +213,7 @@ void emDirEntryAltPanel::Paint(const emPainter & painter, emColor canvasColor) c
 		painter.PaintRect(
 			theme->AltContentX,theme->AltContentY,
 			theme->AltContentW,theme->AltContentH,
-			theme->BackgroundColor,
+			theme->BackgroundColor.Get(),
 			canvasColor
 		);
 	}

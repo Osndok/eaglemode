@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2009,2011,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -396,7 +396,7 @@ static emMiniIpc_ServerInstance * emMiniIpc_OpenServer(const char * serverName)
 		emTryMakeDirectories(inst->FifoDir,0700);
 	}
 	catch (const emException & exception) {
-		emFatalError("emMiniIpc_OpenServer: %s",exception.GetText());
+		emFatalError("emMiniIpc_OpenServer: %s",exception.GetText().Get());
 	}
 
 	lockHandle=emMiniIpc_Lock(inst->FifoCreationLockPath);
@@ -672,7 +672,7 @@ void emMiniIpcClient::TrySend(
 		throw emException(
 			"Failed to find or access emMiniIpc server \"%s\" (%s)",
 			serverName,
-			exception.GetText()
+			exception.GetText().Get()
 		);
 	}
 }

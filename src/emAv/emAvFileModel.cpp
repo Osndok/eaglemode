@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.cpp
 //
-// Copyright (C) 2005-2008,2011,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2017-2018,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -271,6 +271,8 @@ emAvFileModel::emAvFileModel(
 	AudioChannel=0;
 	SpuChannel=0;
 	Tallness=1.0;
+
+	AddWakeUpSignal(GetLibDirCfg().GetChangeSignal());
 }
 
 
@@ -278,6 +280,19 @@ emAvFileModel::~emAvFileModel()
 {
 	emAvFileModel::QuitLoading();
 	emAvFileModel::ResetData();
+}
+
+
+bool emAvFileModel::Cycle()
+{
+	if (
+		IsSignaled(GetLibDirCfg().GetChangeSignal()) &&
+		GetFileState()!=FS_UNSAVED
+	) {
+		HardResetFileState();
+	}
+
+	return emFileModel::Cycle();
 }
 
 

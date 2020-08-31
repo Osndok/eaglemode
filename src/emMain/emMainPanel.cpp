@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainPanel.cpp
 //
-// Copyright (C) 2007-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2007-2010,2014,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -198,8 +198,8 @@ void emMainPanel::Paint(const emPainter & painter, emColor canvasColor) const
 			x1,y1,w1,h1,
 			0.0,d,d,d,
 			ControlEdgesImage,
-			191.0,0.0,190.0,11.0,
-			0.0,5.0,5.0,5.0,
+			191,0,190,11,
+			0,5,5,5,
 			255,ControlEdgesColor,057
 		);
 	}
@@ -214,8 +214,8 @@ void emMainPanel::Paint(const emPainter & painter, emColor canvasColor) const
 			x2,y2,w2,h2,
 			d,d,0.0,d,
 			ControlEdgesImage,
-			0.0,0.0,190.0,11.0,
-			5.0,5.0,0.0,5.0,
+			0,0,190,11,
+			5,5,0,5,
 			255,ControlEdgesColor,0750
 		);
 	}

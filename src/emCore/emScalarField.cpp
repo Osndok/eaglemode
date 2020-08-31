@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -451,7 +451,8 @@ void emScalarField::DoScalarField(
 					painter->PaintTextBoxed(
 						tx-tw*0.5,ty,tw,h4,
 						buf,h4,
-						col,canvasColor
+						col,canvasColor,
+						EM_ALIGN_CENTER,EM_ALIGN_CENTER
 					);
 					xy[0]=tx-h5*0.5; xy[1]=ty+h4;
 					xy[2]=tx+h5*0.5; xy[3]=ty+h4;

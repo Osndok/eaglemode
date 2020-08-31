@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2012,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -421,7 +421,7 @@ void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor) cons
 				theme->DirContentY,
 				theme->DirContentW,
 				theme->DirContentH,
-				theme->DirContentColor,
+				theme->DirContentColor.Get(),
 				canvasColor
 			);
 		}
@@ -459,7 +459,7 @@ void emDirEntryPanel::Paint(const emPainter & painter, emColor canvasColor) cons
 				theme->FileContentY,
 				theme->FileContentW,
 				theme->FileContentH,
-				theme->FileContentColor,
+				theme->FileContentColor.Get(),
 				canvasColor
 			);
 		}

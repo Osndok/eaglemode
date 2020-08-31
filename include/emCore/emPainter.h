@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.h
 //
-// Copyright (C) 2001,2003-2010,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,9 +21,20 @@
 #ifndef emPainter_h
 #define emPainter_h
 
-#ifndef emFontCache_h
-#include <emCore/emFontCache.h>
+#ifndef emModel_h
+#include <emCore/emModel.h>
 #endif
+
+#ifndef emTexture_h
+#include <emCore/emTexture.h>
+#endif
+
+#ifndef emThread_h
+#include <emCore/emThread.h>
+#endif
+
+class emCoreConfig;
+class emFontCache;
 
 
 //==============================================================================
@@ -252,20 +263,21 @@ public:
 		// Lock the user space mutex. Returns true if it was unlocked.
 
 
-	//-------------------- Painting areas in uni-color ---------------------
+	//--------------------------- Painting areas ---------------------------
 
-	void Clear(emColor color=emColor::BLACK, emColor canvasColor=0) const;
+	void Clear(const emTexture & texture=emColor::BLACK,
+	           emColor canvasColor=0) const;
 		// Like PaintRect on the whole clipping rectangle.
 
 	void PaintRect(double x, double y, double w, double h,
-	               emColor color, emColor canvasColor=0) const;
+	               const emTexture & texture, emColor canvasColor=0) const;
 		// Paint a rectangle.
 		// Arguments:
 		//   x,y,w,h     - Upper-left corner and size of the rectangle.
-		//   color       - The color (alpha part is used for blending).
+		//   texture     - The texture by which to fill the rectangle.
 		//   canvasColor - Please read the general comments more above.
 
-	void PaintPolygon(const double xy[], int n, emColor color,
+	void PaintPolygon(const double xy[], int n, const emTexture & texture,
 	                  emColor canvasColor=0) const;
 		// Paint a polygon. The polygon may have holes, and it does not
 		// matter whether the edges run clockwise or counterclockwise.
@@ -275,7 +287,7 @@ public:
 		//                 array elements are:
 		//                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
 		//   n           - Number of vertices.
-		//   color       - The color (alpha part is used for blending).
+		//   texture     - The texture by which to fill the polygon.
 		//   canvasColor - Please read the general comments more above.
 
 	void PaintEdgeCorrection(double x1, double y1, double x2, double y2,
@@ -285,18 +297,20 @@ public:
 		// reducing the visual errors at the edges. Just call this to
 		// paint the correction over the contact edge of two polygons
 		// which have already been painted without canvas color. color1
-		// must be the color argument used for painting the first
-		// polygon, and color2 must be the color argument used for the
-		// other polygon which has been painted later. (x1,y1) and
-		// (x2,y2) are the vertices of the contact edge, but the order
-		// is important: When looking from (x1,y1) to (x2,y2), the first
-		// polygon must be on the left.
+		// must be the color used for painting the first polygon, and
+		// color2 must be the color used for the other polygon which has
+		// been painted later. (x1,y1) and (x2,y2) are the vertices of
+		// the contact edge, but the order is important: When looking
+		// from (x1,y1) to (x2,y2), the first polygon must be on the
+		// left.
 
 	void PaintEllipse(double x, double y, double w, double h,
-	                  emColor color, emColor canvasColor=0) const;
+	                  const emTexture & texture,
+	                  emColor canvasColor=0) const;
 	void PaintEllipse(double x, double y, double w, double h,
 	                  double startAngle, double rangeAngle,
-	                  emColor color, emColor canvasColor=0) const;
+	                  const emTexture & texture,
+	                  emColor canvasColor=0) const;
 		// Paint an ellipse or a sector of an ellipse.
 		// Arguments:
 		//   x,y,w,h     - Upper-left corner and size of the bounding
@@ -304,21 +318,22 @@ public:
 		//   startAngle  - Start angle of the sector in degrees. Zero
 		//                 points to the right, 90 points down...
 		//   rangeAngle  - Range angle of the sector.
-		//   color       - The color (alpha part is used for blending).
+		//   texture     - The texture by which to fill the ellipse.
 		//   canvasColor - Please read the general comments more above.
 
 	void PaintRoundRect(double x, double y, double w, double h,
-	                    double rx, double ry, emColor color,
+	                    double rx, double ry, const emTexture & texture,
 	                    emColor canvasColor=0) const;
 		// Paint a rectangle with elliptic corners.
 		// Arguments:
 		//   x,y,w,h     - Upper-left corner and size of the rectangle.
 		//   rx,ry       - Radiuses of the ellipses.
-		//   color       - The color (alpha part is used for blending).
+		//   texture     - The texture by which to fill the round
+		//                 rectangle.
 		//   canvasColor - Please read the general comments more above.
 
 
-	//-------------------- Painting lines in uni-color ---------------------
+	//--------------------------- Painting lines ---------------------------
 
 	enum LineCap {
 		LC_FLAT,
@@ -368,38 +383,19 @@ public:
 
 	//------------------------ Painting from images ------------------------
 
-	void PaintShape(double x, double y, double w, double h,
-	                const emImage & img, int channel=0,
-	                emColor color=emColor::WHITE,
-	                emColor canvasColor=0) const;
-	void PaintShape(double x, double y, double w, double h,
-	                const emImage & img, double srcX, double srcY,
-	                double srcW, double srcH, int channel=0,
-	                emColor color=emColor::WHITE,
-	                emColor canvasColor=0) const;
-		// Paint a rectangle from one channel of an image or sub-image.
-		// This is just like PaintRect, but the image channel is used as
-		// an additional alpha channel for blending.
-		// Arguments:
-		//   x,y,w,h     - Upper-left corner and size of the target
-		//                 rectangle.
-		//   img         - The image.
-		//   srcX,srcY,srcW,srcH - Upper-left corner and size of the
-		//                 source rectangle on the image. If these
-		//                 arguments are missing, the whole image is
-		//                 taken.
-		//   channel     - The desired channel of the image.
-		//   color       - The color (alpha part is used for blending).
-		//   canvasColor - Please read the general comments more above.
-
 	void PaintImage(double x, double y, double w, double h,
 	                const emImage & img, int alpha=255,
-	                emColor canvasColor=0) const;
+	                emColor canvasColor=0,
+	                emTexture::ExtensionType extension=
+	                emTexture::EXTEND_EDGE_OR_ZERO) const;
 	void PaintImage(double x, double y, double w, double h,
-	                const emImage & img, double srcX, double srcY,
-	                double srcW, double srcH, int alpha=255,
-	                emColor canvasColor=0) const;
-		// Paint a rectangle from an image or from a sub-image.
+	                const emImage & img, int srcX, int srcY, int srcW,
+	                int srcH, int alpha=255, emColor canvasColor=0,
+	                emTexture::ExtensionType extension=
+	                emTexture::EXTEND_EDGE_OR_ZERO) const;
+		// Paint a rectangle from an image or from a sub-image. This is
+		// like PaintRect(..) with an emImageTexture. Please see
+		// emImageTexture for details.
 		// Arguments:
 		//   x,y,w,h     - Upper-left corner and size of the target
 		//                 rectangle.
@@ -412,31 +408,44 @@ public:
 		//   alpha       - An additional alpha value for blending
 		//                 (0-255).
 		//   canvasColor - Please read the general comments more above.
+		//   extension   - Please read the comments on
+		//                 emTexture::ExtensionType.
 
-	void PaintBorderShape(
-		double x, double y, double w, double h,
-		double l, double t, double r, double b,
-		const emImage & img,
-		double srcL, double srcT, double srcR, double srcB,
-		int channel=0,
-		emColor color=emColor::WHITE, emColor canvasColor=0,
-		int whichSubRects=0757
-	) const;
-	void PaintBorderShape(
-		double x, double y, double w, double h,
-		double l, double t, double r, double b,
-		const emImage & img,
-		double srcX, double srcY, double srcW, double srcH,
-		double srcL, double srcT, double srcR, double srcB,
-		int channel=0,
-		emColor color=emColor::WHITE, emColor canvasColor=0,
-		int whichSubRects=0757
-	) const;
+	void PaintImageColored(double x, double y, double w, double h,
+	                       const emImage & img, emColor color1,
+	                       emColor color2, emColor canvasColor=0,
+	                       emTexture::ExtensionType extension=
+	                       emTexture::EXTEND_EDGE_OR_ZERO) const;
+	void PaintImageColored(double x, double y, double w, double h,
+	                       const emImage & img, int srcX, int srcY,
+	                       int srcW, int srcH, emColor color1,
+	                       emColor color2, emColor canvasColor=0,
+	                       emTexture::ExtensionType extension=
+	                       emTexture::EXTEND_EDGE_OR_ZERO) const;
+		// Paint a rectangle from an image or sub-image, with coloring.
+		// This is like PaintRect(..) with an emImageColoredTexture.
+		// Please see emImageColoredTexture for details.
+		// Arguments:
+		//   x,y,w,h     - Upper-left corner and size of the target
+		//                 rectangle.
+		//   img         - The image.
+		//   srcX,srcY,srcW,srcH - Upper-left corner and size of the
+		//                 source rectangle on the image. If these
+		//                 arguments are missing, the whole image is
+		//                 taken.
+		//   color1      - The color of the beginning of the gradient
+		//                 (where the image values are zero).
+		//   color2      - The color of the end of the gradient
+		//                 (where the image values are 255).
+		//   canvasColor - Please read the general comments more above.
+		//   extension   - Please read the comments on
+		//                 emTexture::ExtensionType.
+
 	void PaintBorderImage(
 		double x, double y, double w, double h,
 		double l, double t, double r, double b,
 		const emImage & img,
-		double srcL, double srcT, double srcR, double srcB,
+		int srcL, int srcT, int srcR, int srcB,
 		int alpha=255, emColor canvasColor=0,
 		int whichSubRects=0757
 	) const;
@@ -444,19 +453,36 @@ public:
 		double x, double y, double w, double h,
 		double l, double t, double r, double b,
 		const emImage & img,
-		double srcX, double srcY, double srcW, double srcH,
-		double srcL, double srcT, double srcR, double srcB,
+		int srcX, int srcY, int srcW, int srcH,
+		int srcL, int srcT, int srcR, int srcB,
 		int alpha=255, emColor canvasColor=0,
 		int whichSubRects=0757
 	) const;
-		// Like PaintShape and PaintImage, but with a special type of
-		// scaling, typically used for painting borders. The rectangle
-		// is divided into a grid of nine sub-rectangles: four corners,
-		// four edges and an inner rectangle. The operation allows to
-		// change the height of the upper and lower edges and the width
-		// of the left and right edges, in relation to the size of the
-		// whole rectangle. The other sub-rectangles are adapted
-		// accordingly.
+	void PaintBorderImageColored(
+		double x, double y, double w, double h,
+		double l, double t, double r, double b,
+		const emImage & img,
+		int srcL, int srcT, int srcR, int srcB,
+		emColor color1, emColor color2, emColor canvasColor=0,
+		int whichSubRects=0757
+	) const;
+	void PaintBorderImageColored(
+		double x, double y, double w, double h,
+		double l, double t, double r, double b,
+		const emImage & img,
+		int srcX, int srcY, int srcW, int srcH,
+		int srcL, int srcT, int srcR, int srcB,
+		emColor color1, emColor color2, emColor canvasColor=0,
+		int whichSubRects=0757
+	) const;
+		// Like PaintImage and PaintImageColored, but with a special
+		// type of scaling, typically used for painting borders. The
+		// rectangle is divided into a grid of nine sub-rectangles: four
+		// corners, four edges and an inner rectangle. The operation
+		// allows to change the height of the upper and lower edges and
+		// the width of the left and right edges, in relation to the
+		// size of the whole rectangle. The other sub-rectangles are
+		// adapted accordingly.
 		// Arguments:
 		//   x,y,w,h     - Upper-left corner and size of the target
 		//                 rectangle.
@@ -469,8 +495,10 @@ public:
 		//                 taken.
 		//   srcL,srcT,srcR,srcB - Thickness of the left, top, right
 		//                 and bottom edges on the image.
-		//   channel     - The desired channel of the image.
-		//   color       - The color (alpha part is used for blending).
+		//   color1      - The color of the beginning of the gradient
+		//                 (where the image values are zero).
+		//   color2      - The color of the end of the gradient
+		//                 (where the image values are 255).
 		//   alpha       - An additional alpha value for blending
 		//                 (0-255).
 		//   canvasColor - Please read the general comments more above.
@@ -571,6 +599,14 @@ public:
 
 private:
 
+	enum OptimizedPixelFormatIndex {
+		OPFI_NONE      = -1,
+		OPFI_8888_0BGR =  0,
+		OPFI_8888_0RGB =  1,
+		OPFI_8888_BGR0 =  2,
+		OPFI_8888_RGB0 =  3
+	};
+
 	struct SharedPixelFormat {
 		SharedPixelFormat * Next;
 		int RefCount;
@@ -580,7 +616,25 @@ private:
 		void * RedHash;   // Index bits: rrrrrrrraaaaaaaa or aaaaaaaarrrrrrrr
 		void * GreenHash; // Index bits: ggggggggaaaaaaaa or aaaaaaaagggggggg
 		void * BlueHash;  // Index bits: bbbbbbbbaaaaaaaa or aaaaaaaabbbbbbbb
+		OptimizedPixelFormatIndex OPFIndex;
 	};
+
+	class SharedModel : public emModel {
+	public:
+		static emRef<SharedModel> Acquire(emRootContext & rootContext);
+		emRef<emCoreConfig> CoreConfig;
+		emRef<emFontCache> FontCache;
+		emPainter::SharedPixelFormat * PixelFormatList;
+#		if EM_HAVE_X86_INTRINSICS
+			bool CanCpuDoAvx2;
+#		endif
+		void RemoveUnusedPixelFormats();
+	private:
+		SharedModel(emContext & context, const emString & name);
+		virtual ~SharedModel();
+	};
+
+	class ScanlineTool;
 
 	void * Map;
 	int BytesPerRow;
@@ -589,16 +643,9 @@ private:
 	double OriginX, OriginY, ScaleX, ScaleY;
 	emThreadMiniMutex * UserSpaceMutex;
 	bool * USMLockedByThisThread;
-	emRef<emFontCache> FontCache;
+	emRef<SharedModel> Model;
 
 	static const double CharBoxTallness;
-
-	static const unsigned ImageDownscaleQuality;
-		// Quality of downscaling images. Higher value means more
-		// quality but less performance: Before interpolation, the
-		// source is downscaled by integer-nearest-pixel to about:
-		// sizeOfSource <= ImageDownscaleQuality * sizeOfTarget
-
 	static const double CircleQuality;
 };
 
@@ -720,46 +767,80 @@ inline bool emPainter::EnterUserSpace() const
 	return false;
 }
 
-inline void emPainter::PaintShape(
+inline void emPainter::PaintImage(
 	double x, double y, double w, double h, const emImage & img,
-	int channel, emColor color, emColor canvasColor
+	int alpha, emColor canvasColor, emTexture::ExtensionType extension
 ) const
 {
-	PaintShape(x,y,w,h,img,0,0,img.GetWidth(),img.GetHeight(),
-	           channel,color,canvasColor);
+	PaintRect(
+		x,y,w,h,
+		emImageTexture(x,y,w,h,img,alpha,extension),
+		canvasColor
+	);
 }
 
 inline void emPainter::PaintImage(
-	double x, double y, double w, double h, const emImage & img,
-	int alpha, emColor canvasColor
+	double x, double y, double w, double h, const emImage & img, int srcX,
+	int srcY, int srcW, int srcH, int alpha, emColor canvasColor,
+	emTexture::ExtensionType extension
 ) const
 {
-	PaintImage(x,y,w,h,img,0,0,img.GetWidth(),img.GetHeight(),alpha,
-	           canvasColor);
+	PaintRect(
+		x,y,w,h,
+		emImageTexture(x,y,w,h,img,srcX,srcY,srcW,srcH,alpha,extension),
+		canvasColor
+	);
 }
 
-inline void emPainter::PaintBorderShape(
-	double x, double y, double w, double h, double l, double t, double r,
-	double b, const emImage & img, double srcL, double srcT, double srcR,
-	double srcB, int channel, emColor color, emColor canvasColor,
-	int whichSubRects
+inline void emPainter::PaintImageColored(
+	double x, double y, double w, double h, const emImage & img,
+	emColor color1, emColor color2, emColor canvasColor,
+	emTexture::ExtensionType extension
 ) const
 {
-	PaintBorderShape(
-		x,y,w,h,l,t,r,b,img,0,0,img.GetWidth(),img.GetHeight(),
-		srcL,srcT,srcR,srcB,channel,color,canvasColor,whichSubRects
+	PaintRect(
+		x,y,w,h,
+		emImageColoredTexture(x,y,w,h,img,color1,color2,extension),
+		canvasColor
+	);
+}
+
+inline void emPainter::PaintImageColored(
+	double x, double y, double w, double h, const emImage & img,
+	int srcX, int srcY, int srcW, int srcH,
+	emColor color1, emColor color2, emColor canvasColor,
+	emTexture::ExtensionType extension
+) const
+{
+	PaintRect(
+		x,y,w,h,
+		emImageColoredTexture(x,y,w,h,img,srcX,srcY,srcW,srcH,
+		                      color1,color2,extension),
+		canvasColor
 	);
 }
 
 inline void emPainter::PaintBorderImage(
 	double x, double y, double w, double h, double l, double t, double r,
-	double b, const emImage & img, double srcL, double srcT, double srcR,
-	double srcB, int alpha, emColor canvasColor, int whichSubRects
+	double b, const emImage & img, int srcL, int srcT, int srcR, int srcB,
+	int alpha, emColor canvasColor, int whichSubRects
 ) const
 {
 	PaintBorderImage(
 		x,y,w,h,l,t,r,b,img,0,0,img.GetWidth(),img.GetHeight(),
 		srcL,srcT,srcR,srcB,alpha,canvasColor,whichSubRects
+	);
+}
+
+inline void emPainter::PaintBorderImageColored(
+	double x, double y, double w, double h, double l, double t, double r,
+	double b, const emImage & img, int srcL, int srcT, int srcR, int srcB,
+	emColor color1, emColor color2, emColor canvasColor, int whichSubRects
+) const
+{
+	PaintBorderImageColored(
+		x,y,w,h,l,t,r,b,img,0,0,img.GetWidth(),img.GetHeight(),
+		srcL,srcT,srcR,srcB,color1,color2,canvasColor,whichSubRects
 	);
 }
 

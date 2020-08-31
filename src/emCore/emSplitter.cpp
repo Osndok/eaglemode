@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSplitter.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -183,7 +183,7 @@ void emSplitter::PaintContent(
 		Pressed ?
 			GetTkResources().ImgSplitterPressed :
 			GetTkResources().ImgSplitter,
-		150.0,150.0,149.0,149.0,
+		150,150,149,149,
 		IsEnabled() ? 255 : 64,
 		btBgCol,
 		0757

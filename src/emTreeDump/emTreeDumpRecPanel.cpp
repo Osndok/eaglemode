@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpRecPanel.cpp
 //
-// Copyright (C) 2007-2008,2011,2015-2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2015-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,16 +68,16 @@ void emTreeDumpRecPanel::Paint(const emPainter & painter, emColor canvasColor) c
 	switch (Rec->Frame.Get()) {
 	case emTreeDumpRec::FRAME_RECTANGLE:
 		painter.PaintRect(x,y,w,h,BgColor,canvasColor);
-		painter.PaintRectOutline(x,y,w,h,t,Rec->FgColor);
+		painter.PaintRectOutline(x,y,w,h,t,Rec->FgColor.Get());
 		break;
 	case emTreeDumpRec::FRAME_ROUND_RECT:
 		r=emMin(w,h)*0.2;
 		painter.PaintRoundRect(x,y,w,h,r,r,BgColor,canvasColor);
-		painter.PaintRoundRectOutline(x,y,w,h,r,r,t,Rec->FgColor);
+		painter.PaintRoundRectOutline(x,y,w,h,r,r,t,Rec->FgColor.Get());
 		break;
 	case emTreeDumpRec::FRAME_ELLIPSE:
 		painter.PaintEllipse(x,y,w,h,BgColor,canvasColor);
-		painter.PaintEllipseOutline(x,y,w,h,t,Rec->FgColor);
+		painter.PaintEllipseOutline(x,y,w,h,t,Rec->FgColor.Get());
 		break;
 	case emTreeDumpRec::FRAME_HEXAGON:
 		r=w*0.2;
@@ -88,7 +88,7 @@ void emTreeDumpRecPanel::Paint(const emPainter & painter, emColor canvasColor) c
 		xy[ 8]=x+r;   xy[ 9]=y+h;
 		xy[10]=x;     xy[11]=y+h*0.5;
 		painter.PaintPolygon(xy,6,BgColor,canvasColor);
-		painter.PaintPolygonOutline(xy,6,t,Rec->FgColor);
+		painter.PaintPolygonOutline(xy,6,t,Rec->FgColor.Get());
 		break;
 	default:
 		painter.Clear(BgColor,canvasColor);

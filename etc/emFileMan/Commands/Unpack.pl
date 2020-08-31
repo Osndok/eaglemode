@@ -14,10 +14,10 @@
 # Descr =          directories shall be created.
 # Descr =
 # Descr =Following archive file formats are supported, provided that the
-# Descr =corresponding system tools are installed: 7z, a, ar, arc, arj, bz,
-# Descr =bz2, deb, gz, ipk, jar, lha, lzh, lzma, lzo, rar, tar, tar.bz,
-# Descr =tar.bz2, tar.gz, tar.lzma, tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2,
-# Descr =tgj, tgz, tlz, txz, tzo, xz, Z, zip, zoo
+# Descr =corresponding system tools are installed: 7z, a, ar, bz, bz2, deb,
+# Descr =gz, ipk, jar, lzma, lzo, tar, tar.bz, tar.bz2, tar.gz, tar.lzma,
+# Descr =tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2, tgj, tgz, tlz, txz, tzo,
+# Descr =xz, Z, zip
 # Icon = unpack_file.tga
 # Hotkey = Ctrl+U
 #[[END PROPERTIES]]

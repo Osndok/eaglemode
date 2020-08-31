@@ -47,11 +47,8 @@ if (IsFirstPass()) {
 		"The file name suffix specifies the archive type and must be one of:\n".
 		"  .7z\n".
 		"  .ar | .a | .deb | .ipk\n".
-		"  .arc\n".
-		"  .arj\n".
 		"  .bz2\n".
 		"  .gz\n".
-		"  .lzh | .lha\n".
 		"  .lzma\n".
 		"  .lzo\n".
 		"  .tar\n".
@@ -61,8 +58,7 @@ if (IsFirstPass()) {
 		"  .tar.lzo | .tzo\n".
 		"  .tar.xz | .txz\n".
 		"  .xz\n".
-		"  .zip | .jar\n".
-		"  .zoo",
+		"  .zip | .jar",
 		$name
 	);
 

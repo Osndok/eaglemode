@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011,2014-2015,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2011,2014-2015,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,40 @@
 
 
 //==============================================================================
+//================================ emException =================================
+//==============================================================================
+
+class emException {
+
+public:
+
+	// Class for an exception.
+
+	emException();
+		// Construct an exception with an empty text.
+
+	emException(const char * format, ...) EM_FUNC_ATTR_PRINTF(2);
+		// Construct an exception with a formatted text.
+		// The arguments are like with printf.
+
+	emException(const emException & exception);
+		// Construct a copied exception.
+
+	virtual ~emException();
+		// Destructor.
+
+	emException & operator = (const emException & exception);
+		// Copy an exception.
+
+	const emString & GetText() const;
+		// Get the text.
+
+private:
+	emString Text;
+};
+
+
+//==============================================================================
 //=========================== Host, user, process id ===========================
 //==============================================================================
 
@@ -44,6 +78,26 @@ emString emGetUserName();
 
 int emGetProcessId();
 	// Get the identification number of the process.
+
+
+//==============================================================================
+//================================ SIMD support ================================
+//==============================================================================
+
+// If EM_HAVE_X86_INTRINSICS is non-zero, x86 intrinsics headers can be
+// included.
+#ifndef EM_HAVE_X86_INTRINSICS
+#	if defined(__i386__) || defined(__i386) || defined(_M_IX86) || \
+	   defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+#		define EM_HAVE_X86_INTRINSICS 1
+#	else
+#		define EM_HAVE_X86_INTRINSICS 0
+#	endif
+#endif
+
+bool emCanCpuDoAvx2();
+	// Whether the CPU supports AVX2 instructions (including MMX, SSE <= 4.1
+	// and AVX(1)).
 
 
 //==============================================================================
@@ -258,6 +312,31 @@ emString emCalcHashName(const char * src, int srcLen, int hashLen);
 	// Returns:
 	//   The hash name. It has hashLen characters and consists of
 	//   letters (A-Z) and digits (0-9) only.
+
+
+//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+inline emException::emException()
+{
+}
+
+inline emException::emException(const emException & exception)
+	: Text(exception.Text)
+{
+}
+
+inline emException & emException::operator = (const emException & exception)
+{
+	Text=exception.Text;
+	return *this;
+}
+
+inline const emString & emException::GetText() const
+{
+	return Text;
+}
 
 
 #endif

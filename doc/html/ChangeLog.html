@@ -3,6 +3,24 @@
 <BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
 <H1>Change Log</H1>
 
+<H2>Version 0.95.0</H2>
+<UL>
+<LI>Added some interpolation algorithms for the zooming into photos, videos,
+icons and other images. Now the user can choose (in the preferences) from: Area
+Sampling, Bilinear, Bicubic, Lanczos, and Adaptive.</LI>
+<LI>Accelerated graphics display by making use of the AVX2 CPU extension.</LI>
+<LI>Extended the graphics API by a texture class which allows more flexible
+filling of figures with colors and images.</LI>
+<LI>Ported the audio/video player to Windows, based on the VLC library.</LI>
+<LI>Switched from Xine to VLC also for other OSes because some tests showed that
+VLC is more crash-resistant against randomly corrupted files and thereby most
+likely more secure.</LI>
+<LI>Ported the archive viewer to Windows.</LI>
+<LI>Completely removed support for outdated archive file formats to improve
+security and simplify maintenance: Goodbye to arc, arj, lha, rar, and zoo.</LI>
+<LI>Minor fixes and improvements.</LI>
+</UL>
+
 <H2>Version 0.94.2</H2>
 <UL>
 <LI>Fixed some security issues concerning the reading of corrupt image

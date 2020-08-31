@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2013,2015,2019 Oliver Hamann.
+// Copyright (C) 2008,2010-2013,2015,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -184,7 +184,7 @@ static void emAv_raw_output_cb(
 		pthread_mutex_unlock(&visual->mutex);
 		return;
 	}
-	sz=headerSize+size0+size1+size2;
+	sz=headerSize+256+size0+size1+size2;
 
 	if (visual->min_shm_size<sz) visual->min_shm_size=sz;
 	pi=(int volatile *)visual->shm_ptr;
@@ -197,10 +197,11 @@ static void emAv_raw_output_cb(
 			pi[4]=1;
 			pi[5]=pitch0;
 			pi[6]=pitch1;
-			pi[7]=0;
+			pc=(char*)(pi+10);
+			pi[7]=(((char*)NULL)-pc)&7;
+			pc+=pi[7];
 			pi[8]=0;
 			pi[9]=0;
-			pc=(char*)(pi+10);
 			memcpy((void*)pc,data0,size0);
 			pc+=size0;
 			memcpy((void*)pc,data1,size1);
@@ -210,14 +211,18 @@ static void emAv_raw_output_cb(
 		case XINE_VORAW_YUY2:
 			pi[4]=2;
 			pi[5]=pitch0;
-			pi[6]=0;
-			memcpy((void*)(pi+7),data0,size0);
+			pc=(char*)(pi+7);
+			pi[6]=(((char*)NULL)-pc)&7;
+			pc+=pi[6];
+			memcpy((void*)pc,data0,size0);
 			break;
 		case XINE_VORAW_RGB:
 			pi[4]=0;
 			pi[5]=pitch0;
-			pi[6]=0;
-			memcpy((void*)(pi+7),data0,size0);
+			pc=(char*)(pi+7);
+			pi[6]=(((char*)NULL)-pc)&7;
+			pc+=pi[6];
+			memcpy((void*)pc,data0,size0);
 			break;
 		}
 		pi[0]=1;

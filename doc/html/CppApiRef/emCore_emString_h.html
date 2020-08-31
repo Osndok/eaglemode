@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emString_h.html#emString">emString</A>.h
 //
-// Copyright (C) 2004-2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -87,6 +87,7 @@
                 <SPAN CLASS=c>// Destructor.
 
         </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> Format(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+        <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> VFormat(<SPAN CLASS=t>const char </SPAN>* format, va_list args);
                 <SPAN CLASS=c>// This function creates a formatted string.
                 // Arguments:
                 //   format - The format (like with printf).

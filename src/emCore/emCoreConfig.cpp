@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.cpp
 //
-// Copyright (C) 2006-2012,2014,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2006-2012,2014,2016,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,7 @@
 
 #include <emCore/emInstallInfo.h>
 #include <emCore/emCoreConfig.h>
+#include <emCore/emTexture.h>
 
 
 emRef<emCoreConfig> emCoreConfig::Acquire(emRootContext & rootContext)
@@ -59,7 +60,24 @@ emCoreConfig::emCoreConfig(emContext & context, const emString & name)
 #endif
 		8,16384
 	),
-	MaxRenderThreads(this,"MaxRenderThreads",8,1,32)
+	MaxRenderThreads(this,"MaxRenderThreads",8,1,32),
+	AllowSIMD(this,"AllowSIMD",true),
+	DownscaleQuality(
+		this,"DownscaleQuality",
+		emTexture::DQ_3X3,
+		emTexture::DQ_2X2,
+		emTexture::DQ_6X6
+	),
+	UpscaleQuality(
+		this,"UpscaleQuality",
+#if EM_HAVE_X86_INTRINSICS
+		emCanCpuDoAvx2() ? emTexture::UQ_ADAPTIVE : emTexture::UQ_BILINEAR,
+#else
+		emTexture::UQ_BILINEAR,
+#endif
+		emTexture::UQ_AREA_SAMPLING,
+		emTexture::UQ_ADAPTIVE
+	)
 {
 	PostConstruct(
 		*this,

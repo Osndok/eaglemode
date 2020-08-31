@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.cpp
 //
-// Copyright (C) 2015-2016,2019 Oliver Hamann.
+// Copyright (C) 2015-2016,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -998,9 +998,9 @@ void emFileSelectionBox::FileItemPanel::Paint(
 			fy+=(fh-fw*t)*0.5;
 			fh=fw*t;
 		}
-		painter.PaintShape(
+		painter.PaintImageColored(
 			fx,fy,fw,fh,
-			*img, 0, fgCol, canvasColor
+			*img, 0, fgCol, canvasColor, emTexture::EXTEND_ZERO
 		);
 		if (!data->IsReadable) {
 			r=emMin(fw,fh)*0.35;

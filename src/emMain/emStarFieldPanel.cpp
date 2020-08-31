@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStarFieldPanel.cpp
 //
-// Copyright (C) 2007-2008,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -122,9 +122,9 @@ void emStarFieldPanel::PaintOverlay(const emPainter & painter)
 				x=Stars[i].X-r;
 				y=Stars[i].Y-r;
 				d=r*2;
-				painter.PaintShape(x,y,d,d,StarShape,0,c);
+				painter.PaintImageColored(x,y,d,d,StarShape,0,c,0,emTexture::EXTEND_ZERO);
 				c.SetHSVA(hue,sat-10.0f,100.0f);
-				painter.PaintShape(x,y,d,d,StarShape,0,c);
+				painter.PaintImageColored(x,y,d,d,StarShape,0,c,0,emTexture::EXTEND_ZERO);
 			}
 			else {
 				r*=0.6;

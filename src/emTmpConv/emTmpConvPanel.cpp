@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvPanel.cpp
 //
-// Copyright (C) 2006-2008,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,7 +36,6 @@ emTmpConvPanel::emTmpConvPanel(
 	MinViewPercentForTriggering=minViewPercentForTriggering;
 	MinViewPercentForHolding=minViewPercentForHolding;
 	AddWakeUpSignal(model->GetChangeSignal());
-	SetAutoplayHandling(APH_CUTOFF);
 }
 
 

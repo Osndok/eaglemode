@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvClient.h
 //
-// Copyright (C) 2008 Oliver Hamann.
+// Copyright (C) 2008,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,6 +50,8 @@ public:
 	void CloseStream();
 
 	void SetProperty(const emString & name, const emString & value);
+
+	emAvLibDirCfg & GetLibDirCfg() const;
 
 protected:
 
@@ -107,6 +109,11 @@ inline void emAvClient::SetProperty(
 )
 {
 	SetProperty(name,value,false);
+}
+
+inline emAvLibDirCfg & emAvClient::GetLibDirCfg() const
+{
+	return ServerModel->LibDirCfg;
 }
 
 

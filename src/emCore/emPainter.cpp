@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2011,2016-2019 Oliver Hamann.
+// Copyright (C) 2001,2003-2011,2016-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,9 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emPainter.h>
-#include <emCore/emVarModel.h>
+#include "emPainter_ScTl.h"
+#include <emCore/emCoreConfig.h>
+#include <emCore/emFontCache.h>
 
 
 emPainter::emPainter()
@@ -56,7 +58,7 @@ emPainter::emPainter(const emPainter & painter)
 	ScaleY=painter.ScaleY;
 	UserSpaceMutex=painter.UserSpaceMutex;
 	USMLockedByThisThread=painter.USMLockedByThisThread;
-	FontCache=painter.FontCache;
+	Model=painter.Model;
 }
 
 
@@ -79,7 +81,7 @@ emPainter::emPainter(
 	ScaleY=painter.ScaleY;
 	UserSpaceMutex=painter.UserSpaceMutex;
 	USMLockedByThisThread=painter.USMLockedByThisThread;
-	FontCache=painter.FontCache;
+	Model=painter.Model;
 }
 
 
@@ -103,7 +105,7 @@ emPainter::emPainter(
 	ScaleY=scaleY;
 	UserSpaceMutex=painter.UserSpaceMutex;
 	USMLockedByThisThread=painter.USMLockedByThisThread;
-	FontCache=painter.FontCache;
+	Model=painter.Model;
 }
 
 
@@ -118,8 +120,7 @@ emPainter::emPainter(
 {
 	emUInt32 redRange,greenRange,blueRange;
 	int i,redShift,greenShift,blueShift,shift;
-	SharedPixelFormat * list, * pf;
-	SharedPixelFormat * * ppf;
+	SharedPixelFormat * pf;
 	void * hash;
 	emUInt32 c1,c2,c3,a1,a2,range;
 
@@ -147,7 +148,7 @@ emPainter::emPainter(
 	ScaleY=scaleY;
 	UserSpaceMutex=userSpaceMutex;
 	USMLockedByThisThread=usmLockedByThisThread;
-	FontCache=emFontCache::Acquire(rootContext);
+	Model=SharedModel::Acquire(rootContext);
 
 	redRange=redMask;
 	redShift=0;
@@ -159,12 +160,8 @@ emPainter::emPainter(
 	blueShift=0;
 	if (blueRange) while (!(blueRange&1)) { blueRange>>=1; blueShift++; }
 
-	list=emVarModel<emPainter::SharedPixelFormat*>::Get(
-		rootContext,"emPainter::PixelFormatList",(SharedPixelFormat*)NULL
-	);
-
 	// Search for a matching pixel format.
-	for (pf=list; pf!=NULL; pf=pf->Next) {
+	for (pf=Model->PixelFormatList; pf!=NULL; pf=pf->Next) {
 		if (
 			pf->BytesPerPixel==bytesPerPixel &&
 			pf->RedRange==redRange &&
@@ -177,22 +174,11 @@ emPainter::emPainter(
 	}
 	if (!pf) {
 		// Not found. Remove unused pixel formats here.
-		for (ppf=&list;;) {
-			pf=*ppf;
-			if (!pf) break;
-			if (pf->RefCount<=0) {
-				*ppf=pf->Next;
-				free(pf->RedHash);
-				free(pf->GreenHash);
-				free(pf->BlueHash);
-				free(pf);
-			}
-			else ppf=&pf->Next;
-		}
+		Model->RemoveUnusedPixelFormats();
 		// Create a new pixel format.
 		pf=(SharedPixelFormat*)malloc(sizeof(SharedPixelFormat));
-		pf->Next=list;
-		list=pf;
+		pf->Next=Model->PixelFormatList;
+		Model->PixelFormatList=pf;
 		pf->RefCount=0;
 		pf->BytesPerPixel=bytesPerPixel;
 		pf->RedRange=redRange;
@@ -246,14 +232,21 @@ emPainter::emPainter(
 				}
 			}
 		}
+		pf->OPFIndex=OPFI_NONE;
+		if (bytesPerPixel==4 && redRange==255 && greenRange==255 && blueRange==255) {
+			if (greenShift==8) {
+				if (redShift==0 && blueShift==16) pf->OPFIndex=OPFI_8888_0BGR;
+				else if (redShift==16 && blueShift==0) pf->OPFIndex=OPFI_8888_0RGB;
+			}
+			else if (greenShift==16) {
+				if (redShift==8 && blueShift==24) pf->OPFIndex=OPFI_8888_BGR0;
+				else if (redShift==24 && blueShift==8) pf->OPFIndex=OPFI_8888_RGB0;
+			}
+		}
 	}
 	// Use the found or created pixel format.
 	pf->RefCount++;
 	PixelFormat=pf;
-
-	emVarModel<emPainter::SharedPixelFormat*>::Set(
-		rootContext,"emPainter::PixelFormatList",list,UINT_MAX
-	);
 }
 
 
@@ -274,7 +267,7 @@ emPainter & emPainter::operator = (const emPainter & painter)
 	ScaleY=painter.ScaleY;
 	UserSpaceMutex=painter.UserSpaceMutex;
 	USMLockedByThisThread=painter.USMLockedByThisThread;
-	FontCache=painter.FontCache;
+	Model=painter.Model;
 	return *this;
 }
 
@@ -325,30 +318,26 @@ void emPainter::SetUserSpaceMutex(
 }
 
 
-void emPainter::Clear(emColor color, emColor canvasColor) const
+void emPainter::Clear(const emTexture & texture, emColor canvasColor) const
 {
 	PaintRect(
 		(ClipX1-OriginX)/ScaleX,
 		(ClipY1-OriginY)/ScaleY,
 		(ClipX2-ClipX1)/ScaleX,
 		(ClipY2-ClipY1)/ScaleY,
-		color,
+		texture,
 		canvasColor
 	);
 }
 
 
 void emPainter::PaintRect(
-	double x, double y, double w, double h, emColor color,
+	double x, double y, double w, double h, const emTexture & texture,
 	emColor canvasColor
 ) const
 {
-	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
-	void * p, * p1, * p2, * p3, * p4;
 	double x2,y2;
-	emUInt32 pix,rmsk,gmsk,bmsk;
-	int i,alpha,a,bpp,ox1,oy1,ox2,oy2,ix1,iy1,ix2,iy2;
-	int ax1,ay1,ax2,ay2,rsh,gsh,bsh,t;
+	int ix,ixe,iw,iy,iy2,ax1,ay1,ax2,ay2;
 	bool wasInUserSpace;
 
 	x=x*ScaleX+OriginX;
@@ -362,286 +351,58 @@ void emPainter::PaintRect(
 	if (y2>ClipY2) y2=ClipY2;
 	if (y>=y2) return;
 
-	alpha=color.GetAlpha();
-	if (alpha==0) return;
-
 	wasInUserSpace=LeaveUserSpace();
 
-	i=(int)(x*0x10000);
-	ox1=i>>16;
-	ix1=(i+0xffff)>>16;
-	ax1=(((-i)&0xffff)*alpha+0x7fff)>>16;
-	i=(int)(x2*0x10000);
-	ox2=(i+0xffff)>>16;
-	if (ox1>=ox2) {
+	ScanlineTool sct(*this);
+	if (!sct.Init(texture,canvasColor)) {
 		if (wasInUserSpace) EnterUserSpace();
 		return;
 	}
-	ix2=i>>16;
-	ax2=((i&0xffff)*alpha+0x8000)>>16;
-	if (ix1>ix2) { ax1+=ax2-alpha; ix2++; }
-	i=(int)(y*0x10000);
-	oy1=i>>16;
-	iy1=(i+0xffff)>>16;
-	ay1=(((-i)&0xffff)*alpha+0x7fff)>>16;
-	i=(int)(y2*0x10000);
-	oy2=(i+0xffff)>>16;
-	if (oy1>=oy2) {
-		if (wasInUserSpace) EnterUserSpace();
-		return;
+
+	ix=(int)(x*0x1000);
+	ixe=((int)(x2*0x1000))+0xfff;
+	ax1=0x1000-(ix&0xfff);
+	ax2=(ixe&0xfff)+1;
+	ix>>=12;
+	ixe>>=12;
+	iw=ixe-ix;
+	if (iw<=1) {
+		if (iw<=0) {
+			if (wasInUserSpace) EnterUserSpace();
+			return;
+		}
+		ax1+=ax2-0x1000;
 	}
-	iy2=i>>16;
-	ay2=((i&0xffff)*alpha+0x8000)>>16;
-	if (iy1>iy2) { ay1+=ay2-alpha; iy2++; }
 
-	bpp=PixelFormat->BytesPerPixel;
-
-	if (!canvasColor.IsOpaque()) {
-		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
-		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
-		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
-		rsh=PixelFormat->RedShift;
-		gsh=PixelFormat->GreenShift;
-		bsh=PixelFormat->BlueShift;
-		rmsk=PixelFormat->RedRange;
-		gmsk=PixelFormat->GreenRange;
-		bmsk=PixelFormat->BlueRange;
-
-#		define PR_MUL_PIX_TEMPLATE(PTYPE,PTR,IDX,ALPHA,ADDEND) \
-			t=(255-ALPHA)*257; \
-			((PTYPE*)PTR)[IDX]=(PTYPE)( \
-				(((((((PTYPE*)PTR)[IDX]>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-				(((((((PTYPE*)PTR)[IDX]>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-				(((((((PTYPE*)PTR)[IDX]>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-				(ADDEND) \
-			);
-
-#		define PR_MUL_TEMPLATE(PTYPE) \
-			if (oy1<iy1) { \
-				p=((char*)Map)+oy1*BytesPerRow; \
-				if (ox1<ix1) { \
-					a=(ax1*ay1+(alpha-1)/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ox1,a,pix) \
-				} \
-				if (ix1<ix2) { \
-					pix=((PTYPE*)hAddR)[ay1]+((PTYPE*)hAddG)[ay1]+((PTYPE*)hAddB)[ay1]; \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((PTYPE*)p)+ix2; \
-					do { \
-						PR_MUL_PIX_TEMPLATE(PTYPE,p1,0,ay1,pix) \
-						p1=((PTYPE*)p1)+1; \
-					} while(p1<p2); \
-				} \
-				if (ix2<ox2) { \
-					a=(ax2*ay1+alpha/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ix2,a,pix) \
-				} \
-			} \
-			if (iy1<iy2) { \
-				p=((char*)Map)+iy1*BytesPerRow; \
-				if (ox1<ix1) { \
-					pix=((PTYPE*)hAddR)[ax1]+((PTYPE*)hAddG)[ax1]+((PTYPE*)hAddB)[ax1]; \
-					p1=((PTYPE*)p)+ox1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					do { \
-						PR_MUL_PIX_TEMPLATE(PTYPE,p1,0,ax1,pix) \
-						p1=((char*)p1)+BytesPerRow; \
-					} while(p1<p2); \
-				} \
-				if (ix1<ix2) { \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					if (alpha<255) { \
-						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]; \
-						do { \
-							p3=p1; \
-							p4=((PTYPE*)p3)+(ix2-ix1); \
-							do { \
-								PR_MUL_PIX_TEMPLATE(PTYPE,p3,0,alpha,pix) \
-								p3=((PTYPE*)p3)+1; \
-							} while(p3<p4); \
-							p1=((char*)p1)+BytesPerRow; \
-						} while(p1<p2); \
-					} \
-					else { \
-						pix=((PTYPE*)hAddR)[255]+((PTYPE*)hAddG)[255]+((PTYPE*)hAddB)[255]; \
-						do { \
-							p3=p1; \
-							p4=((PTYPE*)p3)+(ix2-ix1); \
-							do { \
-								((PTYPE*)p3)[0]=(PTYPE)pix; \
-								p3=((PTYPE*)p3)+1; \
-							} while(p3<p4); \
-							p1=((char*)p1)+BytesPerRow; \
-						} while(p1<p2); \
-					} \
-				} \
-				if (ix2<ox2) { \
-					pix=((PTYPE*)hAddR)[ax2]+((PTYPE*)hAddG)[ax2]+((PTYPE*)hAddB)[ax2]; \
-					p1=((PTYPE*)p)+ix2; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					do { \
-						PR_MUL_PIX_TEMPLATE(PTYPE,p1,0,ax2,pix) \
-						p1=((char*)p1)+BytesPerRow; \
-					} while(p1<p2); \
-				} \
-			} \
-			if (iy2<oy2) { \
-				p=((char*)Map)+iy2*BytesPerRow; \
-				if (ox1<ix1) { \
-					a=(ax1*ay2+alpha/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ox1,a,pix) \
-				} \
-				if (ix1<ix2) { \
-					pix=((PTYPE*)hAddR)[ay2]+((PTYPE*)hAddG)[ay2]+((PTYPE*)hAddB)[ay2]; \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((PTYPE*)p)+ix2; \
-					do { \
-						PR_MUL_PIX_TEMPLATE(PTYPE,p1,0,ay2,pix) \
-						p1=((PTYPE*)p1)+1; \
-					} while(p1<p2); \
-				} \
-				if (ix2<ox2) { \
-					a=(ax2*ay2+(alpha-1)/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]; \
-					PR_MUL_PIX_TEMPLATE(PTYPE,p,ix2,a,pix) \
-				} \
-			}
-
-		if (bpp==4) {
-			PR_MUL_TEMPLATE(emUInt32)
-		}
-		else if (bpp==2) {
-			PR_MUL_TEMPLATE(emUInt16)
-		}
-		else {
-			PR_MUL_TEMPLATE(emUInt8)
+	iy=(int)(y*0x1000);
+	iy2=(int)(y2*0x1000);
+	ay1=0x1000-(iy&0xfff);
+	ay2=iy2&0xfff;
+	iy>>=12;
+	iy2>>=12;
+	if (iy>=iy2) {
+		ay1+=ay2-0x1000;
+		ay2=0;
+		if (ay1<=0) {
+			if (wasInUserSpace) EnterUserSpace();
+			return;
 		}
 	}
-	else if ((color.Get()|0x000000FF) != canvasColor.Get()) {
-		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
-		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
-		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
-		hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
-		hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
-		hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
 
-#		define PR_ADD_SUB_TEMPLATE(PTYPE) \
-			if (oy1<iy1) { \
-				p=((char*)Map)+oy1*BytesPerRow; \
-				if (ox1<ix1) { \
-					a=(ax1*ay1+(alpha-1)/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
-					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
-					((PTYPE*)p)[ox1]+=(PTYPE)pix; \
-				} \
-				if (ix1<ix2) { \
-					pix=((PTYPE*)hAddR)[ay1]+((PTYPE*)hAddG)[ay1]+((PTYPE*)hAddB)[ay1]- \
-					    ((PTYPE*)hSubR)[ay1]-((PTYPE*)hSubG)[ay1]-((PTYPE*)hSubB)[ay1]; \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((PTYPE*)p)+ix2; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((PTYPE*)p1)+1; \
-					} while(p1<p2); \
-				} \
-				if (ix2<ox2) { \
-					a=(ax2*ay1+alpha/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
-					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
-					((PTYPE*)p)[ix2]+=(PTYPE)pix; \
-				} \
-			} \
-			if (iy1<iy2) { \
-				p=((char*)Map)+iy1*BytesPerRow; \
-				if (ox1<ix1) { \
-					pix=((PTYPE*)hAddR)[ax1]+((PTYPE*)hAddG)[ax1]+((PTYPE*)hAddB)[ax1]- \
-					    ((PTYPE*)hSubR)[ax1]-((PTYPE*)hSubG)[ax1]-((PTYPE*)hSubB)[ax1]; \
-					p1=((PTYPE*)p)+ox1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((char*)p1)+BytesPerRow; \
-					} while(p1<p2); \
-				} \
-				if (ix1<ix2) { \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					if (alpha<255) { \
-						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]- \
-						    ((PTYPE*)hSubR)[alpha]-((PTYPE*)hSubG)[alpha]-((PTYPE*)hSubB)[alpha]; \
-						do { \
-							p3=p1; \
-							p4=((PTYPE*)p3)+(ix2-ix1); \
-							do { \
-								((PTYPE*)p3)[0]+=(PTYPE)pix; \
-								p3=((PTYPE*)p3)+1; \
-							} while(p3<p4); \
-							p1=((char*)p1)+BytesPerRow; \
-						} while(p1<p2); \
-					} \
-					else { \
-						pix=((PTYPE*)hAddR)[255]+((PTYPE*)hAddG)[255]+((PTYPE*)hAddB)[255]; \
-						do { \
-							p3=p1; \
-							p4=((PTYPE*)p3)+(ix2-ix1); \
-							do { \
-								((PTYPE*)p3)[0]=(PTYPE)pix; \
-								p3=((PTYPE*)p3)+1; \
-							} while(p3<p4); \
-							p1=((char*)p1)+BytesPerRow; \
-						} while(p1<p2); \
-					} \
-				} \
-				if (ix2<ox2) { \
-					pix=((PTYPE*)hAddR)[ax2]+((PTYPE*)hAddG)[ax2]+((PTYPE*)hAddB)[ax2]- \
-					    ((PTYPE*)hSubR)[ax2]-((PTYPE*)hSubG)[ax2]-((PTYPE*)hSubB)[ax2]; \
-					p1=((PTYPE*)p)+ix2; \
-					p2=((char*)p1)+(iy2-iy1)*BytesPerRow; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((char*)p1)+BytesPerRow; \
-					} while(p1<p2); \
-				} \
-			} \
-			if (iy2<oy2) { \
-				p=((char*)Map)+iy2*BytesPerRow; \
-				if (ox1<ix1) { \
-					a=(ax1*ay2+alpha/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
-					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
-					((PTYPE*)p)[ox1]+=(PTYPE)pix; \
-				} \
-				if (ix1<ix2) { \
-					pix=((PTYPE*)hAddR)[ay2]+((PTYPE*)hAddG)[ay2]+((PTYPE*)hAddB)[ay2]- \
-					    ((PTYPE*)hSubR)[ay2]-((PTYPE*)hSubG)[ay2]-((PTYPE*)hSubB)[ay2]; \
-					p1=((PTYPE*)p)+ix1; \
-					p2=((PTYPE*)p)+ix2; \
-					do { \
-						((PTYPE*)p1)[0]+=(PTYPE)pix; \
-						p1=((PTYPE*)p1)+1; \
-					} while(p1<p2); \
-				} \
-				if (ix2<ox2) { \
-					a=(ax2*ay2+(alpha-1)/2)/alpha; \
-					pix=((PTYPE*)hAddR)[a]+((PTYPE*)hAddG)[a]+((PTYPE*)hAddB)[a]- \
-					    ((PTYPE*)hSubR)[a]-((PTYPE*)hSubG)[a]-((PTYPE*)hSubB)[a]; \
-					((PTYPE*)p)[ix2]+=(PTYPE)pix; \
-				} \
-			}
-
-		if (bpp==4) {
-			PR_ADD_SUB_TEMPLATE(emUInt32)
-		}
-		else if (bpp==2) {
-			PR_ADD_SUB_TEMPLATE(emUInt16)
-		}
-		else {
-			PR_ADD_SUB_TEMPLATE(emUInt8)
-		}
+	if (ay1<0x1000) {
+		sct.PaintScanline(
+			sct,ix,iy,iw,(ax1*ay1+0x7ff)>>12,ay1,(ax2*ay1+0x7ff)>>12
+		);
+		iy++;
+	}
+	while (iy<iy2) {
+		sct.PaintScanline(sct,ix,iy,iw,ax1,0x1000,ax2);
+		iy++;
+	}
+	if (ay2>0) {
+		sct.PaintScanline(
+			sct,ix,iy,iw,(ax1*ay2+0x7ff)>>12,ay2,(ax2*ay2+0x7ff)>>12
+		);
 	}
 
 	if (wasInUserSpace) EnterUserSpace();
@@ -649,7 +410,7 @@ void emPainter::PaintRect(
 
 
 void emPainter::PaintPolygon(
-	const double xy[], int n, emColor color, emColor canvasColor
+	const double xy[], int n, const emTexture & texture, emColor canvasColor
 ) const
 {
 	struct ScanEntry {
@@ -672,15 +433,12 @@ void emPainter::PaintPolygon(
 	ScanEntry * * slmem, * * scanlines, * * ppse;
 	ScanEntry * freeScanEntries, * freeScanEntriesEnd, * pse;
 	SEChunk * seChunks, * psec;
-	void * p, * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
 	const double * pxy;
 	double minX,maxX,minY,maxY,x0,y0,x1,y1,x2,y2,dx,dy,ax,a0,a1,a2,va,t;
 	double ex1[2],ey1[2],ex2[2],ey2[2];
-	emUInt32 pix,rmsk,gmsk,bmsk;
-	int i,alpha,bpp,sly1,sly2,sx,sy,sx2,sy2,rsh,gsh,bsh;
+	int i,alpha,alpha2,alpha3,ta,sly1,sly2,sx,sy,sx0,sy2;
 	bool wasInUserSpace;
 
-	if (!color.GetAlpha()) return;
 	if (n<3) return;
 
 	minX=maxX=xy[0];
@@ -703,6 +461,12 @@ void emPainter::PaintPolygon(
 	if (minX>=maxX) return;
 
 	wasInUserSpace=LeaveUserSpace();
+
+	ScanlineTool sct(*this);
+	if (!sct.Init(texture,canvasColor)) {
+		if (wasInUserSpace) EnterUserSpace();
+		return;
+	}
 
 	sly1=(int)minY;
 	sly2=(int)ceil(maxY);
@@ -765,13 +529,13 @@ void emPainter::PaintPolygon(
 			y1=y0;
 			x2=x0;
 			x1=x0=pxy[0]*ScaleX+OriginX;
-			va=color.GetAlpha();
+			va=0x1000;
 		}
 		else {
 			y2=y0;
 			x1=x0;
 			x2=x0=pxy[0]*ScaleX+OriginX;
-			va=-color.GetAlpha();
+			va=-0x1000;
 		}
 		if (y1>=maxY || y2<=minY) continue;
 		if (y1<minY) {
@@ -889,131 +653,86 @@ void emPainter::PaintPolygon(
 		}
 	}
 
-#	define PP_PART_1(PTYPE) \
-		sy=sly1; \
-		do { \
-			pse=scanlines[sy]; \
-			if (pse!=&seTerminator) { \
-				a1=0; \
-				a2=0; \
-				sx=pse->X; \
-				p=((char*)Map)+sy*BytesPerRow; \
-				do { \
-					a0=a1; \
-					a1+=a2; \
-					if (pse->X==sx) { \
-						a0+=pse->A0; \
-						a1+=pse->A1; \
-						a2+=pse->A2; \
-						pse=pse->Next; \
-					} \
-					alpha=(int)(a0>=0 ? 0.5+a0 : 0.5-a0); \
-					sx2=sx+1; \
-					if (pse->X>sx2 && pse!=&seTerminator) { \
-						t=a1+a2*(pse->X-2-sx); \
-						if (t>=0) { \
-							if (alpha==(int)(0.5+t)) { \
-								a1=t+a2; \
-								sx2=pse->X; \
-							} \
-						} \
-						else { \
-							if (alpha==(int)(0.5-t)) { \
-								a1=t+a2; \
-								sx2=pse->X; \
-							} \
-						} \
-					} \
-					if (alpha>=255) { \
-						pix=((PTYPE*)hAddR)[255]+((PTYPE*)hAddG)[255]+((PTYPE*)hAddB)[255]; \
-						do { \
-							((PTYPE*)p)[sx]=(PTYPE)pix; \
-							sx++; \
-						} while (sx<sx2); \
-					} \
-					else if (alpha) {
-
-#	define PP_PART_2_SUB_ADD(PTYPE) \
-						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]- \
-						    ((PTYPE*)hSubR)[alpha]-((PTYPE*)hSubG)[alpha]-((PTYPE*)hSubB)[alpha]; \
-						do { \
-							((PTYPE*)p)[sx]+=(PTYPE)pix; \
-							sx++; \
-						} while (sx<sx2);
-
-#	define PP_PART_2_MUL_ADD(PTYPE) \
-						pix=((PTYPE*)hAddR)[alpha]+((PTYPE*)hAddG)[alpha]+((PTYPE*)hAddB)[alpha]; \
-						alpha=(255-alpha)*257; \
-						do { \
-							((PTYPE*)p)[sx]=(PTYPE)( \
-								(((((((PTYPE*)p)[sx]>>rsh)&rmsk)*alpha+0x8073)>>16)<<rsh) + \
-								(((((((PTYPE*)p)[sx]>>gsh)&gmsk)*alpha+0x8073)>>16)<<gsh) + \
-								(((((((PTYPE*)p)[sx]>>bsh)&bmsk)*alpha+0x8073)>>16)<<bsh) + \
-								pix \
-							); \
-							sx++; \
-						} while (sx<sx2);
-
-#	define PP_PART_3(PTYPE) \
-					} \
-					else { \
-						sx=sx2; \
-					} \
-				} while (pse!=&seTerminator); \
-			} \
-			sy++; \
-		} while (sy<sly2);
-
-	bpp=PixelFormat->BytesPerPixel;
-	if (!canvasColor.IsOpaque()) {
-		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
-		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
-		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
-		rsh=PixelFormat->RedShift;
-		gsh=PixelFormat->GreenShift;
-		bsh=PixelFormat->BlueShift;
-		rmsk=PixelFormat->RedRange;
-		gmsk=PixelFormat->GreenRange;
-		bmsk=PixelFormat->BlueRange;
-		if (bpp==4) {
-			PP_PART_1(emUInt32)
-			PP_PART_2_MUL_ADD(emUInt32)
-			PP_PART_3(emUInt32)
+	sy=sly1;
+	do {
+		pse=scanlines[sy];
+		if (pse!=&seTerminator) {
+			a1=0;
+			a2=0;
+			sx=pse->X;
+			do {
+				a0=a1;
+				a1+=a2;
+				if (pse->X==sx) {
+					a0+=pse->A0;
+					a1+=pse->A1;
+					a2+=pse->A2;
+					pse=pse->Next;
+				}
+				sx0=sx;
+				sx++;
+				alpha=(int)(a0>=0 ? 0.5+a0 : 0.5-a0);
+				if (!alpha) {
+					if (pse->X>sx && pse!=&seTerminator) {
+						t=a1+a2*(pse->X-1-sx);
+						ta=(int)(t>=0 ? 0.5+t : 0.5-t);
+						if (alpha==ta) {
+							a1=t+a2;
+							sx=pse->X;
+						}
+					}
+					continue;
+				}
+				if (pse==&seTerminator) {
+					sct.PaintScanline(sct,sx0,sy,1,alpha,0,0);
+					break;
+				}
+				a0=a1;
+				a1+=a2;
+				if (pse->X==sx) {
+					a0+=pse->A0;
+					a1+=pse->A1;
+					a2+=pse->A2;
+					pse=pse->Next;
+				}
+				sx++;
+				alpha2=(int)(a0>=0 ? 0.5+a0 : 0.5-a0);
+				if (!alpha2) {
+					sct.PaintScanline(sct,sx0,sy,1,alpha,0,0);
+					continue;
+				}
+				if (pse==&seTerminator) {
+					sct.PaintScanline(sct,sx0,sy,2,alpha,0,alpha2);
+					break;
+				}
+				if (pse->X>sx) {
+					t=a1+a2*(pse->X-1-sx);
+					ta=(int)(t>=0 ? 0.5+t : 0.5-t);
+					if (alpha2==ta) {
+						a1=t+a2;
+						sx=pse->X;
+					}
+				}
+				a0=a1;
+				a1+=a2;
+				if (pse->X==sx) {
+					a0+=pse->A0;
+					a1+=pse->A1;
+					a2+=pse->A2;
+					pse=pse->Next;
+				}
+				sx++;
+				alpha3=(int)(a0>=0 ? 0.5+a0 : 0.5-a0);
+				if (!alpha3) {
+					sct.PaintScanline(sct,sx0,sy,sx-1-sx0,alpha,alpha2,alpha2);
+				}
+				else {
+					sct.PaintScanline(sct,sx0,sy,sx-sx0,alpha,alpha2,alpha3);
+				}
+			} while (pse!=&seTerminator);
 		}
-		else if (bpp==2) {
-			PP_PART_1(emUInt16)
-			PP_PART_2_MUL_ADD(emUInt16)
-			PP_PART_3(emUInt16)
-		}
-		else {
-			PP_PART_1(emUInt8)
-			PP_PART_2_MUL_ADD(emUInt8)
-			PP_PART_3(emUInt8)
-		}
-	}
-	else if ((color.Get()|0x000000FF) != canvasColor.Get()) {
-		hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
-		hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
-		hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
-		hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
-		hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
-		hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
-		if (bpp==4) {
-			PP_PART_1(emUInt32)
-			PP_PART_2_SUB_ADD(emUInt32)
-			PP_PART_3(emUInt32)
-		}
-		else if (bpp==2) {
-			PP_PART_1(emUInt16)
-			PP_PART_2_SUB_ADD(emUInt16)
-			PP_PART_3(emUInt16)
-		}
-		else {
-			PP_PART_1(emUInt8)
-			PP_PART_2_SUB_ADD(emUInt8)
-			PP_PART_3(emUInt8)
-		}
-	}
+		sy++;
+	} while (sy<sly2);
 
 	if (slmem!=autoScanlines) free(slmem);
 	while (seChunks) {
@@ -1131,7 +850,7 @@ void emPainter::PaintEdgeCorrection(
 	gmsk=PixelFormat->GreenRange;
 	bmsk=PixelFormat->BlueRange;
 
-	p=((char*)Map)+sy*BytesPerRow;
+	p=((char*)Map)+sy*(size_t)BytesPerRow;
 	for (;;) {
 		px1=sx;
 		py1=sy;
@@ -1227,7 +946,7 @@ void emPainter::PaintEdgeCorrection(
 
 
 void emPainter::PaintEllipse(
-	double x, double y, double w, double h, emColor color,
+	double x, double y, double w, double h, const emTexture & texture,
 	emColor canvasColor
 ) const
 {
@@ -1257,7 +976,7 @@ void emPainter::PaintEllipse(
 		xy[i*2]=cos(f*i)*rx+x;
 		xy[i*2+1]=sin(f*i)*ry+y;
 	}
-	PaintPolygon(xy,n,color,canvasColor);
+	PaintPolygon(xy,n,texture,canvasColor);
 
 	if (wasInUserSpace) EnterUserSpace();
 }
@@ -1265,7 +984,7 @@ void emPainter::PaintEllipse(
 
 void emPainter::PaintEllipse(
 	double x, double y, double w, double h, double startAngle,
-	double rangeAngle, emColor color, emColor canvasColor
+	double rangeAngle, const emTexture & texture, emColor canvasColor
 ) const
 {
 	double xy[258*2];
@@ -1281,7 +1000,7 @@ void emPainter::PaintEllipse(
 		rangeAngle=-rangeAngle;
 	}
 	if (rangeAngle>=2*M_PI) {
-		PaintEllipse(x,y,w,h,color,canvasColor);
+		PaintEllipse(x,y,w,h,texture,canvasColor);
 		return;
 	}
 	if (x*ScaleX+OriginX>=ClipX2) return;
@@ -1309,7 +1028,7 @@ void emPainter::PaintEllipse(
 	}
 	xy[(n+1)*2]=x;
 	xy[(n+1)*2+1]=y;
-	PaintPolygon(xy,n+2,color,canvasColor);
+	PaintPolygon(xy,n+2,texture,canvasColor);
 
 	if (wasInUserSpace) EnterUserSpace();
 }
@@ -1317,7 +1036,7 @@ void emPainter::PaintEllipse(
 
 void emPainter::PaintRoundRect(
 	double x, double y, double w, double h, double rx, double ry,
-	emColor color, emColor canvasColor
+	const emTexture & texture, emColor canvasColor
 ) const
 {
 	double xy[260*2];
@@ -1334,7 +1053,7 @@ void emPainter::PaintRoundRect(
 	y2=y+h;
 	if (y2*ScaleY+OriginY<=ClipY1) return;
 	if (rx<=0.0 || ry<=0.0) {
-		PaintRect(x,y,w,h,color,canvasColor);
+		PaintRect(x,y,w,h,texture,canvasColor);
 		return;
 	}
 
@@ -1363,7 +1082,7 @@ void emPainter::PaintRoundRect(
 		xy[(3*n+3+i)*2]=x-dy*rx;
 		xy[(3*n+3+i)*2+1]=y2+dx*ry;
 	}
-	PaintPolygon(xy,4*n+4,color,canvasColor);
+	PaintPolygon(xy,4*n+4,texture,canvasColor);
 
 	if (wasInUserSpace) EnterUserSpace();
 }
@@ -1804,1128 +1523,10 @@ void emPainter::PaintRoundRectOutline(
 }
 
 
-void emPainter::PaintShape(
-	double x, double y, double w, double h, const emImage & img,
-	double srcX, double srcY, double srcW, double srcH, int channel,
-	emColor color, emColor canvasColor
-) const
-{
-	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
-	void * ptyx, * ptyx1, * ptyx2, * pty2x2;
-	const emByte * psy, * psyx, * psyxy;
-	size_t rowDelta;
-	int n,n1,n2,alpha,pixelDelta;
-	int bpp,btx1,bty1,btx2,bty2,rsh,gsh,bsh;
-	unsigned int ay,ayx,csx,csxd,csx1,csxn,csyd,csy1,csy1c;
-	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c,t,alpha257;
-	emUInt32 pix,rmsk,gmsk,bmsk;
-	double x2,y2,srcX2,srcY2,f,s;
-	bool wasInUserSpace;
-
-	if (w<=0.0 || srcW<=0.0) return;
-	x=x*ScaleX+OriginX;
-	w*=ScaleX;
-	x2=x+w;
-	srcX2=srcX+srcW;
-	if (x<ClipX1) { srcX+=(ClipX1-x)/w*srcW; x=ClipX1; }
-	if (x2>ClipX2) { srcX2+=(ClipX2-x2)/w*srcW; x2=ClipX2; }
-	if (srcX<0) { x-=srcX/srcW*w; srcX=0; }
-	s=img.GetWidth();
-	if (srcX2>s) { x2+=(s-srcX2)/srcW*w; srcX2=s; }
-	if (x>=x2) return;
-
-	if (h<=0.0 || srcH<=0.0) return;
-	y=y*ScaleY+OriginY;
-	h*=ScaleY;
-	y2=y+h;
-	srcY2=srcY+srcH;
-	if (y<ClipY1) { srcY+=(ClipY1-y)/h*srcH; y=ClipY1; }
-	if (y2>ClipY2) { srcY2+=(ClipY2-y2)/h*srcH; y2=ClipY2; }
-	if (srcY<0) { y-=srcY/srcH*h; srcY=0; }
-	s=img.GetHeight();
-	if (srcY2>s) { y2+=(s-srcY2)/srcH*h; srcY2=s; }
-	if (y>=y2) return;
-
-	alpha=color.GetAlpha();
-	if (alpha==0) return;
-
-	wasInUserSpace=LeaveUserSpace();
-
-	pixelDelta=img.GetChannelCount();
-	if ((unsigned int)channel>=(unsigned int)pixelDelta) {
-		if (channel<0) channel=0;
-		else channel=pixelDelta-1;
-	}
-	rowDelta=img.GetWidth()*pixelDelta;
-	n=(emInt32)srcX;
-	psy=img.GetMap()+channel+n*pixelDelta;
-	srcX-=n;
-	srcX2-=n;
-	n = (emInt32)ceil((srcX2-srcX)/((x2-x)*ImageDownscaleQuality));
-	if (n>1) {
-		//??? Problem: The aliasing-effects produced by this depend on
-		//??? clipping, but it should not. On the other hand, simply
-		//??? calculating it from the whole image would even be wrong,
-		//??? because things outside the original user-given source
-		//??? rectangle would sometimes be seen (bad for font
-		//??? painting). Best solution would be to calculate it by that
-		//??? user-given source rectangle before clipping, but that
-		//??? would mean a little blow-up of this code (maybe i'm just
-		//??? too lazy).
-		n1=(emInt32)ceil(srcX2);
-		n2=(n1+n-1)/n;
-		psy+=(n1-(n2*n-(n-1)))/2*pixelDelta;
-		pixelDelta*=n;
-		srcX=(srcX*n2)/n1;
-		srcX2=(srcX2*n2)/n1;
-	}
-	btx1=(emInt32)(x*0x10000);
-	btx2=(emInt32)(x2*0x10000);
-	ctx1=0x10000-(btx1&0xffff);
-	ctx2=((btx2-1)&0xffff)+1;
-	f=(btx2-btx1)/(srcX2-srcX)+1.0;
-	if (f>0x7ffffffe) {
-		csxd=0x7fffffff;
-		f*=1.0-srcX;
-		if (f>=0x7ffffffe) csx1=0x7fffffff;
-		else csx1=((emInt32)f)+1;
-	}
-	else {
-		csxd=(emInt32)f;
-		csx1=((emInt32)((1.0-srcX)*f))+1;
-	}
-	btx1=btx1>>16;
-	btx2=(btx2+0xffff)>>16;
-	if (btx1>=btx2) {
-		if (wasInUserSpace) EnterUserSpace();
-		return;
-	}
-	if (btx1+1==btx2) ctx1-=0x10000-ctx2;
-
-	n=(emInt32)srcY;
-	psy+=n*rowDelta;
-	srcY-=n;
-	srcY2-=n;
-	n = (emInt32)ceil((srcY2-srcY)/((y2-y)*ImageDownscaleQuality));
-	if (n>1) {
-		//??? Problem: <see above>
-		n1=(emInt32)ceil(srcY2);
-		n2=(n1+n-1)/n;
-		psy+=(n1-(n2*n-(n-1)))/2*rowDelta;
-		rowDelta*=n;
-		srcY=(srcY*n2)/n1;
-		srcY2=(srcY2*n2)/n1;
-	}
-	bty1=(emInt32)(y*0x10000);
-	bty2=(emInt32)(y2*0x10000);
-	cty1=0x10000-(bty1&0xffff);
-	cty2=((bty2-1)&0xffff)+1;
-	f=(bty2-bty1)/(srcY2-srcY)+1.0;
-	if (f>0x7ffffffe) {
-		csyd=0x7fffffff;
-		f*=1.0-srcY;
-		if (f>=0x7ffffffe) csy1=0x7fffffff;
-		else csy1=((emInt32)f)+1;
-	}
-	else {
-		csyd=(emInt32)f;
-		csy1=((emInt32)((1.0-srcY)*f))+1;
-	}
-	bty1=bty1>>16;
-	bty2=(bty2+0xffff)>>16;
-	if (bty1>=bty2) {
-		if (wasInUserSpace) EnterUserSpace();
-		return;
-	}
-	if (bty1+1==bty2) cty1-=0x10000-cty2;
-
-	bpp=PixelFormat->BytesPerPixel;
-	ptyx1=((char*)Map)+bty1*BytesPerRow+btx1*bpp;
-	ptyx2=((char*)Map)+bty1*BytesPerRow+(btx2-1)*bpp;
-	pty2x2=((char*)Map)+(bty2-1)*BytesPerRow+(btx2-1)*bpp;
-
-#	define PS_PART_1(PTYPE) \
-		for (;;) { \
-			ptyx=ptyx1; \
-			ctx=ctx1; \
-			ay=0; \
-			csx=0; \
-			csxn=csx1; \
-			psyx=psy; \
-			csy1c=csy1; if (csy1c>cty1) csy1c=cty1; \
-			cty1c=cty1-csy1c; \
-			for (;;) { \
-				ayx=0x7fffff; \
-				while (csx<ctx) { \
-					ayx+=ay*csx; \
-					ctx-=csx; \
-					psyxy=psyx; \
-					ay=0; \
-					cty=cty1c; \
-					if (cty>csyd) { \
-						do { \
-							psyxy+=rowDelta; \
-							ay+=(*psyxy); \
-							cty-=csyd; \
-						} while (cty>csyd); \
-						ay*=csyd; \
-					} \
-					if (cty>0) ay+=psyxy[rowDelta]*cty; \
-					ay=((*psyx)*csy1c+ay+0x7f)>>8; \
-					psyx+=pixelDelta; \
-					csx=csxn; \
-					csxn=csxd; \
-				} \
-				ayx=((emUInt32)(ay*ctx+ayx))>>24; \
-
-#	define PS_PART_2_SUB_ADD(PTYPE) \
-				if (ayx>=255) { \
-					*(PTYPE*)ptyx=(PTYPE)pix; \
-				} \
-				else if (ayx) { \
-					*(PTYPE*)ptyx+=(PTYPE)( \
-						((PTYPE*)hAddR)[ayx] + \
-						((PTYPE*)hAddG)[ayx] + \
-						((PTYPE*)hAddB)[ayx] - \
-						((PTYPE*)hSubR)[ayx] - \
-						((PTYPE*)hSubG)[ayx] - \
-						((PTYPE*)hSubB)[ayx] \
-					); \
-				}
-
-#	define PS_PART_2_SUB_ADD_ALPHA(PTYPE) \
-				if (ayx) { \
-					*(PTYPE*)ptyx+=(PTYPE)( \
-						((PTYPE*)hAddR)[ayx] + \
-						((PTYPE*)hAddG)[ayx] + \
-						((PTYPE*)hAddB)[ayx] - \
-						((PTYPE*)hSubR)[ayx] - \
-						((PTYPE*)hSubG)[ayx] - \
-						((PTYPE*)hSubB)[ayx] \
-					); \
-				}
-
-#	define PS_PART_2_MUL_ADD(PTYPE) \
-				if (ayx>=255) { \
-					*(PTYPE*)ptyx=(PTYPE)pix; \
-				} \
-				else if (ayx) { \
-					t=(255-ayx)*257; \
-					*(PTYPE*)ptyx=(PTYPE)( \
-						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-						((PTYPE*)hAddR)[ayx] + \
-						((PTYPE*)hAddG)[ayx] + \
-						((PTYPE*)hAddB)[ayx] \
-					); \
-				}
-
-#	define PS_PART_2_MUL_ADD_ALPHA(PTYPE) \
-				if (ayx) { \
-					t=(255-((ayx*alpha257+0x8073)>>16))*257; \
-					*(PTYPE*)ptyx=(PTYPE)( \
-						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-						((PTYPE*)hAddR)[ayx] + \
-						((PTYPE*)hAddG)[ayx] + \
-						((PTYPE*)hAddB)[ayx] \
-					); \
-				}
-
-#	define PS_PART_3(PTYPE) \
-				ptyx=((PTYPE*)ptyx)+1; \
-				csx-=ctx; \
-				ctx=0x10000; \
-				if (ptyx>=ptyx2) { \
-					if (ptyx>ptyx2) break; \
-					ctx=ctx2; \
-				} \
-			} \
-			while (csy1<=cty1) { \
-				cty1-=csy1; \
-				psy+=rowDelta; \
-				csy1=csyd; \
-			} \
-			csy1-=cty1; \
-			cty1=0x10000; \
-			ptyx1=((char*)ptyx1)+BytesPerRow; \
-			ptyx2=((char*)ptyx2)+BytesPerRow; \
-			if (ptyx2>=pty2x2) { \
-				if (ptyx2>pty2x2) break; \
-				cty1=cty2; \
-			} \
-		}
-
-	if (!canvasColor.IsOpaque()) {
-		rsh=PixelFormat->RedShift;
-		gsh=PixelFormat->GreenShift;
-		bsh=PixelFormat->BlueShift;
-		rmsk=PixelFormat->RedRange;
-		gmsk=PixelFormat->GreenRange;
-		bmsk=PixelFormat->BlueRange;
-		if (alpha>=255) {
-			hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
-			if (bpp==4) {
-				pix=((emUInt32*)hAddR)[255]+((emUInt32*)hAddG)[255]+((emUInt32*)hAddB)[255];
-				PS_PART_1(emUInt32)
-				PS_PART_2_MUL_ADD(emUInt32)
-				PS_PART_3(emUInt32)
-			}
-			else if (bpp==2) {
-				pix=((emUInt16*)hAddR)[255]+((emUInt16*)hAddG)[255]+((emUInt16*)hAddB)[255];
-				PS_PART_1(emUInt16)
-				PS_PART_2_MUL_ADD(emUInt16)
-				PS_PART_3(emUInt16)
-			}
-			else {
-				pix=((emUInt8*)hAddR)[255]+((emUInt8*)hAddG)[255]+((emUInt8*)hAddB)[255];
-				PS_PART_1(emUInt8)
-				PS_PART_2_MUL_ADD(emUInt8)
-				PS_PART_3(emUInt8)
-			}
-		}
-		else {
-			hAddR=((char*)PixelFormat->RedHash  )+(((color.GetRed()  *alpha+127)/255)<<8)*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+(((color.GetGreen()*alpha+127)/255)<<8)*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+(((color.GetBlue() *alpha+127)/255)<<8)*bpp;
-			alpha257=alpha*257;
-			if (bpp==4) {
-				PS_PART_1(emUInt32)
-				PS_PART_2_MUL_ADD_ALPHA(emUInt32)
-				PS_PART_3(emUInt32)
-			}
-			else if (bpp==2) {
-				PS_PART_1(emUInt16)
-				PS_PART_2_MUL_ADD_ALPHA(emUInt16)
-				PS_PART_3(emUInt16)
-			}
-			else {
-				PS_PART_1(emUInt8)
-				PS_PART_2_MUL_ADD_ALPHA(emUInt8)
-				PS_PART_3(emUInt8)
-			}
-		}
-	}
-	else if ((color.Get()|0x000000FF) != canvasColor.Get()) {
-		if (alpha>=255) {
-			hAddR=((char*)PixelFormat->RedHash  )+(color.GetRed()  <<8)*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+(color.GetGreen()<<8)*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+(color.GetBlue() <<8)*bpp;
-			hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
-			hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
-			hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
-			if (bpp==4) {
-				pix=((emUInt32*)hAddR)[255]+((emUInt32*)hAddG)[255]+((emUInt32*)hAddB)[255];
-				PS_PART_1(emUInt32)
-				PS_PART_2_SUB_ADD(emUInt32)
-				PS_PART_3(emUInt32)
-			}
-			else if (bpp==2) {
-				pix=((emUInt16*)hAddR)[255]+((emUInt16*)hAddG)[255]+((emUInt16*)hAddB)[255];
-				PS_PART_1(emUInt16)
-				PS_PART_2_SUB_ADD(emUInt16)
-				PS_PART_3(emUInt16)
-			}
-			else {
-				pix=((emUInt8*)hAddR)[255]+((emUInt8*)hAddG)[255]+((emUInt8*)hAddB)[255];
-				PS_PART_1(emUInt8)
-				PS_PART_2_SUB_ADD(emUInt8)
-				PS_PART_3(emUInt8)
-			}
-		}
-		else {
-			hAddR=((char*)PixelFormat->RedHash  )+(((color.GetRed()  *alpha+127)/255)<<8)*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+(((color.GetGreen()*alpha+127)/255)<<8)*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+(((color.GetBlue() *alpha+127)/255)<<8)*bpp;
-			hSubR=((char*)PixelFormat->RedHash  )+(((canvasColor.GetRed()  *alpha+127)/255)<<8)*bpp;
-			hSubG=((char*)PixelFormat->GreenHash)+(((canvasColor.GetGreen()*alpha+127)/255)<<8)*bpp;
-			hSubB=((char*)PixelFormat->BlueHash )+(((canvasColor.GetBlue() *alpha+127)/255)<<8)*bpp;
-			if (bpp==4) {
-				PS_PART_1(emUInt32)
-				PS_PART_2_SUB_ADD_ALPHA(emUInt32)
-				PS_PART_3(emUInt32)
-			}
-			else if (bpp==2) {
-				PS_PART_1(emUInt16)
-				PS_PART_2_SUB_ADD_ALPHA(emUInt16)
-				PS_PART_3(emUInt16)
-			}
-			else {
-				PS_PART_1(emUInt8)
-				PS_PART_2_SUB_ADD_ALPHA(emUInt8)
-				PS_PART_3(emUInt8)
-			}
-		}
-	}
-
-	if (wasInUserSpace) EnterUserSpace();
-}
-
-
-void emPainter::PaintImage(
-	double x, double y, double w, double h, const emImage & img,
-	double srcX, double srcY, double srcW, double srcH, int alpha,
-	emColor canvasColor
-) const
-{
-	void * hAddR, * hAddG, * hAddB, * hSubR, * hSubG, * hSubB;
-	void * ptyx, * ptyx1, * ptyx2, * pty2x2;
-	const emByte * psy, * psyx, * psyxy;
-	size_t rowDelta;
-	int n,n1,n2,pixelDelta;
-	int bpp,btx1,bty1,btx2,bty2,rsh,gsh,bsh;
-	unsigned int csx,csxd,csx1,csxn,csyd,csy1,csy1c;
-	unsigned int ctx,ctx1,ctx2,cty,cty1,cty2,cty1c;
-	unsigned int ry,ryx,gy,gyx,by,byx,ay,ayx,t,alpha257;
-	emUInt32 rmsk,gmsk,bmsk;
-	double x2,y2,srcX2,srcY2,f,s;
-	bool wasInUserSpace;
-
-	if (w<=0.0 || srcW<=0.0) return;
-	x=x*ScaleX+OriginX;
-	w*=ScaleX;
-	x2=x+w;
-	srcX2=srcX+srcW;
-	if (x<ClipX1) { srcX+=(ClipX1-x)/w*srcW; x=ClipX1; }
-	if (x2>ClipX2) { srcX2+=(ClipX2-x2)/w*srcW; x2=ClipX2; }
-	if (srcX<0) { x-=srcX/srcW*w; srcX=0; }
-	s=img.GetWidth();
-	if (srcX2>s) { x2+=(s-srcX2)/srcW*w; srcX2=s; }
-	if (x>=x2) return;
-
-	if (h<=0.0 || srcH<=0.0) return;
-	y=y*ScaleY+OriginY;
-	h*=ScaleY;
-	y2=y+h;
-	srcY2=srcY+srcH;
-	if (y<ClipY1) { srcY+=(ClipY1-y)/h*srcH; y=ClipY1; }
-	if (y2>ClipY2) { srcY2+=(ClipY2-y2)/h*srcH; y2=ClipY2; }
-	if (srcY<0) { y-=srcY/srcH*h; srcY=0; }
-	s=img.GetHeight();
-	if (srcY2>s) { y2+=(s-srcY2)/srcH*h; srcY2=s; }
-	if (y>=y2) return;
-
-	if (alpha<=0) return;
-
-	wasInUserSpace=LeaveUserSpace();
-
-	pixelDelta=img.GetChannelCount();
-	rowDelta=img.GetWidth()*pixelDelta;
-	n=(emInt32)srcX;
-	psy=img.GetMap()+n*pixelDelta;
-	srcX-=n;
-	srcX2-=n;
-	n = (emInt32)ceil((srcX2-srcX)/((x2-x)*ImageDownscaleQuality));
-	if (n>1) {
-		//??? Problem: <see PaintShape>.
-		n1=(emInt32)ceil(srcX2);
-		n2=(n1+n-1)/n;
-		psy+=(n1-(n2*n-(n-1)))/2*pixelDelta;
-		pixelDelta*=n;
-		srcX=(srcX*n2)/n1;
-		srcX2=(srcX2*n2)/n1;
-	}
-	btx1=(emInt32)(x*0x10000);
-	btx2=(emInt32)(x2*0x10000);
-	ctx1=0x10000-(btx1&0xffff);
-	ctx2=((btx2-1)&0xffff)+1;
-	f=(btx2-btx1)/(srcX2-srcX)+1.0;
-	if (f>0x7ffffffe) {
-		csxd=0x7fffffff;
-		f*=1.0-srcX;
-		if (f>=0x7ffffffe) csx1=0x7fffffff;
-		else csx1=((emInt32)f)+1;
-	}
-	else {
-		csxd=(emInt32)f;
-		csx1=((emInt32)((1.0-srcX)*f))+1;
-	}
-	btx1=btx1>>16;
-	btx2=(btx2+0xffff)>>16;
-	if (btx1>=btx2) {
-		if (wasInUserSpace) EnterUserSpace();
-		return;
-	}
-	if (btx1+1==btx2) ctx1-=0x10000-ctx2;
-
-	n=(emInt32)srcY;
-	psy+=n*rowDelta;
-	srcY-=n;
-	srcY2-=n;
-	n = (emInt32)ceil((srcY2-srcY)/((y2-y)*ImageDownscaleQuality));
-	if (n>1) {
-		//??? Problem: <see PaintShape>.
-		n1=(emInt32)ceil(srcY2);
-		n2=(n1+n-1)/n;
-		psy+=(n1-(n2*n-(n-1)))/2*rowDelta;
-		rowDelta*=n;
-		srcY=(srcY*n2)/n1;
-		srcY2=(srcY2*n2)/n1;
-	}
-	bty1=(emInt32)(y*0x10000);
-	bty2=(emInt32)(y2*0x10000);
-	cty1=0x10000-(bty1&0xffff);
-	cty2=((bty2-1)&0xffff)+1;
-	f=(bty2-bty1)/(srcY2-srcY)+1.0;
-	if (f>0x7ffffffe) {
-		csyd=0x7fffffff;
-		f*=1.0-srcY;
-		if (f>=0x7ffffffe) csy1=0x7fffffff;
-		else csy1=((emInt32)f)+1;
-	}
-	else {
-		csyd=(emInt32)f;
-		csy1=((emInt32)((1.0-srcY)*f))+1;
-	}
-	bty1=bty1>>16;
-	bty2=(bty2+0xffff)>>16;
-	if (bty1>=bty2) {
-		if (wasInUserSpace) EnterUserSpace();
-		return;
-	}
-	if (bty1+1==bty2) cty1-=0x10000-cty2;
-
-	bpp=PixelFormat->BytesPerPixel;
-	ptyx1=((char*)Map)+bty1*BytesPerRow+btx1*bpp;
-	ptyx2=((char*)Map)+bty1*BytesPerRow+(btx2-1)*bpp;
-	pty2x2=((char*)Map)+(bty2-1)*BytesPerRow+(btx2-1)*bpp;
-
-#	define PI_LOOP_START \
-		for (;;) { \
-			ptyx=ptyx1; \
-			ctx=ctx1; \
-			ry=0; \
-			gy=0; \
-			by=0; \
-			ay=0; \
-			csx=0; \
-			csxn=csx1; \
-			psyx=psy; \
-			csy1c=csy1; if (csy1c>cty1) csy1c=cty1; \
-			cty1c=cty1-csy1c; \
-			for (;;) {
-
-#	define PI_INTEGRATE_1C \
-				gyx=0x7fffff; \
-				ayx=((emUInt32)((((csy1c+cty1c)*255+127)>>8)*ctx+0x7fffff))>>24; \
-				while (csx<ctx) { \
-					gyx+=gy*csx; \
-					ctx-=csx; \
-					psyxy=psyx; \
-					gy=0; \
-					cty=cty1c; \
-					if (cty>csyd) { \
-						do { \
-							psyxy+=rowDelta; \
-							gy+=psyxy[0]; \
-							cty-=csyd; \
-						} while (cty>csyd); \
-						gy*=csyd; \
-					} \
-					if (cty>0) { \
-						gy+=psyxy[rowDelta]*cty; \
-					} \
-					gy=(psyx[0]*csy1c+gy+127)>>8; \
-					psyx+=pixelDelta; \
-					csx=csxn; \
-					csxn=csxd; \
-				} \
-				ryx=gyx=byx=((emUInt32)(gy*ctx+gyx))>>24;
-
-#	define PI_INTEGRATE_2C \
-				gyx=0x7fffff; \
-				ayx=0x7fffff; \
-				while (csx<ctx) { \
-					gyx+=gy*csx; \
-					ayx+=ay*csx; \
-					ctx-=csx; \
-					psyxy=psyx; \
-					gy=0; \
-					ay=0; \
-					cty=cty1c; \
-					if (cty>csyd) { \
-						do { \
-							psyxy+=rowDelta; \
-							gy+=psyxy[0]*psyxy[1]; \
-							ay+=psyxy[1]; \
-							cty-=csyd; \
-						} while (cty>csyd); \
-						gy*=csyd; \
-						ay*=csyd; \
-					} \
-					if (cty>0) { \
-						t=psyxy[rowDelta+1]*cty; \
-						gy+=psyxy[rowDelta]*t; \
-						ay+=t; \
-					} \
-					t=psyx[1]*csy1c; \
-					gy=(psyx[0]*t+gy+32639)/65280; \
-					ay=(t+ay+0x7f)>>8; \
-					psyx+=pixelDelta; \
-					csx=csxn; \
-					csxn=csxd; \
-				} \
-				ryx=gyx=byx=((emUInt32)(gy*ctx+gyx))>>24; \
-				ayx=((emUInt32)(ay*ctx+ayx))>>24;
-
-#	define PI_INTEGRATE_3C \
-				ryx=0x7fffff; \
-				gyx=0x7fffff; \
-				byx=0x7fffff; \
-				ayx=((emUInt32)((((csy1c+cty1c)*255+127)>>8)*ctx+0x7fffff))>>24; \
-				while (csx<ctx) { \
-					ryx+=ry*csx; \
-					gyx+=gy*csx; \
-					byx+=by*csx; \
-					ctx-=csx; \
-					psyxy=psyx; \
-					ry=0; \
-					gy=0; \
-					by=0; \
-					cty=cty1c; \
-					if (cty>csyd) { \
-						do { \
-							psyxy+=rowDelta; \
-							ry+=psyxy[0]; \
-							gy+=psyxy[1]; \
-							by+=psyxy[2]; \
-							cty-=csyd; \
-						} while (cty>csyd); \
-						ry*=csyd; \
-						gy*=csyd; \
-						by*=csyd; \
-					} \
-					if (cty>0) { \
-						ry+=psyxy[rowDelta  ]*cty; \
-						gy+=psyxy[rowDelta+1]*cty; \
-						by+=psyxy[rowDelta+2]*cty; \
-					} \
-					ry=(psyx[0]*csy1c+ry+127)>>8; \
-					gy=(psyx[1]*csy1c+gy+127)>>8; \
-					by=(psyx[2]*csy1c+by+127)>>8; \
-					psyx+=pixelDelta; \
-					csx=csxn; \
-					csxn=csxd; \
-				} \
-				ryx=((emUInt32)(ry*ctx+ryx))>>24; \
-				gyx=((emUInt32)(gy*ctx+gyx))>>24; \
-				byx=((emUInt32)(by*ctx+byx))>>24;
-
-#	define PI_INTEGRATE_4C \
-				ryx=0x7fffff; \
-				gyx=0x7fffff; \
-				byx=0x7fffff; \
-				ayx=0x7fffff; \
-				while (csx<ctx) { \
-					ryx+=ry*csx; \
-					gyx+=gy*csx; \
-					byx+=by*csx; \
-					ayx+=ay*csx; \
-					ctx-=csx; \
-					psyxy=psyx; \
-					ry=0; \
-					gy=0; \
-					by=0; \
-					ay=0; \
-					cty=cty1c; \
-					if (cty>csyd) { \
-						do { \
-							psyxy+=rowDelta; \
-							ry+=psyxy[0]*psyxy[3]; \
-							gy+=psyxy[1]*psyxy[3]; \
-							by+=psyxy[2]*psyxy[3]; \
-							ay+=psyxy[3]; \
-							cty-=csyd; \
-						} while (cty>csyd); \
-						ry*=csyd; \
-						gy*=csyd; \
-						by*=csyd; \
-						ay*=csyd; \
-					} \
-					if (cty>0) { \
-						t=psyxy[rowDelta+3]*cty; \
-						ry+=psyxy[rowDelta  ]*t; \
-						gy+=psyxy[rowDelta+1]*t; \
-						by+=psyxy[rowDelta+2]*t; \
-						ay+=t; \
-					} \
-					t=psyx[3]*csy1c; \
-					ry=(psyx[0]*t+ry+32639)/65280; \
-					gy=(psyx[1]*t+gy+32639)/65280; \
-					by=(psyx[2]*t+by+32639)/65280; \
-					ay=(t+ay+0x7f)>>8; \
-					psyx+=pixelDelta; \
-					csx=csxn; \
-					csxn=csxd; \
-				} \
-				ryx=((emUInt32)(ry*ctx+ryx))>>24; \
-				gyx=((emUInt32)(gy*ctx+gyx))>>24; \
-				byx=((emUInt32)(by*ctx+byx))>>24; \
-				ayx=((emUInt32)(ay*ctx+ayx))>>24;
-
-#	define PI_SUB_ADD(PTYPE) \
-				if (ayx>=255) { \
-					*(PTYPE*)ptyx=(PTYPE)( \
-						((PTYPE*)hAddR)[ryx] + \
-						((PTYPE*)hAddG)[gyx] + \
-						((PTYPE*)hAddB)[byx] \
-					); \
-				} \
-				else if (ayx) { \
-					*(PTYPE*)ptyx+=(PTYPE)( \
-						((PTYPE*)hAddR)[ryx] + \
-						((PTYPE*)hAddG)[gyx] + \
-						((PTYPE*)hAddB)[byx] - \
-						((PTYPE*)hSubR)[ayx] - \
-						((PTYPE*)hSubG)[ayx] - \
-						((PTYPE*)hSubB)[ayx] \
-					); \
-				}
-
-#	define PI_SUB_ADD_ALPHA(PTYPE) \
-				if (ayx) { \
-					*(PTYPE*)ptyx+=(PTYPE)( \
-						((PTYPE*)hAddR)[ryx] + \
-						((PTYPE*)hAddG)[gyx] + \
-						((PTYPE*)hAddB)[byx] - \
-						((PTYPE*)hSubR)[ayx] - \
-						((PTYPE*)hSubG)[ayx] - \
-						((PTYPE*)hSubB)[ayx] \
-					); \
-				}
-
-#	define PI_MUL_ADD(PTYPE) \
-				if (ayx>=255) { \
-					*(PTYPE*)ptyx=(PTYPE)( \
-						((PTYPE*)hAddR)[ryx] + \
-						((PTYPE*)hAddG)[gyx] + \
-						((PTYPE*)hAddB)[byx] \
-					); \
-				} \
-				else if (ayx) { \
-					t=(255-ayx)*257; \
-					*(PTYPE*)ptyx=(PTYPE)( \
-						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-						((PTYPE*)hAddR)[ryx]+ \
-						((PTYPE*)hAddG)[gyx]+ \
-						((PTYPE*)hAddB)[byx] \
-					); \
-				}
-
-#	define PI_MUL_ADD_ALPHA(PTYPE) \
-				if (ayx) { \
-					t=(255-((ayx*alpha257+0x8073)>>16))*257; \
-					*(PTYPE*)ptyx=(PTYPE)( \
-						((((((*(PTYPE*)ptyx)>>rsh)&rmsk)*t+0x8073)>>16)<<rsh) + \
-						((((((*(PTYPE*)ptyx)>>gsh)&gmsk)*t+0x8073)>>16)<<gsh) + \
-						((((((*(PTYPE*)ptyx)>>bsh)&bmsk)*t+0x8073)>>16)<<bsh) + \
-						((PTYPE*)hAddR)[ryx]+ \
-						((PTYPE*)hAddG)[gyx]+ \
-						((PTYPE*)hAddB)[byx] \
-					); \
-				}
-
-#	define PI_LOOP_END(PTYPE) \
-				ptyx=((PTYPE*)ptyx)+1; \
-				csx-=ctx; \
-				ctx=0x10000; \
-				if (ptyx>=ptyx2) { \
-					if (ptyx>ptyx2) break; \
-					ctx=ctx2; \
-				} \
-			} \
-			while (csy1<=cty1) { \
-				cty1-=csy1; \
-				psy+=rowDelta; \
-				csy1=csyd; \
-			} \
-			csy1-=cty1; \
-			cty1=0x10000; \
-			ptyx1=((char*)ptyx1)+BytesPerRow; \
-			ptyx2=((char*)ptyx2)+BytesPerRow; \
-			if (ptyx2>=pty2x2) { \
-				if (ptyx2>pty2x2) break; \
-				cty1=cty2; \
-			} \
-		}
-
-	if (canvasColor.IsOpaque()) {
-		if (alpha>=255) {
-			hAddR=((char*)PixelFormat->RedHash  )+0xFF00*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+0xFF00*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+0xFF00*bpp;
-			hSubR=((char*)PixelFormat->RedHash  )+(canvasColor.GetRed()  <<8)*bpp;
-			hSubG=((char*)PixelFormat->GreenHash)+(canvasColor.GetGreen()<<8)*bpp;
-			hSubB=((char*)PixelFormat->BlueHash )+(canvasColor.GetBlue() <<8)*bpp;
-			switch (img.GetChannelCount()) {
-			case 1:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_SUB_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_SUB_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_SUB_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 2:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_SUB_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_SUB_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_SUB_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 3:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			default:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_SUB_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_SUB_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_SUB_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-			}
-		}
-		else {
-			hAddR=((char*)PixelFormat->RedHash  )+(alpha<<8)*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+(alpha<<8)*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+(alpha<<8)*bpp;
-			hSubR=((char*)PixelFormat->RedHash  )+(((canvasColor.GetRed()  *alpha+127)/255)<<8)*bpp;
-			hSubG=((char*)PixelFormat->GreenHash)+(((canvasColor.GetGreen()*alpha+127)/255)<<8)*bpp;
-			hSubB=((char*)PixelFormat->BlueHash )+(((canvasColor.GetBlue() *alpha+127)/255)<<8)*bpp;
-			switch (img.GetChannelCount()) {
-			case 1:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_SUB_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_SUB_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_SUB_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 2:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_SUB_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_SUB_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_SUB_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 3:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_SUB_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			default:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_SUB_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_SUB_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_SUB_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-			}
-		}
-	}
-	else {
-		rsh=PixelFormat->RedShift;
-		gsh=PixelFormat->GreenShift;
-		bsh=PixelFormat->BlueShift;
-		rmsk=PixelFormat->RedRange;
-		gmsk=PixelFormat->GreenRange;
-		bmsk=PixelFormat->BlueRange;
-		if (alpha>=255) {
-			hAddR=((char*)PixelFormat->RedHash  )+0xFF00*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+0xFF00*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+0xFF00*bpp;
-			switch (img.GetChannelCount()) {
-			case 1:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_MUL_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_MUL_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_MUL_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 2:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_MUL_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_MUL_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_MUL_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 3:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_MUL_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_MUL_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_MUL_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			default:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_MUL_ADD(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_MUL_ADD(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_MUL_ADD(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-			}
-		}
-		else {
-			hAddR=((char*)PixelFormat->RedHash  )+(alpha<<8)*bpp;
-			hAddG=((char*)PixelFormat->GreenHash)+(alpha<<8)*bpp;
-			hAddB=((char*)PixelFormat->BlueHash )+(alpha<<8)*bpp;
-			alpha257=alpha*257;
-			switch (img.GetChannelCount()) {
-			case 1:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_MUL_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_MUL_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_1C
-					PI_MUL_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 2:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_MUL_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_MUL_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_2C
-					PI_MUL_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			case 3:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_MUL_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_MUL_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_3C
-					PI_MUL_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-				break;
-			default:
-				if (bpp==4) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_MUL_ADD_ALPHA(emUInt32)
-					PI_LOOP_END(emUInt32)
-				}
-				else if (bpp==2) {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_MUL_ADD_ALPHA(emUInt16)
-					PI_LOOP_END(emUInt16)
-				}
-				else {
-					PI_LOOP_START
-					PI_INTEGRATE_4C
-					PI_MUL_ADD_ALPHA(emUInt8)
-					PI_LOOP_END(emUInt8)
-				}
-			}
-		}
-	}
-
-	if (wasInUserSpace) EnterUserSpace();
-}
-
-
-void emPainter::PaintBorderShape(
+void emPainter::PaintBorderImage(
 	double x, double y, double w, double h, double l, double t, double r,
-	double b, const emImage & img, double srcX, double srcY, double srcW,
-	double srcH, double srcL, double srcT, double srcR, double srcB,
-	int channel, emColor color, emColor canvasColor,
+	double b, const emImage & img, int srcX, int srcY, int srcW, int srcH,
+	int srcL, int srcT, int srcR, int srcB, int alpha, emColor canvasColor,
 	int whichSubRects
 ) const
 {
@@ -2935,7 +1536,6 @@ void emPainter::PaintBorderShape(
 	wasInUserSpace=LeaveUserSpace();
 
 	if (!canvasColor.IsOpaque()) {
-		//??? I'm not really satisfied with this.
 		f=RoundX(x+l)-x; if (f>0 && f<w-r) l=f;
 		f=x+w-RoundX(x+w-r); if (f>0 && f<w-l) r=f;
 		f=RoundY(y+t)-y; if (f>0 && f<h-b) t=f;
@@ -2943,75 +1543,75 @@ void emPainter::PaintBorderShape(
 	}
 
 	if (whichSubRects&(1<<8)) {
-		PaintShape(
+		PaintImage(
 			x,y,l,t,
 			img,
 			srcX,srcY,srcL,srcT,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<5)) {
-		PaintShape(
+		PaintImage(
 			x+l,y,w-l-r,t,
 			img,
 			srcX+srcL,srcY,srcW-srcL-srcR,srcT,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<2)) {
-		PaintShape(
+		PaintImage(
 			x+w-r,y,r,t,
 			img,
 			srcX+srcW-srcR,srcY,srcR,srcT,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<7)) {
-		PaintShape(
+		PaintImage(
 			x,y+t,l,h-t-b,
 			img,
 			srcX,srcY+srcT,srcL,srcH-srcT-srcB,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<4)) {
-		PaintShape(
+		PaintImage(
 			x+l,y+t,w-l-r,h-t-b,
 			img,
 			srcX+srcL,srcY+srcT,srcW-srcL-srcR,srcH-srcT-srcB,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<1)) {
-		PaintShape(
+		PaintImage(
 			x+w-r,y+t,r,h-t-b,
 			img,
 			srcX+srcW-srcR,srcY+srcT,srcR,srcH-srcT-srcB,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<6)) {
-		PaintShape(
+		PaintImage(
 			x,y+h-b,l,b,
 			img,
 			srcX,srcY+srcH-srcB,srcL,srcB,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<3)) {
-		PaintShape(
+		PaintImage(
 			x+l,y+h-b,w-l-r,b,
 			img,
 			srcX+srcL,srcY+srcH-srcB,srcW-srcL-srcR,srcB,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<0)) {
-		PaintShape(
+		PaintImage(
 			x+w-r,y+h-b,r,b,
 			img,
 			srcX+srcW-srcR,srcY+srcH-srcB,srcR,srcB,
-			channel,color,canvasColor
+			alpha,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 
@@ -3019,11 +1619,11 @@ void emPainter::PaintBorderShape(
 }
 
 
-void emPainter::PaintBorderImage(
+void emPainter::PaintBorderImageColored(
 	double x, double y, double w, double h, double l, double t, double r,
-	double b, const emImage & img, double srcX, double srcY, double srcW,
-	double srcH, double srcL, double srcT, double srcR, double srcB,
-	int alpha, emColor canvasColor, int whichSubRects
+	double b, const emImage & img, int srcX, int srcY, int srcW, int srcH,
+	int srcL, int srcT, int srcR, int srcB, emColor color1, emColor color2,
+	emColor canvasColor, int whichSubRects
 ) const
 {
 	bool wasInUserSpace;
@@ -3032,7 +1632,6 @@ void emPainter::PaintBorderImage(
 	wasInUserSpace=LeaveUserSpace();
 
 	if (!canvasColor.IsOpaque()) {
-		//??? I'm not really satisfied with this.
 		f=RoundX(x+l)-x; if (f>0 && f<w-r) l=f;
 		f=x+w-RoundX(x+w-r); if (f>0 && f<w-l) r=f;
 		f=RoundY(y+t)-y; if (f>0 && f<h-b) t=f;
@@ -3040,75 +1639,75 @@ void emPainter::PaintBorderImage(
 	}
 
 	if (whichSubRects&(1<<8)) {
-		PaintImage(
+		PaintImageColored(
 			x,y,l,t,
 			img,
 			srcX,srcY,srcL,srcT,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<5)) {
-		PaintImage(
+		PaintImageColored(
 			x+l,y,w-l-r,t,
 			img,
 			srcX+srcL,srcY,srcW-srcL-srcR,srcT,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<2)) {
-		PaintImage(
+		PaintImageColored(
 			x+w-r,y,r,t,
 			img,
 			srcX+srcW-srcR,srcY,srcR,srcT,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<7)) {
-		PaintImage(
+		PaintImageColored(
 			x,y+t,l,h-t-b,
 			img,
 			srcX,srcY+srcT,srcL,srcH-srcT-srcB,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<4)) {
-		PaintImage(
+		PaintImageColored(
 			x+l,y+t,w-l-r,h-t-b,
 			img,
 			srcX+srcL,srcY+srcT,srcW-srcL-srcR,srcH-srcT-srcB,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<1)) {
-		PaintImage(
+		PaintImageColored(
 			x+w-r,y+t,r,h-t-b,
 			img,
 			srcX+srcW-srcR,srcY+srcT,srcR,srcH-srcT-srcB,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<6)) {
-		PaintImage(
+		PaintImageColored(
 			x,y+h-b,l,b,
 			img,
 			srcX,srcY+srcH-srcB,srcL,srcB,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<3)) {
-		PaintImage(
+		PaintImageColored(
 			x+l,y+h-b,w-l-r,b,
 			img,
 			srcX+srcL,srcY+srcH-srcB,srcW-srcL-srcR,srcB,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 	if (whichSubRects&(1<<0)) {
-		PaintImage(
+		PaintImageColored(
 			x+w-r,y+h-b,r,b,
 			img,
 			srcX+srcW-srcR,srcY+srcH-srcB,srcR,srcB,
-			alpha,canvasColor
+			color1,color2,canvasColor,emTexture::EXTEND_EDGE
 		);
 	}
 
@@ -3133,8 +1732,7 @@ void emPainter::PaintText(
 		x>=(cx2=(ClipX2-OriginX)/ScaleX) ||
 		ClipX1>=ClipX2 ||
 		charHeight*ScaleY<=0.1 ||
-		widthScale<=0.0 ||
-		FontCache==NULL
+		widthScale<=0.0
 	) return;
 
 	wasInUserSpace=LeaveUserSpace();
@@ -3155,17 +1753,17 @@ void emPainter::PaintText(
 			x+=charWidth;
 			if (x>cx1) {
 				if (x1>=cx2) break;
-				FontCache->GetChar(
+				Model->FontCache->GetChar(
 					c,charWidth*ScaleX,charHeight*ScaleY,
 					&pImg,&imgX,&imgY,&imgW,&imgH
 				);
 				showHeight=rcw*imgH/imgW;
 				if (showHeight>charHeight) showHeight=charHeight;
-				PaintShape(
+				PaintImageColored(
 					x1,y+(charHeight-showHeight)*0.5,
 					charWidth,showHeight,
 					*pImg,imgX,imgY,imgW,imgH,
-					0,color,canvasColor
+					0,color,canvasColor,emTexture::EXTEND_ZERO
 				);
 			}
 		}
@@ -3371,6 +1969,55 @@ double emPainter::GetTextSize(
 }
 
 
+emRef<emPainter::SharedModel> emPainter::SharedModel::Acquire(
+	emRootContext & rootContext
+)
+{
+	EM_IMPL_ACQUIRE_COMMON(emPainter::SharedModel,rootContext,"")
+}
+
+
+void emPainter::SharedModel::RemoveUnusedPixelFormats()
+{
+	SharedPixelFormat * pf;
+	SharedPixelFormat * * ppf;
+
+	for (ppf=&PixelFormatList;;) {
+		pf=*ppf;
+		if (!pf) break;
+		if (pf->RefCount<=0) {
+			*ppf=pf->Next;
+			free(pf->RedHash);
+			free(pf->GreenHash);
+			free(pf->BlueHash);
+			free(pf);
+		}
+		else ppf=&pf->Next;
+	}
+}
+
+
+emPainter::SharedModel::SharedModel(emContext & context, const emString & name)
+	: emModel(context,name),
+	CoreConfig(emCoreConfig::Acquire(GetRootContext())),
+	FontCache(emFontCache::Acquire(GetRootContext())),
+	PixelFormatList(NULL)
+{
+#	if EM_HAVE_X86_INTRINSICS
+		CanCpuDoAvx2=emCanCpuDoAvx2();
+		if (!CanCpuDoAvx2) {
+			emWarning("emPainter: no AVX2 (=>slow)");
+		}
+#	endif
+	SetMinCommonLifetime(UINT_MAX);
+}
+
+
+emPainter::SharedModel::~SharedModel()
+{
+	RemoveUnusedPixelFormats();
+}
+
+
 const double emPainter::CharBoxTallness=1.77;
-const unsigned emPainter::ImageDownscaleQuality=3;
 const double emPainter::CircleQuality=4.5;

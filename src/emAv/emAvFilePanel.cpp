@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2011,2014,2016-2018 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016-2018,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,7 @@ emAvFilePanel::emAvFilePanel(
 	CursorHidden=false;
 	ScreensaverInhibited=false;
 	HaveControlPanel=false;
+	LibDirCfgPanel=NULL;
 	WarningStartTime=0;
 	WarningAlpha=0;
 	OldMouseX=0.0;
@@ -66,6 +67,7 @@ void emAvFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 		RemoveWakeUpSignal(fm->GetInfoSignal());
 		RemoveWakeUpSignal(fm->GetPlayStateSignal());
 		RemoveWakeUpSignal(fm->GetImageSignal());
+		RemoveWakeUpSignal(fm->GetLibDirCfg().GetChangeSignal());
 	}
 
 	emFilePanel::SetFileModel(fileModel,updateFileModel);
@@ -75,6 +77,7 @@ void emAvFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 		AddWakeUpSignal(fm->GetInfoSignal());
 		AddWakeUpSignal(fm->GetPlayStateSignal());
 		AddWakeUpSignal(fm->GetImageSignal());
+		AddWakeUpSignal(fm->GetLibDirCfg().GetChangeSignal());
 	}
 }
 
@@ -191,7 +194,7 @@ bool emAvFilePanel::SetPlaybackState(bool playing, double pos)
 bool emAvFilePanel::Cycle()
 {
 	emAvFileModel * fm;
-	bool busy,loaded;
+	bool busy,loaded,haveCP;
 	int t;
 
 	busy=emFilePanel::Cycle();
@@ -200,8 +203,17 @@ bool emAvFilePanel::Cycle()
 	fm=(emAvFileModel*)GetFileModel();
 
 	if (IsSignaled(GetVirFileStateSignal())) {
-		if (HaveControlPanel!=loaded) {
-			HaveControlPanel=loaded;
+		switch (GetVirFileState()) {
+		case VFS_LOADED:
+		case VFS_LOAD_ERROR:
+			haveCP=true;
+			break;
+		default:
+			haveCP=false;
+			break;
+		}
+		if (HaveControlPanel!=haveCP) {
+			HaveControlPanel=haveCP;
 			InvalidateControlPanel();
 		}
 		UpdateEssenceRect();
@@ -265,6 +277,13 @@ bool emAvFilePanel::Cycle()
 	) {
 		UpdateCursorHiding(false);
 		UpdateScreensaverInhibiting();
+	}
+
+	if (
+		IsSignaled(GetVirFileStateSignal()) ||
+		IsSignaled(fm->GetLibDirCfg().GetChangeSignal())
+	) {
+		UpdateLibDirCfgPanel();
 	}
 
 	return busy;
@@ -534,7 +553,12 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 	emColor c1,c2,c3,c4;
 
 	if (GetVirFileState()!=VFS_LOADED) {
-		emFilePanel::Paint(painter,canvasColor);
+		if (LibDirCfgPanel) {
+			painter.Clear(0x000000FF,canvasColor);
+		}
+		else {
+			emFilePanel::Paint(painter,canvasColor);
+		}
 		return;
 	}
 
@@ -588,11 +612,11 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 			if (h>=t*w) h=w*t; else w=h/t;
 			x=EX+(EW-w)*0.5;
 			y=EY+(EH-h)*0.5;
-			painter.PaintShape(
+			painter.PaintImageColored(
 				x,y,w,h,
-				BgImage,0,
-				c2,
-				canvasColor
+				BgImage,
+				0,c2,
+				canvasColor,emTexture::EXTEND_ZERO
 			);
 			canvasColor=0;
 		}
@@ -660,7 +684,17 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 		canvasColor=c1;
 	}
 	else {
-		painter.PaintImage(EX,EY,EW,EH,*image,255,canvasColor);
+		painter.PaintRect(
+			EX,EY,EW,EH,
+			emImageTexture(
+				EX,EY,EW,EH,
+				*image,255,
+				emTexture::EXTEND_EDGE,
+				emTexture::DQ_BY_CONFIG,
+				emTexture::UQ_BY_CONFIG_FOR_VIDEO
+			),
+			canvasColor
+		);
 		canvasColor=0;
 	}
 
@@ -676,6 +710,14 @@ void emAvFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 		painter.PaintRectOutline(x-d,y-d,w+2*d,h+2*d,d*2,c2);
 		d=h*0.1;
 		painter.PaintTextBoxed(x+d,y+d,w-2*d,h-2*d,WarningText,h,c2);
+	}
+}
+
+
+void emAvFilePanel::LayoutChildren()
+{
+	if (LibDirCfgPanel) {
+		LibDirCfgPanel->Layout(0.0,0.0,1.0,GetHeight());
 	}
 }
 
@@ -780,5 +822,30 @@ void emAvFilePanel::UpdateScreensaverInhibiting()
 	if (ScreensaverInhibited) {
 		ScreensaverInhibited=false;
 		window->AllowScreensaver();
+	}
+}
+
+
+void emAvFilePanel::UpdateLibDirCfgPanel()
+{
+	emAvFileModel * fm;
+
+	fm=(emAvFileModel*)GetFileModel();
+	if (
+		GetVirFileState()==VFS_LOAD_ERROR &&
+		fm->GetLibDirCfg().IsLibDirNecessary() &&
+		!fm->GetLibDirCfg().IsLibDirValid()
+	) {
+		if (!LibDirCfgPanel) {
+			LibDirCfgPanel=fm->GetLibDirCfg().CreateFilePanelElement(this,"libdircfg");
+			InvalidatePainting();
+		}
+	}
+	else {
+		if (LibDirCfgPanel) {
+			delete LibDirCfgPanel;
+			LibDirCfgPanel=NULL;
+			InvalidatePainting();
+		}
 	}
 }

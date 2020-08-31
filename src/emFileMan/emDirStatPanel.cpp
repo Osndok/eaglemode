@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirStatPanel.cpp
 //
-// Copyright (C) 2007-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,7 +81,7 @@ void emDirStatPanel::Paint(const emPainter & painter, emColor canvasColor) const
 		return;
 	}
 
-	painter.Clear(Config->GetTheme().BackgroundColor);
+	painter.Clear(Config->GetTheme().BackgroundColor.Get());
 
 	sprintf(tmp,
 		"Directory Statistics\n"

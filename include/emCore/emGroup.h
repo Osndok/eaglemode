@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGroup.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,6 +53,8 @@ public:
 			const emImage & icon=emImage()
 		)
 	);
+
+	virtual ~emGroup();
 
 protected:
 	// Only for emRadioButton::Group:

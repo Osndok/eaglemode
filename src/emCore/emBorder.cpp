@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -759,7 +759,7 @@ void emBorder::DoBorder(
 				rndX-e,rndY-e,rndW+2*e,rndH+2*e,
 				r,r,r,r,
 				GetTkResources().ImgGroupBorder,
-				286.0,286.0,286.0,286.0,
+				286,286,286,286,
 				255,color2,0757
 			);
 		}
@@ -808,7 +808,7 @@ void emBorder::DoBorder(
 				rndX-e,rndY-e,rndW+2*e,rndH+2*e,
 				r,r,r,r,
 				GetTkResources().ImgGroupBorder,
-				286.0,286.0,286.0,286.0,
+				286,286,286,286,
 				255,color2,0757
 			);
 		}
@@ -857,7 +857,7 @@ void emBorder::DoBorder(
 				rndX-e,rndY-e,rndW+2*e,rndH+2*e,
 				r,r,r,r,
 				GetTkResources().ImgButtonBorder,
-				340.0,340.0,340.0,340.0,
+				340,340,340,340,
 				255,color2,0757
 			);
 		}
@@ -895,7 +895,7 @@ void emBorder::DoBorder(
 				0.0,0.0,1.0,h,
 				r,r,r,r,
 				GetTkResources().ImgPopupBorder,
-				159.0,159.0,159.0,159.0,
+				159,159,159,159,
 				255,canvasColor,0757
 			);
 		}
@@ -1117,7 +1117,7 @@ void emBorder::DoBorder(
 				rndX,rndY,rndW,rndH,
 				300.0/216*rndR,346.0/216*rndR,216.0/216*rndR,216.0/216*rndR,
 				GetTkResources().ImgIOField,
-				300.0,346.0,216.0,216.0,
+				300,346,216,216,
 				255,0,0757
 			);
 			return;
@@ -1360,7 +1360,7 @@ void emBorder::DoLabel(
 		iconX+=(iconW-f)*0.5;
 		iconW=f;
 		if (Icon.GetChannelCount()==1) {
-			painter->PaintShape(
+			painter->PaintImageColored(
 				iconX,
 				iconY,
 				iconW,
@@ -1368,7 +1368,8 @@ void emBorder::DoLabel(
 				Icon,
 				0,
 				color,
-				canvasColor
+				canvasColor,
+				emTexture::EXTEND_ZERO
 			);
 		}
 		else {

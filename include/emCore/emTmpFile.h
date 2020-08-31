@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.h
 //
-// Copyright (C) 2006-2008,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,13 +54,16 @@ public:
 	~emTmpFile();
 		// Like Discard.
 
+	void TrySetup(emRootContext & rootContext, const char * postfix=NULL);
 	void Setup(emRootContext & rootContext, const char * postfix=NULL);
 		// Invent and set a new path for a temporary file or directory,
 		// which does not yet exist. Before that, Discard is called.
+		// On error, the first version throws an emException, and the
+		// second version calls emFatalError.
 		//
 		// *** DANGER ***
 		// The path is invented via an emTmpFileMaster. Please read the
-		// comments on emTmpFileMaster::InventPath.
+		// comments on emTmpFileMaster::TryInventPath.
 		//
 		// Arguments:
 		//   rootContext - The root context. The context must live
@@ -103,7 +106,7 @@ public:
 	static emRef<emTmpFileMaster> Acquire(emRootContext & rootContext);
 		// Acquire the emTmpFileMaster.
 
-	emString InventPath(const char * postfix=NULL);
+	emString TryInventPath(const char * postfix=NULL);
 		// Invent a path for a temporary file or directory which does
 		// not yet exist. The path ends with the given postfix, and it
 		// lies in a special directory which is created solely for this
@@ -111,7 +114,7 @@ public:
 		// deleted on destruction of this emTmpFileMaster (= destruction
 		// of root context). If that deletion does not take place
 		// because of a program crash or so, the deletion is performed
-		// at next construction of an emTmpFileMaster if it is a process
+		// at the next call to TryInventPath(..) if it is a process
 		// run by the same user on the same host. An emMiniIpcServer is
 		// managed to find out whether the emTmpFileMaster for a
 		// directory still exists.
@@ -133,8 +136,8 @@ protected:
 private:
 
 	static emString GetCommonPath();
-	void DeleteDeadDirectories();
-	void StartOwnDirectory();
+	void TryDeleteDeadDirectories();
+	void TryStartOwnDirectory();
 
 	class IpcServerClass : public emMiniIpcServer {
 	public:

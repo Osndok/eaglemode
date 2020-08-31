@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFramePanel.cpp
 //
-// Copyright (C) 2006-2009,2016-2017 Oliver Hamann.
+// Copyright (C) 2006-2009,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -22,23 +22,45 @@
 
 
 emTmpConvFramePanel::emTmpConvFramePanel(
-	ParentArg parent, const emString & name, emTmpConvModel * model
+	ParentArg parent, const emString & name, emTmpConvModel * model,
+	double tunnelFactor
 )
 	: emPanel(parent,name)
 {
-	double minViewPercentForTriggering,minViewPercentForHolding;
+	double defaultInnerScale,a,minViewPercentForTriggering,minViewPercentForHolding;
+
+	if (tunnelFactor<0.0) tunnelFactor=0.0;
 
 	BGColor=emColor(136,136,136);
-	InnerScale=0.2;
-	minViewPercentForTriggering=70.0*InnerScale*InnerScale;
+
+	defaultInnerScale=0.2;
+	a=defaultInnerScale/(1.0-defaultInnerScale);
+	InnerScale=a/(a+tunnelFactor);
+
+	minViewPercentForTriggering=70.0*defaultInnerScale*defaultInnerScale;
+	if (tunnelFactor<1.0) {
+		minViewPercentForTriggering*=0.1+tunnelFactor*0.9;
+	}
 	minViewPercentForHolding=minViewPercentForTriggering*0.3;
+
 	InnerPanel=new emTmpConvPanel(
 		this,"tmp",model,
 		minViewPercentForTriggering,minViewPercentForHolding
 	);
+
 	FileManViewConfig=emFileManViewConfig::Acquire(GetView());
 	AddWakeUpSignal(FileManViewConfig->GetChangeSignal());
-	SetAutoplayHandling(APH_CUTOFF);
+
+	if (tunnelFactor>0.01) {
+		SetAutoplayHandling(APH_CUTOFF);
+		InnerPanel->SetAutoplayHandling(APH_CUTOFF);
+	}
+	else {
+		SetAutoplayHandling(0);
+		InnerPanel->SetAutoplayHandling(0);
+		SetFocusable(false);
+	}
+
 	UpdateBgColor();
 }
 
@@ -77,6 +99,8 @@ void emTmpConvFramePanel::Paint(
 		painter.Clear(BGColor,canvasColor);
 		canvasColor=BGColor;
 	}
+
+	if (InnerScale>=0.999) return;
 
 	h=GetHeight();
 	d=0.0; //emMin(1.0,h)*(1.0-InnerScale)*0.005;

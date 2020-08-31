@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>.h
 //
-// Copyright (C) 2006-2008,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,13 +63,16 @@
         </SPAN>~<A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>();
                 <SPAN CLASS=c>// Like Discard.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Setup(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
+        </SPAN><SPAN CLASS=t>void </SPAN>TrySetup(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>void </SPAN>Setup(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext, <SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// Invent and set a new path for a temporary file or directory,
                 // which does not yet exist. Before that, Discard is called.
+                // On error, the first version throws an <A CLASS=m HREF="emCore_emStd2_h.html#emException">emException</A>, and the
+                // second version calls emFatalError.
                 //
                 // *** DANGER ***
                 // The path is invented via an <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>. Please read the
-                // comments on <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>::InventPath.
+                // comments on <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>::TryInventPath.
                 //
                 // Arguments:
                 //   rootContext - The root context. The context must live
@@ -112,7 +115,7 @@
         </SPAN><SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>&gt; Acquire(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
                 <SPAN CLASS=c>// Acquire the <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A>.
 
-        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> InventPath(<SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
+        </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> TryInventPath(<SPAN CLASS=t>const char </SPAN>* postfix=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// Invent a path for a temporary file or directory which does
                 // not yet exist. The path ends with the given postfix, and it
                 // lies in a special directory which is created solely for this
@@ -120,7 +123,7 @@
                 // deleted on destruction of this <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> (= destruction
                 // of root context). If that deletion does not take place
                 // because of a program crash or so, the deletion is performed
-                // at next construction of an <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> if it is a process
+                // at the next call to TryInventPath(..) if it is a process
                 // run by the same user on the same host. An <A CLASS=m HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> is
                 // managed to find out whether the <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFileMaster">emTmpFileMaster</A> for a
                 // directory still exists.
@@ -142,8 +145,8 @@
 <SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetCommonPath();
-        <SPAN CLASS=t>void </SPAN>DeleteDeadDirectories();
-        <SPAN CLASS=t>void </SPAN>StartOwnDirectory();
+        <SPAN CLASS=t>void </SPAN>TryDeleteDeadDirectories();
+        <SPAN CLASS=t>void </SPAN>TryStartOwnDirectory();
 
         <SPAN CLASS=t>class </SPAN>IpcServerClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=t>public</SPAN>:

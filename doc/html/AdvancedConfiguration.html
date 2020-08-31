@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Advanced Configuration</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010,2016,2018-2019 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010,2016,2018-2020 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -216,7 +216,8 @@ is performed by small shell scripts defined directly in the emFpPlugin
 configuration.
 <P>
 The library is called <TT>emTmpConv</TT> and the function is
-<TT>emTmpConvFpPluginFunc</TT>. Two required properties are defined:
+<TT>emTmpConvFpPluginFunc</TT>. Three properties are defined, where the third
+one is optional:
 <P>
 <PRE><TT>Properties = {
 
@@ -237,6 +238,15 @@ The library is called <TT>emTmpConv</TT> and the function is
     #                                     script.
     # On failure, the script should print an error message to stderr and it
     # should exit with a non-zero return value.
+
+  { Name="TunnelFactor" Value="1.0" }
+    # This optional property specifies a factor for the depth of the displayed
+    # tunnel. The default is 1.0. Zero means to show no tunnel (then it is even
+    # possible to enter or leave the content with the auto play functions). A
+    # number less than 1.0 should only be given if the temporary conversion is
+    # never expensive in time and (disk) space. With 1.0, the user can trigger
+    # only one conversion at a time (per view). The smaller the tunnel factor,
+    # the more files can have converted state in parallel.
 }</TT></PRE>
 <P>
 Hints for making the shell scripts:

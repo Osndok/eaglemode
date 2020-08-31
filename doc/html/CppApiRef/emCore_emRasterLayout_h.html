@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRasterLayout_h.html#emRasterLayout">emRasterLayout</A>.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -116,11 +116,11 @@
 
         </SPAN><SPAN CLASS=t>double </SPAN>GetMinChildTallness() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetMinChildTallness(<SPAN CLASS=t>double </SPAN>minCT);
-                <SPAN CLASS=c>// Minimum tallness of child panels. The default is 0.0.
+                <SPAN CLASS=c>// Minimum tallness of child panels. The default is 1E-4.
 
         </SPAN><SPAN CLASS=t>double </SPAN>GetMaxChildTallness() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetMaxChildTallness(<SPAN CLASS=t>double </SPAN>maxCT);
-                <SPAN CLASS=c>// Maximum tallness of child panels. The default is 1E100.
+                <SPAN CLASS=c>// Maximum tallness of child panels. The default is 1E4.
 
         </SPAN><SPAN CLASS=t>void </SPAN>SetChildTallness(<SPAN CLASS=t>double </SPAN>tallness);
                 <SPAN CLASS=c>// Set preferred, minimum and maximum child tallness to

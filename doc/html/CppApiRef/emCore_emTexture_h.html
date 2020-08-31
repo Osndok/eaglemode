@@ -1,0 +1,828 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emTexture.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>.h
+//
+// Copyright (C) 2020 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emTexture_h
+#define emTexture_h
+
+#ifndef emImage_h
+#include &lt;<A CLASS=f HREF="emCore_emImage_h.html">emCore/emImage.h</A>&gt;
+#endif
+
+
+<A NAME="emTexture"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a texture. A texture in this sense describes how to fill an
+        // area when painting figures with <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>. Different types of
+        // textures allow to paint colors, images, colored images, and color
+        // gradients. Those types of textures can be easily constructed using
+        // the following derived classes:
+        //
+        //   <A CLASS=m HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>
+        //   <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>
+        //   <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>
+        //   <A CLASS=m HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A>
+        //   <A CLASS=m HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A>
+        //
+        // These texture classes just exist for convenience and define only
+        // constructors. All the attributes (and even the constructors) are
+        // already defined here in <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>, because <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A> ought to be a
+        // simple non-polymorphic type.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>TextureType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for the type of texture.
+
+                </SPAN>COLOR,
+                        <SPAN CLASS=c>// Uni-colored texture, constructed by <A CLASS=m HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>.
+
+                </SPAN>IMAGE,
+                        <SPAN CLASS=c>// Image texture, constructed by <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>.
+
+                </SPAN>IMAGE_COLORED,
+                        <SPAN CLASS=c>// Image colored texture, constructed by
+                        // <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>.
+
+                </SPAN>LINEAR_GRADIENT,
+                        <SPAN CLASS=c>// Linear gradient texture, constructed by
+                        // <A CLASS=m HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A>.
+
+                </SPAN>RADIAL_GRADIENT
+                        <SPAN CLASS=c>// Radial gradient texture, constructed by
+                        // <A CLASS=m HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A>.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>ExtensionType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for describing what to paint beyond the edges of an
+                // image, or how to "extend" the image. With <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A> or
+                // <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>, an image (or a source rectangle of it)
+                // is painted to a certain target rectangle. The extension
+                // parameter controls what should happen when the painted figure
+                // shows something outside that rectangle. Remember, even if the
+                // figure is exactly that target rectangle, the interpolation
+                // and anti-aliasing algorithms may look slightly beyond the
+                // edges. In that case, it is important to choose correctly
+                // between EXTEND_EDGE and EXTEND_ZERO. Usually EXTEND_EDGE is
+                // good for painting images which fill the rectangle completely
+                // (no alpha), and EXTEND_ZERO is good for painting icons and
+                // text characters (things with transparency).
+
+                </SPAN>EXTEND_TILED = <SPAN CLASS=u>0</SPAN>,
+                        <SPAN CLASS=c>// The image simply is repeated.
+
+                </SPAN>EXTEND_EDGE = <SPAN CLASS=u>1</SPAN>,
+                        <SPAN CLASS=c>// The edges of the image are extended (stretched)
+                        // infinitely.
+
+                </SPAN>EXTEND_ZERO = <SPAN CLASS=u>2</SPAN>,
+                        <SPAN CLASS=c>// Black (zero) color is used, or - if the image has an
+                        // alpha channels - black with zero alpha.
+
+                </SPAN>EXTEND_EDGE_OR_ZERO = <SPAN CLASS=u>3
+                        </SPAN><SPAN CLASS=c>// Automatically decide between EXTEND_EDGE and
+                        // EXTEND_ZERO: If the image has an alpha channel, or if
+                        // the texture type is IMAGE_COLORED and one of the
+                        // gradient colors has zero alpha, then EXTEND_ZERO is
+                        // used, otherwise EXTEND_EDGE.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>DownscaleQualityType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for the quality of downscaling images. Something
+                // like "3X3" means the maximum number of input pixels used to
+                // area-sample an output pixel. If there are more input pixels,
+                // they are reduced by nearest-pixel sampling on the fly.
+                </SPAN>DQ_BY_CONFIG     = -<SPAN CLASS=u>1</SPAN>,
+                DQ_NEAREST_PIXEL = <SPAN CLASS=u>0</SPAN>,
+                DQ_2X2           = <SPAN CLASS=u>2</SPAN>,
+                DQ_3X3           = <SPAN CLASS=u>3</SPAN>,
+                DQ_4X4           = <SPAN CLASS=u>4</SPAN>,
+                DQ_5X5           = <SPAN CLASS=u>5</SPAN>,
+                DQ_6X6           = <SPAN CLASS=u>6
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>UpscaleQualityType <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for the quality of upscaling images.
+                </SPAN>UQ_BY_CONFIG           = -<SPAN CLASS=u>2</SPAN>,
+                UQ_BY_CONFIG_FOR_VIDEO = -<SPAN CLASS=u>1</SPAN>,
+                UQ_NEAREST_PIXEL       = <SPAN CLASS=u>0</SPAN>,
+                UQ_AREA_SAMPLING       = <SPAN CLASS=u>1</SPAN>,
+                UQ_BILINEAR            = <SPAN CLASS=u>2</SPAN>,
+                UQ_BICUBIC             = <SPAN CLASS=u>3</SPAN>,
+                UQ_LANCZOS             = <SPAN CLASS=u>4</SPAN>,
+                UQ_ADAPTIVE            = <SPAN CLASS=u>5
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<SPAN CLASS=u>0</SPAN>);
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(emUInt32 packedColor);
+                <SPAN CLASS=c>// Construct an uni-colored texture. Please see <A CLASS=m HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>
+                // for details.
+
+        </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>,
+                  ExtensionType extension=EXTEND_TILED,
+                  DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                  UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image, <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY,
+                  <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>,
+                  ExtensionType extension=EXTEND_TILED,
+                  DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                  UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+                <SPAN CLASS=c>// Construct an image texture. Please see <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>
+                // for details.
+
+        </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+                  <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2,
+                  ExtensionType extension=EXTEND_TILED,
+                  DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                  UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+                  <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH,
+                  <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2,
+                  ExtensionType extension=EXTEND_TILED,
+                  DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                  UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+                <SPAN CLASS=c>// Construct an image colored texture. Please see
+                // <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A> for details.
+
+        </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1,
+                  <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2);
+                <SPAN CLASS=c>// Construct a linear gradient texture. Please see
+                // <A CLASS=m HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A> for details.
+
+        </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                  <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2);
+                <SPAN CLASS=c>// Construct a radial gradient texture. Please see
+                // <A CLASS=m HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A> for details.
+
+        </SPAN>TextureType GetType() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the type of the texture.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetX(<SPAN CLASS=t>double </SPAN>x);
+        <SPAN CLASS=t>double </SPAN>GetY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetY(<SPAN CLASS=t>double </SPAN>y);
+        <SPAN CLASS=t>double </SPAN>GetW() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetW(<SPAN CLASS=t>double </SPAN>w);
+        <SPAN CLASS=t>double </SPAN>GetH() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetH(<SPAN CLASS=t>double </SPAN>h);
+                <SPAN CLASS=c>// Get or set the position and size of the target rectangle.
+                // This is valid only if the texture type is IMAGE,
+                // IMAGE_COLORED, or RADIAL_GRADIENT.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetX1() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetX1(<SPAN CLASS=t>double </SPAN>x1);
+        <SPAN CLASS=t>double </SPAN>GetY1() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetY1(<SPAN CLASS=t>double </SPAN>y1);
+        <SPAN CLASS=t>double </SPAN>GetX2() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetX2(<SPAN CLASS=t>double </SPAN>x2);
+        <SPAN CLASS=t>double </SPAN>GetY2() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetY2(<SPAN CLASS=t>double </SPAN>y2);
+                <SPAN CLASS=c>// Get or set the first and second target point of a gradient.
+                // This is valid only if the texture type is LINEAR_GRADIENT.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color);
+                <SPAN CLASS=c>// Get or set the color. This is valid only if the texture type
+                // is COLOR.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetColor1() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetColor1(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1);
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetColor2() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetColor2(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2);
+                <SPAN CLASS=c>// Get or set the First and second color of a gradient. This is
+                // valid only if the texture type is IMAGE_COLORED,
+                // LINEAR_GRADIENT, or RADIAL_GRADIENT.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetImage() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetImage(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image);
+                <SPAN CLASS=c>// Get or set the image. This is valid only if the texture type
+                // is IMAGE or IMAGE_COLORED.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSrcX() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSrcX(<SPAN CLASS=t>int </SPAN>srcX);
+        <SPAN CLASS=t>int </SPAN>GetSrcY() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSrcY(<SPAN CLASS=t>int </SPAN>srcY);
+        <SPAN CLASS=t>int </SPAN>GetSrcW() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSrcW(<SPAN CLASS=t>int </SPAN>srcW);
+        <SPAN CLASS=t>int </SPAN>GetSrcH() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSrcH(<SPAN CLASS=t>int </SPAN>srcH);
+                <SPAN CLASS=c>// Get or set the source rectangle on the image. This is valid
+                // only if the texture type is IMAGE or IMAGE_COLORED.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetAlpha() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetAlpha(<SPAN CLASS=t>int </SPAN>alpha);
+                <SPAN CLASS=c>// Get or set the alpha value for image blending (0..255). This
+                // is valid only if the texture type is IMAGE.
+
+        </SPAN>ExtensionType GetExtension() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetExtension(ExtensionType extension);
+                <SPAN CLASS=c>// Get or set how to extend the image. This is valid only if the
+                // texture type is IMAGE or IMAGE_COLORED.
+
+        </SPAN>DownscaleQualityType GetDownscaleQuality() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDownscaleQuality(DownscaleQualityType downscaleQuality);
+                <SPAN CLASS=c>// Get or set the quality of downscaling the image. This is
+                // valid only if the texture type is IMAGE or IMAGE_COLORED.
+
+        </SPAN>UpscaleQualityType GetUpscaleQuality() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetUpscaleQuality(UpscaleQualityType upscaleQuality);
+                <SPAN CLASS=c>// Get or set the quality of upscaling the image. This is valid
+                // only if the texture type is IMAGE or IMAGE_COLORED.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>;
+
+        TextureType Type;
+        ExtensionType Extension;
+        DownscaleQualityType DownscaleQuality;
+        UpscaleQualityType UpscaleQuality;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color; <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color1; <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color2; <SPAN CLASS=t>int </SPAN>Alpha; <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> * Image;
+        <SPAN CLASS=t>int </SPAN>SrcX,SrcY,SrcW,SrcH;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><SPAN CLASS=t>double </SPAN>X; <SPAN CLASS=t>double </SPAN>X1; <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><SPAN CLASS=t>double </SPAN>Y; <SPAN CLASS=t>double </SPAN>Y1; <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><SPAN CLASS=t>double </SPAN>W; <SPAN CLASS=t>double </SPAN>X2; <SPAN CLASS=b>}</SPAN>;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><SPAN CLASS=t>double </SPAN>H; <SPAN CLASS=t>double </SPAN>Y2; <SPAN CLASS=b>}</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emColorTexture"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color);
+                <SPAN CLASS=c>// Construct an uni-colored texture.
+                // Arguments:
+                //   color - The color.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emImageTexture"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                       <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>,
+                       ExtensionType extension=EXTEND_TILED,
+                       DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                       UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+        <A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                       <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image, <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY,
+                       <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>,
+                       ExtensionType extension=EXTEND_TILED,
+                       DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                       UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+                <SPAN CLASS=c>// Construct an image texture. This type of texture simply
+                // paints an image.
+                // Arguments:
+                //   x,y,w,h             - Upper-left corner and size of the
+                //                         target rectangle. The image (or a
+                //                         source rectangle of it) is fitted
+                //                         into this rectangle.
+                //   image               - The image. If the image has an alpha
+                //                         channel, it is used for blending.
+                //   srcX,srcY,srcW,srcH - Upper-left corner and size of the
+                //                         source rectangle on the image. If
+                //                         these arguments are missing, the
+                //                         whole image is taken.
+                //   alpha               - An additional alpha value for
+                //                         blending (0-255).
+                //   extension             What is painted beyond the target
+                //                         rectangle (x,y,w,h). Please see the
+                //                         comments on <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType
+                //                         for details.
+                //   downscaleQuality    - Quality of downscaling the image.
+                //                         Please see the comments on
+                //                         <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::DownscaleQualityType for
+                //                         details.
+                //   upscaleQuality      - Quality of upscaling the image.
+                //                         Please see the comments on
+                //                         <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::UpscaleQualityType for
+                //                         details.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emImageColoredTexture"></A><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A> ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                              <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+                              <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2,
+                              ExtensionType extension=EXTEND_TILED,
+                              DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                              UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+        <A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                              <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+                              <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH,
+                              <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2,
+                              ExtensionType extension=EXTEND_TILED,
+                              DownscaleQualityType downscaleQuality=DQ_BY_CONFIG,
+                              UpscaleQualityType upscaleQuality=UQ_BY_CONFIG);
+                <SPAN CLASS=c>// Construct an image colored texture. This is like an image
+                // texture, but the colors of the image are modified by two
+                // given colors. One could also say this paints a color gradient
+                // where the image color values are used as the gradient
+                // parameter. The general formula for calculating the color is:
+                //
+                //    output = color1 + input * (color2 - color1)
+                //
+                // If the image has only one color channel (gray image), that
+                // channel is used as the input parameter to the formula.
+                // Otherwise the calculation happens for red, green and blue
+                // separately. This may not be very useful. Ideally, the image
+                // should always have just one color channel (and optionally an
+                // alpha channel, which is used for blending).
+                //
+                // Arguments:
+                //   x,y,w,h             - Upper-left corner and size of the
+                //                         target rectangle. The image (or a
+                //                         source rectangle of it) is fitted
+                //                         into this rectangle.
+                //   image               - The image. If the image has an alpha
+                //                         channel, it is used for blending.
+                //   srcX,srcY,srcW,srcH - Upper-left corner and size of the
+                //                         source rectangle on the image. If
+                //                         these arguments are missing, the
+                //                         whole image is taken.
+                //   color1              - First color of gradient.
+                //   color2              - Second color of gradient.
+                //   extension             What is painted beyond the target
+                //                         rectangle (x,y,w,h). Please see the
+                //                         comments on <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType
+                //                         for details.
+                //   downscaleQuality    - Quality of downscaling the image.
+                //                         Please see the comments on
+                //                         <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::DownscaleQualityType for
+                //                         details.
+                //   upscaleQuality      - Quality of upscaling the image.
+                //                         Please see the comments on
+                //                         <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::UpscaleQualityType for
+                //                         details.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emLinearGradientTexture"></A><SPAN CLASS=c>//==============================================================================
+//========================== <A CLASS=m HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A>(<SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1,
+                                <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2);
+                <SPAN CLASS=c>// Construct a linear gradient texture. This defines a start
+                // point with a start color and an end point with an end color.
+                // The color gradient runs on the line from that start point to
+                // the end point and in the same way on every possible parallel
+                // line. In other words: Imagine a straight line at the start
+                // point that is perpendicular to the start-end direction. Call
+                // it the start straight. And also imagine an end straight in
+                // the same way at the end point. Then the color gradient runs
+                // linear from the start straight to the end straight. Outside
+                // that area, the start color is used beyond the start, and the
+                // end color is use beyond the end.
+                // Arguments:
+                //   x1,y1               - Start point of gradient.
+                //   color1              - Start color of gradient.
+                //   x2,y2               - End point of gradient.
+                //   color2              - End color of gradient.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRadialGradientTexture"></A><SPAN CLASS=c>//==============================================================================
+//========================== <A CLASS=m HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A> ===========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A>(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2);
+                <SPAN CLASS=c>// Construct a radial gradient texture. This defines an ellipse
+                // (or circle) on the output area, as well as two colors. The
+                // color gradient runs from inside out, with the start color at
+                // the center and the end color at the outer edge. Outside the
+                // ellipse, everything is filled with the end color.
+                // Arguments:
+                //   x,y,w,h             - Upper-left corner and size of the
+                //                         target ellipse.
+                //   color1              - Start color of gradient, used at the
+                //                         center of the ellipse.
+                //   color2              - End color of gradient, used at the
+                //                         outer edge of the ellipse.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+//--------------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A> ----------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
+        : Type(COLOR),Color(color)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(emUInt32 packedColor)
+        : Type(COLOR),Color(packedColor)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+        <SPAN CLASS=t>int </SPAN>alpha, ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        Type(IMAGE),Extension(extension),DownscaleQuality(downscaleQuality),
+        UpscaleQuality(upscaleQuality),Alpha(alpha),Image(&amp;image),
+        SrcX(<SPAN CLASS=u>0</SPAN>),SrcY(<SPAN CLASS=u>0</SPAN>),SrcW(image.GetWidth()),SrcH(image.GetHeight()),
+        X(x),Y(y),W(w),H(h)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image, <SPAN CLASS=t>int </SPAN>srcX,
+        <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha, ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        Type(IMAGE),Extension(extension),DownscaleQuality(downscaleQuality),
+        UpscaleQuality(upscaleQuality),Alpha(alpha),Image(&amp;image),
+        SrcX(srcX),SrcY(srcY),SrcW(srcW),SrcH(srcH),
+        X(x),Y(y),W(w),H(h)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        Type(IMAGE_COLORED),Extension(extension),DownscaleQuality(downscaleQuality),
+        UpscaleQuality(upscaleQuality),Color1(color1),Color2(color2),
+        Image(&amp;image),SrcX(<SPAN CLASS=u>0</SPAN>),SrcY(<SPAN CLASS=u>0</SPAN>),SrcW(image.GetWidth()),
+        SrcH(image.GetHeight()),X(x),Y(y),W(w),H(h)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+        <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2,
+        ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        Type(IMAGE_COLORED),Extension(extension),DownscaleQuality(downscaleQuality),
+        UpscaleQuality(upscaleQuality),Color1(color1),Color2(color2),
+        Image(&amp;image),SrcX(srcX),SrcY(srcY),SrcW(srcW),SrcH(srcH),
+        X(x),Y(y),W(w),H(h)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2
+) :
+        Type(LINEAR_GRADIENT),Color1(color1),Color2(color2),
+        X1(x1),Y1(y1),X2(x2),Y2(y2)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2
+) :
+        Type(RADIAL_GRADIENT),Color1(color1),Color2(color2),X(x),Y(y),W(w),H(h)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::TextureType <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Type;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>X;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetX(<SPAN CLASS=t>double </SPAN>x)
+<SPAN CLASS=b>{
+        </SPAN>X=x;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Y;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetY(<SPAN CLASS=t>double </SPAN>y)
+<SPAN CLASS=b>{
+        </SPAN>Y=y;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetW() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>W;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetW(<SPAN CLASS=t>double </SPAN>w)
+<SPAN CLASS=b>{
+        </SPAN>W=w;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetH() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>H;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetH(<SPAN CLASS=t>double </SPAN>h)
+<SPAN CLASS=b>{
+        </SPAN>H=h;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetX1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>X1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetX1(<SPAN CLASS=t>double </SPAN>x1)
+<SPAN CLASS=b>{
+        </SPAN>X1=x1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetY1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Y1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetY1(<SPAN CLASS=t>double </SPAN>y1)
+<SPAN CLASS=b>{
+        </SPAN>Y1=y1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetX2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>X2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetX2(<SPAN CLASS=t>double </SPAN>x2)
+<SPAN CLASS=b>{
+        </SPAN>X2=x2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetY2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Y2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetY2(<SPAN CLASS=t>double </SPAN>y2)
+<SPAN CLASS=b>{
+        </SPAN>Y2=y2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Color;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
+<SPAN CLASS=b>{
+        </SPAN>Color=color;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetColor1() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Color1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetColor1(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1)
+<SPAN CLASS=b>{
+        </SPAN>Color1=color1;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetColor2() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Color2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetColor2(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2)
+<SPAN CLASS=b>{
+        </SPAN>Color2=color2;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetImage() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Image;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetImage(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image)
+<SPAN CLASS=b>{
+        </SPAN>Image=&amp;image;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetSrcX() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SrcX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetSrcX(<SPAN CLASS=t>int </SPAN>srcX)
+<SPAN CLASS=b>{
+        </SPAN>SrcX=srcX;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetSrcY() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SrcY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetSrcY(<SPAN CLASS=t>int </SPAN>srcY)
+<SPAN CLASS=b>{
+        </SPAN>SrcY=srcY;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetSrcW() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SrcW;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetSrcW(<SPAN CLASS=t>int </SPAN>srcW)
+<SPAN CLASS=b>{
+        </SPAN>SrcW=srcW;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetSrcH() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>SrcH;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetSrcH(<SPAN CLASS=t>int </SPAN>srcH)
+<SPAN CLASS=b>{
+        </SPAN>SrcH=srcH;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetAlpha() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetAlpha(<SPAN CLASS=t>int </SPAN>alpha)
+<SPAN CLASS=b>{
+        </SPAN>Alpha=alpha;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetExtension() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Extension;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetExtension(ExtensionType extension)
+<SPAN CLASS=b>{
+        </SPAN>Extension=extension;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::DownscaleQualityType <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetDownscaleQuality() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DownscaleQuality;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetDownscaleQuality(DownscaleQualityType downscaleQuality)
+<SPAN CLASS=b>{
+        </SPAN>DownscaleQuality=downscaleQuality;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::UpscaleQualityType <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetUpscaleQuality() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>UpscaleQuality;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetUpscaleQuality(UpscaleQualityType upscaleQuality)
+<SPAN CLASS=b>{
+        </SPAN>UpscaleQuality=upscaleQuality;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//------------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A> -------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
+        : <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(color)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//------------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A> -------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+        <SPAN CLASS=t>int </SPAN>alpha, ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(x,y,w,h,image,alpha,extension,downscaleQuality,upscaleQuality)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image, <SPAN CLASS=t>int </SPAN>srcX,
+        <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha, ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(x,y,w,h,image,srcX,srcY,srcW,srcH,alpha,extension,
+                  downscaleQuality,upscaleQuality)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//--------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A> ----------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(x,y,w,h,image,color1,color2,extension,downscaleQuality,
+                  upscaleQuality)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image,
+        <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2,
+        ExtensionType extension,
+        DownscaleQualityType downscaleQuality, UpscaleQualityType upscaleQuality
+) :
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(x,y,w,h,image,srcX,srcY,srcW,srcH,color1,color2,extension,
+                  downscaleQuality,upscaleQuality)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//-------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A> ---------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emLinearGradientTexture">emLinearGradientTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2
+) :
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(x1,y1,color1,x2,y2,color2)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//-------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A> ---------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A>(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2
+) :
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(x,y,w,h,color1,color2)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

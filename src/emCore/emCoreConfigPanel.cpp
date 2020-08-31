@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2010,2014-2017,2019 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2017,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,10 +99,10 @@ emCoreConfigPanel::FactorField::FactorField(
 		-200,200,0,true
 	),
 	emRecListener(rec),
-	Config(config)
+	Config(config),
+	MinimumMeansDisabled(minimumMeansDisabled),
+	ValOut(0)
 {
-	MinimumMeansDisabled=minimumMeansDisabled;
-	ValOut=0;
 	SetScaleMarkIntervals(100,10,0);
 	SetBorderScaling(1.5);
 	SetTextBoxTallness(0.3);
@@ -218,11 +218,11 @@ emCoreConfigPanel::MouseMiscGroup::MouseMiscGroup(
 )
 	: emRasterGroup(parent,name,"Miscellaneous mouse settings"),
 	emRecListener(config),
-	Config(config)
+	Config(config),
+	StickBox(NULL),
+	EmuBox(NULL),
+	PanBox(NULL)
 {
-	StickBox=NULL;
-	EmuBox=NULL;
-	PanBox=NULL;
 	SetBorderScaling(4.0);
 	SetPrefChildTallness(0.04);
 }
@@ -245,19 +245,25 @@ bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 
 	busy=emRasterGroup::Cycle();
 
-	if (StickBox && IsSignaled(StickBox->GetClickSignal())) {
-		Config->StickMouseWhenNavigating.Invert();
-		Config->Save();
+	if (StickBox && IsSignaled(StickBox->GetCheckSignal())) {
+		if (Config->StickMouseWhenNavigating.Get() != StickBox->IsChecked()) {
+			Config->StickMouseWhenNavigating.Set(StickBox->IsChecked());
+			Config->Save();
+		}
 	}
 
-	if (EmuBox && IsSignaled(EmuBox->GetClickSignal())) {
-		Config->EmulateMiddleButton.Invert();
-		Config->Save();
+	if (EmuBox && IsSignaled(EmuBox->GetCheckSignal())) {
+		if (Config->EmulateMiddleButton.Get() != EmuBox->IsChecked()) {
+			Config->EmulateMiddleButton.Set(EmuBox->IsChecked());
+			Config->Save();
+		}
 	}
 
-	if (PanBox && IsSignaled(PanBox->GetClickSignal())) {
-		Config->PanFunction.Invert();
-		Config->Save();
+	if (PanBox && IsSignaled(PanBox->GetCheckSignal())) {
+		if (Config->PanFunction.Get() != PanBox->IsChecked()) {
+			Config->PanFunction.Set(PanBox->IsChecked());
+			Config->Save();
+		}
 	}
 
 	return busy;
@@ -284,9 +290,9 @@ void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 	StickBox->SetNoEOI();
 	EmuBox->SetNoEOI();
 	PanBox->SetNoEOI();
-	AddWakeUpSignal(StickBox->GetClickSignal());
-	AddWakeUpSignal(EmuBox->GetClickSignal());
-	AddWakeUpSignal(PanBox->GetClickSignal());
+	AddWakeUpSignal(StickBox->GetCheckSignal());
+	AddWakeUpSignal(EmuBox->GetCheckSignal());
+	AddWakeUpSignal(PanBox->GetCheckSignal());
 	UpdateOutput();
 }
 
@@ -463,10 +469,10 @@ emCoreConfigPanel::MaxMemGroup::MaxMemGroup(
 )
 	: emLinearGroup(parent,name,"Max Megabytes Per View"),
 	emRecListener(&config->MaxMegabytesPerView),
-	Config(config)
+	Config(config),
+	MemField(NULL),
+	ValOut(0)
 {
-	MemField=NULL;
-	ValOut=0;
 	SetVertical();
 	SetChildWeight(0,5.0);
 	SetChildWeight(1,1.0);
@@ -592,7 +598,6 @@ emCoreConfigPanel::MaxMemTunnel::MaxMemTunnel(
 	: emTunnel(parent,name,"Max Megabytes Per View"),
 	Config(config)
 {
-	SetBorderScaling(0.75);
 	SetChildTallness(0.3);
 }
 
@@ -620,9 +625,13 @@ void emCoreConfigPanel::MaxMemTunnel::AutoExpand()
 emCoreConfigPanel::PerformanceGroup::PerformanceGroup(
 	ParentArg parent, const emString & name, emCoreConfig * config
 )
-	: emRasterGroup(parent,name,"Performance"),
+	: emRasterGroup(parent,name,"Graphics Performance vs. Quality"),
 	emRecListener(config),
-	Config(config)
+	Config(config),
+	MaxRenderThreadsField(NULL),
+	AllowSIMDBox(NULL),
+	DownscaleQualityField(NULL),
+	UpscaleQualityField(NULL)
 {
 	SetPrefChildTallness(0.2);
 	SetBorderScaling(3.0);
@@ -658,6 +667,40 @@ bool emCoreConfigPanel::PerformanceGroup::Cycle()
 		}
 	}
 
+	if (
+		AllowSIMDBox &&
+		IsSignaled(AllowSIMDBox->GetCheckSignal())
+	) {
+		if (Config->AllowSIMD.Get() != AllowSIMDBox->IsChecked()) {
+			Config->AllowSIMD.Set(AllowSIMDBox->IsChecked());
+			Config->Save();
+		}
+	}
+
+	if (
+		DownscaleQualityField &&
+		IsSignaled(DownscaleQualityField->GetValueSignal())
+	) {
+		int val=(int)DownscaleQualityField->GetValue();
+		if (Config->DownscaleQuality.Get() != val) {
+			Config->DownscaleQuality.Set(val);
+			Config->Save();
+			InvalidatePaintingOfAllWindows();
+		}
+	}
+
+	if (
+		UpscaleQualityField &&
+		IsSignaled(UpscaleQualityField->GetValueSignal())
+	) {
+		int val=(int)UpscaleQualityField->GetValue();
+		if (Config->UpscaleQuality.Get() != val) {
+			Config->UpscaleQuality.Set(val);
+			Config->Save();
+			InvalidatePaintingOfAllWindows();
+		}
+	}
+
 	return busy;
 }
 
@@ -665,21 +708,78 @@ bool emCoreConfigPanel::PerformanceGroup::Cycle()
 void emCoreConfigPanel::PerformanceGroup::AutoExpand()
 {
 	emRasterGroup::AutoExpand();
-	new MaxMemTunnel(this,"maxmem",Config);
+
+	MaxMemTunnel * maxMemTunnel = new MaxMemTunnel(this,"maxmem",Config);
+	maxMemTunnel->SetBorderScaling(1.5);
+
+	emLinearGroup * cpuGroup=new emLinearGroup(this,"cpu","CPU");
+	cpuGroup->SetBorderScaling(1.5);
+	cpuGroup->SetVertical();
+	cpuGroup->SetChildWeight(0,4.0);
+	cpuGroup->SetSpaceV(0.1);
+	cpuGroup->SetBorderType(OBT_INSTRUMENT,IBT_GROUP);
 
 	MaxRenderThreadsField=new emScalarField(
-		this,"MaxRenderThreads",
+		cpuGroup,"MaxRenderThreads",
 		"Max Render Threads",
 		"Maximum number of CPU threads used for painting graphics.\n"
 		"In any case, no more threads are used than the hardware can\n"
-		"run concurrently by multiple CPUs, cores, or hyperthreads.\n"
+		"run concurrently by multiple CPUs, cores, or hyper threads.\n"
 		"So this setting is just an additional limit, for the case\n"
 		"you want this program to use less CPU resources.",
 		emImage(),
 		1,32,Config->MaxRenderThreads.Get(),true
 	);
 	MaxRenderThreadsField->SetScaleMarkIntervals(1);
+	MaxRenderThreadsField->SetBorderScaling(1.5);
+	MaxRenderThreadsField->SetBorderType(OBT_NONE,IBT_INPUT_FIELD);
 	AddWakeUpSignal(MaxRenderThreadsField->GetValueSignal());
+
+	AllowSIMDBox=new emCheckBox(
+		cpuGroup,"allowSIMD","Allow SIMD",
+		"Whether to allow SIMD optimizations, if supported by\n"
+		"the CPU. Currently, this only concerns AVX2 on X86 CPUs.\n"
+		"Switching this off should be useful only for testing."
+	);
+	AllowSIMDBox->SetNoEOI();
+	AddWakeUpSignal(AllowSIMDBox->GetCheckSignal());
+
+	DownscaleQualityField=new emScalarField(
+		this,"downscaleQuality",
+		"Image Downscale Quality",
+		"Strength of area sampling to be used when displaying raster images\n"
+		"downscaled. This is the maximum number of input pixels used to\n"
+		"area-sample an output pixel. If there are more input pixels per output\n"
+		"pixel, they are reduced by nearest-pixel sampling on the fly.",
+		emImage(),
+		Config->DownscaleQuality.GetMinValue(),
+		Config->DownscaleQuality.GetMaxValue(),
+		Config->DownscaleQuality.Get(),
+		true
+	);
+	DownscaleQualityField->SetTextOfValueFunc(DownscaleTextOfValueFunc,this);
+	DownscaleQualityField->SetScaleMarkIntervals(1);
+	DownscaleQualityField->SetBorderScaling(1.5);
+	AddWakeUpSignal(DownscaleQualityField->GetValueSignal());
+
+	UpscaleQualityField=new emScalarField(
+		this,"upscaleQuality",
+		"Image Upscale Quality",
+		"Type of interpolation to be used when displaying raster images upscaled.\n"
+		"\n"
+		"NOTE: Video display is automatically limited to Bilinear interpolation\n"
+		"when SIMD optimization is disabled or not available (AVX2 on X86 CPU).",
+		emImage(),
+		Config->UpscaleQuality.GetMinValue(),
+		Config->UpscaleQuality.GetMaxValue(),
+		Config->UpscaleQuality.Get(),
+		true
+	);
+	UpscaleQualityField->SetTextOfValueFunc(UpscaleTextOfValueFunc,this);
+	UpscaleQualityField->SetScaleMarkIntervals(1);
+	UpscaleQualityField->SetBorderScaling(1.5);
+	AddWakeUpSignal(UpscaleQualityField->GetValueSignal());
+
 	UpdateOutput();
 }
 
@@ -688,6 +788,9 @@ void emCoreConfigPanel::PerformanceGroup::AutoShrink()
 {
 	emRasterGroup::AutoShrink();
 	MaxRenderThreadsField=NULL;
+	AllowSIMDBox=NULL;
+	DownscaleQualityField=NULL;
+	UpscaleQualityField=NULL;
 }
 
 
@@ -696,4 +799,68 @@ void emCoreConfigPanel::PerformanceGroup::UpdateOutput()
 	if (MaxRenderThreadsField) {
 		MaxRenderThreadsField->SetValue(Config->MaxRenderThreads.Get());
 	}
+
+	if (AllowSIMDBox) {
+		AllowSIMDBox->SetChecked(Config->AllowSIMD.Get());
+	}
+
+	if (DownscaleQualityField) {
+		DownscaleQualityField->SetValue(Config->DownscaleQuality.Get());
+	}
+
+	if (UpscaleQualityField) {
+		UpscaleQualityField->SetValue(Config->UpscaleQuality.Get());
+	}
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::InvalidatePaintingOfAllWindows()
+{
+	emScreen * screen=GetScreen();
+	if (!screen) return;
+
+	const emArray<emWindow*> & windows = screen->GetWindows();
+	for (int i=0; i<windows.GetCount(); i++) {
+		emWindow * w=windows[i];
+
+		class DirtyTrickToAccessProtectedMethod : public emWindow {
+		public:
+			inline void InvalidatePainting() { emWindow::InvalidatePainting(); }
+		};
+
+		((DirtyTrickToAccessProtectedMethod*)w)->InvalidatePainting();
+	}
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::DownscaleTextOfValueFunc(
+	char * buf, int bufSize, emInt64 value,
+	emUInt64 markInterval, void * context
+)
+{
+	if (value<1) {
+		snprintf(buf,bufSize,"Nearest\nPixel");
+	}
+	else {
+		snprintf(buf,bufSize,"%dx%d",(int)value,(int)value);
+	}
+}
+
+
+void emCoreConfigPanel::PerformanceGroup::UpscaleTextOfValueFunc(
+	char * buf, int bufSize, emInt64 value,
+	emUInt64 markInterval, void * context
+)
+{
+	const char * str;
+	switch ((emTexture::UpscaleQualityType)value) {
+	case emTexture::UQ_NEAREST_PIXEL: str="Nearest\nPixel"; break;
+	case emTexture::UQ_AREA_SAMPLING: str="Area Sampling\n(Antialiased\nNearest Pixel)"; break;
+	case emTexture::UQ_BILINEAR     : str="Bilinear"      ; break;
+	case emTexture::UQ_BICUBIC      : str="Bicubic"       ; break;
+	case emTexture::UQ_LANCZOS      : str="Lanczos"       ; break;
+	case emTexture::UQ_ADAPTIVE     : str="Adaptive"      ; break;
+	default                         : str="?"             ; break;
+	}
+	snprintf(buf,bufSize,"%s",str);
 }

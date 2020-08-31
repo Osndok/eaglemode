@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009,2011,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2006-2009,2011,2014,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -209,7 +209,7 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 		dirList=emTryLoadDir(dirPath);
 	}
 	catch (const emException & exception) {
-		emFatalError("emFpPluginList: %s",exception.GetText());
+		emFatalError("emFpPluginList: %s",exception.GetText().Get());
 	}
 	dirList.Sort(emStdComparer<emString>::Compare);
 
@@ -222,7 +222,7 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 			}
 			catch (const emException & exception) {
 				delete plugin;
-				emFatalError("emFpPluginList: %s",exception.GetText());
+				emFatalError("emFpPluginList: %s",exception.GetText().Get());
 			}
 			Plugins.Add(plugin);
 		}

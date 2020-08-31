@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2019 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -235,7 +235,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		catch (const emException & exception) {
 			emWarning(
 				"emMain::NewWindow: Could not interpret cecolor option value: %s",
-				exception.GetText()
+				exception.GetText().Get()
 			);
 			ceColor=0;
 		}
@@ -408,7 +408,7 @@ void emMain::SetFSDialogDone()
 		emTrySaveFile(GetLAPath(),"yes\n",4);
 	}
 	catch (const emException & exception) {
-		emFatalError("%s",exception.GetText());
+		emFatalError("%s",exception.GetText().Get());
 	}
 	FSDialogDone=true;
 }

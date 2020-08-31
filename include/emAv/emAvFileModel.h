@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.h
 //
-// Copyright (C) 2005-2008,2011,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2017-2018,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,6 +53,7 @@ public:
 
 	virtual const emString & GetFilePath() const;
 
+	emAvLibDirCfg & GetLibDirCfg() const;
 
 	// - - - Infos - - -
 
@@ -147,6 +148,7 @@ protected:
 
 	virtual ~emAvFileModel();
 
+	virtual bool Cycle();
 	virtual void ResetData();
 	virtual void TryStartLoading();
 	virtual bool TryContinueLoading();
@@ -211,6 +213,12 @@ private:
 	emImage Image;
 	double Tallness;
 };
+
+
+inline emAvLibDirCfg & emAvFileModel::GetLibDirCfg() const
+{
+	return emAvClient::GetLibDirCfg();
+}
 
 inline const emSignal & emAvFileModel::GetInfoSignal() const
 {

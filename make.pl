@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2011,2014,2017,2019 Oliver Hamann.
+# Copyright (C) 2006-2011,2014,2017,2019-2020 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -92,9 +92,10 @@ sub Help
 		"        not essential.\n".
 		"      debug=yes|no  (default: no)\n".
 		"        Whether to have debug information in the binaries.\n".
-		"      cpus=<n>  (default: 1)\n".
+		"      cpus=<n>  (default: auto)\n".
 		"        Number of CPUs to be used. More precisely, it is the maximum\n".
-		"        number of source files to be compiled in parallel.\n".
+		"        number of source files to be compiled in parallel. \"auto\" means\n".
+		"        to detect the number of available cpus cores.\n".
 		"      Further options may be defined by the maker scripts (see below).\n".
 		"  perl $0 show-extra-options\n".
 		"    Print a list of extra options for the build command, defined by the\n".
@@ -487,7 +488,7 @@ sub Build
 		'projects', 'all',
 		'continue', 'ask',
 		'debug', 'no',
-		'cpus', 1
+		'cpus', 'auto'
 	);
 	my @extraOpts=GetExtraBuildOptions(\@allMakers);
 	for (my $i=0; $i<@extraOpts; $i++) {

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.h
 //
-// Copyright (C) 2005-2010,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -70,6 +70,8 @@ protected:
 
 	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
+	virtual void LayoutChildren();
+
 	virtual emPanel * CreateControlPanel(ParentArg parent,
 	                                     const emString & name);
 
@@ -81,11 +83,14 @@ private:
 
 	void UpdateScreensaverInhibiting();
 
+	void UpdateLibDirCfgPanel();
+
 	emImage BgImage;
 	emTimer CursorTimer;
 	bool CursorHidden;
 	bool ScreensaverInhibited;
 	bool HaveControlPanel;
+	emPanel * LibDirCfgPanel;
 	emString WarningText;
 	emUInt64 WarningStartTime;
 	emByte WarningAlpha;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLinearLayout.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,8 +29,8 @@ emLinearLayout::emLinearLayout(
 {
 	OrientationThreshold=0.2;
 	DefaultWeight=1.0;
-	DefaultMinTallness=0.0;
-	DefaultMaxTallness=1E100;
+	DefaultMinTallness=1E-4;
+	DefaultMaxTallness=1E4;
 	SpaceL=0.0;
 	SpaceT=0.0;
 	SpaceH=0.0;

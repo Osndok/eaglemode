@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManTheme.h
 //
-// Copyright (C) 2010,2016 Oliver Hamann.
+// Copyright (C) 2010,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,10 +104,10 @@ public:
 	emDoubleRec OuterBorderR;
 	emDoubleRec OuterBorderB;
 	ImageFileRec OuterBorderImg;
-	emDoubleRec OuterBorderImgL;
-	emDoubleRec OuterBorderImgT;
-	emDoubleRec OuterBorderImgR;
-	emDoubleRec OuterBorderImgB;
+	emIntRec OuterBorderImgL;
+	emIntRec OuterBorderImgT;
+	emIntRec OuterBorderImgR;
+	emIntRec OuterBorderImgB;
 	emDoubleRec NameX;
 	emDoubleRec NameY;
 	emDoubleRec NameW;
@@ -132,10 +132,10 @@ public:
 	emDoubleRec FileInnerBorderR;
 	emDoubleRec FileInnerBorderB;
 	ImageFileRec FileInnerBorderImg;
-	emDoubleRec FileInnerBorderImgL;
-	emDoubleRec FileInnerBorderImgT;
-	emDoubleRec FileInnerBorderImgR;
-	emDoubleRec FileInnerBorderImgB;
+	emIntRec FileInnerBorderImgL;
+	emIntRec FileInnerBorderImgT;
+	emIntRec FileInnerBorderImgR;
+	emIntRec FileInnerBorderImgB;
 	emDoubleRec FileContentX;
 	emDoubleRec FileContentY;
 	emDoubleRec FileContentW;
@@ -149,10 +149,10 @@ public:
 	emDoubleRec DirInnerBorderR;
 	emDoubleRec DirInnerBorderB;
 	ImageFileRec DirInnerBorderImg;
-	emDoubleRec DirInnerBorderImgL;
-	emDoubleRec DirInnerBorderImgT;
-	emDoubleRec DirInnerBorderImgR;
-	emDoubleRec DirInnerBorderImgB;
+	emIntRec DirInnerBorderImgL;
+	emIntRec DirInnerBorderImgT;
+	emIntRec DirInnerBorderImgR;
+	emIntRec DirInnerBorderImgB;
 	emDoubleRec DirContentX;
 	emDoubleRec DirContentY;
 	emDoubleRec DirContentW;
@@ -184,10 +184,10 @@ public:
 	emDoubleRec AltInnerBorderR;
 	emDoubleRec AltInnerBorderB;
 	ImageFileRec AltInnerBorderImg;
-	emDoubleRec AltInnerBorderImgL;
-	emDoubleRec AltInnerBorderImgT;
-	emDoubleRec AltInnerBorderImgR;
-	emDoubleRec AltInnerBorderImgB;
+	emIntRec AltInnerBorderImgL;
+	emIntRec AltInnerBorderImgT;
+	emIntRec AltInnerBorderImgR;
+	emIntRec AltInnerBorderImgB;
 	emDoubleRec AltContentX;
 	emDoubleRec AltContentY;
 	emDoubleRec AltContentW;

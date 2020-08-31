@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArch.js
 //
-// Copyright (C) 2019 Oliver Hamann.
+// Copyright (C) 2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,12 +34,9 @@ var Description=
 "Archive file name suffices    | Required system tools\n"+
 "------------------------------+----------------------\n"+
 ".7z                           | 7za\n"+
-".arc                          | arc\n"+
-".arj                          | arj\n"+
 ".bz             (unpack only) | bzip2\n"+
 ".bz2                          | bzip2\n"+
 ".gz                           | gzip\n"+
-".lzh|.lha                     | lha\n"+
 ".lzma                         | xz\n"+
 ".tar                          | tar\n"+
 ".tar.bz|.tbz    (unpack only) | tar, bzip2\n"+
@@ -311,33 +308,6 @@ function Pack(format,archive,names)
 		}
 		Exec(false,false,"7za a -- "+WshShellQuoteArg(archive)+" "+WshShellCmdFromArgs(names));
 	}
-	else if (TestEnding(f,'arc')) {
-		if (!HasAnyEnding(archive) || !IsDosFilename(GetNameInPath(archive))) {
-			Error("arc archive file name must be a DOS file name (<max 8 non-dot chars><dot><max 3 chars>).");
-			// Otherwise arc automatically shortens the file name and
-			// possibly appends ".arc" (would break the semantics of this
-			// script interface).
-		}
-		for (var i=0; i<names.length; i++) {
-			if (IsDirectory(names[i])) {
-				Error("Cannot pack a directory with arc.");
-			}
-		}
-		Exec(false,false,"arc a "+WshShellQuoteArg(archive)+" "+WshShellCmdFromArgs(names));
-	}
-	else if (TestEnding(f,'arj')) {
-		if (!HasAnyEnding(archive)) {
-			Error("Archive file name has no suffix (e.g. \".arj\").");
-			// Otherwise arj automatically appends ".arj" (would
-			// break the semantics of this script interface).
-		}
-		for (var i=0; i<names.length; i++) {
-			Exec(false,false,"arj a -r -- "+WshShellQuoteArg(archive)+" "+WshShellQuoteArg(names[i]));
-		}
-	}
-	else if (TestEnding(f,'lzh') || TestEnding(f,'lha')) {
-		Exec(false,false,"lha av "+WshShellQuoteArg(archive)+" "+WshShellCmdFromArgs(names));
-	}
 	else if (TestEnding(f,'tar')) {
 		Exec(true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" > "+WshShellQuoteArg(archive));
 	}
@@ -494,36 +464,6 @@ function Unpack(format,archive,trust)
 			);
 		}
 		Exec(false,false,"7za x -aoa "+WshShellQuoteArg(archive));
-	}
-	else if (TestEnding(f,'arc')) {
-		if (!trust) {
-			CheckUnpackPathsInInfoList(
-				false,
-				"arc l "+WshShellQuoteArg(archive),
-				/^$/
-			);
-		}
-		Exec(false,false,"arc xo "+WshShellQuoteArg(archive));
-	}
-	else if (TestEnding(f,'arj')) {
-		if (!trust) {
-			CheckUnpackPathsInInfoList(
-				false,
-				"arj v "+WshShellQuoteArg(archive),
-				/^Processing archive:/
-			);
-		}
-		Exec(false,false,"arj x -y "+WshShellQuoteArg(archive));
-	}
-	else if (TestEnding(f,'lzh') || TestEnding(f,'lha')) {
-		if (!trust) {
-			CheckUnpackPathsInInfoList(
-				false,
-				"lha l "+WshShellQuoteArg(archive),
-				/^$/
-			);
-		}
-		Exec(false,false,"lha xfv "+WshShellQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar')) {
 		if (!trust) {

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009,2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2009,2011,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emTest/emTestPanel.h>
+#include <emCore/emRes.h>
 #include <emCore/emVarModel.h>
 
 
@@ -32,6 +33,8 @@ emTestPanel::emTestPanel(ParentArg parent, const emString & name)
 		"emTestPanel - BgColor of " + GetIdentity(),
 		DefaultBgColor
 	);
+
+	TestImage=emGetInsResImage(GetRootContext(),"icons","teddy.tga");
 
 	SetAutoExpansionThreshold(900.0);
 }
@@ -356,6 +359,114 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 	xy[2]=0.10; xy[3]=0.85;
 	xy[4]=0.08; xy[5]=0.91;
 	painter.PaintPolygonOutline(xy,3,0.0002,emColor(255,0,0));
+
+	xy[ 0]=0.200; xy[ 1]=0.905;
+	xy[ 2]=0.215; xy[ 3]=0.912;
+	xy[ 4]=0.230; xy[ 5]=0.900;
+	xy[ 6]=0.222; xy[ 7]=0.915;
+	xy[ 8]=0.230; xy[ 9]=0.930;
+	xy[10]=0.220; xy[11]=0.922;
+	xy[12]=0.205; xy[13]=0.935;
+	xy[14]=0.212; xy[15]=0.920;
+	painter.PaintPolygon(
+		xy,8,emLinearGradientTexture(0.23,0.9,0x00FF0080,0.2,0.93,0xFFFF00FF)
+	);
+
+	xy[ 0]=0.220; xy[ 1]=0.905;
+	xy[ 2]=0.235; xy[ 3]=0.912;
+	xy[ 4]=0.250; xy[ 5]=0.900;
+	xy[ 6]=0.242; xy[ 7]=0.915;
+	xy[ 8]=0.250; xy[ 9]=0.930;
+	xy[10]=0.240; xy[11]=0.922;
+	xy[12]=0.225; xy[13]=0.935;
+	xy[14]=0.232; xy[15]=0.920;
+	painter.PaintPolygon(
+		xy,8,emRadialGradientTexture(0.21,0.90,0.05,0.035,0xCCCC33FF,0x0000FF60)
+	);
+
+	xy[ 0]=0.240; xy[ 1]=0.905;
+	xy[ 2]=0.255; xy[ 3]=0.912;
+	xy[ 4]=0.270; xy[ 5]=0.900;
+	xy[ 6]=0.262; xy[ 7]=0.915;
+	xy[ 8]=0.270; xy[ 9]=0.930;
+	xy[10]=0.260; xy[11]=0.922;
+	xy[12]=0.245; xy[13]=0.935;
+	xy[14]=0.252; xy[15]=0.920;
+	painter.PaintPolygon(
+		xy,8,
+		emImageTexture(
+			0.0,
+			0.0,
+			0.002,
+			0.002*TestImage.GetHeight()/TestImage.GetWidth(),
+			TestImage,192
+		)
+	);
+
+	painter.PaintRect(
+		0.2,0.94,0.02,0.01,
+		emLinearGradientTexture(0.207,0.944,0x00000080,0.213,0.946,0x80808080)
+	);
+
+	painter.PaintRect(
+		0.221,0.94,0.008,0.01,
+		emRadialGradientTexture(0.223,0.941,0.004,0.008,0xFF8800FF,0x005500FF)
+	);
+
+	painter.PaintEllipse(
+		0.23,0.94,0.02,0.01,
+		emRadialGradientTexture(0.23,0.94,0.02,0.01,0,0x00cc88FF)
+	);
+
+	painter.PaintRect(
+		0.26,0.94,0.02,0.01,
+		emImageTexture(
+			0.26,
+			0.94,
+			0.001,
+			0.001*TestImage.GetHeight()/TestImage.GetWidth(),
+			TestImage
+		)
+	);
+
+	painter.PaintRect(
+		0.2625,0.942,0.02,0.01,
+		emImageColoredTexture(
+			1.0005,
+			0.942,
+			0.001,
+			0.001*TestImage.GetHeight()/TestImage.GetWidth(),
+			TestImage,
+			0x00FFFFFF,0xFF0000FF
+		)
+	);
+
+	painter.PaintRect(
+		0.275,0.907,0.002,0.002,
+		emImageTexture(
+			0.2755,0.9075,0.001,0.001,
+			TestImage,50,10,110,110,
+			255,emTexture::EXTEND_TILED
+		)
+	);
+
+	painter.PaintRect(
+		0.275,0.910,0.002,0.002,
+		emImageTexture(
+			0.2755,0.9105,0.001,0.001,
+			TestImage,50,10,110,110,
+			255,emTexture::EXTEND_EDGE
+		)
+	);
+
+	painter.PaintRect(
+		0.275,0.913,0.002,0.002,
+		emImageTexture(
+			0.2755,0.9135,0.001,0.001,
+			TestImage,50,10,110,110,
+			255,emTexture::EXTEND_ZERO
+		)
+	);
 }
 
 

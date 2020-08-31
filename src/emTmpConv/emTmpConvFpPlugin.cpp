@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,11 +33,15 @@ extern "C" {
 		emString command;
 		bool outFileEndingFound;
 		bool commandFound;
+		bool tunnelFactorFound;
+		double tunnelFactor;
 		emFpPlugin::PropertyRec * prop;
 		int i;
 
 		outFileEndingFound=false;
 		commandFound=false;
+		tunnelFactorFound=false;
+		tunnelFactor=1.0;
 		for (i=0; i<plugin->Properties.GetCount(); i++) {
 			prop=&plugin->Properties[i];
 			if (!outFileEndingFound && prop->Name.Get()=="OutFileEnding") {
@@ -47,6 +51,10 @@ extern "C" {
 			else if (!commandFound && prop->Name.Get()=="Command") {
 				command=prop->Value;
 				commandFound=true;
+			}
+			else if (!tunnelFactorFound && prop->Name.Get()=="TunnelFactor") {
+				tunnelFactor=atof(prop->Value.Get());
+				tunnelFactorFound=true;
 			}
 			else {
 				*errorBuf=emString::Format(
@@ -72,7 +80,8 @@ extern "C" {
 				path,
 				command,
 				outFileEnding
-			)
+			),
+			tunnelFactor
 		);
 	}
 }

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.cpp
 //
-// Copyright (C) 2010-2012,2014,2016,2019 Oliver Hamann.
+// Copyright (C) 2010-2012,2014,2016,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -501,25 +501,25 @@ void emNetwalkPanel::PaintPiecePipe(
 
 	tileSize=ImgLights.GetWidth()/4;
 	if ((piece&PF_EAST)==0 && (east&PF_WEST)!=0 && (east&PF_FILLED)!=0) {
-		PaintShapeWithRoundedEdges(
+		PaintImageColoredWithRoundedEdges(
 			painter,x,y,w,h,ImgLights,
 			0*tileSize,4*tileSize,tileSize,tileSize,0,LightColor
 		);
 	}
 	if ((piece&PF_SOUTH)==0 && (south&PF_NORTH)!=0 && (south&PF_FILLED)!=0) {
-		PaintShapeWithRoundedEdges(
+		PaintImageColoredWithRoundedEdges(
 			painter,x,y,w,h,ImgLights,
 			3*tileSize,3*tileSize,tileSize,tileSize,0,LightColor
 		);
 	}
 	if ((piece&PF_WEST)==0 && (west&PF_EAST)!=0 && (west&PF_FILLED)!=0) {
-		PaintShapeWithRoundedEdges(
+		PaintImageColoredWithRoundedEdges(
 			painter,x,y,w,h,ImgLights,
 			1*tileSize,4*tileSize,tileSize,tileSize,0,LightColor
 		);
 	}
 	if ((piece&PF_NORTH)==0 && (north&PF_SOUTH)!=0 && (north&PF_FILLED)!=0) {
-		PaintShapeWithRoundedEdges(
+		PaintImageColoredWithRoundedEdges(
 			painter,x,y,w,h,ImgLights,
 			3*tileSize,4*tileSize,tileSize,tileSize,0,LightColor
 		);
@@ -571,7 +571,7 @@ void emNetwalkPanel::PaintPiecePipe(
 	}
 	if (piece&PF_FILLED) {
 		tileSize=ImgLights.GetWidth()/4;
-		PaintShapeWithRoundedEdges(
+		PaintImageColoredWithRoundedEdges(
 			painter,x,y,w,h,ImgLights,
 			tx*tileSize,ty*tileSize,tileSize,tileSize,0,LightColor
 		);
@@ -579,7 +579,7 @@ void emNetwalkPanel::PaintPiecePipe(
 
 	if (piece&PF_MARKED) {
 		tileSize=ImgMarks.GetWidth()/4;
-		PaintShapeWithRoundedEdges(
+		PaintImageColoredWithRoundedEdges(
 			painter,x,y,w,h,ImgMarks,
 			tx*tileSize,ty*tileSize,tileSize,tileSize,0,MarkColor
 		);
@@ -599,10 +599,10 @@ void emNetwalkPanel::PaintPiecePipe(
 }
 
 
-void emNetwalkPanel::PaintShapeWithRoundedEdges(
+void emNetwalkPanel::PaintImageColoredWithRoundedEdges(
 	const emPainter & painter, double x, double y, double w, double h,
-	const emImage & img, double srcX, double srcY, double srcW, double srcH,
-	int channel, emColor color, emColor canvasColor
+	const emImage & img, int srcX, int srcY, int srcW, int srcH,
+	emColor color1, emColor color2, emColor canvasColor
 )
 {
 	double rx,ry,rw,rh;
@@ -611,21 +611,18 @@ void emNetwalkPanel::PaintShapeWithRoundedEdges(
 	ry=painter.RoundY(y);
 	rw=painter.RoundX(x+w)-rx;
 	rh=painter.RoundY(y+h)-ry;
-	painter.PaintShape(
+	painter.PaintImageColored(
 		rx,ry,rw,rh,
 		img,
-		srcX+srcW/w*(rx-x),
-		srcY+srcH/h*(ry-y),
-		srcW/w*rw,
-		srcH/h*rh,
-		channel,color,canvasColor
+		srcX,srcY,srcW,srcH,
+		color1,color2,canvasColor,emTexture::EXTEND_EDGE
 	);
 }
 
 
 void emNetwalkPanel::PaintImageWithRoundedEdges(
 	const emPainter & painter, double x, double y, double w, double h,
-	const emImage & img, double srcX, double srcY, double srcW, double srcH,
+	const emImage & img, int srcX, int srcY, int srcW, int srcH,
 	int alpha, emColor canvasColor
 )
 {
@@ -638,11 +635,8 @@ void emNetwalkPanel::PaintImageWithRoundedEdges(
 	painter.PaintImage(
 		rx,ry,rw,rh,
 		img,
-		srcX+srcW/w*(rx-x),
-		srcY+srcH/h*(ry-y),
-		srcW/w*rw,
-		srcH/h*rh,
-		alpha,canvasColor
+		srcX,srcY,srcW,srcH,
+		alpha,canvasColor,emTexture::EXTEND_EDGE
 	);
 }
 

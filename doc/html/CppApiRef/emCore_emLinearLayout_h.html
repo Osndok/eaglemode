@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emLinearLayout_h.html#emLinearLayout">emLinearLayout</A>.h
 //
-// Copyright (C) 2015,2017 Oliver Hamann.
+// Copyright (C) 2015,2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,7 +129,7 @@
                 <SPAN CLASS=c>// Get or set the minimum tallness (height/width ratio) of a
                 // child panel. The index argument denotes a child panel. Zero
                 // means first child, one means second, and so on. The default
-                // minimum tallness is 0.0.
+                // minimum tallness is 1E-4.
 
         </SPAN><SPAN CLASS=t>void </SPAN>SetMinChildTallness(<SPAN CLASS=t>double </SPAN>minCT);
                 <SPAN CLASS=c>// Set the minimum tallness of all child panels to the given
@@ -140,7 +140,7 @@
                 <SPAN CLASS=c>// Get or set the maximum tallness (height/width ratio) of a
                 // child panel. The index argument denotes a child panel. Zero
                 // means first child, one means second, and so on. The default
-                // maximum tallness is 1E100.
+                // maximum tallness is 1E4.
 
         </SPAN><SPAN CLASS=t>void </SPAN>SetMaxChildTallness(<SPAN CLASS=t>double </SPAN>maxCT);
                 <SPAN CLASS=c>// Set the maximum tallness of all child panels to the given

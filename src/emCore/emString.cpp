@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.cpp
 //
-// Copyright (C) 2004-2008,2011,2014 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -94,32 +94,72 @@ emString::emString(char c, int len)
 
 emString emString::Format(const char * format, ...)
 {
-	SharedData * d;
-	char autobuf[2048];
-	char * buf;
 	va_list args;
-	int sz,len;
 
-	buf=autobuf;
-	sz=sizeof(autobuf);
-	for (;;) {
-		va_start(args,format);
-		len=vsnprintf(buf,sz,format,args);
-		va_end(args);
-		if (len>=0 && len<sz) break;
-		if (buf!=autobuf) free(buf);
-		sz*=2;
-		buf=(char*)malloc(sz);
-	}
-	if (len>0) {
+	va_start(args,format);
+	emString str(VFormat(format,args));
+	va_end(args);
+	return str;
+}
+
+
+emString emString::VFormat(const char * format, va_list args)
+{
+	SharedData * d;
+	char autobuf[512];
+	va_list args2;
+	int len,len2;
+
+	va_copy(args2,args);
+	len=vsnprintf(autobuf,sizeof(autobuf),format,args2);
+	va_end(args2);
+
+	if (len>0 && len<=(int)sizeof(autobuf)) {
 		d=(SharedData*)malloc(sizeof(SharedData)-sizeof(unsigned int)+1+len);
 		d->RefCount=1;
-		memcpy(d->Buf,buf,len+1);
+		memcpy(d->Buf,autobuf,len);
+		d->Buf[len]=0;
 	}
-	else {
+	else if (len==0) {
 		d=&EmptyData;
 	}
-	if (buf!=autobuf) free(buf);
+	else {
+		if (len<0) len=sizeof(autobuf)*2;
+		for (;;) {
+			d=(SharedData*)malloc(sizeof(SharedData)-sizeof(unsigned int)+1+len);
+			d->RefCount=1;
+			va_copy(args2,args);
+			len2=vsnprintf(d->Buf,len+1,format,args2);
+			va_end(args2);
+			if (len2<0) {
+				if (len>1000000) {
+					free(d);
+					len=strlen(format);
+					d=(SharedData*)malloc(sizeof(SharedData)-sizeof(unsigned int)+1+len);
+					d->RefCount=1;
+					memcpy(d->Buf,format,len+1);
+					break;
+				}
+				len*=2;
+			}
+			else if (len2==0) {
+				free(d);
+				d=&EmptyData;
+				break;
+			}
+			else if (len2<len) {
+				d=(SharedData*)realloc(d,sizeof(SharedData)-sizeof(unsigned int)+1+len2);
+				break;
+			}
+			else if (len2==len) {
+				break;
+			}
+			else {
+				len=len2;
+			}
+			free(d);
+		}
+	}
 	return emString(d);
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2012,2014,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -64,7 +64,7 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 
 
 //==============================================================================
-//============ Some adaptations to compilers and operating systems =============
+//===================== Adaptations to compilers and OSes ======================
 //==============================================================================
 
 #if defined(_WIN32)
@@ -595,22 +595,14 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 	static emThreadMiniMutex logFileMutex;
 	char logFilePath[_MAX_PATH+1], backupFilePath[_MAX_PATH+1];
 	struct em_stat st;
-	char * buf;
 	FILE * f;
 	DWORD d;
-	int r,bufSize,e;
+	int r,e;
 
-	bufSize=100000;
-	buf=(char*)malloc(bufSize);
-	r=0;
-	if (pre) {
-		strcpy(buf,pre);
-		r=strlen(buf);
-	}
-	vsnprintf(buf+r,bufSize-r,format,args);
-	buf[bufSize-2]=0;
-	strcat(buf,"\n");
-	r=fputs(buf,stderr);
+	emString message=emString::VFormat(format,args);
+	if (pre) message.Insert(0,pre);
+	message.Add("\n");
+	r=fputs(message.Get(),stderr);
 	if (r>=0) r=fflush(stderr);
 	if (r<0) {
 		// stderr failed and it seems to be a window mode application.
@@ -634,7 +626,7 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 		}
 		f=fopen(logFilePath,"a");
 		if (f) {
-			fputs(buf,f);
+			fputs(message.Get(),f);
 			fclose(f);
 			logFileMutex.Unlock();
 		}
@@ -648,22 +640,10 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 			);
 		}
 	}
-	free(buf);
 #elif defined(ANDROID)
-	char * buf;
-	int r,bufSize;
-
-	bufSize=10000;
-	buf=(char*)malloc(bufSize);
-	r=0;
-	if (pre) {
-		strcpy(buf,pre);
-		r=strlen(buf);
-	}
-	vsnprintf(buf+r,bufSize-r,format,args);
-	buf[bufSize-1]=0;
-	__android_log_write(ANDROID_LOG_INFO,"eaglemode",buf);
-	free(buf);
+	emString message=emString::VFormat(format,args);
+	if (pre) message.Insert(0,pre);
+	__android_log_write(ANDROID_LOG_INFO,"eaglemode",message.Get());
 #else
 	if (pre) fputs(pre,stderr);
 	vfprintf(stderr,format,args);
@@ -732,7 +712,7 @@ void emFatalError(const char * format, ...)
 	va_end(args);
 #else
 	va_list args;
-	char tmp[512];
+	emString message;
 
 	fprintf(stderr,"FATAL ERROR: ");
 	va_start(args,format);
@@ -741,12 +721,11 @@ void emFatalError(const char * format, ...)
 	fprintf(stderr,"\n");
 	if (emFatalErrorGraphical) {
 		va_start(args,format);
-		vsnprintf(tmp,sizeof(tmp),format,args);
-		tmp[sizeof(tmp)-1]=0;
+		message=emString::VFormat(format,args);
 		va_end(args);
 #		if defined(_WIN32)
 			//??? Maybe we should call FatalAppExit instead.
-			MessageBox(NULL,tmp,"Fatal Error",MB_OK|MB_ICONERROR);
+			MessageBox(NULL,message.Get(),"Fatal Error",MB_OK|MB_ICONERROR);
 #		else
 			if (
 				getenv("EM_FATAL_ERROR_LOCK")==NULL &&
@@ -756,7 +735,7 @@ void emFatalError(const char * format, ...)
 				cmd+=emGetInstallPath(EM_IDT_BIN,"emShowStdDlg","emShowStdDlg");
 				cmd+="message";
 				cmd+="Fatal Error";
-				cmd+=tmp;
+				cmd+=message;
 				try {
 					emProcess::TryStartUnmanaged(cmd);
 				}
@@ -773,32 +752,6 @@ void emFatalError(const char * format, ...)
 void emSetFatalErrorGraphical(bool graphical)
 {
 	emFatalErrorGraphical=graphical;
-}
-
-
-//==============================================================================
-//================================ emException =================================
-//==============================================================================
-
-emException::emException(const char * format, ...)
-{
-	va_list args;
-
-	va_start(args,format);
-	vsnprintf(Text,sizeof(Text),format,args);
-	Text[sizeof(Text)-1]=0;
-	va_end(args);
-}
-
-
-emException::emException(const emException & exception)
-{
-	strcpy(Text,exception.Text);
-}
-
-
-emException::~emException()
-{
 }
 
 

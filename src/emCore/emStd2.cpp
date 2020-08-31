@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2019 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -43,13 +43,36 @@
 #	include <unistd.h>
 #	include <dlfcn.h>
 #endif
+#if defined(_MSC_VER)
+#	include <isa_availability.h>
+	extern "C" int __isa_available;
+#endif
 #include <emCore/emStd2.h>
 #include <emCore/emInstallInfo.h>
 #include <emCore/emThread.h>
 
 
 //==============================================================================
-//================================== Who am I ==================================
+//================================ emException =================================
+//==============================================================================
+
+emException::emException(const char * format, ...)
+{
+	va_list args;
+
+	va_start(args,format);
+	Text=emString::VFormat(format,args);
+	va_end(args);
+}
+
+
+emException::~emException()
+{
+}
+
+
+//==============================================================================
+//=========================== Host, user, process id ===========================
 //==============================================================================
 
 emString emGetHostName()
@@ -185,6 +208,47 @@ emString emGetErrorText(int errorNumber)
 	}
 	return emString(p);
 #endif
+}
+
+
+//==============================================================================
+//================================ SIMD support ================================
+//==============================================================================
+
+bool emCanCpuDoAvx2()
+{
+	static const struct Detector {
+
+		bool canCpuDoAvx2;
+
+		Detector()
+		{
+#			if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+#				if !defined(__clang__)
+					__builtin_cpu_init();
+#				endif
+				canCpuDoAvx2=
+					__builtin_cpu_supports("avx2") &&
+					__builtin_cpu_supports("avx") &&
+					__builtin_cpu_supports("sse4.1") &&
+#					if !defined(__clang__)
+						__builtin_cpu_supports("ssse3") &&
+#					endif
+					__builtin_cpu_supports("sse3") &&
+					__builtin_cpu_supports("sse2") &&
+					__builtin_cpu_supports("sse") &&
+					__builtin_cpu_supports("mmx")
+				;
+#			elif defined(_MSC_VER)
+				canCpuDoAvx2=(__isa_available >= __ISA_AVAILABLE_AVX2);
+#			else
+				canCpuDoAvx2=false;
+#			endif
+		}
+
+	} detector;
+
+	return detector.canCpuDoAvx2;
 }
 
 

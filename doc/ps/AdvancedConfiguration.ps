@@ -2,9 +2,9 @@
 %%BoundingBox: 0 0 595 792
 %%LanguageLevel: 2
 %%Creator: htmldoc 1.8.27 Copyright 1997-2006 Easy Software Products, All Rights Reserved.
-%%CreationDate: D:20191025182850-0200
+%%CreationDate: D:20200817090902-0200
 %%Title: Eagle Mode - Advanced Configuration
-%%Pages: 7
+%%Pages: 8
 %%DocumentProvidedResources:
 %%+ font Courier
 %%+ font Times-Roman
@@ -9505,7 +9505,7 @@ GS
 72 36 T
 0.00 0.00 0.00 C 14 FS/F5 SF 203.838 706 M(Eagle Mode -)S
 24 FS/F5 SF 116.492 679.2 M(Advanced Configuration)S
-9 FS/F4 SF 66.227 652.2 M(Copyright \251 2010,2016,2018-2019 Oliver Hamann. Homepage: http://eaglemode.sourceforge.net/)S
+9 FS/F4 SF 66.227 652.2 M(Copyright \251 2010,2016,2018-2020 Oliver Hamann. Homepage: http://eaglemode.sourceforge.net/)S
 20 FS/F9 SF 0 617.2 M(Contents)S
 11 FS/F4 SF 0 589 M(1 Font hacking)S
 8 FS/F4 SF 0 575.8 M(      1.1 Important hints)S
@@ -9713,8 +9713,8 @@ GS
 /F0 SF (emTmpConv)S
 /F4 SF ( and the function is )S
 /F0 SF (emTmpConvFpPluginFunc)S
-/F4 SF (. Two required)S
-0 299.8 M(properties are defined:)S
+/F4 SF (. Three properties are)S
+0 299.8 M(defined, where the third one is optional:)S
 9 FS/F0 SF 0 275.4 M(Properties = {)S
 0 253.8 M(  { Name = "OutFileEnding" Value = "insert your ending here" })S
 0 243 M(    # Specifies the file name ending of the temporary file, including the)S
@@ -9732,63 +9732,68 @@ GS
 0 102.6 M(    #                                     script.)S
 0 91.8 M(    # On failure, the script should print an error message to stderr and it)S
 0 81 M(    # should exit with a non-zero return value.)S
-0 70.2 M(})S
-11 FS/F4 SF 0 44.2 M(Hints for making the shell scripts:)S
-/F8 SF 480.884 0 M(4)S
+0 59.4 M(  { Name="TunnelFactor" Value="1.0" })S
+0 48.6 M(    # This optional property specifies a factor for the depth of the displayed)S
+0 37.8 M(    # tunnel. The default is 1.0. Zero means to show no tunnel \(then it is even)S
+0 27 M(    # possible to enter or leave the content with the auto play functions\). A)S
+11 FS/F8 SF 480.884 0 M(4)S
 GR
 SP
 %%Page: (5) 5
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 11 FS/F4 SF 36 709 M(All double-quotes and backslashes have to be quoted by backslashes.)S
-/F18 SF 28.19 709 M(\267 )S
-/F4 SF 36 682.6 M(It is always a good idea to resolve path variables with double-quotes, for the case a path contains)S
-36 669.4 M(spaces \(and remember to quote the double-quotes\). Thus, say )S
+0.00 0.00 0.00 C 9 FS/F0 SF 0 711 M(    # number less than 1.0 should only be given if the temporary conversion is)S
+0 700.2 M(    # never expensive in time and \(disk\) space. With 1.0, the user can trigger)S
+0 689.4 M(    # only one conversion at a time \(per view\). The smaller the tunnel factor,)S
+0 678.6 M(    # the more files can have converted state in parallel.)S
+0 667.8 M(})S
+11 FS/F4 SF 0 641.8 M(Hints for making the shell scripts:)S
+36 615.4 M(All double-quotes and backslashes have to be quoted by backslashes.)S
+/F18 SF 28.19 615.4 M(\267 )S
+/F4 SF 36 589 M(It is always a good idea to resolve path variables with double-quotes, for the case a path contains)S
+36 575.8 M(spaces \(and remember to quote the double-quotes\). Thus, say )S
 /F0 SF (\\"$INFILE\\")S
 /F4 SF ( and )S
 /F0 SF (\\"$OUTFILE\\")S
-/F4 SF 36 656.2 M(instead of just )S
+/F4 SF 36 562.6 M(instead of just )S
 /F0 SF ($INFILE)S
 /F4 SF ( and )S
 /F0 SF ($OUTFILE)S
 /F4 SF ( \(on Windows please say )S
 /F0 SF (\\"%INFILE%\\")S
 /F4 SF ( and)S
-/F0 SF 36 643 M(\\"%OUTFILE%\\")S
+/F0 SF 36 549.4 M(\\"%OUTFILE%\\")S
 /F4 SF (\).)S
-/F18 SF 28.19 682.6 M(\267 )S
-/F4 SF 36 616.6 M(The script and the programs it calls should be quite stable and secure. No file must be created,)S
-36 603.4 M(modified or deleted falsely.)S
-/F18 SF 28.19 616.6 M(\267 )S
-/F4 SF 36 577 M(The script should not depend on the current working directory. It is undefined per definition.)S
-/F18 SF 28.19 577 M(\267 )S
-/F4 SF 36 550.6 M(On Windows, the script must not contain any line breaks.)S
-/F18 SF 28.19 550.6 M(\267 )S
-/F4 SF 36 524.2 M(On Windows, a pipe \(|\) in the script won't work.)S
-/F18 SF 28.19 524.2 M(\267 )S
-/F4 SF 0 497.8 M(For examples of emTmpConv configurations, please see all the files named like)S
-/F0 SF 0 484.6 M(emTmpConv_*.emFpPlugin)S
+/F18 SF 28.19 589 M(\267 )S
+/F4 SF 36 523 M(The script and the programs it calls should be quite stable and secure. No file must be created,)S
+36 509.8 M(modified or deleted falsely.)S
+/F18 SF 28.19 523 M(\267 )S
+/F4 SF 36 483.4 M(The script should not depend on the current working directory. It is undefined per definition.)S
+/F18 SF 28.19 483.4 M(\267 )S
+/F4 SF 36 457 M(On Windows, the script must not contain any line breaks.)S
+/F18 SF 28.19 457 M(\267 )S
+/F4 SF 36 430.6 M(On Windows, a pipe \(|\) in the script won't work.)S
+/F18 SF 28.19 430.6 M(\267 )S
+/F4 SF 0 404.2 M(For examples of emTmpConv configurations, please see all the files named like)S
+/F0 SF 0 391 M(emTmpConv_*.emFpPlugin)S
 /F4 SF (.)S
-20 FS/F9 SF 0 436 M(3 Virtual cosmos configuration)S
-17 FS/F9 SF 0 401.8 M(3.1 Cosmos items and cosmos item files)S
-11 FS/F4 SF 0 374.2 M(The virtual cosmos of Eagle Mode can still not be edited graphically. But it is possible to edit or create some)S
-0 361 M(files manually in order to modify the cosmos.)S
-0 334.6 M(There are stars and items in the virtual cosmos. The stars cannot be modified, but the items. Practically, each)S
-0 321.4 M(item is a file which is shown \(and possibly modified\) through an emFpPlugin, just like the files in the file)S
-0 308.2 M(manager. In addition to the shown file, each cosmos item needs some configuration parameters like the)S
-0 295 M(position, title and border. Therefore we have two files for each item: a content file and a configuration file.)S
-0 268.6 M(The configuration file of an item must have the emVcItem file format \(described more below\) and it must lie)S
-0 255.4 M(in a certain directory named VcItems. The content file of an item can have any type and must lie in a certain)S
-0 242.2 M(directory named VcItemFiles.)S
-0 215.8 M(Now you may ask where the VcItems and VcItemFiles directories are. The default answer is this:)S
-0 189.4 M(On UNIX/Linux:)S
-/F0 SF 36 163 M($EM_DIR/etc/emMain/VcItems)S
-36 149.8 M($EM_DIR/etc/emMain/VcItemFiles)S
-/F4 SF 0 123.4 M(On Windows:)S
-/F0 SF 36 97 M(%EM_DIR%\\etcw\\emMain\\VcItems)S
-36 83.8 M(%EM_DIR%\\etcw\\emMain\\VcItemFiles)S
-/F4 SF 0 57.4 M(\($EM_DIR or %EM_DIR% means the installation directory of Eagle Mode\))S
+20 FS/F9 SF 0 342.4 M(3 Virtual cosmos configuration)S
+17 FS/F9 SF 0 308.2 M(3.1 Cosmos items and cosmos item files)S
+11 FS/F4 SF 0 280.6 M(The virtual cosmos of Eagle Mode can still not be edited graphically. But it is possible to edit or create some)S
+0 267.4 M(files manually in order to modify the cosmos.)S
+0 241 M(There are stars and items in the virtual cosmos. The stars cannot be modified, but the items. Practically, each)S
+0 227.8 M(item is a file which is shown \(and possibly modified\) through an emFpPlugin, just like the files in the file)S
+0 214.6 M(manager. In addition to the shown file, each cosmos item needs some configuration parameters like the)S
+0 201.4 M(position, title and border. Therefore we have two files for each item: a content file and a configuration file.)S
+0 175 M(The configuration file of an item must have the emVcItem file format \(described more below\) and it must lie)S
+0 161.8 M(in a certain directory named VcItems. The content file of an item can have any type and must lie in a certain)S
+0 148.6 M(directory named VcItemFiles.)S
+0 122.2 M(Now you may ask where the VcItems and VcItemFiles directories are. The default answer is this:)S
+0 95.8 M(On UNIX/Linux:)S
+/F0 SF 36 69.4 M($EM_DIR/etc/emMain/VcItems)S
+36 56.2 M($EM_DIR/etc/emMain/VcItemFiles)S
+/F4 SF 0 29.8 M(On Windows:)S
 /F8 SF 480.884 0 M(5)S
 GR
 SP
@@ -9796,64 +9801,54 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 11 FS/F4 SF 0 709 M(But those directories are in the host configuration. If you want to edit the cosmos as user configuration, you)S
-0 695.8 M(can copy the directories to the following location and modify them there:)S
-0 669.4 M(On UNIX/Linux:)S
-/F0 SF 36 643 M($HOME/.eaglemode/emMain/VcItems)S
-36 629.8 M($HOME/.eaglemode/emMain/VcItemFiles)S
-/F4 SF 0 603.4 M(On Windows:)S
-/F0 SF 36 577 M(%APPDATA%\\eaglemode\\emMain\\VcItems)S
-36 563.8 M(%APPDATA%\\eaglemode\\emMain\\VcItemFiles)S
-17 FS/F9 SF 0 531.4 M(3.2 emVcItem file format)S
-11 FS/F4 SF 0 503.8 M(As already said, emVcItem files are configuration files for the items of the virtual cosmos. The file name of an)S
-0 490.6 M(emVcItem file must end with )S
+0.00 0.00 0.00 C 11 FS/F0 SF 36 709 M(%EM_DIR%\\etcw\\emMain\\VcItems)S
+36 695.8 M(%EM_DIR%\\etcw\\emMain\\VcItemFiles)S
+/F4 SF 0 669.4 M(\($EM_DIR or %EM_DIR% means the installation directory of Eagle Mode\))S
+0 643 M(But those directories are in the host configuration. If you want to edit the cosmos as user configuration, you)S
+0 629.8 M(can copy the directories to the following location and modify them there:)S
+0 603.4 M(On UNIX/Linux:)S
+/F0 SF 36 577 M($HOME/.eaglemode/emMain/VcItems)S
+36 563.8 M($HOME/.eaglemode/emMain/VcItemFiles)S
+/F4 SF 0 537.4 M(On Windows:)S
+/F0 SF 36 511 M(%APPDATA%\\eaglemode\\emMain\\VcItems)S
+36 497.8 M(%APPDATA%\\eaglemode\\emMain\\VcItemFiles)S
+17 FS/F9 SF 0 465.4 M(3.2 emVcItem file format)S
+11 FS/F4 SF 0 437.8 M(As already said, emVcItem files are configuration files for the items of the virtual cosmos. The file name of an)S
+0 424.6 M(emVcItem file must end with )S
 /F0 SF (.emVcItem)S
 /F4 SF (. The content is a simple ASCII format, and the first line must)S
-0 477.4 M(always be:)S
-/F0 SF 36 451 M(#%rec:emVirtualCosmosItem%#)S
-/F4 SF 0 424.6 M(All further lines are property assignments. Below is a description of all possible properties. You need at least)S
-0 411.4 M(PosX, PosY, Width and FileName.)S
-/F0 SF 36 385 M(Title = ")S
+0 411.4 M(always be:)S
+/F0 SF 36 385 M(#%rec:emVirtualCosmosItem%#)S
+/F4 SF 0 358.6 M(All further lines are property assignments. Below is a description of all possible properties. You need at least)S
+0 345.4 M(PosX, PosY, Width and FileName.)S
+/F0 SF 36 319 M(Title = ")S
 /F6 SF (title)S
 /F0 SF (")S
-/F4 SF 72 371.8 M(A title text to be shown in the border of the item.)S
-/F0 SF 36 358.6 M(PosX =)S
+/F4 SF 72 305.8 M(A title text to be shown in the border of the item.)S
+/F0 SF 36 292.6 M(PosX =)S
 /F6 SF ( number)S
-/F0 SF 36 345.4 M(PosY =)S
+/F0 SF 36 279.4 M(PosY =)S
 /F6 SF ( number)S
-/F4 SF 72 332.2 M(X and y position of the item within the cosmos. More precise, it is the position of the)S
-72 319 M(upper-left corner of the item border. The origin of the cosmos coordinate system is in)S
-72 305.8 M(the upper-left corner of the cosmos. The x axis points to the right, and the y axis)S
-72 292.6 M(points to the bottom. Valid range is 0.0 to 1.0 for both axes.)S
-/F0 SF 36 266.2 M(Width =)S
+/F4 SF 72 266.2 M(X and y position of the item within the cosmos. More precise, it is the position of the)S
+72 253 M(upper-left corner of the item border. The origin of the cosmos coordinate system is in)S
+72 239.8 M(the upper-left corner of the cosmos. The x axis points to the right, and the y axis)S
+72 226.6 M(points to the bottom. Valid range is 0.0 to 1.0 for both axes.)S
+/F0 SF 36 200.2 M(Width =)S
 /F6 SF ( number)S
-/F4 SF 72 253 M(Width of the cosmos item including the border.)S
-/F0 SF 36 226.6 M(ContentTallness =)S
+/F4 SF 72 187 M(Width of the cosmos item including the border.)S
+/F0 SF 36 160.6 M(ContentTallness =)S
 /F6 SF ( number)S
-/F4 SF 72 213.4 M(Height/width ratio of the cosmos item excluding the border \(e.g. say 0.5625 if you)S
-72 200.2 M(want an aspect ratio of 16:9\).)S
-/F0 SF 36 173.8 M(BorderScaling =)S
+/F4 SF 72 147.4 M(Height/width ratio of the cosmos item excluding the border \(e.g. say 0.5625 if you)S
+72 134.2 M(want an aspect ratio of 16:9\).)S
+/F0 SF 36 107.8 M(BorderScaling =)S
 /F6 SF ( number)S
-/F4 SF 72 160.6 M(Scale factor for the size of the border. Say 0.0 if you don't want a border.)S
-/F0 SF 36 134.2 M(BackgroundColor =)S
+/F4 SF 72 94.6 M(Scale factor for the size of the border. Say 0.0 if you don't want a border.)S
+/F0 SF 36 68.2 M(BackgroundColor =)S
 /F6 SF ( color)S
-/F0 SF 36 121 M(BorderColor =)S
+/F0 SF 36 55 M(BorderColor =)S
 /F6 SF ( color)S
-/F0 SF 36 107.8 M(TitleColor =)S
+/F0 SF 36 41.8 M(TitleColor =)S
 /F6 SF ( color)S
-/F4 SF 72 94.6 M(Colors of background, border and title text. A color can be specified as a color name)S
-72 81.4 M(like )S
-/F0 SF ("Powder Blue")S
-/F4 SF (, or as a hexadecimal RGB value string like )S
-/F0 SF ("#B0E0E6")S
-/F4 SF ( or)S
-/F0 SF 72 68.2 M("#BEE")S
-/F4 SF (. Another possibility is to give red, green, blue and alpha components as)S
-72 55 M(decimal bytes in curly braces \(e.g. )S
-/F0 SF (TitleColor = { 255 0 0 128 })S
-/F4 SF (\).)S
-/F0 SF 36 28.6 M(Focusable =)S
-/F6 SF ( boolean)S
 /F8 SF 480.884 0 M(6)S
 GR
 SP
@@ -9861,52 +9856,65 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 11 FS/F4 SF 72 709 M(Whether the content panel shall be focusable. Possible values are: )S
+0.00 0.00 0.00 C 11 FS/F4 SF 72 709 M(Colors of background, border and title text. A color can be specified as a color name)S
+72 695.8 M(like )S
+/F0 SF ("Powder Blue")S
+/F4 SF (, or as a hexadecimal RGB value string like )S
+/F0 SF ("#B0E0E6")S
+/F4 SF ( or)S
+/F0 SF 72 682.6 M("#BEE")S
+/F4 SF (. Another possibility is to give red, green, blue and alpha components as)S
+72 669.4 M(decimal bytes in curly braces \(e.g. )S
+/F0 SF (TitleColor = { 255 0 0 128 })S
+/F4 SF (\).)S
+/F0 SF 36 643 M(Focusable =)S
+/F6 SF ( boolean)S
+/F4 SF 72 629.8 M(Whether the content panel shall be focusable. Possible values are: )S
 /F0 SF (true)S
 /F4 SF ( \(the default\))S
-72 695.8 M(and )S
+72 616.6 M(and )S
 /F0 SF (false)S
 /F4 SF (.)S
-/F0 SF 36 669.4 M(FileName = ")S
+/F0 SF 36 590.2 M(FileName = ")S
 /F6 SF (file name)S
 /F0 SF (")S
-/F4 SF 72 656.2 M(Name of the cosmos item file. It must be the name of a file in the VcItemFiles)S
-72 643 M(directory. If you want to specify a path, please do not specify it here, and create an)S
-72 629.8 M(emFileLink file in the VcItemFiles directory instead.)S
-/F0 SF 36 603.4 M(CopyToUser =)S
+/F4 SF 72 577 M(Name of the cosmos item file. It must be the name of a file in the VcItemFiles)S
+72 563.8 M(directory. If you want to specify a path, please do not specify it here, and create an)S
+72 550.6 M(emFileLink file in the VcItemFiles directory instead.)S
+/F0 SF 36 524.2 M(CopyToUser =)S
 /F6 SF ( boolean)S
-/F4 SF 72 590.2 M(Whether the cosmos item file shall be copied to user configuration and be used there.)S
-72 577 M(This is useful for all cosmos item files where the plugin requires write access because)S
-72 563.8 M(it is more than a viewer. Possible values are: )S
+/F4 SF 72 511 M(Whether the cosmos item file shall be copied to user configuration and be used there.)S
+72 497.8 M(This is useful for all cosmos item files where the plugin requires write access because)S
+72 484.6 M(it is more than a viewer. Possible values are: )S
 /F0 SF (true)S
 /F4 SF ( and )S
 /F0 SF (false)S
 /F4 SF ( \(the default\).)S
-/F0 SF 36 537.4 M(Alternative =)S
+/F0 SF 36 458.2 M(Alternative =)S
 /F6 SF ( integer number)S
-/F4 SF 72 524.2 M(Index to the alternative file panel plugins. The default of 0 means to use the original)S
-72 511 M(plugin. For example, if you want the hex viewer instead of plain text, say 1.)S
-17 FS/F9 SF 0 478.6 M(3.3 emFileLink file format)S
-11 FS/F4 SF 0 451 M(emFileLink is a plugin application that defines a file format for links to files and directories. It is mainly used)S
-0 437.8 M(to show external files and directories in the virtual cosmos without copying them into the cosmos files)S
-0 424.6 M(directory. The file format is also called emFileLink. An emFileLink file simply shows the contents of the)S
-0 411.4 M(referred file or directory with a suitable emFpPlugin, but optionally with a directory entry panel around it.)S
-0 385 M(The file names of emFileLink files must end with )S
+/F4 SF 72 445 M(Index to the alternative file panel plugins. The default of 0 means to use the original)S
+72 431.8 M(plugin. For example, if you want the hex viewer instead of plain text, say 1.)S
+17 FS/F9 SF 0 399.4 M(3.3 emFileLink file format)S
+11 FS/F4 SF 0 371.8 M(emFileLink is a plugin application that defines a file format for links to files and directories. It is mainly used)S
+0 358.6 M(to show external files and directories in the virtual cosmos without copying them into the cosmos files)S
+0 345.4 M(directory. The file format is also called emFileLink. An emFileLink file simply shows the contents of the)S
+0 332.2 M(referred file or directory with a suitable emFpPlugin, but optionally with a directory entry panel around it.)S
+0 305.8 M(The file names of emFileLink files must end with )S
 /F0 SF (.emFileLink)S
 /F4 SF (.)S
-0 358.6 M(Now to the file format. It is a simple ASCII format. An example for an absolute link to )S
+0 279.4 M(Now to the file format. It is a simple ASCII format. An example for an absolute link to )S
 /F0 SF (/usr/share)S
 /F4 SF ( is:)S
-/F0 SF 36 332.2 M(#%rec:emFileLink%#)S
-36 319 M(Path="/usr/share")S
-/F4 SF 0 292.6 M(If you want a directory entry panel to be shown, add this line:)S
-/F0 SF 36 266.2 M(HaveDirEntry=yes)S
-/F4 SF 0 239.8 M(Furthermore, it is possible to define the path relative to a generic base path. For example, if you want a link to)S
-0 226.6 M($HOME/pictures, you could say:)S
-/F0 SF 36 200.2 M(#%rec:emFileLink%#)S
-36 187 M(BasePathType=Home)S
-36 173.8 M(Path="pictures")S
-/F4 SF 0 147.4 M(Possible values for BasePathType are: )S
+/F0 SF 36 253 M(#%rec:emFileLink%#)S
+36 239.8 M(Path="/usr/share")S
+/F4 SF 0 213.4 M(If you want a directory entry panel to be shown, add this line:)S
+/F0 SF 36 187 M(HaveDirEntry=yes)S
+/F4 SF 0 160.6 M(Furthermore, it is possible to define the path relative to a generic base path. For example, if you want a link to)S
+0 147.4 M($HOME/pictures, you could say:)S
+/F0 SF 36 121 M(#%rec:emFileLink%#)S
+36 107.8 M(BasePathType=Home)S
+36 94.6 M(Path="pictures")S
+/F4 SF 0 68.2 M(Possible values for BasePathType are: )S
 /F0 SF (None)S
 /F4 SF ( \(the default\), )S
 /F0 SF (Bin)S
@@ -9919,7 +9927,7 @@ GS
 /F4 SF (, )S
 /F0 SF (PsDoc)S
 /F4 SF (,)S
-/F0 SF 0 134.2 M(UserConfig)S
+/F0 SF 0 55 M(UserConfig)S
 /F4 SF (, )S
 /F0 SF (HostConfig)S
 /F4 SF (, )S
@@ -9929,14 +9937,21 @@ GS
 /F4 SF (, )S
 /F0 SF (Home)S
 /F4 SF (. Some of these also require a project name which can be)S
-0 121 M(given with the BasePathProject property. Here comes an example which links to the bookmarks file of the)S
-0 107.8 M(emMain project:)S
-/F0 SF 36 81.4 M(#%rec:emFileLink%#)S
-36 68.2 M(BasePathType=UserConfig)S
-36 55 M(BasePathProject="emMain")S
-36 41.8 M(Path="bookmarks.rec")S
-36 28.6 M(HaveDirEntry=yes)S
+0 41.8 M(given with the BasePathProject property. Here comes an example which links to the bookmarks file of the)S
+0 28.6 M(emMain project:)S
 /F8 SF 480.884 0 M(7)S
+GR
+SP
+%%Page: (8) 8
+%%PageBoundingBox: 72 36 559 756
+GS
+72 36 T
+0.00 0.00 0.00 C 11 FS/F0 SF 36 709 M(#%rec:emFileLink%#)S
+36 695.8 M(BasePathType=UserConfig)S
+36 682.6 M(BasePathProject="emMain")S
+36 669.4 M(Path="bookmarks.rec")S
+36 656.2 M(HaveDirEntry=yes)S
+/F8 SF 480.884 0 M(8)S
 GR
 SP
 %%Trailer

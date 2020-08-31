@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasterLayout.h
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -107,11 +107,11 @@ public:
 
 	double GetMinChildTallness() const;
 	void SetMinChildTallness(double minCT);
-		// Minimum tallness of child panels. The default is 0.0.
+		// Minimum tallness of child panels. The default is 1E-4.
 
 	double GetMaxChildTallness() const;
 	void SetMaxChildTallness(double maxCT);
-		// Maximum tallness of child panels. The default is 1E100.
+		// Maximum tallness of child panels. The default is 1E4.
 
 	void SetChildTallness(double tallness);
 		// Set preferred, minimum and maximum child tallness to

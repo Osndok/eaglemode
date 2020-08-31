@@ -54,17 +54,21 @@ sub Build
 
 	my @librsvgFlags=();
 	my $str=readpipe('pkg-config --cflags --libs librsvg-2.0');
-	if (!$str) { return 0; }
-	foreach my $f (split(/\s+/,$str)) {
-		if (substr($f,0,2) eq '-I') {
-			push(@librsvgFlags,'--inc-search-dir',substr($f,2));
+	if ($str) {
+		foreach my $f (split(/\s+/,$str)) {
+			if (substr($f,0,2) eq '-I') {
+				push(@librsvgFlags,'--inc-search-dir',substr($f,2));
+			}
+			elsif (substr($f,0,2) eq '-L') {
+				push(@librsvgFlags,'--lib-search-dir',substr($f,2));
+			}
+			elsif (substr($f,0,2) eq '-l') {
+				push(@librsvgFlags,'--link',substr($f,2));
+			}
 		}
-		elsif (substr($f,0,2) eq '-L') {
-			push(@librsvgFlags,'--lib-search-dir',substr($f,2));
-		}
-		elsif (substr($f,0,2) eq '-l') {
-			push(@librsvgFlags,'--link',substr($f,2));
-		}
+	}
+	else {
+		@librsvgFlags=("--link","rsvg-2");
 	}
 
 	system(

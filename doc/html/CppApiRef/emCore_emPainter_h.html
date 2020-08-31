@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>.h
 //
-// Copyright (C) 2001,2003-2010,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,12 +30,23 @@
 </SPAN><SPAN CLASS=p>#ifndef emPainter_h
 #define emPainter_h
 
-#ifndef emFontCache_h
-#include &lt;emCore/emFontCache.h&gt;
+#ifndef emModel_h
+#include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
 #endif
 
+#ifndef emTexture_h
+#include &lt;<A CLASS=f HREF="emCore_emTexture_h.html">emCore/emTexture.h</A>&gt;
+#endif
 
-<A NAME="emPainter"></A></SPAN><SPAN CLASS=c>//==============================================================================
+#ifndef emThread_h
+#include &lt;<A CLASS=f HREF="emCore_emThread_h.html">emCore/emThread.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>;
+<SPAN CLASS=t>class </SPAN>emFontCache;
+
+
+<A NAME="emPainter"></A><SPAN CLASS=c>//==============================================================================
 //================================= <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A> ==================================
 //==============================================================================
 
@@ -261,20 +272,21 @@
                 <SPAN CLASS=c>// Lock the user space mutex. Returns true if it was unlocked.
 
 
-        //-------------------- Painting areas in uni-color ---------------------
+        //--------------------------- Painting areas ---------------------------
 
-        </SPAN><SPAN CLASS=t>void </SPAN>Clear(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Like PaintRect on the whole clipping rectangle.
 
         </SPAN><SPAN CLASS=t>void </SPAN>PaintRect(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                       <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                       <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint a rectangle.
                 // Arguments:
                 //   x,y,w,h     - Upper-left corner and size of the rectangle.
-                //   color       - The color (alpha part is used for blending).
+                //   texture     - The texture by which to fill the rectangle.
                 //   canvasColor - Please read the general comments more above.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>PaintPolygon(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color,
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintPolygon(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
                           <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint a polygon. The polygon may have holes, and it does not
                 // matter whether the edges run clockwise or counterclockwise.
@@ -284,7 +296,7 @@
                 //                 array elements are:
                 //                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
                 //   n           - Number of vertices.
-                //   color       - The color (alpha part is used for blending).
+                //   texture     - The texture by which to fill the polygon.
                 //   canvasColor - Please read the general comments more above.
 
         </SPAN><SPAN CLASS=t>void </SPAN>PaintEdgeCorrection(<SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2,
@@ -294,18 +306,20 @@
                 // reducing the visual errors at the edges. Just call this to
                 // paint the correction over the contact edge of two polygons
                 // which have already been painted without canvas color. color1
-                // must be the color argument used for painting the first
-                // polygon, and color2 must be the color argument used for the
-                // other polygon which has been painted later. (x1,y1) and
-                // (x2,y2) are the vertices of the contact edge, but the order
-                // is important: When looking from (x1,y1) to (x2,y2), the first
-                // polygon must be on the left.
+                // must be the color used for painting the first polygon, and
+                // color2 must be the color used for the other polygon which has
+                // been painted later. (x1,y1) and (x2,y2) are the vertices of
+                // the contact edge, but the order is important: When looking
+                // from (x1,y1) to (x2,y2), the first polygon must be on the
+                // left.
 
         </SPAN><SPAN CLASS=t>void </SPAN>PaintEllipse(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                          <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                          <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
+                          <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>PaintEllipse(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
                           <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
-                          <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                          <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
+                          <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint an ellipse or a sector of an ellipse.
                 // Arguments:
                 //   x,y,w,h     - Upper-left corner and size of the bounding
@@ -313,21 +327,22 @@
                 //   startAngle  - Start angle of the sector in degrees. Zero
                 //                 points to the right, 90 points down...
                 //   rangeAngle  - Range angle of the sector.
-                //   color       - The color (alpha part is used for blending).
+                //   texture     - The texture by which to fill the ellipse.
                 //   canvasColor - Please read the general comments more above.
 
         </SPAN><SPAN CLASS=t>void </SPAN>PaintRoundRect(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                            <SPAN CLASS=t>double </SPAN>rx, <SPAN CLASS=t>double </SPAN>ry, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color,
+                            <SPAN CLASS=t>double </SPAN>rx, <SPAN CLASS=t>double </SPAN>ry, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
                             <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint a rectangle with elliptic corners.
                 // Arguments:
                 //   x,y,w,h     - Upper-left corner and size of the rectangle.
                 //   rx,ry       - Radiuses of the ellipses.
-                //   color       - The color (alpha part is used for blending).
+                //   texture     - The texture by which to fill the round
+                //                 rectangle.
                 //   canvasColor - Please read the general comments more above.
 
 
-        //-------------------- Painting lines in uni-color ---------------------
+        //--------------------------- Painting lines ---------------------------
 
         </SPAN><SPAN CLASS=t>enum </SPAN>LineCap <SPAN CLASS=b>{
                 </SPAN>LC_FLAT,
@@ -377,38 +392,19 @@
 
         //------------------------ Painting from images ------------------------
 
-        </SPAN><SPAN CLASS=t>void </SPAN>PaintShape(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>channel=<SPAN CLASS=u>0</SPAN>,
-                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::WHITE,
-                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintShape(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>double </SPAN>srcX, <SPAN CLASS=t>double </SPAN>srcY,
-                        <SPAN CLASS=t>double </SPAN>srcW, <SPAN CLASS=t>double </SPAN>srcH, <SPAN CLASS=t>int </SPAN>channel=<SPAN CLASS=u>0</SPAN>,
-                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::WHITE,
-                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// Paint a rectangle from one channel of an image or sub-image.
-                // This is just like PaintRect, but the image channel is used as
-                // an additional alpha channel for blending.
-                // Arguments:
-                //   x,y,w,h     - Upper-left corner and size of the target
-                //                 rectangle.
-                //   img         - The image.
-                //   srcX,srcY,srcW,srcH - Upper-left corner and size of the
-                //                 source rectangle on the image. If these
-                //                 arguments are missing, the whole image is
-                //                 taken.
-                //   channel     - The desired channel of the image.
-                //   color       - The color (alpha part is used for blending).
-                //   canvasColor - Please read the general comments more above.
-
         </SPAN><SPAN CLASS=t>void </SPAN>PaintImage(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
                         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>,
-                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
+                        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension=
+                        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::EXTEND_EDGE_OR_ZERO) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>PaintImage(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>double </SPAN>srcX, <SPAN CLASS=t>double </SPAN>srcY,
-                        <SPAN CLASS=t>double </SPAN>srcW, <SPAN CLASS=t>double </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>,
-                        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// Paint a rectangle from an image or from a sub-image.
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW,
+                        <SPAN CLASS=t>int </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
+                        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension=
+                        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::EXTEND_EDGE_OR_ZERO) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint a rectangle from an image or from a sub-image. This is
+                // like PaintRect(..) with an <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>. Please see
+                // <A CLASS=m HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A> for details.
                 // Arguments:
                 //   x,y,w,h     - Upper-left corner and size of the target
                 //                 rectangle.
@@ -421,31 +417,44 @@
                 //   alpha       - An additional alpha value for blending
                 //                 (0-255).
                 //   canvasColor - Please read the general comments more above.
+                //   extension   - Please read the comments on
+                //                 <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>PaintBorderShape(
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintImageColored(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                               <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1,
+                               <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
+                               <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension=
+                               <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::EXTEND_EDGE_OR_ZERO) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>PaintImageColored(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                               <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY,
+                               <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1,
+                               <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
+                               <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension=
+                               <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::EXTEND_EDGE_OR_ZERO) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint a rectangle from an image or sub-image, with coloring.
+                // This is like PaintRect(..) with an <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>.
+                // Please see <A CLASS=m HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A> for details.
+                // Arguments:
+                //   x,y,w,h     - Upper-left corner and size of the target
+                //                 rectangle.
+                //   img         - The image.
+                //   srcX,srcY,srcW,srcH - Upper-left corner and size of the
+                //                 source rectangle on the image. If these
+                //                 arguments are missing, the whole image is
+                //                 taken.
+                //   color1      - The color of the beginning of the gradient
+                //                 (where the image values are zero).
+                //   color2      - The color of the end of the gradient
+                //                 (where the image values are 255).
+                //   canvasColor - Please read the general comments more above.
+                //   extension   - Please read the comments on
+                //                 <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintBorderImage(
                 <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
                 <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b,
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
-                <SPAN CLASS=t>double </SPAN>srcL, <SPAN CLASS=t>double </SPAN>srcT, <SPAN CLASS=t>double </SPAN>srcR, <SPAN CLASS=t>double </SPAN>srcB,
-                <SPAN CLASS=t>int </SPAN>channel=<SPAN CLASS=u>0</SPAN>,
-                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::WHITE, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
-                <SPAN CLASS=t>int </SPAN>whichSubRects=<SPAN CLASS=u>0757
-        </SPAN>) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintBorderShape(
-                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b,
-                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
-                <SPAN CLASS=t>double </SPAN>srcX, <SPAN CLASS=t>double </SPAN>srcY, <SPAN CLASS=t>double </SPAN>srcW, <SPAN CLASS=t>double </SPAN>srcH,
-                <SPAN CLASS=t>double </SPAN>srcL, <SPAN CLASS=t>double </SPAN>srcT, <SPAN CLASS=t>double </SPAN>srcR, <SPAN CLASS=t>double </SPAN>srcB,
-                <SPAN CLASS=t>int </SPAN>channel=<SPAN CLASS=u>0</SPAN>,
-                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::WHITE, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
-                <SPAN CLASS=t>int </SPAN>whichSubRects=<SPAN CLASS=u>0757
-        </SPAN>) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintBorderImage(
-                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b,
-                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
-                <SPAN CLASS=t>double </SPAN>srcL, <SPAN CLASS=t>double </SPAN>srcT, <SPAN CLASS=t>double </SPAN>srcR, <SPAN CLASS=t>double </SPAN>srcB,
+                <SPAN CLASS=t>int </SPAN>srcL, <SPAN CLASS=t>int </SPAN>srcT, <SPAN CLASS=t>int </SPAN>srcR, <SPAN CLASS=t>int </SPAN>srcB,
                 <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
                 <SPAN CLASS=t>int </SPAN>whichSubRects=<SPAN CLASS=u>0757
         </SPAN>) <SPAN CLASS=t>const</SPAN>;
@@ -453,19 +462,36 @@
                 <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
                 <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b,
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
-                <SPAN CLASS=t>double </SPAN>srcX, <SPAN CLASS=t>double </SPAN>srcY, <SPAN CLASS=t>double </SPAN>srcW, <SPAN CLASS=t>double </SPAN>srcH,
-                <SPAN CLASS=t>double </SPAN>srcL, <SPAN CLASS=t>double </SPAN>srcT, <SPAN CLASS=t>double </SPAN>srcR, <SPAN CLASS=t>double </SPAN>srcB,
+                <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH,
+                <SPAN CLASS=t>int </SPAN>srcL, <SPAN CLASS=t>int </SPAN>srcT, <SPAN CLASS=t>int </SPAN>srcR, <SPAN CLASS=t>int </SPAN>srcB,
                 <SPAN CLASS=t>int </SPAN>alpha=<SPAN CLASS=u>255</SPAN>, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
                 <SPAN CLASS=t>int </SPAN>whichSubRects=<SPAN CLASS=u>0757
         </SPAN>) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// Like PaintShape and PaintImage, but with a special type of
-                // scaling, typically used for painting borders. The rectangle
-                // is divided into a grid of nine sub-rectangles: four corners,
-                // four edges and an inner rectangle. The operation allows to
-                // change the height of the upper and lower edges and the width
-                // of the left and right edges, in relation to the size of the
-                // whole rectangle. The other sub-rectangles are adapted
-                // accordingly.
+        <SPAN CLASS=t>void </SPAN>PaintBorderImageColored(
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+                <SPAN CLASS=t>int </SPAN>srcL, <SPAN CLASS=t>int </SPAN>srcT, <SPAN CLASS=t>int </SPAN>srcR, <SPAN CLASS=t>int </SPAN>srcB,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
+                <SPAN CLASS=t>int </SPAN>whichSubRects=<SPAN CLASS=u>0757
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>PaintBorderImageColored(
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r, <SPAN CLASS=t>double </SPAN>b,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+                <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH,
+                <SPAN CLASS=t>int </SPAN>srcL, <SPAN CLASS=t>int </SPAN>srcT, <SPAN CLASS=t>int </SPAN>srcR, <SPAN CLASS=t>int </SPAN>srcB,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>,
+                <SPAN CLASS=t>int </SPAN>whichSubRects=<SPAN CLASS=u>0757
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Like PaintImage and PaintImageColored, but with a special
+                // type of scaling, typically used for painting borders. The
+                // rectangle is divided into a grid of nine sub-rectangles: four
+                // corners, four edges and an inner rectangle. The operation
+                // allows to change the height of the upper and lower edges and
+                // the width of the left and right edges, in relation to the
+                // size of the whole rectangle. The other sub-rectangles are
+                // adapted accordingly.
                 // Arguments:
                 //   x,y,w,h     - Upper-left corner and size of the target
                 //                 rectangle.
@@ -478,8 +504,10 @@
                 //                 taken.
                 //   srcL,srcT,srcR,srcB - Thickness of the left, top, right
                 //                 and bottom edges on the image.
-                //   channel     - The desired channel of the image.
-                //   color       - The color (alpha part is used for blending).
+                //   color1      - The color of the beginning of the gradient
+                //                 (where the image values are zero).
+                //   color2      - The color of the end of the gradient
+                //                 (where the image values are 255).
                 //   alpha       - An additional alpha value for blending
                 //                 (0-255).
                 //   canvasColor - Please read the general comments more above.
@@ -580,6 +608,14 @@
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
+        <SPAN CLASS=t>enum </SPAN>OptimizedPixelFormatIndex <SPAN CLASS=b>{
+                </SPAN>OPFI_NONE      = -<SPAN CLASS=u>1</SPAN>,
+                OPFI_8888_0BGR =  <SPAN CLASS=u>0</SPAN>,
+                OPFI_8888_0RGB =  <SPAN CLASS=u>1</SPAN>,
+                OPFI_8888_BGR0 =  <SPAN CLASS=u>2</SPAN>,
+                OPFI_8888_RGB0 =  <SPAN CLASS=u>3
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
         <SPAN CLASS=t>struct </SPAN>SharedPixelFormat <SPAN CLASS=b>{
                 </SPAN>SharedPixelFormat * Next;
                 <SPAN CLASS=t>int </SPAN>RefCount;
@@ -589,7 +625,25 @@
                 <SPAN CLASS=t>void </SPAN>* RedHash;   <SPAN CLASS=c>// Index bits: rrrrrrrraaaaaaaa or aaaaaaaarrrrrrrr
                 </SPAN><SPAN CLASS=t>void </SPAN>* GreenHash; <SPAN CLASS=c>// Index bits: ggggggggaaaaaaaa or aaaaaaaagggggggg
                 </SPAN><SPAN CLASS=t>void </SPAN>* BlueHash;  <SPAN CLASS=c>// Index bits: bbbbbbbbaaaaaaaa or aaaaaaaabbbbbbbb
-        </SPAN><SPAN CLASS=b>}</SPAN>;
+                </SPAN>OptimizedPixelFormatIndex OPFIndex;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>SharedModel : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;SharedModel&gt; Acquire(<A CLASS=l HREF="emCore_emContext_h.html#emRootContext">emRootContext</A> &amp; rootContext);
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emFontCache&gt; FontCache;
+                <A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::SharedPixelFormat * PixelFormatList;
+<SPAN CLASS=p>#               if EM_HAVE_X86_INTRINSICS
+                        </SPAN><SPAN CLASS=t>bool </SPAN>CanCpuDoAvx2;
+<SPAN CLASS=p>#               endif
+                </SPAN><SPAN CLASS=t>void </SPAN>RemoveUnusedPixelFormats();
+        <SPAN CLASS=t>private</SPAN>:
+                SharedModel(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
+                <SPAN CLASS=t>virtual </SPAN>~SharedModel();
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>ScanlineTool;
 
         <SPAN CLASS=t>void </SPAN>* Map;
         <SPAN CLASS=t>int </SPAN>BytesPerRow;
@@ -598,17 +652,10 @@
         <SPAN CLASS=t>double </SPAN>OriginX, OriginY, ScaleX, ScaleY;
         <A CLASS=l HREF="emCore_emThread_h.html#emThreadMiniMutex">emThreadMiniMutex</A> * UserSpaceMutex;
         <SPAN CLASS=t>bool </SPAN>* USMLockedByThisThread;
-        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;emFontCache&gt; FontCache;
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;SharedModel&gt; Model;
 
         <SPAN CLASS=t>static const double </SPAN>CharBoxTallness;
-
-        <SPAN CLASS=t>static const unsigned </SPAN>ImageDownscaleQuality;
-                <SPAN CLASS=c>// Quality of downscaling images. Higher value means more
-                // quality but less performance: Before interpolation, the
-                // source is downscaled by integer-nearest-pixel to about:
-                // sizeOfSource &lt;= ImageDownscaleQuality * sizeOfTarget
-
-        </SPAN><SPAN CLASS=t>static const double </SPAN>CircleQuality;
+        <SPAN CLASS=t>static const double </SPAN>CircleQuality;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::~<A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>()
@@ -729,46 +776,80 @@
         </SPAN><SPAN CLASS=k>return false</SPAN>;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintShape(
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintImage(
         <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
-        <SPAN CLASS=t>int </SPAN>channel, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        <SPAN CLASS=t>int </SPAN>alpha, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension
 ) <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN>PaintShape(x,y,w,h,img,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.GetWidth(),img.GetHeight(),
-                   channel,color,canvasColor);
+        </SPAN>PaintRect(
+                x,y,w,h,
+                <A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>(x,y,w,h,img,alpha,extension),
+                canvasColor
+        );
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintImage(
-        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
-        <SPAN CLASS=t>int </SPAN>alpha, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>srcX,
+        <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH, <SPAN CLASS=t>int </SPAN>alpha, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension
 ) <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN>PaintImage(x,y,w,h,img,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.GetWidth(),img.GetHeight(),alpha,
-                   canvasColor);
+        </SPAN>PaintRect(
+                x,y,w,h,
+                <A CLASS=l HREF="emCore_emTexture_h.html#emImageTexture">emImageTexture</A>(x,y,w,h,img,srcX,srcY,srcW,srcH,alpha,extension),
+                canvasColor
+        );
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintBorderShape(
-        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r,
-        <SPAN CLASS=t>double </SPAN>b, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>double </SPAN>srcL, <SPAN CLASS=t>double </SPAN>srcT, <SPAN CLASS=t>double </SPAN>srcR,
-        <SPAN CLASS=t>double </SPAN>srcB, <SPAN CLASS=t>int </SPAN>channel, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
-        <SPAN CLASS=t>int </SPAN>whichSubRects
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintImageColored(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension
 ) <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN>PaintBorderShape(
-                x,y,w,h,l,t,r,b,img,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.GetWidth(),img.GetHeight(),
-                srcL,srcT,srcR,srcB,channel,color,canvasColor,whichSubRects
+        </SPAN>PaintRect(
+                x,y,w,h,
+                <A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>(x,y,w,h,img,color1,color2,extension),
+                canvasColor
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintImageColored(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
+        <SPAN CLASS=t>int </SPAN>srcX, <SPAN CLASS=t>int </SPAN>srcY, <SPAN CLASS=t>int </SPAN>srcW, <SPAN CLASS=t>int </SPAN>srcH,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>PaintRect(
+                x,y,w,h,
+                <A CLASS=l HREF="emCore_emTexture_h.html#emImageColoredTexture">emImageColoredTexture</A>(x,y,w,h,img,srcX,srcY,srcW,srcH,
+                                      color1,color2,extension),
+                canvasColor
         );
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintBorderImage(
         <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r,
-        <SPAN CLASS=t>double </SPAN>b, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>double </SPAN>srcL, <SPAN CLASS=t>double </SPAN>srcT, <SPAN CLASS=t>double </SPAN>srcR,
-        <SPAN CLASS=t>double </SPAN>srcB, <SPAN CLASS=t>int </SPAN>alpha, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>int </SPAN>whichSubRects
+        <SPAN CLASS=t>double </SPAN>b, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>srcL, <SPAN CLASS=t>int </SPAN>srcT, <SPAN CLASS=t>int </SPAN>srcR, <SPAN CLASS=t>int </SPAN>srcB,
+        <SPAN CLASS=t>int </SPAN>alpha, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>int </SPAN>whichSubRects
 ) <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN>PaintBorderImage(
                 x,y,w,h,l,t,r,b,img,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.GetWidth(),img.GetHeight(),
                 srcL,srcT,srcR,srcB,alpha,canvasColor,whichSubRects
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintBorderImageColored(
+        <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>double </SPAN>l, <SPAN CLASS=t>double </SPAN>t, <SPAN CLASS=t>double </SPAN>r,
+        <SPAN CLASS=t>double </SPAN>b, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img, <SPAN CLASS=t>int </SPAN>srcL, <SPAN CLASS=t>int </SPAN>srcT, <SPAN CLASS=t>int </SPAN>srcR, <SPAN CLASS=t>int </SPAN>srcB,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color1, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color2, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <SPAN CLASS=t>int </SPAN>whichSubRects
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>PaintBorderImageColored(
+                x,y,w,h,l,t,r,b,img,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=u>0</SPAN>,img.GetWidth(),img.GetHeight(),
+                srcL,srcT,srcR,srcB,color1,color2,canvasColor,whichSubRects
         );
 <SPAN CLASS=b>}
 

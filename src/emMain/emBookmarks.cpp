@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014-2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -122,7 +122,7 @@ void emBookmarksRec::TryInsertFromClipboard(int index, emClipboard & clipboard)
 	catch (const emException & exception) {
 		throw emException(
 			"No valid bookmarks in clipboard (%s)",
-			exception.GetText()
+			exception.GetText().Get()
 		);
 	}
 
@@ -337,7 +337,7 @@ void emBookmarkEntryRec::TryPasteColorsFromClipboard(emClipboard & clipboard)
 	catch (const emException & exception) {
 		throw emException(
 			"No valid bookmarks in clipboard (%s)",
-			exception.GetText()
+			exception.GetText().Get()
 		);
 	}
 
@@ -466,7 +466,7 @@ emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 			emTryMakeDirectories(emGetParentPath(recPath));
 		}
 		catch (const emException & exception) {
-			emFatalError("%s",exception.GetText());
+			emFatalError("%s",exception.GetText().Get());
 		}
 
 		if (interpreter.IsEmpty()) {
@@ -474,7 +474,7 @@ emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 				emTryCopyFileOrTree(recPath,srcPath);
 			}
 			catch (const emException & exception) {
-				emFatalError("%s",exception.GetText());
+				emFatalError("%s",exception.GetText().Get());
 			}
 		}
 		else {
@@ -486,7 +486,7 @@ emBookmarksModel::emBookmarksModel(emContext & context, const emString & name)
 				process.TryStart(args);
 			}
 			catch (const emException & exception) {
-				emFatalError("%s",exception.GetText());
+				emFatalError("%s",exception.GetText().Get());
 			}
 			process.WaitForTermination();
 			if (process.GetExitStatus()!=0 || !emIsExistingPath(recPath)) {

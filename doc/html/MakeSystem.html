@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Make System</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2011,2018 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2011,2018,2020 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -219,7 +219,7 @@ default:
 <DD>Name of compiler and linker to be used.</DD>
 <P>
 <DT><TT>cpus</TT></DT>
-<DD>Number of CPUs to be used.</DD>
+<DD>Number of CPUs to be used, or "auto".</DD>
 <P>
 <DT><TT>debug</TT></DT>
 <DD>Whether to produce debug information. Must be "yes" or "no".</DD>
@@ -289,7 +289,8 @@ names. The default is <TT>gnu</TT>.</DD>
 <P>
 <DT><TT>--cpus </TT><I>count</I></DT>
 <DD>Number of CPUs to be used. More precisely, it is the maximum number of source
-files to be compiled in parallel. The default is 1.</DD>
+files to be compiled in parallel. The default is "auto", which means to detect
+the number of available cpus cores.</DD>
 <P>
 <DT><TT>--type </TT><I>type</I></DT>
 <DD>Set the type of the output file. Possible types are:<BR>
@@ -359,7 +360,7 @@ This should work.</DD>
 <DT><TT>gnu</TT></DT>
 <DD>Use the GNU C/C++ compiler (gcc). This is the default and it has been
 successfully tested with many gcc versions. Minimum should be something like
-version 4.7. Cygwin and MinGW are also supported.</DD>
+version 4.9. Cygwin and MinGW are also supported.</DD>
 <P>
 <DT><TT>int</TT></DT>
 <DD>Use the Intel C/C++ compiler (icc) on Linux.
@@ -367,7 +368,7 @@ This is quite outdated and certainly not working anymore.</DD>
 <P>
 <DT><TT>mic</TT></DT>
 <DD>Use the Microsoft C/C++ compiler on Windows.
-Tested with Visual Studio 2017 - not all plugins working.<BR>
+Tested with Visual Studio 2019 - not all plugins working.<BR>
 <P>
 <DT><TT>sun</TT></DT>
 <DD>Use the Sun C/C++ compiler on Linux.

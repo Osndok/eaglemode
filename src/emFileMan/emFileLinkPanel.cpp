@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkPanel.cpp
 //
-// Copyright (C) 2007-2008,2010,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2014,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -168,11 +168,11 @@ void emFileLinkPanel::Paint(const emPainter & painter, emColor canvasColor) cons
 			EM_ALIGN_CENTER
 		);
 		if (HaveDirEntryPanel) {
-			painter.PaintRect(x,y,w,h,Config->GetTheme().DirContentColor,canvasColor);
+			painter.PaintRect(x,y,w,h,Config->GetTheme().DirContentColor.Get(),canvasColor);
 		}
 	}
 	else if (HaveDirEntryPanel) {
-		painter.Clear(Config->GetTheme().DirContentColor,canvasColor);
+		painter.Clear(Config->GetTheme().DirContentColor.Get(),canvasColor);
 	}
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -143,7 +143,7 @@ void emRec::SaveToMem(emArray<char> & buf)
 	catch (const emException & exception) {
 		emFatalError(
 			"Unexpected error from emRecMemWriter: %s",
-			exception.GetText()
+			exception.GetText().Get()
 		);
 	}
 }
@@ -165,7 +165,7 @@ void emRec::Copy(emRec & source)
 		TryCopy(source);
 	}
 	catch (const emException & exception) {
-		emFatalError("%s",exception.GetText());
+		emFatalError("%s",exception.GetText().Get());
 	}
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsDocumentPanel.cpp
 //
-// Copyright (C) 2006-2008,2011,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -119,11 +119,11 @@ void emPsDocumentPanel::Paint(
 			by1=cy+PgY-63.0*f;
 			bx2=cx+PgX+pw+131.0*f;
 			by2=cy+PgY+ph+151.0*f;
-			painter.PaintBorderShape(
+			painter.PaintBorderImageColored(
 				bx1,by1,bx2-bx1,by2-by1,
 				337.0*f,337.0*f,391.0*f,410.0*f,
 				ShadowImage,
-				337.0,337.0,391.0,410.0,
+				337,337,391,410,
 				0,emColor(0,0,0,180),canvasColor,0757
 			);
 			if (n>1) {

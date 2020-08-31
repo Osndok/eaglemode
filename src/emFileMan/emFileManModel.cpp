@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -705,7 +705,7 @@ void emFileManModel::LoadChildCommands(CommandNode * parent)
 		names=emTryLoadDir(parent->Dir);
 	}
 	catch (const emException & exception) {
-		emWarning("%s",exception.GetText());
+		emWarning("%s",exception.GetText().Get());
 	}
 	names.Sort(emStdComparer<emString>::Compare);
 	for (i=0; i<names.GetCount(); i++) {

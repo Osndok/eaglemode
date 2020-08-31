@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2019 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -373,7 +373,7 @@ void emButton::DoButton(
 				x,y,w,h,
 				360.0/264*r,374.0/264*r,264.0/264*r,264.0/264*r,
 				GetTkResources().ImgButtonPressed,
-				360.0,374.0,264.0,264.0,
+				360,374,264,264,
 				255,0,0757
 			);
 		}
@@ -382,7 +382,7 @@ void emButton::DoButton(
 				x,y,w,h,
 				340.0/264*r,374.0/264*r,264.0/264*r,264.0/264*r,
 				GetTkResources().ImgButtonChecked,
-				340.0,374.0,264.0,264.0,
+				340,374,264,264,
 				255,0,0757
 			);
 		}
@@ -393,7 +393,7 @@ void emButton::DoButton(
 				h+(658.0-648.0)/264*r,
 				278.0/264*r,278.0/264*r,278.0/264*r,278.0/264*r,
 				GetTkResources().ImgButton,
-				278.0,278.0,278.0,278.0,
+				278,278,278,278,
 				255,0,0757
 			);
 		}

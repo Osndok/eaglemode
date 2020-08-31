@@ -3,14 +3,10 @@
 FileTypes = {
  ".7z"
  ".ar" ".a" ".deb" ".ipk"
- ".arc"
- ".arj"
  ".bz2" ".bz"
  ".gz" ".z"
- ".lzh" ".lha"
  ".lzma"
  ".lzo"
- ".rar"
  ".tar"
  ".tar.bz2" ".tbz2" ".tgj" ".tar.bz" ".tbz"
  ".tar.gz" ".tgz" ".tar.z" ".taz"
@@ -19,7 +15,6 @@ FileTypes = {
  ".tar.xz" ".txz"
  ".xz"
  ".zip" ".jar"
- ".zoo"
 }
 Priority = 0.5
 Library = "emTmpConv"

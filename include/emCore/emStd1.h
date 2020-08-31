@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.h
 //
-// Copyright (C) 2004-2019 Oliver Hamann.
+// Copyright (C) 2004-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,8 +38,8 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 94
-#define EM_MICRO_VERSION 2
+#define EM_MINOR_VERSION 95
+#define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -108,13 +108,25 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 #	define M_PI 3.14159265358979323846
 #endif
 
+// Have ssize_t
+#if defined(_MSC_VER)
+#	include <BaseTsd.h>
+	typedef SSIZE_T ssize_t;
+#endif
+
 
 //==============================================================================
 //=================== About RTTI (Run-Time Type Information) ===================
 //==============================================================================
 
-#if defined(_MSC_VER) || defined(__WATCOMC__)
+#if defined(__WATCOMC__)
 #	include <typeinfo.h>
+	inline const char * emRawNameOfTypeInfo(const type_info & t)
+	{
+		return t.raw_name();
+	}
+#elif defined(_MSC_VER)
+#	include <typeinfo>
 	inline const char * emRawNameOfTypeInfo(const type_info & t)
 	{
 		return t.raw_name();
@@ -167,7 +179,8 @@ static emCompatibilityCheckerClass emCompatibilityChecker(
 #elif defined(BYTE_ORDER) &&\
       (BYTE_ORDER==1234 || BYTE_ORDER==4321 || BYTE_ORDER==3412)
 #	define EM_BYTE_ORDER BYTE_ORDER
-#elif defined(_M_IX86) || defined(_M_AMD64) || defined(__i386__)
+#elif defined(__i386__) || defined(__i386) || defined(_M_IX86) || \
+      defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
 #	define EM_BYTE_ORDER 1234
 #else
 #	error "don't know how to define EM_BYTE_ORDER"
@@ -357,37 +370,6 @@ void emSetFatalErrorGraphical(bool graphical);
 
 
 //==============================================================================
-//================================ emException =================================
-//==============================================================================
-
-class emException {
-
-public:
-
-	// Class for an exception.
-
-	emException();
-		// Construct an exception with an empty text.
-
-	emException(const char * format, ...) EM_FUNC_ATTR_PRINTF(2);
-		// Construct an exception with a formatted text.
-		// The arguments are like with printf.
-
-	emException(const emException & exception);
-		// Construct a copied exception.
-
-	virtual ~emException();
-		// Destructor.
-
-	const char * GetText() const;
-		// Get the text.
-
-private:
-	char Text[256];
-};
-
-
-//==============================================================================
 //================================ emUncopyable ================================
 //==============================================================================
 
@@ -481,16 +463,6 @@ inline emMBState::emMBState() {
 
 inline void emMBState::Clear() {
 	memset(&State,0,sizeof(State));
-}
-
-inline emException::emException()
-{
-	Text[0]=0;
-}
-
-inline const char * emException::GetText() const
-{
-	return Text;
 }
 
 

@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTmpConvProc.c
 //
-// Copyright (C) 2006-2008,2011,2017,2019 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2017,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -82,24 +82,6 @@ int main(int argc, char * argv[])
 	   marks in file names in %INFILE% and %OUTFILE% would be required. */
 	command=malloc(strlen(argv[1])+64);
 	sprintf(command,"cmd /E:ON /F:OFF /V:OFF /C %s",argv[1]);
-
-	/*???:*/
-	const char * p=getenv("EM_FORCE_TMP_CONV_PROC");
-	if (!p || stricmp(p,"yes")!=0) {
-		fprintf(
-			stderr,
-			"%s: This is not tested enough.\n"
-			"Would call: %s\n"
-			"To enable for a test, set environment variable EM_FORCE_TMP_CONV_PROC=yes\n",
-			argv[0],command
-		);
-		/*
-		 * And still no converters installed and configured in the
-		 * official release.
-		 * Command example: "xwdtopnm < \"%INFILE%\" > \"%OUTFILE%\""
-		 */
-		ExitProcess(255);
-	}
 
 	memset(&si,0,sizeof(si));
 	si.cb=sizeof(si);

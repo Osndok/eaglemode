@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010,2014,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -285,7 +285,7 @@ L_Error:
 
 
 void emImage::TryParseTga(
-	const unsigned char * tgaData, int tgaSize, int channelCount
+	const unsigned char * tgaData, size_t tgaSize, int channelCount
 )
 {
 	const unsigned char * tgaEnd, * p;
@@ -1205,7 +1205,7 @@ void emImage::CopyTransformed(
 					switch (icc)
 					{
 					case 1:
-						sp=imap+((ssize_t)sy)*iw+((ssize_t)sx);
+						sp=imap+((int)sy)*(size_t)iw+((int)sx);
 						switch (cc)
 						{
 						case 1:
@@ -1232,7 +1232,7 @@ void emImage::CopyTransformed(
 						}
 						break;
 					case 2:
-						sp=imap+(((ssize_t)sy)*iw+((ssize_t)sx))*2;
+						sp=imap+(((int)sy)*(size_t)iw+((int)sx))*2;
 						switch (cc)
 						{
 						case 1:
@@ -1258,7 +1258,7 @@ void emImage::CopyTransformed(
 						}
 						break;
 					case 3:
-						sp=imap+(((ssize_t)sy)*iw+((ssize_t)sx))*3;
+						sp=imap+(((int)sy)*(size_t)iw+((int)sx))*3;
 						switch (cc)
 						{
 						case 1:
@@ -1285,7 +1285,7 @@ void emImage::CopyTransformed(
 						}
 						break;
 					default:
-						sp=imap+(((ssize_t)sy)*iw+((ssize_t)sx))*4;
+						sp=imap+(((int)sy)*(size_t)iw+((int)sx))*4;
 						switch (cc)
 						{
 						case 1:

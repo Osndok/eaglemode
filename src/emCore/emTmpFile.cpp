@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.cpp
 //
-// Copyright (C) 2006-2008,2014,2019 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,13 +49,24 @@ emTmpFile::~emTmpFile()
 }
 
 
-void emTmpFile::Setup(emRootContext & rootContext, const char * postfix)
+void emTmpFile::TrySetup(emRootContext & rootContext, const char * postfix)
 {
 	emRef<emTmpFileMaster> m;
 
 	Discard();
 	m=emTmpFileMaster::Acquire(rootContext);
-	Path=m->InventPath(postfix);
+	Path=m->TryInventPath(postfix);
+}
+
+
+void emTmpFile::Setup(emRootContext & rootContext, const char * postfix)
+{
+	try {
+		TrySetup(rootContext,postfix);
+	}
+	catch (const emException & exception) {
+		emFatalError("%s",exception.GetText().Get());
+	}
 }
 
 
@@ -91,12 +102,12 @@ emRef<emTmpFileMaster> emTmpFileMaster::Acquire(emRootContext & rootContext)
 }
 
 
-emString emTmpFileMaster::InventPath(const char * postfix)
+emString emTmpFileMaster::TryInventPath(const char * postfix)
 {
 	emString name,path;
 
 	if (DirPath.IsEmpty()) {
-		StartOwnDirectory();
+		TryStartOwnDirectory();
 	}
 	for (;;) {
 		FileNameCounter++;
@@ -117,7 +128,6 @@ emTmpFileMaster::emTmpFileMaster(emContext & context, const emString & name)
 {
 	FileNameCounter=0;
 	SetMinCommonLifetime(UINT_MAX);
-	DeleteDeadDirectories();
 }
 
 
@@ -130,7 +140,7 @@ emTmpFileMaster::~emTmpFileMaster()
 		catch (const emException & exception) {
 			emFatalError(
 				"Failed to remove temporary file or directory:\n%s",
-				exception.GetText()
+				exception.GetText().Get()
 			);
 		}
 	}
@@ -158,7 +168,7 @@ emString emTmpFileMaster::GetCommonPath()
 }
 
 
-void emTmpFileMaster::DeleteDeadDirectories()
+void emTmpFileMaster::TryDeleteDeadDirectories()
 {
 	const char * args[10];
 	emString commonPath;
@@ -201,7 +211,7 @@ void emTmpFileMaster::DeleteDeadDirectories()
 	}
 
 	if (errCount>=2) {
-		emFatalError(
+		throw emException(
 			"Failed to remove old temporary directories:\n%s",
 			errors.Get()
 		);
@@ -209,30 +219,34 @@ void emTmpFileMaster::DeleteDeadDirectories()
 }
 
 
-void emTmpFileMaster::StartOwnDirectory()
+void emTmpFileMaster::TryStartOwnDirectory()
 {
 	int i;
 
 	for (i=1; ; i++) {
+		TryDeleteDeadDirectories();
 		IpcServer.StartServing();
 		DirPath=emGetChildPath(
 			GetCommonPath(),
 			IpcServer.GetServerName()+DirNameEnding
 		);
 		if (!emIsExistingPath(DirPath)) break;
-		if (i>=3) {
-			emFatalError("emTmpFileMaster::StartOwnDirectory: giving up");
-		}
-		emWarning("emTmpFileMaster::StartOwnDirectory: retry #%d",i);
+		DirPath.Clear();
 		IpcServer.StopServing();
+		if (i>=3) {
+			emFatalError("emTmpFileMaster::TryStartOwnDirectory: giving up");
+		}
+		emWarning("emTmpFileMaster::TryStartOwnDirectory: retry #%d",i);
 		emSleepMS(500);
-		DeleteDeadDirectories();
 	}
+
 	try {
 		emTryMakeDirectories(DirPath,0700);
 	}
 	catch (const emException & exception) {
-		emFatalError("emTmpFileMaster: %s",exception.GetText());
+		DirPath.Clear();
+		IpcServer.StopServing();
+		throw emException("emTmpFileMaster: %s",exception.GetText().Get());
 	}
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessMachine.cpp
 //
-// Copyright (C) 2000-2005,2007-2009 Oliver Hamann.
+// Copyright (C) 2000-2005,2007-2009,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -493,6 +493,7 @@ bool SilChessMachine::Load(const char * filename)
 		for (i=0; tmp[i]!=0 && (unsigned char)tmp[i]<=32; i++);
 		if (tmp[i]!=0) {
 			if (!m.FromString(tmp+i)) goto L_FormatError;
+			if (!Board[m.Y1*8+m.X1]) goto L_FormatError;
 			DoMove(m);
 		}
 	}

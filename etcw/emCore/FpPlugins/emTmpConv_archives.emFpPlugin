@@ -1,0 +1,33 @@
+#%rec:emFpPlugin%#
+
+FileTypes = {
+ ".7z"
+ ".bz2" ".bz"
+ ".gz" ".z"
+ ".lzma"
+ ".tar"
+ ".tar.bz2" ".tbz2" ".tgj" ".tar.bz" ".tbz"
+ ".tar.gz" ".tgz" ".tar.z" ".taz"
+ ".tar.lzma" ".tlz"
+ ".tar.xz" ".txz"
+ ".xz"
+ ".zip" ".jar"
+}
+Priority = 0.5
+Library = "emTmpConv"
+Function = "emTmpConvFpPluginFunc"
+Properties = {
+ {
+  Name="OutFileEnding"
+  Value=".dir"
+ }
+ {
+  Name="Command"
+
+  # Remember that the command must be in one line. Unfortunately, cscript
+  # returns zero status on runtime error (e.g. uncaught javascript exception).
+  # Therefore there is a checking whether any file or directory was created
+  # by the unpacking. It's the for call at the end.
+  Value="mkdir \"%OUTFILE%\" && cd /D \"%OUTFILE%\" && cscript \"%EM_DIR%\\res\\emFileMan\\scripts\\emArch.js\" //Nologo unpack -- \"%INFILE%\" 1>&2 && for /F %i in ('dir /A /B') do exit 0"
+ }
+}

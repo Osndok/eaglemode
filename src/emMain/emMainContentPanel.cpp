@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainContentPanel.cpp
 //
-// Copyright (C) 2007-2008,2016-2017 Oliver Hamann.
+// Copyright (C) 2007-2008,2016-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,6 @@
 emMainContentPanel::emMainContentPanel(ParentArg parent, const emString & name)
 	: emPanel(parent,name)
 {
-	SkyImage=emGetInsResImage(GetRootContext(),"emMain","Sky.tga",3);
 	new emVirtualCosmosPanel(this,"");
 	if (!GetParent()) SetAutoplayHandling(APH_DIRECTORY);
 	UpdateCoordinates();
@@ -78,7 +77,14 @@ bool emMainContentPanel::IsOpaque() const
 
 void emMainContentPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
-	painter.PaintImage(0,0,1,GetHeight(),SkyImage,255,canvasColor);
+	painter.PaintRect(
+		0,0,1,GetHeight(),
+		emLinearGradientTexture(
+			0,0          ,emColor(145,171,242),
+			0,GetHeight(),emColor(225,221,183)
+		),
+		canvasColor
+	);
 	PaintEagle(
 		emPainter(
 			painter,

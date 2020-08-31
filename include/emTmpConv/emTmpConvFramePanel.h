@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvFramePanel.h
 //
-// Copyright (C) 2006-2008,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,7 @@ class emTmpConvFramePanel : public emPanel {
 public:
 
 	emTmpConvFramePanel(ParentArg parent, const emString & name,
-	                    emTmpConvModel * model);
+	                    emTmpConvModel * model, double tunnelFactor=1.0);
 
 	virtual ~emTmpConvFramePanel();
 

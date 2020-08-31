@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasterLayout.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,8 +28,8 @@ emRasterLayout::emRasterLayout(
 	: emBorder(parent,name,caption,description,icon)
 {
 	PrefCT=0.2;
-	MinCT=0.0;
-	MaxCT=1E100;
+	MinCT=1E-4;
+	MaxCT=1E4;
 	SpaceL=0.0;
 	SpaceT=0.0;
 	SpaceH=0.0;

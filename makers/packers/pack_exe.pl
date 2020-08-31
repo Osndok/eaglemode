@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_exe.pl
 #
-# Copyright (C) 2010-2011,2015-2018 Oliver Hamann.
+# Copyright (C) 2010-2011,2015-2020 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -62,8 +62,7 @@ system(
 	'perl',
 	catfile($srcDir,'make.pl'),
 	'build',
-	'continue=no',
-	'projects=not:emAv'
+	'continue=no'
 )==0 || exit 1;
 
 # Install it

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.h
 //
-// Copyright (C) 2008,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2008,2014,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,12 +33,12 @@
 #include <emCore/emProcess.h>
 #endif
 
-#ifndef emModel_h
-#include <emCore/emModel.h>
+#ifndef emAvImageConverter_h
+#include <emAv/emAvImageConverter.h>
 #endif
 
-#ifndef emRenderThreadPool_h
-#include <emCore/emRenderThreadPool.h>
+#ifndef emAvLibDirCfg_h
+#include <emAv/emAvLibDirCfg.h>
 #endif
 
 class emAvClient;
@@ -125,6 +125,7 @@ private:
 	void TransferFrames();
 	void TransferFrame(Instance * inst);
 
+	emAvLibDirCfg LibDirCfg;
 	Instance * Instances[MAX_INSTANCES];
 	int InstanceCount;
 	StateType State;
@@ -136,6 +137,7 @@ private:
 	int OutBufFill;
 	bool OutBufOverflowed;
 	emRef<emRenderThreadPool> ThreadPool;
+	emAvImageConverter ImageConverter;
 };
 
 

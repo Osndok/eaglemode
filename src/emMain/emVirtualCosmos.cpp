@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014-2019 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -154,7 +154,7 @@ void emVirtualCosmosModel::Reload()
 		fileNames=emTryLoadDir(itemsDir);
 	}
 	catch (const emException & exception) {
-		emFatalError("%s",exception.GetText());
+		emFatalError("%s",exception.GetText().Get());
 	}
 	fileNames.Sort(emStdComparer<emString>::Compare);
 
@@ -170,7 +170,7 @@ void emVirtualCosmosModel::Reload()
 			mt=emTryGetFileTime(path);
 		}
 		catch (const emException & exception) {
-			emFatalError("%s",exception.GetText());
+			emFatalError("%s",exception.GetText().Get());
 			mt=0;
 		}
 		for (;;) {
@@ -202,7 +202,7 @@ void emVirtualCosmosModel::Reload()
 				Items[j].ItemRec->TryPrepareItemFile(itemFilesDir,itemFilesUserDir);
 			}
 			catch (const emException & exception) {
-				emWarning("%s",exception.GetText());
+				emWarning("%s",exception.GetText().Get());
 				delete Items[j].ItemRec;
 				Items.Remove(j);
 				if (changed==1) changed=0; else changed=2;
@@ -371,7 +371,7 @@ void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasCo
 	if (!itemRec) return;
 
 	if (itemRec->BorderScaling.Get()<=1E-100) {
-		painter.Clear(itemRec->BackgroundColor,canvasColor);
+		painter.Clear(itemRec->BackgroundColor.Get(),canvasColor);
 		return;
 	}
 
@@ -380,7 +380,7 @@ void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasCo
 	CalcBorders(&l,&t,&r,&b);
 
 	if (borCol==itemRec->BackgroundColor) {
-		painter.Clear(itemRec->BackgroundColor,canvasColor);
+		painter.Clear(itemRec->BackgroundColor.Get(),canvasColor);
 	}
 	else {
 		x1=l;
@@ -395,7 +395,7 @@ void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasCo
 		}
 		painter.PaintRect(
 			x1,y1,x2-x1,y2-y1,
-			itemRec->BackgroundColor,canvasColor
+			itemRec->BackgroundColor.Get(),canvasColor
 		);
 		xy[ 0]=0.0;   xy[ 1]=0.0;
 		xy[ 2]=1.0;   xy[ 3]=0.0;
@@ -415,7 +415,7 @@ void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasCo
 		0.0,0.0,1.0,h,
 		d,d,d,d,
 		OuterBorderImage,
-		82.0,82.0,82.0,82.0,
+		82,82,82,82,
 		255,borCol,0757
 	);
 
@@ -425,7 +425,7 @@ void emVirtualCosmosItemPanel::Paint(const emPainter & painter, emColor canvasCo
 		l-e,t-f,1.0-l-r+e*2.0,h-t-b+f*2.0,
 		e,f,e,f,
 		InnerBorderImage,
-		126.0,23.0,126.0,23.0,
+		126,23,126,23,
 		255,borCol,0757
 	);
 

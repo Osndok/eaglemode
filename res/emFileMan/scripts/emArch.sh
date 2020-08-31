@@ -7,7 +7,7 @@
 Description="\
 emArch.sh
 
-Copyright (C) 2007-2008,2010-2011,2019 Oliver Hamann.
+Copyright (C) 2007-2008,2010-2011,2019-2020 Oliver Hamann.
 
 Homepage: http://eaglemode.sourceforge.net/
 
@@ -35,15 +35,11 @@ Archive file name suffices    | Required system tools
 ------------------------------+----------------------
 .7z                           | 7z
 .ar|.a|.deb|.ipk              | ar
-.arc                          | arc
-.arj                          | arj
 .bz             (unpack only) | bzip2
 .bz2                          | bzip2
 .gz                           | gzip
-.lzh|.lha                     | lha
 .lzma                         | xz
 .lzo                          | lzop
-.rar            (unpack only) | unrar
 .tar                          | tar
 .tar.bz|.tbz    (unpack only) | tar, bzip2
 .tar.bz2|.tbz2|.tgj           | tar, bzip2
@@ -55,7 +51,6 @@ Archive file name suffices    | Required system tools
 .xz                           | xz
 .Z              (unpack only) | gzip
 .zip|.jar                     | zip, unzip
-.zoo                          | zoo
 
 SECURITY / SPEED-LOSS:
 
@@ -120,14 +115,9 @@ OPTIONS:
 #    about nasty tar archives containing up-going paths?
 
 Trust_7z=no
-Trust_arc=no
-Trust_arj=no
 Trust_ar=no
-Trust_lha=no
 Trust_tar=no
-Trust_unrar=no
 Trust_unzip=no
-Trust_zoo=no
 
 
 #===============================================================================
@@ -307,79 +297,6 @@ fi
 exec ar rc -- "$ArchFile" "$@"
 
 ;;
-#---------------------------------- pack arc -----------------------------------
-*.arc|*.ARC|*.Arc)
-
-basename "$ArchFile" | egrep "^[^.]?[^.]?[^.]?[^.]?[^.]?[^.]?[^.]?[^.]?\..?.?.?$" > /dev/null
-case $? in
-	0)
-		break
-	;;
-	1)
-		Error "arc archive file name must be a DOS file name (<max 8 non-dot chars><dot><max 3 chars>)."
-		# Otherwise arc automatically shortens the file name and
-		# possibly appends ".arc" (would break the semantics of this
-		# script interface).
-	;;
-	*)
-		exit 1
-	;;
-esac
-
-for i in "$@" ; do
-	if test -d "$i" ; then
-		Error "Cannot pack a directory with arc."
-	fi
-done
-
-if test -f "$ArchFile" ; then
-	rm -f "$ArchFile" || exit 1
-fi
-
-exec arc a "$ArchFile" "$@"
-
-;;
-#---------------------------------- pack arj -----------------------------------
-*.arj|*.ARJ|*.Arj)
-
-basename "$ArchFile" | egrep ".\.." > /dev/null
-case $? in
-	0)
-		break
-	;;
-	1)
-		Error "Archive file name has no suffix (e.g. \".arj\")."
-		# Otherwise arj automatically appends ".arj" (would
-		# break the semantics of this script interface).
-	;;
-	*)
-		exit 1
-	;;
-esac
-
-if test -f "$ArchFile" ; then
-	rm -f "$ArchFile" || exit 1
-fi
-
-# Something like
-#   exec arj a -r "$ArchFile" "$@"
-# does not work with multiple directories (tested with ARJ32 v 3.10)
-for i in "$@" ; do
-	arj a -r -- "$ArchFile" "$i" || exit 1
-done
-
-;;
-#---------------------------------- pack lzh -----------------------------------
-*.lzh|*.LZH|*.Lzh|\
-*.lha|*.LHA|*.Lha)
-
-if test -f "$ArchFile" ; then
-	rm -f "$ArchFile" || exit 1
-fi
-
-exec lha av "$ArchFile" "$@"
-
-;;
 #---------------------------------- pack tar -----------------------------------
 *.tar|*.TAR|*.Tar)
 
@@ -485,39 +402,6 @@ if test -f "$ArchFile" ; then
 fi
 
 exec zip -r -9 "$ArchFile" -- "$@"
-
-;;
-#---------------------------------- pack zoo -----------------------------------
-*.zoo|*.ZOO|*.Zoo)
-
-basename "$ArchFile" | egrep ".\.." > /dev/null
-case $? in
-	0)
-		break
-	;;
-	1)
-		Error "Archive file name has no suffix (e.g. \".zoo\")."
-		# Otherwise zoo automatically appends ".zoo" (would
-		# break the semantics of this script interface).
-	;;
-	*)
-		exit 1
-	;;
-esac
-
-for i in "$@" ; do
-	if test -d "$i" ; then
-		Error "Packing of directories into zoo archive not supported."
-		# We would have to recurse the directories and give zoo the
-		# paths of all the files.
-	fi
-done
-
-if test -f "$ArchFile" ; then
-	rm -f "$ArchFile" || exit 1
-fi
-
-exec zoo a "$ArchFile" "$@"
 
 ;;
 #---------------------------------- pack bz2 -----------------------------------
@@ -700,149 +584,6 @@ if test $TrustByOption != yes && test $Trust_ar != yes ; then
 fi
 
 exec ar xv "$ArchFile"
-
-;;
-#--------------------------------- unpack arc ----------------------------------
-*.arc|*.ARC|*.Arc)
-
-if test $TrustByOption != yes && test $Trust_arc != yes ; then
-	echo "Scanning archive listing for dangerous paths..."
-	{
-		arc l "$ArchFile" || SetErrorHint
-		# for testing the test:
-		# echo "/bla"
-		# echo "../bla"
-		# echo "1234 /bla"
-		# echo "1234 ../bla"
-		# echo "1234 bla/../bla"
-	} | egrep "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
-	ret=$?
-	CheckErrorHint
-	case $ret in
-		0)
-			Error "$ArchFile looks like containing an absolute or up-going path."
-		;;
-		1)
-			break
-		;;
-		*)
-			exit 1
-		;;
-	esac
-	echo "okay, unpacking..."
-fi
-
-exec arc x "$ArchFile"
-
-;;
-#--------------------------------- unpack arj ----------------------------------
-*.arj|*.ARJ|*.Arj)
-
-if test $TrustByOption != yes && test $Trust_arj != yes ; then
-	echo "Scanning archive listing for dangerous paths..."
-	{
-		arj v "$ArchFile" || SetErrorHint
-		# for testing the test:
-		# echo "/bla"
-		# echo "../bla"
-		# echo "1234 /bla"
-		# echo "1234 ../bla"
-		# echo "1234 bla/../bla"
-	} | {
-		egrep -v "^Processing archive:( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
-		case $? in
-			0|1)
-				break;
-			;;
-			*)
-				SetErrorHint
-			;;
-		esac
-	} | egrep "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
-	ret=$?
-	CheckErrorHint
-	case $ret in
-		0)
-			Error "$ArchFile looks like containing an absolute or up-going path."
-		;;
-		1)
-			break
-		;;
-		*)
-			exit 1
-		;;
-	esac
-	echo "okay, unpacking..."
-fi
-
-exec arj x -y "$ArchFile"
-
-;;
-#--------------------------------- unpack lzh ----------------------------------
-*.lzh|*.LZH|*.Lzh|\
-*.lha|*.LHA|*.Lha)
-
-if test $TrustByOption != yes && test $Trust_lha != yes ; then
-	echo "Scanning archive listing for dangerous paths..."
-	{
-		lha l "$ArchFile" || SetErrorHint
-		# for testing the test:
-		# echo "/bla"
-		# echo "../bla"
-		# echo "1234 /bla"
-		# echo "1234 ../bla"
-		# echo "1234 bla/../bla"
-	} | egrep "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
-	ret=$?
-	CheckErrorHint
-	case $ret in
-		0)
-			Error "$ArchFile looks like containing an absolute or up-going path."
-		;;
-		1)
-			break
-		;;
-		*)
-			exit 1
-		;;
-	esac
-	echo "okay, unpacking..."
-fi
-
-exec lha xv "$ArchFile"
-
-;;
-#--------------------------------- unpack rar ----------------------------------
-*.rar|*.RAR|*.Rar)
-
-if test $TrustByOption != yes && test $Trust_unrar != yes ; then
-	echo "Scanning archive listing for dangerous paths..."
-	{
-		unrar vb "$ArchFile" || SetErrorHint
-		# for testing the test:
-		# echo "/bla"
-		# echo "../bla"
-		# echo "  /bla"
-		# echo "  ../bla"
-		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
-	ret=$?
-	CheckErrorHint
-	case $ret in
-		0)
-			Error "$ArchFile looks like containing an absolute or up-going path."
-		;;
-		1)
-			break
-		;;
-		*)
-			exit 1
-		;;
-	esac
-	echo "okay, unpacking..."
-fi
-
-exec unrar x -- "$ArchFile"
 
 ;;
 #--------------------------------- unpack tar ----------------------------------
@@ -1088,49 +829,6 @@ if test $TrustByOption != yes && test $Trust_unzip != yes ; then
 fi
 
 exec unzip "$ArchFile"
-
-;;
-#--------------------------------- unpack zoo ----------------------------------
-*.zoo|*.ZOO|*.Zoo)
-
-if test $TrustByOption != yes && test $Trust_zoo != yes ; then
-	echo "Scanning archive listing for dangerous paths..."
-	{
-		zoo l "$ArchFile" || SetErrorHint
-		# for testing the test:
-		# echo "/bla"
-		# echo "../bla"
-		# echo "1234 /bla"
-		# echo "1234 ../bla"
-		# echo "1234 bla/../bla"
-	} | {
-		egrep -v "^Archive( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`:\$"
-		case $? in
-			0|1)
-				break;
-			;;
-			*)
-				SetErrorHint
-			;;
-		esac
-	} | egrep "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
-	ret=$?
-	CheckErrorHint
-	case $ret in
-		0)
-			Error "$ArchFile looks like containing an absolute or up-going path."
-		;;
-		1)
-			break
-		;;
-		*)
-			exit 1
-		;;
-	esac
-	echo "okay, unpacking..."
-fi
-
-exec zoo x. "$ArchFile"
 
 ;;
 #------------------------------- unpack bz2 + bz -------------------------------

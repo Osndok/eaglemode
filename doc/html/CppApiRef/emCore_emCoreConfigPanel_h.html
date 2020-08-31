@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emCoreConfigPanel_h.html#emCoreConfigPanel">emCoreConfigPanel</A>.h
 //
-// Copyright (C) 2007-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -98,7 +98,7 @@
         <SPAN CLASS=t>class </SPAN>MouseMiscGroup : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRasterGroup_h.html#emRasterGroup">emRasterGroup</A>, <SPAN CLASS=t>private </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecListener">emRecListener</A> <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=t>public</SPAN>:
                 MouseMiscGroup(ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
-                                <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
+                               <A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A> * config);
                 <SPAN CLASS=t>virtual </SPAN>~MouseMiscGroup();
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual void </SPAN>OnRecChanged();
@@ -190,8 +190,20 @@
                 <SPAN CLASS=t>virtual void </SPAN>AutoShrink();
         <SPAN CLASS=t>private</SPAN>:
                 <SPAN CLASS=t>void </SPAN>UpdateOutput();
+                <SPAN CLASS=t>void </SPAN>InvalidatePaintingOfAllWindows();
+                <SPAN CLASS=t>static void </SPAN>DownscaleTextOfValueFunc(
+                        <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value,
+                        emUInt64 markInterval, <SPAN CLASS=t>void </SPAN>* context
+                );
+                <SPAN CLASS=t>static void </SPAN>UpscaleTextOfValueFunc(
+                        <SPAN CLASS=t>char </SPAN>* buf, <SPAN CLASS=t>int </SPAN>bufSize, emInt64 value,
+                        emUInt64 markInterval, <SPAN CLASS=t>void </SPAN>* context
+                );
                 <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; Config;
                 <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * MaxRenderThreadsField;
+                <A CLASS=l HREF="emCore_emCheckBox_h.html#emCheckBox">emCheckBox</A> * AllowSIMDBox;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * DownscaleQualityField;
+                <A CLASS=l HREF="emCore_emScalarField_h.html#emScalarField">emScalarField</A> * UpscaleQualityField;
         <SPAN CLASS=b>}</SPAN>;
 <SPAN CLASS=b>}</SPAN>;
 

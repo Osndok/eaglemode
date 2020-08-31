@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvImageConverter.h
 //
-// Copyright (C) 2019 Oliver Hamann.
+// Copyright (C) 2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,12 +29,14 @@
 #include <emCore/emRenderThreadPool.h>
 #endif
 
+class emCoreConfig;
+
 
 class emAvImageConverter {
 
 public:
 
-	emAvImageConverter();
+	emAvImageConverter(emContext & context);
 	~emAvImageConverter();
 
 	void SetSourceRGB(
@@ -63,6 +65,11 @@ private:
 	void ConvertI420(int y1, int y2);
 	void ConvertYUY2(int y1, int y2);
 
+#	if EM_HAVE_X86_INTRINSICS
+		void ConvertI420_AVX2(int y1, int y2);
+#	endif
+
+	emRef<emCoreConfig> CoreConfig;
 	int Format;
 	int Width;
 	int Height;
@@ -75,6 +82,9 @@ private:
 	emThreadMiniMutex Mutex;
 	int RowsAtOnce;
 	int PosY;
+#	if EM_HAVE_X86_INTRINSICS
+		bool CanCpuDoAvx2;
+#	endif
 };
 
 

@@ -3,7 +3,7 @@
 # Type = Command
 # Order = 51.0
 # Interpreter = perl
-# DefaultFor = .7z:.a:.ar:.arc:.arj:.bz:.bz2:.deb:.gz:.ipk:.jar:.lha:.lzh:.lzma:.lzo:.rar:.tar:.tar.bz:.tar.bz2:.tar.gz:.tar.lzma:.tar.lzo:.tar.xz:.tar.z:.taz:.tbz:.tbz2:.tgj:.tgz:.tlz:.txz:.tzo:.xz:.z:.zip:.zoo
+# DefaultFor = .7z:.a:.ar:.bz:.bz2:.deb:.gz:.ipk:.jar:.lzma:.lzo:.tar:.tar.bz:.tar.bz2:.tar.gz:.tar.lzma:.tar.lzo:.tar.xz:.tar.z:.taz:.tbz:.tbz2:.tgj:.tgz:.tlz:.txz:.tzo:.xz:.z:.zip
 # Caption = Unpack In Place
 # Descr =Unpack an archive file into the directory where the archive file
 # Descr =is in.
@@ -15,10 +15,10 @@
 # Descr =  Target: The archive file.
 # Descr =
 # Descr =Following archive file formats are supported, provided that the
-# Descr =corresponding system tools are installed: 7z, a, ar, arc, arj, bz,
-# Descr =bz2, deb, gz, ipk, jar, lha, lzh, lzma, lzo, rar, tar, tar.bz,
-# Descr =tar.bz2, tar.gz, tar.lzma, tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2,
-# Descr =tgj, tgz, tlz, txz, tzo, xz, Z, zip, zoo
+# Descr =corresponding system tools are installed: 7z, a, ar, bz, bz2, deb,
+# Descr =gz, ipk, jar, lzma, lzo, tar, tar.bz, tar.bz2, tar.gz, tar.lzma,
+# Descr =tar.lzo, tar.xz, tar.Z, taz, tbz, tbz2, tgj, tgz, tlz, txz, tzo,
+# Descr =xz, Z, zip
 # Icon = unpack_file_in_place.tga
 # Hotkey = Shift+Ctrl+U
 #[[END PROPERTIES]]

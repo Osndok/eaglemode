@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008,2010,2014-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014-2017,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -156,7 +156,7 @@ bool emDirPanel::IsOpaque() const
 void emDirPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
 	if (GetVirFileState()!=VFS_LOADED) emFilePanel::Paint(painter,canvasColor);
-	else painter.Clear(Config->GetTheme().DirContentColor);
+	else painter.Clear(Config->GetTheme().DirContentColor.Get());
 }
 
 

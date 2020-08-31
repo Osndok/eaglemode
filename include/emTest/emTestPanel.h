@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.h
 //
-// Copyright (C) 2005-2008,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -135,6 +135,7 @@ private:
 	emCrossPtr<emTestPanel> TP1,TP2,TP3,TP4;
 	emCrossPtr<emColorField> BgColorField;
 	emCrossPtr<emLabel> ControlPanel;
+	emImage TestImage;
 };
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011,2014,2016 Oliver Hamann.
+// Copyright (C) 2011,2014,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -83,7 +83,8 @@ void emPdfPagePanel::Paint(
 {
 	static const emColor bgCol=emColor(221,255,255);
 	double h,fw,fh,ox,oy,ow,oh,sx,sy,sw,sh,ix,iy,iw,ih,t;
-	double sx1,sy1,sx2,sy2,pw,ph,px1,py1,px2,py2;
+	double sx1,sy1,sx2,sy2;
+	int pw,ph,px1,py1,px2,py2;
 	emImage ico;
 
 	ox=0.0;
@@ -116,20 +117,20 @@ void emPdfPagePanel::Paint(
 		sy2=emMin(oy+oh,sy+sh);
 		pw=PreImg.GetWidth();
 		ph=PreImg.GetHeight();
-		px1=(sx1-ox)*pw/ow;
-		py1=(sy1-oy)*ph/oh;
-		px2=(sx2-oy)*pw/ow;
-		py2=(sy2-oy)*ph/oh;
+		px1=(int)((sx1-ox)*pw/ow+0.5);
+		py1=(int)((sy1-oy)*ph/oh+0.5);
+		px2=(int)((sx2-oy)*pw/ow+0.5);
+		py2=(int)((sy2-oy)*ph/oh+0.5);
 		if (sy1>oy) painter.PaintImage(
 			ox,oy,ow,sy1-oy,
 			PreImg,
-			0.0,0.0,pw,py1,
+			0,0,pw,py1,
 			255,canvasColor
 		);
 		if (sx1>ox) painter.PaintImage(
 			ox,sy1,sx1-ox,sy2-sy1,
 			PreImg,
-			0.0,py1,px1,py2-py1,
+			0,py1,px1,py2-py1,
 			255,canvasColor
 		);
 		if (sx2<ox+ow) painter.PaintImage(
@@ -141,7 +142,7 @@ void emPdfPagePanel::Paint(
 		if (sy2<oy+oh) painter.PaintImage(
 			ox,sy2,ow,oy+oh-sy2,
 			PreImg,
-			0.0,py2,pw,ph-py2,
+			0,py2,pw,ph-py2,
 			255,canvasColor
 		);
 		canvasColor=0;

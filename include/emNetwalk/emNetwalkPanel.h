@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkPanel.h
 //
-// Copyright (C) 2010,2016 Oliver Hamann.
+// Copyright (C) 2010,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,15 +79,15 @@ private:
 		int px, int py
 	) const;
 
-	static void PaintShapeWithRoundedEdges(
+	static void PaintImageColoredWithRoundedEdges(
 		const emPainter & painter, double x, double y, double w, double h,
-		const emImage & img, double srcX, double srcY, double srcW, double srcH,
-		int channel=0, emColor color=emColor::WHITE, emColor canvasColor=0
+		const emImage & img, int srcX, int srcY, int srcW, int srcH,
+		emColor color1=0, emColor color2=emColor::WHITE, emColor canvasColor=0
 	);
 
 	static void PaintImageWithRoundedEdges(
 		const emPainter & painter, double x, double y, double w, double h,
-		const emImage & img, double srcX, double srcY, double srcW, double srcH,
+		const emImage & img, int srcX, int srcY, int srcW, int srcH,
 		int alpha=255, emColor canvasColor=0
 	);
 

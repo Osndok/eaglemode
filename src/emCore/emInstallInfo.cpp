@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.cpp
 //
-// Copyright (C) 2006-2012,2014,2019 Oliver Hamann.
+// Copyright (C) 2006-2012,2014,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -178,7 +178,7 @@ emString emGetConfigDirOverloadable(
 		hostVer.TryLoad(emGetChildPath(hostDir,"version"));
 	}
 	catch (const emException & exception) {
-		emFatalError("%s",exception.GetText());
+		emFatalError("%s",exception.GetText().Get());
 	}
 
 	result=hostDir;
@@ -191,7 +191,7 @@ emString emGetConfigDirOverloadable(
 			warning=emString::Format(
 				"The directory \"%s\" is not used, because of this error: %s",
 				userDir.Get(),
-				exception.GetText()
+				exception.GetText().Get()
 			);
 		}
 		if (warning.IsEmpty() && hostVer.Get()!=userVer.Get()) {

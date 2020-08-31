@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008-2010,2012,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2008-2010,2012,2014,2018-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,7 +20,6 @@
 
 #include <emAv/emAvServerModel.h>
 #include <emAv/emAvClient.h>
-#include <emAv/emAvImageConverter.h>
 #if defined(_WIN32) || defined(__CYGWIN__)
 #	include <emCore/emThread.h>
 #	include <windows.h>
@@ -41,7 +40,9 @@ emAvServerModel::emAvServerModel(
 	emContext & context, const emString & serverProcPath
 )
 	: emModel(context,serverProcPath),
-	StateTimer(GetScheduler())
+	LibDirCfg(serverProcPath),
+	StateTimer(GetScheduler()),
+	ImageConverter(context)
 {
 	int i;
 
@@ -56,6 +57,7 @@ emAvServerModel::emAvServerModel(
 	OutBufFill=0;
 	OutBufOverflowed=false;
 	ThreadPool=emRenderThreadPool::Acquire(GetRootContext());
+	AddWakeUpSignal(LibDirCfg.GetChangeSignal());
 }
 
 
@@ -97,16 +99,29 @@ bool emAvServerModel::Cycle()
 	char buf[256];
 	int i,r;
 
+	if (IsSignaled(LibDirCfg.GetChangeSignal())) {
+		termProcReason="Lib dir changed";
+		goto L_ENTER_TERM_PROC;
+	}
+
 	switch (State) {
 
 L_ENTER_IDLE:
 		State=STATE_IDLE;
 	case STATE_IDLE:
 		if (InstanceCount>0 || OutBufFill>0) {
+			emArray<emString> extraEnv;
+			if (LibDirCfg.IsLibDirNecessary()) {
+				if (!LibDirCfg.IsLibDirValid()) {
+					termProcReason="Lib directory not valid";
+					goto L_ENTER_TERM_PROC;
+				}
+				extraEnv=LibDirCfg.GetExtraEnv();
+			}
 			try {
 				ServerProc.TryStart(
 					emArray<emString>(GetName()),
-					emArray<emString>(),
+					extraEnv,
 					NULL,
 					emProcess::SF_PIPE_STDIN|
 					emProcess::SF_PIPE_STDOUT|
@@ -647,7 +662,6 @@ void emAvServerModel::TransferFrame(Instance * inst)
 	const emByte * src, * src2, * src3;
 	int width,height,aspectRatio,format,bpl,bpl2,width2,height2;
 	int padding1,padding2,padding3;
-	emAvImageConverter converter;
 
 	shm=inst->ShmAddr;
 
@@ -679,7 +693,7 @@ void emAvServerModel::TransferFrame(Instance * inst)
 		if (bpl<3*width) goto L_BAD_DATA;
 		if ((int)sizeof(int)*7+padding1+bpl*height>inst->ShmSize) goto L_BAD_DATA;
 		src=((emByte*)(shm+7))+padding1;
-		converter.SetSourceRGB(width,height,bpl,src);
+		ImageConverter.SetSourceRGB(width,height,bpl,src);
 	}
 	else if (format==1) { // I420
 		bpl=shm[5];
@@ -699,7 +713,7 @@ void emAvServerModel::TransferFrame(Instance * inst)
 		src=((emByte*)(shm+10))+padding1;
 		src2=src+bpl*height+padding2;
 		src3=src2+bpl2*height2+padding3;
-		converter.SetSourceI420(width,height,bpl,bpl2,src,src2,src3);
+		ImageConverter.SetSourceI420(width,height,bpl,bpl2,src,src2,src3);
 	}
 	else if (format==2) { // YUY2
 		bpl=shm[5];
@@ -708,15 +722,15 @@ void emAvServerModel::TransferFrame(Instance * inst)
 		if (bpl<2*width) goto L_BAD_DATA;
 		if ((int)sizeof(int)*7+padding1+bpl*height>inst->ShmSize) goto L_BAD_DATA;
 		src=((emByte*)(shm+7))+padding1;
-		converter.SetSourceYUY2(width,height,bpl,src);
+		ImageConverter.SetSourceYUY2(width,height,bpl,src);
 	}
 	else {
 		goto L_BAD_DATA;
 	}
 
-	converter.SetTarget(&inst->Image);
+	ImageConverter.SetTarget(&inst->Image);
 
-	converter.Convert(ThreadPool);
+	ImageConverter.Convert(ThreadPool);
 
 	if (inst->Client) {
 		inst->Client->ShowFrame(inst->Image,65536.0/aspectRatio);

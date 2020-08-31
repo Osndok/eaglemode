@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.h
 //
-// Copyright (C) 2007-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -89,7 +89,7 @@ private:
 	class MouseMiscGroup : public emRasterGroup, private emRecListener {
 	public:
 		MouseMiscGroup(ParentArg parent, const emString & name,
-		                emCoreConfig * config);
+		               emCoreConfig * config);
 		virtual ~MouseMiscGroup();
 	protected:
 		virtual void OnRecChanged();
@@ -181,8 +181,20 @@ private:
 		virtual void AutoShrink();
 	private:
 		void UpdateOutput();
+		void InvalidatePaintingOfAllWindows();
+		static void DownscaleTextOfValueFunc(
+			char * buf, int bufSize, emInt64 value,
+			emUInt64 markInterval, void * context
+		);
+		static void UpscaleTextOfValueFunc(
+			char * buf, int bufSize, emInt64 value,
+			emUInt64 markInterval, void * context
+		);
 		emRef<emCoreConfig> Config;
 		emScalarField * MaxRenderThreadsField;
+		emCheckBox * AllowSIMDBox;
+		emScalarField * DownscaleQualityField;
+		emScalarField * UpscaleQualityField;
 	};
 };
 

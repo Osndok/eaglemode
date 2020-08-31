@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # unicc.pl
 #
-# Copyright (C) 2006-2008,2017 Oliver Hamann.
+# Copyright (C) 2006-2008,2017,2020 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -61,7 +61,7 @@ our @EXPORT=qw(
 #=============================== Parse arguments ===============================
 
 my $Compiler="gnu";
-my $Cpus=1;
+my $Cpus="auto";
 my $Type="cexe";
 my $Name="unnamed";
 my $ObjDir=".";
@@ -302,6 +302,20 @@ sub GetSrcUpdateTime
 
 
 #==================== Compile source files to object files =====================
+
+if ($Cpus eq 'auto') {
+	if ($Config{'osname'} eq 'linux') {
+		$Cpus=`egrep -c '^processor\\s*:' /proc/cpuinfo`;
+	}
+	elsif ($Config{'osname'} eq 'freebsd') {
+		$Cpus=`sysctl -n hw.ncpu`;
+	}
+	else {
+		$Cpus=$ENV{'NUMBER_OF_PROCESSORS'};
+	}
+	$Cpus = defined($Cpus) && $Cpus ne "" ? int($Cpus) : 1;
+	if ($Cpus < 1) { $Cpus=1; }
+}
 
 if ($Cpus > 1) {
 	# The modules "threads" and "threads::shared" could be unavailable.

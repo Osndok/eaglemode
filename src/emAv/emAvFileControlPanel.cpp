@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileControlPanel.cpp
 //
-// Copyright (C) 2008,2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2008,2011,2014-2015,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,6 +31,7 @@ emAvFileControlPanel::emAvFileControlPanel(
 	emLinearLayout * left, * inf, * vol;
 	emRasterLayout * right;
 	emLook look;
+	int i;
 
 	Mdl=fileModel;
 
@@ -52,7 +53,12 @@ emAvFileControlPanel::emAvFileControlPanel(
 
 		inf=new emLinearLayout(left,"inf");
 		inf->SetHorizontal();
-		inf->SetMinChildTallness(0,0.45);
+		i=0;
+		if (fileModel->GetLibDirCfg().CreateControlPanelElement(inf,"libdir")) {
+			inf->SetMinChildTallness(i,0.7);
+			i++;
+		}
+		inf->SetMinChildTallness(i,0.45);
 		TfInfo=new emTextField(inf,"info","File Info");
 		TfInfo->SetMultiLineMode();
 		TfWarning=new emTextField(inf,"warning","Player Warnings");
@@ -261,14 +267,18 @@ bool emAvFileControlPanel::Cycle()
 void emAvFileControlPanel::UpdateControls()
 {
 	emRadioButton * rb;
-	bool adjustingEnabled;
+	bool generalEnabled,adjustingEnabled;
 	int n;
 
-	adjustingEnabled=(Mdl->GetPlayState()!=emAvFileModel::PS_STOPPED);
+	generalEnabled=(Mdl->GetFileState()==emFileModel::FS_LOADED);
+	adjustingEnabled=generalEnabled && (Mdl->GetPlayState()!=emAvFileModel::PS_STOPPED);
 	// When changing the enable stuff here, also remember to adapt the
 	// enabling of hotkeys in emAvFilePanel::Input.
 
+	TfInfo->SetEnableSwitch(generalEnabled);
 	TfInfo->SetText(Mdl->GetInfoText());
+
+	TfWarning->SetEnableSwitch(generalEnabled);
 	TfWarning->SetText(Mdl->GetWarningText());
 
 	n=Mdl->GetPlayLength();
@@ -276,6 +286,7 @@ void emAvFileControlPanel::UpdateControls()
 	SfPlayPos->SetMaxValue(n);
 	SfPlayPos->SetValue(Mdl->GetPlayPos());
 
+	RgPlayState->SetEnableSwitch(generalEnabled);
 	switch (Mdl->GetPlayState()) {
 	case emAvFileModel::PS_STOPPED: rb=RbStop;  break;
 	case emAvFileModel::PS_PAUSED : rb=RbPause; break;

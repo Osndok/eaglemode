@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_clang.pm
 #
-# Copyright (C) 2018 Oliver Hamann.
+# Copyright (C) 2018,2020 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -131,6 +131,7 @@ sub Compile
 		push(@args,"-Wno-old-style-cast");
 		push(@args,"-Wno-padded");
 		push(@args,"-Wno-reserved-id-macro");
+		push(@args,"-Wno-shadow");
 		push(@args,"-Wno-shorten-64-to-32");
 		push(@args,"-Wno-sign-conversion");
 		push(@args,"-Wno-switch-enum");

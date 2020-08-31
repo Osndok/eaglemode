@@ -48,11 +48,8 @@ name=FilenameEdit(
 	"\n"+
 	"The file name suffix specifies the archive type and must be one of:\n"+
 	"  .7z\n"+
-	"  .arc\n"+
-	"  .arj\n"+
 	"  .bz2\n"+
 	"  .gz\n"+
-	"  .lzh | .lha\n"+
 	"  .lzma\n"+
 	"  .tar\n"+
 	"  .tar.bz2 | .tbz2 | .tgj\n"+

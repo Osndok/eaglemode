@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.cpp
 //
-// Copyright (C) 2006-2008,2014,2017,2019 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2017,2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -196,7 +196,7 @@ void emTmpConvModel::TryStepConversion()
 		ConversionStage=1;
 		if (IsTimeSliceAtEnd()) break;
 	case 1:
-		TmpFile.Setup(GetRootContext(),OutputFileEnding);
+		TmpFile.TrySetup(GetRootContext(),OutputFileEnding);
 		ConversionStage=2;
 		if (IsTimeSliceAtEnd()) break;
 	case 2:

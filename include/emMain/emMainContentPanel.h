@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainContentPanel.h
 //
-// Copyright (C) 2007-2008,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2016,2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -52,7 +52,6 @@ private:
 	void UpdateChildLayout();
 	static void PaintEagle(const emPainter & painter);
 
-	emImage SkyImage;
 	double EagleShiftX,EagleShiftY,EagleScaleX,EagleScaleY;
 };
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvImageConverter.cpp
 //
-// Copyright (C) 2019 Oliver Hamann.
+// Copyright (C) 2019-2020 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,10 +19,12 @@
 //------------------------------------------------------------------------------
 
 #include <emAv/emAvImageConverter.h>
+#include <emCore/emCoreConfig.h>
 
 
-emAvImageConverter::emAvImageConverter()
-	: Format(0),
+emAvImageConverter::emAvImageConverter(emContext & context)
+	: CoreConfig(emCoreConfig::Acquire(context.GetRootContext())),
+	Format(0),
 	Width(0),
 	Height(0),
 	BPL(0),
@@ -34,6 +36,9 @@ emAvImageConverter::emAvImageConverter()
 	RowsAtOnce(0),
 	PosY(0)
 {
+#	if EM_HAVE_X86_INTRINSICS
+		CanCpuDoAvx2=emCanCpuDoAvx2();
+#	endif
 }
 
 
@@ -132,6 +137,12 @@ void emAvImageConverter::ThreadRun()
 			ConvertRGB(y1,y2);
 			break;
 		case 1:
+#			if EM_HAVE_X86_INTRINSICS
+				if (CanCpuDoAvx2 && CoreConfig->AllowSIMD.Get()) {
+					ConvertI420_AVX2(y1,y2);
+					break;
+				}
+#			endif
 			ConvertI420(y1,y2);
 			break;
 		default:
@@ -161,80 +172,66 @@ void emAvImageConverter::ConvertRGB(int y1, int y2)
 
 void emAvImageConverter::ConvertI420(int y1, int y2)
 {
-	const emByte * s1, * s2, * s3, * s4;
-	emByte * map, * t1, * t2, * t3;
-	int cy,cu,cv,cr,cg,cb,c;
+	const emByte * sy, * syBeg, * su, * sv;
+	emByte * t;
+	int duv,cu,cv,cy,cr,cg,cb,cr1,cg1,cb1,c;
 
-	map=Image->GetWritableMap();
-	y1/=2;
-	y2/=2;
 	while (y1<y2) {
 		y2--;
-		s1=Plane+y2*2*BPL;
-		s2=s1+BPL;
-		s3=Plane2+y2*BPL2;
-		s4=Plane3+y2*BPL2;
-		t1=map+y2*2*Width*3;
-		t2=t1+Width*3;
-		t3=t2+Width*3;
+		t=Image->GetWritableMap()+((y2+1)*Width-2)*3;
+		syBeg=Plane+y2*BPL;
+		sy=syBeg+Width-2;
+		su=Plane2+(y2>>1)*BPL2+((Width-2)>>1);
+		sv=Plane3+(y2>>1)*BPL2+((Width-2)>>1);
+		duv=0;
+		if (y2&1) {
+			if (y2<Height-1) duv=BPL2;
+		}
+		else {
+			if (y2>0) duv=-BPL2;
+		}
+		cu=su[0]*3+su[duv];
+		cv=sv[0]*3+sv[duv];
+		cr=409*cv+(128*4-16*298*4-409*512);
+		cg=-100*cu-208*cv+(128*4-16*298*4+100*512+208*512);
+		cb=516*cu+(128*4-16*298*4-516*512);
 		do {
-			cu=s3[0]-128;
-			cv=s4[0]-128;
-			cr=409*cv+(128-16*298);
-			cg=-100*cu-208*cv+(128-16*298);
-			cb=516*cu+(128-16*298);
+			cr1=cr;
+			cg1=cg;
+			cb1=cb;
+			cu=su[0]*3+su[duv];
+			cv=sv[0]*3+sv[duv];
+			cr=409*cv+(128*4-16*298*4-409*512);
+			cg=-100*cu-208*cv+(128*4-16*298*4+100*512+208*512);
+			cb=516*cu+(128*4-16*298*4-516*512);
 
-			cy=s1[0]*298;
-			c=(cr+cy)>>8;
+			cy=sy[1]*(298*8);
+			c=(cr+cr1+cy)>>11;
 			if ((unsigned)c>255) c=(-c)>>16;
-			t1[0]=(emByte)c;
-			c=(cg+cy)>>8;
+			t[3]=(emByte)c;
+			c=(cg+cg1+cy)>>11;
 			if ((unsigned)c>255) c=(-c)>>16;
-			t1[1]=(emByte)c;
-			c=(cb+cy)>>8;
+			t[4]=(emByte)c;
+			c=(cb+cb1+cy)>>11;
 			if ((unsigned)c>255) c=(-c)>>16;
-			t1[2]=(emByte)c;
+			t[5]=(emByte)c;
 
-			cy=s1[1]*298;
-			c=(cr+cy)>>8;
+			cy=sy[0]*(298*4);
+			c=(cr+cy)>>10;
 			if ((unsigned)c>255) c=(-c)>>16;
-			t1[3]=(emByte)c;
-			c=(cg+cy)>>8;
+			t[0]=(emByte)c;
+			c=(cg+cy)>>10;
 			if ((unsigned)c>255) c=(-c)>>16;
-			t1[4]=(emByte)c;
-			c=(cb+cy)>>8;
+			t[1]=(emByte)c;
+			c=(cb+cy)>>10;
 			if ((unsigned)c>255) c=(-c)>>16;
-			t1[5]=(emByte)c;
+			t[2]=(emByte)c;
 
-			cy=s2[0]*298;
-			c=(cr+cy)>>8;
-			if ((unsigned)c>255) c=(-c)>>16;
-			t2[0]=(emByte)c;
-			c=(cg+cy)>>8;
-			if ((unsigned)c>255) c=(-c)>>16;
-			t2[1]=(emByte)c;
-			c=(cb+cy)>>8;
-			if ((unsigned)c>255) c=(-c)>>16;
-			t2[2]=(emByte)c;
-
-			cy=s2[1]*298;
-			c=(cr+cy)>>8;
-			if ((unsigned)c>255) c=(-c)>>16;
-			t2[3]=(emByte)c;
-			c=(cg+cy)>>8;
-			if ((unsigned)c>255) c=(-c)>>16;
-			t2[4]=(emByte)c;
-			c=(cb+cy)>>8;
-			if ((unsigned)c>255) c=(-c)>>16;
-			t2[5]=(emByte)c;
-
-			s1+=2;
-			s2+=2;
-			s3++;
-			s4++;
-			t1+=6;
-			t2+=6;
-		} while (t2<t3);
+			su--;
+			sv--;
+			sy-=2;
+			t-=6;
+		} while (sy>=syBeg);
 	}
 }
 
