@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2011,2016-2017,2019 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017,2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -138,7 +138,7 @@ private:
 		bool CursorChanged;
 	};
 
-	static bool CheckIfUnreliableXWayland(emContext & context);
+	bool CheckIfUnreliableXWayland();
 
 	emThreadMiniMutex XMutex; // (XInitThreads was too buggy for me...)
 	Display * Disp;
@@ -160,6 +160,7 @@ private:
 	Atom      _NET_WM_STATE_FULLSCREEN;
 	bool      HaveXF86VidMode;
 	bool      HaveXinerama;
+	bool      WorkAroundXWaylandFocusBug;
 
 	Rect      DesktopRect;
 	emArray<Rect> MonitorRects;

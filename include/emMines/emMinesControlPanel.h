@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.h
 //
-// Copyright (C) 2006-2008,2014-2015 Oliver Hamann.
+// Copyright (C) 2006-2008,2014-2015,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,7 +55,7 @@ private:
 			emScalarField * SfLevel;
 			emButton * BtStartGame;
 
-	static const char * HelpText;
+	static const char * const HelpText;
 };
 
 

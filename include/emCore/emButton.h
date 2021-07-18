@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.h
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -136,8 +136,8 @@ private:
 	unsigned ShownBoxed : 1;
 	unsigned ShownRadioed : 1;
 
-	static const char * HowToButton;
-	static const char * HowToEOIButton;
+	static const char * const HowToButton;
+	static const char * const HowToEOIButton;
 };
 
 inline bool emButton::IsNoEOI() const

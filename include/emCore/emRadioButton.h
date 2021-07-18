@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioButton.h
 //
-// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -217,7 +217,7 @@ private:
 	Mechanism * Mech;
 	int MechIndex;
 
-	static const char * HowToRadioButton;
+	static const char * const HowToRadioButton;
 };
 
 inline const emSignal & emRadioButton::Mechanism::GetCheckSignal() const

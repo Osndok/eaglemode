@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiling.cpp
 //
-// Copyright (C) 2005-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2015,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ emTiling::emTiling(
 	FCTColumn=-1;
 	FCTRow=-1;
 	Alignment=EM_ALIGN_CENTER;
-	RowByRow=0;
+	RowByRow=false;
 	SetFocusable(false);
 }
 
@@ -69,7 +69,7 @@ emTiling::emTiling(
 	FCTColumn=-1;
 	FCTRow=-1;
 	Alignment=EM_ALIGN_CENTER;
-	RowByRow=0;
+	RowByRow=false;
 	SetFocusable(false);
 }
 
@@ -81,8 +81,8 @@ emTiling::~emTiling()
 
 void emTiling::SetRowByRow(bool rowByRow)
 {
-	if ((bool)RowByRow!=rowByRow) {
-		RowByRow=rowByRow?1:0;
+	if (RowByRow!=rowByRow) {
+		RowByRow=rowByRow;
 		InvalidateChildrenLayout();
 	}
 }

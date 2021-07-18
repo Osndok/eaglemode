@@ -41,6 +41,22 @@ sub Build
 	shift;
 	my %options=@_;
 
+	my @libTiffFlags=();
+	if ($options{'tiff-inc-dir'} eq '' && $options{'tiff-lib-dir'} eq '') {
+		@libTiffFlags=split("\n",readpipe(
+			"perl \"".$options{'utils'}."/PkgConfig.pl\" libtiff-4"
+		));
+	}
+	if (!@libTiffFlags) {
+		if ($options{'tiff-inc-dir'} ne '') {
+			push(@libTiffFlags, "--inc-search-dir", $options{'tiff-inc-dir'});
+		}
+		if ($options{'tiff-lib-dir'} ne '') {
+			push(@libTiffFlags, "--lib-search-dir", $options{'tiff-lib-dir'});
+		}
+		push(@libTiffFlags, "--link", "tiff");
+	}
+
 	system(
 		@{$options{'unicc_call'}},
 		"--math",
@@ -50,13 +66,7 @@ sub Build
 		"--lib-dir"       , "lib",
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
-		$options{'tiff-inc-dir'} ne '' ? (
-			"--inc-search-dir", $options{'tiff-inc-dir'}
-		) : (),
-		$options{'tiff-lib-dir'} ne '' ? (
-			"--lib-search-dir", $options{'tiff-lib-dir'}
-		) : (),
-		"--link"          , "tiff",
+		@libTiffFlags,
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emTiff",

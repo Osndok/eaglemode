@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.cpp
 //
-// Copyright (C) 2007-2009,2014-2016,2019 Oliver Hamann.
+// Copyright (C) 2007-2009,2014-2016,2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -257,7 +257,7 @@ void emFileManSelInfoPanel::PaintDetails(
 	const emPainter & painter, double x, double y, double w, double h,
 	const char * caption, const DetailsType & details, emColor color,
 	emColor canvasColor
-) const
+)
 {
 	char tmp[256];
 	double d,w2;
@@ -319,7 +319,7 @@ void emFileManSelInfoPanel::PaintDetails(
 	painter.PaintTextBoxed(x,y+d*18,w,d*2,tmp,d*2,color,canvasColor,EM_ALIGN_LEFT);
 
 	strcpy(tmp,"Size: ");
-	w2=painter.GetTextSize(tmp,d*8);
+	w2=emPainter::GetTextSize(tmp,d*8);
 	if (w2>w*0.5) w2=w*0.5;
 	painter.PaintTextBoxed(x,y+d*21,w2,d*8,tmp,d*8,color,canvasColor,EM_ALIGN_LEFT);
 	PaintSize(painter,x+w2,y+d*21,w-w2,d*8,details.Size,color,canvasColor);
@@ -330,7 +330,7 @@ void emFileManSelInfoPanel::PaintDetails(
 		painter.PaintTextBoxed(x,y+d*30,w,d*2,tmp,d*2,color,canvasColor,EM_ALIGN_LEFT);
 	}
 	else {
-		w2=painter.GetTextSize(tmp,d*2);
+		w2=emPainter::GetTextSize(tmp,d*2);
 		if (w2>w*0.5) w2=w*0.5;
 		painter.PaintTextBoxed(x,y+d*30,w2,d*2,tmp,d*2,color,canvasColor,EM_ALIGN_LEFT);
 		PaintSize(painter,x+w2,y+d*30,w-w2,d*2,details.DiskUsage,color,canvasColor);
@@ -341,7 +341,7 @@ void emFileManSelInfoPanel::PaintDetails(
 void emFileManSelInfoPanel::PaintSize(
 	const emPainter & painter, double x, double y, double w, double h,
 	emUInt64 size, emColor color, emColor canvasColor
-) const
+)
 {
 	emColor unitColor;
 	char tmp[128];
@@ -349,7 +349,7 @@ void emFileManSelInfoPanel::PaintSize(
 	int i,j,k,len;
 
 	len=emUInt64ToStr(tmp,sizeof(tmp),size);
-	cw=painter.GetTextSize("X",h,false);
+	cw=emPainter::GetTextSize("X",h,false);
 	ws=w/(cw*len*16/15);
 	if (ws>1.0) ws=1.0;
 	unitColor=emColor(color,(emByte)(color.GetAlpha()*2/3));

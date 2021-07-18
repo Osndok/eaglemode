@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1387,7 +1387,7 @@ int emTextField::GetPrevParagraphIndex(int index) const
 }
 
 
-const char * emTextField::HowToTextField=
+const char * const emTextField::HowToTextField=
 	"\n"
 	"\n"
 	"TEXT FIELD\n"
@@ -1464,7 +1464,7 @@ const char * emTextField::HowToTextField=
 ;
 
 
-const char * emTextField::HowToMultiLineOff=
+const char * const emTextField::HowToMultiLineOff=
 	"\n"
 	"\n"
 	"MULTI-LINE: DISABLED\n"
@@ -1474,7 +1474,7 @@ const char * emTextField::HowToMultiLineOff=
 ;
 
 
-const char * emTextField::HowToMultiLineOn=
+const char * const emTextField::HowToMultiLineOn=
 	"\n"
 	"\n"
 	"MULTI-LINE: ENABLED\n"
@@ -1484,7 +1484,7 @@ const char * emTextField::HowToMultiLineOn=
 ;
 
 
-const char * emTextField::HowToReadOnly=
+const char * const emTextField::HowToReadOnly=
 	"\n"
 	"\n"
 	"READ-ONLY\n"

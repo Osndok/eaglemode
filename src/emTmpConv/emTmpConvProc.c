@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTmpConvProc.c
 //
-// Copyright (C) 2006-2008,2011,2017,2019-2020 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2017,2019-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -249,6 +249,7 @@ int main(int argc, char * argv[])
 		/* cargs[i++]=(char*)"-e"; */
 		/* Option -e is not portable! */
 		cargs[i++]=(char*)"-c";
+		if (argv[1][0]=='-' || argv[1][0]=='+') cargs[i++]=(char*)"--";
 		cargs[i++]=argv[1];
 		cargs[i++]=NULL;
 		execvp(cargs[0],cargs);

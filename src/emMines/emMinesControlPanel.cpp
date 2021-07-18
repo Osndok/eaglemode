@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesControlPanel.cpp
 //
-// Copyright (C) 2006-2008,2010-2011,2014-2015 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2014-2015,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,7 +97,7 @@ bool emMinesControlPanel::Cycle()
 }
 
 
-const char * emMinesControlPanel::HelpText=
+const char * const emMinesControlPanel::HelpText=
 	"emMines is a three-dimensional variant of the popular mine sweeper logic game.\n"
 	"\n"
 	"The game world consists of a three-dimensional grid of cells. Each cell is\n"

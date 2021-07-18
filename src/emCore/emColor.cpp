@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.cpp
 //
-// Copyright (C) 2001,2003-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2014,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -766,7 +766,7 @@ float emColor::GetHue() const
 	if (Components.Red>=Components.Green) {
 		if (Components.Green>=Components.Blue) {
 			u=Components.Red-Components.Blue;
-			if (u==0) return 0.0f;
+			if (u==0) return 0.0F;
 			h=Components.Green-Components.Blue;
 		}
 		else if (Components.Red>=Components.Blue) {
@@ -802,7 +802,7 @@ float emColor::GetSat() const
 		if (Components.Green>=Components.Blue) {
 			cmin=Components.Blue;
 			cmax=Components.Red;
-			if (cmax==0) return 0.0f;
+			if (cmax==0) return 0.0F;
 		}
 		else {
 			cmin=Components.Green;
@@ -830,7 +830,7 @@ float emColor::GetVal() const
 	b=Components.Red;
 	if (b<Components.Green) b=Components.Green;
 	if (b<Components.Blue) b=Components.Blue;
-	return b*(100.0f/255.0f);
+	return b*(100.0F/255.0F);
 }
 
 
@@ -840,17 +840,17 @@ void emColor::SetHSVA(float hue, float sat, float val, emByte alpha)
 
 	Components.Alpha=alpha;
 
-	if (hue<0.0f) hue=fmod(hue,360.0f)+360.0f;
-	else if (hue>=360.0f) hue=fmod(hue,360.0f);
-	if (sat<0.0f) sat=0.0f;
-	else if (sat>100.0f) sat=100.0f;
-	if (val<0.0f) val=0.0f;
-	else if (val>100.0f) val=100.0f;
+	if (hue<0.0F) hue=fmod(hue,360.0F)+360.0F;
+	else if (hue>=360.0F) hue=fmod(hue,360.0F);
+	if (sat<0.0F) sat=0.0F;
+	else if (sat>100.0F) sat=100.0F;
+	if (val<0.0F) val=0.0F;
+	else if (val>100.0F) val=100.0F;
 
-	cmax=(int)(val*2.55f+0.5f);
-	cmin=cmax-(int)(cmax*sat*0.01f+0.5f);
+	cmax=(int)(val*2.55F+0.5F);
+	cmin=cmax-(int)(cmax*sat*0.01F+0.5F);
 	cunit=cmax-cmin;
-	chue=(int)(cunit*hue*(1.0f/60.0f)+0.5f);
+	chue=(int)(cunit*hue*(1.0F/60.0F)+0.5F);
 
 	if (chue<=cunit*3) {
 		if (chue<=cunit) {

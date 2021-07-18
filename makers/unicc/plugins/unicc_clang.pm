@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_clang.pm
 #
-# Copyright (C) 2018,2020 Oliver Hamann.
+# Copyright (C) 2018,2020-2021 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -124,6 +124,7 @@ sub Compile
 		push(@args,"-Wno-float-equal");
 		push(@args,"-Wno-global-constructors");
 		push(@args,"-Wno-implicit-fallthrough");
+		push(@args,"-Wno-implicit-int-float-conversion");
 		push(@args,"-Wno-invalid-offsetof");
 		push(@args,"-Wno-missing-noreturn");
 		push(@args,"-Wno-missing-prototypes");
@@ -134,8 +135,11 @@ sub Compile
 		push(@args,"-Wno-shadow");
 		push(@args,"-Wno-shorten-64-to-32");
 		push(@args,"-Wno-sign-conversion");
+		push(@args,"-Wno-suggest-destructor-override");
+		push(@args,"-Wno-suggest-override");
 		push(@args,"-Wno-switch-enum");
 		push(@args,"-Wno-unused-parameter");
+		push(@args,"-Wno-zero-as-null-pointer-constant");
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-I$s"); }
 		if ($IsFreeBSD) { push(@args,"-I/usr/local/include"); }
 		foreach my $s (@{GetDefines()}) { push(@args,"-D$s"); }
@@ -173,6 +177,7 @@ sub Link
 		if ($IsWin and $type eq 'wexe') { push(@args,"-mwindows"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }
 		if ($IsFreeBSD) { push(@args,"-L/usr/local/lib"); }
+		foreach my $s (@{GetRuntimeLibSearchDirs()}) { push(@args,"-Wl,-R,$s"); }
 		push(@args,(@{GetObjFiles()}));
 		foreach my $s (@{GetLinkNames()}) { push(@args,"-l$s"); }
 		if ($IsCygwin && -e "/lib/libcygipc.a") { push(@args,"-lcygipc"); }

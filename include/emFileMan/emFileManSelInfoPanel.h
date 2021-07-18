@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.h
 //
-// Copyright (C) 2007-2008,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,16 +72,16 @@ private:
 		bool DiskUsageUnknown;
 	};
 
-	void PaintDetails(
+	static void PaintDetails(
 		const emPainter & painter, double x, double y, double w,
 		double h, const char * caption, const DetailsType & details,
 		emColor color, emColor canvasColor
-	) const;
+	);
 
-	void PaintSize(
+	static void PaintSize(
 		const emPainter & painter, double x, double y, double w,
 		double h, emUInt64 size, emColor color, emColor canvasColor
-	) const;
+	);
 
 	void SetRectangles();
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAutoplay.cpp
 //
-// Copyright (C) 2017 Oliver Hamann.
+// Copyright (C) 2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -516,7 +516,7 @@ emAutoplayViewAnimator::AdvanceResult emAutoplayViewAnimator::AdvanceCurrentPane
 }
 
 
-bool emAutoplayViewAnimator::IsItem(const emPanel * p) const
+bool emAutoplayViewAnimator::IsItem(const emPanel * p)
 {
 	return
 		p->IsFocusable() &&

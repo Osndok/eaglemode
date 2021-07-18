@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # common.pm
 #
-# Copyright (C) 2010-2014,2017,2019-2020 Oliver Hamann.
+# Copyright (C) 2010-2014,2017,2019-2021 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -77,11 +77,11 @@ if ($Config{'osname'} eq "linux") {
 }
 $V{'DEB_BUILD_DEPENDS'}=
 	'debhelper (>= 5), g++ (>= 4), perl, libx11-dev, libjpeg-dev, '.
-	'libpng-dev, libtiff5-dev, libvlc-dev, librsvg2-dev, '.
+	'libpng-dev, libtiff5-dev, libwebp-dev, libvlc-dev, librsvg2-dev, '.
 	'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-	'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libvlc5, '.
+	'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libwebp6, libvlc5, '.
 	'vlc-plugin-base, librsvg2-2, libpoppler-glib8, libgtk2.0-0, '.
 	'libfreetype6';
 $V{'DEB_RECOMMENDS'}=
@@ -92,9 +92,9 @@ $V{'RPM_GROUP'}='System/GUI/Other';
 $V{'RPM_BUILD_REQUIRES'}=
 	"gcc-c++ perl\n".
 	"\%if 0\%{?suse_version}\n".
-	"BuildRequires: libX11-devel vlc-devel libjpeg62-devel libpng16-devel libtiff-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype-devel\n".
+	"BuildRequires: libX11-devel vlc-devel libjpeg62-devel libpng16-devel libtiff-devel libwebp-devel librsvg2-devel gtk2-devel libpoppler-glib-devel freetype-devel\n".
 	"\%else\n".
-	"BuildRequires: libX11-devel vlc-devel libjpeg-devel libpng-devel libtiff-devel librsvg2-devel gtk2-devel poppler-glib-devel freetype-devel\n".
+	"BuildRequires: libX11-devel vlc-devel libjpeg-devel libpng-devel libtiff-devel libwebp-devel librsvg2-devel gtk2-devel poppler-glib-devel freetype-devel\n".
 	"\%endif\n";
 $V{'RPM_REQUIRES'}=
 	"perl xterm ghostscript\n".
@@ -107,6 +107,7 @@ $V{'RPM_REQUIRES'}=
 	" libjpeg.so.62()(64bit)".
 	" libpng16.so.16()(64bit)".
 	" libtiff.so.5()(64bit)".
+	" libwebp.so.7()(64bit)".
 	" libvlc.so.5()(64bit)".
 	" librsvg-2.so.2()(64bit)".
 	" libpoppler-glib.so.8()(64bit)".
@@ -122,6 +123,7 @@ $V{'RPM_REQUIRES'}=
 	" libjpeg.so.62".
 	" libpng16.so.16".
 	" libtiff.so.5".
+	" libwebp.so.7".
 	" libvlc.so.5".
 	" librsvg-2.so.2".
 	" libpoppler-glib.so.8".
@@ -135,7 +137,7 @@ $V{'EBUILD_KEYWORDS'}='~x86';
 $V{'EBUILD_IUSE'}='';
 $V{'EBUILD_DEPEND'}=
 	"dev-lang/perl\n\tx11-libs/libX11\n\tmedia-libs/jpeg\n\t".
-	"media-libs/libpng\n\tmedia-libs/tiff\n\tmedia-video/vlc\n\t".
+	"media-libs/libpng\n\tmedia-libs/tiff\n\tmedia-libs/webp\n\tmedia-video/vlc\n\t".
 	"gnome-base/librsvg\n\tapp-text/poppler[cairo]\n\tmedia-libs/freetype";
 $V{'EBUILD_RDEPEND'}="\${DEPEND}\n\tx11-terms/xterm\n\tapp-text/ghostscript-gpl";
 

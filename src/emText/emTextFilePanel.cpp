@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2019 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -220,7 +220,7 @@ void emTextFilePanel::PaintAsText(
 	cols=Model->GetColumnCount();
 	if (cols<8) cols=8;
 
-	f=painter.GetTextSize("X",1.0,false);
+	f=emPainter::GetTextSize("X",1.0,false);
 	gap=1.0;
 	t=0.5*gap/(cols+gap);
 	pages=(int)floor(t+sqrt((2*rows/(h*f*gap)+t)*t));
@@ -617,7 +617,7 @@ void emTextFilePanel::PaintAsHex(
 	cols=73;
 
 
-	f=painter.GetTextSize("X",1.0,false);
+	f=emPainter::GetTextSize("X",1.0,false);
 	gap=2.0;
 	t=0.5*gap/(cols+gap);
 	pages=(int)floor(t+sqrt((2*rows/(h*f*gap)+t)*t));

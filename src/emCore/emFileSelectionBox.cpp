@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.cpp
 //
-// Copyright (C) 2015-2016,2019-2020 Oliver Hamann.
+// Copyright (C) 2015-2016,2019-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -308,7 +308,11 @@ void emFileSelectionBox::EnterSubDir(const emString & name)
 
 	emDLog("emFileSelectionBox::EnterSubDir: %s",name.Get());
 	path=emGetChildPath(ParentDir,name);
-	if (emIsDirectory(path)) {
+	if (name=="..") {
+		SetParentDirectory(path);
+		ClearSelection();
+	}
+	else if (emIsDirectory(path)) {
 		readable=emIsReadablePath(path);
 #if defined(_WIN32)
 		// emIsReadablePath does not care about NTFS permissions...
@@ -325,7 +329,10 @@ void emFileSelectionBox::EnterSubDir(const emString & name)
 			}
 		}
 #endif
-		if (readable) SetSelectedPath(path);
+		if (readable) {
+			SetParentDirectory(path);
+			ClearSelection();
+		}
 	}
 }
 
@@ -402,7 +409,7 @@ bool emFileSelectionBox::Cycle()
 			SelectionFromListBox();
 			if (FilesLB->GetTriggeredItemIndex()>=0) {
 				name=FilesLB->GetItemText(FilesLB->GetTriggeredItemIndex());
-				if (emIsDirectory(emGetChildPath(ParentDir,name))) {
+				if (name==".." || emIsDirectory(emGetChildPath(ParentDir,name))) {
 					EnterSubDir(name);
 				}
 				else {
@@ -468,7 +475,10 @@ void emFileSelectionBox::Input(
 		NameField->IsActive() &&
 		!NameField->GetText().IsEmpty()
 	) {
-		if (emIsDirectory(emGetChildPath(ParentDir,NameField->GetText()))) {
+		if (
+			NameField->GetText()==".." ||
+			emIsDirectory(emGetChildPath(ParentDir,NameField->GetText()))
+		) {
 			EnterSubDir(NameField->GetText());
 		}
 		else {
@@ -589,7 +599,6 @@ void emFileSelectionBox::ReloadListing()
 	emArray<emString> names;
 	FileItemData data;
 	emString path;
-	bool dirValid;
 	int i;
 
 	if (!FilesLB) return;
@@ -606,26 +615,22 @@ void emFileSelectionBox::ReloadListing()
 	else {
 		try {
 			names=emTryLoadDir(ParentDir);
-			dirValid=true;
 		}
 		catch (const emException &) {
 			names.Clear();
-			dirValid=false;
 		}
 		names.Sort(CompareNames,this);
-		if (dirValid) names.Insert(0,"..");
+		names.Insert(0,"..");
 	}
 #else
 	try {
 		names=emTryLoadDir(ParentDir);
-		dirValid=true;
 	}
 	catch (const emException &) {
 		names.Clear();
-		dirValid=false;
 	}
 	names.Sort(CompareNames,this);
-	if (ParentDir != "/" && dirValid) names.Insert(0,"..");
+	if (ParentDir != "/") names.Insert(0,"..");
 #endif
 
 	for (i=0; i<names.GetCount(); ) {

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2011,2014,2017-2019 Oliver Hamann.
+// Copyright (C) 2006-2011,2014,2017-2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,7 +24,7 @@
 
 emRef<emPsRenderer> emPsRenderer::Acquire(emRootContext & rootContext)
 {
-	EM_IMPL_ACQUIRE_COMMON(emPsRenderer,rootContext,"");
+	EM_IMPL_ACQUIRE_COMMON(emPsRenderer,rootContext,"")
 }
 
 

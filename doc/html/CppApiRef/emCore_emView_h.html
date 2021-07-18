@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>.h
 //
-// Copyright (C) 2004-2012,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -602,28 +602,28 @@
 
         <SPAN CLASS=t>void </SPAN>RecurseInput(<A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
-        <SPAN CLASS=t>void </SPAN>RecurseInput(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * parent, <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
+        <SPAN CLASS=t>void </SPAN>RecurseInput(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> &amp; event,
                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emInput_h.html#emInputState">emInputState</A> &amp; state);
 
         <SPAN CLASS=t>void </SPAN>InvalidateHighlight();
         <SPAN CLASS=t>void </SPAN>PaintHighlight(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintHighlightArrowsOnLine(
+        <SPAN CLASS=t>static void </SPAN>PaintHighlightArrowsOnLine(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y,
                 <SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy, <SPAN CLASS=t>double </SPAN>pos, <SPAN CLASS=t>double </SPAN>delta,
                 <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>double </SPAN>goalX, <SPAN CLASS=t>double </SPAN>goalY, <SPAN CLASS=t>double </SPAN>arrowSize,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> shadowColor, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> arrowColor
-        ) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintHighlightArrowsOnBow(
+        );
+        <SPAN CLASS=t>static void </SPAN>PaintHighlightArrowsOnBow(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>radius,
                 <SPAN CLASS=t>int </SPAN>quadrant, <SPAN CLASS=t>double </SPAN>pos, <SPAN CLASS=t>double </SPAN>delta, <SPAN CLASS=t>int </SPAN>count,
                 <SPAN CLASS=t>double </SPAN>goalX, <SPAN CLASS=t>double </SPAN>goalY, <SPAN CLASS=t>double </SPAN>arrowSize,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> shadowColor, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> arrowColor
-        ) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintHighlightArrow(
+        );
+        <SPAN CLASS=t>static void </SPAN>PaintHighlightArrow(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter, <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y,
                 <SPAN CLASS=t>double </SPAN>goalX, <SPAN CLASS=t>double </SPAN>goalY, <SPAN CLASS=t>double </SPAN>arrowSize,
                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> shadowColor, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> arrowColor
-        ) <SPAN CLASS=t>const</SPAN>;
+        );
 
         <SPAN CLASS=t>void </SPAN>SetSeekPos(<A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * panel, <SPAN CLASS=t>const char </SPAN>* childName);
         <SPAN CLASS=t>bool </SPAN>IsHopeForSeeking() <SPAN CLASS=t>const</SPAN>;
@@ -653,7 +653,7 @@
         </SPAN><SPAN CLASS=t>public</SPAN>:
                 StressTestClass(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; view);
                 <SPAN CLASS=t>virtual </SPAN>~StressTestClass();
-                <SPAN CLASS=t>void </SPAN>PaintInfo(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+                <SPAN CLASS=t>void </SPAN>PaintInfo(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>protected</SPAN>:
                 <SPAN CLASS=t>virtual bool </SPAN>Cycle();
         <SPAN CLASS=t>private</SPAN>:
@@ -703,7 +703,7 @@
         <SPAN CLASS=t>bool </SPAN>CursorInvalid;
         <SPAN CLASS=t>bool </SPAN>SVPChoiceInvalid;
         <SPAN CLASS=t>bool </SPAN>SVPChoiceByOpacityInvalid;
-        <SPAN CLASS=t>bool </SPAN>GotPopupWindowCloseSignal;
+        <SPAN CLASS=t>bool </SPAN>Reserved;
         <SPAN CLASS=t>bool </SPAN>RestartInputRecursion;
         <SPAN CLASS=t>bool </SPAN>ZoomedOutBeforeSG;
         <SPAN CLASS=t>int </SPAN>SettingGeometry;

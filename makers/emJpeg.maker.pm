@@ -41,6 +41,22 @@ sub Build
 	shift;
 	my %options=@_;
 
+	my @libJpegFlags=();
+	if ($options{'jpeg-inc-dir'} eq '' && $options{'jpeg-lib-dir'} eq '') {
+		@libJpegFlags=split("\n",readpipe(
+			"perl \"".$options{'utils'}."/PkgConfig.pl\" libjpeg"
+		));
+	}
+	if (!@libJpegFlags) {
+		if ($options{'jpeg-inc-dir'} ne '') {
+			push(@libJpegFlags, "--inc-search-dir", $options{'jpeg-inc-dir'});
+		}
+		if ($options{'jpeg-lib-dir'} ne '') {
+			push(@libJpegFlags, "--lib-search-dir", $options{'jpeg-lib-dir'});
+		}
+		push(@libJpegFlags, "--link", "jpeg");
+	}
+
 	system(
 		@{$options{'unicc_call'}},
 		"--math",
@@ -50,13 +66,7 @@ sub Build
 		"--lib-dir"       , "lib",
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
-		$options{'jpeg-inc-dir'} ne '' ? (
-			"--inc-search-dir", $options{'jpeg-inc-dir'}
-		) : (),
-		$options{'jpeg-lib-dir'} ne '' ? (
-			"--lib-search-dir", $options{'jpeg-lib-dir'}
-		) : (),
-		"--link"          , "jpeg",
+		@libJpegFlags,
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emJpeg",

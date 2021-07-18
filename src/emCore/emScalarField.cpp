@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2020 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -497,7 +497,7 @@ void emScalarField::StepByKeyboard(int dir)
 }
 
 
-const char * emScalarField::HowToScalarField=
+const char * const emScalarField::HowToScalarField=
 	"\n"
 	"\n"
 	"SCALAR FIELD\n"
@@ -511,7 +511,7 @@ const char * emScalarField::HowToScalarField=
 ;
 
 
-const char * emScalarField::HowToReadOnly=
+const char * const emScalarField::HowToReadOnly=
 	"\n"
 	"\n"
 	"READ-ONLY\n"

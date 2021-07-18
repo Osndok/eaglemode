@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvLibDirCfg.cpp
 //
-// Copyright (C) 2020 Oliver Hamann.
+// Copyright (C) 2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -344,15 +344,20 @@ emAvLibDirCfg::CfgPanel::~CfgPanel()
 
 bool emAvLibDirCfg::CfgPanel::Cycle()
 {
-	emString str;
+	emString newLibDir,str;
 
 	if (IsSignaled(Cfg.GetChangeSignal())) {
 		UpdateFromCfg();
 	}
 
 	if (FsBox && IsSignaled(FsBox->GetSelectionSignal())) {
-		if (LibDir!=FsBox->GetParentDirectory()) {
-			LibDir=FsBox->GetParentDirectory();
+		newLibDir=FsBox->GetParentDirectory();
+		if (!newLibDir.IsEmpty()) {
+			// Get rid of possible separator at end (e.g. "/x/y/" => "/x/y")
+			newLibDir=emGetParentPath(emGetChildPath(newLibDir,"z"));
+		}
+		if (LibDir!=newLibDir) {
+			LibDir=newLibDir;
 			LibDirValid=emAvLibDirCfg::CheckLibDir(LibDir,&LibDirError);
 			UpdateStatusLabel();
 		}
@@ -497,14 +502,14 @@ void emAvLibDirCfg::CfgPanel::UpdateStatusLabel(bool autoDetectFailed)
 }
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
-	const int emAvLibDirCfg::RequiredVlcArch          = 0x8664;
-	const char * emAvLibDirCfg::RequiredVlcArchString = "64-bit";
+	const int emAvLibDirCfg::RequiredVlcArch                = 0x8664;
+	const char * const emAvLibDirCfg::RequiredVlcArchString = "64-bit";
 #else
-	const int emAvLibDirCfg::RequiredVlcArch          = 0x14c;
-	const char * emAvLibDirCfg::RequiredVlcArchString = "32-bit";
+	const int emAvLibDirCfg::RequiredVlcArch                = 0x14c;
+	const char * const emAvLibDirCfg::RequiredVlcArchString = "32-bit";
 #endif
 
-const int emAvLibDirCfg::RequiredVlcVersion           = 3;
-const int emAvLibDirCfg::MinRequiredVlcSubVersion     = 0;
-const int emAvLibDirCfg::MaxRequiredVlcSubVersion     = 0;
-const char * emAvLibDirCfg::RequiredVlcVersionString  = "3.0.x";
+const int emAvLibDirCfg::RequiredVlcVersion                 = 3;
+const int emAvLibDirCfg::MinRequiredVlcSubVersion           = 0;
+const int emAvLibDirCfg::MaxRequiredVlcSubVersion           = 0;
+const char * const emAvLibDirCfg::RequiredVlcVersionString  = "3.0.x";

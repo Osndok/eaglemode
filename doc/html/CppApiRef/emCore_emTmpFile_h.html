@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTmpFile_h.html#emTmpFile">emTmpFile</A>.h
 //
-// Copyright (C) 2006-2008,2016,2020 Oliver Hamann.
+// Copyright (C) 2006-2008,2016,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -145,7 +145,7 @@
 <SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>static </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetCommonPath();
-        <SPAN CLASS=t>void </SPAN>TryDeleteDeadDirectories();
+        <SPAN CLASS=t>static void </SPAN>TryDeleteDeadDirectories();
         <SPAN CLASS=t>void </SPAN>TryStartOwnDirectory();
 
         <SPAN CLASS=t>class </SPAN>IpcServerClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emMiniIpc_h.html#emMiniIpcServer">emMiniIpcServer</A> <SPAN CLASS=b>{
@@ -158,7 +158,7 @@
         IpcServerClass IpcServer;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> DirPath;
         <SPAN CLASS=t>unsigned </SPAN>FileNameCounter;
-        <SPAN CLASS=t>static const char </SPAN>* DirNameEnding;
+        <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>DirNameEnding;
 <SPAN CLASS=b>}</SPAN>;
 
 

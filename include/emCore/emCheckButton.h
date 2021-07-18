@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCheckButton.h
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,9 +72,9 @@ private:
 	emSignal CheckSignal;
 	bool Checked;
 
-	static const char * HowToCheckButton;
-	static const char * HowToChecked;
-	static const char * HowToNotChecked;
+	static const char * const HowToCheckButton;
+	static const char * const HowToChecked;
+	static const char * const HowToNotChecked;
 };
 
 inline const emSignal & emCheckButton::GetCheckSignal() const

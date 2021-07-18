@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Clipboard.cpp
 //
-// Copyright (C) 2005-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -507,7 +507,7 @@ emString emX11Clipboard::CurrentLocaleToUtf8(const emString & str)
 			buf=(char*)realloc(buf,bufSize);
 		}
 		len+=emEncodeUtf8Char(buf+len,c);
-	};
+	}
 	emString res(buf,len);
 	free(buf);
 	return res;
@@ -542,7 +542,7 @@ emString emX11Clipboard::Utf8ToCurrentLocale(const emString & str)
 			buf=(char*)realloc(buf,bufSize);
 		}
 		len+=emEncodeChar(buf+len,c,&mbState);
-	};
+	}
 	emString res(buf,len);
 	free(buf);
 	return res;
@@ -576,7 +576,7 @@ emString emX11Clipboard::CurrentLocaleToLatin1(const emString & str)
 		}
 		if (c>255) c='?';
 		buf[len++]=(char)c;
-	};
+	}
 	emString res(buf,len);
 	free(buf);
 	return res;
@@ -605,7 +605,7 @@ emString emX11Clipboard::Latin1ToCurrentLocale(const emString & str)
 			buf=(char*)realloc(buf,bufSize);
 		}
 		len+=emEncodeChar(buf+len,c,&mbState);
-	};
+	}
 	emString res(buf,len);
 	free(buf);
 	return res;

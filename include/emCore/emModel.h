@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emModel.h
 //
-// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,15 +117,15 @@ public:
 	// classes of models which are always common.
 #	define EM_IMPL_ACQUIRE(CLASS, CONTEXT, NAME, COMMON) \
 		CLASS * m; \
-		if (!COMMON) m=new CLASS(CONTEXT,NAME); \
+		if (!(COMMON)) m=new CLASS(CONTEXT,NAME); \
 		else { \
-			m=(CLASS*)CONTEXT.Lookup(typeid(CLASS),NAME); \
+			m=(CLASS*)(CONTEXT).Lookup(typeid(CLASS),NAME); \
 			if (!m) { m=new CLASS(CONTEXT,NAME); m->Register(); } \
 		} \
 		return emRef<CLASS >(m);
 #	define EM_IMPL_ACQUIRE_COMMON(CLASS, CONTEXT, NAME) \
 		CLASS * m; \
-		m=(CLASS*)CONTEXT.Lookup(typeid(CLASS),NAME); \
+		m=(CLASS*)(CONTEXT).Lookup(typeid(CLASS),NAME); \
 		if (!m) { m=new CLASS(CONTEXT,NAME); m->Register(); } \
 		return emRef<CLASS >(m);
 

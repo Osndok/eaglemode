@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.h
 //
-// Copyright (C) 2004-2008,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,7 +77,7 @@ public:
 	void UpdateSelection();
 
 	void SelectionToClipboard(emView & contentView, bool source=false,
-	                          bool namesOnly=false);
+	                          bool namesOnly=false) const;
 
 	const emString & GetMiniIpcServerName() const;
 
@@ -150,9 +150,9 @@ private:
 
 	static int SearchSelection(const emArray<SelEntry> & sel, int hashCode,
 	                           const char * path);
-	emArray<emDirEntry> CreateSortedSelDirEntries(
+	static emArray<emDirEntry> CreateSortedSelDirEntries(
 		emView & contentView, const emArray<SelEntry> & sel
-	) const;
+	);
 	static int CmpDEs(
 		const emDirEntry * de1, const emDirEntry * de2,
 		void * context // The emFileManViewConfig
@@ -160,27 +160,27 @@ private:
 
 	void UpdateCommands();
 	bool CheckCRCs(const CommandNode * parent);
-	emUInt64 CalcDirCRC(const emString & dir, const emArray<emString> & names);
+	static emUInt64 CalcDirCRC(const emString & dir, const emArray<emString> & names);
 	void ClearCommands();
 	void LoadCommands(const emString & rootDir);
 	void LoadChildCommands(CommandNode * parent);
 	static bool CheckCommandFileEnding(const char * name);
-	void LoadCommand(CommandNode * cmd, const emString & cmdPath);
+	void LoadCommand(CommandNode * parent, const emString & cmdPath);
 	static int CompareCmds(
 		const CommandNode * const * n1, const CommandNode * const * n2,
 		void * context
 	);
 	int SearchCommand(int hashCode, const char * path) const;
-	const CommandNode * SearchDefaultCommandFor(
+	static const CommandNode * SearchDefaultCommandFor(
 		const CommandNode * parent, const emString & filePath,
 		int * pPriority=NULL
-	) const;
-	const CommandNode * SearchHotkeyCommand(
+	);
+	static const CommandNode * SearchHotkeyCommand(
 		const CommandNode * parent, const emInputHotkey & hotkey
-	) const;
-	int CheckDefaultCommand(
+	);
+	static int CheckDefaultCommand(
 		const CommandNode * cmd, const emString & filePath
-	) const;
+	);
 	emString GetCommandRunId() const;
 
 

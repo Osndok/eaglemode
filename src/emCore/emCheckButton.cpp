@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCheckButton.cpp
 //
-// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -71,7 +71,7 @@ emString emCheckButton::GetHowTo() const
 }
 
 
-const char * emCheckButton::HowToCheckButton=
+const char * const emCheckButton::HowToCheckButton=
 	"\n"
 	"\n"
 	"CHECK BUTTON\n"
@@ -81,7 +81,7 @@ const char * emCheckButton::HowToCheckButton=
 ;
 
 
-const char * emCheckButton::HowToChecked=
+const char * const emCheckButton::HowToChecked=
 	"\n"
 	"\n"
 	"CHECKED\n"
@@ -90,7 +90,7 @@ const char * emCheckButton::HowToChecked=
 ;
 
 
-const char * emCheckButton::HowToNotChecked=
+const char * const emCheckButton::HowToNotChecked=
 	"\n"
 	"\n"
 	"UNCHECKED\n"

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAutoplay.h
 //
-// Copyright (C) 2017 Oliver Hamann.
+// Copyright (C) 2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -106,7 +106,7 @@ private:
 	};
 
 	AdvanceResult AdvanceCurrentPanel();
-	bool IsItem(const emPanel * p) const;
+	static bool IsItem(const emPanel * p);
 	bool IsCutoff(const emPanel * p) const;
 	void GoParent();
 	void GoChild(emPanel * c);

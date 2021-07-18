@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRadioButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -257,7 +257,7 @@ emString emRadioButton::GetHowTo() const
 }
 
 
-const char * emRadioButton::HowToRadioButton=
+const char * const emRadioButton::HowToRadioButton=
 	"\n"
 	"\n"
 	"RADIO BUTTON\n"

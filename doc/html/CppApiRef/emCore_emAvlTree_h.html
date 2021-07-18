@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emAvlTree.h
 //
-// Copyright (C) 2005-2008,2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -330,6 +330,39 @@
 
 </SPAN><SPAN CLASS=p>#define EM_AVL_REMOVE_END \
                 </SPAN><SPAN CLASS=k>break</SPAN>; \
+        <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=c>//----------------------- Macros for the clear algorithm -----------------------
+
+</SPAN><SPAN CLASS=p>#define EM_AVL_CLEAR_VARS(ELEMENT_CLASS) \
+        </SPAN>emAvlNode * nstack[<SPAN CLASS=u>64</SPAN>]; \
+        emAvlNode * node; \
+        <SPAN CLASS=t>int </SPAN>depth; \
+        ELEMENT_CLASS * element;
+
+<SPAN CLASS=p>#define EM_AVL_CLEAR_BEGIN(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+        </SPAN>node=TREE; \
+        TREE=<SPAN CLASS=u>NULL</SPAN>; \
+        depth=<SPAN CLASS=u>0</SPAN>; \
+        <SPAN CLASS=k>if </SPAN>(!node) element=<SPAN CLASS=u>NULL</SPAN>; \
+        <SPAN CLASS=k>else for </SPAN>(;;) <SPAN CLASS=b>{ </SPAN>\
+                <SPAN CLASS=k>if </SPAN>(node-&gt;Left) <SPAN CLASS=b>{ </SPAN>\
+                        nstack[depth++]=node-&gt;Left; \
+                        node-&gt;Left=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                <SPAN CLASS=k>if </SPAN>(node-&gt;Right) <SPAN CLASS=b>{ </SPAN>\
+                        nstack[depth++]=node-&gt;Right; \
+                        node-&gt;Right=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node);
+
+<SPAN CLASS=p>#define EM_AVL_CLEAR_END \
+                </SPAN><SPAN CLASS=k>if </SPAN>(depth&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>\
+                        node=nstack[--depth]; \
+                        <SPAN CLASS=k>continue</SPAN>; \
+                <SPAN CLASS=b>} </SPAN>\
+                element=<SPAN CLASS=u>NULL</SPAN>; \
+                <SPAN CLASS=k>break</SPAN>; \
         <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=c>//---------------------- Macros for the search algorithm -----------------------

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.h
 //
-// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -168,7 +168,7 @@ private:
 	void Index2ColRow(int index, int * pColumn, int * pRow) const;
 	void CalcTotalColsRows(int * pCols, int * pRows) const;
 	int GetNormalizedIndex(int index) const;
-	void ModifySelection(int oldColumn, int newColumn, bool publish);
+	void ModifySelection(int oldIndex, int newIndex, bool publish);
 	emMBState GetMBStateAtIndex(int index) const;
 	int GetNextIndex(int index, emMBState * mbState=NULL) const;
 	int GetPrevIndex(int index) const;
@@ -200,10 +200,10 @@ private:
 	DragModeType DragMode;
 	double DragPosC,DragPosR;
 
-	static const char * HowToTextField;
-	static const char * HowToMultiLineOff;
-	static const char * HowToMultiLineOn;
-	static const char * HowToReadOnly;
+	static const char * const HowToTextField;
+	static const char * const HowToMultiLineOff;
+	static const char * const HowToMultiLineOn;
+	static const char * const HowToReadOnly;
 };
 
 inline bool emTextField::IsEditable() const

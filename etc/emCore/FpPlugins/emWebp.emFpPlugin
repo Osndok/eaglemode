@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".webp" }
+Priority = 1.0
+Library = "emWebp"
+Function = "emWebpFpPluginFunc"

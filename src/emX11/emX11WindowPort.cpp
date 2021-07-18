@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012,2014-2017,2019 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2017,2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,24 +38,7 @@ void emX11WindowPort::WindowFlagsChanged()
 			emWindow::WF_POPUP
 		)) != 0
 	) {
-		SetModalState(false);
-		if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
-		XMutex.Lock();
-		XFreeGC(Disp,Gc);
-		XMutex.Unlock();
-		Gc=NULL;
-		if (InputContext) {
-			XMutex.Lock();
-			XDestroyIC(InputContext);
-			XMutex.Unlock();
-			InputContext=NULL;
-		}
-		Screen.WCThread->RemoveWindow(Win);
-		XMutex.Lock();
-		XDestroyWindow(Disp,Win);
-		XMutex.Unlock();
-		Win=None;
-
+		PreDestruct();
 		PreConstruct();
 
 		for (i=0; i<Screen.WinPorts.GetCount(); i++) {
@@ -140,18 +123,20 @@ void emX11WindowPort::GetBorderSizes(
 
 void emX11WindowPort::RequestFocus()
 {
+	int i;
+
 	if (!Focused) {
-		if (PostConstructed) {
-			if (!MakeViewable()) return;
-			// The Inter-Client Communication Conventions Manual
-			// version 2.0 chapter "Input Focus" recommends to set
-			// RevertToParent always when calling XSetInputFocus.
-			XMutex.Lock();
-			XSetInputFocus(Disp,Win,RevertToParent,Screen.LastKnownTime);
-			XMutex.Unlock();
+		for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
+			if (Screen.WinPorts[i] != this && Screen.WinPorts[i]->FocusPending) {
+				Screen.WinPorts[i]->Focused=false;
+				Screen.WinPorts[i]->FocusPending=false;
+				Screen.WinPorts[i]->SetViewFocused(false);
+			}
 		}
 		Focused=true;
+		FocusPending=true;
 		SetViewFocused(true);
+		if (Mapped) GrabFocus();
 	}
 }
 
@@ -231,7 +216,8 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	: emWindowPort(window),
 	emEngine(window.GetScheduler()),
 	Screen((emX11Screen&)window.GetScreen()),
-	XMutex(Screen.XMutex)
+	XMutex(Screen.XMutex),
+	AfterMapNotifyTimer(GetScheduler())
 {
 	emContext * c;
 	emX11WindowPort * wp;
@@ -266,6 +252,7 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	ClipY1=PaneY;
 	ClipX2=PaneX+PaneW;
 	ClipY2=PaneY+PaneH;
+	OverrideRedirect=false;
 	PostConstructed=false;
 	Mapped=false;
 	Focused=false;
@@ -276,7 +263,11 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 	TitlePending=false;
 	IconPending=false;
 	CursorPending=false;
+	FocusPending=false;
+	FocusEventPending=false;
+	GrabPending=false;
 	LaunchFeedbackSent=false;
+	DoNotTouchFocusOnClose=false;
 	InputStateClock=0;
 	LastButtonPress=EM_KEY_NONE;
 	LastButtonPressTime=0;
@@ -294,40 +285,32 @@ emX11WindowPort::emX11WindowPort(emWindow & window)
 
 	SetEnginePriority(emEngine::VERY_LOW_PRIORITY);
 
+	AddWakeUpSignal(AfterMapNotifyTimer.GetSignal());
+
 	PreConstruct();
 }
 
 
 emX11WindowPort::~emX11WindowPort()
 {
+	emX11WindowPort * focusTarget;
 	int i;
 
-	// When modifying this, the implementation of WindowFlagsChanged
-	// may have to be modified too.
+	focusTarget = NULL;
+	if (Focused && OverrideRedirect && !DoNotTouchFocusOnClose) {
+		focusTarget=Owner;
+	}
 
-	SetModalState(false);
-	if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
+	PreDestruct();
+
 	for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
 		if (Screen.WinPorts[i]==this) {
 			Screen.WinPorts.Remove(i);
 			break;
 		}
 	}
-	XMutex.Lock();
-	XFreeGC(Disp,Gc);
-	XMutex.Unlock();
-	Gc=NULL;
-	if (InputContext) {
-		XMutex.Lock();
-		XDestroyIC(InputContext);
-		XMutex.Unlock();
-		InputContext=NULL;
-	}
-	Screen.WCThread->RemoveWindow(Win);
-	XMutex.Lock();
-	XDestroyWindow(Disp,Win);
-	XMutex.Unlock();
-	Win=None;
+
+	if (focusTarget) focusTarget->RequestFocus();
 }
 
 
@@ -340,8 +323,7 @@ void emX11WindowPort::PreConstruct()
 	XGCValues xgcv;
 	long eventMask,extraEventMask;
 	double vrx,vry,vrw,vrh,d;
-	int monitor,border;
-	bool haveBorder;
+	int i,monitor,border;
 	Atom atoms[2];
 
 	monitor=0;
@@ -359,8 +341,8 @@ void emX11WindowPort::PreConstruct()
 		BorderT=0;
 		BorderR=0;
 		BorderB=0;
-		haveBorder=false;
-		Focused=true;
+		border=0;
+		OverrideRedirect=true;
 	}
 	else {
 		MinPaneW=32;
@@ -383,9 +365,8 @@ void emX11WindowPort::PreConstruct()
 		BorderT=18;
 		BorderR=3;
 		BorderB=3;
-		haveBorder=true;
-		if ((WindowFlags&emWindow::WF_MODAL)!=0) Focused=true;
-		else Focused=false;
+		border=1;
+		OverrideRedirect=false;
 	}
 	ClipX1=PaneX;
 	ClipY1=PaneY;
@@ -402,6 +383,7 @@ void emX11WindowPort::PreConstruct()
 	Cursor=-1;
 	CursorPending=true;
 	PostConstructed=false;
+	DoNotTouchFocusOnClose=false;
 	Mapped=false;
 	InputStateClock=0;
 	LastButtonPress=EM_KEY_NONE;
@@ -423,15 +405,7 @@ void emX11WindowPort::PreConstruct()
 	xswa.bit_gravity=ForgetGravity;
 	xswa.colormap=Screen.Colmap;
 	xswa.event_mask=eventMask;
-
-	if (haveBorder) {
-		xswa.override_redirect=False;
-		border=1;
-	}
-	else {
-		xswa.override_redirect=True;
-		border=0;
-	}
+	xswa.override_redirect=OverrideRedirect?True:False;
 
 	XMutex.Lock();
 	Win=XCreateWindow(
@@ -518,17 +492,54 @@ void emX11WindowPort::PreConstruct()
 	Gc=XCreateGC(Disp,Win,0,&xgcv);
 	XMutex.Unlock();
 
-	SetViewFocused(Focused);
+	GrabPending=false;
+	if ((WindowFlags&emWindow::WF_POPUP)!=0 && !Screen.GrabbingWinPort) {
+		for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
+			if (Screen.WinPorts[i]->GrabPending) break;
+		}
+		if (i<0) GrabPending=true;
+	}
+
+	Focused=false;
+	FocusPending=false;
+	FocusEventPending=false;
+	if (OverrideRedirect || (WindowFlags&emWindow::WF_MODAL)!=0) {
+		emX11WindowPort::RequestFocus();
+	}
+	else {
+		SetViewFocused(false);
+	}
+
 	SetViewGeometry(PaneX,PaneY,PaneW,PaneH,Screen.PixelTallness);
 
 	WakeUp();
 }
 
 
+void emX11WindowPort::PreDestruct()
+{
+	SetModalState(false);
+	if (Screen.GrabbingWinPort==this) Screen.GrabbingWinPort=NULL;
+	XMutex.Lock();
+	XFreeGC(Disp,Gc);
+	XMutex.Unlock();
+	Gc=NULL;
+	if (InputContext) {
+		XMutex.Lock();
+		XDestroyIC(InputContext);
+		XMutex.Unlock();
+		InputContext=NULL;
+	}
+	Screen.WCThread->RemoveWindow(Win);
+	XMutex.Lock();
+	XDestroyWindow(Disp,Win);
+	XMutex.Unlock();
+	Win=None;
+}
+
+
 void emX11WindowPort::PostConstruct()
 {
-	int i,r;
-
 	if ((WindowFlags&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
 		XMutex.Lock();
 		XMapRaised(Disp,Win);
@@ -538,63 +549,6 @@ void emX11WindowPort::PostConstruct()
 		XMutex.Lock();
 		XMapWindow(Disp,Win);
 		XMutex.Unlock();
-	}
-
-	if (Focused) {
-		if (MakeViewable()) {
-			XMutex.Lock();
-			XSetInputFocus(Disp,Win,RevertToParent,Screen.LastKnownTime);
-			XMutex.Unlock();
-		}
-		else {
-			Focused=false;
-			SetViewFocused(false);
-		}
-	}
-
-	if ((WindowFlags&emWindow::WF_POPUP)!=0 && !Screen.GrabbingWinPort) {
-		if (MakeViewable()) {
-			for (i=0; ; i++) {
-				XMutex.Lock();
-				r=XGrabKeyboard(
-					Disp,
-					Win,
-					True,
-					GrabModeSync,
-					GrabModeAsync,
-					CurrentTime
-				);
-				XMutex.Unlock();
-				if (r==GrabSuccess) break;
-				if (i>10) emFatalError("XGrabKeyboard failed.");
-				emWarning("XGrabKeyboard failed - trying again...");
-				emSleepMS(50);
-			}
-			for (i=0; ; i++) {
-				XMutex.Lock();
-				r=XGrabPointer(
-					Disp,
-					Win,
-					True,
-					ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
-					ButtonMotionMask|EnterWindowMask|LeaveWindowMask,
-					GrabModeSync,
-					GrabModeAsync,
-					None,
-					None,
-					CurrentTime
-				);
-				XMutex.Unlock();
-				if (r==GrabSuccess) break;
-				if (i>10) emFatalError("XGrabPointer failed.");
-				emWarning("XGrabPointer failed - trying again...");
-				emSleepMS(50);
-			}
-			XMutex.Lock();
-			XAllowEvents(Disp,SyncPointer,CurrentTime);
-			XMutex.Unlock();
-			Screen.GrabbingWinPort=this;
-		}
 	}
 
 	if ((WindowFlags&emWindow::WF_MAXIMIZED)!=0) {
@@ -690,6 +644,7 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 			XMutex.Unlock();
 			Screen.GrabbingWinPort=NULL;
 			LastButtonPress=EM_KEY_NONE;
+			DoNotTouchFocusOnClose=true;
 			SignalWindowClosing();
 		}
 		for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
@@ -698,6 +653,7 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 				(wp->GetWindowFlags()&emWindow::WF_POPUP)!=0 &&
 				wp!=this && !wp->IsAncestorOf(this)
 			) {
+				wp->DoNotTouchFocusOnClose=true;
 				wp->SignalWindowClosing();
 			}
 		}
@@ -824,6 +780,19 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 		RepeatKey=key;
 		KeyRepeat=repeat;
 		inputEvent.Setup(key,tmp,repeat,variant);
+		if (Screen.WorkAroundXWaylandFocusBug) {
+			for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
+				wp=Screen.WinPorts[i];
+				if (
+					wp->OverrideRedirect && wp->Mapped && wp->Focused &&
+					(wp->FocusPending || wp->FocusEventPending)
+				) {
+					wp->InputStateClock=Screen.InputStateClock;
+					wp->InputToView(inputEvent,Screen.InputState);
+					return;
+				}
+			}
+		}
 		InputStateClock=Screen.InputStateClock;
 		InputToView(inputEvent,Screen.InputState);
 		return;
@@ -861,6 +830,8 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 			}
 			Screen.UpdateKeymapAndInputState();
 			RepeatKey=EM_KEY_NONE;
+			FocusPending=false;
+			FocusEventPending=false;
 			if (!Focused) {
 				Focused=true;
 				SetViewFocused(true);
@@ -878,7 +849,8 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 				XUnsetICFocus(InputContext);
 				XMutex.Unlock();
 			}
-			if (Focused) {
+			FocusEventPending=false;
+			if (Focused && !FocusPending) {
 				Focused=false;
 				SetViewFocused(false);
 			}
@@ -928,6 +900,26 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 	case MapNotify:
 		if (event.xmap.window==Win && !Mapped) {
 			Mapped=true;
+			if (FocusPending) {
+				if (Screen.WorkAroundXWaylandFocusBug && OverrideRedirect) {
+					// Workaround for a race condition bug in XWayland: If
+					// XSetInputFocus is called too early on an
+					// override-redirect window, it possibly happens that the
+					// window never gets key press events, though a FocusIn
+					// event (and XGetInputFocus) report that the window has
+					// focus. In that situation also no other window gets the
+					// key events. An additional (later) call to XSetInputFocus
+					// does not help. Besides: Note that XWayland ignores
+					// keyboard and pointer grabbing concerning non-X11 windows.
+					AfterMapNotifyTimer.Start(500);
+				}
+				else {
+					GrabFocus();
+				}
+			}
+			if (GrabPending) {
+				GrabKeyboardAndPointer();
+			}
 			WakeUp();
 		}
 		return;
@@ -938,8 +930,13 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 		return;
 	case ClientMessage:
 		if (event.xclient.data.l[0]==(long)Screen.WM_DELETE_WINDOW) {
-			if (ModalDescendants<=0) SignalWindowClosing();
-			else FocusModalDescendant(true);
+			if (ModalDescendants<=0) {
+				DoNotTouchFocusOnClose=true;
+				SignalWindowClosing();
+			}
+			else {
+				FocusModalDescendant(true);
+			}
 		}
 		else if (event.xclient.data.l[0]==(long)Screen.WM_TAKE_FOCUS) {
 			RequestFocus();
@@ -1070,6 +1067,10 @@ bool emX11WindowPort::Cycle()
 		PostConstructed=true;
 	}
 
+	if (IsSignaled(AfterMapNotifyTimer.GetSignal()) && FocusPending) {
+		 GrabFocus();
+	}
+
 	if (!InvalidRects.IsEmpty() && Mapped) {
 		UpdatePainting();
 		if (!LaunchFeedbackSent) {
@@ -1094,33 +1095,6 @@ void emX11WindowPort::UpdatePainting()
 	);
 
 	InvalidRects.Clear();
-}
-
-
-bool emX11WindowPort::MakeViewable()
-{
-	XWindowAttributes attr;
-	Status xs;
-	int i;
-
-	for (i=0; i<100; i++) {
-		XMutex.Lock();
-		XSync(Disp,False);
-		xs=XGetWindowAttributes(Disp,Win,&attr);
-		XMutex.Unlock();
-		if (!xs) break;
-		if (attr.map_state==IsViewable) return true;
-		if (i==0) {
-			XMutex.Lock();
-			XMapWindow(Disp,Win);
-			XMutex.Unlock();
-		}
-		else {
-			emSleepMS(10);
-		}
-	}
-	emWarning("emX11WindowPort::MakeViewable failed.");
-	return false;
 }
 
 
@@ -1184,6 +1158,88 @@ void emX11WindowPort::FocusModalDescendant(bool flash)
 	wp->RequestFocus();
 
 	if (flash) wp->Flash();
+}
+
+
+void emX11WindowPort::GrabFocus()
+{
+	XErrorHandler originalHandler;
+	bool focused;
+
+	XMutex.Lock();
+	XSync(Disp,False);
+	emX11Screen::ErrorHandlerMutex.Lock();
+	emX11Screen::ErrorHandlerCalled=false;
+	originalHandler=XSetErrorHandler(emX11Screen::ErrorHandler);
+
+	// The Inter-Client Communication Conventions Manual version 2.0
+	// chapter "Input Focus" recommends to set RevertToParent always
+	// when calling XSetInputFocus.
+	XSetInputFocus(Disp,Win,RevertToParent,Screen.LastKnownTime);
+	focused = !emX11Screen::ErrorHandlerCalled;
+
+	XSync(Disp,False);
+	XSetErrorHandler(originalHandler);
+	emX11Screen::ErrorHandlerMutex.Unlock();
+	XMutex.Unlock();
+
+	FocusPending=false;
+	FocusEventPending=focused;
+	if (Focused!=focused) {
+		Focused=focused;
+		SetViewFocused(Focused);
+	}
+}
+
+
+void emX11WindowPort::GrabKeyboardAndPointer()
+{
+	int i,r;
+
+	for (i=0; ; i++) {
+		XMutex.Lock();
+		r=XGrabKeyboard(
+			Disp,
+			Win,
+			True,
+			GrabModeSync,
+			GrabModeAsync,
+			CurrentTime
+		);
+		XMutex.Unlock();
+		if (r==GrabSuccess) break;
+		if (i>10) emFatalError("XGrabKeyboard failed.");
+		emWarning("XGrabKeyboard failed - trying again...");
+		emSleepMS(50);
+	}
+
+	for (i=0; ; i++) {
+		XMutex.Lock();
+		r=XGrabPointer(
+			Disp,
+			Win,
+			True,
+			ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
+			ButtonMotionMask|EnterWindowMask|LeaveWindowMask,
+			GrabModeSync,
+			GrabModeAsync,
+			None,
+			None,
+			CurrentTime
+		);
+		XMutex.Unlock();
+		if (r==GrabSuccess) break;
+		if (i>10) emFatalError("XGrabPointer failed.");
+		emWarning("XGrabPointer failed - trying again...");
+		emSleepMS(50);
+	}
+
+	XMutex.Lock();
+	XAllowEvents(Disp,SyncPointer,CurrentTime);
+	XMutex.Unlock();
+
+	GrabPending=false;
+	Screen.GrabbingWinPort=this;
 }
 
 

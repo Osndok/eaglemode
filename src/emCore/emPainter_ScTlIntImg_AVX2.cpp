@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter_ScTlIntImg_AVX2.cpp
 //
-// Copyright (C) 2020 Oliver Hamann.
+// Copyright (C) 2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -353,7 +353,7 @@ void emPainter::ScanlineTool::CONCAT(InterpolateImageAvx2Nearest,CONCAT(
 					}
 				}
 			}
-			PREMULFIN_COLOR_VEC8(v);
+			PREMULFIN_COLOR_VEC8(v)
 			_mm_storeu_si128((__m128i*)buf,v);
 			buf+=(16/CHANNELS)*CHANNELS;
 		} while (buf<bufEnd);
@@ -379,7 +379,7 @@ void emPainter::ScanlineTool::CONCAT(InterpolateImageAvx2Nearest,CONCAT(
 					tx+=tdx;
 				}
 			}
-			PREMULFIN_COLOR_VEC8(v);
+			PREMULFIN_COLOR_VEC8(v)
 			_mm_storeu_si128((__m128i*)buf,v);
 			buf+=(16/CHANNELS)*CHANNELS;
 		} while (buf<bufEnd);

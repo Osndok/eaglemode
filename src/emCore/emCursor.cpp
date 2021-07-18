@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCursor.cpp
 //
-// Copyright (C) 2011 Oliver Hamann.
+// Copyright (C) 2011,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,7 +56,7 @@ const char * emCursor::ToString() const
 	default:
 		p="UNKNOWN";
 		break;
-	};
+	}
 
 	return p;
 }

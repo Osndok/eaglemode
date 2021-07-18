@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestThreads.cpp
 //
-// Copyright (C) 2009,2018 Oliver Hamann.
+// Copyright (C) 2009,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -316,12 +316,12 @@ public:
 		WaitForTermination();
 	}
 
-	bool IsThinking()
+	bool IsThinking() const
 	{
 		return Thinking;
 	}
 
-	bool IsEating()
+	bool IsEating() const
 	{
 		return Eating;
 	}

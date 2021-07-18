@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPackLayout.cpp
 //
-// Copyright (C) 2015 Oliver Hamann.
+// Copyright (C) 2015,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -309,19 +309,17 @@ double emPackLayout::Pack2(
 	}
 
 	if (execute) {
-		switch (solution) {
-		case 0:
+		if (solution==0) {
 			p=TI->TPIs[index].Panel;
 			if (p) p->Layout(x,y,w1,h,TI->CanvasColor);
 			p=TI->TPIs[index+1].Panel;
 			if (p) p->Layout(x+w1,y,w-w1,h,TI->CanvasColor);
-			break;
-		default:
+		}
+		else {
 			p=TI->TPIs[index].Panel;
 			if (p) p->Layout(x,y,w,h1,TI->CanvasColor);
 			p=TI->TPIs[index+1].Panel;
 			if (p) p->Layout(x,y+h1,w,h-h1,TI->CanvasColor);
-			break;
 		}
 	}
 

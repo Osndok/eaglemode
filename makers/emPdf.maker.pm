@@ -53,22 +53,10 @@ sub Build
 		"lib/emPdf"
 	)==0 or return 0;
 
-	my @libpopplerglibFlags=();
-	my $str=readpipe('pkg-config --cflags --libs gtk+-2.0 poppler-glib');
-	if ($str) {
-		foreach my $f (split(/\s+/,$str)) {
-			if (substr($f,0,2) eq '-I') {
-				push(@libpopplerglibFlags,'--inc-search-dir',substr($f,2));
-			}
-			elsif (substr($f,0,2) eq '-L') {
-				push(@libpopplerglibFlags,'--lib-search-dir',substr($f,2));
-			}
-			elsif (substr($f,0,2) eq '-l') {
-				push(@libpopplerglibFlags,'--link',substr($f,2));
-			}
-		}
-	}
-	else {
+	my @libpopplerglibFlags=split("\n",readpipe(
+		"perl \"".$options{'utils'}."/PkgConfig.pl\" gtk+-2.0 poppler-glib"
+	));
+	if (!@libpopplerglibFlags) {
 		@libpopplerglibFlags=("--link","poppler-glib");
 	}
 

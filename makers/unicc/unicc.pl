@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # unicc.pl
 #
-# Copyright (C) 2006-2008,2017,2020 Oliver Hamann.
+# Copyright (C) 2006-2008,2017,2020-2021 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -42,6 +42,7 @@ our @EXPORT=qw(
 	&GetBinDir
 	&GetLibDir
 	&GetLibSearchDirs
+	&GetRuntimeLibSearchDirs
 	&GetIncSearchDirs
 	&GetLinkNames
 	&HaveMath
@@ -68,6 +69,7 @@ my $ObjDir=".";
 my $BinDir=".";
 my $LibDir=".";
 my @LibSearchDirs=();
+my @RuntimeLibSearchDirs=();
 my @IncSearchDirs=();
 my @Links=();
 my $Math=0;
@@ -105,6 +107,9 @@ for (my $i=0; $i<@ARGV; $i++) {
 	}
 	elsif ($ARGV[$i] eq "--lib-search-dir" and $i+1<@ARGV) {
 		push(@LibSearchDirs,$ARGV[++$i]);
+	}
+	elsif ($ARGV[$i] eq "--runtime-lib-search-dir" and $i+1<@ARGV) {
+		push(@RuntimeLibSearchDirs,$ARGV[++$i]);
 	}
 	elsif ($ARGV[$i] eq "--inc-search-dir" and $i+1<@ARGV) {
 		push(@IncSearchDirs,$ARGV[++$i]);
@@ -147,6 +152,7 @@ if ($Config{'osname'} eq 'MSWin32') {
 	$BinDir=~tr/\//\\/;
 	$LibDir=~tr/\//\\/;
 	for (my $i=0; $i<@LibSearchDirs; $i++) { $LibSearchDirs[$i]=~tr/\//\\/; }
+	for (my $i=0; $i<@RuntimeLibSearchDirs; $i++) { $RuntimeLibSearchDirs[$i]=~tr/\//\\/; }
 	for (my $i=0; $i<@IncSearchDirs; $i++) { $IncSearchDirs[$i]=~tr/\//\\/; }
 	for (my $i=0; $i<@Srcs; $i++) { $Srcs[$i]=~tr/\//\\/; }
 }
@@ -412,6 +418,7 @@ sub GetObjDir { return $ObjDir; }
 sub GetBinDir { return $BinDir; }
 sub GetLibDir { return $LibDir; }
 sub GetLibSearchDirs { return \@LibSearchDirs; }
+sub GetRuntimeLibSearchDirs { return \@RuntimeLibSearchDirs; }
 sub GetIncSearchDirs { return \@IncSearchDirs; }
 sub GetLinkNames { return \@Links; }
 sub HaveMath { return $Math; }

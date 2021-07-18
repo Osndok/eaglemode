@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTextField_h.html#emTextField">emTextField</A>.h
 //
-// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -177,7 +177,7 @@
         <SPAN CLASS=t>void </SPAN>Index2ColRow(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>* pColumn, <SPAN CLASS=t>int </SPAN>* pRow) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>CalcTotalColsRows(<SPAN CLASS=t>int </SPAN>* pCols, <SPAN CLASS=t>int </SPAN>* pRows) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetNormalizedIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>ModifySelection(<SPAN CLASS=t>int </SPAN>oldColumn, <SPAN CLASS=t>int </SPAN>newColumn, <SPAN CLASS=t>bool </SPAN>publish);
+        <SPAN CLASS=t>void </SPAN>ModifySelection(<SPAN CLASS=t>int </SPAN>oldIndex, <SPAN CLASS=t>int </SPAN>newIndex, <SPAN CLASS=t>bool </SPAN>publish);
         emMBState GetMBStateAtIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetNextIndex(<SPAN CLASS=t>int </SPAN>index, emMBState * mbState=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>int </SPAN>GetPrevIndex(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
@@ -209,10 +209,10 @@
         DragModeType DragMode;
         <SPAN CLASS=t>double </SPAN>DragPosC,DragPosR;
 
-        <SPAN CLASS=t>static const char </SPAN>* HowToTextField;
-        <SPAN CLASS=t>static const char </SPAN>* HowToMultiLineOff;
-        <SPAN CLASS=t>static const char </SPAN>* HowToMultiLineOn;
-        <SPAN CLASS=t>static const char </SPAN>* HowToReadOnly;
+        <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>HowToTextField;
+        <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>HowToMultiLineOff;
+        <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>HowToMultiLineOn;
+        <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>HowToReadOnly;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A>::IsEditable() <SPAN CLASS=t>const

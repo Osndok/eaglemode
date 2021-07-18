@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018-2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -529,7 +529,7 @@ void emColorField::TextOfHueValue (
 }
 
 
-const char * emColorField::HowToColorField=
+const char * const emColorField::HowToColorField=
 	"\n"
 	"\n"
 	"COLOR FIELD\n"
@@ -539,7 +539,7 @@ const char * emColorField::HowToColorField=
 ;
 
 
-const char * emColorField::HowToReadOnly=
+const char * const emColorField::HowToReadOnly=
 	"\n"
 	"\n"
 	"READ-ONLY\n"

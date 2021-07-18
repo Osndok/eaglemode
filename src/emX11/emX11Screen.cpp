@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2020 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -116,7 +116,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 {
 	const char * displayName, * modifiers;
 	XVisualInfo * viList, viTemplate, * vi;
-	int viCount,i,major,minor,bytesPerPixel,x,y,dc;
+	int viCount,i,major,minor,x,y,dc;
 	XErrorHandler originalHandler;
 	XF86VidModeModeLine ml;
 	void * data;
@@ -201,9 +201,6 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 			);
 		}
 	}
-	if      (VisuDepth<= 8) bytesPerPixel=1;
-	else if (VisuDepth<=16) bytesPerPixel=2;
-	else                    bytesPerPixel=4;
 
 	XMutex.Lock();
 	Colmap=XCreateColormap(Disp,RootWin,Visu,AllocNone);
@@ -314,12 +311,10 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 
 	AddWakeUpSignal(ScreensaverUpdateTimer.GetSignal());
 
-	emVarModel<bool(*)(emContext&)>::Set(
-		GetContext(),
-		"CheckIfUnreliableXWayland",
-		CheckIfUnreliableXWayland,
-		UINT_MAX
-	);
+	WorkAroundXWaylandFocusBug=CheckIfUnreliableXWayland();
+	if (WorkAroundXWaylandFocusBug) {
+		emDLog("emX11Screen: Working around XWayland focus bug");
+	}
 
 	WakeUp();
 }
@@ -1149,10 +1144,8 @@ int emX11Screen::WaitCursorThread::Run(void * arg)
 }
 
 
-bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
+bool emX11Screen::CheckIfUnreliableXWayland()
 {
-	emRef<emScreen> screen;
-	emX11Screen * x11Screen;
 	const char * p, * vendor, * procDir, * name;
 	emArray<emString> procNames;
 	emString path;
@@ -1161,42 +1154,40 @@ bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
 	int release,i,j,l;
 	bool found;
 
-	screen=emScreen::LookupInherited(context);
-	if (!screen) return false;
-	x11Screen=dynamic_cast<emX11Screen*>(screen.Get());
-	if (!x11Screen) return false;
-
-	p=getenv("EM_NO_WARN_XWAYLAND");
-	if (p && strcasecmp(p,"yes")==0) {
+	p=getenv("EM_NO_XWAYLAND_FOCUS_WORKAROUND");
+	if (p && (strcasecmp(p,"yes")==0 || strcasecmp(p,"true")==0 || strcasecmp(p,"1")==0)) {
 		return false;
 	}
 
-	// Xwayland running on this system?
-	procDir="/proc";
-	try {
-		procNames=emTryLoadDir(procDir);
-	}
-	catch (...) {
-		return false;
-	}
-	found=false;
-	for (i=procNames.GetCount()-1; i>=0 && !found; i--) {
-		name=procNames[i].Get();
-		for (j=0; name[j]>='0' && name[j]<='9'; j++);
-		if (name[j]==0) {
-			path=emGetChildPath(emGetChildPath(procDir,name),"cmdline");
-			f=fopen(path.Get(),"rb");
-			if (f) {
-				l=fread(buf,1,sizeof(buf)-1,f);
-				if (l>0) {
-					buf[l]=0;
-					if (strcmp(emGetNameInPath(buf),"Xwayland")==0) found=true;
+	p=getenv("WAYLAND_DISPLAY");
+	if (!p || !*p) {
+		// Xwayland running on this system?
+		procDir="/proc";
+		try {
+			procNames=emTryLoadDir(procDir);
+		}
+		catch (...) {
+			return false;
+		}
+		found=false;
+		for (i=procNames.GetCount()-1; i>=0 && !found; i--) {
+			name=procNames[i].Get();
+			for (j=0; name[j]>='0' && name[j]<='9'; j++);
+			if (name[j]==0) {
+				path=emGetChildPath(emGetChildPath(procDir,name),"cmdline");
+				f=fopen(path.Get(),"rb");
+				if (f) {
+					l=fread(buf,1,sizeof(buf)-1,f);
+					if (l>0) {
+						buf[l]=0;
+						if (strcmp(emGetNameInPath(buf),"Xwayland")==0) found=true;
+					}
+					fclose(f);
 				}
-				fclose(f);
 			}
 		}
+		if (!found) return false;
 	}
-	if (!found) return false;
 
 	// Check X server vendor and release (can also be seen with xdpyinfo)
 	// Saw the buggy behavior with Xwayland on:
@@ -1207,9 +1198,10 @@ bool emX11Screen::CheckIfUnreliableXWayland(emContext & context)
 	//  vendor="Fedora Project",       release=12003000 (Fedora 29)
 	//  vendor="Fedora Project",       release=12004000 (Fedora 30)
 	//  vendor="Fedora Project",       release=12006000 (Fedora 31)
-	//  vendor="Fedora Project",       release=12008000 (Fedora 32)
-	vendor=ServerVendor(x11Screen->Disp);
-	release=VendorRelease(x11Screen->Disp);
+	//  vendor="Fedora Project",       release=12008000 (Fedora 32 - 33)
+	//  vendor="The X.Org Foundation", release=12101001 (Fedora 34, Ubuntu 21.04)
+	vendor=ServerVendor(Disp);
+	release=VendorRelease(Disp);
 	if (
 		strcmp(vendor,"Fedora Project")!=0 &&
 		strcmp(vendor,"The X.Org Foundation")!=0

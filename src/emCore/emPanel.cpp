@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -659,7 +659,7 @@ double emPanel::GetViewCondition(ViewConditionType vcType) const
 			case VCT_HEIGHT : return ViewedHeight;
 			case VCT_MIN_EXT: return emMin(ViewedWidth, ViewedHeight);
 			case VCT_MAX_EXT: return emMax(ViewedWidth, ViewedHeight);
-		};
+		}
 	}
 	else if (InViewedPath) {
 		return 1E100;

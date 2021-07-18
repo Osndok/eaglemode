@@ -27,27 +27,16 @@ sub Build
 	shift;
 	my %options=@_;
 
-	my @libFtFlags=();
-	my $str=readpipe('pkg-config --cflags --libs freetype2');
-	if ($str) {
-		foreach my $f (split(/\s+/,$str)) {
-			if (substr($f,0,2) eq '-I') {
-				push(@libFtFlags,'--inc-search-dir',substr($f,2));
-			}
-			elsif (substr($f,0,2) eq '-L') {
-				push(@libFtFlags,'--lib-search-dir',substr($f,2));
-			}
-			elsif (substr($f,0,2) eq '-l') {
-				push(@libFtFlags,'--link',substr($f,2));
-			}
-		}
-	}
-	else {
+	my @libFtFlags=split("\n",readpipe(
+		"perl \"".$options{'utils'}."/PkgConfig.pl\" freetype2"
+	));
+	if (!@libFtFlags) {
 		@libFtFlags=(
 			"--inc-search-dir", "/usr/include/freetype2",
 			"--link"          , "freetype"
 		);
 	}
+
 	system(
 		@{$options{'unicc_call'}},
 		"--bin-dir"       , "bin",

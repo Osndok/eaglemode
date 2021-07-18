@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2020 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -197,7 +197,7 @@ void emFileManModel::UpdateSelection()
 
 void emFileManModel::SelectionToClipboard(
 	emView & contentView, bool source, bool namesOnly
-)
+) const
 {
 	emRef<emClipboard> clipboard;
 	emArray<emDirEntry> entries;
@@ -576,7 +576,7 @@ int emFileManModel::SearchSelection(
 
 emArray<emDirEntry> emFileManModel::CreateSortedSelDirEntries(
 	emView & contentView, const emArray<SelEntry> & sel
-) const
+)
 {
 	emArray<emDirEntry> res;
 	emRef<emFileManViewConfig> vc;
@@ -1096,7 +1096,7 @@ int emFileManModel::SearchCommand(int hashCode, const char * path) const
 
 const emFileManModel::CommandNode * emFileManModel::SearchDefaultCommandFor(
 	const CommandNode * parent, const emString & filePath, int * pPriority
-) const
+)
 {
 	const CommandNode * cmd, * bestCmd, * subCmd;
 	int i,pri,bestPri;
@@ -1130,7 +1130,7 @@ const emFileManModel::CommandNode * emFileManModel::SearchDefaultCommandFor(
 
 const emFileManModel::CommandNode * emFileManModel::SearchHotkeyCommand(
 	const CommandNode * parent, const emInputHotkey & hotkey
-) const
+)
 {
 	const CommandNode * cmd;
 	int i;
@@ -1158,7 +1158,7 @@ const emFileManModel::CommandNode * emFileManModel::SearchHotkeyCommand(
 
 int emFileManModel::CheckDefaultCommand(
 	const CommandNode * cmd, const emString & filePath
-) const
+)
 {
 	const char * p;
 	int len,pathlen,bestlen;

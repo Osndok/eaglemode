@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2020 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1417,7 +1417,7 @@ void emBorder::DoLabel(
 }
 
 
-const char * emBorder::HowToPreface=
+const char * const emBorder::HowToPreface=
 	"How to use this panel\n"
 	"#####################\n"
 	"\n"
@@ -1427,7 +1427,7 @@ const char * emBorder::HowToPreface=
 ;
 
 
-const char * emBorder::HowToDisabled=
+const char * const emBorder::HowToDisabled=
 	"\n"
 	"\n"
 	"DISABLED\n"
@@ -1438,7 +1438,7 @@ const char * emBorder::HowToDisabled=
 ;
 
 
-const char * emBorder::HowToFocus=
+const char * const emBorder::HowToFocus=
 	"\n"
 	"\n"
 	"FOCUS\n"

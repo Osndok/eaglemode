@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.h
 //
-// Copyright (C) 2005-2012,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2012,2016-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,6 +61,7 @@ private:
 	virtual ~emX11WindowPort();
 
 	void PreConstruct();
+	void PreDestruct();
 	void PostConstruct();
 
 	void HandleEvent(XEvent & event);
@@ -71,14 +72,15 @@ private:
 
 	void UpdatePainting();
 
-	bool MakeViewable();
-
 	emX11WindowPort * SearchOwnedPopupAt(double x, double y);
 
 	bool IsAncestorOf(emX11WindowPort * wp);
 
 	void SetModalState(bool modalState);
 	void FocusModalDescendant(bool flash=false);
+
+	void GrabFocus();
+	void GrabKeyboardAndPointer();
 
 	void Flash();
 
@@ -109,6 +111,7 @@ private:
 	double ClipX1,ClipY1,ClipX2,ClipY2;
 	emString Title;
 	emCursor Cursor;
+	bool OverrideRedirect;
 	bool PostConstructed;
 	bool Mapped;
 	bool Focused;
@@ -119,7 +122,12 @@ private:
 	bool TitlePending;
 	bool IconPending;
 	bool CursorPending;
+	bool FocusPending;
+	bool FocusEventPending;
+	bool GrabPending;
 	bool LaunchFeedbackSent;
+	bool DoNotTouchFocusOnClose;
+	emTimer AfterMapNotifyTimer;
 	emClipRects<int> InvalidRects;
 	emUInt64 InputStateClock;
 	emInputKey LastButtonPress;

@@ -7,7 +7,7 @@
 Description="\
 emArch.sh
 
-Copyright (C) 2007-2008,2010-2011,2019-2020 Oliver Hamann.
+Copyright (C) 2007-2008,2010-2011,2019-2021 Oliver Hamann.
 
 Homepage: http://eaglemode.sourceforge.net/
 
@@ -113,11 +113,30 @@ OPTIONS:
 #  - Younger version of GNU tar should be safe concerning absolute paths (they
 #    have the option -P|--absolute-paths which is not given here), but what
 #    about nasty tar archives containing up-going paths?
-
 Trust_7z=no
 Trust_ar=no
 Trust_tar=no
 Trust_unzip=no
+
+# Whether to use pigz or 7z instead of gzip for gz archives.
+# (At most one of these may be set to yes.)
+Use_pigz=no
+Use_7z_for_gz=no
+
+# Whether to use pbzip2, lbzip2 or 7z instead of bzip2 for bz2 archives.
+# (At most one of these may be set to yes.)
+Use_pbzip2=no
+Use_lbzip2=no
+Use_7z_for_bz2=no
+
+# Whether to use pixz, pxz or 7z instead of xz for xz archives.
+# (At most one of these may be set to yes.)
+Use_pixz=no
+Use_pxz=no
+Use_7z_for_xz=no
+
+# Whether to use 7z instead of zip/unzip for zip archives.
+Use_7z_for_zip=no
 
 
 #===============================================================================
@@ -226,6 +245,13 @@ SetErrorHint()
 	echo > "$ErrorHintFile"
 }
 
+SetErrorHintIfNotBrokenPipe()
+{
+	if test "$?" != "141" ; then
+		SetErrorHint
+	fi
+}
+
 CheckErrorHint ()
 {
 	if test -f "$ErrorHintFile" ; then
@@ -318,7 +344,19 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - -- "$@" || SetErrorHint ; } | bzip2 -c > "$ArchFile"
+{
+	tar cvf - -- "$@" || SetErrorHint
+} | {
+	if test $Use_pbzip2 = yes ; then
+		pbzip2 -c
+	elif test $Use_lbzip2 = yes ; then
+		lbzip2 -c
+	elif test $Use_7z_for_bz2 = yes ; then
+		7z a -si -so .bz2
+	else
+		bzip2 -c
+	fi
+} > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -332,7 +370,17 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - -- "$@" || SetErrorHint ; } | gzip -c > "$ArchFile"
+{
+	tar cvf - -- "$@" || SetErrorHint
+} | {
+	if test $Use_pigz = yes ; then
+		pigz -c
+	elif test $Use_7z_for_gz = yes ; then
+		7z a -si -so .gz
+	else
+		gzip -c
+	fi
+} > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -374,7 +422,19 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-{ tar cvf - -- "$@" || SetErrorHint ; } | xz --stdout > "$ArchFile"
+{
+	tar cvf - -- "$@" || SetErrorHint
+} | {
+	if test $Use_pixz = yes ; then
+		pixz
+	elif test $Use_pxz = yes ; then
+		pxz --stdout
+	elif test $Use_7z_for_xz = yes ; then
+		7z a -si -so .xz
+	else
+		xz --stdout
+	fi
+} > "$ArchFile"
 CheckErrorHintAnd $?
 
 ;;
@@ -401,51 +461,69 @@ if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec zip -r -9 "$ArchFile" -- "$@"
+if test $Use_7z_for_zip = yes ; then
+	exec 7z a -tzip -- "$ArchFile" "$@"
+else
+	exec zip -r -9 "$ArchFile" -- "$@"
+fi
 
 ;;
 #---------------------------------- pack bz2 -----------------------------------
 *.bz2|*.BZ2|*.Bz2)
 
 if test $# != 1 ; then
-	Error "Cannot pack multiple files with bzip2."
+	Error "Cannot pack multiple files into bz2 archive."
 fi
 if test -d "$1" ; then
-	Error "Cannot pack a directory with bzip2."
+	Error "Cannot pack a directory into bz2 archive."
 fi
 
 if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec bzip2 -c -- "$1" > "$ArchFile"
+if test $Use_pbzip2 = yes ; then
+	exec pbzip2 -c -- "$1" > "$ArchFile"
+elif test $Use_lbzip2 = yes ; then
+	exec lbzip2 -c -- "$1" > "$ArchFile"
+elif test $Use_7z_for_bz2 = yes ; then
+	exec 7z a -so -- .bz2 "$1" > "$ArchFile"
+else
+	exec bzip2 -c -- "$1" > "$ArchFile"
+fi
 
 ;;
 #----------------------------------- pack gz -----------------------------------
 *.gz|*.GZ|*.Gz)
 
 if test $# != 1 ; then
-	Error "Cannot pack multiple files with gzip."
+	Error "Cannot pack multiple files into gz archive."
 fi
 if test -d "$1" ; then
-	Error "Cannot pack a directory with gzip."
+	Error "Cannot pack a directory into gz archive."
 fi
 
 if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec gzip -c -- "$1" > "$ArchFile"
+if test $Use_pigz = yes ; then
+	exec pigz -c -- "$1" > "$ArchFile"
+elif test $Use_7z_for_gz = yes ; then
+	exec 7z a -so -- .gz "$1" > "$ArchFile"
+else
+	exec gzip -c -- "$1" > "$ArchFile"
+fi
 
 ;;
 #---------------------------------- pack lzma ----------------------------------
 *.lzma|*.LZMA|*.Lzma)
 
 if test $# != 1 ; then
-	Error "Cannot pack multiple files with lzma."
+	Error "Cannot pack multiple files into lzma archive."
 fi
 if test -d "$1" ; then
-	Error "Cannot pack a directory with lzma."
+	Error "Cannot pack a directory into lzma archive."
 fi
 
 if test -f "$ArchFile" ; then
@@ -459,10 +537,10 @@ exec xz --stdout --format=lzma -- "$1" > "$ArchFile"
 *.lzo|*.LZO|*.Lzo)
 
 if test $# != 1 ; then
-	Error "Cannot pack multiple files with lzo."
+	Error "Cannot pack multiple files into lzo archive."
 fi
 if test -d "$1" ; then
-	Error "Cannot pack a directory with lzo."
+	Error "Cannot pack a directory into lzo archive."
 fi
 
 if test -f "$ArchFile" ; then
@@ -476,17 +554,25 @@ exec lzop -c -- "$1" > "$ArchFile"
 *.xz|*.XZ|*.Xz)
 
 if test $# != 1 ; then
-	Error "Cannot pack multiple files with xz."
+	Error "Cannot pack multiple files into xz archive."
 fi
 if test -d "$1" ; then
-	Error "Cannot pack a directory with xz."
+	Error "Cannot pack a directory into xz archive."
 fi
 
 if test -f "$ArchFile" ; then
 	rm -f "$ArchFile" || exit 1
 fi
 
-exec xz --stdout -- "$1" > "$ArchFile"
+if test $Use_pixz = yes ; then
+	exec pixz -t < "$1" > "$ArchFile"
+elif test $Use_pxz = yes ; then
+	exec pxz --stdout -- "$1" > "$ArchFile"
+elif test $Use_7z_for_xz = yes ; then
+	exec 7z a -so -- .xz "$1" > "$ArchFile"
+else
+	exec xz --stdout -- "$1" > "$ArchFile"
+fi
 
 ;;
 #-------------------------------------------------------------------------------
@@ -633,7 +719,17 @@ exec tar xvf "$ArchFile"
 if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "Scanning archive listing for dangerous paths..."
 	{
-		bzip2 -d -c < "$ArchFile" || SetErrorHint
+		{
+			if test $Use_pbzip2 = yes ; then
+				pbzip2 -d -c
+			elif test $Use_lbzip2 = yes ; then
+				lbzip2 -d -c
+			elif test $Use_7z_for_bz2 = yes ; then
+				7z x -tbzip2 -si -so
+			else
+				bzip2 -d -c
+			fi
+		} < "$ArchFile" || SetErrorHintIfNotBrokenPipe
 	} | {
 		tar tf - || SetErrorHint
 		# for testing the test:
@@ -659,7 +755,19 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "okay, unpacking..."
 fi
 
-{ bzip2 -d -c < "$ArchFile" || SetErrorHint ; } | tar xvf -
+{
+	{
+		if test $Use_pbzip2 = yes ; then
+			pbzip2 -d -c
+		elif test $Use_lbzip2 = yes ; then
+			lbzip2 -d -c
+		elif test $Use_7z_for_bz2 = yes ; then
+			7z x -tbzip2 -si -so
+		else
+			bzip2 -d -c
+		fi
+	} < "$ArchFile" || SetErrorHintIfNotBrokenPipe
+} | tar xvf -
 CheckErrorHintAnd $?
 
 ;;
@@ -675,7 +783,15 @@ CheckErrorHintAnd $?
 if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "Scanning archive listing for dangerous paths..."
 	{
-		gzip -d -c < "$ArchFile" || SetErrorHint
+		{
+			if test $Use_pigz = yes ; then
+				pigz -d -c
+			elif test $Use_7z_for_gz = yes ; then
+				7z x -tgzip -si -so
+			else
+				gzip -d -c
+			fi
+		} < "$ArchFile" || SetErrorHintIfNotBrokenPipe
 	} | {
 		tar tf - || SetErrorHint
 		# for testing the test:
@@ -701,15 +817,62 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "okay, unpacking..."
 fi
 
-{ gzip -d -c < "$ArchFile" || SetErrorHint ; } | tar xvf -
+{
+	{
+		if test $Use_pigz = yes ; then
+			pigz -d -c
+		elif test $Use_7z_for_gz = yes ; then
+			7z x -tgzip -si -so
+		else
+			gzip -d -c
+		fi
+	} < "$ArchFile" || SetErrorHintIfNotBrokenPipe
+} | tar xvf -
 CheckErrorHintAnd $?
 
 ;;
-#-------------------------- unpack tar.lzma + tar.xz ---------------------------
+#------------------------------- unpack tar.lzma -------------------------------
 *.tar.lzma|*.TAR.lzma|*.Tar.lzma|\
 *.tar.LZMA|*.TAR.LZMA|*.Tar.LZMA|\
 *.tar.Lzma|*.TAR.Lzma|*.Tar.Lzma|\
-*.tlz|*.TLZ|*.Tlz|\
+*.tlz|*.TLZ|*.Tlz)
+
+if test $TrustByOption != yes && test $Trust_tar != yes ; then
+	echo "Scanning archive listing for dangerous paths..."
+	{
+		xz --decompress --stdout < "$ArchFile" || SetErrorHintIfNotBrokenPipe
+	} | {
+		tar tf - || SetErrorHint
+		# for testing the test:
+		# echo "/bla"
+		# echo "../bla"
+		# echo "  /bla"
+		# echo "  ../bla"
+		# echo "bla/../bla"
+	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	ret=$?
+	CheckErrorHint
+	case $ret in
+		0)
+			Error "$ArchFile looks like containing an absolute or up-going path."
+		;;
+		1)
+			break
+		;;
+		*)
+			exit 1
+		;;
+	esac
+	echo "okay, unpacking..."
+fi
+
+{
+	xz --decompress --stdout < "$ArchFile" || SetErrorHintIfNotBrokenPipe
+} | tar xvf -
+CheckErrorHintAnd $?
+
+;;
+#-------------------------------- unpack tar.xz --------------------------------
 *.tar.xz|*.TAR.xz|*.Tar.xz|\
 *.tar.XZ|*.TAR.XZ|*.Tar.XZ|\
 *.tar.Xz|*.TAR.Xz|*.Tar.Xz|\
@@ -718,7 +881,15 @@ CheckErrorHintAnd $?
 if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "Scanning archive listing for dangerous paths..."
 	{
-		xz --decompress --stdout < "$ArchFile" || SetErrorHint
+		{
+			if test $Use_pixz = yes ; then
+				pixz -d
+			elif test $Use_7z_for_xz = yes ; then
+				7z x -txz -si -so
+			else
+				xz --decompress --stdout
+			fi
+		} < "$ArchFile" || SetErrorHintIfNotBrokenPipe
 	} | {
 		tar tf - || SetErrorHint
 		# for testing the test:
@@ -744,7 +915,17 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "okay, unpacking..."
 fi
 
-{ xz --decompress --stdout < "$ArchFile" || SetErrorHint ; } | tar xvf -
+{
+	{
+		if test $Use_pixz = yes ; then
+			pixz -d
+		elif test $Use_7z_for_xz = yes ; then
+			7z x -txz -si -so
+		else
+			xz --decompress --stdout
+		fi
+	} < "$ArchFile" || SetErrorHintIfNotBrokenPipe
+} | tar xvf -
 CheckErrorHintAnd $?
 
 ;;
@@ -757,7 +938,7 @@ CheckErrorHintAnd $?
 if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "Scanning archive listing for dangerous paths..."
 	{
-		lzop -d -c < "$ArchFile" || SetErrorHint
+		lzop -d -c < "$ArchFile" || SetErrorHintIfNotBrokenPipe
 	} | {
 		tar tf - || SetErrorHint
 		# for testing the test:
@@ -783,7 +964,9 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 	echo "okay, unpacking..."
 fi
 
-{ lzop -d -c < "$ArchFile" || SetErrorHint ; } | tar xvf -
+{
+	lzop -d -c < "$ArchFile" || SetErrorHintIfNotBrokenPipe
+} | tar xvf -
 CheckErrorHintAnd $?
 
 ;;
@@ -794,7 +977,11 @@ CheckErrorHintAnd $?
 if test $TrustByOption != yes && test $Trust_unzip != yes ; then
 	echo "Scanning archive listing for dangerous paths..."
 	{
-		unzip -l "$ArchFile" || SetErrorHint
+		if test $Use_7z_for_zip = yes ; then
+			7z l -tzip -- "$ArchFile" || SetErrorHint
+		else
+			unzip -l "$ArchFile" || SetErrorHint
+		fi
 		# for testing the test:
 		# echo "/bla"
 		# echo "../bla"
@@ -802,7 +989,11 @@ if test $TrustByOption != yes && test $Trust_unzip != yes ; then
 		# echo "1234 ../bla"
 		# echo "1234 bla/../bla"
 	} | {
-		egrep -v "^Archive:( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+		if test $Use_7z_for_zip = yes ; then
+			egrep -v "^(Listing archive:|Path =)( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+		else
+			egrep -v "^Archive:( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+		fi
 		case $? in
 			0|1)
 				break;
@@ -828,7 +1019,11 @@ if test $TrustByOption != yes && test $Trust_unzip != yes ; then
 	echo "okay, unpacking..."
 fi
 
-exec unzip "$ArchFile"
+if test $Use_7z_for_zip = yes ; then
+	exec 7z x -tzip -- "$ArchFile"
+else
+	exec unzip "$ArchFile"
+fi
 
 ;;
 #------------------------------- unpack bz2 + bz -------------------------------
@@ -879,7 +1074,15 @@ if test -f "$n" || test -d "$n" ; then
 	Error "File already exists: $n"
 fi
 
-exec bzip2 -d -c < "$ArchFile" > "$n"
+if test $Use_pbzip2 = yes ; then
+	exec pbzip2 -d -c < "$ArchFile" > "$n"
+elif test $Use_lbzip2 = yes ; then
+	exec lbzip2 -d -c < "$ArchFile" > "$n"
+elif test $Use_7z_for_bz2 = yes ; then
+	exec 7z x -tbzip2 -si -so < "$ArchFile" > "$n"
+else
+	exec bzip2 -d -c < "$ArchFile" > "$n"
+fi
 
 ;;
 #-------------------------------- unpack gz + Z --------------------------------
@@ -926,12 +1129,17 @@ if test -f "$n" || test -d "$n" ; then
 	Error "File already exists: $n"
 fi
 
-exec gzip -d -c < "$ArchFile" > "$n"
+if test $Use_pigz = yes ; then
+	exec pigz -d -c < "$ArchFile" > "$n"
+elif test $Use_7z_for_gz = yes ; then
+	exec 7z x -tgzip -si -so < "$ArchFile" > "$n"
+else
+	exec gzip -d -c < "$ArchFile" > "$n"
+fi
 
 ;;
-#------------------------------ unpack lzma + xz -------------------------------
-*.lzma|*.LZMA|*.Lzma|\
-*.xz|*.XZ|*.Xz)
+#--------------------------------- unpack lzma ---------------------------------
+*.lzma|*.LZMA|*.Lzma)
 
 n="`basename "$ArchFile"`"
 
@@ -941,18 +1149,34 @@ elif b="`basename "$n" .LZMA`" && test "$b" != "$n" ; then
 	n="$b"
 elif b="`basename "$n" .Lzma`" && test "$b" != "$n" ; then
 	n="$b"
-elif b="`basename "$n" .xz`" && test "$b" != "$n" ; then
-	n="$b"
-elif b="`basename "$n" .XZ`" && test "$b" != "$n" ; then
-	n="$b"
-elif b="`basename "$n" .Xz`" && test "$b" != "$n" ; then
-	n="$b"
 elif b="`basename "$n" .tlz`" && test "$b" != "$n" ; then
 	n="$b.tar"
 elif b="`basename "$n" .TLZ`" && test "$b" != "$n" ; then
 	n="$b.TAR"
 elif b="`basename "$n" .Tlz`" && test "$b" != "$n" ; then
 	n="$b.Tar"
+else
+	n="$n.unpacked"
+fi
+
+if test -f "$n" || test -d "$n" ; then
+	Error "File already exists: $n"
+fi
+
+exec xz --decompress --stdout < "$ArchFile" > "$n"
+
+;;
+#---------------------------------- unpack xz ----------------------------------
+*.xz|*.XZ|*.Xz)
+
+n="`basename "$ArchFile"`"
+
+if   b="`basename "$n" .xz`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .XZ`" && test "$b" != "$n" ; then
+	n="$b"
+elif b="`basename "$n" .Xz`" && test "$b" != "$n" ; then
+	n="$b"
 elif b="`basename "$n" .txz`" && test "$b" != "$n" ; then
 	n="$b.tar"
 elif b="`basename "$n" .TXZ`" && test "$b" != "$n" ; then
@@ -967,7 +1191,13 @@ if test -f "$n" || test -d "$n" ; then
 	Error "File already exists: $n"
 fi
 
-exec xz --decompress --stdout < "$ArchFile" > "$n"
+if test $Use_pixz = yes ; then
+	exec pixz -d < "$ArchFile" > "$n"
+elif test $Use_7z_for_xz = yes ; then
+	exec 7z x -txz -si -so < "$ArchFile" > "$n"
+else
+	exec xz --decompress --stdout < "$ArchFile" > "$n"
+fi
 
 ;;
 #--------------------------------- unpack lzo ----------------------------------

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFractalFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -190,7 +190,7 @@ void emFractalFilePanel::Prepare()
 		m=Mdl->Colors[i].Fade;
 		if (m>0) {
 			c2=Mdl->Colors[(i+1)%n].Color;
-			for (k=0; k<m; k++, j++) Colors.Set(j,c1.GetBlended(c2,(k+1)*100.0f/m));
+			for (k=0; k<m; k++, j++) Colors.Set(j,c1.GetBlended(c2,(k+1)*100.0F/m));
 		}
 	}
 }

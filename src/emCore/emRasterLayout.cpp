@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasterLayout.cpp
 //
-// Copyright (C) 2015,2020 Oliver Hamann.
+// Copyright (C) 2015,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,8 +53,8 @@ emRasterLayout::~emRasterLayout()
 
 void emRasterLayout::SetRowByRow(bool rowByRow)
 {
-	if ((bool)RowByRow!=rowByRow) {
-		RowByRow=rowByRow?1:0;
+	if (RowByRow!=rowByRow) {
+		RowByRow=rowByRow;
 		InvalidateChildrenLayout();
 	}
 }

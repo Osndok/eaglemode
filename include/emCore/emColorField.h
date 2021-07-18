@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.h
 //
-// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -80,7 +80,7 @@ public:
 		// This signal is signaled after each change of the color.
 
 	emColor GetColor() const;
-	void SetColor(emColor value);
+	void SetColor(emColor color);
 		// Get/set the color.
 
 protected:
@@ -139,8 +139,8 @@ private:
 	bool AlphaEnabled;
 	bool Pressed;
 
-	static const char * HowToColorField;
-	static const char * HowToReadOnly;
+	static const char * const HowToColorField;
+	static const char * const HowToReadOnly;
 };
 
 inline bool emColorField::IsEditable() const

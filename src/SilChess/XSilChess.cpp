@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // XSilChess.cpp - X11 version of SilChess
 //
-// Copyright (C) 2001-2005,2007-2009 Oliver Hamann.
+// Copyright (C) 2001-2005,2007-2009,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,6 +18,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,7 +71,7 @@ private:
 
 	SilChessMachine * Machine;
 	int SelX,SelY;
-	char OverwriteFile[1024];
+	char OverwriteFile[PATH_MAX];
 
 	bool IsSearching,AbortSearching;
 	bool NeedPainting,IsPainting;
@@ -463,7 +464,7 @@ void XSilChessWindow::HandleCallbackOrEvent(Widget widget,
 	XGCValues gcval;
 	const char * file_name;
 	XmString xms;
-	char tmp[512];
+	char tmp[128+PATH_MAX];
 	int i;
 
 	if (widget==BFileLoad) {
@@ -884,7 +885,7 @@ const char * const XSilChessWindow::AboutText=
 //============================= SCDefaultResources =============================
 //==============================================================================
 
-static const char * SCDefaultResources[]= {
+static const char * const SCDefaultResources[]= {
 	"XSilChess*.background: #c0c0c0",
 	"XSilChess*.foreground: black",
 	"XSilChess.title: XSilChess",

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.h
 //
-// Copyright (C) 2005-2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -183,8 +183,8 @@ private:
 	emUInt64 KBInterval;
 	bool Pressed;
 
-	static const char * HowToScalarField;
-	static const char * HowToReadOnly;
+	static const char * const HowToScalarField;
+	static const char * const HowToReadOnly;
 };
 
 inline bool emScalarField::IsEditable() const

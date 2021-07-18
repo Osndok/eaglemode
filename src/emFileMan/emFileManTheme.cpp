@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManTheme.cpp
 //
-// Copyright (C) 2010-2011,2014-2016,2019 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016,2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,7 +33,7 @@ emString emFileManTheme::GetThemesDirPath()
 }
 
 
-const char * emFileManTheme::ThemeFileEnding = ".emFileManTheme";
+const char * const emFileManTheme::ThemeFileEnding = ".emFileManTheme";
 
 
 emRef<emFileManTheme> emFileManTheme::Acquire(

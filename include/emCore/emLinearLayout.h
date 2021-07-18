@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLinearLayout.h
 //
-// Copyright (C) 2015,2017,2020 Oliver Hamann.
+// Copyright (C) 2015,2017,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -216,7 +216,7 @@ protected:
 
 private:
 
-	double CalculateForce(int cells, double w, double h, bool horizontal);
+	double CalculateForce(int cells, double w, double h, bool horizontal) const;
 
 	double OrientationThreshold;
 	double DefaultWeight,DefaultMinTallness,DefaultMaxTallness;

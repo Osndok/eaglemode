@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2012,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2008-2012,2016,2018-2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -432,7 +432,29 @@ function Send(cmd,files)
 		args[3]=env("EM_COMMAND_RUN_ID");
 		args=args.concat(files);
 	}
-	WshShell.Run(WshShellCmdFromArgs(args),1,true);
+	var ret=WshShell.Run(WshShellCmdFromArgs(args),1,true);
+	if (ret != 0) {
+		// emSendMiniIpc itself failed. If the arg list would be too
+		// long, WshShell.Run prints an error and exits.
+		if (cmd == "update") {
+			Warning(
+				"Failed to perform update command with emSendMiniIpc.\n"+
+				"\n"+
+				"This means that the operation may be successful but\n"+
+				"the Eagle Mode view could not be updated."
+			);
+		}
+		else {
+			Warning(
+				"Failed to perform select command with emSendMiniIpc.\n"+
+				"\n"+
+				"This means that the operation may be successful but\n"+
+				"the selection in Eagle Mode could not be updated."
+			);
+			// At least try an update:
+			SendUpdate();
+		}
+	}
 }
 
 
@@ -923,6 +945,26 @@ function BatWriteSend(cmd,files)
 		args=args.concat(files);
 	}
 	BatWriteCmd(args);
+	BatWriteLine("if errorlevel 1 (");
+	BatWriteSetErrored();
+	BatWriteLine("echo.");
+	if (cmd == "update") {
+		BatWriteLine(
+			"echo ERROR: Failed to perform update command with emSendMiniIpc."+
+			" This means that the operation may be successful but"+
+			" the Eagle Mode view could not be updated."
+		);
+	}
+	else {
+		BatWriteLine(
+			"echo ERROR: Failed to perform select command with emSendMiniIpc."+
+			" This means that the operation may be successful but"+
+			" the selection in Eagle Mode could not be updated."
+		);
+		// Maybe arg list too long. At least try an update:
+		BatWriteSendUpdate();
+	}
+	BatWriteLine(")");
 }
 
 

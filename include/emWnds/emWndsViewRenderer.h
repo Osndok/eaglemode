@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsViewRenderer.h
 //
-// Copyright (C) 2016 Oliver Hamann.
+// Copyright (C) 2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -67,7 +67,7 @@ private:
 	};
 
 	Buffer * CreateBuffer(int width, int height);
-	void DestroyBuffer(Buffer * buf);
+	static void DestroyBuffer(Buffer * buf);
 
 	emWndsScreen & Screen;
 

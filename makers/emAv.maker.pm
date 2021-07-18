@@ -83,22 +83,10 @@ sub Build
 
 	foreach my $name (split(',', $options{'emAv'})) {
 		if ($name eq 'vlc') {
-			my @libvlcFlags=();
-			my $str=readpipe('pkg-config --cflags --libs libvlc');
-			if ($str) {
-				foreach my $f (split(/\s+/,$str)) {
-					if (substr($f,0,2) eq '-I') {
-						push(@libvlcFlags,'--inc-search-dir',substr($f,2));
-					}
-					elsif (substr($f,0,2) eq '-L') {
-						push(@libvlcFlags,'--lib-search-dir',substr($f,2));
-					}
-					elsif (substr($f,0,2) eq '-l') {
-						push(@libvlcFlags,'--link',substr($f,2));
-					}
-				}
-			}
-			else {
+			my @libvlcFlags=split("\n",readpipe(
+				"perl \"".$options{'utils'}."/PkgConfig.pl\" libvlc"
+			));
+			if (!@libvlcFlags) {
 				@libvlcFlags=("--link","vlc");
 			}
 			system(
@@ -118,6 +106,21 @@ sub Build
 			)==0 or return 0;
 		}
 		elsif ($name eq 'xine') {
+			my @libXineFlags=();
+			if ($options{'xine-inc-dir'} eq '' && $options{'xine-lib-dir'} eq '') {
+				@libXineFlags=split("\n",readpipe(
+					"perl \"".$options{'utils'}."/PkgConfig.pl\" libxine"
+				));
+			}
+			if (!@libXineFlags) {
+				if ($options{'xine-inc-dir'} ne '') {
+					push(@libXineFlags, "--inc-search-dir", $options{'xine-inc-dir'});
+				}
+				if ($options{'xine-lib-dir'} ne '') {
+					push(@libXineFlags, "--lib-search-dir", $options{'xine-lib-dir'});
+				}
+				push(@libXineFlags, "--link", "xine");
+			}
 			system(
 				@{$options{'unicc_call'}},
 				"--math",
@@ -127,13 +130,7 @@ sub Build
 				"--lib-dir"       , "lib",
 				"--obj-dir"       , "obj",
 				"--inc-search-dir", "include",
-				$options{'xine-inc-dir'} ne '' ? (
-					"--inc-search-dir", $options{'xine-inc-dir'}
-				) : (),
-				$options{'xine-lib-dir'} ne '' ? (
-					"--lib-search-dir", $options{'xine-lib-dir'}
-				) : (),
-				"--link"          , "xine",
+				@libXineFlags,
 				"--link"          , "pthread",
 				"--type"          , "cexe",
 				"--name"          , "emAvServerProc_xine",

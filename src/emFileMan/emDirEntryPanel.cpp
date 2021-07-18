@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2012,2014,2016-2017,2020 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -646,7 +646,7 @@ void emDirEntryPanel::PaintInfo(
 		0.5,false
 	);
 #else
-	cw=painter.GetTextSize("X",bh[1],false);
+	cw=emPainter::GetTextSize("X",bh[1],false);
 	ws=bw[1]/(cw*10);
 	if (ws>1.0) ws=1.0;
 	tmp[0]=((DirEntry.GetStat()->st_mode&S_IRUSR)?'r':'-');
@@ -686,7 +686,7 @@ void emDirEntryPanel::PaintInfo(
 	if (!DirEntry.IsDirectory()) {
 #endif
 	len=emUInt64ToStr(tmp,sizeof(tmp),DirEntry.GetStat()->st_size);
-	cw=painter.GetTextSize("X",bh[4],false);
+	cw=emPainter::GetTextSize("X",bh[4],false);
 	ws=bw[4]/(cw*len*16/15);
 	if (ws>1.0) ws=1.0;
 	x=bx[4];

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2012,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -593,28 +593,28 @@ private:
 
 	void RecurseInput(emInputEvent & event,
 	                  const emInputState & state);
-	void RecurseInput(emPanel * parent, emInputEvent & event,
+	void RecurseInput(emPanel * panel, emInputEvent & event,
 	                  const emInputState & state);
 
 	void InvalidateHighlight();
 	void PaintHighlight(const emPainter & painter) const;
-	void PaintHighlightArrowsOnLine(
+	static void PaintHighlightArrowsOnLine(
 		const emPainter & painter, double x, double y,
 		double dx, double dy, double pos, double delta,
 		int count, double goalX, double goalY, double arrowSize,
 		emColor shadowColor, emColor arrowColor
-	) const;
-	void PaintHighlightArrowsOnBow(
+	);
+	static void PaintHighlightArrowsOnBow(
 		const emPainter & painter, double x, double y, double radius,
 		int quadrant, double pos, double delta, int count,
 		double goalX, double goalY, double arrowSize,
 		emColor shadowColor, emColor arrowColor
-	) const;
-	void PaintHighlightArrow(
+	);
+	static void PaintHighlightArrow(
 		const emPainter & painter, double x, double y,
 		double goalX, double goalY, double arrowSize,
 		emColor shadowColor, emColor arrowColor
-	) const;
+	);
 
 	void SetSeekPos(emPanel * panel, const char * childName);
 	bool IsHopeForSeeking() const;
@@ -644,7 +644,7 @@ private:
 	public:
 		StressTestClass(emView & view);
 		virtual ~StressTestClass();
-		void PaintInfo(const emPainter & painter);
+		void PaintInfo(const emPainter & painter) const;
 	protected:
 		virtual bool Cycle();
 	private:
@@ -694,7 +694,7 @@ private:
 	bool CursorInvalid;
 	bool SVPChoiceInvalid;
 	bool SVPChoiceByOpacityInvalid;
-	bool GotPopupWindowCloseSignal;
+	bool Reserved;
 	bool RestartInputRecursion;
 	bool ZoomedOutBeforeSG;
 	int SettingGeometry;

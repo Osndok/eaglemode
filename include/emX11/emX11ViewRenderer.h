@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ViewRenderer.h
 //
-// Copyright (C) 2016-2017 Oliver Hamann.
+// Copyright (C) 2016-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,8 +81,6 @@ private:
 
 	static Bool WaitPredicate(Display * display, XEvent * event, XPointer arg);
 
-	static int ErrorHandler(Display * display, XErrorEvent * event);
-
 	emX11Screen & Screen;
 	emThreadMiniMutex & XMutex;
 	Display * Disp;
@@ -98,9 +96,6 @@ private:
 	::Window CurrentWin;
 	GC CurrentGc;
 	int CurrentViewX,CurrentViewY;
-
-	static emThreadMiniMutex ErrorHandlerMutex;
-	static bool ErrorHandlerCalled;
 };
 
 

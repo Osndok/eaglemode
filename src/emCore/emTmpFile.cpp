@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.cpp
 //
-// Copyright (C) 2006-2008,2014,2019-2020 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2019-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -109,6 +109,16 @@ emString emTmpFileMaster::TryInventPath(const char * postfix)
 	if (DirPath.IsEmpty()) {
 		TryStartOwnDirectory();
 	}
+
+	try {
+		emTryMakeDirectories(DirPath,0700);
+	}
+	catch (const emException & exception) {
+		DirPath.Clear();
+		IpcServer.StopServing();
+		throw emException("emTmpFileMaster: %s",exception.GetText().Get());
+	}
+
 	for (;;) {
 		FileNameCounter++;
 		name=emString::Format("%x",FileNameCounter);
@@ -138,10 +148,12 @@ emTmpFileMaster::~emTmpFileMaster()
 			emTryRemoveFileOrTree(DirPath,true);
 		}
 		catch (const emException & exception) {
-			emFatalError(
-				"Failed to remove temporary file or directory:\n%s",
-				exception.GetText().Get()
-			);
+			if (emIsExistingPath(DirPath)) {
+				emFatalError(
+					"Failed to remove temporary file or directory:\n%s",
+					exception.GetText().Get()
+				);
+			}
 		}
 	}
 }
@@ -239,15 +251,6 @@ void emTmpFileMaster::TryStartOwnDirectory()
 		emWarning("emTmpFileMaster::TryStartOwnDirectory: retry #%d",i);
 		emSleepMS(500);
 	}
-
-	try {
-		emTryMakeDirectories(DirPath,0700);
-	}
-	catch (const emException & exception) {
-		DirPath.Clear();
-		IpcServer.StopServing();
-		throw emException("emTmpFileMaster: %s",exception.GetText().Get());
-	}
 }
 
 
@@ -264,4 +267,4 @@ void emTmpFileMaster::IpcServerClass::OnReception(
 }
 
 
-const char * emTmpFileMaster::DirNameEnding=".autoremoved";
+const char * const emTmpFileMaster::DirNameEnding=".autoremoved";

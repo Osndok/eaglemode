@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArch.js
 //
-// Copyright (C) 2019-2020 Oliver Hamann.
+// Copyright (C) 2019-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -87,6 +87,29 @@ var Description=
 "\n"+
 "  -h|--help\n"+
 "      Print this help and exit.\n";
+
+
+//=============================== Configuration ================================
+
+// Whether to use pigz or 7za instead of gzip for gz archives.
+// (At most one of these may be set to true.)
+var Use_pigz=false;
+var Use_7za_for_gz=false;
+
+// Whether to use pbzip2, lbzip2 or 7za instead of bzip2 for bz2 archives.
+// (At most one of these may be set to true.)
+var Use_pbzip2=false;
+var Use_lbzip2=false;
+var Use_7za_for_bz2=false;
+
+// Whether to use pixz, pxz or 7za instead of xz for xz archives.
+// (At most one of these may be set to true.)
+var Use_pixz=false;
+var Use_pxz=false;
+var Use_7za_for_xz=false;
+
+// Whether to use 7za instead of zip/unzip for zip archives.
+var Use_7za_for_zip=false;
 
 
 //============================== General Helpers ===============================
@@ -313,16 +336,36 @@ function Pack(format,archive,names)
 	}
 	else if (TestEnding(f,'tar.bz2') || TestEnding(f,'tbz2') ||
 	         TestEnding(f,'tgj')) {
-		Exec(true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | bzip2 -c > "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | "+(
+				Use_pbzip2 ? "pbzip2 -c" :
+				Use_lbzip2 ? "lbzip2 -c" :
+				Use_7za_for_bz2 ? "7za a -si -so .bz2" :
+				"bzip2 -c"
+			)+" > "+WshShellQuoteArg(archive)
+		);
 	}
 	else if (TestEnding(f,'tar.gz') || TestEnding(f,'tgz')) {
-		Exec(true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | gzip -c > "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | "+(
+				Use_pigz ? "pigz -c" :
+				Use_7za_for_gz ? "7za a -si -so .gz" :
+				"gzip -c"
+			)+" > "+WshShellQuoteArg(archive)
+		);
 	}
 	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz')) {
 		Exec(true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | xz --stdout --format=lzma > "+WshShellQuoteArg(archive));
 	}
 	else if (TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
-		Exec(true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | xz --stdout > "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | "+(
+				Use_pixz ? "pixz" :
+				Use_pxz ? "pxz --stdout" :
+				Use_7za_for_xz ? "7za a -si -so .xz" :
+				"xz --stdout"
+			)+" > "+WshShellQuoteArg(archive)
+		);
 	}
 	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
 		if (!HasAnyEnding(archive)) {
@@ -330,43 +373,68 @@ function Pack(format,archive,names)
 			// Otherwise zip automatically appends ".zip" (would
 			// break the semantics of this script interface).
 		}
-		Exec(false,false,"zip -r -9 "+WshShellQuoteArg(archive)+" -- "+WshShellCmdFromArgs(names));
+		if (Use_7za_for_zip) {
+			Exec(false,false,"7za a -tzip -- "+WshShellQuoteArg(archive)+" "+WshShellCmdFromArgs(names));
+		}
+		else {
+			Exec(false,false,"zip -r -9 "+WshShellQuoteArg(archive)+" -- "+WshShellCmdFromArgs(names));
+		}
 	}
 	else if (TestEnding(f,'bz2')) {
 		if (names.length>1) {
-			Error("Cannot pack multiple files with bzip2.");
+			Error("Cannot pack multiple files into bz2 archive.");
 		}
 		if (IsDirectory(names[0])) {
-			Error("Cannot pack a directory with bzip2.");
+			Error("Cannot pack a directory into bz2 archive.");
 		}
-		Exec(true,true,"bzip2 -c -- "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,(
+				Use_pbzip2 ? "pbzip2 -c --" :
+				Use_lbzip2 ? "lbzip2 -c --" :
+				Use_7za_for_bz2 ? "7za a -so -- .bz2" :
+				"bzip2 -c --"
+			)+" "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive)
+		);
 	}
 	else if (TestEnding(f,'gz')) {
 		if (names.length>1) {
-			Error("Cannot pack multiple files with gzip.");
+			Error("Cannot pack multiple files into gz archive.");
 		}
 		if (IsDirectory(names[0])) {
-			Error("Cannot pack a directory with gzip.");
+			Error("Cannot pack a directory into gz archive.");
 		}
-		Exec(true,true,"gzip -c -- "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,(
+				Use_pigz ? "pigz -c --" :
+				Use_7za_for_gz ? "7za a -so -- .gz" :
+				"gzip -c --"
+			)+" "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive)
+		);
 	}
 	else if (TestEnding(f,'lzma')) {
 		if (names.length>1) {
-			Error("Cannot pack multiple files with lzma.");
+			Error("Cannot pack multiple files into lzma archive.");
 		}
 		if (IsDirectory(names[0])) {
-			Error("Cannot pack a directory with lzma.");
+			Error("Cannot pack a directory into lzma archive.");
 		}
 		Exec(true,true,"xz --stdout --format=lzma -- "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive));
 	}
 	else if (TestEnding(f,'xz')) {
 		if (names.length>1) {
-			Error("Cannot pack multiple files with xz.");
+			Error("Cannot pack multiple files into xz archive.");
 		}
 		if (IsDirectory(names[0])) {
-			Error("Cannot pack a directory with xz.");
+			Error("Cannot pack a directory into xz archive.");
 		}
-		Exec(true,true,"xz --stdout -- "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,(
+				Use_pixz ? "pixz -t <" :
+				Use_pxz ? "pxz --stdout --" :
+				Use_7za_for_xz ? "7za a -so -- .xz" :
+				"xz --stdout --"
+			)+" "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive)
+		);
 	}
 	else {
 		Error("Packing of "+format+" not supported");
@@ -480,26 +548,45 @@ function Unpack(format,archive,trust)
 	         TestEnding(f,'tbz')) {
 		if (!trust) {
 			CheckUnpackPathsInPureList(
-				true,
-				"bzip2 -d -c < "+WshShellQuoteArg(archive)+" | tar tf -",
+				true,(
+					Use_pbzip2 ? "pbzip2 -d -c" :
+					Use_lbzip2 ? "lbzip2 -d -c" :
+					Use_7za_for_bz2 ? "7za x -tbzip2 -si -so" :
+					"bzip2 -d -c"
+				)+" < "+WshShellQuoteArg(archive)+" | tar tf -",
 				/^$/
 			);
 		}
-		Exec(true,true,"bzip2 -d -c < "+WshShellQuoteArg(archive)+" | tar xvf -");
+		Exec(
+			true,true,(
+				Use_pbzip2 ? "pbzip2 -d -c" :
+				Use_lbzip2 ? "lbzip2 -d -c" :
+				Use_7za_for_bz2 ? "7za x -tbzip2 -si -so" :
+				"bzip2 -d -c"
+			)+" < "+WshShellQuoteArg(archive)+" | tar xvf -"
+		);
 	}
 	else if (TestEnding(f,'tar.gz') || TestEnding(f,'tgz') ||
 	         TestEnding(f,'tar.z') || TestEnding(f,'taz')) {
 		if (!trust) {
 			CheckUnpackPathsInPureList(
-				true,
-				"gzip -d -c < "+WshShellQuoteArg(archive)+" | tar tf -",
+				true,(
+					Use_pigz ? "pigz -d -c" :
+					Use_7za_for_gz ? "7za x -tgzip -si -so" :
+					"gzip -d -c"
+				)+" < "+WshShellQuoteArg(archive)+" | tar tf -",
 				/^$/
 			);
 		}
-		Exec(true,true,"gzip -d -c < "+WshShellQuoteArg(archive)+" | tar xvf -");
+		Exec(
+			true,true,(
+				Use_pigz ? "pigz -d -c" :
+				Use_7za_for_gz ? "7za x -tgzip -si -so" :
+				"gzip -d -c"
+			)+" < "+WshShellQuoteArg(archive)+" | tar xvf -"
+		);
 	}
-	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz') ||
-	         TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
+	else if (TestEnding(f,'tar.lzma') || TestEnding(f,'tlz')) {
 		if (!trust) {
 			CheckUnpackPathsInPureList(
 				true,
@@ -509,15 +596,48 @@ function Unpack(format,archive,trust)
 		}
 		Exec(true,true,"xz --decompress --stdout < "+WshShellQuoteArg(archive)+" | tar xvf -");
 	}
-	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
+	else if (TestEnding(f,'tar.xz') || TestEnding(f,'txz')) {
 		if (!trust) {
-			CheckUnpackPathsInInfoList(
-				false,
-				"unzip -l "+WshShellQuoteArg(archive),
-				/^Archive:/
+			CheckUnpackPathsInPureList(
+				true,(
+					Use_pixz ? "pixz -d" :
+					Use_7za_for_xz ? "7za x -txz -si -so" :
+					"xz --decompress --stdout"
+				)+" < "+WshShellQuoteArg(archive)+" | tar tf -",
+				/^$/
 			);
 		}
-		Exec(false,false,"unzip -o "+WshShellQuoteArg(archive));
+		Exec(
+			true,true,(
+				Use_pixz ? "pixz -d" :
+				Use_7za_for_xz ? "7za x -txz -si -so" :
+				"xz --decompress --stdout"
+			)+" < "+WshShellQuoteArg(archive)+" | tar xvf -"
+		);
+	}
+	else if (TestEnding(f,'zip') || TestEnding(f,'jar')) {
+		if (!trust) {
+			if (Use_7za_for_zip) {
+				CheckUnpackPathsInInfoList(
+					false,
+					"7za l -tzip -- "+WshShellQuoteArg(archive),
+					/^(Listing archive:|Path =)/
+				);
+			}
+			else {
+				CheckUnpackPathsInInfoList(
+					false,
+					"unzip -l "+WshShellQuoteArg(archive),
+					/^Archive:/
+				);
+			}
+		}
+		if (Use_7za_for_zip) {
+			Exec(false,false,"7za x -aoa -tzip -- "+WshShellQuoteArg(archive));
+		}
+		else {
+			Exec(false,false,"unzip -o "+WshShellQuoteArg(archive));
+		}
 	}
 	else if (TestEnding(f,'bz2') || TestEnding(f,'bz')) {
 		var n=GetNameInPath(archive);
@@ -537,7 +657,14 @@ function Unpack(format,archive,trust)
 		if (IsExistingPath(n)) {
 			Error("File already exists: "+n);
 		}
-		Exec(true,true,"bzip2 -d -c < "+WshShellQuoteArg(archive)+" > "+WshShellQuoteArg(n));
+		Exec(
+			true,true,(
+				Use_pbzip2 ? "pbzip2 -d -c" :
+				Use_lbzip2 ? "lbzip2 -d -c" :
+				Use_7za_for_bz2 ? "7za x -tbzip2 -si -so" :
+				"bzip2 -d -c"
+			)+" < "+WshShellQuoteArg(archive)+" > "+WshShellQuoteArg(n)
+		);
 	}
 	else if (TestEnding(f,'gz') || TestEnding(f,'z')) {
 		var n=GetNameInPath(archive);
@@ -556,9 +683,15 @@ function Unpack(format,archive,trust)
 		if (IsExistingPath(n)) {
 			Error("File already exists: "+n);
 		}
-		Exec(true,true,"gzip -d -c < "+WshShellQuoteArg(archive)+" > "+WshShellQuoteArg(n));
+		Exec(
+			true,true,(
+				Use_pigz ? "pigz -d -c" :
+				Use_7za_for_gz ? "7za x -tgzip -si -so" :
+				"gzip -d -c"
+			)+" < "+WshShellQuoteArg(archive)+" > "+WshShellQuoteArg(n)
+		);
 	}
-	else if (TestEnding(f,'lzma') || TestEnding(f,'xz')) {
+	else if (TestEnding(f,'lzma')) {
 		var n=GetNameInPath(archive);
 		var e='';
 		i=n.lastIndexOf('.');
@@ -567,15 +700,36 @@ function Unpack(format,archive,trust)
 			n=n.substr(0,i);
 		}
 		if (e.toLowerCase()=='.lzma') e='';
-		else if (e.toLowerCase()=='.xz') e='';
 		else if (e.toLowerCase()=='.tlz') e='.tar';
-		else if (e.toLowerCase()=='.txz') e='.tar';
 		else e=e+'.unpacked';
 		n+=e;
 		if (IsExistingPath(n)) {
 			Error("File already exists: "+n);
 		}
 		Exec(true,true,"xz --decompress --stdout < "+WshShellQuoteArg(archive)+" > "+WshShellQuoteArg(n));
+	}
+	else if (TestEnding(f,'xz')) {
+		var n=GetNameInPath(archive);
+		var e='';
+		i=n.lastIndexOf('.');
+		if (i>0) {
+			e=n.substr(i);
+			n=n.substr(0,i);
+		}
+		if (e.toLowerCase()=='.xz') e='';
+		else if (e.toLowerCase()=='.txz') e='.tar';
+		else e=e+'.unpacked';
+		n+=e;
+		if (IsExistingPath(n)) {
+			Error("File already exists: "+n);
+		}
+		Exec(
+			true,true,(
+				Use_pixz ? "pixz -d" :
+				Use_7za_for_xz ? "7za x -txz -si -so" :
+				"xz --decompress --stdout"
+			)+" < "+WshShellQuoteArg(archive)+" > "+WshShellQuoteArg(n)
+		);
 	}
 	else {
 		Error("Unpacking of "+format+" not supported");

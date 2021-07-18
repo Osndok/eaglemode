@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2013,2015,2019-2020 Oliver Hamann.
+// Copyright (C) 2008,2010-2013,2015,2019-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -223,6 +223,8 @@ static void emAv_raw_output_cb(
 			pi[6]=(((char*)NULL)-pc)&7;
 			pc+=pi[6];
 			memcpy((void*)pc,data0,size0);
+			break;
+		default:
 			break;
 		}
 		pi[0]=1;

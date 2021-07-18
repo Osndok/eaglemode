@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emShowStdDlg.cpp
 //
-// Copyright (C) 2006-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2006-2010,2014-2015,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,7 @@ protected:
 
 private:
 
-	void PrintHelp();
+	static void PrintHelp();
 
 	emLabel * Label;
 	emTextField * TextField;

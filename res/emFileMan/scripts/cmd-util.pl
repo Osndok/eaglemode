@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # cmd-util.pl
 #
-# Copyright (C) 2007-2008,2010,2012,2014,2019 Oliver Hamann.
+# Copyright (C) 2007-2008,2010,2012,2014,2019,2021 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -198,14 +198,40 @@ sub CheckFilename
 
 #======================== Sending commands to eaglemode ========================
 
+sub Send
+{
+	my $ret=system(
+		catfile($ENV{'EM_DIR'},"bin","emSendMiniIpc"),
+		$ENV{'EM_FM_SERVER_NAME'},
+		@_
+	);
+	if ($ret != 0) {
+		if ($_[0] eq "update") {
+			Warning(
+				"Failed to perform update command with emSendMiniIpc.\n".
+				"\n".
+				"This means that the operation may be successful but\n".
+				"the Eagle Mode view could not be updated."
+			);
+		}
+		else {
+			Warning(
+				"Failed to perform select command with emSendMiniIpc.\n".
+				"\n".
+				"This means that the operation may be successful but\n".
+				"the selection in Eagle Mode could not be updated."
+			);
+			# Maybe arg list too long. At least try an update:
+			SendUpdate();
+		}
+	}
+}
+
+
 sub SendUpdate
 	# Require Eagle Mode to reload changed files and directories.
 {
-	system(
-		catfile($ENV{'EM_DIR'},"bin","emSendMiniIpc"),
-		$ENV{'EM_FM_SERVER_NAME'},
-		"update"
-	);
+	Send("update");
 }
 
 
@@ -215,39 +241,21 @@ sub SendSelect
 	# from the old target selection.
 	# Arguments: <file>, [<file>...]
 {
-	system(
-		catfile($ENV{'EM_DIR'},"bin","emSendMiniIpc"),
-		$ENV{'EM_FM_SERVER_NAME'},
-		"select",
-		$ENV{'EM_COMMAND_RUN_ID'},
-		@_
-	);
+	Send("select", $ENV{'EM_COMMAND_RUN_ID'}, @_);
 }
 
 
 sub SendSelectKS
 	# Like SendSelect, but the source selection is not modified.
 {
-	system(
-		catfile($ENV{'EM_DIR'},"bin","emSendMiniIpc"),
-		$ENV{'EM_FM_SERVER_NAME'},
-		"selectks",
-		$ENV{'EM_COMMAND_RUN_ID'},
-		@_
-	);
+	Send("selectks", $ENV{'EM_COMMAND_RUN_ID'}, @_);
 }
 
 
 sub SendSelectCS
 	# Like SendSelect, but the source selection is cleared.
 {
-	system(
-		catfile($ENV{'EM_DIR'},"bin","emSendMiniIpc"),
-		$ENV{'EM_FM_SERVER_NAME'},
-		"selectcs",
-		$ENV{'EM_COMMAND_RUN_ID'},
-		@_
-	);
+	Send("selectcs", $ENV{'EM_COMMAND_RUN_ID'}, @_);
 }
 
 

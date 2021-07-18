@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLook.cpp
 //
-// Copyright (C) 2005-2011,2014,2016 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,7 +59,7 @@ void emLook::Apply(emPanel * panel, bool recursively) const
 		// recursion.
 		border->SetLook(*this,recursively);
 	}
-	else if (recursively) {
+	else if (panel && recursively) {
 		for (panel=panel->GetFirstChild(); panel; panel=panel->GetNext()) {
 			Apply(panel,true);
 		}

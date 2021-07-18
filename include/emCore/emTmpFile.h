@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpFile.h
 //
-// Copyright (C) 2006-2008,2016,2020 Oliver Hamann.
+// Copyright (C) 2006-2008,2016,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -136,7 +136,7 @@ protected:
 private:
 
 	static emString GetCommonPath();
-	void TryDeleteDeadDirectories();
+	static void TryDeleteDeadDirectories();
 	void TryStartOwnDirectory();
 
 	class IpcServerClass : public emMiniIpcServer {
@@ -149,7 +149,7 @@ private:
 	IpcServerClass IpcServer;
 	emString DirPath;
 	unsigned FileNameCounter;
-	static const char * DirNameEnding;
+	static const char * const DirNameEnding;
 };
 
 

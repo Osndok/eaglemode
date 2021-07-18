@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2011,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2016,2018,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,6 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	CursorInvalid=false;
 	SVPChoiceInvalid=false;
 	SVPChoiceByOpacityInvalid=false;
-	GotPopupWindowCloseSignal=false;
 	RestartInputRecursion=false;
 	ZoomedOutBeforeSG=true;
 	SettingGeometry=0;
@@ -1305,7 +1304,6 @@ void emView::Update()
 	emCursor cur;
 
 	if (PopupWindow && IsSignaled(PopupWindow->GetCloseSignal())) {
-		GotPopupWindowCloseSignal=true;
 		ZoomOut();
 	}
 
@@ -1648,7 +1646,6 @@ void emView::RawVisitAbs(
 					emWindow::WF_POPUP,
 					"emViewPopup"
 				);
-				GotPopupWindowCloseSignal=false;
 				UpdateEngine->AddWakeUpSignal(PopupWindow->GetCloseSignal());
 				PopupWindow->SetBackgroundColor(GetBackgroundColor());
 				SwapViewPorts(true);
@@ -1684,15 +1681,11 @@ void emView::RawVisitAbs(
 			}
 		}
 		else if (PopupWindow) {
-			wasFocused=Focused;
 			SwapViewPorts(true);
 			delete PopupWindow;
 			PopupWindow=NULL;
 			Signal(GeometrySignal);
 			forceViewingUpdate=true;
-			if (wasFocused && !Focused && !GotPopupWindowCloseSignal) {
-				CurrentViewPort->RequestFocus();
-			}
 		}
 	}
 
@@ -2318,7 +2311,7 @@ void emView::PaintHighlightArrowsOnLine(
 	double dx, double dy, double pos, double delta,
 	int count, double goalX, double goalY, double arrowSize,
 	emColor shadowColor, emColor arrowColor
-) const
+)
 {
 	double cx1,cy1,cx2,cy2,minPos,maxPos,t;
 
@@ -2377,7 +2370,7 @@ void emView::PaintHighlightArrowsOnBow(
 	int quadrant, double pos, double delta, int count,
 	double goalX, double goalY, double arrowSize,
 	emColor shadowColor, emColor arrowColor
-) const
+)
 {
 	double cx1,cy1,cx2,cy2,minPos,maxPos,t,a;
 	int i;
@@ -2450,7 +2443,7 @@ void emView::PaintHighlightArrow(
 	const emPainter & painter, double x, double y,
 	double goalX, double goalY, double arrowSize,
 	emColor shadowColor, emColor arrowColor
-) const
+)
 {
 	double sxy[4*2],axy[4*2];
 	double dx,dy,d,aw,ah,ag,sd;
@@ -2579,7 +2572,7 @@ emView::StressTestClass::~StressTestClass()
 }
 
 
-void emView::StressTestClass::PaintInfo(const emPainter & painter)
+void emView::StressTestClass::PaintInfo(const emPainter & painter) const
 {
 	char tmp[256];
 	double x,y,w,h,ch;
@@ -2589,7 +2582,7 @@ void emView::StressTestClass::PaintInfo(const emPainter & painter)
 	y=View.CurrentY;
 	ch=View.CurrentHeight/45;
 	if (ch<10.0) ch=10.0;
-	w=painter.GetTextSize(tmp,ch,true,0.0,&h);
+	w=emPainter::GetTextSize(tmp,ch,true,0.0,&h);
 	painter.PaintRect(x,y,w,h,emColor(255,0,255,128));
 	painter.PaintTextBoxed(
 		x,y,w,h,

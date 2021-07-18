@@ -53,6 +53,32 @@ sub Build
 	shift;
 	my %options=@_;
 
+	my @libPngFlags=();
+	if (
+		$options{'png-inc-dir'} eq '' && $options{'png-lib-dir'} eq '' &&
+		$options{'zlib-inc-dir'} eq '' && $options{'zlib-lib-dir'} eq ''
+	) {
+		@libPngFlags=split("\n",readpipe(
+			"perl \"".$options{'utils'}."/PkgConfig.pl\" libpng zlib"
+		));
+	}
+	if (!@libPngFlags) {
+		if ($options{'png-inc-dir'} ne '') {
+			push(@libPngFlags, "--inc-search-dir", $options{'png-inc-dir'});
+		}
+		if ($options{'zlib-inc-dir'} ne '') {
+			push(@libPngFlags, "--inc-search-dir", $options{'zlib-inc-dir'});
+		}
+		if ($options{'png-lib-dir'} ne '') {
+			push(@libPngFlags, "--lib-search-dir", $options{'png-lib-dir'});
+		}
+		if ($options{'zlib-lib-dir'} ne '') {
+			push(@libPngFlags, "--lib-search-dir", $options{'zlib-lib-dir'});
+		}
+		push(@libPngFlags, "--link", "png");
+		push(@libPngFlags, "--link", "z");
+	}
+
 	system(
 		@{$options{'unicc_call'}},
 		"--math",
@@ -62,20 +88,7 @@ sub Build
 		"--lib-dir"       , "lib",
 		"--obj-dir"       , "obj",
 		"--inc-search-dir", "include",
-		$options{'png-inc-dir'} ne '' ? (
-			"--inc-search-dir", $options{'png-inc-dir'}
-		) : (),
-		$options{'zlib-inc-dir'} ne '' ? (
-			"--inc-search-dir", $options{'zlib-inc-dir'}
-		) : (),
-		$options{'png-lib-dir'} ne '' ? (
-			"--lib-search-dir", $options{'png-lib-dir'}
-		) : (),
-		$options{'zlib-lib-dir'} ne '' ? (
-			"--lib-search-dir", $options{'zlib-lib-dir'}
-		) : (),
-		"--link"          , "png",
-		"--link"          , "z",
+		@libPngFlags,
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emPng",

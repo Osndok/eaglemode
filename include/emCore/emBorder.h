@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.h
 //
-// Copyright (C) 2005-2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -426,9 +426,9 @@ private:
 	bool IconAboveCaption;
 	bool LabelInBorder;
 
-	static const char * HowToPreface;
-	static const char * HowToDisabled;
-	static const char * HowToFocus;
+	static const char * const HowToPreface;
+	static const char * const HowToDisabled;
+	static const char * const HowToFocus;
 };
 
 inline const emString & emBorder::GetCaption() const

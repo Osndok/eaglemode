@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2019-2020 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2019-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -401,7 +401,7 @@ void emButton::DoButton(
 }
 
 
-const char * emButton::HowToButton=
+const char * const emButton::HowToButton=
 	"\n"
 	"\n"
 	"BUTTON\n"
@@ -418,7 +418,7 @@ const char * emButton::HowToButton=
 ;
 
 
-const char * emButton::HowToEOIButton=
+const char * const emButton::HowToEOIButton=
 	"\n"
 	"\n"
 	"EOI BUTTON\n"

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManTheme.h
 //
-// Copyright (C) 2010,2016,2020 Oliver Hamann.
+// Copyright (C) 2010,2016,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,7 +44,7 @@ public:
 
 	static emString GetThemesDirPath();
 
-	static const char * ThemeFileEnding;
+	static const char * const ThemeFileEnding;
 
 	static emRef<emFileManTheme> Acquire(
 		emRootContext & rootContext, const emString & name

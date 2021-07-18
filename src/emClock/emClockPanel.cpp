@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClockPanel.cpp
 //
-// Copyright (C) 2006-2009,2014,2016,2019 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2016,2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -219,7 +219,7 @@ void emClockPanel::Paint(const emPainter & painter, emColor canvasColor) const
 			r3+r4,
 			r3+r4,
 			r4-r3,
-			BorderColor.GetLighted(-50.0f),
+			BorderColor.GetLighted(-50.0F),
 			canvasColor
 		);
 		painter.PaintEllipseOutline(
@@ -237,7 +237,7 @@ void emClockPanel::Paint(const emPainter & painter, emColor canvasColor) const
 			r1+r2,
 			r1+r2,
 			r2-r1,
-			BorderColor.GetLighted(-50.0f),
+			BorderColor.GetLighted(-50.0F),
 			canvasColor
 		);
 	}

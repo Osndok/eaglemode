@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ViewRenderer.cpp
 //
-// Copyright (C) 2016-2020 Oliver Hamann.
+// Copyright (C) 2016-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,21 +47,21 @@ emX11ViewRenderer::emX11ViewRenderer(emX11Screen & screen)
 	ShmCompletionEventType=-1;
 	XMutex.Lock();
 	XSync(Disp,False);
-	ErrorHandlerMutex.Lock();
-	ErrorHandlerCalled=false;
-	originalHandler=XSetErrorHandler(ErrorHandler);
+	emX11Screen::ErrorHandlerMutex.Lock();
+	emX11Screen::ErrorHandlerCalled=false;
+	originalHandler=XSetErrorHandler(emX11Screen::ErrorHandler);
 	for (;;) {
 		if (!emX11_IsLibXextLoaded()) break;
 		if (!XShmQueryVersion(Disp,&major,&minor,&xshmCanDoPixmaps)) break;
-		if (ErrorHandlerCalled || major<1 || (minor<1 && major<=1)) break;
+		if (emX11Screen::ErrorHandlerCalled || major<1 || (minor<1 && major<=1)) break;
 		ShmCompletionEventType=XShmGetEventBase(Disp)+ShmCompletion;
-		if (ErrorHandlerCalled) break;
+		if (emX11Screen::ErrorHandlerCalled) break;
 		HaveXShm=true;
 		break;
 	}
 	XSync(Disp,False);
 	XSetErrorHandler(originalHandler);
-	ErrorHandlerMutex.Unlock();
+	emX11Screen::ErrorHandlerMutex.Unlock();
 	XMutex.Unlock();
 
 	CurrentWin=None;
@@ -185,9 +185,9 @@ emX11ViewRenderer::Buffer * emX11ViewRenderer::CreateBuffer(
 	if (HaveXShm) {
 		XMutex.Lock();
 		XSync(Disp,False);
-		ErrorHandlerMutex.Lock();
-		ErrorHandlerCalled=false;
-		originalHandler=XSetErrorHandler(ErrorHandler);
+		emX11Screen::ErrorHandlerMutex.Lock();
+		emX11Screen::ErrorHandlerCalled=false;
+		originalHandler=XSetErrorHandler(emX11Screen::ErrorHandler);
 		for (;;) {
 			buf->Img=XShmCreateImage(
 				Disp,
@@ -199,7 +199,7 @@ emX11ViewRenderer::Buffer * emX11ViewRenderer::CreateBuffer(
 				width,
 				height
 			);
-			if (ErrorHandlerCalled || !buf->Img) break;
+			if (emX11Screen::ErrorHandlerCalled || !buf->Img) break;
 			if (
 				buf->Img->bits_per_pixel!=BytesPerPixel<<3 ||
 #				if EM_BYTE_ORDER==4321
@@ -232,7 +232,7 @@ emX11ViewRenderer::Buffer * emX11ViewRenderer::CreateBuffer(
 			buf->Seg.readOnly=True;
 			status=XShmAttach(Disp,&buf->Seg);
 			XSync(Disp,False);
-			if (!status || ErrorHandlerCalled) {
+			if (!status || emX11Screen::ErrorHandlerCalled) {
 				shmdt(buf->Seg.shmaddr);
 				shmctl(buf->Seg.shmid,IPC_RMID,NULL);
 				XFree(buf->Img);
@@ -249,7 +249,7 @@ emX11ViewRenderer::Buffer * emX11ViewRenderer::CreateBuffer(
 		}
 		XSync(Disp,False);
 		XSetErrorHandler(originalHandler);
-		ErrorHandlerMutex.Unlock();
+		emX11Screen::ErrorHandlerMutex.Unlock();
 		XMutex.Unlock();
 	}
 
@@ -379,14 +379,3 @@ Bool emX11ViewRenderer::WaitPredicate(
 	if (e->shmseg==d->inst->Buffers[d->idx]->Seg.shmseg) return true;
 	return false;
 }
-
-
-int emX11ViewRenderer::ErrorHandler(Display * display, XErrorEvent * event)
-{
-	ErrorHandlerCalled=true;
-	return 0;
-}
-
-
-emThreadMiniMutex emX11ViewRenderer::ErrorHandlerMutex;
-bool emX11ViewRenderer::ErrorHandlerCalled=false;

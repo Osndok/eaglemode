@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.cpp
 //
-// Copyright (C) 2014-2017 Oliver Hamann.
+// Copyright (C) 2014-2017,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1167,7 +1167,7 @@ void emVisitingViewAnimator::Paint(const emPainter & painter) const
 	l1=strlen(str);
 	l2=strlen(Identity);
 	if (l1>l2) l1=l2;
-	tw=painter.GetTextSize(Identity,h,false);
+	tw=emPainter::GetTextSize(Identity,h,false);
 	ws=1.0;
 	if (tw>w) { ws=w/tw; tw=w; }
 	ch=h;
@@ -1764,12 +1764,19 @@ emVisitingViewAnimator::CurvePoint emVisitingViewAnimator::GetCurvePoint(double 
 	}
 
 	t=fabs(d)/CurveDeltaDist;
-	i=(int)t;
-	if (i<0) i=0; // Can happen when d is a nan.
-	if (i>=CurveMaxIndex) i=CurveMaxIndex-1;
-	t-=i;
-	if (t<0.0) t=0.0;
-	if (t>1.0) t=1.0;
+	if (isnan(t) || t<=0.0) {
+		i=0;
+		t=0.0;
+	}
+	else if (t>=CurveMaxIndex) {
+		i=CurveMaxIndex-1;
+		t=1.0;
+	}
+	else {
+		i=(int)t;
+		if (i>=CurveMaxIndex) i=CurveMaxIndex-1;
+		t-=i;
+	}
 
 	x1=CurvePoints[i].X;
 	z1=CurvePoints[i].Z;

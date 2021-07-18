@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvLibDirCfg.h
 //
-// Copyright (C) 2020 Oliver Hamann.
+// Copyright (C) 2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -85,11 +85,11 @@ private:
 	};
 
 	static const int RequiredVlcArch;
-	static const char * RequiredVlcArchString;
+	static const char * const RequiredVlcArchString;
 	static const int RequiredVlcVersion;
 	static const int MinRequiredVlcSubVersion;
 	static const int MaxRequiredVlcSubVersion;
-	static const char * RequiredVlcVersionString;
+	static const char * const RequiredVlcVersionString;
 
 	emSignal ChangeSignal;
 	bool LibDirNecessary;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011,2014,2016,2020 Oliver Hamann.
+// Copyright (C) 2011,2014,2016,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -205,7 +205,7 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 	if (!IsViewed() || PageIndex<0 || PageIndex>=FileModel->GetPageCount()) {
 		if (Job) {
 			Server->CloseJob(Job);
-			Job=NULL;;
+			Job=NULL;
 		}
 		if (!JobImg.IsEmpty()) {
 			JobImg.Clear();
@@ -246,7 +246,7 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 			JobErrorText=Server->GetJobErrorText(Job);
 			if (JobErrorText.IsEmpty()) JobErrorText="unknown error";
 			Server->CloseJob(Job);
-			Job=NULL;;
+			Job=NULL;
 			JobImg.Clear();
 			Img.Clear();
 			PreImg.Clear();

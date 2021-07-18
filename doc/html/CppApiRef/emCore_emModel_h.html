@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>.h
 //
-// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -126,15 +126,15 @@
         // classes of models which are always common.
 </SPAN><SPAN CLASS=p>#       define EM_IMPL_ACQUIRE(CLASS, CONTEXT, NAME, COMMON) \
                 </SPAN>CLASS * m; \
-                <SPAN CLASS=k>if </SPAN>(!COMMON) m=<SPAN CLASS=k>new </SPAN>CLASS(CONTEXT,NAME); \
+                <SPAN CLASS=k>if </SPAN>(!(COMMON)) m=<SPAN CLASS=k>new </SPAN>CLASS(CONTEXT,NAME); \
                 <SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{ </SPAN>\
-                        m=(CLASS*)CONTEXT.Lookup(<SPAN CLASS=t>typeid</SPAN>(CLASS),NAME); \
+                        m=(CLASS*)(CONTEXT).Lookup(<SPAN CLASS=t>typeid</SPAN>(CLASS),NAME); \
                         <SPAN CLASS=k>if </SPAN>(!m) <SPAN CLASS=b>{ </SPAN>m=<SPAN CLASS=k>new </SPAN>CLASS(CONTEXT,NAME); m-&gt;Register(); <SPAN CLASS=b>} </SPAN>\
                 <SPAN CLASS=b>} </SPAN>\
                 <SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLASS &gt;(m);
 <SPAN CLASS=p>#       define EM_IMPL_ACQUIRE_COMMON(CLASS, CONTEXT, NAME) \
                 </SPAN>CLASS * m; \
-                m=(CLASS*)CONTEXT.Lookup(<SPAN CLASS=t>typeid</SPAN>(CLASS),NAME); \
+                m=(CLASS*)(CONTEXT).Lookup(<SPAN CLASS=t>typeid</SPAN>(CLASS),NAME); \
                 <SPAN CLASS=k>if </SPAN>(!m) <SPAN CLASS=b>{ </SPAN>m=<SPAN CLASS=k>new </SPAN>CLASS(CONTEXT,NAME); m-&gt;Register(); <SPAN CLASS=b>} </SPAN>\
                 <SPAN CLASS=k>return </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLASS &gt;(m);
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.cpp
 //
-// Copyright (C) 2008-2009,2014,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016,2018-2019,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,7 @@
 //========================= Dynamic access to libXext ==========================
 //==============================================================================
 
-static const char * emX11_LibXextName=
+static const char * const emX11_LibXextName=
 #	if defined(_WIN32)
 		"libXext.dll"
 #	elif defined(__CYGWIN__)
@@ -35,13 +35,15 @@ static const char * emX11_LibXextName=
 		"/usr/X11/lib/libXext.6.dylib"
 #	elif defined(__sun__)
 		"libXext.so.0"
+#	elif defined(__NetBSD__)
+		"/usr/X11R7/lib/libXext.so"
 #	else
 		"libXext.so.6"
 #	endif
 ;
 
 
-static const char * emX11_LibXextFuncNames[6]={
+static const char * const emX11_LibXextFuncNames[6]={
 	"XShmAttach",
 	"XShmCreateImage",
 	"XShmDetach",
@@ -101,18 +103,20 @@ bool emX11_IsLibXextLoaded()
 //======================== Dynamic access to libXxf86vm ========================
 //==============================================================================
 
-static const char * emX11_LibXxf86vmName=
+static const char * const emX11_LibXxf86vmName=
 #	if defined(_WIN32) || defined(__CYGWIN__)
 		"libXxf86vm.dll"
 #	elif defined(__APPLE__)
 		"/usr/X11/lib/libXxf86vm.1.dylib"
+#	elif defined(__NetBSD__)
+		"/usr/X11R7/lib/libXxf86vm.so"
 #	else
 		"libXxf86vm.so.1"
 #	endif
 ;
 
 
-static const char * emX11_LibXxf86vmFuncNames[4]={
+static const char * const emX11_LibXxf86vmFuncNames[4]={
 	"XF86VidModeGetModeLine",
 	"XF86VidModeGetViewPort",
 	"XF86VidModeQueryExtension",
@@ -168,20 +172,22 @@ bool emX11_IsLibXxf86vmLoaded()
 //======================= Dynamic access to libXinerama ========================
 //==============================================================================
 
-static const char * emX11_LibXineramaName=
+static const char * const emX11_LibXineramaName=
 #	if defined(_WIN32)
 		"libXinerama.dll"
 #	elif defined(__CYGWIN__)
 		"cygXinerama-1.dll"
 #	elif defined(__APPLE__)
 		"/usr/X11/lib/libXinerama.1.dylib"
+#	elif defined(__NetBSD__)
+		"/usr/X11R7/lib/libXinerama.so"
 #	else
 		"libXinerama.so.1"
 #	endif
 ;
 
 
-static const char * emX11_LibXineramaFuncNames[4]={
+static const char * const emX11_LibXineramaFuncNames[4]={
 	"XineramaQueryExtension",
 	"XineramaQueryScreens",
 	"XineramaQueryVersion"

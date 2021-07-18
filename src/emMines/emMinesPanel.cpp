@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMinesPanel.cpp
 //
-// Copyright (C) 2005-2008,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -391,10 +391,10 @@ void emMinesPanel::PaintClosedField(
 	double xy[4*2];
 	emColor cl,cr,ct,cb;
 
-	cl=color.GetLighted(-20.0f);
-	cr=color.GetLighted(-30.0f);
-	ct=color.GetLighted(-10.0f);
-	cb=color.GetLighted(-40.0f);
+	cl=color.GetLighted(-20.0F);
+	cr=color.GetLighted(-30.0F);
+	ct=color.GetLighted(-10.0F);
+	cb=color.GetLighted(-40.0F);
 
 	x11=TransX(x-r,z-r);
 	y11=TransY(y-r,z-r);
@@ -458,7 +458,7 @@ void emMinesPanel::PaintMarkedField(
 	emColor c1[8],c2[8];
 	emColor cwarn;
 
-	cwarn=color.GetBlended(emColor(255,0,0,color.GetAlpha()),25.0f);
+	cwarn=color.GetBlended(emColor(255,0,0,color.GetAlpha()),25.0F);
 
 	for (i=0; i<8; i++) {
 		nx=r*cos((i+0.5)*(M_PI*0.25));
@@ -543,7 +543,7 @@ void emMinesPanel::PaintOpenField(
 		x1,y1,x2-x1,y2-y1,
 		numstr,
 		y2-y1,
-		color.GetLighted(-25.0f)
+		color.GetLighted(-25.0F)
 	);
 
 	x1=TransX(x-r*1.2,z-r*0.1);
@@ -646,14 +646,14 @@ void emMinesPanel::PaintXBeam(
 		xy[2]=x21; xy[3]=y11;
 		xy[4]=x22; xy[5]=y12;
 		xy[6]=x12; xy[7]=y12;
-		painter.PaintPolygon(xy,4,color.GetLighted(-10.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-10.0F));
 	}
 	else if (y22>y21) {
 		xy[0]=x11; xy[1]=y21;
 		xy[2]=x21; xy[3]=y21;
 		xy[4]=x22; xy[5]=y22;
 		xy[6]=x12; xy[7]=y22;
-		painter.PaintPolygon(xy,4,color.GetLighted(-40.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-40.0F));
 	}
 }
 
@@ -680,14 +680,14 @@ void emMinesPanel::PaintYBeam(
 		xy[2]=x11; xy[3]=y21;
 		xy[4]=x12; xy[5]=y22;
 		xy[6]=x12; xy[7]=y12;
-		painter.PaintPolygon(xy,4,color.GetLighted(-20.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-20.0F));
 	}
 	else if (x22>x21) {
 		xy[0]=x21; xy[1]=y11;
 		xy[2]=x21; xy[3]=y21;
 		xy[4]=x22; xy[5]=y22;
 		xy[6]=x22; xy[7]=y12;
-		painter.PaintPolygon(xy,4,color.GetLighted(-30.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-30.0F));
 	}
 }
 
@@ -713,28 +713,28 @@ void emMinesPanel::PaintZBeam(
 		xy[2]=x11; xy[3]=y21;
 		xy[4]=x12; xy[5]=y22;
 		xy[6]=x12; xy[7]=y12;
-		painter.PaintPolygon(xy,4,color.GetLighted(-20.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-20.0F));
 	}
 	else if (x22>x21) {
 		xy[0]=x21; xy[1]=y11;
 		xy[2]=x21; xy[3]=y21;
 		xy[4]=x22; xy[5]=y22;
 		xy[6]=x22; xy[7]=y12;
-		painter.PaintPolygon(xy,4,color.GetLighted(-30.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-30.0F));
 	}
 	if (y12<y11) {
 		xy[0]=x11; xy[1]=y11;
 		xy[2]=x21; xy[3]=y11;
 		xy[4]=x22; xy[5]=y12;
 		xy[6]=x12; xy[7]=y12;
-		painter.PaintPolygon(xy,4,color.GetLighted(-10.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-10.0F));
 	}
 	else if (y22>y21) {
 		xy[0]=x11; xy[1]=y21;
 		xy[2]=x21; xy[3]=y21;
 		xy[4]=x22; xy[5]=y22;
 		xy[6]=x12; xy[7]=y22;
-		painter.PaintPolygon(xy,4,color.GetLighted(-40.0f));
+		painter.PaintPolygon(xy,4,color.GetLighted(-40.0F));
 	}
 }
 

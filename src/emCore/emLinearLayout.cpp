@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emLinearLayout.cpp
 //
-// Copyright (C) 2015,2020 Oliver Hamann.
+// Copyright (C) 2015,2020-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -480,7 +480,9 @@ void emLinearLayout::LayoutChildren()
 }
 
 
-double emLinearLayout::CalculateForce(int cells, double w, double h, bool horizontal)
+double emLinearLayout::CalculateForce(
+	int cells, double w, double h, bool horizontal
+) const
 {
 	double totalLength,weight,force,minCT,maxCT,ct,cw;
 	double compressedLength,expandedLength,freeLength;

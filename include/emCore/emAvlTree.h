@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTree.h
 //
-// Copyright (C) 2005-2008,2010,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -320,6 +320,39 @@ int emAvlCheck(const emAvlTree tree);
 		}
 
 #define EM_AVL_REMOVE_END \
+		break; \
+	}
+
+//----------------------- Macros for the clear algorithm -----------------------
+
+#define EM_AVL_CLEAR_VARS(ELEMENT_CLASS) \
+	emAvlNode * nstack[64]; \
+	emAvlNode * node; \
+	int depth; \
+	ELEMENT_CLASS * element;
+
+#define EM_AVL_CLEAR_BEGIN(ELEMENT_CLASS,NODE_MEMBER,TREE) \
+	node=TREE; \
+	TREE=NULL; \
+	depth=0; \
+	if (!node) element=NULL; \
+	else for (;;) { \
+		if (node->Left) { \
+			nstack[depth++]=node->Left; \
+			node->Left=NULL; \
+		} \
+		if (node->Right) { \
+			nstack[depth++]=node->Right; \
+			node->Right=NULL; \
+		} \
+		element=EM_AVL_ELEMENT(ELEMENT_CLASS,NODE_MEMBER,node);
+
+#define EM_AVL_CLEAR_END \
+		if (depth>0) { \
+			node=nstack[--depth]; \
+			continue; \
+		} \
+		element=NULL; \
 		break; \
 	}
 
