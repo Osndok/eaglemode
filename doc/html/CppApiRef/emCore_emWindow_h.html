@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>.h
 //
-// Copyright (C) 2005-2010,2016-2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,6 +117,10 @@
         </SPAN>WindowFlags GetWindowFlags() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetWindowFlags(WindowFlags windowFlags);
                 <SPAN CLASS=c>// Get or set the features of this window.
+                // CAUTION: Changing WF_MODAL, WF_UNDECORATED or WF_POPUP may
+                // reset position and size of the window. Any call to
+                // SetViewPosSize(..), SetWinPosSize(..) or companions should be
+                // made AFTER setting the window flags.
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetWindowFlagsSignal() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// This signal is signaled when the features of this window have
@@ -262,8 +266,8 @@
                 <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, PosSizeArgSpec posSpec,
                 <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, PosSizeArgSpec sizeSpec
         ) = <SPAN CLASS=u>0</SPAN>;
-                <SPAN CLASS=c>// Should call GetWindow().SetViewGeometry(...) immediately with
-                // appropriate values.
+                <SPAN CLASS=c>// Should call SetViewGeometry(...) immediately with appropriate
+                // values.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>GetBorderSizes(
                 <SPAN CLASS=t>double </SPAN>* pL, <SPAN CLASS=t>double </SPAN>* pT, <SPAN CLASS=t>double </SPAN>* pR, <SPAN CLASS=t>double </SPAN>* pB

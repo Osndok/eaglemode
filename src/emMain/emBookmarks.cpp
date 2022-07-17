@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014-2016,2018-2020 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016,2018-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -748,11 +748,11 @@ emBookmarkEntryAuxPanel::emBookmarkEntryAuxPanel(
 	BtNewGroupAfter=NULL;
 	BtPasteAfter=NULL;
 	SetListenedRec(rec);
-	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
+	SetAutoExpansionThreshold(6,VCT_MIN_EXT);
 	SetBorderType(OBT_NONE,IBT_NONE);
 	SetVertical();
 	SetChildTallness(0,0.6);
-	SetChildTallness(1,2.2);
+	SetChildTallness(1,2.3);
 	SetChildTallness(2,0.6);
 	SetAlignment(EM_ALIGN_CENTER);
 	SetInnerSpace(0.0,1.2);
@@ -1056,6 +1056,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 			bmRec ? "This Bookmark" : "This Group"
 		);
 		g->SetVertical();
+		g->SetChildWeight(4,2.0);
 		g->SetMinCellCount(12);
 		BtCut=new emButton(
 			g,
@@ -1114,6 +1115,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 			)
 		);
 		FlbIcon->SetBorderType(OBT_INSTRUMENT,IBT_NONE);
+		FlbIcon->SetBorderScaling(0.5);
 		filters.Clear();
 		filters.Add("Targa Files (*.tga)");
 		FlbIcon->SetFilters(filters);
@@ -1339,7 +1341,7 @@ emBookmarksAuxPanel::emBookmarksAuxPanel(
 	BtNewGroup=NULL;
 	BtPaste=NULL;
 	SetListenedRec(rec);
-	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
+	SetAutoExpansionThreshold(6,VCT_MIN_EXT);
 	SetVertical();
 	emLinearGroup::SetLook(emLook());
 	SetCaption("In This Empty Group");
@@ -1473,7 +1475,7 @@ emBookmarkButton::emBookmarkButton(
 	SetIconAboveCaption();
 	SetMaxIconAreaTallness(9.0/16.0);
 	SetBorderScaling(0.5);
-	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
+	SetAutoExpansionThreshold(6,VCT_MIN_EXT);
 	AddWakeUpSignal(GetClickSignal());
 	WakeUp();
 }
@@ -1607,7 +1609,7 @@ emBookmarksPanel::emBookmarksPanel(
 	UpToDate=false;
 	RasterLayout=NULL;
 	SetListenedRec(rec);
-	SetAutoExpansionThreshold(5,VCT_MIN_EXT);
+	SetAutoExpansionThreshold(6,VCT_MIN_EXT);
 	WakeUp();
 	SetCaption("Bookmarks");
 	SetDescription(

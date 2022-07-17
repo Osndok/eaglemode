@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2012,2014-2017 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,9 +34,10 @@ emMainWindow::emMainWindow(
 	double visitRelA,
 	bool visitAdherent,
 	const char * visitSubject,
-	emColor ceColor
+	emColor ceColor,
+	const emString & wmResName
 )
-	: emWindow(parentContext,0,0,"emMainWindow"),
+	: emWindow(parentContext,0,0,wmResName),
 	WindowStateSaver(
 		*this,
 		emGetInstallPath(EM_IDT_USER_CONFIG,"emMain","winstate.rec")
@@ -120,7 +121,8 @@ emMainWindow * emMainWindow::Duplicate()
 		*GetParentContext(),
 		p?identity.Get():NULL,
 		relX,relY,relA,adherent,subject,
-		ceColor
+		ceColor,
+		GetWMResName()
 	);
 
 	return w;

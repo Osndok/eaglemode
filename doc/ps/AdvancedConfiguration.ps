@@ -1,8 +1,8 @@
 %!PS-Adobe-3.0
 %%BoundingBox: 0 0 595 792
 %%LanguageLevel: 2
-%%Creator: htmldoc 1.8.27 Copyright 1997-2006 Easy Software Products, All Rights Reserved.
-%%CreationDate: D:20210711063605-0200
+%%Creator: htmldoc 1.9.11 Copyright 2011-2019 by Michael R Sweet
+%%CreationDate: D:20220703043632+0000
 %%Title: Eagle Mode - Advanced Configuration
 %%Pages: 8
 %%DocumentProvidedResources:
@@ -9455,7 +9455,7 @@ ba6f93b83bb9c41c7787992734171fc2a4f0b46f06c6f029c82ccc985b7c
 0000000000000000000000000000000000000000000000000000000000000000
 cleartomark
 %%EndResource
-%%BeginResource: procset htmldoc-page 1.8 25
+%%BeginResource: procset htmldoc-page 1.8 11
 /BD{bind def}bind def/B{dup 0 exch rlineto exch 0 rlineto neg 0 exch rlineto
 closepath stroke}BD/C{setrgbcolor}BD
 /CM{concat}BD/DF{findfont dup length dict begin{1 index/FID ne{def}{pop pop}
@@ -9633,21 +9633,21 @@ GS
 0 635.8 M(put it into )S
 /F0 SF ($EM_DIR/etc/emCore/FpPlugins)S
 /F4 SF (\).)S
-9 FS/F0 SF 0 611.4 M(#%rec:emFpPlugin%#)S
-0 589.8 M(FileTypes = { ".otf" ".pcf" ".pcf.gz" ".pfa" ".pfb" ".ttf" })S
-0 579 M(Priority = 0.51)S
-0 568.2 M(Library = "emTmpConv")S
-0 557.4 M(Function = "emTmpConvFpPluginFunc")S
-0 546.6 M(Properties = {)S
-0 535.8 M( {)S
-0 525 M(  Name="OutFileEnding")S
-0 514.2 M(  Value=".dir")S
-0 503.4 M( })S
-0 492.6 M( {)S
-0 481.8 M(  Name="Command")S
-0 471 M(  Value="exec \\"$EM_DIR/bin/font2em\\" \\"$INFILE\\" \\"$OUTFILE\\" 32")S
-0 460.2 M( })S
-0 449.4 M(})S
+9 FS/F0 SF 36 611.4 M(#%rec:emFpPlugin%#)S
+36 589.8 M(FileTypes = { ".otf" ".pcf" ".pcf.gz" ".pfa" ".pfb" ".ttf" })S
+36 579 M(Priority = 0.51)S
+36 568.2 M(Library = "emTmpConv")S
+36 557.4 M(Function = "emTmpConvFpPluginFunc")S
+36 546.6 M(Properties = {)S
+36 535.8 M( {)S
+36 525 M(  Name="OutFileEnding")S
+36 514.2 M(  Value=".dir")S
+36 503.4 M( })S
+36 492.6 M( {)S
+36 481.8 M(  Name="Command")S
+36 471 M(  Value="exec \\"$EM_DIR/bin/font2em\\" \\"$INFILE\\" \\"$OUTFILE\\" 32")S
+36 460.2 M( })S
+36 449.4 M(})S
 20 FS/F9 SF 0 414.4 M(2 Plugin configuration)S
 17 FS/F9 SF 0 367 M(2.1 emFpPlugin - file panel plugins)S
 11 FS/F4 SF 0 339.4 M(The main plugin interface of Eagle Mode is named emFpPlugin \(Eagle Mode File Panel Plugin\). Such a)S
@@ -9668,13 +9668,13 @@ GS
 0 194.2 M(configuration files are loaded from there, and the other is ignored.)S
 0 167.8 M(For being recognized by the program, the names of the configuration files must end with ".emFpPlugin".)S
 0 141.4 M(Here comes a description of the file format in form of a commented example for an imaginative plugin:)S
-9 FS/F0 SF 0 117 M(#%rec:emFpPlugin%#)S
-0 106.2 M(  # Must be the first line of the file.)S
-0 84.6 M(FileTypes = { ".cherry" ".pear" ".banana" })S
-0 73.8 M(  # Any number of file types the plugin is able to show. Each entry must be)S
-0 63 M(  # either a file name ending including the leading dot, or "file" which means)S
-0 52.2 M(  # all regular file types, or "directory".)S
-0 30.6 M(Priority = 1.0)S
+9 FS/F0 SF 36 117 M(#%rec:emFpPlugin%#)S
+36 106.2 M(  # Must be the first line of the file.)S
+36 84.6 M(FileTypes = { ".cherry" ".pear" ".banana" })S
+36 73.8 M(  # Any number of file types the plugin is able to show. Each entry must be)S
+36 63 M(  # either a file name ending including the leading dot, or "file" which means)S
+36 52.2 M(  # all regular file types, or "directory".)S
+36 30.6 M(Priority = 1.0)S
 11 FS/F8 SF 480.884 0 M(3)S
 GR
 SP
@@ -9682,28 +9682,28 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 9 FS/F0 SF 0 711 M(  # Priority for the plugin. This is important when there are multiple plugins)S
-0 700.2 M(  # able to show a file type. Then, the plugin with the highest priority is used)S
-0 689.4 M(  # as the primary viewer, and the others are used as alternative viewers in an)S
-0 678.6 M(  # order according to decreasing priority. The priority can be any number.)S
-0 667.8 M(  # Typical priorities are:)S
-0 657 M(  #  1.0 - Specialized file viewer)S
-0 646.2 M(  #  0.5 - Temporary conversion \(emTmpConv\))S
-0 635.4 M(  #  0.1 - Plain text viewer)S
-0 624.6 M(  #  0.0 - Hex dump)S
-0 603 M(Library = "Fruit")S
-0 592.2 M(  # Name of a dynamic link library making up the plugin. The name must be given)S
-0 581.4 M(  # without path, without ending and without the "lib" in front \(e.g. say)S
-0 570.6 M(  # "Fruit" instead of "/usr/local/eaglemode/lib/libFruit.so"\).)S
-0 549 M(Function = "FruitFpPluginFunc")S
-0 538.2 M(  # Symbol name of a C function in the library which creates the panel for a)S
-0 527.4 M(  # given file. The exact function declaration can be found in the header file)S
-0 516.6 M(  # "emFpPlugin.h".)S
-0 495 M(Properties = { { Name="color" Value="blue" } { Name="size" Value="7" } })S
-0 484.2 M(  # This is optional. It is a list of additional configuration parameters in)S
-0 473.4 M(  # form of name/value pairs. Both, the names and the values are always quoted)S
-0 462.6 M(  # strings. The possible parameters are defined by the individual plugins. For)S
-0 451.8 M(  # an example, see the description of emTmpConv below.)S
+0.00 0.00 0.00 C 9 FS/F0 SF 36 711 M(  # Priority for the plugin. This is important when there are multiple plugins)S
+36 700.2 M(  # able to show a file type. Then, the plugin with the highest priority is used)S
+36 689.4 M(  # as the primary viewer, and the others are used as alternative viewers in an)S
+36 678.6 M(  # order according to decreasing priority. The priority can be any number.)S
+36 667.8 M(  # Typical priorities are:)S
+36 657 M(  #  1.0 - Specialized file viewer)S
+36 646.2 M(  #  0.5 - Temporary conversion \(emTmpConv\))S
+36 635.4 M(  #  0.1 - Plain text viewer)S
+36 624.6 M(  #  0.0 - Hex dump)S
+36 603 M(Library = "Fruit")S
+36 592.2 M(  # Name of a dynamic link library making up the plugin. The name must be given)S
+36 581.4 M(  # without path, without ending and without the "lib" in front \(e.g. say)S
+36 570.6 M(  # "Fruit" instead of "/usr/local/eaglemode/lib/libFruit.so"\).)S
+36 549 M(Function = "FruitFpPluginFunc")S
+36 538.2 M(  # Symbol name of a C function in the library which creates the panel for a)S
+36 527.4 M(  # given file. The exact function declaration can be found in the header file)S
+36 516.6 M(  # "emFpPlugin.h".)S
+36 495 M(Properties = { { Name="color" Value="blue" } { Name="size" Value="7" } })S
+36 484.2 M(  # This is optional. It is a list of additional configuration parameters in)S
+36 473.4 M(  # form of name/value pairs. Both, the names and the values are always quoted)S
+36 462.6 M(  # strings. The possible parameters are defined by the individual plugins. For)S
+36 451.8 M(  # an example, see the description of emTmpConv below.)S
 11 FS/F4 SF 0 425.8 M(For any modifications of the emFpPlugin files to take effect, Eagle Mode must be restarted.)S
 17 FS/F9 SF 0 393.4 M(2.2 emTmpConv - temporary conversion)S
 11 FS/F4 SF 0 365.8 M(emTmpConv is a special file viewer which converts the file temporarily to another file format in order to)S
@@ -9715,27 +9715,27 @@ GS
 /F0 SF (emTmpConvFpPluginFunc)S
 /F4 SF (. Three properties are)S
 0 299.8 M(defined, where the third one is optional:)S
-9 FS/F0 SF 0 275.4 M(Properties = {)S
-0 253.8 M(  { Name = "OutFileEnding" Value = "insert your ending here" })S
-0 243 M(    # Specifies the file name ending of the temporary file, including the)S
-0 232.2 M(    # leading dot. This is important because the final file viewer is chosen by)S
-0 221.4 M(    # that. For example, if you want the temporary file to be shown by the)S
-0 210.6 M(    # PostScript viewer, say ".ps".)S
-0 189 M(  { Name="Command" Value="insert your script here" })S
-0 178.2 M(    # Specifies the shell script for performing the conversion. It is executed)S
-0 167.4 M(    # by emTmpConv with /bin/sh -c <script> \(on Windows: cmd /E:ON /F:OFF)S
-0 156.6 M(    # /V:ON /C <script>\). Two important environment variables are defined:)S
-0 145.8 M(    #  $INFILE  \(on Windows: %INFILE%\)  - Absolute path of the original file to)S
-0 135 M(    #                                     be read by the script.)S
-0 124.2 M(    #  $OUTFILE \(on Windows: %OUTFILE%\) - Absolute path of the temporary file)S
-0 113.4 M(    #                                     \(or directory\) to be created by the)S
-0 102.6 M(    #                                     script.)S
-0 91.8 M(    # On failure, the script should print an error message to stderr and it)S
-0 81 M(    # should exit with a non-zero return value.)S
-0 59.4 M(  { Name="TunnelFactor" Value="1.0" })S
-0 48.6 M(    # This optional property specifies a factor for the depth of the displayed)S
-0 37.8 M(    # tunnel. The default is 1.0. Zero means to show no tunnel \(then it is even)S
-0 27 M(    # possible to enter or leave the content with the auto play functions\). A)S
+9 FS/F0 SF 36 275.4 M(Properties = {)S
+36 253.8 M(  { Name = "OutFileEnding" Value = "insert your ending here" })S
+36 243 M(    # Specifies the file name ending of the temporary file, including the)S
+36 232.2 M(    # leading dot. This is important because the final file viewer is chosen by)S
+36 221.4 M(    # that. For example, if you want the temporary file to be shown by the)S
+36 210.6 M(    # PostScript viewer, say ".ps".)S
+36 189 M(  { Name="Command" Value="insert your script here" })S
+36 178.2 M(    # Specifies the shell script for performing the conversion. It is executed)S
+36 167.4 M(    # by emTmpConv with /bin/sh -c <script> \(on Windows: cmd /E:ON /F:OFF)S
+36 156.6 M(    # /V:ON /C <script>\). Two important environment variables are defined:)S
+36 145.8 M(    #  $INFILE  \(on Windows: %INFILE%\)  - Absolute path of the original file to)S
+36 135 M(    #                                     be read by the script.)S
+36 124.2 M(    #  $OUTFILE \(on Windows: %OUTFILE%\) - Absolute path of the temporary file)S
+36 113.4 M(    #                                     \(or directory\) to be created by the)S
+36 102.6 M(    #                                     script.)S
+36 91.8 M(    # On failure, the script should print an error message to stderr and it)S
+36 81 M(    # should exit with a non-zero return value.)S
+36 59.4 M(  { Name="TunnelFactor" Value="1.0" })S
+36 48.6 M(    # This optional property specifies a factor for the depth of the displayed)S
+36 37.8 M(    # tunnel. The default is 1.0. Zero means to show no tunnel \(then it is even)S
+36 27 M(    # possible to enter or leave the content with the auto play functions\). A)S
 11 FS/F8 SF 480.884 0 M(4)S
 GR
 SP
@@ -9743,11 +9743,11 @@ SP
 %%PageBoundingBox: 72 36 559 756
 GS
 72 36 T
-0.00 0.00 0.00 C 9 FS/F0 SF 0 711 M(    # number less than 1.0 should only be given if the temporary conversion is)S
-0 700.2 M(    # never expensive in time and \(disk\) space. With 1.0, the user can trigger)S
-0 689.4 M(    # only one conversion at a time \(per view\). The smaller the tunnel factor,)S
-0 678.6 M(    # the more files can have converted state in parallel.)S
-0 667.8 M(})S
+0.00 0.00 0.00 C 9 FS/F0 SF 36 711 M(    # number less than 1.0 should only be given if the temporary conversion is)S
+36 700.2 M(    # never expensive in time and \(disk\) space. With 1.0, the user can trigger)S
+36 689.4 M(    # only one conversion at a time \(per view\). The smaller the tunnel factor,)S
+36 678.6 M(    # the more files can have converted state in parallel.)S
+36 667.8 M(})S
 11 FS/F4 SF 0 641.8 M(Hints for making the shell scripts:)S
 36 615.4 M(All double-quotes and backslashes have to be quoted by backslashes.)S
 /F18 SF 28.19 615.4 M(\267 )S

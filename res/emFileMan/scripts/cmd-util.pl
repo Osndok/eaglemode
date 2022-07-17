@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # cmd-util.pl
 #
-# Copyright (C) 2007-2008,2010,2012,2014,2019,2021 Oliver Hamann.
+# Copyright (C) 2007-2008,2010,2012,2014,2019,2021-2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -266,8 +266,14 @@ sub Dlg
 {
 	my $p=catfile($ENV{'EM_DIR'},"bin","emShowStdDlg");
 
-	my $w=400;
-	my $h=300;
+	my $minW=400;
+	my $minH=280;
+	my $w=$ENV{'EM_WIDTH'}*0.5;
+	my $h=$ENV{'EM_HEIGHT'}*0.4;
+	if ($w>$h*$minW/$minH) { $w=$h*$minW/$minH; }
+	if ($w<$minW) { $w=$minW; }
+	$w=int($w+0.5);
+	$h=int($w*$minH/$minW+0.5);
 	my $x=int($ENV{'EM_X'}+($ENV{'EM_WIDTH'}-$w)/2);
 	my $y=int($ENV{'EM_Y'}+($ENV{'EM_HEIGHT'}-$h)/2);
 	if ($x < 0) { $x=0; }

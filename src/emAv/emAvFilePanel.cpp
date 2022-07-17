@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.cpp
 //
-// Copyright (C) 2005-2011,2014,2016-2018,2020 Oliver Hamann.
+// Copyright (C) 2005-2011,2014,2016-2018,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -306,7 +306,7 @@ void emAvFilePanel::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const int posStepFast=20000;
+	static const int posStepFast=10000;
 	static const int posStepSlow=1000;
 	static const int volStep=5;
 	emAvFileModel * fm;

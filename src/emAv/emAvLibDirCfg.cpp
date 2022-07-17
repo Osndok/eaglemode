@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvLibDirCfg.cpp
 //
-// Copyright (C) 2020-2021 Oliver Hamann.
+// Copyright (C) 2020-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -333,6 +333,7 @@ emAvLibDirCfg::CfgPanel::CfgPanel(
 	BtSave(NULL),
 	LibDirValid(false)
 {
+	SetAutoExpansionThreshold(2000,VCT_AREA);
 	AddWakeUpSignal(Cfg.GetChangeSignal());
 }
 
@@ -414,6 +415,7 @@ void emAvLibDirCfg::CfgPanel::AutoExpand()
 	FsBox->SetNameFieldHidden();
 	FsBox->SetFilterHidden();
 	FsBox->SetBorderScaling(1.65);
+	FsBox->SetAutoExpansionThreshold(2000,VCT_AREA);
 	AddWakeUpSignal(FsBox->GetSelectionSignal());
 
 	BtAutoDetect=new emButton(ll,"autodetect","Auto\nDetect");

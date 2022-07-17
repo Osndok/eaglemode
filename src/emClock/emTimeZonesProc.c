@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTimeZonesProc.c
 //
-// Copyright (C) 2008-2009,2017-2018 Oliver Hamann.
+// Copyright (C) 2008-2009,2017-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -278,7 +278,7 @@ static time_t tzBaseTime;
 #endif
 
 
-void setTzBaseTimeNow()
+static void setTzBaseTimeNow()
 {
 #if defined(_WIN32)
 	GetSystemTime(&tzBaseTime);
@@ -288,7 +288,7 @@ void setTzBaseTimeNow()
 }
 
 
-void setTzBaseTime(int year, int month, int day, int hour, int minute, int second)
+static void setTzBaseTime(int year, int month, int day, int hour, int minute, int second)
 {
 #if defined(_WIN32)
 	memset(&tzBaseTime,0,sizeof(tzBaseTime));
@@ -319,7 +319,7 @@ void setTzBaseTime(int year, int month, int day, int hour, int minute, int secon
 }
 
 
-int getTzTime(
+static int getTzTime(
 	const char * zoneInfoDir, const char * tz,
 	int * pYear, int * pMonth, int * pDay, int * pWDay,
 	int * pHour, int * pMinute, int * pSecond,
@@ -385,7 +385,7 @@ int getTzTime(
 }
 
 
-void handleRequest(
+static void handleRequest(
 	const char * zoneInfoDir, const char * request,
 	char * replyBuf, int replyBufSize
 )
@@ -433,7 +433,7 @@ void handleRequest(
 }
 
 
-int tzServe(int argc, char * argv[])
+static int tzServe(int argc, char * argv[])
 {
 	static const int maxReplySize=256;
 	const char * zoneInfoDir;

@@ -81,11 +81,11 @@ $V{'DEB_BUILD_DEPENDS'}=
 	'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
-	'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libwebp6, libvlc5, '.
+	'libjpeg62-turbo | libjpeg62, libpng16-16, libtiff5, libvlc5, '.
 	'vlc-plugin-base, librsvg2-2, libpoppler-glib8, libgtk2.0-0, '.
 	'libfreetype6';
 $V{'DEB_RECOMMENDS'}=
-	'abiword, genisoimage, htmldoc, netpbm, transfig';
+	'abiword, genisoimage, htmldoc, libwebp6, netpbm, transfig';
 
 $V{'RPM_PACKAGE_VERSION'}='1';
 $V{'RPM_GROUP'}='System/GUI/Other';

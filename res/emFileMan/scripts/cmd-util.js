@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // cmd-util.js
 //
-// Copyright (C) 2008-2012,2016,2018-2019,2021 Oliver Hamann.
+// Copyright (C) 2008-2012,2016,2018-2019,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -492,13 +492,23 @@ function SendSelectCS(files)
 
 function StartDlg(argsArray)
 {
-	var env,x,y,w,h,allArgs;
+	var env,minW,minH,x,y,w,h,allArgs;
 
 	env=WshShell.Environment("PROCESS");
-	w=400;
-	h=300;
+
+	minW=400;
+	minH=280;
+	w=parseInt(env("EM_WIDTH"))*0.5;
+	h=parseInt(env("EM_HEIGHT"))*0.4;
+	if (w>h*minW/minH) w=h*minW/minH;
+	if (w<minW) w=minW;
+	w=Math.round(w);
+	h=Math.round(w*minH/minW);
 	x=Math.round(parseInt(env("EM_X"))+(parseInt(env("EM_WIDTH"))-w)/2);
 	y=Math.round(parseInt(env("EM_Y"))+(parseInt(env("EM_HEIGHT"))-h)/2);
+	if (x<0) x=0;
+	if (y<0) y=0;
+
 	allArgs=new Array;
 	allArgs[0]=env("EM_DIR") + "\\bin\\emShowStdDlg.exe";
 	allArgs[1]="-geometry";

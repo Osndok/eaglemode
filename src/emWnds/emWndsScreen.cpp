@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2011,2015-2017 Oliver Hamann.
+// Copyright (C) 2006-2011,2015-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,6 +129,8 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	}
 
 	WCThread=new WaitCursorThread();
+
+	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 	i=0;
 	do {
@@ -610,6 +612,8 @@ int emWndsScreen::WaitCursorThread::Run(void * arg)
 	static const emUInt64 blockTimeMS=125;
 	HCURSOR hcur;
 	emUInt64 t;
+
+	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 	hcur=LoadCursor(NULL,IDC_WAIT);
 

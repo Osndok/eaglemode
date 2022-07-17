@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2019-2021 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2019-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -73,7 +73,7 @@ void emButton::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const double minExt=4.0;
+	static const double minExt=7.0;
 	double vmx,vmy;
 
 	if (
@@ -230,18 +230,20 @@ bool emButton::CheckMouse(double mx, double my)
 
 
 void emButton::DoButton(
-	DoButtonFunc func, const emPainter * painter,
-	emColor canvasColor, double mx, double my, bool * pHit
+	DoButtonFunc func, const emPainter * painter, emColor canvasColor,
+	double mx, double my, bool * pHit
 ) const
 {
 	double x,y,w,h,r,d,f,bx,by,bw,bh,fx,fy,fw,fh,fr,lx,ly,lw,lh,dx,dy;
+	bool hasLabel;
 	emColor color;
 
 	if (ShownBoxed) {
 
 		GetContentRect(&x,&y,&w,&h);
 
-		if (HasLabel()) {
+		hasLabel=HasLabel();
+		if (hasLabel) {
 			lw=1.0;
 			lh=emMax(0.2,GetBestLabelTallness());
 			bw=lh;
@@ -279,21 +281,34 @@ void emButton::DoButton(
 		if (ShownRadioed) fr=fw*0.5;
 		else fr=bw*50.0/380;
 
+		r=h*0.2;
+
 		if (func==BUTTON_FUNC_CHECK_MOUSE) {
-			dx=emMax(emMax(fx-mx,mx-fx-fw)+fr,0.0);
-			dy=emMax(emMax(fy-my,my-fy-fh)+fr,0.0);
-			*pHit = dx*dx+dy*dy <= fr*fr;
+			dx=emMax(emMax(x-mx,mx-x-w)+r,0.0);
+			dy=emMax(emMax(y-my,my-y-h)+r,0.0);
+			*pHit = dx*dx+dy*dy <= r*r;
 			return;
 		}
 
 		color=GetLook().GetFgColor();
 		if (!IsEnabled()) color=color.GetTransparented(75.0F);
-		PaintLabel(
-			*painter,
-			lx,ly,lw,lh,
-			color,
-			canvasColor
-		);
+
+		if (hasLabel) {
+			if (Pressed) {
+				bx+=lw*0.003;
+				fx+=lw*0.003;
+				lx+=lw*0.003;
+				ly+=lh*0.007;
+				lw*=0.986;
+				lh*=0.986;
+			}
+			PaintLabel(
+				*painter,
+				lx,ly,lw,lh,
+				color,
+				canvasColor
+			);
+		}
 
 		color=GetLook().GetInputBgColor();
 		painter->PaintRoundRect(fx,fy,fw,fh,fr,fr,color,canvasColor);
@@ -317,6 +332,15 @@ void emButton::DoButton(
 			),
 			255
 		);
+
+		if (Pressed) {
+			painter->PaintBorderImage(
+				x,y,w,h,r,r,r,r,
+				GetTkResources().ImgGroupInnerBorder,
+				225,225,225,225,
+				255,0,0757
+			);
+		}
 
 	}
 	else {

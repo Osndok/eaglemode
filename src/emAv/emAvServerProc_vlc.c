@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_vlc.c
 //
-// Copyright (C) 2018-2020 Oliver Hamann.
+// Copyright (C) 2018-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,7 +49,7 @@
 /*#define EM_AV_ENABLE_LOGGING*/
 
 #if defined(EM_AV_ENABLE_LOGGING)
-	void emAvLogFunc(const char * func, int line, const char * format, ...)
+	static void emAvLogFunc(const char * func, int line, const char * format, ...)
 	{
 		va_list args;
 		char msg[256];
@@ -148,7 +148,7 @@ static const char * emAvAudioVisus[] = {
 };
 
 
-emAvVideoAdapter * emAvCreateVideoAdapter()
+static emAvVideoAdapter * emAvCreateVideoAdapter()
 {
 	emAvVideoAdapter * v;
 
@@ -159,7 +159,7 @@ emAvVideoAdapter * emAvCreateVideoAdapter()
 }
 
 
-void emAvDeleteVideoAdapter(emAvVideoAdapter * v)
+static void emAvDeleteVideoAdapter(emAvVideoAdapter * v)
 {
 	if (v) {
 		if (v->DummyMem) free(v->DummyMem);
@@ -1866,7 +1866,7 @@ static void emAvHandleMsg(int instIndex, const char * tag, const char * data)
 /*==================================== main ==================================*/
 /*============================================================================*/
 
-int emAvServe(int argc, char * argv[])
+static int emAvServe(int argc, char * argv[])
 {
 	static const int dtInc=  1000;
 	static const int dtMax= 25000;

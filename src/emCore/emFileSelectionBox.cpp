@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.cpp
 //
-// Copyright (C) 2015-2016,2019-2021 Oliver Hamann.
+// Copyright (C) 2015-2016,2019-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,6 +55,7 @@ emFileSelectionBox::emFileSelectionBox(
 
 	ListingInvalid=true;
 
+	SetAutoExpansionThreshold(500,VCT_AREA);
 	SetBorderType(OBT_GROUP,IBT_GROUP);
 }
 
@@ -1007,6 +1008,20 @@ void emFileSelectionBox::FileItemPanel::Paint(
 			fx,fy,fw,fh,
 			*img, 0, fgCol, canvasColor, emTexture::EXTEND_ZERO
 		);
+		if (data->IsDirectory && GetItemText()=="..") {
+			painter.PaintTextBoxed(
+				fx+fw*115.0/310.0,
+				fy+fh*168.0/216.0,
+				fw*150.0/310.0,
+				fh*23.0/216.0,
+				"Parent Directory",
+				fh,
+				fgCol.GetTransparented(40.0),
+				0,
+				EM_ALIGN_CENTER,
+				EM_ALIGN_CENTER
+			);
+		}
 		if (!data->IsReadable) {
 			r=emMin(fw,fh)*0.35;
 			fx=fx+fw*0.5;

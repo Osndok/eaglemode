@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #-------------------------------------------------------------------------------
 # cpptohtml.py
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2010,2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -502,7 +502,7 @@ ConfigFile=sys.argv[1]
 SourceBaseDir=sys.argv[2]
 OutputDir=sys.argv[3]
 
-execfile(ConfigFile)
+exec(compile(open(ConfigFile,"rb").read(),ConfigFile,'exec'))
 
 WriteFile(Styles,OutputDir+"/styles.css")
 WriteFile(JScript,OutputDir+"/script.js")

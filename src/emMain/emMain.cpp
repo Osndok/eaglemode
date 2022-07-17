@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2021 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -155,7 +155,7 @@ emString emMain::CalcServerName()
 
 void emMain::NewWindow(int argc, const char * const argv[])
 {
-	const char * opt, * optGeometry, * optCEColor, * optVisit;
+	const char * opt, * optGeometry, * optCEColor, * optWmResName, * optVisit;
 	bool optMaximized,optFullscreen,optUndecorated;
 	emMainWindow * w;
 	emColor ceColor;
@@ -172,6 +172,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 
 	optGeometry=NULL;
 	optCEColor=NULL;
+	optWmResName="emMainWindow";
 	optMaximized=false;
 	optFullscreen=false;
 	optUndecorated=false;
@@ -184,6 +185,9 @@ void emMain::NewWindow(int argc, const char * const argv[])
 		}
 		else if (strcmp(opt,"-cecolor")==0 && i<argc) {
 			optCEColor=argv[i++];
+		}
+		else if (strcmp(opt,"-wmresname")==0 && i<argc) {
+			optWmResName=argv[i++];
 		}
 		else if (strcmp(opt,"-maximized")==0) {
 			optMaximized=true;
@@ -229,7 +233,7 @@ void emMain::NewWindow(int argc, const char * const argv[])
 	w=new emMainWindow(
 		Context,
 		optVisit,0.0,0.0,0.0,false,NULL,
-		ceColor
+		ceColor,optWmResName
 	);
 
 	if (optUndecorated) {
@@ -481,6 +485,8 @@ static int wrapped_main(int argc, char * argv[])
 				"  -geometry <geometry>    Set geometry of window (e.g. \"700x500+10+10\").\n"
 				"  -cecolor <color>        Set color of unused areas beside control view\n"
 				"                          (could be used to indicate root privileges).\n"
+				"  -wmresname <name>       Set WM resource name of the main window\n"
+				"                          (default: emMainWindow).\n"
 				"  -maximized              Show the window maximized.\n"
 				"  -fullscreen             Show the window in fullscreen mode.\n"
 				"  -undecorated            Show the window without decorations.\n"
@@ -511,6 +517,10 @@ static int wrapped_main(int argc, char * argv[])
 			forwardArgs.Add(argv[i++]);
 		}
 		else if (strcmp(opt,"-cecolor")==0 && i<argc) {
+			forwardArgs.Add(opt);
+			forwardArgs.Add(argv[i++]);
+		}
+		else if (strcmp(opt,"-wmresname")==0 && i<argc) {
 			forwardArgs.Add(opt);
 			forwardArgs.Add(argv[i++]);
 		}

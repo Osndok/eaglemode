@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.h
 //
-// Copyright (C) 2006-2012,2016-2017 Oliver Hamann.
+// Copyright (C) 2006-2012,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,7 +54,8 @@ public:
 		double visitRelA=0.0,
 		bool visitAdherent=false,
 		const char * visitSubject=NULL,
-		emColor ceColor=0
+		emColor ceColor=0,
+		const emString & wmResName="emMainWindow"
 	);
 	virtual ~emMainWindow();
 

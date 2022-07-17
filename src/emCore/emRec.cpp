@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018-2020 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -2606,19 +2606,19 @@ void emRecWriter::TryWriteDouble(double d)
 
 void emRecWriter::TryWriteQuoted(const char * q)
 {
-	char c;
+	const char * p;
+	int c;
 
 	TryWriteChar('"');
 	for (;;) {
-		c=*q++;
+		p=q+1;
+		do {
+			c=(unsigned char)*q++;
+		} while ((c>=0x20 && c<=0x7e && c!='"' && c!='\\') || c>=0xa0);
+		if (q>p) TryWrite(p-1,q-p);
 		if (!c) break;
-		if (c>=0x20 && c<=0x7e) {
-			if (c=='"' || c=='\\') TryWriteChar('\\');
-			TryWriteChar(c);
-		}
-		else if (((unsigned char)c)>=0xa0) {
-			TryWriteChar(c);
-		}
+		else if (c=='"') TryWriteString("\\\"");
+		else if (c=='\\') TryWriteString("\\\\");
 		else if (c=='\a') TryWriteString("\\a");
 		else if (c=='\b') TryWriteString("\\b");
 		else if (c=='\f') TryWriteString("\\f");

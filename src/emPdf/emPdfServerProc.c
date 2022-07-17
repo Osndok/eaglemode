@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011-2013,2017-2019 Oliver Hamann.
+// Copyright (C) 2011-2013,2017-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -365,7 +365,7 @@ static void emPdfRender(const char * args)
 }
 
 
-int emPdfServe(int argc, char * argv[])
+static int emPdfServe(int argc, char * argv[])
 {
 	char * buf,* args;
 	int bufSize,len;

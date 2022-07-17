@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainContentPanel.cpp
 //
-// Copyright (C) 2007-2008,2016-2017,2020 Oliver Hamann.
+// Copyright (C) 2007-2008,2016-2017,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -92,7 +92,7 @@ void emMainContentPanel::Paint(const emPainter & painter, emColor canvasColor) c
 			painter.GetClipY1(),
 			painter.GetClipX2(),
 			painter.GetClipY2(),
-			painter.GetOriginX()+painter.GetScaleY()*EagleShiftX,
+			painter.GetOriginX()+painter.GetScaleX()*EagleShiftX,
 			painter.GetOriginY()+painter.GetScaleY()*EagleShiftY,
 			painter.GetScaleX()*EagleScaleX,
 			painter.GetScaleY()*EagleScaleY

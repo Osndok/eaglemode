@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014-2017,2021 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2017,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,7 +28,7 @@ emPanel::emPanel(ParentArg parent, const emString & name)
 	Name(name)
 {
 
-#	define EM_PANEL_DEFAULT_AE_THRESHOLD 100.0 //???
+#	define EM_PANEL_DEFAULT_AE_THRESHOLD 150.0
 
 	if (parent.GetPanel()) {
 		AvlTree=NULL;
@@ -539,8 +539,9 @@ void emPanel::Layout(
 		}
 	}
 	else if (
+		InActivePath &&
 		InViewedPath &&
-		(InActivePath || !Parent->Viewed) &&
+		Parent->Viewed &&
 		!View.SettingGeometry &&
 		!View.IsZoomedOut()
 	) {
@@ -597,6 +598,38 @@ void emPanel::Layout(
 			);
 			UpdateChildrenViewing();
 		}
+	}
+	else if (Viewed && !View.SettingGeometry) {
+		// Don't do View.RawVisit(..) here, because if the panel gets
+		// temporarily behind another panel while laying out all
+		// children of the parent, then RawVisit would change the SVP to
+		// the front panel, and if that is laid out away afterward, the
+		// position of the original active panel gets lost.
+		rx=(View.HomeX+View.HomeWidth*0.5-ViewedX)/ViewedWidth-0.5;
+		ry=(View.HomeY+View.HomeHeight*0.5-ViewedY)/ViewedHeight-0.5;
+		ra=(View.HomeWidth*View.HomeHeight)/(ViewedWidth*ViewedHeight);
+		ViewedWidth=sqrt(
+			View.HomeWidth*View.HomeHeight*View.HomePixelTallness/
+			(ra*layoutHeight/layoutWidth)
+		);
+		ViewedHeight=ViewedWidth*layoutHeight/layoutWidth/View.HomePixelTallness;
+		ViewedX=View.HomeX+View.HomeWidth*0.5-(rx+0.5)*ViewedWidth;
+		ViewedY=View.HomeY+View.HomeHeight*0.5-(ry+0.5)*ViewedHeight;
+		LayoutX=layoutX;
+		LayoutY=layoutY;
+		LayoutWidth=layoutWidth;
+		LayoutHeight=layoutHeight;
+		CanvasColor=canvasColor;
+		View.InvalidatePainting();
+		View.SVPChoiceInvalid=true;
+		View.CursorInvalid=true;
+		View.UpdateEngine->WakeUp();
+		AddPendingNotice(
+			NF_VIEWING_CHANGED |
+			NF_UPDATE_PRIORITY_CHANGED |
+			NF_MEMORY_LIMIT_CHANGED
+		);
+		UpdateChildrenViewing();
 	}
 	else {
 		LayoutX=layoutX;

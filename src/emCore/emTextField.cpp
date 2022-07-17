@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018,2021 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -314,7 +314,7 @@ void emTextField::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const double minExt=4.5;
+	static const double minExt=9;
 	double mc,mr;
 	int col,row,i,i1,i2,j1,j2;
 	bool inArea;

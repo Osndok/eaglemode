@@ -45,6 +45,7 @@ sub Build
 		"--link"          , "emCore",
 		"--link"          , "user32",
 		"--link"          , "gdi32",
+		"--def"           , "WINVER=0x605",
 		"--type"          , "dynlib",
 		"--name"          , "emWnds",
 		"src/emWnds/emWndsClipboard.cpp",

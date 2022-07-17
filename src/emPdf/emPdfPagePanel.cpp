@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011,2014,2016,2020-2021 Oliver Hamann.
+// Copyright (C) 2011,2014,2016,2020-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -199,7 +199,7 @@ void emPdfPagePanel::Paint(
 
 void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 {
-	double fw,fh,ox,oy,ow,oh,ix,iy,iw,ih,sx,sy,sw,sh,qx1,qx2,qy1,qy2,q;
+	double fw,fh,ox,oy,ow,oh,ix,iy,iw,ih,sx,sy,sw,sh,qx1,qx2,qy1,qy2,q,tx,ty;
 	emUInt64 tm,dt;
 
 	if (!IsViewed() || PageIndex<0 || PageIndex>=FileModel->GetPageCount()) {
@@ -220,7 +220,7 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 				InvalidatePainting();
 			}
 		}
-		if (JobErrorText.IsEmpty()) {
+		if (!JobErrorText.IsEmpty()) {
 			JobErrorText.Clear();
 			InvalidatePainting();
 		}
@@ -322,6 +322,17 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 	}
 
 	if (!Img.IsEmpty()) {
+		if (Img.GetWidth()==iw && Img.GetHeight()==ih) {
+			tx=sw/Img.GetWidth()*0.05;
+			ty=sh/Img.GetHeight()*0.05;
+			if (
+				fabs(SrcX-sx)<=tx && fabs(SrcX+SrcW-sx-sw)<=tx &&
+				fabs(SrcY-sy)<=ty && fabs(SrcY+SrcH-sy-sh)<=ty
+			) {
+					JobUpToDate=true;
+					return;
+			}
+		}
 		qx1=emMax(SrcX,sx);
 		qx2=emMin(SrcX+SrcW,sx+sw);
 		qy1=emMax(SrcY,sy);

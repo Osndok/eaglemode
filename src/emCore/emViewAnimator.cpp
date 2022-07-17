@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.cpp
 //
-// Copyright (C) 2014-2017,2021 Oliver Hamann.
+// Copyright (C) 2014-2017,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1530,9 +1530,9 @@ void emVisitingViewAnimator::GetDistanceTo(
 	vx=hx+hw*0.5-(relX+0.5)*vw;
 	vy=hy+hh*0.5-(relY+0.5)*vh;
 	bx=(sx-vx)/vw;
-	by=(sy-vy)/vw;
+	by=(sy-vy)/vw*hp;
 	bw=sw/vw;
-	bh=sh/vw;
+	bh=sh/vw*hp;
 
 	// Go up with "b" in the tree until InViewedPath, but
 	// at least until SVP.
@@ -1549,9 +1549,9 @@ void emVisitingViewAnimator::GetDistanceTo(
 	// Get SVP and rectangle "a" therein:  Where is the view now.
 	a=GetView().GetSupremeViewedPanel();
 	ax=(sx-a->GetViewedX())/a->GetViewedWidth();
-	ay=(sy-a->GetViewedY())/a->GetViewedWidth();
+	ay=(sy-a->GetViewedY())/a->GetViewedWidth()*hp;
 	aw=sw/a->GetViewedWidth();
-	ah=sh/a->GetViewedWidth();
+	ah=sh/a->GetViewedWidth()*hp;
 
 	// Go up with "a" until reaching "b", so that both rectangles
 	// are in the same panel.

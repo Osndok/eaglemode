@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emSvgServerProc.c
 //
-// Copyright (C) 2010-2011,2017-2020 Oliver Hamann.
+// Copyright (C) 2010-2011,2017-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -359,7 +359,7 @@ static void emSvgRender(const char * args)
 }
 
 
-int emSvgServe(int argc, char * argv[])
+static int emSvgServe(int argc, char * argv[])
 {
 	char * buf,* args;
 	int bufSize,len;

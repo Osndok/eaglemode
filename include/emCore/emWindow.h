@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.h
 //
-// Copyright (C) 2005-2010,2016-2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,6 +108,10 @@ public:
 	WindowFlags GetWindowFlags() const;
 	void SetWindowFlags(WindowFlags windowFlags);
 		// Get or set the features of this window.
+		// CAUTION: Changing WF_MODAL, WF_UNDECORATED or WF_POPUP may
+		// reset position and size of the window. Any call to
+		// SetViewPosSize(..), SetWinPosSize(..) or companions should be
+		// made AFTER setting the window flags.
 
 	const emSignal & GetWindowFlagsSignal() const;
 		// This signal is signaled when the features of this window have
@@ -253,8 +257,8 @@ protected:
 		double x, double y, PosSizeArgSpec posSpec,
 		double w, double h, PosSizeArgSpec sizeSpec
 	) = 0;
-		// Should call GetWindow().SetViewGeometry(...) immediately with
-		// appropriate values.
+		// Should call SetViewGeometry(...) immediately with appropriate
+		// values.
 
 	virtual void GetBorderSizes(
 		double * pL, double * pT, double * pR, double * pB

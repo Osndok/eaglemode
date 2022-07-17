@@ -39,7 +39,7 @@ var newName=FilenameEdit(
 
 if (oldName == newName) WScript.Quit(0);
 var newPath=GetChildPath(dir,newName);
-if (IsExistingPath(newPath)) {
+if (IsExistingPath(newPath) && oldName.toUpperCase() != newName.toUpperCase()) {
 	Error("A file or directory with that name already exists.");
 }
 

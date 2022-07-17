@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make-CppApiRef.pl
 #
-# Copyright (C) 2010 Oliver Hamann.
+# Copyright (C) 2010,2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -72,7 +72,7 @@ if (-e $anOutFile) {
 
 # Do it.
 system(
-	'python',
+	'python3',
 	'doc/html/src/cpptohtml.py',
 	'doc/html/src/CppApiRef-config.py',
 	'include',

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11WindowPort.cpp
 //
-// Copyright (C) 2005-2012,2014-2017,2019,2021 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2017,2019,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -322,7 +322,7 @@ void emX11WindowPort::PreConstruct()
 	XSizeHints xsh;
 	XGCValues xgcv;
 	long eventMask,extraEventMask;
-	double vrx,vry,vrw,vrh,d;
+	double vrx,vry,vrw,vrh,d,px,py,pw,ph;
 	int i,monitor,border;
 	Atom atoms[2];
 
@@ -333,10 +333,6 @@ void emX11WindowPort::PreConstruct()
 	if ((WindowFlags&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
 		MinPaneW=1;
 		MinPaneH=1;
-		PaneX=(int)(vrx+vrw*emGetDblRandom(0.22,0.28)+0.5);
-		PaneY=(int)(vry+vrh*emGetDblRandom(0.22,0.28)+0.5);
-		PaneW=(int)(vrw*0.5+0.5);
-		PaneH=(int)(vrh*0.5+0.5);
 		BorderL=0;
 		BorderT=0;
 		BorderR=0;
@@ -347,19 +343,6 @@ void emX11WindowPort::PreConstruct()
 	else {
 		MinPaneW=32;
 		MinPaneH=32;
-		if (!Owner && (WindowFlags&emWindow::WF_MODAL)==0) {
-			d=emMin(vrw,vrh)*0.08;
-			PaneX=(int)(vrx+d*emGetDblRandom(0.5,1.5)+0.5);
-			PaneY=(int)(vry+d*emGetDblRandom(0.8,1.2)+0.5);
-			PaneW=(int)(vrw-d*2.0+0.5);
-			PaneH=(int)(vrh-d*2.0+0.5);
-		}
-		else {
-			PaneX=(int)(vrx+vrw*emGetDblRandom(0.22,0.28)+0.5);
-			PaneY=(int)(vry+vrh*emGetDblRandom(0.22,0.28)+0.5);
-			PaneW=(int)(vrw*0.5+0.5);
-			PaneH=(int)(vrh*0.5+0.5);
-		}
 		// Some window managers seem to expect that we would expect this:
 		BorderL=3;
 		BorderT=18;
@@ -368,6 +351,32 @@ void emX11WindowPort::PreConstruct()
 		border=1;
 		OverrideRedirect=false;
 	}
+
+	if (
+		!Owner &&
+		(WindowFlags&(emWindow::WF_MODAL|emWindow::WF_POPUP|emWindow::WF_UNDECORATED))==0
+	) {
+		d=emMin(vrw,vrh)*0.08;
+		px=vrx+d*emGetDblRandom(0.5,1.5);
+		py=vry+d*emGetDblRandom(0.8,1.2);
+		pw=vrw-d*2.0;
+		ph=vrh-d*2.0;
+		if (pw>ph*1.9) pw=ph*1.9;
+		if (ph>pw*1.7) ph=pw*1.7;
+	}
+	else {
+		px=vrx+vrw*emGetDblRandom(0.22,0.28);
+		py=vry+vrh*emGetDblRandom(0.22,0.28);
+		pw=vrw*0.5;
+		ph=vrh*0.5;
+		if (pw>ph*1.9) pw=ph*1.9;
+		if (ph>pw*1.7) ph=pw*1.7;
+	}
+	PaneX=(int)(px+0.5);
+	PaneY=(int)(py+0.5);
+	PaneW=(int)(pw+0.5);
+	PaneH=(int)(ph+0.5);
+
 	ClipX1=PaneX;
 	ClipY1=PaneY;
 	ClipX2=PaneX+PaneW;

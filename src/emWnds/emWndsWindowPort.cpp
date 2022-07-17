@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsWindowPort.cpp
 //
-// Copyright (C) 2006-2012,2014-2018 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -386,7 +386,7 @@ emWndsWindowPort::~emWndsWindowPort()
 
 void emWndsWindowPort::PreConstruct()
 {
-	double vrx,vry,vrw,vrh,d;
+	double vrx,vry,vrw,vrh,d,px,py,pw,ph;
 	DWORD exStyleFlags,styleFlags;
 	int x,y,w,h,monitor;
 	bool haveBorder;
@@ -402,39 +402,49 @@ void emWndsWindowPort::PreConstruct()
 		}
 		MinPaneW=1;
 		MinPaneH=1;
-		PaneX=(int)(vrx+0.5);
-		PaneY=(int)(vry+0.5);
-		PaneW=(int)(vrw+0.5);
-		PaneH=(int)(vrh+0.5);
 		haveBorder=false;
 	}
 	else if ((WindowFlags&(emWindow::WF_POPUP|emWindow::WF_UNDECORATED))!=0) {
 		MinPaneW=1;
 		MinPaneH=1;
-		PaneX=(int)(vrx+vrw*emGetDblRandom(0.22,0.28)+0.5);
-		PaneY=(int)(vry+vrh*emGetDblRandom(0.22,0.28)+0.5);
-		PaneW=(int)(vrw*0.5+0.5);
-		PaneH=(int)(vrh*0.5+0.5);
 		haveBorder=false;
 	}
 	else {
 		MinPaneW=32;
 		MinPaneH=32;
-		if (!Owner && (WindowFlags&emWindow::WF_MODAL)==0) {
-			d=emMin(vrw,vrh)*0.08;
-			PaneX=(int)(vrx+d*emGetDblRandom(0.5,1.5)+0.5);
-			PaneY=(int)(vry+d*emGetDblRandom(0.8,1.2)+0.5);
-			PaneW=(int)(vrw-d*2.0+0.5);
-			PaneH=(int)(vrh-d*2.0+0.5);
-		}
-		else {
-			PaneX=(int)(vrx+vrw*emGetDblRandom(0.22,0.28)+0.5);
-			PaneY=(int)(vry+vrh*emGetDblRandom(0.22,0.28)+0.5);
-			PaneW=(int)(vrw*0.5+0.5);
-			PaneH=(int)(vrh*0.5+0.5);
-		}
 		haveBorder=true;
 	}
+
+	if ((WindowFlags&emWindow::WF_FULLSCREEN)!=0) {
+		px=vrx;
+		py=vry;
+		pw=vrw;
+		ph=vrh;
+	}
+	else if (
+		!Owner &&
+		(WindowFlags&(emWindow::WF_MODAL|emWindow::WF_POPUP|emWindow::WF_UNDECORATED))==0
+	) {
+		d=emMin(vrw,vrh)*0.08;
+		px=vrx+d*emGetDblRandom(0.5,1.5);
+		py=vry+d*emGetDblRandom(0.8,1.2);
+		pw=vrw-d*2.0;
+		ph=vrh-d*2.0;
+		if (pw>ph*1.9) pw=ph*1.9;
+		if (ph>pw*1.7) ph=pw*1.7;
+	}
+	else {
+		px=vrx+vrw*emGetDblRandom(0.22,0.28);
+		py=vry+vrh*emGetDblRandom(0.22,0.28);
+		pw=vrw*0.5;
+		ph=vrh*0.5;
+		if (pw>ph*1.9) pw=ph*1.9;
+		if (ph>pw*1.7) ph=pw*1.7;
+	}
+	PaneX=(int)(px+0.5);
+	PaneY=(int)(py+0.5);
+	PaneW=(int)(pw+0.5);
+	PaneH=(int)(ph+0.5);
 
 	ClipX1=PaneX;
 	ClipY1=PaneY;
