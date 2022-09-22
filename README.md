@@ -12,6 +12,11 @@ about making it a little bit easier for /me
 to install Eagle Mode for a linux distribution,
 namely Ubuntu, and only the latest LTS release at this moment.
 
+## Documentation
+
+The documentation on this project is in the subdirectory "doc".
+Best is to open the file "doc/html/index.html" in a web browser.
+
 ## Installation
 
 The following commands appeared to be working
