@@ -1,21 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ```shell
-# git clone https://github.com/Osndok/eaglemode
-# install-eaglemode pwd$(pwd)/eaglemode
-# ```
 function install_eaglemode() {
-    local target_directory
-    target_directory="${1}"
+    local tmp_dir
+    tmp_dir="$(mktemp --directory --suffix='_eaglemode')"
 
-    if [ -e "${target_directory}" ] && [ ! -d "${target_directory}" ]; then
-
-        printf 'A %s is expected at "%s" (%s)' 'directory' "${target_directory}" "cloned eaglemode repository" 1>&2
-
-        return 1
-
-    fi
+    cd "${tmp_dir}" || exit
 
     if [ -d "${target_directory}" ]; then
 
