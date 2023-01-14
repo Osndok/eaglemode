@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.h
 //
-// Copyright (C) 2011-2012,2014,2016 Oliver Hamann.
+// Copyright (C) 2011-2012,2014,2016,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -168,7 +168,7 @@ private:
 
 	void EmulateMiddleButton(emInputEvent & event, emInputState & state);
 	bool MoveMousePointerBackIntoView(double * pmx, double * pmy);
-	void MoveMousePointer(double dx, double dy);
+	bool MoveMousePointer(double dx, double dy);
 	double GetMouseZoomSpeed(bool fine=false) const;
 	double GetMouseScrollSpeed(bool fine=false) const;
 	void UpdateWheelZoomSpeed(bool down, bool fine);

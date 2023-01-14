@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emScreen_h.html#emScreen">emScreen</A>.h
 //
-// Copyright (C) 2005-2011,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -108,6 +108,9 @@
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetGeometrySignal() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// This signal is signaled on any change in the results of
                 // GetDesktopRect, GetMonitorCount, GetMonitorRect and GetDPI.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>CanMoveMousePointer() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Whether MoveMousePointer(..) has an effect.
 
         </SPAN><SPAN CLASS=t>virtual void </SPAN>MoveMousePointer(<SPAN CLASS=t>double </SPAN>dx, <SPAN CLASS=t>double </SPAN>dy) = <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Move the mouse pointer programmatically.

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.h
 //
-// Copyright (C) 2005-2008,2014-2016,2020 Oliver Hamann.
+// Copyright (C) 2005-2008,2014-2016,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -129,11 +129,70 @@ private:
 		virtual void CreateItemPanel(const emString & name, int itemIndex);
 	};
 
+	class PolyDrawPanel : public emLinearGroup {
+	public:
+		PolyDrawPanel(ParentArg parent, const emString & name);
+	protected:
+		virtual bool Cycle();
+		virtual void AutoExpand();
+	private:
+		class CanvasPanel : public emPanel {
+		public:
+			CanvasPanel(ParentArg parent, const emString & name);
+			void Setup(
+				int type,
+				int vertexCount,
+				bool withCanvasColor,
+				const emTexture& texture,
+				double strokeWidth,
+				const emStroke& stroke,
+				const emStrokeEnd& strokeStart,
+				const emStrokeEnd& strokeEnd
+			);
+		protected:
+			virtual void Input(emInputEvent & event, const emInputState & state,
+			                   double mx, double my);
+			virtual void Paint(const emPainter & painter, emColor canvasColor) const;
+		private:
+			int Type;
+			emArray<double> XY;
+			bool WithCanvasColor;
+			emTexture Texture;
+			double StrokeWidth;
+			emStroke Stroke;
+			emStrokeEnd StrokeStart;
+			emStrokeEnd StrokeEnd;
+			int DragIdx;
+			double DragDX,DragDY;
+			bool ShowHandles;
+		};
+		emCrossPtr<emRadioButton::RasterGroup> Type;
+		emCrossPtr<emTextField> VertexCount;
+		emCrossPtr<emCheckBox> WithCanvasColor;
+		emCrossPtr<emColorField> FillColor;
+		emCrossPtr<emTextField> StrokeWidth;
+		emCrossPtr<emColorField> StrokeColor;
+		emCrossPtr<emCheckBox> StrokeRounded;
+		emCrossPtr<emRadioButton::RasterGroup> StrokeDashType;
+		emCrossPtr<emTextField> DashLengthFactor;
+		emCrossPtr<emTextField> GapLengthFactor;
+		emCrossPtr<emRadioButton::RasterGroup> StrokeStartType;
+		emCrossPtr<emColorField> StrokeStartInnerColor;
+		emCrossPtr<emTextField> StrokeStartWidthFactor;
+		emCrossPtr<emTextField> StrokeStartLengthFactor;
+		emCrossPtr<emRadioButton::RasterGroup> StrokeEndType;
+		emCrossPtr<emColorField> StrokeEndInnerColor;
+		emCrossPtr<emTextField> StrokeEndWidthFactor;
+		emCrossPtr<emTextField> StrokeEndLengthFactor;
+		emCrossPtr<CanvasPanel> Canvas;
+	};
+
 	emList<emString> InputLog;
 	emColor BgColor, DefaultBgColor;
 	emCrossPtr<TkTestGrp> TkT;
 	emCrossPtr<emTestPanel> TP1,TP2,TP3,TP4;
 	emCrossPtr<emColorField> BgColorField;
+	emCrossPtr<PolyDrawPanel> PolyDraw;
 	emCrossPtr<emLabel> ControlPanel;
 	emImage TestImage;
 };

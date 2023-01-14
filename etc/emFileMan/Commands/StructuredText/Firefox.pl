@@ -3,7 +3,7 @@
 # Type = Command
 # Order = 3.0
 # Interpreter = perl
-# DefaultFor = .htm:.html:webp
+# DefaultFor = .htm:.html
 # Caption = Firefox
 # Descr =Open files and/or directories in Firefox.
 # Descr =

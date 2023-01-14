@@ -53,7 +53,7 @@ struct emAvlIterator {
 
 //--------------------------------- Utilities ----------------------------------
 
-int emAvlCheck(const emAvlTree tree);
+int emAvlCheck(emAvlTree tree);
 	// Check consistency of the tree and return its height. Exits this
 	// process and prints a message on failure.
 

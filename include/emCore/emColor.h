@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.h
 //
-// Copyright (C) 2001,2003-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2010,2014,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,6 +47,7 @@ public:
 		// Some predefined packed colors.
 		BLACK  =0x000000ff,
 		WHITE  =0xffffffff,
+		GRAY   =0x808080ff,
 		RED    =0xff0000ff,
 		GREEN  =0x00ff00ff,
 		BLUE   =0x0000ffff,

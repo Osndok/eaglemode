@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,10 +24,6 @@
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
 #endif
-
-extern "C" {
-	struct emPngLoadingState;
-}
 
 
 class emPngImageFileModel : public emImageFileModel {
@@ -52,8 +48,15 @@ protected:
 	virtual double CalcFileProgress();
 
 private:
+	struct LoadingState {
+		FILE * file;
+		void * decodeInstance;
+		int width,height,channelCount,passCount;
+		bool imagePrepared;
+		int y,pass;
+	};
 
-	emPngLoadingState * L;
+	LoadingState * L;
 };
 
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.h
 //
-// Copyright (C) 2001,2003-2010,2014,2016-2017,2020 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016-2017,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,14 @@
 
 #ifndef emModel_h
 #include <emCore/emModel.h>
+#endif
+
+#ifndef emStroke_h
+#include <emCore/emStroke.h>
+#endif
+
+#ifndef emStrokeEnd_h
+#include <emCore/emStrokeEnd.h>
 #endif
 
 #ifndef emTexture_h
@@ -262,6 +270,16 @@ public:
 	bool EnterUserSpace() const;
 		// Lock the user space mutex. Returns true if it was unlocked.
 
+	class UserSpaceLeaveGuard {
+	public:
+		// RAII helper for the user space mutex: Calls LeaveUserSpace()
+		// on construction and undoes that on destruction.
+		UserSpaceLeaveGuard(const emPainter & painter);
+		~UserSpaceLeaveGuard();
+	private:
+		const emPainter * PainterIfUnlocked;
+	};
+
 
 	//--------------------------- Painting areas ---------------------------
 
@@ -281,7 +299,8 @@ public:
 	                  emColor canvasColor=0) const;
 		// Paint a polygon. The polygon may have holes, and it does not
 		// matter whether the edges run clockwise or counterclockwise.
-		// But there must not be any crossings in the edges.
+		// But there should not be any crossings in the edges, otherwise
+		// areas may be painted multiple times or be canceled out.
 		// Arguments:
 		//   xy[]        - Coordinates of the polygon vertices. The
 		//                 array elements are:
@@ -304,14 +323,40 @@ public:
 		// from (x1,y1) to (x2,y2), the first polygon must be on the
 		// left.
 
+	void PaintBezier(const double xy[], int n, const emTexture & texture,
+	                 emColor canvasColor=0) const;
+		// Paint the area of a closed path made of cubic Bezier curves.
+		// Arguments:
+		//   xy[]        - Coordinates of the support polygon of the
+		//                 Bezier curves. The array elements are:
+		//                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
+		//                 Each cubic Bezier curve is defined by four
+		//                 points in the support polygon. The last
+		//                 support point of a curve is also the first of
+		//                 the next curve. And because the path is
+		//                 closed, the first point of the first curve is
+		//                 also the last point of the last curve.
+		//   n           - Number of points in the support polygon. This
+		//                 must be a multiple of three (n = 3, 6, 9,
+		//                 ...).
+		//   texture     - The texture by which to fill the area.
+		//   canvasColor - Please read the general comments more above.
+
 	void PaintEllipse(double x, double y, double w, double h,
 	                  const emTexture & texture,
 	                  emColor canvasColor=0) const;
-	void PaintEllipse(double x, double y, double w, double h,
-	                  double startAngle, double rangeAngle,
-	                  const emTexture & texture,
-	                  emColor canvasColor=0) const;
-		// Paint an ellipse or a sector of an ellipse.
+		// Paint an ellipse.
+		// Arguments:
+		//   x,y,w,h     - Upper-left corner and size of the bounding
+		//                 rectangle of the ellipse.
+		//   texture     - The texture by which to fill the ellipse.
+		//   canvasColor - Please read the general comments more above.
+
+	void PaintEllipseSector(double x, double y, double w, double h,
+	                        double startAngle, double rangeAngle,
+	                        const emTexture & texture,
+	                        emColor canvasColor=0) const;
+		// Paint a sector of an ellipse.
 		// Arguments:
 		//   x,y,w,h     - Upper-left corner and size of the bounding
 		//                 rectangle of the ellipse.
@@ -333,52 +378,112 @@ public:
 		//   canvasColor - Please read the general comments more above.
 
 
-	//--------------------------- Painting lines ---------------------------
+	//--------------------- Painting non-closed lines ----------------------
 
-	enum LineCap {
-		LC_FLAT,
-		LC_SQUARE,
-		LC_ROUND
-	};
 	void PaintLine(double x1, double y1, double x2, double y2,
-	               double thickness, LineCap cap1, LineCap cap2,
-	               emColor color, emColor canvasColor=0) const;
-		// Paint a line.
+	               double thickness, const emStroke & stroke,
+	               const emStrokeEnd & strokeStart=emStrokeEnd(),
+	               const emStrokeEnd & strokeEnd=emStrokeEnd(),
+	               emColor canvasColor=0) const;
+		// Paint a straight line.
 		// Arguments:
 		//   x1,y1       - Coordinates of the first end of the line.
 		//   x2,y2       - Coordinates of the other end of the line.
 		//   thickness   - Width of the stroke.
-		//   cap1,cap2   - How to paint the endings:
-		//                  LC_FLAT: Do not extend the ending.
-		//                  LC_SQUARE: Extend by thickness/2.
-		//                  LC_ROUND: Have a semicircle.
-		//   color       - The color (alpha part is used for blending).
+		//   stroke      - Style of the stroke (color, rounding, dashes).
+		//   strokeStart - Style of the beginning of the stroke.
+		//   strokeEnd   - Style of the end of the stroke.
 		//   canvasColor - Please read the general comments more above.
 
+	void PaintPolyline(const double xy[], int n, double thickness,
+	                   const emStroke & stroke,
+	                   const emStrokeEnd & strokeStart=emStrokeEnd(),
+	                   const emStrokeEnd & strokeEnd=emStrokeEnd(),
+	                   emColor canvasColor=0) const;
+		// Paint a series of connected straight lines.
+		// Arguments:
+		//   xy[]        - Coordinates of the line vertices. The
+		//                 array elements are:
+		//                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
+		//   n           - Number of vertices.
+		//   thickness   - Width of the stroke.
+		//   stroke      - Style of the stroke (color, rounding, dashes).
+		//   strokeStart - Style of the beginning of the stroke.
+		//   strokeEnd   - Style of the end of the stroke.
+		//   canvasColor - Please read the general comments more above.
+
+	void PaintBezierLine(const double xy[], int n, double thickness,
+	                     const emStroke & stroke,
+	                     const emStrokeEnd & strokeStart=emStrokeEnd(),
+	                     const emStrokeEnd & strokeEnd=emStrokeEnd(),
+	                     emColor canvasColor=0) const;
+		// Paint a curved line made of cubic Bezier curves.
+		// Arguments:
+		//   xy[]        - Coordinates of the support polygon of the
+		//                 Bezier curves. The array elements are:
+		//                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
+		//                 Each cubic Bezier curve is defined by four
+		//                 points in the support polygon. The last
+		//                 support point of a curve is also the first of
+		//                 the next curve.
+		//   n           - Number of points in the support polygon. This
+		//                 must be a multiple of three plus one (n = 4,
+		//                 7, 10, ...).
+		//   thickness   - Width of the stroke.
+		//   stroke      - Style of the stroke (color, rounding, dashes).
+		//   strokeStart - Style of the beginning of the stroke.
+		//   strokeEnd   - Style of the end of the stroke.
+		//   canvasColor - Please read the general comments more above.
+
+	void PaintEllipseArc(double x, double y, double w, double h,
+	                     double startAngle, double rangeAngle,
+	                     double thickness, const emStroke & stroke,
+	                     const emStrokeEnd & strokeStart=emStrokeEnd(),
+	                     const emStrokeEnd & strokeEnd=emStrokeEnd(),
+	                     emColor canvasColor=0) const;
+		// Paint the arc of an ellipse.
+		// Arguments:
+		//   x,y,w,h     - Upper-left corner and size of the bounding
+		//                 rectangle of the ellipse.
+		//   startAngle  - Start angle of the arc in degrees. Zero
+		//                 points to the right, 90 points down...
+		//   rangeAngle  - Range angle of the arc.
+		//   thickness   - Width of the stroke.
+		//   stroke      - Style of the stroke (color, rounding, dashes).
+		//   strokeStart - Style of the beginning of the stroke.
+		//   strokeEnd   - Style of the end of the stroke.
+		//   canvasColor - Please read the general comments more above.
+
+
+	//----------------------- Painting closed lines ------------------------
+
 	void PaintRectOutline(double x, double y, double w, double h,
-	                      double thickness, emColor color,
+	                      double thickness, const emStroke & stroke,
 	                      emColor canvasColor=0) const;
 	void PaintPolygonOutline(const double xy[], int n, double thickness,
-	                         emColor color, emColor canvasColor=0) const;
-	void PaintEllipseOutline(double x, double y, double w, double h,
-	                         double thickness, emColor color,
+	                         const emStroke & stroke,
 	                         emColor canvasColor=0) const;
+	void PaintBezierOutline(const double xy[], int n, double thickness,
+	                        const emStroke & stroke,
+	                        emColor canvasColor=0) const;
 	void PaintEllipseOutline(double x, double y, double w, double h,
-	                         double startAngle, double rangeAngle,
-	                         double thickness, emColor color,
+	                         double thickness, const emStroke & stroke,
 	                         emColor canvasColor=0) const;
+	void PaintEllipseSectorOutline(double x, double y, double w, double h,
+	                               double startAngle, double rangeAngle,
+	                               double thickness, const emStroke & stroke,
+	                               emColor canvasColor=0) const;
 	void PaintRoundRectOutline(double x, double y, double w, double h,
 	                           double rx, double ry, double thickness,
-	                           emColor color, emColor canvasColor=0) const;
-		// These are like PaintRect, PaintPolygon, PaintEllipse and
-		// PaintRoundRect, but the objects are outlined instead of being
-		// filled. The argument thickness is the width of the stroke.
-		// The lines are centered on the boundary of the objects. The
-		// second version of PaintEllipseOutline paints just an arc
-		// (instead of the outline of a pie).
-		// ??? BUG: PaintPolygonOutline currently always ignores the
-		// canvasColor, and it does not produce correct results if the
-		// alpha channel of the color is not 255.
+	                           const emStroke & stroke,
+	                           emColor canvasColor=0) const;
+		// These are like PaintRect, PaintPolygon, PaintBezier,
+		// PaintEllipse, PaintEllipseSector and PaintRoundRect, but the
+		// objects are outlined instead of being filled. The thickness
+		// argument is the width of the stroke. The stroke argument
+		// describes the color, rounding of corners, and optional
+		// dashes. The lines are centered on the boundary of the
+		// objects.
 
 
 	//------------------------ Painting from images ------------------------
@@ -595,9 +700,88 @@ public:
 		// Returns: The width of the text.
 
 
+	//------------------------- Deprecated methods -------------------------
+
+	EM_DEPRECATED(
+		void PaintEllipse(double x, double y, double w, double h,
+		                  double startAngle, double rangeAngle,
+		                  const emTexture & texture,
+		                  emColor canvasColor=0) const
+	);
+
+	enum LineCap {
+		LC_FLAT,
+		LC_SQUARE,
+		LC_ROUND
+	};
+	EM_DEPRECATED(
+		void PaintLine(double x1, double y1, double x2, double y2,
+		               double thickness, LineCap cap1, LineCap cap2,
+		               emColor color, emColor canvasColor=0) const
+	);
+
+	EM_DEPRECATED(
+		void PaintEllipseOutline(double x, double y, double w, double h,
+		                         double startAngle, double rangeAngle,
+		                         double thickness, emColor color,
+		                         emColor canvasColor=0) const
+	);
+
+
 	//----------------------------------------------------------------------
 
 private:
+
+	friend class UserSpaceLeaveGuard;
+
+	void PaintPolylineWithArrows(
+		const double xy[], int n, double nx1, double ny1, double nx2,
+		double ny2, double thickness, const emStroke & stroke,
+		const emStrokeEnd & strokeStart, const emStrokeEnd & strokeEnd,
+		emColor canvasColor
+	) const;
+
+	void PaintPolylineWithArrowsAlterBuf(
+		double xy[], int n, double nx1, double ny1, double nx2,
+		double ny2, double thickness, const emStroke & stroke,
+		const emStrokeEnd & strokeStart, const emStrokeEnd & strokeEnd,
+		emColor canvasColor
+	) const;
+
+	static double CalculateLinePointMinMaxRadius(
+		double thickness, const emStroke & stroke,
+		const emStrokeEnd & strokeStart,
+		const emStrokeEnd & strokeEnd
+	);
+
+	static double CutLineAtArrow(
+		double x1, double y1, double x2, double y2, double thickness,
+		const emStroke & stroke, const emStrokeEnd & strokeEnd
+	);
+
+	void PaintArrow(
+		double x, double y, double nx, double ny, double thickness,
+		const emStroke & stroke, const emStrokeEnd & strokeEnd,
+		emColor canvasColor
+	) const;
+
+	void PaintPolylineWithoutArrows(
+		const double xy[], int n, double thickness,
+		const emStroke & stroke, const emStrokeEnd & strokeStart,
+		const emStrokeEnd & strokeEnd, emColor canvasColor
+	) const;
+
+	void PaintDashedPolyline(
+		const double xy[], int n, double thickness,
+		const emStroke & stroke, const emStrokeEnd & strokeStart,
+		const emStrokeEnd & strokeEnd, emColor canvasColor
+	) const;
+
+	void PaintSolidPolyline(
+		const double xy[], int n, double thickness,
+		const emStroke & stroke, const emStrokeEnd & strokeStart,
+		const emStrokeEnd & strokeEnd, emColor canvasColor
+	) const;
 
 	enum OptimizedPixelFormatIndex {
 		OPFI_NONE      = -1,
@@ -645,8 +829,16 @@ private:
 	bool * USMLockedByThisThread;
 	emRef<SharedModel> Model;
 
+	static const emStrokeEnd ButtEnd;
+	static const emStrokeEnd CapEnd;
+	static const emStrokeEnd NoEnd;
 	static const double CharBoxTallness;
 	static const double CircleQuality;
+	static const double MaxMiter;
+	static const double ArrowBaseSize;
+	static const double ArrowNotch;
+	static const double MaxDashes;
+	static const double MinRelSegLen;
 };
 
 inline emPainter::~emPainter()
@@ -767,6 +959,58 @@ inline bool emPainter::EnterUserSpace() const
 	return false;
 }
 
+inline emPainter::UserSpaceLeaveGuard::UserSpaceLeaveGuard(
+	const emPainter & painter
+)
+{
+	PainterIfUnlocked=NULL;
+	if (painter.USMLockedByThisThread && *painter.USMLockedByThisThread) {
+		*painter.USMLockedByThisThread=false;
+		painter.UserSpaceMutex->Unlock();
+		PainterIfUnlocked=&painter;
+	}
+}
+
+inline emPainter::UserSpaceLeaveGuard::~UserSpaceLeaveGuard()
+{
+	if (PainterIfUnlocked) {
+		PainterIfUnlocked->UserSpaceMutex->Lock();
+		*PainterIfUnlocked->USMLockedByThisThread=true;
+	}
+}
+
+inline void emPainter::PaintPolygonOutline(
+	const double xy[], int n, double thickness, const emStroke & stroke,
+	emColor canvasColor
+) const
+{
+	PaintPolyline(
+		xy,n,thickness,stroke,
+#ifdef EM_NO_DATA_EXPORT
+		emStrokeEnd::NO_END,emStrokeEnd::NO_END,
+#else
+		NoEnd,NoEnd,
+#endif
+		canvasColor
+	);
+}
+
+inline void emPainter::PaintBezierOutline(
+	const double xy[], int n, double thickness, const emStroke & stroke,
+	emColor canvasColor
+) const
+{
+	PaintBezierLine(
+		xy,n,thickness,stroke,
+#ifdef EM_NO_DATA_EXPORT
+		emStrokeEnd::NO_END,emStrokeEnd::NO_END,
+#else
+		NoEnd,NoEnd,
+#endif
+		canvasColor
+	);
+}
+
 inline void emPainter::PaintImage(
 	double x, double y, double w, double h, const emImage & img,
 	int alpha, emColor canvasColor, emTexture::ExtensionType extension
@@ -842,6 +1086,20 @@ inline void emPainter::PaintBorderImageColored(
 		x,y,w,h,l,t,r,b,img,0,0,img.GetWidth(),img.GetHeight(),
 		srcL,srcT,srcR,srcB,color1,color2,canvasColor,whichSubRects
 	);
+}
+
+inline void emPainter::PaintPolylineWithoutArrows(
+	const double xy[], int n, double thickness, const emStroke & stroke,
+	const emStrokeEnd & strokeStart, const emStrokeEnd & strokeEnd,
+	emColor canvasColor
+) const
+{
+	if (stroke.DashType!=emStroke::SOLID) {
+		PaintDashedPolyline(xy,n,thickness,stroke,strokeStart,strokeEnd,canvasColor);
+	}
+	else {
+		PaintSolidPolyline(xy,n,thickness,stroke,strokeStart,strokeEnd,canvasColor);
+	}
 }
 
 

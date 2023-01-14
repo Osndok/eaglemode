@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.cpp
 //
-// Copyright (C) 2007-2010,2014-2017,2019-2020 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2017,2019-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -223,8 +223,13 @@ emCoreConfigPanel::MouseMiscGroup::MouseMiscGroup(
 	EmuBox(NULL),
 	PanBox(NULL)
 {
+	emScreen * screen;
+
 	SetBorderScaling(4.0);
 	SetPrefChildTallness(0.04);
+
+	screen=GetScreen();
+	StickPossible=(screen && screen->CanMoveMousePointer());
 }
 
 
@@ -245,7 +250,7 @@ bool emCoreConfigPanel::MouseMiscGroup::Cycle()
 
 	busy=emRasterGroup::Cycle();
 
-	if (StickBox && IsSignaled(StickBox->GetCheckSignal())) {
+	if (StickBox && StickPossible && IsSignaled(StickBox->GetCheckSignal())) {
 		if (Config->StickMouseWhenNavigating.Get() != StickBox->IsChecked()) {
 			Config->StickMouseWhenNavigating.Set(StickBox->IsChecked());
 			Config->Save();
@@ -287,6 +292,7 @@ void emCoreConfigPanel::MouseMiscGroup::AutoExpand()
 		"Whether to reverse the direction of scrolling with the\n"
 		"mouse. It's the pan function: drag and drop the canvas."
 	);
+	StickBox->SetEnableSwitch(StickPossible);
 	StickBox->SetNoEOI();
 	EmuBox->SetNoEOI();
 	PanBox->SetNoEOI();
@@ -308,7 +314,11 @@ void emCoreConfigPanel::MouseMiscGroup::AutoShrink()
 
 void emCoreConfigPanel::MouseMiscGroup::UpdateOutput()
 {
-	if (StickBox) StickBox->SetChecked(Config->StickMouseWhenNavigating);
+	if (StickBox) {
+		StickBox->SetChecked(
+			StickPossible && Config->StickMouseWhenNavigating
+		);
+	}
 	if (EmuBox) EmuBox->SetChecked(Config->EmulateMiddleButton);
 	if (PanBox) PanBox->SetChecked(Config->PanFunction);
 }

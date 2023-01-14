@@ -97,7 +97,7 @@ protected:
 		double h, emColor canvasColor
 	) const;
 
-	virtual bool CheckMouse(double mx, double my) const;
+	virtual bool CheckMouse(double mx, double my, bool * pInBox=NULL) const;
 
 	bool IsShownChecked() const;
 	bool IsShownBoxed() const;
@@ -108,14 +108,6 @@ protected:
 		// Yes, this class has the ability to paint all our button
 		// types.
 
-	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
-	// The following virtual non-const methods have been replaced by const
-	// methods (see above). The old versions still exist here with the
-	// "final" keyword added, so that old overridings will fail to compile.
-	// If you run into this, please adapt your overridings by adding "const".
-	virtual bool CheckMouse(double mx, double my) final;
-	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 private:
 
 	enum DoButtonFunc {
@@ -123,14 +115,14 @@ private:
 		BUTTON_FUNC_CHECK_MOUSE
 	};
 	void DoButton(
-		DoButtonFunc func, const emPainter * painter,
-		emColor canvasColor,
-		double mx, double my, bool * pHit
+		DoButtonFunc func, const emPainter * painter, emColor canvasColor,
+		double mx, double my, bool * pHit, bool * pInBox
 	) const;
 
 	emSignal ClickSignal;
 	emSignal PressStateSignal;
 	unsigned Pressed : 1;
+	unsigned BoxPressed : 1;
 	unsigned NoEOI : 1;
 	unsigned ShownChecked : 1;
 	unsigned ShownBoxed : 1;

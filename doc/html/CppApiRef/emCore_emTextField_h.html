@@ -97,23 +97,103 @@
                 <SPAN CLASS=c>// The text.
 
         </SPAN><SPAN CLASS=t>int </SPAN>GetTextLen() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetCursorIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of bytes in the text.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetCursorIndex() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetCursorIndex(<SPAN CLASS=t>int </SPAN>index);
-        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSelectionSignal() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetSelectionStartIndex() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>int </SPAN>GetSelectionEndIndex() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>Select(<SPAN CLASS=t>int </SPAN>startIndex, <SPAN CLASS=t>int </SPAN>endIndex, <SPAN CLASS=t>bool </SPAN>publish);
-        <SPAN CLASS=t>bool </SPAN>IsSelectionEmpty() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>EmptySelection();
-        <SPAN CLASS=t>void </SPAN>SelectAll(<SPAN CLASS=t>bool </SPAN>publish);
-        <SPAN CLASS=t>void </SPAN>PublishSelection();
-        <SPAN CLASS=t>void </SPAN>CutSelectedTextToClipboard();
-        <SPAN CLASS=t>void </SPAN>CopySelectedTextToClipboard();
-        <SPAN CLASS=t>void </SPAN>PasteSelectedTextFromClipboard();
-        <SPAN CLASS=t>void </SPAN>PasteSelectedText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text);
-        <SPAN CLASS=t>void </SPAN>DeleteSelectedText();
-        <SPAN CLASS=t>bool </SPAN>IsCursorBlinkOn() <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// Advanced stuff - still undocumented.
+                <SPAN CLASS=c>// Position of cursor as a byte index to the text.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetSelectionSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled whenever the selection has changed.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSelectionStartIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get start of selection as a byte index to the text.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSelectionEndIndex() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get end of selection as an exclusive byte index to the text.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsSelectionEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>//  Whether the selection is empty.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Select(<SPAN CLASS=t>int </SPAN>startIndex, <SPAN CLASS=t>int </SPAN>endIndex, <SPAN CLASS=t>bool </SPAN>publish);
+                <SPAN CLASS=c>// Set the selection.
+                // Arguments:
+                //   startIndex  - Start as a byte index to the text.
+                //   endIndex    - End as an exclusive byte index to the text.
+                //   publish     - Whether to publish the selection.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SelectAll(<SPAN CLASS=t>bool </SPAN>publish);
+                <SPAN CLASS=c>// Select the whole text.
+                // Arguments:
+                //   publish - Whether to publish the selection.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>EmptySelection();
+                <SPAN CLASS=c>// Empty the selection.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PublishSelection();
+                <SPAN CLASS=c>// Publish the current selection.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CutSelectedTextToClipboard();
+                <SPAN CLASS=c>// Remove the selected text and put it to the clipboard.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>CopySelectedTextToClipboard();
+                <SPAN CLASS=c>// Copy the selected text to the clipboard.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PasteSelectedTextFromClipboard();
+                <SPAN CLASS=c>// Paste selected text from the clipboard. If the selection is
+                // empty, the text from the clipboard is inserted at the cursor
+                // position. Otherwise the selected text is replaced.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PasteSelectedText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; text);
+                <SPAN CLASS=c>// Paste selected text. If the selection is empty, the given
+                // text is inserted at the cursor position. Otherwise the
+                // selected text is replaced.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>DeleteSelectedText();
+                <SPAN CLASS=c>// Remove the selected text.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsCursorBlinkOn() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the cursor is shown at this moment.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetCanUndoRedoSignal() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Signaled whenever the result of CanUndo() or CanRedo() has changed.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>CanUndo() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether there is at least one entry in the undo buffer.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>CanRedo() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether there is at least one entry in the redo buffer.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Undo();
+                <SPAN CLASS=c>// Undo last change if possible.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Redo();
+                <SPAN CLASS=c>// Redo last undone change if possible.
+
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>Validate(<SPAN CLASS=t>int </SPAN>&amp; pos, <SPAN CLASS=t>int </SPAN>&amp; removeLen, <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; insertText) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// This method is called whenever the text is about to change
+                // (except by SetText(..)). The implementation may either accept
+                // the change (return true), adapt it (modify pos, removeLen
+                // and/or insertText, and return true), or reject the change
+                // (return false). The default implementation uses the callback
+                // function set with SetValidateFunc(..).
+                // Arguments:
+                //   pos        - Byte index where the text is changed.
+                //   removeLen  - How many bytes to remove at position pos.
+                //   insertText - The text to be inserted at position pos.
+                // Returns:
+                //   true on proceed with the change, false to abort.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetValidateFunc(
+                <SPAN CLASS=t>bool</SPAN>(*validateFunc)(
+                        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A> &amp; textField, <SPAN CLASS=t>int </SPAN>&amp; pos, <SPAN CLASS=t>int </SPAN>&amp; removeLen,
+                        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; insertText, <SPAN CLASS=t>void </SPAN>* context
+                ),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Set a validate function. The arguments to the function are
+                // like Validate(..). The context can be any pointer, it is
+                // forwarded to the function.
 
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
@@ -150,6 +230,39 @@
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
+        <SPAN CLASS=t>struct </SPAN>UndoEntry <SPAN CLASS=b>{
+                </SPAN>UndoEntry * Prev;
+                UndoEntry * Next;
+                <SPAN CLASS=t>int </SPAN>Pos;
+                <SPAN CLASS=t>int </SPAN>RemoveLen;
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> InsertText;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>RedoEntry <SPAN CLASS=b>{
+                </SPAN>RedoEntry * Next;
+                <SPAN CLASS=t>int </SPAN>Pos;
+                <SPAN CLASS=t>int </SPAN>RemoveLen;
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> InsertText;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>UndoMergeType <SPAN CLASS=b>{
+                </SPAN>UM_NO_MERGE,
+                UM_BACKSPACE,
+                UM_DELETE,
+                UM_ALPHA_NUM,
+                UM_NON_ALPHA_NUM,
+                UM_NEW_LINE,
+                UM_MOVE
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>enum </SPAN>ModifyFlags <SPAN CLASS=b>{
+                </SPAN>MF_VALIDATE      = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>,
+                MF_CREATE_UNDO   = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>,
+                MF_CREATE_REDO   = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>,
+                MF_NO_CLEAR_REDO = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>,
+                MF_SELECT        = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
         <SPAN CLASS=t>enum </SPAN>DoTextFieldFunc <SPAN CLASS=b>{
                 </SPAN>TEXT_FIELD_FUNC_PAINT,
                 TEXT_FIELD_FUNC_XY2CR,
@@ -161,6 +274,16 @@
                 <SPAN CLASS=t>double </SPAN>xIn, <SPAN CLASS=t>double </SPAN>yIn, <SPAN CLASS=t>double </SPAN>* pXOut, <SPAN CLASS=t>double </SPAN>* pYOut, <SPAN CLASS=t>bool </SPAN>* pHit
         ) <SPAN CLASS=t>const</SPAN>;
 
+        <SPAN CLASS=t>void </SPAN>ClearUndo();
+        <SPAN CLASS=t>void </SPAN>ClearRedo();
+        <SPAN CLASS=t>void </SPAN>CreateUndo(<SPAN CLASS=t>int </SPAN>pos, <SPAN CLASS=t>int </SPAN>removeLen, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; insertText,
+                        UndoMergeType undoMerge);
+        <SPAN CLASS=t>void </SPAN>CreateRedo(<SPAN CLASS=t>int </SPAN>pos, <SPAN CLASS=t>int </SPAN>removeLen, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; insertText);
+        <SPAN CLASS=t>void </SPAN>ModifySelectedText(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; insertText, <SPAN CLASS=t>int </SPAN>modifyFlags,
+                                UndoMergeType undoMerge=UM_NO_MERGE);
+        <SPAN CLASS=t>void </SPAN>ModifyText(<SPAN CLASS=t>int </SPAN>pos, <SPAN CLASS=t>int </SPAN>removeLen, <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> insertText,
+                        <SPAN CLASS=t>int </SPAN>modifyFlags, UndoMergeType undoMerge=UM_NO_MERGE);
+
         <SPAN CLASS=t>enum </SPAN>DragModeType <SPAN CLASS=b>{
                 </SPAN>DM_NONE,
                 DM_SELECT,
@@ -169,8 +292,8 @@
                 DM_INSERT,
                 DM_MOVE
         <SPAN CLASS=b>}</SPAN>;
-
         <SPAN CLASS=t>void </SPAN>SetDragMode(DragModeType dragMode);
+
         <SPAN CLASS=t>void </SPAN>RestartCursorBlinking();
         <SPAN CLASS=t>void </SPAN>ScrollToCursor();
         <SPAN CLASS=t>int </SPAN>ColRow2Index(<SPAN CLASS=t>double </SPAN>column, <SPAN CLASS=t>double </SPAN>row, <SPAN CLASS=t>bool </SPAN>forCursor) <SPAN CLASS=t>const</SPAN>;
@@ -208,6 +331,20 @@
         <SPAN CLASS=t>bool </SPAN>CursorBlinkOn;
         DragModeType DragMode;
         <SPAN CLASS=t>double </SPAN>DragPosC,DragPosR;
+
+        UndoEntry * FirstUndo;
+        UndoEntry * LastUndo;
+        size_t UndoSize;
+        <SPAN CLASS=t>int </SPAN>UndoCount;
+        UndoMergeType UndoMerge;
+        RedoEntry * FirstRedo;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CanUndoRedoSignal;
+
+        <SPAN CLASS=t>bool</SPAN>(*ValidateFunc)(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A> &amp; textField, <SPAN CLASS=t>int </SPAN>&amp; pos, <SPAN CLASS=t>int </SPAN>&amp; removeLen,
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; insertText, <SPAN CLASS=t>void </SPAN>* context
+        );
+        <SPAN CLASS=t>void </SPAN>* ValidateFuncContext;
 
         <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>HowToTextField;
         <SPAN CLASS=t>static const char </SPAN>* <SPAN CLASS=t>const </SPAN>HowToMultiLineOff;
@@ -278,6 +415,21 @@
 </SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A>::IsCursorBlinkOn() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>CursorBlinkOn;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A>::GetCanUndoRedoSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>CanUndoRedoSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A>::CanUndo() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstUndo!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emTextField_h.html#emTextField">emTextField</A>::CanRedo() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstRedo!=<SPAN CLASS=u>NULL</SPAN>;
 <SPAN CLASS=b>}
 
 

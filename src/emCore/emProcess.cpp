@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.cpp
 //
-// Copyright (C) 2006-2009,2012,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2006-2009,2012,2014,2017-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emProcess.h>
+#include <emCore/emInstallInfo.h>
 
 
 #if defined(_WIN32)
@@ -90,6 +91,7 @@ void emProcess::TryStart(
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
 	emString str,msg,useDir;
+	emArray<emString> cmdArgs;
 	emArray<emString> env;
 	emArray<char> envBlock;
 	emArray<char> cmd;
@@ -115,22 +117,33 @@ void emProcess::TryStart(
 	if ((flags&SF_PIPE_STDOUT)!=0) flags&=~SF_SHARE_STDOUT;
 	if ((flags&SF_PIPE_STDERR)!=0) flags&=~SF_SHARE_STDERR;
 
-	for (i=0; i<args.GetCount(); i++) {
+	cmdArgs=args;
+	if ((flags&SF_USE_CTRL_BREAK)!=0) {
+		cmdArgs.Insert(
+			0,
+			emGetChildPath(
+				emGetInstallPath(EM_IDT_LIB,"emWnds","emWnds"),
+				"emWndsAdapterProc"
+			)
+		);
+	}
+
+	for (i=0; i<cmdArgs.GetCount(); i++) {
 		if (i) {
 			cmd+=' ';
-			for (j=args[i].GetCount()-1; j>=0; j--) {
-				c=args[i][j];
+			for (j=cmdArgs[i].GetCount()-1; j>=0; j--) {
+				c=cmdArgs[i][j];
 				if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
 				    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-') break;
 			}
-			if (j<0) {
-				cmd.Add(args[i].Get(),args[i].GetLen());
+			if (j<0 && !cmdArgs[i].IsEmpty()) {
+				cmd.Add(cmdArgs[i].Get(),cmdArgs[i].GetLen());
 				continue;
 			}
 		}
 		cmd+='"';
-		for (j=0, k=0; j<args[i].GetCount(); j++) {
-			c=args[i][j];
+		for (j=0, k=0; j<cmdArgs[i].GetCount(); j++) {
+			c=cmdArgs[i][j];
 			if (c=='"') {
 				while (k>0) { cmd+='\\'; k--; }
 				cmd+='\\';
@@ -228,13 +241,13 @@ void emProcess::TryStart(
 		CloseReadingErr();
 		throw emException(
 			"Failed to start process \"%s\": %s",
-			args[0].Get(),
+			cmdArgs[0].Get(),
 			emGetErrorText(d).Get()
 		);
 	}
 
 	while (tmpHandleCount>0) CloseHandle(tmpHandle[--tmpHandleCount]);
-	P->Arg0=args[0];
+	P->Arg0=cmdArgs[0];
 	P->HProcess=pi.hProcess;
 	P->HThread=pi.hThread;
 	P->ProcessId=pi.dwProcessId;

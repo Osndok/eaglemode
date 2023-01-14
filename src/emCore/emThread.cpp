@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.cpp
 //
-// Copyright (C) 2009,2011,2016-2017 Oliver Hamann.
+// Copyright (C) 2009,2011,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -167,7 +167,7 @@ void emThread::Start(int (* func)(void *), void * arg)
 	P->ThreadId=0;
 	P->ThreadHandle=CreateThread(
 		NULL,
-		0, //??? stack size
+		0,
 		emThreadProc,
 		(LPVOID)P,
 		0,
@@ -201,7 +201,7 @@ void emThread::StartUnmanaged(int (* func)(void *), void * arg)
 #if defined(_WIN32) || defined(__CYGWIN__)
 	HANDLE h=CreateThread(
 		NULL,
-		0, //??? stack size
+		0,
 		emThreadProcUnmanaged,
 		(LPVOID)data,
 		0,
@@ -323,7 +323,7 @@ int emThread::GetHardwareThreadCount()
 	SYSTEM_INFO systemInfo;
 	memset(&systemInfo,0,sizeof(systemInfo));
 	::GetSystemInfo(&systemInfo);
- 	n=(int)systemInfo.dwNumberOfProcessors;
+	n=(int)systemInfo.dwNumberOfProcessors;
 #else
 	n=(int)sysconf(_SC_NPROCESSORS_ONLN);
 #endif

@@ -91,6 +91,12 @@ double emWndsScreen::GetDPI() const
 }
 
 
+bool emWndsScreen::CanMoveMousePointer() const
+{
+	return true;
+}
+
+
 void emWndsScreen::MoveMousePointer(double dx, double dy)
 {
 	MouseWarpX+=dx;

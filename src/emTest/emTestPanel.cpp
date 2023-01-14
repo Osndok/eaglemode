@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009,2011,2014-2016,2020 Oliver Hamann.
+// Copyright (C) 2005-2009,2011,2014-2016,2020-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -119,9 +119,9 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 	const emString * pstr;
 	emColor fgCol;
 	emString str;
-	double h;
+	double h,a;
 	double xy[128*2];
-	int i;
+	int i,n;
 
 	if (IsFocused()) fgCol=emColor(255,136,136);
 	else if (IsInFocusedPath()) fgCol=emColor(187,136,136);
@@ -139,6 +139,8 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 		BgColor,
 		EM_ALIGN_TOP_LEFT
 	);
+
+	if (GetViewCondition(VCT_WIDTH)<25.0) return;
 
 	str="State:";
 	if (IsFocused()) str+=" Focused";
@@ -274,13 +276,13 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 	painter.PaintEllipse(0.05,0.80,0.01,0.01,0xFFFFFFFF,BgColor);
 	painter.PaintEllipse(0.06,0.80,0.02,0.01,0xFFFFFFFF,BgColor);
 	painter.PaintEllipse(0.09,0.80,0.005,0.01,0xFFFFFFFF,BgColor);
-	painter.PaintEllipse(0.10,0.80,0.01,0.01,45,350,0xFFFFFFFF,BgColor);
-	painter.PaintEllipse(0.11,0.80,0.02,0.01,45,-350,0xFFFFFFFF,BgColor);
-	painter.PaintEllipse(0.13,0.80,0.005,0.01,245,50,0xFFFFFFFF,BgColor);
-	painter.PaintEllipse(0.14,0.80,0.01,0.01,245,-50,0xFFFFFFFF,BgColor);
+	painter.PaintEllipseSector(0.10,0.80,0.01,0.01,45,350,0xFFFFFFFF,BgColor);
+	painter.PaintEllipseSector(0.11,0.80,0.02,0.01,45,-350,0xFFFFFFFF,BgColor);
+	painter.PaintEllipseSector(0.13,0.80,0.005,0.01,245,50,0xFFFFFFFF,BgColor);
+	painter.PaintEllipseSector(0.14,0.80,0.01,0.01,245,-50,0xFFFFFFFF,BgColor);
 
 	painter.PaintRectOutline(0.05,0.82,0.01,0.01,0.001,0xFFFFFFFF,BgColor);
-	painter.PaintRectOutline(0.07,0.82,0.02,0.01,0.001,0xFFFFFFFF,BgColor);
+	painter.PaintRectOutline(0.07,0.82,0.02,0.01,0.001,emDashedStroke(0xFFFFFFFF),BgColor);
 	painter.PaintRectOutline(0.10,0.82,0.01,0.01,0.008,0xFFFFFFFF,BgColor);
 	painter.PaintRectOutline(0.13,0.82,0.01,0.01,0.011,0xFFFFFFFF,BgColor);
 
@@ -292,68 +294,75 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 
 	painter.PaintEllipseOutline(0.05,0.86,0.01,0.01,0.003,0xFFFFFFFF,BgColor);
 	painter.PaintEllipseOutline(0.065,0.86,0.02,0.01,0.001,0xFFFFFFFF,BgColor);
-	painter.PaintEllipseOutline(0.09,0.86,0.005,0.01,0.0001,0xFFFFFFFF,BgColor);
-	painter.PaintEllipseOutline(0.10,0.86,0.01,0.01,90,225,0.001,0xFFFFFFFF,BgColor);
-	painter.PaintEllipseOutline(0.11,0.86,0.02,0.01,45,-350,0.0001,0xFFFFFFFF,BgColor);
-	painter.PaintEllipseOutline(0.13,0.86,0.005,0.01,245,50,0.001,0xFFFFFFFF,BgColor);
-	painter.PaintEllipseOutline(0.14,0.86,0.01,0.01,245,-50,0.001,0xFFFFFFFF,BgColor);
+	painter.PaintEllipseOutline(0.09,0.86,0.005,0.01,0.00025,emRoundedDottedStroke(0xFFFFFFFF),BgColor);
+	painter.PaintEllipseArc(0.10,0.86,0.01,0.01,90,225,0.001,0xFFFFFFFF,emStrokeEnd(),emStrokeEnd(),BgColor);
+	painter.PaintEllipseSectorOutline(0.11,0.86,0.02,0.01,45,-320,0.0001,0xFFFFFFFF,BgColor);
+	painter.PaintEllipseArc(0.13,0.86,0.005,0.01,245,50,0.001,0xFFFFFFFF,emStrokeEnd(),emStrokeEnd(),BgColor);
+	painter.PaintEllipseArc(0.14,0.86,0.01,0.01,245,-50,0.001,0xFFFFFFFF,emStrokeEnd(),emStrokeEnd(),BgColor);
+	painter.PaintEllipseArc(0.15,0.86,0.01,0.01,0,-145,0.0001,emRoundedStroke(0xFFFFFFFF),emStrokeEnd::CAP,emStrokeEnd::LINE_ARROW,BgColor);
 
 	painter.PaintRoundRectOutline(0.05,0.88,0.01,0.01,0.001,0.001,0.001,0xFFFFFFFF,BgColor);
 	painter.PaintRoundRectOutline(0.07,0.88,0.02,0.01,0.001,0.002,0.001,0xFFFFFFFF,BgColor);
 	painter.PaintRoundRectOutline(0.10,0.88,0.01,0.01,0.003,0.002,0.003,0xFFFFFFFF,BgColor);
-	painter.PaintRoundRectOutline(0.13,0.88,0.01,0.01,0.001,0.011,0.0001,0xFFFFFFFF,BgColor);
+	painter.PaintRoundRectOutline(0.12,0.88,0.01,0.01,0.001,0.011,0.0001,0xFFFFFFFF,BgColor);
+	painter.PaintRoundRectOutline(0.135,0.88,0.01,0.01,0.001,0.001,0.00002,emDashDottedStroke(0xFFFFFFFF),BgColor);
 	painter.PaintRoundRectOutline(0.15,0.88,0.01,0.01,-0.0004,-0.0004,0.001,0xFFFFFFFF,BgColor);
 
+	xy[0]=0.05; xy[1]=0.90;
+	xy[2]=0.06; xy[3]=0.90;
+	xy[4]=0.05; xy[5]=0.91;
+	painter.PaintBezier(xy,3,0xFFFFFFFF,BgColor);
 
-	painter.PaintLine(0.050,0.90,0.060,0.91,0.0005,emPainter::LC_FLAT,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.051,0.90,0.061,0.91,0.0005,emPainter::LC_SQUARE,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.052,0.90,0.062,0.91,0.0005,emPainter::LC_ROUND,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.053,0.90,0.063,0.91,0.0005,emPainter::LC_FLAT,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.054,0.90,0.064,0.91,0.0005,emPainter::LC_ROUND,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.055,0.90,0.065,0.91,0.0005,emPainter::LC_SQUARE,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.056,0.90,0.066,0.91,0.0005,emPainter::LC_ROUND,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.057,0.90,0.067,0.91,0.0005,emPainter::LC_SQUARE,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.058,0.90,0.068,0.91,0.0005,emPainter::LC_FLAT,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
+	xy[ 0]=0.065; xy[ 1]=0.91;
+	xy[ 2]=0.05;  xy[ 3]=0.902;
+	xy[ 4]=0.058; xy[ 5]=0.89;
+	xy[ 6]=0.065; xy[ 7]=0.900;
+	xy[ 8]=0.072; xy[ 9]=0.89;
+	xy[10]=0.08;  xy[11]=0.902;
+	painter.PaintBezier(xy,6,0xFFFFFFFF,BgColor);
 
-	painter.PaintLine(0.070,0.90,0.070,0.91,0.0005,emPainter::LC_FLAT,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.071,0.90,0.071,0.91,0.0005,emPainter::LC_SQUARE,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.072,0.90,0.072,0.91,0.0005,emPainter::LC_ROUND,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.073,0.90,0.073,0.91,0.0005,emPainter::LC_FLAT,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.074,0.90,0.074,0.91,0.0005,emPainter::LC_ROUND,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.075,0.90,0.075,0.91,0.0005,emPainter::LC_SQUARE,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.076,0.90,0.076,0.91,0.0005,emPainter::LC_ROUND,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.077,0.90,0.077,0.91,0.0005,emPainter::LC_SQUARE,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.078,0.90,0.078,0.91,0.0005,emPainter::LC_FLAT,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
+	xy[ 0]=0.085; xy[ 1]=0.91;
+	xy[ 2]=0.07;  xy[ 3]=0.902;
+	xy[ 4]=0.078; xy[ 5]=0.89;
+	xy[ 6]=0.085; xy[ 7]=0.900;
+	xy[ 8]=0.092; xy[ 9]=0.89;
+	xy[10]=0.10;  xy[11]=0.902;
+	painter.PaintBezierOutline(xy,6,0.0002,emRoundedDashedStroke(0xFFFFFFFF),BgColor);
 
-	painter.PaintLine(0.080,0.90,0.080,0.90,0.0005,emPainter::LC_FLAT,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.081,0.90,0.081,0.90,0.0005,emPainter::LC_SQUARE,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.082,0.90,0.082,0.90,0.0005,emPainter::LC_ROUND,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.083,0.90,0.083,0.90,0.0005,emPainter::LC_FLAT,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.084,0.90,0.084,0.90,0.0005,emPainter::LC_ROUND,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.085,0.90,0.085,0.90,0.0005,emPainter::LC_SQUARE,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.086,0.90,0.086,0.90,0.0005,emPainter::LC_ROUND,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.087,0.90,0.087,0.90,0.0005,emPainter::LC_SQUARE,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.088,0.90,0.088,0.90,0.0005,emPainter::LC_FLAT,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
+	xy[0]=0.105; xy[1]=0.91;
+	xy[2]=0.09;  xy[3]=0.902;
+	xy[4]=0.098; xy[5]=0.89;
+	xy[6]=0.105; xy[7]=0.900;
+	painter.PaintBezierLine(
+		xy,4,0.0002,emRoundedDashedStroke(0xFFFFFFFF,1.0,0.5),
+		emStrokeEnd(emStrokeEnd::CONTOUR_TRIANGLE,emColor::RED),
+		emStrokeEnd::ARROW,BgColor
+	);
 
-	painter.PaintLine(0.090,0.91,0.100,0.90,0.0005,emPainter::LC_FLAT,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.091,0.91,0.101,0.90,0.0005,emPainter::LC_SQUARE,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.092,0.91,0.102,0.90,0.0005,emPainter::LC_ROUND,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.093,0.91,0.103,0.90,0.0005,emPainter::LC_FLAT,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.094,0.91,0.104,0.90,0.0005,emPainter::LC_ROUND,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.095,0.91,0.105,0.90,0.0005,emPainter::LC_SQUARE,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.096,0.91,0.106,0.90,0.0005,emPainter::LC_ROUND,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.097,0.91,0.107,0.90,0.0005,emPainter::LC_SQUARE,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.098,0.91,0.108,0.90,0.0005,emPainter::LC_FLAT,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
+	n=emStrokeEnd::STROKE+1;
+	for (i=0; i<2*n; i++) {
+		a=2*M_PI*i/(2*n);
+		painter.PaintLine(
+			0.117+0.002*cos(a),
+			0.903+0.002*sin(a),
+			0.117+0.0075*cos(a),
+			0.903+0.0075*sin(a),
+			0.0001,
+			emStroke(0xFFFFFFFF,(i&1)!=0),
+			emStrokeEnd::CAP,
+			emStrokeEnd((emStrokeEnd::TypeEnum)(i/2),0xFFFFFF40)
+		);
+	}
 
-	painter.PaintLine(0.130,0.90,0.110,0.91,0.0002,emPainter::LC_FLAT,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.131,0.90,0.111,0.91,0.0002,emPainter::LC_SQUARE,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.132,0.90,0.112,0.91,0.0002,emPainter::LC_ROUND,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.133,0.90,0.113,0.91,0.0002,emPainter::LC_FLAT,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.134,0.90,0.114,0.91,0.0002,emPainter::LC_ROUND,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.135,0.90,0.115,0.91,0.0002,emPainter::LC_SQUARE,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.136,0.90,0.116,0.91,0.0002,emPainter::LC_ROUND,emPainter::LC_FLAT,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.137,0.90,0.117,0.91,0.0002,emPainter::LC_SQUARE,emPainter::LC_ROUND,0xFFFFFFFF,BgColor);
-	painter.PaintLine(0.138,0.90,0.118,0.91,0.0002,emPainter::LC_FLAT,emPainter::LC_SQUARE,0xFFFFFFFF,BgColor);
+	xy[0]=0.13; xy[1]=0.897;
+	xy[2]=0.14; xy[3]=0.902;
+	xy[4]=0.13; xy[5]=0.906;
+	xy[6]=0.137; xy[7]=0.909;
+	painter.PaintPolyline(
+		xy,4,0.0005,emRoundedStroke(0xFFFFFFFF),
+		emStrokeEnd(emStrokeEnd::CONTOUR_ARROW,0),emStrokeEnd::CAP,
+		BgColor
+	);
 
 	xy[0]=0.06; xy[1]=0.80;
 	xy[2]=0.10; xy[3]=0.85;
@@ -472,16 +481,17 @@ void emTestPanel::Paint(const emPainter & painter, emColor canvasColor) const
 
 void emTestPanel::AutoExpand()
 {
-	TkT=new TkTestGrp(*this,"TkTestGrp");
-	TP1=new emTestPanel(*this,"1");
-	TP2=new emTestPanel(*this,"2");
-	TP3=new emTestPanel(*this,"3");
-	TP4=new emTestPanel(*this,"4");
+	TkT=new TkTestGrp(this,"TkTestGrp");
+	TP1=new emTestPanel(this,"1");
+	TP2=new emTestPanel(this,"2");
+	TP3=new emTestPanel(this,"3");
+	TP4=new emTestPanel(this,"4");
 	BgColorField=new emColorField(
-		*this,"BgColorField",
+		this,"BgColorField",
 		"Background Color",emString(),emImage(),
 		BgColor,true,true
 	);
+	PolyDraw=new PolyDrawPanel(this,"PolyDraw");
 	AddWakeUpSignal(BgColorField->GetColorSignal());
 }
 
@@ -494,6 +504,7 @@ void emTestPanel::LayoutChildren()
 	if (TP3) TP3->Layout(0.70,0.18,0.12,0.12,BgColor);
 	if (TP4) TP4->Layout(0.83,0.18,0.12,0.12,BgColor);
 	if (BgColorField) BgColorField->Layout(0.775,0.34,0.1,0.02,BgColor);
+	if (PolyDraw) PolyDraw->Layout(0.05,0.92,0.08,0.04,BgColor);
 }
 
 
@@ -675,17 +686,23 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 		listBox=new emListBox(grp,"l1","Empty");
 
 		listBox=new emListBox(grp,"l2","Single-Selection");
-		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		for (i=1; i<=7; i++) {
+			listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+		}
 		listBox->SetSelectedIndex(0);
 
 		listBox=new emListBox(grp,"l3","Read-Only");
-		listBox->SetSelectionType(emListBox::READY_ONLY_SELECTION);
-		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		listBox->SetSelectionType(emListBox::READ_ONLY_SELECTION);
+		for (i=1; i<=7; i++) {
+			listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+		}
 		listBox->SetSelectedIndex(2);
 
 		listBox=new emListBox(grp,"l4","Multi-Selection");
 		listBox->SetSelectionType(emListBox::MULTI_SELECTION);
-		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		for (i=1; i<=7; i++) {
+			listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+		}
 		listBox->Select(1);
 		listBox->Select(2);
 		listBox->Select(3);
@@ -693,18 +710,24 @@ emTestPanel::TkTest::TkTest(ParentArg parent, const emString & name)
 
 		listBox=new emListBox(grp,"l5","Toggle-Selection");
 		listBox->SetSelectionType(emListBox::TOGGLE_SELECTION);
-		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		for (i=1; i<=7; i++) {
+			listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+		}
 		listBox->Select(2);
 		listBox->Select(4);
 
 		listBox=new emListBox(grp,"l6","Single Column");
 		listBox->SetFixedColumnCount(1);
-		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		for (i=1; i<=7; i++) {
+			listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+		}
 		listBox->SetSelectedIndex(0);
 
 		listBox=new CustomListBox(grp,"l7","Custom List Box");
 		listBox->SetSelectionType(emListBox::MULTI_SELECTION);
-		for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+		for (i=1; i<=7; i++) {
+			listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+		}
 		listBox->SetSelectedIndex(0);
 
 	grp=new emRasterGroup(this,"dlgs","Test Dialog");
@@ -926,7 +949,9 @@ void emTestPanel::CustomItemPanel::AutoExpand()
 	listBox = new emTestPanel::CustomListBox(this,"l","Child List Box");
 	listBox->SetLook(GetListBox().GetLook());
 	listBox->SetSelectionType(emListBox::MULTI_SELECTION);
-	for (i=1; i<=7; i++) listBox->AddItem(emString::Format("Item %d",i));
+	for (i=1; i<=7; i++) {
+		listBox->AddItem(emString::Format("%d",i),emString::Format("Item %d",i));
+	}
 	listBox->SetSelectedIndex(0);
 }
 
@@ -973,4 +998,494 @@ emTestPanel::CustomListBox::CustomListBox(
 void emTestPanel::CustomListBox::CreateItemPanel(const emString & name, int itemIndex)
 {
 	new emTestPanel::CustomItemPanel(*this,name,itemIndex);
+}
+
+
+emTestPanel::PolyDrawPanel::PolyDrawPanel(ParentArg parent, const emString & name)
+	: emLinearGroup(
+		parent,name,"Poly Draw Test",
+		"This allows manual testing of various paint functions. Main focus is\n"
+		"on strokes an stroke ends, i.e. textures cannot be tested with this.\n"
+	)
+{
+	SetOrientationThresholdTallness(1.0);
+}
+
+
+bool emTestPanel::PolyDrawPanel::Cycle()
+{
+	if (
+		Canvas && (
+			IsSignaled(Type->GetCheckSignal()) ||
+			IsSignaled(VertexCount->GetTextSignal()) ||
+			IsSignaled(WithCanvasColor->GetCheckSignal()) ||
+			IsSignaled(FillColor->GetColorSignal()) ||
+			IsSignaled(StrokeWidth->GetTextSignal()) ||
+			IsSignaled(StrokeColor->GetColorSignal()) ||
+			IsSignaled(StrokeRounded->GetCheckSignal()) ||
+			IsSignaled(StrokeDashType->GetCheckSignal()) ||
+			IsSignaled(DashLengthFactor->GetTextSignal()) ||
+			IsSignaled(GapLengthFactor->GetTextSignal()) ||
+			IsSignaled(StrokeStartType->GetCheckSignal()) ||
+			IsSignaled(StrokeStartInnerColor->GetColorSignal()) ||
+			IsSignaled(StrokeStartWidthFactor->GetTextSignal()) ||
+			IsSignaled(StrokeStartLengthFactor->GetTextSignal()) ||
+			IsSignaled(StrokeEndType->GetCheckSignal()) ||
+			IsSignaled(StrokeEndInnerColor->GetColorSignal()) ||
+			IsSignaled(StrokeEndWidthFactor->GetTextSignal()) ||
+			IsSignaled(StrokeEndLengthFactor->GetTextSignal())
+		)
+	) {
+		Canvas->Setup(
+			Type->GetCheckIndex(),
+			atoi(VertexCount->GetText()),
+			WithCanvasColor->IsChecked(),
+			emTexture(FillColor->GetColor()),
+			atof(StrokeWidth->GetText()),
+			emStroke(
+				StrokeColor->GetColor(),
+				StrokeRounded->IsChecked(),
+				(emStroke::DashTypeEnum)StrokeDashType->GetCheckIndex(),
+				atof(DashLengthFactor->GetText()),
+				atof(GapLengthFactor->GetText())
+			),
+			emStrokeEnd(
+				(emStrokeEnd::TypeEnum)StrokeStartType->GetCheckIndex(),
+				StrokeStartInnerColor->GetColor(),
+				atof(StrokeStartWidthFactor->GetText()),
+				atof(StrokeStartLengthFactor->GetText())
+			),
+			emStrokeEnd(
+				(emStrokeEnd::TypeEnum)StrokeEndType->GetCheckIndex(),
+				StrokeEndInnerColor->GetColor(),
+				atof(StrokeEndWidthFactor->GetText()),
+				atof(StrokeEndLengthFactor->GetText())
+			)
+		);
+	}
+
+	return false;
+}
+
+
+void emTestPanel::PolyDrawPanel::AutoExpand()
+{
+	emRasterLayout * controls;
+	emLinearGroup * general, * stroke, * strokeStart, * strokeEnd;
+	emLinearLayout * ll;
+
+	controls=new emRasterLayout(this,"Controls");
+	controls->SetPrefChildTallness(0.6);
+
+	general=new emLinearGroup(controls,"general","General");
+	general->SetBorderScaling(2.0);
+	general->SetChildWeight(0,2.0);
+
+	stroke=new emLinearGroup(controls,"stroke","Stroke");
+	stroke->SetBorderScaling(2.0);
+	stroke->SetChildWeight(2,2.0);
+
+	strokeStart=new emLinearGroup(controls,"strokeStart","Stroke Start");
+	strokeStart->SetBorderScaling(2.0);
+	strokeStart->SetChildWeight(0,2.0);
+
+	strokeEnd=new emLinearGroup(controls,"strokeEnd","Stroke End");
+	strokeEnd->SetBorderScaling(2.0);
+	strokeEnd->SetChildWeight(0,2.0);
+
+	Type=new emRadioButton::RasterGroup(general,"Method","Method");
+	new emRadioBox(*Type,"0","PaintPolygon");
+	new emRadioBox(*Type,"1","PaintPolygonOutline");
+	new emRadioBox(*Type,"2","PaintPolyline");
+	new emRadioBox(*Type,"3","PaintBezier");
+	new emRadioBox(*Type,"4","PaintBezierOutline");
+	new emRadioBox(*Type,"5","PaintBezierLine");
+	new emRadioBox(*Type,"6","PaintLine");
+	new emRadioBox(*Type,"7","PaintRect");
+	new emRadioBox(*Type,"8","PaintRectOutline");
+	new emRadioBox(*Type,"9","PaintEllipse");
+	new emRadioBox(*Type,"10","PaintEllipseOutline");
+	new emRadioBox(*Type,"11","PaintEllipseSector");
+	new emRadioBox(*Type,"12","PaintEllipseSectorOutline");
+	new emRadioBox(*Type,"13","PaintEllipseArc");
+	new emRadioBox(*Type,"14","PaintRoundRect");
+	new emRadioBox(*Type,"15","PaintRoundRectOutline");
+	Type->SetBorderScaling(1.5);
+	Type->SetPrefChildTallness(0.07);
+	Type->SetCheckIndex(0);
+	AddWakeUpSignal(Type->GetCheckSignal());
+
+	ll=new emLinearLayout(general,"ll");
+	ll->SetHorizontal();
+
+	VertexCount=new emTextField(ll,"VertexCount","Vertex Count");
+	VertexCount->SetEditable();
+	VertexCount->SetText("9");
+	AddWakeUpSignal(VertexCount->GetTextSignal());
+
+	FillColor=new emColorField(ll,"FillColor","Fill Color");
+	FillColor->SetEditable();
+	FillColor->SetAlphaEnabled();
+	FillColor->SetColor(0xFFFFFFFF);
+	AddWakeUpSignal(FillColor->GetColorSignal());
+
+	ll=new emLinearLayout(general,"ll2");
+	ll->SetHorizontal();
+
+	StrokeWidth=new emTextField(ll,"StrokeWidth","Stroke Width");
+	StrokeWidth->SetEditable();
+	StrokeWidth->SetText("0.01");
+	AddWakeUpSignal(StrokeWidth->GetTextSignal());
+
+	WithCanvasColor=new emCheckBox(ll,"WithCanvasColor","With Canvas Color");
+	AddWakeUpSignal(WithCanvasColor->GetCheckSignal());
+	WithCanvasColor->SetChecked(false);
+
+	StrokeColor=new emColorField(stroke,"StrokeColor","Color");
+	StrokeColor->SetEditable();
+	StrokeColor->SetAlphaEnabled();
+	StrokeColor->SetColor(0x000000FF);
+	AddWakeUpSignal(StrokeColor->GetColorSignal());
+
+	StrokeRounded=new emCheckBox(stroke,"StrokeRounded","Rounded");
+	AddWakeUpSignal(StrokeRounded->GetCheckSignal());
+
+	StrokeDashType=new emRadioButton::RasterGroup(stroke,"StrokeDashType","Dash Type");
+	new emRadioBox(*StrokeDashType,"0","SOLID");
+	new emRadioBox(*StrokeDashType,"1","DASHED");
+	new emRadioBox(*StrokeDashType,"2","DOTTED");
+	new emRadioBox(*StrokeDashType,"3","DASH_DOTTED");
+	StrokeDashType->SetBorderScaling(1.5);
+	StrokeDashType->SetPrefChildTallness(0.08);
+	StrokeDashType->SetCheckIndex(0);
+	AddWakeUpSignal(StrokeDashType->GetCheckSignal());
+
+	ll=new emLinearLayout(stroke,"ll");
+	ll->SetHorizontal();
+
+	DashLengthFactor=new emTextField(ll,"DashLengthFactor","Dash Length Factor");
+	DashLengthFactor->SetEditable();
+	DashLengthFactor->SetText("1.0");
+	AddWakeUpSignal(DashLengthFactor->GetTextSignal());
+
+	GapLengthFactor=new emTextField(ll,"GapLengthFactor","Gap Length Factor");
+	GapLengthFactor->SetEditable();
+	GapLengthFactor->SetText("1.0");
+	AddWakeUpSignal(GapLengthFactor->GetTextSignal());
+
+	StrokeStartType=new emRadioButton::RasterGroup(strokeStart,"StrokeStartType","Type");
+	new emRadioBox(*StrokeStartType,"0","BUTT");
+	new emRadioBox(*StrokeStartType,"1","CAP");
+	new emRadioBox(*StrokeStartType,"2","ARROW");
+	new emRadioBox(*StrokeStartType,"3","CONTOUR_ARROW");
+	new emRadioBox(*StrokeStartType,"4","LINE_ARROW");
+	new emRadioBox(*StrokeStartType,"5","TRIANGLE");
+	new emRadioBox(*StrokeStartType,"6","CONTOUR_TRIANGLE");
+	new emRadioBox(*StrokeStartType,"7","SQUARE");
+	new emRadioBox(*StrokeStartType,"8","CONTOUR_SQUARE");
+	new emRadioBox(*StrokeStartType,"9","HALF_SQUARE");
+	new emRadioBox(*StrokeStartType,"10","CIRCLE");
+	new emRadioBox(*StrokeStartType,"11","CONTOUR_CIRCLE");
+	new emRadioBox(*StrokeStartType,"12","HALF_CIRCLE");
+	new emRadioBox(*StrokeStartType,"13","DIAMOND");
+	new emRadioBox(*StrokeStartType,"14","CONTOUR_DIAMOND");
+	new emRadioBox(*StrokeStartType,"15","HALF_DIAMOND");
+	new emRadioBox(*StrokeStartType,"16","STROKE");
+	StrokeStartType->SetBorderScaling(1.5);
+	StrokeStartType->SetPrefChildTallness(0.08);
+	StrokeStartType->SetCheckIndex(0);
+	AddWakeUpSignal(StrokeStartType->GetCheckSignal());
+
+	StrokeStartInnerColor=new emColorField(strokeStart,"StrokeStartInnerColor","Inner Color");
+	StrokeStartInnerColor->SetEditable();
+	StrokeStartInnerColor->SetAlphaEnabled();
+	StrokeStartInnerColor->SetColor(0xEEEEEEFF);
+	AddWakeUpSignal(StrokeStartInnerColor->GetColorSignal());
+
+	ll=new emLinearLayout(strokeStart,"ll");
+	ll->SetHorizontal();
+
+	StrokeStartWidthFactor=new emTextField(ll,"StrokeStartWidthFactor","Width Factor");
+	StrokeStartWidthFactor->SetEditable();
+	StrokeStartWidthFactor->SetText("1.0");
+	AddWakeUpSignal(StrokeStartWidthFactor->GetTextSignal());
+
+	StrokeStartLengthFactor=new emTextField(ll,"StrokeStartLengthFactor","Length Factor");
+	StrokeStartLengthFactor->SetEditable();
+	StrokeStartLengthFactor->SetText("1.0");
+	AddWakeUpSignal(StrokeStartLengthFactor->GetTextSignal());
+
+	StrokeEndType=new emRadioButton::RasterGroup(strokeEnd,"StrokeEndType","Type");
+	new emRadioBox(*StrokeEndType,"0","BUTT");
+	new emRadioBox(*StrokeEndType,"1","CAP");
+	new emRadioBox(*StrokeEndType,"2","ARROW");
+	new emRadioBox(*StrokeEndType,"3","CONTOUR_ARROW");
+	new emRadioBox(*StrokeEndType,"4","LINE_ARROW");
+	new emRadioBox(*StrokeEndType,"5","TRIANGLE");
+	new emRadioBox(*StrokeEndType,"6","CONTOUR_TRIANGLE");
+	new emRadioBox(*StrokeEndType,"7","SQUARE");
+	new emRadioBox(*StrokeEndType,"8","CONTOUR_SQUARE");
+	new emRadioBox(*StrokeEndType,"9","HALF_SQUARE");
+	new emRadioBox(*StrokeEndType,"10","CIRCLE");
+	new emRadioBox(*StrokeEndType,"11","CONTOUR_CIRCLE");
+	new emRadioBox(*StrokeEndType,"12","HALF_CIRCLE");
+	new emRadioBox(*StrokeEndType,"13","DIAMOND");
+	new emRadioBox(*StrokeEndType,"14","CONTOUR_DIAMOND");
+	new emRadioBox(*StrokeEndType,"15","HALF_DIAMOND");
+	new emRadioBox(*StrokeEndType,"16","STROKE");
+	StrokeEndType->SetBorderScaling(1.5);
+	StrokeEndType->SetPrefChildTallness(0.08);
+	StrokeEndType->SetCheckIndex(0);
+	AddWakeUpSignal(StrokeEndType->GetCheckSignal());
+
+	StrokeEndInnerColor=new emColorField(strokeEnd,"StrokeEndInnerColor","Inner Color");
+	StrokeEndInnerColor->SetEditable();
+	StrokeEndInnerColor->SetAlphaEnabled();
+	StrokeEndInnerColor->SetColor(0xEEEEEEFF);
+	AddWakeUpSignal(StrokeEndInnerColor->GetColorSignal());
+
+	ll=new emLinearLayout(strokeEnd,"ll");
+	ll->SetHorizontal();
+
+	StrokeEndWidthFactor=new emTextField(ll,"StrokeEndWidthFactor","Width Factor");
+	StrokeEndWidthFactor->SetEditable();
+	StrokeEndWidthFactor->SetText("1.0");
+	AddWakeUpSignal(StrokeEndWidthFactor->GetTextSignal());
+
+	StrokeEndLengthFactor=new emTextField(ll,"StrokeEndLengthFactor","Length Factor");
+	StrokeEndLengthFactor->SetEditable();
+	StrokeEndLengthFactor->SetText("1.0");
+	AddWakeUpSignal(StrokeEndLengthFactor->GetTextSignal());
+
+	Canvas=new CanvasPanel(this,"CanvasPanel");
+}
+
+
+emTestPanel::PolyDrawPanel::CanvasPanel::CanvasPanel(
+	ParentArg parent, const emString & name
+) :
+	emPanel(parent,name),
+	Type(0),
+	DragIdx(-1),
+	ShowHandles(false)
+{
+}
+
+
+void emTestPanel::PolyDrawPanel::CanvasPanel::Setup(
+	int type, int vertexCount, bool withCanvasColor, const emTexture& texture,
+	double strokeWidth, const emStroke& stroke, const emStrokeEnd& strokeStart,
+	const emStrokeEnd& strokeEnd
+)
+{
+	int i;
+
+	Type=type;
+	if (XY.GetCount()>vertexCount*2) {
+		XY.SetCount(vertexCount*2);
+		DragIdx=-1;
+	}
+	else if (XY.GetCount()<vertexCount*2) {
+		XY.SetCount(vertexCount*2);
+		for (i=0; i<vertexCount; i++) {
+			XY.Set(i*2,cos(M_PI*2*i/vertexCount)*0.4+0.5);
+			XY.Set(i*2+1,GetHeight()*(sin(M_PI*2*i/vertexCount)*0.4+0.5));
+		}
+		DragIdx=-1;
+	}
+	WithCanvasColor=withCanvasColor;
+	Texture=texture;
+	StrokeWidth=strokeWidth;
+	Stroke=stroke;
+	StrokeStart=strokeStart;
+	StrokeEnd=strokeEnd;
+	InvalidatePainting();
+}
+
+
+void emTestPanel::PolyDrawPanel::CanvasPanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	double dx,dy,x,y,r,bestR;
+	int i,bestI;
+	bool b;
+
+	if (DragIdx<0 && event.IsLeftButton()) {
+		event.Eat();
+		Focus();
+		bestI=-1;
+		bestR=ViewToPanelDeltaX(12.0);
+		for (i=0; i<XY.GetCount()/2; i++) {
+			dx=XY[i*2]-mx;
+			dy=XY[i*2+1]-my;
+			r=sqrt(dx*dx+dy*dy);
+			if (bestR>r) {
+				bestI=i;
+				bestR=r;
+			}
+		}
+		if (bestI>=0) {
+			DragIdx=bestI;
+			DragDX=XY[bestI*2]-mx;
+			DragDY=XY[bestI*2+1]-my;
+			InvalidatePainting();
+		}
+	}
+	else if (DragIdx>=0 && !state.GetLeftButton()) {
+		DragIdx=-1;
+		InvalidatePainting();
+	}
+	else if (DragIdx>=0) {
+		x=emMin(emMax(mx+DragDX,0.0),1.0);
+		y=emMin(emMax(my+DragDY,0.0),GetHeight());
+		if (state.GetShift() || state.GetCtrl() || state.GetAlt()) {
+			for (r=0.1; IsViewed() && PanelToViewDeltaX(r)>20.0; r*=0.5);
+			x=round(x/r)*r;
+			y=round(y/r)*r;
+		}
+		if (XY[DragIdx*2]!=x || XY[DragIdx*2+1]!=y) {
+			XY.Set(DragIdx*2,x);
+			XY.Set(DragIdx*2+1,y);
+			InvalidatePainting();
+		}
+	}
+
+	b=DragIdx>=0 || (mx>=0.0 && mx<1.0 && my>=0.0 && my<GetHeight());
+	if (ShowHandles!=b) {
+		ShowHandles=b;
+		InvalidatePainting();
+	}
+
+	emPanel::Input(event,state,mx,my);
+}
+
+
+void emTestPanel::PolyDrawPanel::CanvasPanel::Paint(
+	const emPainter & painter, emColor canvasColor
+) const
+{
+	double x1,y1,x2,y2,x,y,w,h,sa,ra,r;
+	emColor c;
+	int i,m;
+
+	if (WithCanvasColor) {
+		c=emColor(96,128,160);
+		painter.Clear(c,canvasColor);
+		canvasColor=c;
+	}
+	else {
+		painter.Clear(
+			emLinearGradientTexture(
+				0.0,0.0,emColor(80,80,160),
+				0.0,GetHeight(),emColor(160,160,80)
+			),
+			canvasColor
+		);
+		canvasColor=0;
+	}
+
+	x1=y1=x2=y2=x=y=w=h=sa=ra=0.0;
+	if (XY.GetCount()>=4) {
+		x1=XY[0]; y1=XY[1];
+		x2=XY[2]; y2=XY[3];
+		x=emMin(x1,x2);
+		y=emMin(y1,y2);
+		w=fabs(x2-x1);
+		h=fabs(y2-y1);
+	}
+	if (XY.GetCount()>=8) {
+		sa=atan2(XY[5]-y-h*0.5,XY[4]-x-w*0.5);
+		ra=atan2(XY[7]-y-h*0.5,XY[6]-x-w*0.5)-sa;
+		if (ra<0.0) ra+=2.0*M_PI;
+		sa*=180.0/M_PI;
+		ra*=180.0/M_PI;
+	}
+
+	switch (Type) {
+	case 0:
+		painter.PaintPolygon(XY.Get(),XY.GetCount()/2,Texture,canvasColor);
+		break;
+	case 1:
+		painter.PaintPolygonOutline(XY.Get(), XY.GetCount() / 2, StrokeWidth,
+		                            Stroke, canvasColor);
+		break;
+	case 2:
+		painter.PaintPolyline(XY.Get(),XY.GetCount()/2,StrokeWidth,Stroke,
+		                      StrokeStart,StrokeEnd,canvasColor);
+		break;
+	case 3:
+		painter.PaintBezier(XY.Get(),XY.GetCount()/2,Texture,canvasColor);
+		break;
+	case 4:
+		painter.PaintBezierOutline(XY.Get(),XY.GetCount()/2,StrokeWidth,
+		                           Stroke,canvasColor);
+		break;
+	case 5:
+		painter.PaintBezierLine(XY.Get(),XY.GetCount()/2,StrokeWidth,Stroke,
+		                        StrokeStart,StrokeEnd,canvasColor);
+		break;
+	case 6:
+		painter.PaintLine(x1,y1,x2,y2,StrokeWidth,Stroke,
+		                  StrokeStart,StrokeEnd,canvasColor);
+		break;
+	case 7:
+		painter.PaintRect(x,y,w,h,Texture,canvasColor);
+		break;
+	case 8:
+		painter.PaintRectOutline(x,y,w,h,StrokeWidth,Stroke,canvasColor);
+		break;
+	case 9:
+		painter.PaintEllipse(x,y,w,h,Texture,canvasColor);
+		break;
+	case 10:
+		painter.PaintEllipseOutline(x,y,w,h,StrokeWidth,Stroke,canvasColor);
+		break;
+	case 11:
+		painter.PaintEllipseSector(x,y,w,h,sa,ra,Texture,canvasColor);
+		break;
+	case 12:
+		painter.PaintEllipseSectorOutline(x,y,w,h,sa,ra,StrokeWidth,
+		                                     Stroke,canvasColor);
+		break;
+	case 13:
+		painter.PaintEllipseArc(x,y,w,h,sa,ra,StrokeWidth,Stroke,
+		                           StrokeStart,StrokeEnd,canvasColor);
+		break;
+	case 14:
+		painter.PaintRoundRect(x,y,w,h,w*0.2,h*0.2,Texture,canvasColor);
+		break;
+	case 15:
+		painter.PaintRoundRectOutline(x,y,w,h,w*0.2,h*0.2,StrokeWidth,Stroke,canvasColor);
+		break;
+	}
+
+	if (ShowHandles) {
+		r=emMin(ViewToPanelDeltaX(12.0),0.05);
+		for (i=0; i<XY.GetCount()/2; i++) {
+			c=emColor(0,255,0,128);
+			if (
+				(Type>=3 && Type<=5 && i%3!=0) ||
+				(Type>=6 && i>1)
+			) c=emColor(255,255,0,128);
+			m=XY.GetCount()/2;
+			if (Type>=3 && Type<=4) m-=m%3;
+			else if (Type==5) m-=(m+2)%3;
+			else if (Type>=11 && Type<=13) m=4;
+			else if (Type>=6) m=2;
+			if (i>=m) c=emColor(128,128,128,128);
+			if (i==DragIdx) c=c.GetBlended(emColor(255,255,255,128),75.0F);
+			x=XY[i*2];
+			y=XY[i*2+1];
+			painter.PaintEllipse(x-r,y-r,2*r,2*r,c);
+			painter.PaintEllipseOutline(x-r,y-r,2*r,2*r,r*0.15,emColor(0,0,0,128));
+		}
+	}
+
+	painter.PaintTextBoxed(
+		0.0,GetHeight()-0.03,1.0,0.03,
+		"The vertices can be dragged with the left mouse button!\n"
+		"(Hold shift for raster)\n",
+		0.03,0xFFFFFFFF,0,EM_ALIGN_CENTER,EM_ALIGN_CENTER
+	);
 }

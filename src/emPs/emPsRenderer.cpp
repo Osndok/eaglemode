@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2011,2014,2017-2019,2021 Oliver Hamann.
+// Copyright (C) 2006-2011,2014,2017-2019,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,6 @@
 //------------------------------------------------------------------------------
 
 #include <emPs/emPsRenderer.h>
-#include <emCore/emInstallInfo.h>
 
 
 emRef<emPsRenderer> emPsRenderer::Acquire(emRootContext & rootContext)
@@ -400,12 +399,6 @@ void emPsRenderer::TryStartProcess()
 	emArray<emString> args;
 
 #if defined(_WIN32)
-	args.Add(
-		emGetChildPath(
-			emGetInstallPath(EM_IDT_LIB,"emPs","emPs"),
-			"emPsWinAdapterProc"
-		)
-	);
 	const char * p=getenv("EM_DIR");
 	if (!p) throw emException("emPsRenderer: EM_DIR not set.");
 	emString gsPath=emString(p)+"\\thirdparty\\bin\\gs.exe";
@@ -437,7 +430,8 @@ void emPsRenderer::TryStartProcess()
 		emProcess::SF_PIPE_STDIN|
 		emProcess::SF_PIPE_STDOUT|
 		emProcess::SF_SHARE_STDERR|
-		emProcess::SF_NO_WINDOW
+		emProcess::SF_NO_WINDOW|
+		emProcess::SF_USE_CTRL_BREAK
 	);
 }
 

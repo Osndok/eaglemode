@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>.h
 //
-// Copyright (C) 2005-2008,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -278,10 +278,11 @@
 
 </SPAN><SPAN CLASS=t>private</SPAN>: <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>;
 
-        <SPAN CLASS=t>void </SPAN>ClientsChanged();
         <SPAN CLASS=t>bool </SPAN>StepLoading();
         <SPAN CLASS=t>bool </SPAN>StepSaving();
         <SPAN CLASS=t>bool </SPAN>UpdateFileProgress();
+        <SPAN CLASS=t>bool </SPAN>UpdateMemoryLimit();
+        <SPAN CLASS=t>void </SPAN>UpdatePriority();
         <SPAN CLASS=t>void </SPAN>StartPSAgent();
         <SPAN CLASS=t>void </SPAN>EndPSAgent();
 
@@ -298,6 +299,8 @@
 
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> FileStateSignal;
         FileState State;
+        <SPAN CLASS=t>unsigned </SPAN>MemoryLimitInvalid : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>PriorityInvalid : <SPAN CLASS=u>1</SPAN>;
         emUInt64 MemoryNeed;
         <SPAN CLASS=t>double </SPAN>FileProgress;
         emUInt64 FileProgressClock;
@@ -351,8 +354,8 @@
 
 </SPAN><SPAN CLASS=t>public</SPAN>:
 
-        <SPAN CLASS=c>// Class for a client on an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>. Multiple clients can connect to
-        // the same file model. And:
+        <SPAN CLASS=c>// Abstract base class for a client on an <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>. Multiple clients
+        // can connect to the same file model. And:
         //
         // - Each client tells about the maximum memory which may be allocated
         //   by the file model and one typical client (e.g. <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>). If no
@@ -363,19 +366,13 @@
         //   the order of loading file models. The maximum priority of all
         //   clients is taken.
         //
-        // On each modification of a memory limit or a priority, the logics of
-        // <A CLASS=m HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> reacts automatically.
-        //
         // Hint: Even have a look at the class <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>. It's a base class
-        // for panels which want to be file mode clients.
+        // for panels which want to be file model clients.
 
-        </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * model=<SPAN CLASS=u>NULL</SPAN>, emUInt64 memoryLimit=<SPAN CLASS=u>0</SPAN>,
-                          <SPAN CLASS=t>double </SPAN>priority=<SPAN CLASS=u>0.0</SPAN>);
+        </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * model=<SPAN CLASS=u>NULL</SPAN>);
                 <SPAN CLASS=c>// Constructor.
                 // Arguments:
-                //   model        - See SetModel below.
-                //   memoryLimit  - See SetMemoryLimit below.
-                //   priority     - See SetPriority below.
+                //   model - See SetModel below.
 
         </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>();
                 <SPAN CLASS=c>// Destructor.
@@ -385,23 +382,32 @@
                 <SPAN CLASS=c>// The file model this client is connected to. NULL means to
                 // have disconnected state.
 
-        </SPAN><SPAN CLASS=t>void </SPAN>SetMemoryLimit(emUInt64 bytes);
-        emUInt64 GetMemoryLimit() <SPAN CLASS=t>const</SPAN>;
+        </SPAN><SPAN CLASS=t>virtual </SPAN>emUInt64 GetMemoryLimit() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Maximum memory need accepted for loading the file, from sight
                 // of this client. Usually, this should be set from
                 // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetMemoryLimit().
 
-        </SPAN><SPAN CLASS=t>double </SPAN>GetPriority() <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>SetPriority(<SPAN CLASS=t>double </SPAN>priority);
+        </SPAN><SPAN CLASS=t>virtual double </SPAN>GetPriority() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
                 <SPAN CLASS=c>// Priority in loading the file, from sight of this client.
                 // Usually, this should be set from
                 // <A CLASS=m HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::GetUpdatePriority().
 
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsReloadAnnoying() <SPAN CLASS=t>const </SPAN>= <SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=c>// Whether a reload of the file model could currently be
+                // annoying for the user.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidateMemoryLimit();
+                <SPAN CLASS=c>// Indicate a change in the results of GetMemoryLimit().
+
+        </SPAN><SPAN CLASS=t>void </SPAN>InvalidatePriority();
+                <SPAN CLASS=c>// Indicate a change in the results of GetPriority().
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsTheOnlyClient() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether the file model has no other client.
+
 </SPAN><SPAN CLASS=t>private</SPAN>: <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>;
 
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A>&gt; Model;
-        emUInt64 MemoryLimit;
-        <SPAN CLASS=t>double </SPAN>Priority;
         <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * * ThisPtrInList;
         <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> * NextInList;
 <SPAN CLASS=b>}</SPAN>;
@@ -411,18 +417,25 @@
         </SPAN><SPAN CLASS=k>return </SPAN>Model;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline </SPAN>emUInt64 <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetMemoryLimit() <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>MemoryLimit;
-<SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A>::GetPriority() <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Priority;
-<SPAN CLASS=b>}
+<A NAME="emAbsoluteFileModelClient"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//========================= <A CLASS=m HREF="emCore_emFileModel_h.html#emAbsoluteFileModelClient">emAbsoluteFileModelClient</A> ==========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emAbsoluteFileModelClient">emAbsoluteFileModelClient</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a file model client that demands loaded state in any case.
+
+        </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emAbsoluteFileModelClient">emAbsoluteFileModelClient</A>(<A CLASS=l HREF="emCore_emFileModel_h.html#emFileModel">emFileModel</A> * model=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>emUInt64 GetMemoryLimit() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual double </SPAN>GetPriority() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>IsReloadAnnoying() <SPAN CLASS=t>const</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
 
 
-</SPAN><SPAN CLASS=p>#endif
+<SPAN CLASS=p>#endif
 </SPAN></SPAN></TT></PRE>
 </BODY>
 </HTML>

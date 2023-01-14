@@ -2023,7 +2023,10 @@ void emRecReader::TryStartReading(emRec & root)
 			mlen=magic.GetLen();
 			SetMinNextBufSize(mlen);
 			rlen=TryRead(NextBuf,mlen);
-			if (rlen!=mlen || memcmp(NextBuf,magic.Get(),mlen)!=0) {
+			if (
+				rlen>0 &&
+				(rlen!=mlen || memcmp(NextBuf,magic.Get(),mlen)!=0)
+			) {
 				throw emException(
 					"File format of \"%s\" is not \"rec:%s\".",
 					GetSourceName(),

@@ -546,7 +546,7 @@ int emDecodeChar(int * pUcs4, const char * str, int strLen, emMBState * state)
 	if (sizeof(wchar_t)<4) {
 		// Assuming UTF-16
 		c&=0xFFFF;
-	 	if (c>=0xD800 && c<=0xDBFF && r<strLen) {
+		if (c>=0xD800 && c<=0xDBFF && r<strLen) {
 			r2=(int)mbrtowc(&w,str+r,strLen-r,state?&state->State:NULL);
 			if (r2>0) {
 				c2=(emUInt16)w;

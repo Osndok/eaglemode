@@ -106,7 +106,7 @@
                 <SPAN CLASS=t>double </SPAN>h, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
         ) <SPAN CLASS=t>const</SPAN>;
 
-        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>bool </SPAN>* pInBox=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>bool </SPAN>IsShownChecked() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>bool </SPAN>IsShownBoxed() <SPAN CLASS=t>const</SPAN>;
@@ -117,14 +117,6 @@
                 <SPAN CLASS=c>// Yes, this class has the ability to paint all our button
                 // types.
 
-        // - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
-        // The following virtual non-const methods have been replaced by const
-        // methods (see above). The old versions still exist here with the
-        // "final" keyword added, so that old overridings will fail to compile.
-        // If you run into this, please adapt your overridings by adding "const".
-        </SPAN><SPAN CLASS=t>virtual bool </SPAN>CheckMouse(<SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my) final;
-        <SPAN CLASS=c>// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>enum </SPAN>DoButtonFunc <SPAN CLASS=b>{
@@ -132,14 +124,14 @@
                 BUTTON_FUNC_CHECK_MOUSE
         <SPAN CLASS=b>}</SPAN>;
         <SPAN CLASS=t>void </SPAN>DoButton(
-                DoButtonFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter,
-                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
-                <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>bool </SPAN>* pHit
+                DoButtonFunc func, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * painter, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor,
+                <SPAN CLASS=t>double </SPAN>mx, <SPAN CLASS=t>double </SPAN>my, <SPAN CLASS=t>bool </SPAN>* pHit, <SPAN CLASS=t>bool </SPAN>* pInBox
         ) <SPAN CLASS=t>const</SPAN>;
 
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ClickSignal;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> PressStateSignal;
         <SPAN CLASS=t>unsigned </SPAN>Pressed : <SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=t>unsigned </SPAN>BoxPressed : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>NoEOI : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>ShownChecked : <SPAN CLASS=u>1</SPAN>;
         <SPAN CLASS=t>unsigned </SPAN>ShownBoxed : <SPAN CLASS=u>1</SPAN>;

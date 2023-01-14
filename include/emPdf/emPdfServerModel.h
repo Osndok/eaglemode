@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.h
 //
-// Copyright (C) 2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -87,7 +87,7 @@ public:
 
 	void ClosePdf(PdfHandle pdfHandle);
 
-	void Poll(unsigned maxMilliSecs);
+	void Poll(unsigned maxMillisecs);
 
 protected:
 

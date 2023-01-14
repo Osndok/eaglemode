@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.h
 //
-// Copyright (C) 2010,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2010,2014,2017-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,7 +77,7 @@ public:
 
 	void CloseSvg(SvgHandle svgHandle);
 
-	void Poll(unsigned maxMilliSecs);
+	void Poll(unsigned maxMillisecs);
 
 protected:
 

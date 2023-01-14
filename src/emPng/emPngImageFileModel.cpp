@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,41 +18,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <png.h>
-#include <setjmp.h>
 #include <emPng/emPngImageFileModel.h>
-
-
-extern "C" {
-	struct emPngLoadingState {
-		int ImagePrepared;
-		png_structp png_ptr;
-		png_infop info_ptr;
-		png_infop end_info_ptr;
-		png_uint_32 width, height, bytes_per_pixel;
-		int bit_depth, color_type, interlace_type;
-		int number_of_passes;
-		jmp_buf jmpbuffer;
-		char errorText[256];
-		FILE * file;
-		int y,pass;
-	};
-
-	static void emPng_error_fn(png_structp png_ptr, png_const_charp error_msg)
-	{
-		struct emPngLoadingState * L;
-
-		L=(struct emPngLoadingState *)png_get_error_ptr(png_ptr);
-		if (!error_msg) error_msg="PNG error";
-		snprintf(L->errorText,sizeof(L->errorText),"%s",error_msg);
-		L->errorText[sizeof(L->errorText)-1]=0;
-		longjmp(L->jmpbuffer,1);
-	}
-
-	static void emPng_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
-	{
-	}
-}
+#include <emPng/emPngDecode.h>
 
 
 emRef<emPngImageFileModel> emPngImageFileModel::Acquire(
@@ -81,161 +48,72 @@ emPngImageFileModel::~emPngImageFileModel()
 
 void emPngImageFileModel::TryStartLoading()
 {
-	emString colTypeStr;
-	int rowbytes,originalPixelSize;
+	char infoBuf[1024];
+	char errorBuf[256];
 
-	L=new emPngLoadingState;
-	memset(L,0,sizeof(emPngLoadingState));
+	L=new LoadingState;
+	memset(L,0,sizeof(LoadingState));
 
 	L->file=fopen(GetFilePath(),"rb");
 	if (!L->file) throw emException("%s",emGetErrorText(errno).Get());
 
-	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
-
-	L->png_ptr=png_create_read_struct(
-		PNG_LIBPNG_VER_STRING,
-		(png_voidp)L,
-		emPng_error_fn,
-		emPng_warning_fn
+	infoBuf[0]=0;
+	errorBuf[0]=0;
+	L->decodeInstance=emPngStartDecoding(
+		L->file,&L->width,&L->height,&L->channelCount,&L->passCount,
+		infoBuf,sizeof(infoBuf),errorBuf,sizeof(errorBuf)
 	);
-	if (!L->png_ptr) throw emException("PNG lib failed.");
+	if (!L->decodeInstance) throw emException("%s",errorBuf);
 
-	L->info_ptr=png_create_info_struct(L->png_ptr);
-	if (!L->info_ptr) throw emException("PNG lib failed.");
-
-	L->end_info_ptr=png_create_info_struct(L->png_ptr);
-	if (!L->end_info_ptr) throw emException("PNG lib failed.");
-
-	png_init_io(L->png_ptr, L->file);
-
-	png_read_info(L->png_ptr, L->info_ptr);
-
-	png_get_IHDR(
-		L->png_ptr,
-		L->info_ptr,
-		&L->width,
-		&L->height,
-		&L->bit_depth,
-		&L->color_type,
-		&L->interlace_type,
-		NULL,
-		NULL
-	);
-
-	originalPixelSize=L->bit_depth;
-	if ((L->color_type&PNG_COLOR_MASK_PALETTE)==0) {
-		originalPixelSize*=png_get_channels(L->png_ptr,L->info_ptr);
-	}
-
-	if ((L->color_type&PNG_COLOR_MASK_COLOR)!=0) {
-		colTypeStr="color";
-	}
-	else {
-		colTypeStr="grayscale";
-	}
-	if ((L->color_type&PNG_COLOR_MASK_ALPHA)!=0) {
-		colTypeStr+="-alpha";
-	}
-	if ((L->color_type&PNG_COLOR_MASK_PALETTE)!=0) {
-		colTypeStr+="-palette";
-	}
-
-	png_set_expand(L->png_ptr);
-	png_set_strip_16(L->png_ptr);
-	png_set_packing(L->png_ptr);
-	L->number_of_passes=png_set_interlace_handling(L->png_ptr);
-	png_read_update_info(L->png_ptr, L->info_ptr);
-	rowbytes=png_get_rowbytes(L->png_ptr,L->info_ptr);
-	L->bytes_per_pixel=rowbytes/L->width;
-	if (
-		rowbytes%L->width!=0 ||
-		L->bytes_per_pixel<1 || L->bytes_per_pixel>4 ||
-		L->width<1 || L->width>0x7fffff ||
-		L->height<1 || L->height>0x7fffff
-	) {
-		throw emException("Unsupported PNG format.");
-	}
-
-	FileFormatInfo=emString::Format(
-		"PNG %d-bit %s (%d channels extracted)",
-		originalPixelSize,
-		colTypeStr.Get(),
-		(int)L->bytes_per_pixel
-	);
+	FileFormatInfo=infoBuf;
 	Signal(ChangeSignal);
 }
 
 
 bool emPngImageFileModel::TryContinueLoading()
 {
-	png_textp t;
-	int e,i,n;
+	char commentBuf[1024];
+	char errorBuf[256];
+	int r;
 
-	if (!L->ImagePrepared) {
+	if (!L->imagePrepared) {
 		Image.Setup(
 			L->width,
 			L->height,
-			L->bytes_per_pixel
+			L->channelCount
 		);
 		Signal(ChangeSignal);
-		L->ImagePrepared=true;
+		L->imagePrepared=true;
 		return false;
 	}
 
-	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
+	commentBuf[0]=0;
+	errorBuf[0]=0;
+	r=emPngContinueDecoding(
+		L->decodeInstance,
+		Image.GetWritableMap()+L->y*(size_t)Image.GetWidth()*Image.GetChannelCount(),
+		commentBuf,sizeof(commentBuf),errorBuf,sizeof(errorBuf)
+	);
+	if (r<0) throw emException("%s",errorBuf);
 
-	if (L->y<(int)L->height && L->pass<L->number_of_passes) {
-		png_read_row(
-			L->png_ptr,
-			Image.GetWritableMap()+L->y*(size_t)Image.GetWidth()*Image.GetChannelCount(),
-			NULL
-		);
-		L->y++;
-		if (L->y>=(int)L->height) {
-			L->y=0;
-			L->pass++;
-		}
-		Signal(ChangeSignal);
-		return false;
+	L->y++;
+	if (L->y>=L->height) {
+		L->pass++;
+		L->y=0;
 	}
 
-	png_read_end(L->png_ptr,L->end_info_ptr);
+	Comment+=commentBuf;
 
-	for (e=0; e<2; e++) {
-		n=png_get_text(
-			L->png_ptr,
-			e ? L->end_info_ptr : L->info_ptr,
-			&t,
-			NULL
-		);
-		for (i=0; i<n; i++) {
-			if (
-				t[i].text && *t[i].text && t[i].key && (
-					strcasecmp(t[i].key,"Comment")==0 ||
-					strcasecmp(t[i].key,"Description")==0
-				)
-			) {
-				if (!Comment.IsEmpty()) Comment+='\n';
-				Comment+=t[i].text;
-			}
-		}
-	}
 	Signal(ChangeSignal);
 
-	return true;
+	return r!=0;
 }
 
 
 void emPngImageFileModel::QuitLoading()
 {
 	if (L) {
-		if (L->png_ptr) {
-			png_destroy_read_struct(
-				&L->png_ptr,
-				L->info_ptr ? &L->info_ptr : NULL,
-				L->end_info_ptr ? &L->end_info_ptr : NULL
-			);
-		}
+		if (L->decodeInstance) emPngQuitDecoding(L->decodeInstance);
 		if (L->file) fclose(L->file);
 		delete L;
 		L=NULL;
@@ -265,7 +143,7 @@ emUInt64 emPngImageFileModel::CalcMemoryNeed()
 	if (L) {
 		return ((emUInt64)L->width)*
 		       L->height*
-		       L->bytes_per_pixel;
+		       L->channelCount;
 	}
 	else {
 		return ((emUInt64)Image.GetWidth())*
@@ -277,8 +155,8 @@ emUInt64 emPngImageFileModel::CalcMemoryNeed()
 
 double emPngImageFileModel::CalcFileProgress()
 {
-	if (L && L->height>0) {
-		return 100.0*L->y/L->height;
+	if (L && L->height>0 && L->passCount>0) {
+		return 100.0*(L->pass*L->height+L->y)/(L->passCount*L->height);
 	}
 	else {
 		return 0.0;

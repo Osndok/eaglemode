@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.cpp
 //
-// Copyright (C) 2004-2008,2010,2014-2017,2020 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014-2017,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,9 +79,7 @@ bool emDirPanel::Cycle()
 	) {
 		InvalidatePainting();
 		UpdateChildren();
-		if (IsSignaled(Config->GetChangeSignal())) {
-			InvalidateChildrenLayout();
-		}
+		InvalidateChildrenLayout();
 	}
 	if (KeyWalkState && IsSignaled(KeyWalkState->Timer.GetSignal())) {
 		ClearKeyWalkState();
@@ -148,15 +146,27 @@ void emDirPanel::Input(
 
 bool emDirPanel::IsOpaque() const
 {
-	if (GetVirFileState()!=VFS_LOADED) return emFilePanel::IsOpaque();
-	else return Config->GetTheme().DirContentColor.Get().IsOpaque();
+	switch (GetVirFileState()) {
+	case VFS_LOADED:
+	case VFS_NO_FILE_MODEL:
+		return Config->GetTheme().DirContentColor.Get().IsOpaque();
+	default:
+		return emFilePanel::IsOpaque();
+	}
 }
 
 
 void emDirPanel::Paint(const emPainter & painter, emColor canvasColor) const
 {
-	if (GetVirFileState()!=VFS_LOADED) emFilePanel::Paint(painter,canvasColor);
-	else painter.Clear(Config->GetTheme().DirContentColor.Get());
+	switch (GetVirFileState()) {
+	case VFS_LOADED:
+	case VFS_NO_FILE_MODEL:
+		painter.Clear(Config->GetTheme().DirContentColor.Get());
+		break;
+	default:
+		emFilePanel::Paint(painter,canvasColor);
+		break;
+	}
 }
 
 
@@ -165,56 +175,72 @@ void emDirPanel::LayoutChildren()
 	const emFileManTheme * theme;
 	int cnt,col,cols,row,rows,n;
 	double h,t,cx,cy,cw,ch,pl,pt,pr,pb,f,gap;
+	emColor canvasColor;
 	emPanel * p;
 
 	for (cnt=0, p=GetFirstChild(); p; cnt++, p=p->GetNext());
-	if (cnt) {
-		theme = &Config->GetTheme();
-		t=theme->Height;
-		h=GetHeight();
-		if (IsContentComplete()) {
-			for (rows=1; ;rows++) {
-				cols=(int)(rows*t/(h*(1.0-0.05/rows)));
-				if (cols<=0) cols=1;
-				if (rows*cols>=cnt) break;
-			}
-			cols=(cnt+rows-1)/rows;
-			pl=theme->DirPaddingL;
-			pt=theme->DirPaddingT;
-			pr=theme->DirPaddingR;
-			pb=theme->DirPaddingB;
-			cw=1.0/(pl+cols+pr);
-			ch=h/(pt/t+rows+pb/t);
-			if (ch>cw*t) ch=cw*t; else cw=ch/t;
-			cx=cw*pl;
-			cy=cw*pt;
-			f=1.0-cw*(pl+pr);
-			n=(int)(f/cw+0.001);
-			gap=emMin(((pt+pb)/t-(pl+pr))*cw,f-n*cw);
-			if (gap<0.0) gap=0.0;
-			gap/=n+1;
-			cx+=gap;
-			for (col=0, row=0, p=GetFirstChild(); p; p=p->GetNext()) {
-				p->Layout(cx+(cw+gap)*col,cy+ch*row,cw,ch,theme->DirContentColor);
-				row++;
-				if (row>=rows) { col++; row=0; }
-			}
+	if (!cnt) return;
+
+	theme = &Config->GetTheme();
+
+	switch (GetVirFileState()) {
+	case VFS_LOADED:
+	case VFS_NO_FILE_MODEL:
+		// VFS_NO_FILE_MODEL required here to avoid endless recursion:
+		// not viewed => forget file model => canvas color 0 => viewed
+		// because child panel not opaque => load file model => canvas
+		// color not 0 => not viewed...
+		canvasColor=theme->DirContentColor;
+		break;
+	default:
+		canvasColor=0;
+		break;
+	}
+
+	t=theme->Height;
+	h=GetHeight();
+	if (IsContentComplete()) {
+		for (rows=1; ;rows++) {
+			cols=(int)(rows*t/(h*(1.0-0.05/rows)));
+			if (cols<=0) cols=1;
+			if (rows*cols>=cnt) break;
 		}
-		else {
-			for (p=GetFirstChild(); p; p=p->GetNext()) {
-				cw=p->GetLayoutWidth();
-				if (cw>1.0) cw=1.0;
-				if (cw<0.001) cw=0.001;
-				ch=cw*t;
-				if (ch>h) { ch=h; cw=ch/t; }
-				cx=p->GetLayoutX();
-				if (cx<0.0) cx=0.0;
-				if (cx>1.0-cw) cx=1.0-cw;
-				cy=p->GetLayoutY();
-				if (cy<0.0) cy=0.0;
-				if (cy>h-ch) cy=h-ch;
-				p->Layout(cx,cy,cw,ch,theme->DirContentColor);
-			}
+		cols=(cnt+rows-1)/rows;
+		pl=theme->DirPaddingL;
+		pt=theme->DirPaddingT;
+		pr=theme->DirPaddingR;
+		pb=theme->DirPaddingB;
+		cw=1.0/(pl+cols+pr);
+		ch=h/(pt/t+rows+pb/t);
+		if (ch>cw*t) ch=cw*t; else cw=ch/t;
+		cx=cw*pl;
+		cy=cw*pt;
+		f=1.0-cw*(pl+pr);
+		n=(int)(f/cw+0.001);
+		gap=emMin(((pt+pb)/t-(pl+pr))*cw,f-n*cw);
+		if (gap<0.0) gap=0.0;
+		gap/=n+1;
+		cx+=gap;
+		for (col=0, row=0, p=GetFirstChild(); p; p=p->GetNext()) {
+			p->Layout(cx+(cw+gap)*col,cy+ch*row,cw,ch,canvasColor);
+			row++;
+			if (row>=rows) { col++; row=0; }
+		}
+	}
+	else {
+		for (p=GetFirstChild(); p; p=p->GetNext()) {
+			cw=p->GetLayoutWidth();
+			if (cw>1.0) cw=1.0;
+			if (cw<0.001) cw=0.001;
+			ch=cw*t;
+			if (ch>h) { ch=h; cw=ch/t; }
+			cx=p->GetLayoutX();
+			if (cx<0.0) cx=0.0;
+			if (cx>1.0-cw) cx=1.0-cw;
+			cy=p->GetLayoutY();
+			if (cy<0.0) cy=0.0;
+			if (cy>h-ch) cy=h-ch;
+			p->Layout(cx,cy,cw,ch,canvasColor);
 		}
 	}
 }
@@ -230,39 +256,6 @@ emPanel * emDirPanel::CreateControlPanel(
 	else {
 		return NULL;
 	}
-}
-
-
-void emDirPanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
-{
-	emPanel * p;
-	emFilePanel * fp;
-
-	if (updateFileModel) {
-		// This is a workaround for a problem:
-		// emDirModel::IsOutOfDate always returns true, because it
-		// cannot check modification times like with files (at time of
-		// writing this comment). Therefore, emDirModel always really
-		// reloads on an update. On the other hand, when creating a file
-		// panel (or a dir panel), we always want to update the model.
-		// Now to the problem: If there are two emDirPanels on a path of
-		// panels which share the same model (could happen through an
-		// emFileLink), we get infinite reloadings: Child panel is
-		// created => model reloading => parent panel destructs child
-		// ... model finishes with loading => parent panel constructs
-		// child panel again => model reloading => ...
-		// The workaround is not to update the model if there is an
-		// ancestor panel sharing the same model.
-		for (p=GetParent(); p; p=p->GetParent()) {
-			fp=dynamic_cast<emFilePanel*>(p);
-			if (fp && fp->GetFileModel()==fileModel) {
-				updateFileModel=false;
-				break;
-			}
-		}
-	}
-
-	emFilePanel::SetFileModel(fileModel,updateFileModel);
 }
 
 
@@ -317,12 +310,21 @@ void emDirPanel::UpdateChildren()
 				p->Activate(false);
 			}
 		}
-		InvalidateChildrenLayout();
 	}
 	else {
 		for (p=GetFirstChild(); p; ) {
 			np=p->GetNext();
-			if (!p->IsInActivePath() && (!p->IsInViewedPath() || IsViewed())) delete p;
+			if (
+				(
+					!p->IsInActivePath() &&
+					!p->IsInViewedPath()
+				) ||
+				(
+					IsViewed() &&
+					GetVirFileState()!=VFS_WAITING &&
+					GetVirFileState()!=VFS_LOADING
+				)
+			) delete p;
 			p=np;
 		}
 		ContentComplete=false;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emListBox.h
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@ public:
 
 	enum SelectionType {
 		// Type of selection a user can make in an emListBox.
-		READY_ONLY_SELECTION,
+		READ_ONLY_SELECTION,
 		SINGLE_SELECTION,
 		MULTI_SELECTION,
 		TOGGLE_SELECTION
@@ -80,23 +80,59 @@ public:
 		// Get number of Items.
 
 	void AddItem(
-		const emString & text,
+		const emString & name, const emString & text,
 		const emAnything & data = emAnything()
 	);
 		// Add an item to the end of the list.
 		// Arguments:
+		//   name - The name for the item. It is any user-defined
+		//          identification. There must not be any other item
+		//          with the same name. This is used as the name
+		//          for the item panel.
 		//   text - The text to be shown in the item.
 		//   data - Any custom data to be stored in the item.
 
 	void InsertItem(
-		int index, const emString & text,
+		int index, const emString & name, const emString & text,
 		const emAnything & data = emAnything()
 	);
 		// Add an item at any position in the list.
 		// Arguments:
 		//   index - Index of the new item.
+		//   name  - The name for the item. It is any user-defined
+		//           identification. There must not be any other item
+		//           with the same name. This is used as the name
+		//           for the item panel.
 		//   text  - The text to be shown in the item.
 		//   data  - Any custom data to be stored in the item.
+
+	void MoveItem(int fromIndex, int toIndex);
+		// Move an item to another position by changing its index.
+		// Arguments:
+		//   fromIndex - Original index of the item.
+		//   toIndex   - Desired new index of the item.
+
+	bool SortItems(
+		int(*compare)(
+			const emString & item1name, const emString & item1text,
+			const emAnything & item1data,
+			const emString & item2name, const emString & item2text,
+			const emAnything & item2data,
+			void * context
+		),
+		void * context=NULL
+	);
+		// Sort all items.
+		// Arguments:
+		//   compare - A function for comparing two items. The
+		//             result is:
+		//               < 0   -  item1 is "less" than item2
+		//               > 0   -  item1 is "greater" than item2
+		//               == 0  -  item1 is "equal" to item2 (no
+		//                        change in the order)
+		//   context - Any pointer to be forwarded to the compare
+		//             function.
+		// Returns: Whether there was a change.
 
 	void RemoveItem(int index);
 		// Remove an item from the list.
@@ -106,7 +142,20 @@ public:
 	void ClearItems();
 		// Remove all items.
 
-	emString GetItemText(int index) const;
+	const emString & GetItemName(int index) const;
+		// Get the name of an item.
+		// Arguments:
+		//   index - Index of the item.
+		// Returns: The name of the item, or an empty string if the
+		// index is out of range.
+
+	int GetItemIndex(const char * name) const;
+		// Get the index of an item by name.
+		// Arguments:
+		//   name - Name of the item.
+		// Returns: The index of the item, or -1 if not found.
+
+	const emString & GetItemText(int index) const;
 		// Get the text of an item.
 		// Arguments:
 		//   index - Index of the item.
@@ -214,13 +263,16 @@ public:
 			// Get the list box.
 
 		int GetItemIndex() const;
-			// Get the item index.
+			// Get the index of the item.
 
-		emString GetItemText() const;
-			// The the text of the item.
+		const emString & GetItemName() const;
+			// Get the name of the item.
 
-		emAnything GetItemData() const;
-			// The the data of the item.
+		const emString & GetItemText() const;
+			// Get the text of the item.
+
+		const emAnything & GetItemData() const;
+			// Get the data of the item.
 
 		bool IsItemSelected() const;
 			// Whether the item is selected.
@@ -247,7 +299,7 @@ public:
 	private:
 		friend class emListBox;
 		emListBox & ListBox;
-		int ItemIndex;
+		void * Item;
 	};
 
 	class DefaultItemPanel : public emPanel, public ItemPanelInterface {
@@ -279,6 +331,14 @@ public:
 		virtual void ItemSelectionChanged();
 	};
 
+	emPanel * GetItemPanel(int index) const;
+		// Get the emPanel for an item. Returns NULL if index out of
+		// range or if panel tree not expanded.
+
+	ItemPanelInterface * GetItemPanelInterface(int index) const;
+		// Get the ItemPanelInterface for an item. Returns NULL if index
+		// out of range or if panel tree not expanded.
+
 protected:
 
 	virtual void CreateItemPanel(const emString & name, int itemIndex);
@@ -288,37 +348,41 @@ protected:
 		// class may create a panel of an other class. It just has to be
 		// a derivative of emPanel and mListBox::ItemPanelInterface.
 
-	virtual emString GetItemPanelName(int index) const;
-		// Get the name for an item panel. The default implementation
-		// simply converts the index to a decimal string.
-
-	virtual emPanel * GetItemPanel(int index) const;
-		// Get an item panel. The default implementation calls
-		// GetChild(..) with the name of the item panel.
-
-	virtual ItemPanelInterface * GetItemPanelInterface(int index) const;
-		// Get the ItemPanelInterface for an item panel. The default
-		// implementation calls GetItemPanel and does a dynamic cast.
-
 	virtual void Notice(NoticeFlags flags);
 
 	virtual void Input(emInputEvent & event, const emInputState & state,
 	                   double mx, double my);
 
 	virtual void AutoExpand();
+	virtual void AutoShrink();
 
-	// - - - - - - - - - - Depreciated methods - - - - - - - - - - - - - - -
-	// The following virtual non-const methods have been replaced by const
-	// methods (see above). The old versions still exist here with the
-	// "final" keyword added, so that old overridings will fail to compile.
-	// If you run into this, please adapt your overridings by adding "const".
-	virtual emPanel * GetItemPanel(int index) final;
-	virtual ItemPanelInterface * GetItemPanelInterface(int index) final;
-	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	virtual bool HasHowTo() const;
+	virtual emString GetHowTo() const;
 
 private:
 
 	friend class ItemPanelInterface;
+
+	struct Item {
+		emAvlNode AvlNode;
+		int Index;
+		emString Name;
+		emString Text;
+		emAnything Data;
+		ItemPanelInterface * Interface;
+		bool Selected;
+	};
+
+	struct CompareContext {
+		int(*origCompare)(
+			const emString & item1name, const emString & item1text,
+			const emAnything & item1data,
+			const emString & item2name, const emString & item2text,
+			const emAnything & item2data,
+			void * context
+		);
+		void * origContext;
+	};
 
 	void ProcessItemInput(
 		int itemIndex, emPanel * panel, emInputEvent & event,
@@ -329,21 +393,25 @@ private:
 
 	void KeyWalk(emInputEvent & event, const emInputState & state);
 
-	struct Item {
-		emString Text;
-		emAnything Data;
-		bool Selected;
-	};
+	static int CompareItems(Item * const * item1, Item * const * item2,
+	                        void * context);
 
 	SelectionType SelType;
-	emArray<Item> Items;
+	emArray<Item*> Items;
+	emAvlTree AvlTree;
 	emArray<int> SelectedItemIndices;
-	int TriggeredItemIndex;
-	int PrevInputItemIndex;
+	Item * TriggeredItem;
+	Item * PrevInputItem;
 	emSignal SelectionSignal;
 	emSignal ItemTriggerSignal;
 	emString KeyWalkChars;
 	emUInt64 KeyWalkClock;
+
+	static const char * const HowToListBox;
+	static const char * const HowToReadOnlySelection;
+	static const char * const HowToSingleSelection;
+	static const char * const HowToMultiSelection;
+	static const char * const HowToToggleSelection;
 };
 
 inline emListBox::SelectionType emListBox::GetSelectionType() const
@@ -378,7 +446,7 @@ inline const emSignal & emListBox::GetItemTriggerSignal() const
 
 inline int emListBox::GetTriggeredItemIndex() const
 {
-	return TriggeredItemIndex;
+	return TriggeredItem ? TriggeredItem->Index : -1;
 }
 
 inline emListBox & emListBox::ItemPanelInterface::GetListBox() const
@@ -388,22 +456,27 @@ inline emListBox & emListBox::ItemPanelInterface::GetListBox() const
 
 inline int emListBox::ItemPanelInterface::GetItemIndex() const
 {
-	return ItemIndex;
+	return ((const emListBox::Item*)Item)->Index;
 }
 
-inline emString emListBox::ItemPanelInterface::GetItemText() const
+inline const emString & emListBox::ItemPanelInterface::GetItemName() const
 {
-	return ListBox.GetItemText(ItemIndex);
+	return ((const emListBox::Item*)Item)->Name;
 }
 
-inline emAnything emListBox::ItemPanelInterface::GetItemData() const
+inline const emString & emListBox::ItemPanelInterface::GetItemText() const
 {
-	return ListBox.GetItemData(ItemIndex);
+	return ((const emListBox::Item*)Item)->Text;
+}
+
+inline const emAnything & emListBox::ItemPanelInterface::GetItemData() const
+{
+	return ((const emListBox::Item*)Item)->Data;
 }
 
 inline bool emListBox::ItemPanelInterface::IsItemSelected() const
 {
-	return ListBox.IsSelected(ItemIndex);
+	return ((const emListBox::Item*)Item)->Selected;
 }
 
 

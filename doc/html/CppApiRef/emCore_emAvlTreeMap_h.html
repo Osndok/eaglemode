@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>.h
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -296,7 +296,6 @@
         <SPAN CLASS=t>void </SPAN>MakeWritable(<SPAN CLASS=t>const </SPAN>Element * * preserve=<SPAN CLASS=u>NULL</SPAN>);
         <SPAN CLASS=t>void </SPAN>DeleteData();
         emAvlNode * CloneTree(emAvlNode * tree, <SPAN CLASS=t>const </SPAN>Element * * preserve);
-        <SPAN CLASS=t>static void </SPAN>DeleteTree(emAvlNode * tree);
 
         SharedData * Data;
         Iterator * Iterators;
@@ -985,7 +984,10 @@ const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTree
         // multiple times for the same final type (e.g. with Windows DLLs).
         </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
                 </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;AvlTree) <SPAN CLASS=b>{
-                        </SPAN>DeleteTree(Data-&gt;AvlTree);
+                        </SPAN>EM_AVL_CLEAR_VARS(Element)
+                        EM_AVL_CLEAR_BEGIN(Element,AvlNode,Data-&gt;AvlTree)
+                                <SPAN CLASS=k>delete </SPAN>element;
+                        EM_AVL_CLEAR_END
                 <SPAN CLASS=b>}
                 </SPAN><SPAN CLASS=k>delete </SPAN>Data;
         <SPAN CLASS=b>}
@@ -1016,15 +1018,6 @@ emAvlNode * <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeM
                 </SPAN>e2-&gt;AvlNode.Right=CloneTree(e1-&gt;AvlNode.Right,preserve);
         <SPAN CLASS=b>}
         </SPAN><SPAN CLASS=k>return </SPAN>&amp;e2-&gt;AvlNode;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::DeleteTree(emAvlNode * tree)
-<SPAN CLASS=b>{
-        </SPAN>Element * element=EM_AVL_ELEMENT(Element,AvlNode,tree);
-        <SPAN CLASS=k>if </SPAN>(element-&gt;AvlNode.Left ) DeleteTree(element-&gt;AvlNode.Left );
-        <SPAN CLASS=k>if </SPAN>(element-&gt;AvlNode.Right) DeleteTree(element-&gt;AvlNode.Right);
-        <SPAN CLASS=k>delete </SPAN>element;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;

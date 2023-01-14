@@ -47,8 +47,8 @@
 //==============================================================================
 
 </SPAN><SPAN CLASS=p>#define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 95
-#define EM_MICRO_VERSION 2
+#define EM_MINOR_VERSION 96
+#define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
         </SPAN><SPAN CLASS=c>// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -62,7 +62,7 @@
 </SPAN><SPAN CLASS=t>public</SPAN>:
         emCompatibilityCheckerClass(<SPAN CLASS=t>int </SPAN>maj, <SPAN CLASS=t>int </SPAN>min, <SPAN CLASS=t>int </SPAN>mic, <SPAN CLASS=t>const char </SPAN>* postfix);
 <SPAN CLASS=b>}</SPAN>;
-<SPAN CLASS=t>static </SPAN>emCompatibilityCheckerClass emCompatibilityChecker(
+<SPAN CLASS=t>static const </SPAN>emCompatibilityCheckerClass emCompatibilityChecker(
         EM_MAJOR_VERSION,EM_MINOR_VERSION,EM_MICRO_VERSION,EM_VERSION_POSTFIX
 );
 
@@ -223,7 +223,7 @@
         <SPAN CLASS=t>typedef unsigned </SPAN>__int32 emUInt32;
 <SPAN CLASS=p>#endif
 
-#if defined(__GNUC__) || defined(__SUNPRO_CC)
+#if (defined(__GNUC__) || defined(__SUNPRO_CC)) &amp;&amp; defined(__WORDSIZE)
 #       if __WORDSIZE == 64
                 </SPAN><SPAN CLASS=t>typedef signed   long </SPAN>emInt64;
                 <SPAN CLASS=t>typedef unsigned long </SPAN>emUInt64;

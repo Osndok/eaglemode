@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.cpp
 //
-// Copyright (C) 2006-2008,2014,2017,2019-2020 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2017,2019-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -80,6 +80,7 @@ emTmpConvModel::emTmpConvModel(
 	ConversionStage=0;
 	TmpSelected=false;
 	FileTime=0;
+	FileSize=0;
 	PSAgent=NULL;
 	ErrPipeBuf.SetTuningLevel(4);
 	ClientList=NULL;
@@ -101,18 +102,20 @@ emTmpConvModel::~emTmpConvModel()
 
 bool emTmpConvModel::Cycle()
 {
+	struct em_stat st;
+
 	if (IsSignaled(UpdateSignalModel->Sig)) {
 		switch (State) {
 		case CS_UP:
-			try {
-				if (FileTime!=emTryGetFileTime(InputFilePath)) {
-					TmpFile.Discard();
-					TmpSelected=false;
-					State=CS_DOWN;
-					Signal(ChangeSignal);
-				}
-			}
-			catch (const emException &) {
+			if (
+				em_stat(InputFilePath.Get(),&st)!=0 ||
+				FileTime!=st.st_mtime ||
+				FileSize!=(emUInt64)st.st_size
+			) {
+				TmpFile.Discard();
+				TmpSelected=false;
+				State=CS_DOWN;
+				Signal(ChangeSignal);
 			}
 			break;
 		case CS_ERROR:
@@ -187,12 +190,21 @@ void emTmpConvModel::TryStepConversion()
 {
 	emArray<emString> args,extraEnv;
 	emString workingDir;
+	struct em_stat st;
 	char buf[256];
 	int l,r;
 
 	switch (ConversionStage) {
 	case 0:
-		FileTime=emTryGetFileTime(InputFilePath);
+		if (em_stat(InputFilePath.Get(),&st)!=0) {
+			throw emException(
+				"Failed to get info about \"%s\": %s",
+				InputFilePath.Get(),
+				emGetErrorText(errno).Get()
+			);
+		}
+		FileTime=st.st_mtime;
+		FileSize=st.st_size;
 		ConversionStage=1;
 		if (IsTimeSliceAtEnd()) break;
 	case 1:

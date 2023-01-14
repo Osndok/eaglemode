@@ -50,8 +50,9 @@ void MyPanel::Paint(const emPainter & painter, emColor canvasColor) const
 
 	painter.PaintLine(
 		0.3,0.4,0.5,0.7,0.05,
-		emPainter::LC_ROUND,emPainter::LC_ROUND,
-		emColor(255,0,0,128),canvasColor
+		emRoundedStroke(emColor(255,0,0,128)),
+		emStrokeEnd::CAP,emStrokeEnd::CAP,
+		canvasColor
 	);
 
 	painter.PaintEllipse(0.5,0.4,0.3,0.3,0x33CC88FF,canvasColor);

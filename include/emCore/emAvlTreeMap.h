@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTreeMap.h
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -287,7 +287,6 @@ private:
 	void MakeWritable(const Element * * preserve=NULL);
 	void DeleteData();
 	emAvlNode * CloneTree(emAvlNode * tree, const Element * * preserve);
-	static void DeleteTree(emAvlNode * tree);
 
 	SharedData * Data;
 	Iterator * Iterators;
@@ -976,7 +975,10 @@ void emAvlTreeMap<KEY,VALUE>::DeleteData()
 	// multiple times for the same final type (e.g. with Windows DLLs).
 	if (!Data->IsStaticEmpty) {
 		if (Data->AvlTree) {
-			DeleteTree(Data->AvlTree);
+			EM_AVL_CLEAR_VARS(Element)
+			EM_AVL_CLEAR_BEGIN(Element,AvlNode,Data->AvlTree)
+				delete element;
+			EM_AVL_CLEAR_END
 		}
 		delete Data;
 	}
@@ -1007,15 +1009,6 @@ emAvlNode * emAvlTreeMap<KEY,VALUE>::CloneTree(
 		e2->AvlNode.Right=CloneTree(e1->AvlNode.Right,preserve);
 	}
 	return &e2->AvlNode;
-}
-
-template <class KEY, class VALUE>
-void emAvlTreeMap<KEY,VALUE>::DeleteTree(emAvlNode * tree)
-{
-	Element * element=EM_AVL_ELEMENT(Element,AvlNode,tree);
-	if (element->AvlNode.Left ) DeleteTree(element->AvlNode.Left );
-	if (element->AvlNode.Right) DeleteTree(element->AvlNode.Right);
-	delete element;
 }
 
 template <class KEY, class VALUE>

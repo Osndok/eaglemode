@@ -56,5 +56,22 @@ sub Build
 		"src/emWnds/emWndsWindowPort.cpp"
 	)==0 or return 0;
 
+	system(
+		'perl', "$options{'utils'}/MakeDirs.pl",
+		"lib/emWnds"
+	)==0 or return 0;
+
+	system(
+		@{$options{'unicc_call'}},
+		"--bin-dir"       , "lib/emWnds",
+		"--lib-dir"       , "lib",
+		"--obj-dir"       , "obj",
+		"--inc-search-dir", "include",
+		"--link"          , "user32",
+		"--type"          , "cexe",
+		"--name"          , "emWndsAdapterProc",
+		"src/emWnds/emWndsAdapterProc.c"
+	)==0 or return 0;
+
 	return 1;
 }

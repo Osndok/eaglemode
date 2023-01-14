@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.h
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,10 @@
 
 #ifndef emListBox_h
 #include <emCore/emListBox.h>
+#endif
+
+#ifndef emSigModel_h
+#include <emCore/emSigModel.h>
 #endif
 
 #ifndef emTextField_h
@@ -287,6 +291,8 @@ private:
 		bool IsReadable;
 		bool IsHidden;
 	};
+
+	emRef<emSigModel> FileModelsUpdateSignalModel;
 
 	bool MultiSelectionEnabled;
 	emString ParentDir;

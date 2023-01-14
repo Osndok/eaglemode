@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.h
 //
-// Copyright (C) 2004-2008,2010,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2018-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,13 +55,31 @@ private:
 	int Read16();
 	int Read32();
 
+	typedef void * (*PngStartDecodingFunc)(
+		FILE * file, int * width, int * height, int * channelCount,
+		int * passCount, char * infoBuf, size_t infoBufSize,
+		char * errorBuf, size_t errorBufSize
+	);
+	typedef int (*PngContinueDecodingFunc)(
+		void * instance, unsigned char * rowBuf, char * commentBuf,
+		size_t commentBufSize, char * errorBuf, size_t errorBufSize
+	);
+	typedef void (*PngQuitDecodingFunc)(void * instance);
+
 	struct LoadingState {
 		int Width,Height,Channels;
 		int BitsPerPixel;
 		long BitsOffset,ColsOffset;
-		int ColSize,ColsUsed,Compress,NextY;
+		int ColSize,ColsUsed,Compress,Y;
 		int CMax[3],CPos[3];
 		bool IsIcon;
+		bool IsPng;
+		emLibHandle PngLib;
+		PngStartDecodingFunc PngStartDecoding;
+		PngContinueDecodingFunc PngContinueDecoding;
+		PngQuitDecodingFunc PngQuitDecoding;
+		void * PngInst;
+		int PassCount,Pass;
 		bool ImagePrepared;
 		FILE * File;
 		unsigned char * Palette;

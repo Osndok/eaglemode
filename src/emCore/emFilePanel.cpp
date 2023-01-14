@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2016-2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2016-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,7 @@ emFilePanel::emFilePanel(
 )
 	: emPanel(parent,name)
 {
+	MemoryLimit=GetMemoryLimit();
 	CustomError=NULL;
 	SetFileModel(fileModel,updateFileModel);
 }
@@ -41,6 +42,8 @@ emFilePanel::~emFilePanel()
 void emFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 {
 	emFileModel * fm;
+	emFilePanel * fp;
+	emPanel * p;
 
 	fm=FileModelClient.GetModel();
 	if (fm != fileModel) {
@@ -50,7 +53,24 @@ void emFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 		Signal(VirFileStateSignal);
 		InvalidatePainting();
 	}
-	if (fileModel && updateFileModel) fileModel->Update();
+	if (fileModel && updateFileModel) {
+		// Workaround: If there are multiple file panels in a panel tree
+		// path sharing the same file model, an endless recursion of
+		// recreations and reloads could happen, or even a crash
+		// (depending on derivative implementation). To avoid that, we
+		// do not update from this file panel if it has an ancestor file
+		// panel that shares the same file model.
+		if (!FileModelClient.IsTheOnlyClient()) {
+			for (p=GetParent(); p; p=p->GetParent()) {
+				fp=dynamic_cast<emFilePanel*>(p);
+				if (fp && fp->GetFileModel()==fileModel) {
+					updateFileModel=false;
+					break;
+				}
+			}
+		}
+		if (updateFileModel) fileModel->Update();
+	}
 }
 
 
@@ -88,7 +108,7 @@ emFilePanel::VirtualFileState emFilePanel::GetVirFileState() const
 	if (CustomError) return VFS_CUSTOM_ERROR;
 	fm=FileModelClient.GetModel();
 	if (!fm) return VFS_NO_FILE_MODEL;
-	if (fm->GetMemoryNeed()>FileModelClient.GetMemoryLimit()) return VFS_TOO_COSTLY;
+	if (fm->GetMemoryNeed()>MemoryLimit) return VFS_TOO_COSTLY;
 	return (VirtualFileState)fm->GetFileState();
 }
 
@@ -99,6 +119,12 @@ bool emFilePanel::IsVFSGood() const
 
 	s=GetVirFileState();
 	return s==VFS_LOADED || s==VFS_UNSAVED;
+}
+
+
+bool emFilePanel::IsReloadAnnoying() const
+{
+	return IsInActivePath();
 }
 
 
@@ -145,13 +171,14 @@ void emFilePanel::Notice(NoticeFlags flags)
 	VirtualFileState vfs;
 
 	if (flags&NF_UPDATE_PRIORITY_CHANGED) {
-		FileModelClient.SetPriority(GetUpdatePriority());
+		FileModelClient.InvalidatePriority();
 	}
 	if (flags&NF_MEMORY_LIMIT_CHANGED) {
 		m=GetMemoryLimit();
-		if (m!=FileModelClient.GetMemoryLimit()) {
+		if (MemoryLimit!=m) {
 			vfs=GetVirFileState();
-			FileModelClient.SetMemoryLimit(m);
+			MemoryLimit=m;
+			FileModelClient.InvalidateMemoryLimit();
 			if (vfs!=GetVirFileState()) {
 				Signal(VirFileStateSignal);
 				InvalidatePainting();
@@ -387,4 +414,22 @@ bool emFilePanel::IsHopeForSeeking() const
 
 	s=GetVirFileState();
 	return s==VFS_WAITING || s==VFS_LOADING || s==VFS_SAVING;
+}
+
+
+emUInt64  emFilePanel::FileModelClientClass::GetMemoryLimit() const
+{
+	return GetFilePanel().MemoryLimit;
+}
+
+
+double  emFilePanel::FileModelClientClass::GetPriority() const
+{
+	return GetFilePanel().GetUpdatePriority();
+}
+
+
+bool  emFilePanel::FileModelClientClass::IsReloadAnnoying() const
+{
+	return GetFilePanel().IsReloadAnnoying();
 }

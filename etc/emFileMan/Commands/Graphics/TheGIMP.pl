@@ -3,7 +3,7 @@
 # Type = Command
 # Order = 3.0
 # Interpreter = perl
-# DefaultFor = .bitmap:.bmp:.g3:.gbr:.gif:.gih:.gpb:.ico:.icon:.im1:.im24:.im32:.im8:.jpeg:.jpg:.pat:.pbm:.pcx:.pgm:.png:.pnm:.ppm:.psd:.ras:.rgb:.sgi:.tga:.tif:.tiff:.xbm:.xcf:.xcfbz2:.xcf.bz2:.xcfgz:.xcf.gz:.xjt:.xjtbz2:.xjtgz:.xpm:.xwd
+# DefaultFor = .avif:.bitmap:.bmp:.g3:.gbr:.gif:.gih:.gpb:.heic:.heif:.ico:.icon:.im1:.im24:.im32:.im8:.jpeg:.jpg:.pat:.pbm:.pcx:.pgm:.png:.pnm:.ppm:.psd:.ras:.rgb:.sgi:.tga:.tif:.tiff:.webp:.xbm:.xcf:.xcfbz2:.xcf.bz2:.xcfgz:.xcf.gz:.xjt:.xjtbz2:.xjtgz:.xpm:.xwd
 # Caption = The GIMP
 # Descr =Open bitmap files in The GIMP.
 # Descr =

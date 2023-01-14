@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2016,2018-2019 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,7 +46,7 @@ void emFileModel::Update()
 				State=FS_TOO_COSTLY;
 				MemoryNeed=1;
 				FileProgress=0.0;
-				if (ClientList) {
+				if (MemoryLimit>=MemoryNeed) {
 					State=FS_WAITING;
 					StartPSAgent();
 				}
@@ -56,7 +56,7 @@ void emFileModel::Update()
 		case FS_TOO_COSTLY:
 			if (MemoryNeed>1) {
 				MemoryNeed=1;
-				if (ClientList) {
+				if (MemoryLimit>=MemoryNeed) {
 					State=FS_WAITING;
 					StartPSAgent();
 				}
@@ -67,7 +67,7 @@ void emFileModel::Update()
 			State=FS_TOO_COSTLY;
 			ErrorText.Clear();
 			MemoryNeed=1;
-			if (ClientList) {
+			if (MemoryLimit>=MemoryNeed) {
 				State=FS_WAITING;
 				StartPSAgent();
 			}
@@ -174,7 +174,7 @@ void emFileModel::HardResetFileState()
 	MemoryNeed=1;
 	FileProgress=0.0;
 	ErrorText.Clear();
-	if (ClientList && MemoryLimit>=MemoryNeed) {
+	if (MemoryLimit>=MemoryNeed) {
 		State=FS_WAITING;
 		StartPSAgent();
 	}
@@ -188,6 +188,8 @@ emFileModel::emFileModel(
 	: emModel(context,name)
 {
 	State=FS_TOO_COSTLY;
+	MemoryLimitInvalid=0;
+	PriorityInvalid=0;
 	MemoryNeed=1;
 	FileProgress=0.0;
 	FileProgressClock=0;
@@ -211,7 +213,16 @@ emFileModel::~emFileModel()
 
 bool emFileModel::Cycle()
 {
-	bool stateChanged;
+	bool memoryLimitIncreased,stateChanged;
+
+	memoryLimitIncreased=false;
+	if (MemoryLimitInvalid) {
+		memoryLimitIncreased=UpdateMemoryLimit();
+	}
+
+	if (PriorityInvalid) {
+		UpdatePriority();
+	}
 
 	if (UpdateSignalModel && IsSignaled(UpdateSignalModel->Sig)) {
 		Update();
@@ -224,6 +235,16 @@ bool emFileModel::Cycle()
 			if (IsTimeSliceAtEnd()) return true;
 			// no break
 		case FS_LOADING:
+			if (memoryLimitIncreased) {
+				// When the limit for this file model has
+				// increased, then the limit for other file
+				// models may have decreased by the same cause.
+				// Give those other file models a chance to free
+				// memory before allocating by this file model
+				// through calling StepLoading.
+				WakeUp();
+				return true;
+			}
 			stateChanged=false;
 			do {
 				if (StepLoading()) stateChanged=true;
@@ -273,7 +294,7 @@ void emFileModel::TryFetchDate()
 
 	if (em_stat(GetFilePath().Get(),&st)!=0) {
 		throw emException(
-			"Failed to get info of \"%s\": %s",
+			"Failed to get info about \"%s\": %s",
 			GetFilePath().Get(),
 			emGetErrorText(errno).Get()
 		);
@@ -287,78 +308,26 @@ void emFileModel::TryFetchDate()
 
 bool emFileModel::IsOutOfDate()
 {
+	emFileModelClient * c;
 	struct em_stat st;
 
 	if (em_stat(GetFilePath().Get(),&st)!=0) {
 		return true;
 	}
-	return
+
+	if (
 		LastMTime!=st.st_mtime ||
 		LastCTime!=st.st_ctime ||
 		LastFSize!=(emUInt64)st.st_size ||
 		LastINode!=(emUInt64)st.st_ino
-	;
-}
-
-
-void emFileModel::ClientsChanged()
-{
-	emFileModelClient * c;
-	emUInt64 m;
-	double pri;
-
-	for (m=0, c=ClientList; c; c=c->NextInList) {
-		if (m<c->MemoryLimit) m=c->MemoryLimit;
-	}
-	MemoryLimit=m;
-
-	if (PSAgent) {
-		c=ClientList;
-		if (c) {
-			pri=c->Priority;
-			for (c=c->NextInList; c; c=c->NextInList) {
-				if (pri<c->Priority) pri=c->Priority;
-			}
-			PSAgent->SetAccessPriority(pri);
-		}
+	) {
+		return true;
 	}
 
-	switch (State) {
-		case FS_WAITING:
-			if (!ClientList || MemoryLimit<MemoryNeed) {
-				EndPSAgent();
-				State=FS_TOO_COSTLY;
-				Signal(FileStateSignal);
-			}
-			break;
-		case FS_LOADING:
-			if (!ClientList || MemoryLimit<MemoryNeed) {
-				EndPSAgent();
-				QuitLoading();
-				ResetData();
-				State=FS_TOO_COSTLY;
-				FileProgress=0.0;
-				Signal(FileStateSignal);
-			}
-			break;
-		case FS_LOADED:
-			if (!ClientList || MemoryLimit<MemoryNeed) {
-				ResetData();
-				State=FS_TOO_COSTLY;
-				FileProgress=0.0;
-				Signal(FileStateSignal);
-			}
-			break;
-		case FS_TOO_COSTLY:
-			if (ClientList && MemoryLimit>=MemoryNeed) {
-				State=FS_WAITING;
-				StartPSAgent();
-				Signal(FileStateSignal);
-			}
-			break;
-		default:
-			break;
+	for (c=ClientList; c; c=c->NextInList) {
+		if (c->IsReloadAnnoying()) return false;
 	}
+	return true;
 }
 
 
@@ -412,7 +381,7 @@ bool emFileModel::StepLoading()
 
 	MemoryNeed=CalcMemoryNeed();
 	if (MemoryNeed<1) MemoryNeed=1;
-	if (!ClientList || MemoryNeed>MemoryLimit) {
+	if (MemoryNeed>MemoryLimit) {
 		EndPSAgent();
 		QuitLoading();
 		ResetData();
@@ -476,7 +445,7 @@ bool emFileModel::StepSaving()
 	State=FS_LOADED;
 	MemoryNeed=CalcMemoryNeed();
 	if (MemoryNeed<1) MemoryNeed=1;
-	if (!ClientList || MemoryNeed>MemoryLimit) {
+	if (MemoryNeed>MemoryLimit) {
 		ResetData();
 		State=FS_TOO_COSTLY;
 	}
@@ -515,20 +484,87 @@ bool emFileModel::UpdateFileProgress()
 }
 
 
-void emFileModel::StartPSAgent()
+bool emFileModel::UpdateMemoryLimit()
 {
 	emFileModelClient * c;
-	double pri;
+	emUInt64 maxLim,lim;
+	bool limitIncreased;
 
-	if (!PSAgent) PSAgent=new PSAgentClass(*this);
-	c=ClientList;
-	if (c) {
-		pri=c->Priority;
-		for (c=c->NextInList; c; c=c->NextInList) {
-			if (pri<c->Priority) pri=c->Priority;
-		}
-		PSAgent->SetAccessPriority(pri);
+	maxLim=0;
+	for (c=ClientList; c; c=c->NextInList) {
+		lim=c->GetMemoryLimit();
+		if (maxLim<lim) maxLim=lim;
 	}
+	MemoryLimitInvalid=0;
+	if (MemoryLimit==maxLim) return false;
+	limitIncreased=(MemoryLimit<maxLim);
+	MemoryLimit=maxLim;
+
+	switch (State) {
+		case FS_WAITING:
+			if (MemoryLimit<MemoryNeed) {
+				EndPSAgent();
+				State=FS_TOO_COSTLY;
+				Signal(FileStateSignal);
+			}
+			break;
+		case FS_LOADING:
+			if (MemoryLimit<MemoryNeed) {
+				EndPSAgent();
+				QuitLoading();
+				ResetData();
+				State=FS_TOO_COSTLY;
+				FileProgress=0.0;
+				Signal(FileStateSignal);
+			}
+			break;
+		case FS_LOADED:
+			if (MemoryLimit<MemoryNeed) {
+				ResetData();
+				State=FS_TOO_COSTLY;
+				FileProgress=0.0;
+				Signal(FileStateSignal);
+			}
+			break;
+		case FS_TOO_COSTLY:
+			if (MemoryLimit>=MemoryNeed) {
+				State=FS_WAITING;
+				StartPSAgent();
+				Signal(FileStateSignal);
+			}
+			break;
+		default:
+			break;
+	}
+
+	return limitIncreased;
+}
+
+
+void emFileModel::UpdatePriority()
+{
+	emFileModelClient * c;
+	double maxPri,pri;
+
+	if (PSAgent) {
+		c=ClientList;
+		if (c) {
+			maxPri=c->GetPriority();
+			for (c=c->NextInList; c; c=c->NextInList) {
+				pri=c->GetPriority();
+				if (maxPri<pri) maxPri=pri;
+			}
+			PSAgent->SetAccessPriority(maxPri);
+		}
+	}
+	PriorityInvalid=0;
+}
+
+
+void emFileModel::StartPSAgent()
+{
+	if (!PSAgent) PSAgent=new PSAgentClass(*this);
+	UpdatePriority();
 	PSAgent->RequestAccess();
 }
 
@@ -561,12 +597,8 @@ void emFileModel::PSAgentClass::GotAccess()
 //============================= emFileModelClient ==============================
 //==============================================================================
 
-emFileModelClient::emFileModelClient(
-	emFileModel * model, emUInt64 memoryLimit, double priority
-)
+emFileModelClient::emFileModelClient(emFileModel * model)
 {
-	MemoryLimit=memoryLimit;
-	Priority=priority;
 	ThisPtrInList=NULL;
 	NextInList=NULL;
 	if (model) SetModel(model);
@@ -587,7 +619,9 @@ void emFileModelClient::SetModel(emFileModel * model)
 		if (NextInList) NextInList->ThisPtrInList=ThisPtrInList;
 		ThisPtrInList=NULL;
 		NextInList=NULL;
-		Model->ClientsChanged();
+		Model->MemoryLimitInvalid=1;
+		Model->PriorityInvalid=1;
+		Model->WakeUp();
 		Model=NULL;
 	}
 	if (model) {
@@ -596,24 +630,61 @@ void emFileModelClient::SetModel(emFileModel * model)
 		if (NextInList) NextInList->ThisPtrInList=&NextInList;
 		Model->ClientList=this;
 		ThisPtrInList=&Model->ClientList;
-		Model->ClientsChanged();
+		Model->MemoryLimitInvalid=1;
+		Model->PriorityInvalid=1;
+		Model->WakeUp();
 	}
 }
 
 
-void emFileModelClient::SetMemoryLimit(emUInt64 bytes)
+void emFileModelClient::InvalidateMemoryLimit()
 {
-	if (MemoryLimit!=bytes) {
-		MemoryLimit=bytes;
-		if (Model) Model->ClientsChanged();
+	if (Model) {
+		Model->MemoryLimitInvalid=1;
+		Model->WakeUp();
 	}
 }
 
 
-void emFileModelClient::SetPriority(double priority)
+void emFileModelClient::InvalidatePriority()
 {
-	if (Priority!=priority) {
-		Priority=priority;
-		if (Model) Model->ClientsChanged();
+	if (Model) {
+		Model->PriorityInvalid=1;
+		Model->WakeUp();
 	}
+}
+
+
+bool emFileModelClient::IsTheOnlyClient() const
+{
+	if (!Model) return false;
+	return Model->ClientList->NextInList==NULL;
+}
+
+
+//==============================================================================
+//========================= emAbsoluteFileModelClient ==========================
+//==============================================================================
+
+emAbsoluteFileModelClient::emAbsoluteFileModelClient(emFileModel * model)
+	: emFileModelClient(model)
+{
+}
+
+
+emUInt64 emAbsoluteFileModelClient::GetMemoryLimit() const
+{
+	return EM_UINT64_MAX;
+}
+
+
+double emAbsoluteFileModelClient::GetPriority() const
+{
+	return 1.0;
+}
+
+
+bool emAbsoluteFileModelClient::IsReloadAnnoying() const
+{
+	return true;
 }

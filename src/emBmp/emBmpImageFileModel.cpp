@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.cpp
 //
-// Copyright (C) 2004-2010,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2010,2014,2018-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,8 +47,10 @@ emBmpImageFileModel::~emBmpImageFileModel()
 
 void emBmpImageFileModel::TryStartLoading()
 {
-	long bestOffset,bihSize,bestSize,s,o;
-	int w,i,iconCnt;
+	char infoBuf[1024];
+	char errorBuf[256];
+	long bestOffset,bihOffset,bihSize,bestSize,size,offset;
+	int w,h,pixels,bestPixels,i,iconCnt;
 
 	errno=0;
 
@@ -62,10 +64,18 @@ void emBmpImageFileModel::TryStartLoading()
 	L->ColSize=0;
 	L->ColsUsed=0;
 	L->Compress=0;
-	L->NextY=0;
+	L->Y=0;
 	for (i=0; i<3; i++) L->CMax[i]=0;
 	for (i=0; i<3; i++) L->CPos[i]=0;
 	L->IsIcon=false;
+	L->IsPng=false;
+	L->PngLib=NULL;
+	L->PngStartDecoding=NULL;
+	L->PngContinueDecoding=NULL;
+	L->PngQuitDecoding=NULL;
+	L->PngInst=NULL;
+	L->PassCount=0;
+	L->Pass=0;
 	L->ImagePrepared=false;
 	L->File=NULL;
 	L->Palette=NULL;
@@ -79,8 +89,7 @@ void emBmpImageFileModel::TryStartLoading()
 		Read32();
 		Read32();
 		L->BitsOffset=(emUInt32)Read32();
-		bihSize=(emUInt32)Read32();
-		L->ColsOffset=bihSize+14;
+		bihOffset=14;
 	}
 	else if (w==0) {
 		// ICO or CUR file.
@@ -89,28 +98,37 @@ void emBmpImageFileModel::TryStartLoading()
 		iconCnt=Read16();
 		if (iconCnt<1) goto Err;
 		bestOffset=0;
+		bestPixels=0;
 		bestSize=0;
 		for (i=0; i<iconCnt; i++) {
+			w=Read8();
+			if (!w) w=256;
+			h=Read8();
+			if (!h) h=256;
+			pixels=w*h;
+			Read16();
 			Read32();
-			Read32();
-			s=(emUInt32)Read32();
-			o=(emUInt32)Read32();
-			if (bestSize==0 || bestSize<s) {
-				bestOffset=o;
-				bestSize=s;
+			size=(emUInt32)Read32();
+			offset=(emUInt32)Read32();
+			if (bestPixels<pixels || (bestPixels==pixels && bestSize<size)) {
+				bestOffset=offset;
+				bestPixels=pixels;
+				bestSize=size;
 			}
 			if (ferror(L->File) || feof(L->File)) goto Err;
 		}
-		fseek(L->File,bestOffset,SEEK_SET);
-		if (ferror(L->File) || feof(L->File)) goto Err;
+		bihOffset=bestOffset;
 		L->BitsOffset=0;
-		bihSize=(emUInt32)Read32();
-		L->ColsOffset=bestOffset+bihSize;
 		L->IsIcon=true;
 	}
 	else {
 		goto Err;
 	}
+
+	fseek(L->File,bihOffset,SEEK_SET);
+	if (ferror(L->File) || feof(L->File)) goto Err;
+	bihSize=(emUInt32)Read32();
+	L->ColsOffset=bihOffset+bihSize;
 
 	if (bihSize==40) {
 		L->Width=Read32();
@@ -132,6 +150,31 @@ void emBmpImageFileModel::TryStartLoading()
 		L->Compress=0;
 		L->ColsUsed=0;
 		L->ColSize=3;
+	}
+	else if (bihSize==0x474E5089 && L->IsIcon) {
+		L->IsPng=true;
+		fseek(L->File,bihOffset,SEEK_SET);
+		L->PngLib=emTryOpenLib("emPng",false);
+		L->PngStartDecoding=(PngStartDecodingFunc)
+			emTryResolveSymbolFromLib(L->PngLib,"emPngStartDecoding")
+		;
+		L->PngContinueDecoding=(PngContinueDecodingFunc)
+			emTryResolveSymbolFromLib(L->PngLib,"emPngContinueDecoding")
+		;
+		L->PngQuitDecoding=(PngQuitDecodingFunc)
+			emTryResolveSymbolFromLib(L->PngLib,"emPngQuitDecoding")
+		;
+		infoBuf[0]=0;
+		errorBuf[0]=0;
+		L->PngInst=L->PngStartDecoding(
+			L->File,&L->Width,&L->Height,&L->Channels,&L->PassCount,
+			infoBuf,sizeof(infoBuf),errorBuf,sizeof(errorBuf)
+		);
+		if (!L->PngInst) throw emException("%s",errorBuf);
+		FileFormatInfo="MS Windows icon or cursor file, ";
+		FileFormatInfo+=infoBuf;
+		Signal(ChangeSignal);
+		return;
 	}
 	else {
 		goto Err;
@@ -191,9 +234,11 @@ Err:
 
 bool emBmpImageFileModel::TryContinueLoading()
 {
+	char commentBuf[1024];
+	char errorBuf[256];
 	unsigned char * map;
 	emUInt32 msk;
-	int x,n,t,i,j,y;
+	int x,n,t,i,j,y,r;
 
 	errno = 0;
 
@@ -201,6 +246,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 		Image.Setup(L->Width,L->Height,L->Channels);
 		Signal(ChangeSignal);
 		L->ImagePrepared=true;
+		if (L->IsPng) return false;
 		if (L->BitsPerPixel<=8) {
 			fseek(L->File,L->ColsOffset,SEEK_SET);
 			L->Palette=new unsigned char[4<<L->BitsPerPixel];
@@ -231,9 +277,28 @@ bool emBmpImageFileModel::TryContinueLoading()
 		return false;
 	}
 
-	if (L->NextY>=L->Height) return true;
+	if (L->IsPng) {
+		commentBuf[0]=0;
+		errorBuf[0]=0;
+		r=L->PngContinueDecoding(
+			L->PngInst,
+			Image.GetWritableMap()+L->Y*(size_t)Image.GetWidth()*Image.GetChannelCount(),
+			commentBuf,sizeof(commentBuf),errorBuf,sizeof(errorBuf)
+		);
+		if (r<0) throw emException("%s",errorBuf);
+		L->Y++;
+		if (L->Y>=L->Height) {
+			L->Pass++;
+			L->Y=0;
+		}
+		Comment+=commentBuf;
+		Signal(ChangeSignal);
+		return r!=0;
+	}
 
-	map=Image.GetWritableMap()+(L->Height-L->NextY-1)*(size_t)L->Width*L->Channels;
+	if (L->Y>=L->Height) return true;
+
+	map=Image.GetWritableMap()+(L->Height-L->Y-1)*(size_t)L->Width*L->Channels;
 
 	if (L->Compress==0) {
 		if (L->BitsPerPixel==32) {
@@ -311,7 +376,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 				n=Read8();
 				if (n<=1) {
 					if (x!=L->Width) goto Err;
-					if (n==1 && L->NextY+1!=L->Height) goto Err;
+					if (n==1 && L->Y+1!=L->Height) goto Err;
 					break;
 				}
 				if (n==2) goto Err;
@@ -347,7 +412,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 				n=Read8();
 				if (n<=1) {
 					if (x!=L->Width) goto Err;
-					if (n==1 && L->NextY+1!=L->Height) goto Err;
+					if (n==1 && L->Y+1!=L->Height) goto Err;
 					break;
 				}
 				if (n==2) goto Err;
@@ -386,8 +451,8 @@ bool emBmpImageFileModel::TryContinueLoading()
 
 	if (ferror(L->File)) goto Err;
 
-	L->NextY++;
-	if (L->NextY<L->Height) return false;
+	L->Y++;
+	if (L->Y<L->Height) return false;
 
 	if (L->Channels>3 && (L->BitsPerPixel!=32 || L->Compress!=0)) {
 		for (y=0; y<L->Height; y++) {
@@ -427,6 +492,8 @@ Err:
 void emBmpImageFileModel::QuitLoading()
 {
 	if (L) {
+		if (L->PngInst) L->PngQuitDecoding(L->PngInst);
+		if (L->PngLib) emCloseLib(L->PngLib);
 		if (L->File) fclose(L->File);
 		if (L->Palette) delete [] L->Palette;
 		delete L;
@@ -467,8 +534,11 @@ emUInt64 emBmpImageFileModel::CalcMemoryNeed()
 
 double emBmpImageFileModel::CalcFileProgress()
 {
+	if (L && L->IsPng && L->Height>0 && L->PassCount>0) {
+		return 100.0*(L->Pass*L->Height+L->Y)/(L->PassCount*L->Height);
+	}
 	if (L && L->Height>0) {
-		return 100.0*L->NextY/L->Height;
+		return 100.0*L->Y/L->Height;
 	}
 	else {
 		return 0.0;

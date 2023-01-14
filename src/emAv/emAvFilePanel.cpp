@@ -82,6 +82,21 @@ void emAvFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 }
 
 
+bool emAvFilePanel::IsReloadAnnoying() const
+{
+	emAvFileModel * fm;
+
+	if (emFilePanel::IsReloadAnnoying()) return true;
+
+	if (GetVirFileState()!=VFS_LOADED) return false;
+	fm=(emAvFileModel*)GetFileModel();
+	if (fm->GetPlayState()==emAvFileModel::PS_STOPPED) {
+		return false;
+	}
+	return true;
+}
+
+
 emString emAvFilePanel::GetIconFileName() const
 {
 	emAvFileModel * fm;

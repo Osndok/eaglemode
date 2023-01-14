@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfigPanel.h
 //
-// Copyright (C) 2007-2010,2014-2016,2020 Oliver Hamann.
+// Copyright (C) 2007-2010,2014-2016,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,6 +99,7 @@ private:
 	private:
 		void UpdateOutput();
 		emRef<emCoreConfig> Config;
+		bool StickPossible;
 		emCheckBox * StickBox;
 		emCheckBox * EmuBox;
 		emCheckBox * PanBox;

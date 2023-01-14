@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTexture.h
 //
-// Copyright (C) 2020 Oliver Hamann.
+// Copyright (C) 2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -133,7 +133,7 @@ public:
 		UQ_ADAPTIVE            = 5
 	};
 
-	emTexture(emColor color=0);
+	emTexture(emColor color=emColor::GRAY);
 	emTexture(emUInt32 packedColor);
 		// Construct an uni-colored texture. Please see emColorTexture
 		// for details.
@@ -178,6 +178,12 @@ public:
 		// Construct a radial gradient texture. Please see
 		// emRadialGradientTexture for details.
 
+	emTexture(const emTexture& other);
+		// Construct a copied texture.
+
+	emTexture& operator = (const emTexture& other);
+		// Copy a texture.
+
 	TextureType GetType() const;
 		// Get the type of the texture.
 
@@ -219,8 +225,8 @@ public:
 
 	const emImage & GetImage() const;
 	void SetImage(const emImage & image);
-		// Get or set the image. This is valid only if the texture type
-		// is IMAGE or IMAGE_COLORED.
+		// Get or set the image. The image reference must be valid for the life time of the
+		// texture. This is valid only if the texture type is IMAGE or IMAGE_COLORED.
 
 	int GetSrcX() const;
 	void SetSrcX(int srcX);
@@ -257,6 +263,7 @@ private:
 
 	friend class emPainter;
 
+	// *** WARNING for future extensions: Copy constructor+operator do a memcpy!
 	TextureType Type;
 	ExtensionType Extension;
 	DownscaleQualityType DownscaleQuality;
@@ -314,7 +321,9 @@ public:
 		//                         source rectangle of it) is fitted
 		//                         into this rectangle.
 		//   image               - The image. If the image has an alpha
-		//                         channel, it is used for blending.
+		//                         channel, it is used for blending. The
+		//                         image reference must be valid for the
+		//                         life time of the texture.
 		//   srcX,srcY,srcW,srcH - Upper-left corner and size of the
 		//                         source rectangle on the image. If
 		//                         these arguments are missing, the
@@ -378,7 +387,9 @@ public:
 		//                         source rectangle of it) is fitted
 		//                         into this rectangle.
 		//   image               - The image. If the image has an alpha
-		//                         channel, it is used for blending.
+		//                         channel, it is used for blending. The
+		//                         image reference must be valid for the
+		//                         life time of the texture.
 		//   srcX,srcY,srcW,srcH - Upper-left corner and size of the
 		//                         source rectangle on the image. If
 		//                         these arguments are missing, the
@@ -532,6 +543,17 @@ inline emTexture::emTexture(
 ) :
 	Type(RADIAL_GRADIENT),Color1(color1),Color2(color2),X(x),Y(y),W(w),H(h)
 {
+}
+
+inline emTexture::emTexture(const emTexture& other)
+{
+	memcpy((void*)this,(const void*)&other,sizeof(emTexture));
+}
+
+inline emTexture& emTexture::operator = (const emTexture& other)
+{
+	memcpy((void*)this,(const void*)&other,sizeof(emTexture));
+	return *this;
 }
 
 inline emTexture::TextureType emTexture::GetType() const

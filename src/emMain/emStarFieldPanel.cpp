@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStarFieldPanel.cpp
 //
-// Copyright (C) 2007-2008,2016,2020-2021 Oliver Hamann.
+// Copyright (C) 2007-2008,2016,2020-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -107,7 +107,7 @@ void emStarFieldPanel::PaintOverlay(const emPainter & painter)
 	float hue,sat,alpha;
 	int i;
 
-	painter.LeaveUserSpace();
+	emPainter::UserSpaceLeaveGuard userSpaceLeaveGuard(painter);
 
 	for (i=0; i<StarCount; i++) {
 		r=Stars[i].Radius;
@@ -145,8 +145,6 @@ void emStarFieldPanel::PaintOverlay(const emPainter & painter)
 			}
 		}
 	}
-
-	painter.EnterUserSpace();
 }
 
 
@@ -336,8 +334,14 @@ void emStarFieldPanel::TicTacToePanel::Paint(
 			w-=d*2; h-=d*2;
 			x+=d; y+=d;
 			if (s==c) t=0.06; else t=0.03;
-			painter.PaintLine(x,y,x+w,y+h,t,emPainter::LC_ROUND,emPainter::LC_ROUND,col);
-			painter.PaintLine(x+w,y,x,y+h,t,emPainter::LC_ROUND,emPainter::LC_ROUND,col);
+			painter.PaintLine(
+				x,y,x+w,y+h,t,emRoundedStroke(col),
+				emStrokeEnd::CAP,emStrokeEnd::CAP
+			);
+			painter.PaintLine(
+				x+w,y,x,y+h,t,emRoundedStroke(col),
+				emStrokeEnd::CAP,emStrokeEnd::CAP
+			);
 		}
 	}
 	painter.PaintTextBoxed(

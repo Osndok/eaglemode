@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2021 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -89,10 +89,18 @@ double emX11Screen::GetDPI() const
 }
 
 
+bool emX11Screen::CanMoveMousePointer() const
+{
+	return !IsXWayland;
+}
+
+
 void emX11Screen::MoveMousePointer(double dx, double dy)
 {
-	MouseWarpX+=dx;
-	MouseWarpY+=dy;
+	if (emX11Screen::CanMoveMousePointer()) {
+		MouseWarpX+=dx;
+		MouseWarpY+=dy;
+	}
 }
 
 
@@ -311,10 +319,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 
 	AddWakeUpSignal(ScreensaverUpdateTimer.GetSignal());
 
-	WorkAroundXWaylandFocusBug=CheckIfUnreliableXWayland();
-	if (WorkAroundXWaylandFocusBug) {
-		emDLog("emX11Screen: Working around XWayland focus bug");
-	}
+	DetectXWayland();
 
 	WakeUp();
 }
@@ -1144,7 +1149,7 @@ int emX11Screen::WaitCursorThread::Run(void * arg)
 }
 
 
-bool emX11Screen::CheckIfUnreliableXWayland()
+void emX11Screen::DetectXWayland()
 {
 	const char * p, * vendor, * procDir, * name;
 	emArray<emString> procNames;
@@ -1154,9 +1159,13 @@ bool emX11Screen::CheckIfUnreliableXWayland()
 	int release,i,j,l;
 	bool found;
 
-	p=getenv("EM_NO_XWAYLAND_FOCUS_WORKAROUND");
+	IsXWayland=false;
+	WorkAroundXWaylandFocusBug=false;
+	WorkAroundXWaylandBackPixelBug=false;
+
+	p=getenv("EM_NO_XWAYLAND_WORKAROUNDS");
 	if (p && (strcasecmp(p,"yes")==0 || strcasecmp(p,"true")==0 || strcasecmp(p,"1")==0)) {
-		return false;
+		return;
 	}
 
 	p=getenv("WAYLAND_DISPLAY");
@@ -1167,7 +1176,7 @@ bool emX11Screen::CheckIfUnreliableXWayland()
 			procNames=emTryLoadDir(procDir);
 		}
 		catch (...) {
-			return false;
+			return;
 		}
 		found=false;
 		for (i=procNames.GetCount()-1; i>=0 && !found; i--) {
@@ -1186,29 +1195,37 @@ bool emX11Screen::CheckIfUnreliableXWayland()
 				}
 			}
 		}
-		if (!found) return false;
+		if (!found) return;
 	}
 
-	// Check X server vendor and release (can also be seen with xdpyinfo)
-	// Saw the buggy behavior with Xwayland on:
-	//  vendor="Fedora Project",       release=11900000 (Fedora 25)
-	//  vendor="Fedora Project",       release=11903000 (Fedora 26)
-	//  vendor="The X.Org Foundation", release=11905000 (Ubuntu 17.10)
-	//  vendor="Fedora Project",       release=11906000 (Fedora 27 - 28)
-	//  vendor="Fedora Project",       release=12003000 (Fedora 29)
-	//  vendor="Fedora Project",       release=12004000 (Fedora 30)
-	//  vendor="Fedora Project",       release=12006000 (Fedora 31)
-	//  vendor="Fedora Project",       release=12008000 (Fedora 32 - 33)
-	//  vendor="The X.Org Foundation", release=12101001 (Fedora 34, Ubuntu 21.04)
+	IsXWayland=true;
+
+	// Check X server vendor and release (can also be seen with xdpyinfo).
+	// Which bugs were seen on which versions:
+	// Vendor               | Release  | OS                      | Bugs
+	// ---------------------+----------+-------------------------+---------------------
+	// Fedora Project       | 11900000 | Fedora 25               | focus
+	// Fedora Project       | 11903000 | Fedora 26               | focus
+	// The X.Org Foundation | 11905000 | Ubuntu 17.10            | focus
+	// Fedora Project       | 11906000 | Fedora 27 - 28          | focus
+	// Fedora Project       | 12003000 | Fedora 29               | focus
+	// Fedora Project       | 12004000 | Fedora 30               | focus
+	// Fedora Project       | 12006000 | Fedora 31               | focus
+	// Fedora Project       | 12008000 | Fedora 32 - 33          | focus, little back pixel flicker
+	// The X.Org Foundation | 12011000 | Debian 11               | focus, back pixel flicker
+	// The X.Org Foundation | 12101001 | Fedora 34, Ubuntu 21.04 | focus, back pixel flicker
+	// The X.Org Foundation | 12101002 | Fedora 36               | focus, back pixel flicker
+	// The X.Org Foundation | 12101003 | Ubuntu 22.10            | focus, back pixel flicker
 	vendor=ServerVendor(Disp);
 	release=VendorRelease(Disp);
 	if (
 		strcmp(vendor,"Fedora Project")!=0 &&
 		strcmp(vendor,"The X.Org Foundation")!=0
-	) return false;
-	//if (release>???) return false;
+	) return;
 
-	return true;
+	emDLog("emX11Screen: Working around XWayland bugs");
+	WorkAroundXWaylandFocusBug=true;
+	WorkAroundXWaylandBackPixelBug=true;
 }
 
 

@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_mic.pm
 #
-# Copyright (C) 2006-2008,2018 Oliver Hamann.
+# Copyright (C) 2006-2008,2018,2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -166,6 +166,7 @@ sub Link
 		if ($type eq 'cexe') { push(@args,"/SUBSYSTEM:CONSOLE"); }
 		if ($type eq 'wexe') { push(@args,"/SUBSYSTEM:WINDOWS"); }
 		if ($type eq 'dynlib') { push(@args,"/DLL"); }
+		if ($type eq 'cexe' or $type eq 'wexe') { push(@args,"/STACK:8388608"); }
 		push(@args,"/INCREMENTAL:NO");
 		push(@args,"/FIXED:NO"); #???
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"/LIBPATH:$s"); }

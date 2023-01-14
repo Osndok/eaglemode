@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAutoplay.cpp
 //
-// Copyright (C) 2017,2021 Oliver Hamann.
+// Copyright (C) 2017,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1481,13 +1481,13 @@ void emAutoplayControlPanel::AutoplayButton::PaintLabel(
 			ex+ew*0.02,ey+ew*0.02,ew,eh,t,
 			emColor(0,0,0,48)
 		);
-		painter.PaintEllipseOutline(
+		painter.PaintEllipseArc(
 			ex,ey,ew,eh,
 			-90.0+360.0*Progress,
 			360.0*(1.0-Progress),t,
 			emColor(64,0,64,80)
 		);
-		painter.PaintEllipseOutline(
+		painter.PaintEllipseArc(
 			ex,ey,ew,eh,
 			-90.0,
 			360.0*Progress,t,

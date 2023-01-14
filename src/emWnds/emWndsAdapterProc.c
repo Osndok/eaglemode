@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
-// emPsWinAdapterProc.c
+// emWndsAdapterProc.c
 //
-// Copyright (C) 2017-2018 Oliver Hamann.
+// Copyright (C) 2017-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,45 +24,93 @@
 #include <windows.h>
 
 
+static void addToCmd(char * * pCmd, const char * cmdEnd, char c)
+{
+	char * cmd = *pCmd;
+	if (cmd>=cmdEnd) {
+			fprintf(stderr,"Command line too long\n");
+			ExitProcess(255);
+	}
+	*cmd++=c;
+	*pCmd=cmd;
+}
+
+
+static const char * getLastErrorText()
+{
+	static char text[512];
+	DWORD errorNumber;
+
+	errorNumber=GetLastError();
+	if (!FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		errorNumber,
+		0,
+		text,
+		sizeof(text)-1,
+		NULL
+	)) {
+		sprintf(text,"error #%d",errorNumber);
+	}
+	return text;
+}
+
+
 int main(int argc, char * argv[])
 {
-	char * command;
+	char * command, * p, * e;
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
 	MSG msg;
 	DWORD d,exitCode;
 	BOOL b,gotWMQuit,childProcExited;
-	int cmdMemSize,cmdLen,len,i;
+	int cmdMemSize,i,j,k;
+	char c;
 
 	setmode(fileno(stdout),O_BINARY);
 	setmode(fileno(stdin),O_BINARY);
 	setbuf(stderr,NULL);
 
 	if (argc<2) {
-		fprintf(stderr,"%s: Invalid arguments.\n",argv[0]);
+		fprintf(stderr,"%s:\nInvalid arguments.\n",argv[0]);
 		ExitProcess(255);
 	}
 
 	cmdMemSize=65536;
 	command=malloc(cmdMemSize);
-	cmdLen=0;
+	p=command;
+	e=command+cmdMemSize;
+
 	for (i=1; i<argc; i++) {
-		len=strlen(argv[i]);
-		if (cmdMemSize<cmdLen+len+4) {
-			fprintf(stderr,"%s: Command line too long\n",argv[0]);
-			ExitProcess(255);
+		if (i>1) {
+			addToCmd(&p,e,' ');
+			for (j=0; argv[i][j]; j++) {
+				c=argv[i][j];
+				if ((c<'0' || c>'9') && (c<'A' || c>'Z') && (c<'a' || c>'z') &&
+				    c!='\\' && c!='/' && c!='.' && c!=':' && c!='-') break;
+			}
+			if (!argv[i][j] && argv[i][0]) {
+				for (j=0; argv[i][j]; j++) addToCmd(&p,e,argv[i][j]);
+				continue;
+			}
 		}
-		if (cmdLen>0) command[cmdLen++]=' ';
-		if (strchr(argv[i],'"')) {
-			fprintf(stderr,"%s: Quotes in arguments not supported\n",argv[0]);
-			ExitProcess(255);
+		addToCmd(&p,e,'"');
+		for (j=0, k=0; argv[i][j]; j++) {
+			c=argv[i][j];
+			if (c=='"') {
+				while (k>0) { addToCmd(&p,e,'\\'); k--; }
+				addToCmd(&p,e,'\\');
+			}
+			else if (c=='\\') k++;
+			else k=0;
+			addToCmd(&p,e,c);
 		}
-		command[cmdLen++]='"';
-		memcpy(command+cmdLen,argv[i],len);
-		cmdLen+=len;
-		command[cmdLen++]='"';
+		while (k>0) { addToCmd(&p,e,'\\'); k--; }
+		addToCmd(&p,e,'"');
 	}
-	command[cmdLen]=0;
+	addToCmd(&p,e,'\0');
+	addToCmd(&p,e,'\0');
 
 	memset(&si,0,sizeof(si));
 	si.cb=sizeof(si);
@@ -86,8 +134,8 @@ int main(int argc, char * argv[])
 	if (!b) {
 		fprintf(
 			stderr,
-			"%s: Failed to execute %s (err=0x%lX)\n",
-			argv[0],command,(long)GetLastError()
+			"%s:\nFailed to execute %s:\n%s\n",
+			argv[0],command,getLastErrorText()
 		);
 		ExitProcess(255);
 	}
@@ -108,8 +156,8 @@ int main(int argc, char * argv[])
 		else if (d!=WAIT_OBJECT_0+1) {
 			fprintf(
 				stderr,
-				"%s: Wait failed (d=%ld, err=0x%lX)\n",
-				argv[0],d,(long)GetLastError()
+				"%s:\nWait failed (d=%ld):\n%s\n",
+				argv[0],d,getLastErrorText()
 			);
 			GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT,pi.dwProcessId);
 			WaitForSingleObject(pi.hProcess,INFINITE);
@@ -122,8 +170,8 @@ int main(int argc, char * argv[])
 		if (!b) {
 			fprintf(
 				stderr,
-				"%s: Failed to send Ctrl+Break to child process (err=0x%lX)\n",
-				argv[0],(long)GetLastError()
+				"%s:\nFailed to send Ctrl+Break to child process:\n%s\n",
+				argv[0],getLastErrorText()
 			);
 			ExitProcess(255);
 		}
@@ -132,8 +180,8 @@ int main(int argc, char * argv[])
 		if (d!=WAIT_OBJECT_0) {
 			fprintf(
 				stderr,
-				"%s: Failed to wait for child process (d=%ld, err=0x%lX)\n",
-				argv[0],d,(long)GetLastError()
+				"%s:\nFailed to wait for child process (d=%ld):\n%s\n",
+				argv[0],d,getLastErrorText()
 			);
 			ExitProcess(255);
 		}
@@ -142,8 +190,8 @@ int main(int argc, char * argv[])
 	if (!GetExitCodeProcess(pi.hProcess,&exitCode)) {
 		fprintf(
 			stderr,
-			"%s: Failed to get exit code from child process (error=0x%lX)\n",
-			argv[0],(long)GetLastError()
+			"%s:\nFailed to get exit code from child process:\n%s\n",
+			argv[0],getLastErrorText()
 		);
 		ExitProcess(255);
 	}

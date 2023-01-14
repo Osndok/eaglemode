@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_clang.pm
 #
-# Copyright (C) 2018,2020-2021 Oliver Hamann.
+# Copyright (C) 2018,2020-2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -172,7 +172,9 @@ sub Link
 		}
 		if ($IsWinOrCygwin) {
 			push(@args,"-mthreads");
-			push(@args,"-shared-libclang");
+		}
+		if ($IsWinOrCygwin and ($type eq 'cexe' or $type eq 'wexe')) {
+			push(@args,"-Wl,--stack=8388608");
 		}
 		if ($IsWin and $type eq 'wexe') { push(@args,"-mwindows"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }

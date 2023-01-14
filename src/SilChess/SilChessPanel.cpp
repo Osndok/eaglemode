@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.cpp
 //
-// Copyright (C) 2007-2008,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2007-2008,2014,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -41,6 +41,15 @@ SilChessPanel::SilChessPanel(
 
 SilChessPanel::~SilChessPanel()
 {
+}
+
+
+bool SilChessPanel::IsReloadAnnoying() const
+{
+	return
+		(IsVFSGood() && Mdl->GetSearchState()!=SilChessModel::SS_NOT_SEARCHING) ||
+		emFilePanel::IsReloadAnnoying()
+	;
 }
 
 

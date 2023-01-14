@@ -174,8 +174,8 @@ emMainControlPanel::emMainControlPanel(
 			"Reload Files",
 			"Reload files and directories which are currently shown by this program. You\n"
 			"should trigger this function after you have modified files or directories\n"
-			"with another program. This function does not really reload all files, but it\n"
-			"checks file modification time stamps to see which files are to be reloaded.\n"
+			"with another program. Active files are reloaded only if the file\n"
+			"modification time or the file size has changed.\n"
 			"\n"
 			"Hotkey: F5",
 			emGetInsResImage(GetRootContext(),"emMain","ReloadFiles.tga")

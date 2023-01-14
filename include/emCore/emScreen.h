@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScreen.h
 //
-// Copyright (C) 2005-2011,2016-2017 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,6 +99,9 @@ public:
 	const emSignal & GetGeometrySignal() const;
 		// This signal is signaled on any change in the results of
 		// GetDesktopRect, GetMonitorCount, GetMonitorRect and GetDPI.
+
+	virtual bool CanMoveMousePointer() const = 0;
+		// Whether MoveMousePointer(..) has an effect.
 
 	virtual void MoveMousePointer(double dx, double dy) = 0;
 		// Move the mouse pointer programmatically.

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWebpImageFileModel.cpp
 //
-// Copyright (C) 2021 Oliver Hamann.
+// Copyright (C) 2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -22,7 +22,7 @@
 #include <webp/decode.h>
 
 
-struct emWebpLoadingState {
+struct emWebpImageFileModel::LoadingState {
 	FILE * file;
 	emArray<unsigned char> data;
 	bool featuresValid;
@@ -74,7 +74,7 @@ emWebpImageFileModel::~emWebpImageFileModel()
 
 void emWebpImageFileModel::TryStartLoading()
 {
-	L=new emWebpLoadingState;
+	L=new LoadingState;
 	L->file=NULL;
 	L->featuresValid=false;
 	memset(&L->features,0,sizeof(L->features));

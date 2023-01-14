@@ -1,0 +1,407 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emStroke.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emStroke_h.html#emStroke">emStroke</A>.h
+//
+// Copyright (C) 2022 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emStroke_h
+#define emStroke_h
+
+#ifndef emColor_h
+#include &lt;<A CLASS=f HREF="emCore_emColor_h.html">emCore/emColor.h</A>&gt;
+#endif
+
+
+<A NAME="emStroke"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emStroke_h.html#emStroke">emStroke</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for specifying how to paint a line. This includes the color,
+        // whether joins and caps are rounded, the dash type, and dash factors.
+        // The rounding and dash features can also easily be specified by using
+        // one of the following derived classes:
+        //
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A>
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A>
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A>
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A>
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A>
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A>
+        //   <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A>
+        //
+        // These stroke classes just exist for convenience and define only
+        // constructors. All the attributes are already defined here in
+        // <A CLASS=m HREF="emCore_emStroke_h.html#emStroke">emStroke</A>, because <A CLASS=m HREF="emCore_emStroke_h.html#emStroke">emStroke</A> ought to be a simple non-polymorphic type.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>DashTypeEnum <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for the type of dash.
+
+                </SPAN>SOLID,
+                        <SPAN CLASS=c>// Have a continuous line without dashes or dots.
+
+                </SPAN>DASHED,
+                        <SPAN CLASS=c>// Have a dashed line.
+
+                </SPAN>DOTTED,
+                        <SPAN CLASS=c>// Have a dotted line.
+
+                </SPAN>DASH_DOTTED
+                        <SPAN CLASS=c>// Have a line with dashes and dots alternating.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK, <SPAN CLASS=t>bool </SPAN>rounded=<SPAN CLASS=k>false</SPAN>,
+                 DashTypeEnum dashType=SOLID, <SPAN CLASS=t>double </SPAN>dashLengthFactor=<SPAN CLASS=u>1.0</SPAN>,
+                 <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke.
+                // Arguments:
+                //   color             Color of the stroke.
+                //   rounded           Whether joins and caps are rounded.
+                //   dashType          Type of dash.
+                //   dashLengthFactor  Length factor for dashes.
+                //   gapLengthFactor   Length factor for gaps between dashes or
+                //                     dots.
+
+        </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(emUInt32 packedColor);
+                <SPAN CLASS=c>// Construct from a packed color (allows implicit conversion).
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color);
+                <SPAN CLASS=c>// Get or set the color of the stroke.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsRounded() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetRounded(<SPAN CLASS=t>bool </SPAN>rounded=<SPAN CLASS=k>true</SPAN>);
+                <SPAN CLASS=c>// Get or set whether joins (polyline corners) and caps
+                // (see <A CLASS=m HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::CAP) are rounded.
+
+        </SPAN>DashTypeEnum GetDashType() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDashType(DashTypeEnum dashType);
+                <SPAN CLASS=c>// Get or set the type of dash.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetDashLengthFactor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetDashLengthFactor(<SPAN CLASS=t>double </SPAN>dashLengthFactor);
+                <SPAN CLASS=c>// Get or set the length factor for dashes.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetGapLengthFactor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetGapLengthFactor(<SPAN CLASS=t>double </SPAN>gapLengthFactor);
+                <SPAN CLASS=c>// Get or set the length factor for gaps between dashes or dots.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>;
+
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color;
+        <SPAN CLASS=t>bool </SPAN>Rounded;
+        DashTypeEnum DashType;
+        <SPAN CLASS=t>double </SPAN>DashLengthFactor;
+        <SPAN CLASS=t>double </SPAN>GapLengthFactor;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRoundedStroke"></A><SPAN CLASS=c>//==============================================================================
+//============================== <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK);
+                <SPAN CLASS=c>// Construct a stroke for a continues line with rounded joins
+                // and caps.
+                // Arguments:
+                //   color  Color of the stroke.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emDashedStroke"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                       <SPAN CLASS=t>double </SPAN>dashLengthFactor=<SPAN CLASS=u>1.0</SPAN>,
+                       <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke for a dashed line.
+                // Arguments:
+                //   color             Color of the stroke.
+                //   dashLengthFactor  Length factor for dashes.
+                //   gapLengthFactor   Length factor for gaps between dashes.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRoundedDashedStroke"></A><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A> ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                              <SPAN CLASS=t>double </SPAN>dashLengthFactor=<SPAN CLASS=u>1.0</SPAN>,
+                              <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke for a dashed line with rounded joins and
+                // caps.
+                // Arguments:
+                //   color             Color of the stroke.
+                //   dashLengthFactor  Length factor for dashes.
+                //   gapLengthFactor   Length factor for gaps between dashes.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emDottedStroke"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A> ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                       <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke for a dotted line.
+                // Arguments:
+                //   color            Color of the stroke.
+                //   gapLengthFactor  Length factor for gaps between dots.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRoundedDottedStroke"></A><SPAN CLASS=c>//==============================================================================
+//=========================== <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A> ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                              <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke for a dotted line with rounded joins and
+                // caps.
+                // Arguments:
+                //   color            Color of the stroke.
+                //   gapLengthFactor  Length factor for gaps between dots.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emDashDottedStroke"></A><SPAN CLASS=c>//==============================================================================
+//============================= <A CLASS=m HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A> =============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                           <SPAN CLASS=t>double </SPAN>dashLengthFactor=<SPAN CLASS=u>1.0</SPAN>,
+                           <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke for a dash-dotted line.
+                // Arguments:
+                //   color             Color of the stroke.
+                //   dashLengthFactor  Length factor for dashes.
+                //   gapLengthFactor   Length factor for gaps between dashes and
+                //                     dots.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRoundedDashDottedStroke"></A><SPAN CLASS=c>//==============================================================================
+//========================= <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A> ==========================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
+                                  <SPAN CLASS=t>double </SPAN>dashLengthFactor=<SPAN CLASS=u>1.0</SPAN>,
+                                  <SPAN CLASS=t>double </SPAN>gapLengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke for a dash-dotted line with rounded joins and
+                // caps.
+                // Arguments:
+                //   color             Color of the stroke.
+                //   dashLengthFactor  Length factor for dashes.
+                //   gapLengthFactor   Length factor for gaps between dashes and
+                //                     dots.
+</SPAN><SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+//---------------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emStroke">emStroke</A> ----------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>bool </SPAN>rounded, DashTypeEnum dashType,
+        <SPAN CLASS=t>double </SPAN>dashLengthFactor, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        Color(color),
+        Rounded(rounded),
+        DashType(dashType),
+        DashLengthFactor(dashLengthFactor),
+        GapLengthFactor(gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(emUInt32 packedColor)
+        : Color(packedColor),
+        Rounded(<SPAN CLASS=k>false</SPAN>),
+        DashType(SOLID),
+        DashLengthFactor(<SPAN CLASS=u>1.0</SPAN>),
+        GapLengthFactor(<SPAN CLASS=u>1.0</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::GetColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Color;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
+<SPAN CLASS=b>{
+        </SPAN>Color=color;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::IsRounded() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Rounded;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::SetRounded(<SPAN CLASS=t>bool </SPAN>rounded)
+<SPAN CLASS=b>{
+        </SPAN>Rounded=rounded;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::DashTypeEnum <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::GetDashType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DashType;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::SetDashType(DashTypeEnum dashType)
+<SPAN CLASS=b>{
+        </SPAN>DashType=dashType;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::GetDashLengthFactor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>DashLengthFactor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::SetDashLengthFactor(<SPAN CLASS=t>double </SPAN>dashLengthFactor)
+<SPAN CLASS=b>{
+        </SPAN>DashLengthFactor=dashLengthFactor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::GetGapLengthFactor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>GapLengthFactor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::SetGapLengthFactor(<SPAN CLASS=t>double </SPAN>gapLengthFactor)
+<SPAN CLASS=b>{
+        </SPAN>GapLengthFactor=gapLengthFactor;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=c>//------------------------------ <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A> -------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emRoundedStroke">emRoundedStroke</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
+        : <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>true</SPAN>)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//------------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A> -------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emDashedStroke">emDashedStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>double </SPAN>dashLengthFactor, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>false</SPAN>,DASHED,dashLengthFactor,gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//--------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A> ----------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashedStroke">emRoundedDashedStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>double </SPAN>dashLengthFactor, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>true</SPAN>,DASHED,dashLengthFactor,gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//------------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A> -------------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emDottedStroke">emDottedStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>false</SPAN>,DOTTED,<SPAN CLASS=u>1.0</SPAN>,gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//--------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A> ----------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDottedStroke">emRoundedDottedStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>true</SPAN>,DOTTED,<SPAN CLASS=u>1.0</SPAN>,gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//----------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A> -----------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emDashDottedStroke">emDashDottedStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>double </SPAN>dashLengthFactor, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>false</SPAN>,DASH_DOTTED,dashLengthFactor,gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=c>//------------------------- <A CLASS=m HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A> --------------------------
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A>::<A CLASS=l HREF="emCore_emStroke_h.html#emRoundedDashDottedStroke">emRoundedDashDottedStroke</A>(
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <SPAN CLASS=t>double </SPAN>dashLengthFactor, <SPAN CLASS=t>double </SPAN>gapLengthFactor
+) :
+        <A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>(color,<SPAN CLASS=k>true</SPAN>,DASH_DOTTED,dashLengthFactor,gapLengthFactor)
+<SPAN CLASS=b>{
+}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

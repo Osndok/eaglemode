@@ -92,6 +92,7 @@ sub Build
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emPng",
+		"src/emPng/emPngDecode.c",
 		"src/emPng/emPngFpPlugin.cpp",
 		"src/emPng/emPngImageFileModel.cpp"
 	)==0 or return 0;

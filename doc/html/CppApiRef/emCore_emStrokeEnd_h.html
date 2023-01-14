@@ -1,0 +1,328 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emStrokeEnd.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>.h
+//
+// Copyright (C) 2022 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emStrokeEnd_h
+#define emStrokeEnd_h
+
+#ifndef emColor_h
+#include &lt;<A CLASS=f HREF="emCore_emColor_h.html">emCore/emColor.h</A>&gt;
+#endif
+
+
+<A NAME="emStrokeEnd"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for specifying how to paint an end of a line.
+
+        </SPAN><SPAN CLASS=t>enum </SPAN>TypeEnum <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=c>// Data type for the shape or picture at the end of the line.
+
+                </SPAN>BUTT,
+                        <SPAN CLASS=c>// Cut the line at the reference point.
+                        // ********
+                        // *******|
+                        // ******-+-
+                        // *******|
+                        // ********
+
+                </SPAN>CAP,
+                        <SPAN CLASS=c>// Extend the line by half of the stroke width, rounded
+                        // or not depending on <A CLASS=m HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::IsRounded().
+                        //
+                        // If stroke not rounded:
+                        // ***********
+                        // *******|***
+                        // ******-+-**
+                        // *******|***
+                        // ***********
+                        // If stroke rounded:
+                        // ********
+                        // *******|**
+                        // ******-+-**
+                        // *******|**
+                        // ********
+
+                </SPAN>ARROW,
+                        <SPAN CLASS=c>//     **
+                        //     ****
+                        //      *****
+                        // ************
+                        //      *****
+                        //     ****
+                        //     **
+
+                </SPAN>CONTOUR_ARROW,
+                        <SPAN CLASS=c>//     **
+                        //     * **
+                        //      *  **
+                        // *******   **
+                        //      *  **
+                        //     * **
+                        //     **
+
+                </SPAN>LINE_ARROW,
+                        <SPAN CLASS=c>//     **
+                        //       **
+                        //         **
+                        // ************
+                        //         **
+                        //       **
+                        //     **
+
+                </SPAN>TRIANGLE,
+                        <SPAN CLASS=c>//     **
+                        //     ****
+                        //     ******
+                        // ************
+                        //     ******
+                        //     ****
+                        //     **
+
+                </SPAN>CONTOUR_TRIANGLE,
+                        <SPAN CLASS=c>//     **
+                        //     * **
+                        //     *   **
+                        // *****     **
+                        //     *   **
+                        //     * **
+                        //     **
+
+                </SPAN>SQUARE,
+                        <SPAN CLASS=c>//    ***********
+                        //    ***********
+                        //    ***********
+                        // **************
+                        //    ***********
+                        //    ***********
+                        //    ***********
+
+                </SPAN>CONTOUR_SQUARE,
+                        <SPAN CLASS=c>//    ***********
+                        //    *         *
+                        //    *         *
+                        // ****         *
+                        //    *         *
+                        //    *         *
+                        //    ***********
+
+                </SPAN>HALF_SQUARE,
+                        <SPAN CLASS=c>//    ******
+                        //    *
+                        //    *
+                        // ****
+                        //    *
+                        //    *
+                        //    ******
+
+                </SPAN>CIRCLE,
+                        <SPAN CLASS=c>//       *****
+                        //     *********
+                        //    ***********
+                        // **************
+                        //    ***********
+                        //     *********
+                        //       *****
+
+                </SPAN>CONTOUR_CIRCLE,
+                        <SPAN CLASS=c>//       *****
+                        //     **     **
+                        //    *         *
+                        // ****         *
+                        //    *         *
+                        //     **     **
+                        //       *****
+
+                </SPAN>HALF_CIRCLE,
+                        <SPAN CLASS=c>//       ***
+                        //     **
+                        //    *
+                        // ****
+                        //    *
+                        //     **
+                        //       ***
+
+                </SPAN>DIAMOND,
+                        <SPAN CLASS=c>//        ***
+                        //      *******
+                        //    ***********
+                        // ****************
+                        //    ***********
+                        //      *******
+                        //        ***
+
+                </SPAN>CONTOUR_DIAMOND,
+                        <SPAN CLASS=c>//        ***
+                        //      **   **
+                        //    **       **
+                        // ***           **
+                        //    **       **
+                        //      **   **
+                        //        ***
+
+                </SPAN>HALF_DIAMOND,
+                        <SPAN CLASS=c>//        **
+                        //      **
+                        //    **
+                        // ***
+                        //    **
+                        //      **
+                        //        **
+
+                </SPAN>STROKE,
+                        <SPAN CLASS=c>//        *
+                        //        *
+                        //        *
+                        // ********
+                        //        *
+                        //        *
+                        //        *
+
+                </SPAN>NO_END
+                        <SPAN CLASS=c>// Only for internal use by <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>, not part of
+                        // public API.
+        </SPAN><SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(TypeEnum type=BUTT, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> innerColor=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::WHITE,
+                    <SPAN CLASS=t>double </SPAN>widthFactor=<SPAN CLASS=u>1.0</SPAN>, <SPAN CLASS=t>double </SPAN>lengthFactor=<SPAN CLASS=u>1.0</SPAN>);
+                <SPAN CLASS=c>// Construct a stroke end.
+                // Arguments:
+                //   type          Type of the stroke end.
+                //   innerColor    Inner color if it is a contour type.
+                //   widthFactor   Factor for the width of the arrow or other
+                //                 picture.
+                //   lengthFactor  Factor for the length of the arrow or other
+                //                 picture.
+
+        </SPAN>TypeEnum GetType() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetType(TypeEnum type);
+                <SPAN CLASS=c>// Get or set the type of the stroke end.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsDecorated() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether there is an arrow or other picture. This is true
+                // if the type is none of BUTT, CAP, and NO_END.
+
+        </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> GetInnerColor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetInnerColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> innerColor);
+                <SPAN CLASS=c>// Get or set the inner color of contour types. This is only
+                // CONTOUR_ARROW, CONTOUR_TRIANGLE, CONTOUR_SQUARE,
+                // CONTOUR_CIRCLE, and CONTOUR_DIAMOND.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetWidthFactor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetWidthFactor(<SPAN CLASS=t>double </SPAN>widthFactor);
+                <SPAN CLASS=c>// Get or set the factor for the width of the arrow or other
+                // picture. This is only for types other than BUTT, CAP, and
+                // NO_END.
+
+        </SPAN><SPAN CLASS=t>double </SPAN>GetLengthFactor() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetLengthFactor(<SPAN CLASS=t>double </SPAN>lengthFactor);
+                <SPAN CLASS=c>// Get or set the factor for the length of the arrow or other
+                // picture. This is only for types other than BUTT, CAP, and
+                // NO_END.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>;
+
+        TypeEnum Type;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> InnerColor;
+        <SPAN CLASS=t>double </SPAN>WidthFactor;
+        <SPAN CLASS=t>double </SPAN>LengthFactor;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(
+        TypeEnum type, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> innerColor, <SPAN CLASS=t>double </SPAN>widthFactor,
+        <SPAN CLASS=t>double </SPAN>lengthFactor
+) :
+        Type(type),
+        InnerColor(innerColor),
+        WidthFactor(widthFactor),
+        LengthFactor(lengthFactor)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::TypeEnum <A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::GetType() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Type;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::SetType(TypeEnum type)
+<SPAN CLASS=b>{
+        </SPAN>Type=type;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::IsDecorated() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Type!=BUTT &amp;&amp; Type!=CAP &amp;&amp; Type!=NO_END;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::GetInnerColor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>InnerColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::SetInnerColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> innerColor)
+<SPAN CLASS=b>{
+        </SPAN>InnerColor=innerColor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::GetWidthFactor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>WidthFactor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::SetWidthFactor(<SPAN CLASS=t>double </SPAN>widthFactor)
+<SPAN CLASS=b>{
+        </SPAN>WidthFactor=widthFactor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::GetLengthFactor() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LengthFactor;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::SetLengthFactor(<SPAN CLASS=t>double </SPAN>lengthFactor)
+<SPAN CLASS=b>{
+        </SPAN>LengthFactor=lengthFactor;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -369,6 +369,7 @@ emWndsWindowPort::emWndsWindowPort(emWindow & window)
 
 emWndsWindowPort::~emWndsWindowPort()
 {
+	emWndsWindowPort * wp;
 	int i;
 
 	SetModalState(false);
@@ -378,6 +379,20 @@ emWndsWindowPort::~emWndsWindowPort()
 			break;
 		}
 	}
+
+	if (Owner && Owner->HWnd && GetActiveWindow()==HWnd) {
+		// If an owner creates two children first A and then B, and if
+		// then A is destroyed before B, then a different application
+		// instead of the owner gets activated when B is destroyed. This
+		// workaround explicitly activates the owner if this was the
+		// last child.
+		for (i=Screen.WinPorts.GetCount()-1; i>=0; i--) {
+			wp=Screen.WinPorts[i];
+			if (wp!=this && wp->Owner==Owner) break;
+		}
+		if (i<0) SetActiveWindow(Owner->HWnd);
+	}
+
 	DestroyWindow(HWnd);
 	if (BigIcon) DestroyIcon(BigIcon);
 	if (SmallIcon) DestroyIcon(SmallIcon);

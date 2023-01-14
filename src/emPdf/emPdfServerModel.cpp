@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.cpp
 //
-// Copyright (C) 2011,2014,2017-2019 Oliver Hamann.
+// Copyright (C) 2011,2014,2017-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -141,7 +141,7 @@ void emPdfServerModel::ClosePdf(PdfHandle pdfHandle)
 }
 
 
-void emPdfServerModel::Poll(unsigned maxMilliSecs)
+void emPdfServerModel::Poll(unsigned maxMillisecs)
 {
 	emUInt64 endTime,now;
 	int flags;
@@ -160,10 +160,10 @@ void emPdfServerModel::Poll(unsigned maxMilliSecs)
 		return;
 	}
 
-	endTime=emGetClockMS()+maxMilliSecs;
+	endTime=emGetClockMS()+maxMillisecs;
 
 	if (ProcTerminating) {
-		if (!Process.WaitForTermination(maxMilliSecs)) return;
+		if (!Process.WaitForTermination(maxMillisecs)) return;
 		ProcTerminating=false;
 	}
 

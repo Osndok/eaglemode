@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2017,2020 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2017,2020,2022 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -100,6 +100,8 @@ Topics=[
 			AutoSectionsFile("emCore/emColor.h"),
 			AutoSectionsFile("emCore/emImage.h"),
 			AutoSectionsFile("emCore/emTexture.h"),
+			AutoSectionsFile("emCore/emStroke.h"),
+			AutoSectionsFile("emCore/emStrokeEnd.h"),
 			AutoSectionsFile("emCore/emPainter.h"),
 			AutoSectionsFile("emCore/emATMatrix.h"),
 			AutoSectionsFile("emCore/emClipRects.h")

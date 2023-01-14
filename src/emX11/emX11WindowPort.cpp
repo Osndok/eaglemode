@@ -412,6 +412,12 @@ void emX11WindowPort::PreConstruct()
 
 	memset(&xswa,0,sizeof(xswa));
 	xswa.bit_gravity=ForgetGravity;
+	if (OverrideRedirect && Screen.WorkAroundXWaylandBackPixelBug) {
+		// This gives much less flicker on XWayland, which otherwise
+		// behaves like xswa.back_pixel=0 plus XCreateWindow with
+		// CWBackPixel.
+		xswa.bit_gravity=StaticGravity;
+	}
 	xswa.colormap=Screen.Colmap;
 	xswa.event_mask=eventMask;
 	xswa.override_redirect=OverrideRedirect?True:False;
@@ -776,6 +782,13 @@ void emX11WindowPort::HandleEvent(XEvent & event)
 		}
 		tmp[len]=0;
 		key=emX11Screen::ConvertKey(ks,&variant);
+		if (key==EM_KEY_NONE) {
+			// Interpret without modifiers, e.g. if Shift+1 is pressed.
+			XMutex.Lock();
+			ks=XLookupKeysym(&event.xkey,0);
+			XMutex.Unlock();
+			key=emX11Screen::ConvertKey(ks,&variant);
+		}
 		if (key==EM_KEY_NONE && !tmp[0]) return;
 		repeat=0;
 		if (

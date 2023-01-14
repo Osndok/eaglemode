@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTreeSet.h
 //
-// Copyright (C) 2016 Oliver Hamann.
+// Copyright (C) 2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -288,7 +288,6 @@ private:
 	void MakeWritable(const OBJ * * preserve=NULL);
 	void DeleteData();
 	emAvlNode * CloneTree(emAvlNode * tree, const OBJ * * preserve);
-	static void DeleteTree(emAvlNode * tree);
 
 	SharedData * Data;
 	Iterator * Iterators;
@@ -1058,7 +1057,10 @@ template <class OBJ> void emAvlTreeSet<OBJ>::DeleteData()
 	// multiple times for the same final type (e.g. with Windows DLLs).
 	if (!Data->IsStaticEmpty) {
 		if (Data->AvlTree) {
-			DeleteTree(Data->AvlTree);
+			EM_AVL_CLEAR_VARS(Element)
+			EM_AVL_CLEAR_BEGIN(Element,AvlNode,Data->AvlTree)
+				delete element;
+			EM_AVL_CLEAR_END
 		}
 		delete Data;
 	}
@@ -1088,14 +1090,6 @@ template <class OBJ> emAvlNode * emAvlTreeSet<OBJ>::CloneTree(
 		e2->AvlNode.Right=CloneTree(e1->AvlNode.Right,preserve);
 	}
 	return &e2->AvlNode;
-}
-
-template <class OBJ> void emAvlTreeSet<OBJ>::DeleteTree(emAvlNode * tree)
-{
-	Element * element=EM_AVL_ELEMENT(Element,AvlNode,tree);
-	if (element->AvlNode.Left ) DeleteTree(element->AvlNode.Left );
-	if (element->AvlNode.Right) DeleteTree(element->AvlNode.Right);
-	delete element;
 }
 
 template <class OBJ>

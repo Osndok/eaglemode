@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.h
 //
-// Copyright (C) 2006-2010,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,13 +45,14 @@ public:
 		// If a child process is still running, Terminate() is called.
 
 	enum StartFlags {
-		SF_SHARE_STDIN  = 1<<0,
-		SF_PIPE_STDIN   = 1<<1,
-		SF_SHARE_STDOUT = 1<<2,
-		SF_PIPE_STDOUT  = 1<<3,
-		SF_SHARE_STDERR = 1<<4,
-		SF_PIPE_STDERR  = 1<<5,
-		SF_NO_WINDOW    = 1<<6
+		SF_SHARE_STDIN    = 1<<0,
+		SF_PIPE_STDIN     = 1<<1,
+		SF_SHARE_STDOUT   = 1<<2,
+		SF_PIPE_STDOUT    = 1<<3,
+		SF_SHARE_STDERR   = 1<<4,
+		SF_PIPE_STDERR    = 1<<5,
+		SF_NO_WINDOW      = 1<<6,
+		SF_USE_CTRL_BREAK = 1<<7
 	};
 
 	void TryStart(
@@ -90,7 +91,15 @@ public:
 		//              The other SF_*_STD* flags are for standard
 		//              output and standard error analogously.
 		//              SF_NO_WINDOW means to omit the console window of
-		//              a console process on Windows.
+		//              a console process on Windows. SF_USE_CTRL_BREAK
+		//              means to terminate the process by a Ctrl+Break
+		//              event instead of WM_QUIT on Windows. Therefore
+		//              an intermediate adapter process is run
+		//              (emWndsAdapterProc), which translates WM_QUIT to
+		//              Ctrl+Break, assuming that this calling process
+		//              is not a console process (an optimization for
+		//              the case that the caller is a console process
+		//              has not yet been implemented).
 		// Throws: An error message on failure.
 
 	static void TryStartUnmanaged(
@@ -164,8 +173,10 @@ public:
 		// signal SIGTERM is sent to the child process. On Windows, the
 		// message WM_QUIT is sent to the primary thread of the child
 		// process. Note that this does not work with a normal Windows
-		// console program, except the latter is explicitly programmed
-		// for receiving WM_QUIT.
+		// console program when it is not explicitly programmed for
+		// receiving WM_QUIT. For having an intermediate process that
+		// translates WM_QUIT to Ctrl+Break, please set the
+		// SF_USE_CTRL_BREAK flag when calling TryStart.
 
 	void SendKillSignal();
 		// Hardly kill the child process. Usually this should never be

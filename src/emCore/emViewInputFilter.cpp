@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.cpp
 //
-// Copyright (C) 2011-2012,2014-2016,2018-2020 Oliver Hamann.
+// Copyright (C) 2011-2012,2014-2016,2018-2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -140,10 +140,11 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 				f=GetMouseZoomSpeed(rwstate.GetShift());
 				MouseAnim.MoveGrip(2,-dmy*f);
 				if (CoreConfig->StickMouseWhenNavigating) {
-					MoveMousePointer(-dmx,-dmy);
-					mx-=dmx;
-					my-=dmy;
-					rwstate.SetMouse(mx,my);
+					if (MoveMousePointer(-dmx,-dmy)) {
+						mx-=dmx;
+						my-=dmy;
+						rwstate.SetMouse(mx,my);
+					}
 				}
 				ZoomFixX=mx;
 			}
@@ -155,10 +156,11 @@ void emMouseZoomScrollVIF::Input(emInputEvent & event, const emInputState & stat
 					CoreConfig->StickMouseWhenNavigating &&
 					!CoreConfig->PanFunction
 				) {
-					MoveMousePointer(-dmx,-dmy);
-					mx-=dmx;
-					my-=dmy;
-					rwstate.SetMouse(mx,my);
+					if (MoveMousePointer(-dmx,-dmy)) {
+						mx-=dmx;
+						my-=dmy;
+						rwstate.SetMouse(mx,my);
+					}
 				}
 				ZoomFixX=mx;
 				ZoomFixY=my;
@@ -321,17 +323,14 @@ bool emMouseZoomScrollVIF::MoveMousePointerBackIntoView(double * pmx, double * p
 }
 
 
-void emMouseZoomScrollVIF::MoveMousePointer(double dx, double dy)
+bool emMouseZoomScrollVIF::MoveMousePointer(double dx, double dy)
 {
 	emScreen * screen;
 
 	screen=GetView().GetScreen();
-	if (!screen) {
-		emFatalError(
-			"emMouseZoomScrollVIF::MoveMousePointer: No screen interface found."
-		);
-	}
+	if (!screen || !screen->CanMoveMousePointer()) return false;
 	screen->MoveMousePointer(dx,dy);
+	return true;
 }
 
 

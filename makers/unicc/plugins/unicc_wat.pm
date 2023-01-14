@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_wat.pm
 #
-# Copyright (C) 2006-2010 Oliver Hamann.
+# Copyright (C) 2006-2010,2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -184,7 +184,7 @@ sub Link
 		push(@args,"wlink");
 		push(@args,"OP"); push(@args,"Q");
 		if (HaveDebug) { push(@args,("DEBUG", "all")); }
-		push(@args,("OP", "ST=2048576")); #??? stack size
+		push(@args,("OP", "ST=8388608"));
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,("LIBP", $s)); }
 		foreach my $s (@{GetLinkNames()}) { push(@args,("L", $s)); }
 		my $objFiles=GetObjFiles;

@@ -1383,7 +1383,7 @@ emImage emImage::GetTransformed(
 
 
 void emImage::CalcMinMaxRect(int * pX, int * pY, int * pW, int * pH,
-                              emColor bgColor) const
+                             emColor bgColor) const
 {
 	emByte bgValue[4];
 	int cc,i,x1,y1,x2,y2,x,y,w,h;

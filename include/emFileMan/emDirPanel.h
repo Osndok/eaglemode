@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirPanel.h
 //
-// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -75,8 +75,6 @@ protected:
 	                                     const emString & name);
 
 private:
-
-	virtual void SetFileModel(emFileModel * fileModel, bool updateFileModel=true);
 
 	void UpdateChildren();
 	void SortChildren();

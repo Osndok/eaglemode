@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_bor.pm
 #
-# Copyright (C) 2006-2008 Oliver Hamann.
+# Copyright (C) 2006-2008,2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -189,7 +189,7 @@ sub Link
 		if ($type eq 'dynlib') {
 			push(@args,"-Tpd");
 		}
-		push(@args,"-S:2048576"); #??? stack size
+		push(@args,"-S:8388608");
 		if (HaveDebug) { push(@args,"-v"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }
 		if ($type eq 'cexe')   { push(@args,"c0x32.obj"); }

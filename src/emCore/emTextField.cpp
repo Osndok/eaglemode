@@ -48,12 +48,22 @@ emTextField::emTextField(
 	DragMode=DM_NONE;
 	DragPosC=0.0;
 	DragPosR=0.0;
+	FirstUndo=NULL;
+	LastUndo=NULL;
+	UndoSize=0;
+	UndoCount=0;
+	UndoMerge=UM_NO_MERGE;
+	FirstRedo=NULL;
+	ValidateFunc=NULL;
+	ValidateFuncContext=NULL;
 	SetBorderType(OBT_INSTRUMENT,Editable?IBT_INPUT_FIELD:IBT_OUTPUT_FIELD);
 }
 
 
 emTextField::~emTextField()
 {
+	ClearUndo();
+	ClearRedo();
 }
 
 
@@ -107,6 +117,8 @@ void emTextField::SetText(const emString & text)
 {
 	if (Text==text) return;
 	EmptySelection();
+	ClearUndo();
+	ClearRedo();
 	Text=text;
 	TextLen=Text.GetLen();
 	CursorIndex=TextLen;
@@ -156,15 +168,15 @@ void emTextField::Select(int startIndex, int endIndex, bool publish)
 }
 
 
-void emTextField::EmptySelection()
-{
-	Select(0,0,false);
-}
-
-
 void emTextField::SelectAll(bool publish)
 {
 	Select(0,TextLen,publish);
+}
+
+
+void emTextField::EmptySelection()
+{
+	Select(0,0,false);
 }
 
 
@@ -211,45 +223,68 @@ void emTextField::PasteSelectedTextFromClipboard()
 
 void emTextField::PasteSelectedText(const emString & text)
 {
-	int i,l,d;
-
-	if (text.IsEmpty()) return;
-	if (SelectionStartIndex<SelectionEndIndex) {
-		i=SelectionStartIndex;
-		l=SelectionEndIndex-SelectionStartIndex;
-		d=TextLen-SelectionEndIndex;
-		EmptySelection();
-	}
-	else {
-		i=CursorIndex;
-		l=0;
-		d=TextLen-CursorIndex;
-	}
-	Text.Replace(i,l,text);
-	TextLen=Text.GetLen();
-	CursorIndex=TextLen-d;
-	MagicCursorColumn=-1;
-	InvalidatePainting();
-	Signal(TextSignal);
-	TextChanged();
+	if (!text.IsEmpty()) ModifySelectedText(text,MF_VALIDATE|MF_CREATE_UNDO);
 }
 
 
 void emTextField::DeleteSelectedText()
 {
-	int i,l;
+	ModifySelectedText(emString(),MF_VALIDATE|MF_CREATE_UNDO);
+}
 
-	i=SelectionStartIndex;
-	l=SelectionEndIndex-SelectionStartIndex;
-	if (l<=0) return;
-	CursorIndex=i;
-	EmptySelection();
-	Text.Remove(i,l);
-	TextLen=Text.GetLen();
-	MagicCursorColumn=-1;
-	InvalidatePainting();
-	Signal(TextSignal);
-	TextChanged();
+
+void emTextField::Undo()
+{
+	UndoEntry * u;
+
+	if (!FirstUndo) return;
+	u=FirstUndo;
+	FirstUndo=u->Next;
+	if (FirstUndo) FirstUndo->Prev=NULL; else LastUndo=NULL;
+	UndoSize-=u->InsertText.GetLen();
+	UndoCount--;
+	if (!FirstUndo) Signal(CanUndoRedoSignal);
+	ModifyText(
+		u->Pos,u->RemoveLen,u->InsertText,
+		MF_CREATE_REDO|MF_NO_CLEAR_REDO|MF_SELECT
+	);
+	delete u;
+}
+
+
+void emTextField::Redo()
+{
+	RedoEntry * r;
+
+	if (!FirstRedo) return;
+	r=FirstRedo;
+	FirstRedo=r->Next;
+	if (!FirstRedo) Signal(CanUndoRedoSignal);
+	ModifyText(
+		r->Pos,r->RemoveLen,r->InsertText,
+		MF_CREATE_UNDO|MF_NO_CLEAR_REDO|MF_SELECT
+	);
+	delete r;
+}
+
+
+bool emTextField::Validate(int & pos, int & removeLen, emString & insertText) const
+{
+	if (!ValidateFunc) return true;
+	return ValidateFunc(*this,pos,removeLen,insertText,ValidateFuncContext);
+}
+
+
+void emTextField::SetValidateFunc(
+	bool(*validateFunc)(
+		const emTextField & textField, int & pos, int & removeLen,
+		emString & insertText, void * context
+	),
+	void * context
+)
+{
+	ValidateFunc=validateFunc;
+	ValidateFuncContext=context;
 }
 
 
@@ -316,6 +351,7 @@ void emTextField::Input(
 {
 	static const double minExt=9;
 	double mc,mr;
+	UndoMergeType undoMerge;
 	int col,row,i,i1,i2,j1,j2;
 	bool inArea;
 	emString str;
@@ -343,6 +379,7 @@ void emTextField::Input(
 						DragPosC=mc-col;
 						DragPosR=mr-row;
 						SetDragMode(DM_MOVE);
+						if (UndoMerge==UM_MOVE) UndoMerge=UM_NO_MERGE;
 					}
 				}
 			}
@@ -488,21 +525,28 @@ void emTextField::Input(
 		i2=SelectionEndIndex;
 		if (i1<i2 && IsEditable() && IsEnabled()) {
 			str=Text.Extract(i1,i2-i1);
-			TextLen=Text.GetLen();
+			TextLen-=i2-i1;
 			i=ColRow2Index(mc-DragPosC,mr-DragPosR+0.5,true);
-			Text.Insert(i,str);
-			TextLen=Text.GetLen();
+			Text.Insert(i1,str);
+			TextLen+=i2-i1;
 			if (i!=i1) {
-				SelectionStartIndex+=i-i1;
-				SelectionEndIndex+=i-i1;
+				if (i1<i) {
+					i+=i2-i1;
+					str.Insert(0,Text.GetSubString(i2,i-i2));
+					ModifyText(i1,i-i1,str,MF_CREATE_UNDO,UM_MOVE);
+					SelectionStartIndex=i-i2+i1;
+					SelectionEndIndex=i;
+				}
+				else {
+					str.Add(Text.GetSubString(i,i1-i));
+					ModifyText(i,i2-i,str,MF_CREATE_UNDO,UM_MOVE);
+					SelectionStartIndex=i;
+					SelectionEndIndex=i+i2-i1;
+				}
 				CursorIndex=SelectionEndIndex;
-				MagicCursorColumn=-1;
-				RestartCursorBlinking();
-				InvalidatePainting();
-				Signal(TextSignal);
-				TextChanged();
 				Signal(SelectionSignal);
 				SelectionChanged();
+				RestartCursorBlinking();
 			}
 		}
 		if (!state.Get(EM_KEY_LEFT_BUTTON)) {
@@ -603,6 +647,12 @@ void emTextField::Input(
 			ScrollToCursor();
 			event.Eat();
 		}
+		if (event.IsKey(EM_KEY_A) && state.IsShiftCtrlMod()) {
+			EmptySelection();
+			RestartCursorBlinking();
+			ScrollToCursor();
+			event.Eat();
+		}
 		if (event.IsKey(EM_KEY_INSERT) && state.IsNoMod()) {
 			SetOverwriteMode(!GetOverwriteMode());
 			RestartCursorBlinking();
@@ -622,19 +672,48 @@ void emTextField::Input(
 		GetViewCondition(VCT_MIN_EXT)>=minExt
 	) {
 		if (event.IsKey(EM_KEY_BACKSPACE) && state.IsNoMod()) {
-			if (IsSelectionEmpty()) {
-				Select(GetPrevIndex(CursorIndex),CursorIndex,false);
+			if (!IsSelectionEmpty()) {
+				DeleteSelectedText();
 			}
-			DeleteSelectedText();
+			else {
+				i=GetPrevIndex(CursorIndex);
+				if (i<CursorIndex) {
+					ModifyText(
+						i,CursorIndex-i,emString(),MF_VALIDATE|MF_CREATE_UNDO,
+						UM_BACKSPACE
+					);
+				}
+			}
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
 		}
 		if (event.IsKey(EM_KEY_DELETE) && state.IsNoMod()) {
-			if (IsSelectionEmpty()) {
-				Select(CursorIndex,GetNextIndex(CursorIndex),false);
+			if (!IsSelectionEmpty()) {
+				DeleteSelectedText();
 			}
-			DeleteSelectedText();
+			else {
+				i=GetNextIndex(CursorIndex);
+				if (i>CursorIndex) {
+					ModifyText(
+						CursorIndex,i-CursorIndex,emString(),MF_VALIDATE|MF_CREATE_UNDO,
+						UM_DELETE
+					);
+				}
+			}
+			RestartCursorBlinking();
+			ScrollToCursor();
+			event.Eat();
+		}
+		if (event.IsKey(EM_KEY_Z) && state.IsCtrlMod()) {
+			Undo();
+			RestartCursorBlinking();
+			ScrollToCursor();
+			event.Eat();
+		}
+		if ((event.IsKey(EM_KEY_Z) && state.IsShiftCtrlMod()) ||
+		    (event.IsKey(EM_KEY_Y) && state.IsCtrlMod())) {
+			Redo();
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
@@ -654,47 +733,75 @@ void emTextField::Input(
 			event.Eat();
 		}
 		if (event.IsKey(EM_KEY_BACKSPACE) && state.IsCtrlMod()) {
-			if (IsSelectionEmpty()) {
-				Select(GetPrevWordIndex(CursorIndex),CursorIndex,false);
+			if (!IsSelectionEmpty()) {
+				DeleteSelectedText();
 			}
-			DeleteSelectedText();
+			else {
+				i=GetPrevWordIndex(CursorIndex);
+				if (i<CursorIndex) {
+					ModifyText(
+						i,CursorIndex-i,emString(),MF_VALIDATE|MF_CREATE_UNDO,
+						UM_BACKSPACE
+					);
+				}
+			}
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
 		}
 		if (event.IsKey(EM_KEY_DELETE) && state.IsCtrlMod()) {
-			if (IsSelectionEmpty()) {
-				Select(
-					CursorIndex,
-					GetNextWordIndex(CursorIndex),
-					false
-				);
+			if (!IsSelectionEmpty()) {
+				DeleteSelectedText();
 			}
-			DeleteSelectedText();
+			else {
+				i=GetNextWordIndex(CursorIndex);
+				if (i>CursorIndex) {
+					ModifyText(
+						CursorIndex,i-CursorIndex,emString(),MF_VALIDATE|MF_CREATE_UNDO,
+						UM_DELETE
+					);
+				}
+			}
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
 		}
 		if (event.IsKey(EM_KEY_BACKSPACE) && state.IsShiftCtrlMod()) {
-			if (IsSelectionEmpty()) {
-				Select(GetRowStartIndex(CursorIndex),CursorIndex,false);
+			if (!IsSelectionEmpty()) {
+				DeleteSelectedText();
 			}
-			DeleteSelectedText();
+			else {
+				i=GetRowStartIndex(CursorIndex);
+				if (i<CursorIndex) {
+					ModifyText(
+						i,CursorIndex-i,emString(),MF_VALIDATE|MF_CREATE_UNDO,
+						UM_BACKSPACE
+					);
+				}
+			}
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
 		}
 		if (event.IsKey(EM_KEY_DELETE) && state.IsShiftCtrlMod()) {
-			if (IsSelectionEmpty()) {
-				Select(CursorIndex,GetRowEndIndex(CursorIndex),false);
+			if (!IsSelectionEmpty()) {
+				DeleteSelectedText();
 			}
-			DeleteSelectedText();
+			else {
+				i=GetRowEndIndex(CursorIndex);
+				if (i>CursorIndex) {
+					ModifyText(
+						CursorIndex,i-CursorIndex,emString(),MF_VALIDATE|MF_CREATE_UNDO,
+						UM_DELETE
+					);
+				}
+			}
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
 		}
 		if (MultiLineMode && event.IsKey(EM_KEY_ENTER) && state.IsNoMod()) {
-			PasteSelectedText("\n");
+			ModifySelectedText("\n",MF_VALIDATE|MF_CREATE_UNDO,UM_NEW_LINE);
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
@@ -704,13 +811,30 @@ void emTextField::Input(
 			(unsigned char)(event.GetChars()[0])>=32 &&
 			event.GetChars()[0]!=127
 		) {
+			emDecodeChar(&i,event.GetChars());
 			if (
-				OverwriteMode && IsSelectionEmpty() &&
-				CursorIndex<GetRowEndIndex(CursorIndex)
+				(i>='0' && i<='9') || (i>='a' && i<='z') ||
+				(i>='A' && i<='Z') || i>=128
 			) {
-				Select(CursorIndex,GetNextIndex(CursorIndex),false);
+				undoMerge=UM_ALPHA_NUM;
 			}
-			PasteSelectedText(event.GetChars());
+			else {
+				undoMerge=UM_NON_ALPHA_NUM;
+			}
+			if (!IsSelectionEmpty()) {
+				ModifySelectedText(event.GetChars(),MF_VALIDATE|MF_CREATE_UNDO,undoMerge);
+			}
+			else if (OverwriteMode && CursorIndex<GetRowEndIndex(CursorIndex)) {
+				ModifyText(
+					CursorIndex,GetNextIndex(CursorIndex)-CursorIndex,
+					event.GetChars(),MF_VALIDATE|MF_CREATE_UNDO,undoMerge
+				);
+			}
+			else {
+				ModifyText(
+					CursorIndex,0,event.GetChars(),MF_VALIDATE|MF_CREATE_UNDO,undoMerge
+				);
+			}
 			RestartCursorBlinking();
 			ScrollToCursor();
 			event.Eat();
@@ -959,6 +1083,218 @@ void emTextField::DoTextField(
 			xy[14]=cx-d1; xy[15]=cy;
 			painter->PaintPolygon(xy,8,curColor);
 		}
+	}
+}
+
+
+void emTextField::ClearUndo()
+{
+	UndoEntry * u;
+
+	if (FirstUndo) {
+		do {
+			u=FirstUndo;
+			FirstUndo=u->Next;
+			delete u;
+		} while (FirstUndo);
+		LastUndo=NULL;
+		UndoSize=0;
+		UndoCount=0;
+		UndoMerge=UM_NO_MERGE;
+		Signal(CanUndoRedoSignal);
+	}
+}
+
+
+void emTextField::ClearRedo()
+{
+	RedoEntry * r;
+
+	if (FirstRedo) {
+		do {
+			r=FirstRedo;
+			FirstRedo=r->Next;
+			delete r;
+		} while (FirstRedo);
+		Signal(CanUndoRedoSignal);
+	}
+}
+
+
+void emTextField::CreateUndo(
+	int pos, int removeLen, const emString & insertText, UndoMergeType undoMerge
+)
+{
+	static const int MAX_UNDOS=200;
+	static const int MIN_UNDOS=3;
+	static const size_t MAX_UNDO_SIZE=10000000;
+	UndoEntry * u;
+	int l,insertLen;
+
+	if (!FirstUndo) Signal(CanUndoRedoSignal);
+
+	insertLen=insertText.GetLen();
+
+	if (
+		FirstUndo && (
+			(
+				undoMerge==UM_BACKSPACE && UndoMerge==UM_BACKSPACE &&
+				FirstUndo->Pos==pos+insertLen
+			) || (
+				undoMerge==UM_DELETE && UndoMerge==UM_DELETE &&
+				FirstUndo->Pos==pos
+			) || (
+				(undoMerge==UM_ALPHA_NUM || undoMerge==UM_NON_ALPHA_NUM) &&
+				(UndoMerge==undoMerge || UndoMerge==UM_NON_ALPHA_NUM) &&
+				FirstUndo->Pos+FirstUndo->RemoveLen==pos
+			) || (
+				undoMerge==UM_NEW_LINE && UndoMerge==UM_NEW_LINE &&
+				FirstUndo->Pos+FirstUndo->RemoveLen==pos
+			) || (
+				undoMerge==UM_MOVE && UndoMerge==UM_MOVE
+			)
+		)
+	) {
+		u=FirstUndo;
+		l=u->Pos-(pos+insertLen);
+		if (l>0) {
+			u->InsertText.Insert(0,Text.GetSubString(pos+insertLen,l));
+			u->Pos-=l;
+			u->RemoveLen+=l;
+			UndoSize+=l;
+		}
+		l=u->Pos-pos;
+		if (l>0) {
+			u->InsertText.Insert(0,insertText.GetSubString(0,l));
+			u->Pos-=l;
+			u->RemoveLen+=l;
+			UndoSize+=l;
+		}
+		l=pos-(u->Pos+u->RemoveLen);
+		if (l>0) {
+			u->InsertText+=Text.GetSubString(u->Pos+u->RemoveLen,l);
+			u->RemoveLen+=l;
+			UndoSize+=l;
+		}
+		l=pos+insertLen-(u->Pos+u->RemoveLen);
+		if (l>0) {
+			u->InsertText+=insertText.GetSubString(insertLen-l,l);
+			u->RemoveLen+=l;
+			UndoSize+=l;
+		}
+		u->RemoveLen+=removeLen-insertLen;
+	}
+	else {
+		u=new UndoEntry;
+		u->Pos=pos;
+		u->RemoveLen=removeLen;
+		u->InsertText=insertText;
+		u->Next=FirstUndo;
+		u->Prev=NULL;
+		if (FirstUndo) FirstUndo->Prev=u; else LastUndo=u;
+		FirstUndo=u;
+		UndoSize+=insertLen;
+		UndoCount++;
+	}
+
+	UndoMerge=undoMerge;
+
+	while (UndoCount>MAX_UNDOS || (UndoSize>MAX_UNDO_SIZE && UndoCount>MIN_UNDOS)) {
+		u=LastUndo;
+		LastUndo=u->Prev;
+		if (LastUndo) LastUndo->Next=NULL; else FirstUndo=NULL;
+		UndoSize-=u->InsertText.GetLen();
+		UndoCount--;
+		delete u;
+	}
+}
+
+
+void emTextField::CreateRedo(int pos, int removeLen, const emString & insertText)
+{
+	RedoEntry * r;
+
+	if (!FirstRedo) Signal(CanUndoRedoSignal);
+	r=new RedoEntry;
+	r->Pos=pos;
+	r->RemoveLen=removeLen;
+	r->InsertText=insertText;
+	r->Next=FirstRedo;
+	FirstRedo=r;
+}
+
+
+void emTextField::ModifySelectedText(
+	const emString & insertText, int modifyFlags, UndoMergeType undoMerge
+)
+{
+	int pos,removeLen;
+
+	if (SelectionStartIndex<SelectionEndIndex) {
+		pos=SelectionStartIndex;
+		removeLen=SelectionEndIndex-SelectionStartIndex;
+	}
+	else {
+		pos=CursorIndex;
+		removeLen=0;
+	}
+	ModifyText(pos,removeLen,insertText,modifyFlags,undoMerge);
+}
+
+
+void emTextField::ModifyText(
+	int pos, int removeLen, emString insertText, int modifyFlags,
+	UndoMergeType undoMerge
+)
+{
+	int insertLen;
+	bool wasEmpty;
+
+	if (pos<0) pos=0;
+	if (pos>TextLen) pos=TextLen;
+	if (removeLen<0) removeLen=0;
+	if (removeLen>TextLen-pos) removeLen=TextLen-pos;
+
+	if (modifyFlags&MF_VALIDATE) {
+		wasEmpty=insertText.IsEmpty();
+		if (!Validate(pos,removeLen,insertText)) return;
+		if (!wasEmpty && insertText.IsEmpty()) return;
+		if (pos<0) pos=0;
+		if (pos>TextLen) pos=TextLen;
+		if (removeLen<0) removeLen=0;
+		if (removeLen>TextLen-pos) removeLen=TextLen-pos;
+	}
+
+	insertLen=insertText.GetLen();
+	if (removeLen<=0 && insertLen<=0) return;
+
+	if (modifyFlags&MF_CREATE_UNDO) {
+		CreateUndo(pos,insertLen,Text.GetSubString(pos,removeLen),undoMerge);
+	}
+	else if (modifyFlags&MF_CREATE_REDO) {
+		CreateRedo(pos,insertLen,Text.GetSubString(pos,removeLen));
+		UndoMerge=UM_NO_MERGE;
+	}
+	else {
+		ClearUndo();
+	}
+
+	if ((modifyFlags&MF_NO_CLEAR_REDO)==0) {
+		ClearRedo();
+	}
+
+	EmptySelection();
+
+	Text.Replace(pos,removeLen,insertText);
+	TextLen+=insertLen-removeLen;
+	CursorIndex=pos+insertLen;
+	MagicCursorColumn=-1;
+	InvalidatePainting();
+	Signal(TextSignal);
+	TextChanged();
+
+	if ((modifyFlags&MF_SELECT)!=0 && insertLen>0) {
+		Select(pos,pos+insertLen,false);
 	}
 }
 
@@ -1437,6 +1773,8 @@ const char * const emTextField::HowToTextField=
 	"\n"
 	"  Ctrl+A                  - Select the whole text.\n"
 	"\n"
+	"  Shift+Ctrl+A            - Clear the selection.\n"
+	"\n"
 	"  Insert                  - Switch between insert mode and replace mode.\n"
 	"\n"
 	"  Backspace               - Delete the selected text, or the character on the\n"
@@ -1444,6 +1782,10 @@ const char * const emTextField::HowToTextField=
 	"\n"
 	"  Delete                  - Delete the selected text, or the character on the\n"
 	"                            right side of the cursor.\n"
+	"\n"
+	"  Ctrl+Z                  - Undo last change.\n"
+	"\n"
+	"  Shift+Ctrl+Z or Ctrl+Y  - Redo last undone change.\n"
 	"\n"
 	"  Shift+Delete or Ctrl+X  - Cut operation: Copy the selected text to the\n"
 	"                            clipboard and delete it.\n"

@@ -88,23 +88,103 @@ public:
 		// The text.
 
 	int GetTextLen() const;
+		// Get number of bytes in the text.
+
 	int GetCursorIndex() const;
 	void SetCursorIndex(int index);
+		// Position of cursor as a byte index to the text.
+
 	const emSignal & GetSelectionSignal() const;
+		// Signaled whenever the selection has changed.
+
 	int GetSelectionStartIndex() const;
+		// Get start of selection as a byte index to the text.
+
 	int GetSelectionEndIndex() const;
-	void Select(int startIndex, int endIndex, bool publish);
+		// Get end of selection as an exclusive byte index to the text.
+
 	bool IsSelectionEmpty() const;
-	void EmptySelection();
+		//  Whether the selection is empty.
+
+	void Select(int startIndex, int endIndex, bool publish);
+		// Set the selection.
+		// Arguments:
+		//   startIndex  - Start as a byte index to the text.
+		//   endIndex    - End as an exclusive byte index to the text.
+		//   publish     - Whether to publish the selection.
+
 	void SelectAll(bool publish);
+		// Select the whole text.
+		// Arguments:
+		//   publish - Whether to publish the selection.
+
+	void EmptySelection();
+		// Empty the selection.
+
 	void PublishSelection();
+		// Publish the current selection.
+
 	void CutSelectedTextToClipboard();
+		// Remove the selected text and put it to the clipboard.
+
 	void CopySelectedTextToClipboard();
+		// Copy the selected text to the clipboard.
+
 	void PasteSelectedTextFromClipboard();
+		// Paste selected text from the clipboard. If the selection is
+		// empty, the text from the clipboard is inserted at the cursor
+		// position. Otherwise the selected text is replaced.
+
 	void PasteSelectedText(const emString & text);
+		// Paste selected text. If the selection is empty, the given
+		// text is inserted at the cursor position. Otherwise the
+		// selected text is replaced.
+
 	void DeleteSelectedText();
+		// Remove the selected text.
+
 	bool IsCursorBlinkOn() const;
-		// Advanced stuff - still undocumented.
+		// Whether the cursor is shown at this moment.
+
+	const emSignal & GetCanUndoRedoSignal() const;
+		// Signaled whenever the result of CanUndo() or CanRedo() has changed.
+
+	bool CanUndo() const;
+		// Whether there is at least one entry in the undo buffer.
+
+	bool CanRedo() const;
+		// Whether there is at least one entry in the redo buffer.
+
+	void Undo();
+		// Undo last change if possible.
+
+	void Redo();
+		// Redo last undone change if possible.
+
+	virtual bool Validate(int & pos, int & removeLen, emString & insertText) const;
+		// This method is called whenever the text is about to change
+		// (except by SetText(..)). The implementation may either accept
+		// the change (return true), adapt it (modify pos, removeLen
+		// and/or insertText, and return true), or reject the change
+		// (return false). The default implementation uses the callback
+		// function set with SetValidateFunc(..).
+		// Arguments:
+		//   pos        - Byte index where the text is changed.
+		//   removeLen  - How many bytes to remove at position pos.
+		//   insertText - The text to be inserted at position pos.
+		// Returns:
+		//   true on proceed with the change, false to abort.
+
+	void SetValidateFunc(
+		bool(*validateFunc)(
+			const emTextField & textField, int & pos, int & removeLen,
+			emString & insertText, void * context
+		),
+		void * context=NULL
+	);
+		// Set a validate function. The arguments to the function are
+		// like Validate(..). The context can be any pointer, it is
+		// forwarded to the function.
 
 protected:
 
@@ -141,6 +221,39 @@ protected:
 
 private:
 
+	struct UndoEntry {
+		UndoEntry * Prev;
+		UndoEntry * Next;
+		int Pos;
+		int RemoveLen;
+		emString InsertText;
+	};
+
+	struct RedoEntry {
+		RedoEntry * Next;
+		int Pos;
+		int RemoveLen;
+		emString InsertText;
+	};
+
+	enum UndoMergeType {
+		UM_NO_MERGE,
+		UM_BACKSPACE,
+		UM_DELETE,
+		UM_ALPHA_NUM,
+		UM_NON_ALPHA_NUM,
+		UM_NEW_LINE,
+		UM_MOVE
+	};
+
+	enum ModifyFlags {
+		MF_VALIDATE      = 1<<0,
+		MF_CREATE_UNDO   = 1<<1,
+		MF_CREATE_REDO   = 1<<2,
+		MF_NO_CLEAR_REDO = 1<<3,
+		MF_SELECT        = 1<<4
+	};
+
 	enum DoTextFieldFunc {
 		TEXT_FIELD_FUNC_PAINT,
 		TEXT_FIELD_FUNC_XY2CR,
@@ -152,6 +265,16 @@ private:
 		double xIn, double yIn, double * pXOut, double * pYOut, bool * pHit
 	) const;
 
+	void ClearUndo();
+	void ClearRedo();
+	void CreateUndo(int pos, int removeLen, const emString & insertText,
+	                UndoMergeType undoMerge);
+	void CreateRedo(int pos, int removeLen, const emString & insertText);
+	void ModifySelectedText(const emString & insertText, int modifyFlags,
+	                        UndoMergeType undoMerge=UM_NO_MERGE);
+	void ModifyText(int pos, int removeLen, emString insertText,
+	                int modifyFlags, UndoMergeType undoMerge=UM_NO_MERGE);
+
 	enum DragModeType {
 		DM_NONE,
 		DM_SELECT,
@@ -160,8 +283,8 @@ private:
 		DM_INSERT,
 		DM_MOVE
 	};
-
 	void SetDragMode(DragModeType dragMode);
+
 	void RestartCursorBlinking();
 	void ScrollToCursor();
 	int ColRow2Index(double column, double row, bool forCursor) const;
@@ -199,6 +322,20 @@ private:
 	bool CursorBlinkOn;
 	DragModeType DragMode;
 	double DragPosC,DragPosR;
+
+	UndoEntry * FirstUndo;
+	UndoEntry * LastUndo;
+	size_t UndoSize;
+	int UndoCount;
+	UndoMergeType UndoMerge;
+	RedoEntry * FirstRedo;
+	emSignal CanUndoRedoSignal;
+
+	bool(*ValidateFunc)(
+		const emTextField & textField, int & pos, int & removeLen,
+		emString & insertText, void * context
+	);
+	void * ValidateFuncContext;
 
 	static const char * const HowToTextField;
 	static const char * const HowToMultiLineOff;
@@ -269,6 +406,21 @@ inline bool emTextField::IsSelectionEmpty() const
 inline bool emTextField::IsCursorBlinkOn() const
 {
 	return CursorBlinkOn;
+}
+
+inline const emSignal & emTextField::GetCanUndoRedoSignal() const
+{
+	return CanUndoRedoSignal;
+}
+
+inline bool emTextField::CanUndo() const
+{
+	return FirstUndo!=NULL;
+}
+
+inline bool emTextField::CanRedo() const
+{
+	return FirstRedo!=NULL;
 }
 
 

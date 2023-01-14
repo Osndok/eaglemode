@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.h
 //
-// Copyright (C) 2006-2011,2016-2017 Oliver Hamann.
+// Copyright (C) 2006-2011,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -55,6 +55,8 @@ public:
 	) const;
 
 	virtual double GetDPI() const;
+
+	virtual bool CanMoveMousePointer() const;
 
 	virtual void MoveMousePointer(double dx, double dy);
 

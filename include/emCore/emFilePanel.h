@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.h
 //
-// Copyright (C) 2004-2008,2010,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -113,6 +113,11 @@ public:
 		// It means that the file model data can safely be shown and
 		// modified.
 
+	virtual bool IsReloadAnnoying() const;
+		// Whether a reload of the file model could currently be
+		// annoying for the user. The default implementation returns
+		// IsInActivePath().
+
 	virtual emString GetIconFileName() const;
 
 	virtual bool IsContentReady(bool * pReadying=NULL) const;
@@ -137,7 +142,16 @@ protected:
 
 private:
 
-	emFileModelClient FileModelClient;
+	class FileModelClientClass : public emFileModelClient {
+	public:
+		virtual emUInt64 GetMemoryLimit() const;
+		virtual double GetPriority() const;
+		virtual bool IsReloadAnnoying() const;
+		emFilePanel & GetFilePanel() const;
+	};
+
+	FileModelClientClass FileModelClient;
+	emUInt64 MemoryLimit;
 	emString * CustomError;
 	emSignal VirFileStateSignal;
 };
@@ -150,6 +164,11 @@ inline emFileModel * emFilePanel::GetFileModel() const
 inline const emSignal & emFilePanel::GetVirFileStateSignal() const
 {
 	return VirFileStateSignal;
+}
+
+inline emFilePanel & emFilePanel::FileModelClientClass::GetFilePanel() const
+{
+	return *(emFilePanel*)(((char*)this)-offsetof(emFilePanel,FileModelClient));
 }
 
 

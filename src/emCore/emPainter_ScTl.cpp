@@ -26,9 +26,9 @@ bool emPainter::ScanlineTool::Init(
 	const emTexture & texture, emColor canvasColor
 )
 {
-	typedef	void (*PaintScanlineFunc)(const ScanlineTool & sct, int x, int y, int w,
-	                                 int opacityBeg, int opacity, int opacityEnd);
-	typedef	void (*InterpolateFunc)(const ScanlineTool & sct, int x, int y, int w);
+	typedef void (*PaintScanlineFunc)(const ScanlineTool & sct, int x, int y, int w,
+	                                  int opacityBeg, int opacity, int opacityEnd);
+	typedef void (*InterpolateFunc)(const ScanlineTool & sct, int x, int y, int w);
 
 	enum PSFuncMainIndex {
 		PSF_COL     =0<<5,

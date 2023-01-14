@@ -1,0 +1,6 @@
+#%rec:emFpPlugin%#
+
+FileTypes = { ".emStocks" }
+Priority = 1.0
+Library = "emStocks"
+Function = "emStocksFpPluginFunc"

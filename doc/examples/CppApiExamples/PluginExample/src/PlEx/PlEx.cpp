@@ -222,15 +222,15 @@ void PlExFilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 				Model->Lines[i].X2,
 				Model->Lines[i].Y2,
 				Model->Lines[i].Thickness,
-				emPainter::LC_ROUND,emPainter::LC_ROUND,
-				Model->Lines[i].Color
+				emRoundedStroke(Model->Lines[i].Color),
+				emStrokeEnd::CAP,emStrokeEnd::CAP
 			);
 		}
 		if (Drawing) {
 			painter.PaintLine(
 				X1,Y1,X2,Y2,Thickness,
-				emPainter::LC_ROUND,emPainter::LC_ROUND,
-				Model->CurrentColor
+				emRoundedStroke(Model->CurrentColor),
+				emStrokeEnd::CAP,emStrokeEnd::CAP
 			);
 		}
 	}

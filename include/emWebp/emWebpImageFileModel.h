@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWebpImageFileModel.h
 //
-// Copyright (C) 2021 Oliver Hamann.
+// Copyright (C) 2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,10 +24,6 @@
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
 #endif
-
-extern "C" {
-	struct emWebpLoadingState;
-}
 
 
 class emWebpImageFileModel : public emImageFileModel {
@@ -53,7 +49,9 @@ protected:
 
 private:
 
-	emWebpLoadingState * L;
+	struct LoadingState;
+
+	LoadingState * L;
 };
 
 

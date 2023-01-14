@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A>.h
 //
-// Copyright (C) 2006-2010,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017-2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,13 +54,14 @@
                 <SPAN CLASS=c>// If a child process is still running, Terminate() is called.
 
         </SPAN><SPAN CLASS=t>enum </SPAN>StartFlags <SPAN CLASS=b>{
-                </SPAN>SF_SHARE_STDIN  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>,
-                SF_PIPE_STDIN   = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>,
-                SF_SHARE_STDOUT = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>,
-                SF_PIPE_STDOUT  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>,
-                SF_SHARE_STDERR = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>,
-                SF_PIPE_STDERR  = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5</SPAN>,
-                SF_NO_WINDOW    = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>6
+                </SPAN>SF_SHARE_STDIN    = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>0</SPAN>,
+                SF_PIPE_STDIN     = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>1</SPAN>,
+                SF_SHARE_STDOUT   = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>2</SPAN>,
+                SF_PIPE_STDOUT    = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>3</SPAN>,
+                SF_SHARE_STDERR   = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>4</SPAN>,
+                SF_PIPE_STDERR    = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>5</SPAN>,
+                SF_NO_WINDOW      = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>6</SPAN>,
+                SF_USE_CTRL_BREAK = <SPAN CLASS=u>1</SPAN>&lt;&lt;<SPAN CLASS=u>7
         </SPAN><SPAN CLASS=b>}</SPAN>;
 
         <SPAN CLASS=t>void </SPAN>TryStart(
@@ -99,7 +100,15 @@
                 //              The other SF_*_STD* flags are for standard
                 //              output and standard error analogously.
                 //              SF_NO_WINDOW means to omit the console window of
-                //              a console process on Windows.
+                //              a console process on Windows. SF_USE_CTRL_BREAK
+                //              means to terminate the process by a Ctrl+Break
+                //              event instead of WM_QUIT on Windows. Therefore
+                //              an intermediate adapter process is run
+                //              (emWndsAdapterProc), which translates WM_QUIT to
+                //              Ctrl+Break, assuming that this calling process
+                //              is not a console process (an optimization for
+                //              the case that the caller is a console process
+                //              has not yet been implemented).
                 // Throws: An error message on failure.
 
         </SPAN><SPAN CLASS=t>static void </SPAN>TryStartUnmanaged(
@@ -173,8 +182,10 @@
                 // signal SIGTERM is sent to the child process. On Windows, the
                 // message WM_QUIT is sent to the primary thread of the child
                 // process. Note that this does not work with a normal Windows
-                // console program, except the latter is explicitly programmed
-                // for receiving WM_QUIT.
+                // console program when it is not explicitly programmed for
+                // receiving WM_QUIT. For having an intermediate process that
+                // translates WM_QUIT to Ctrl+Break, please set the
+                // SF_USE_CTRL_BREAK flag when calling TryStart.
 
         </SPAN><SPAN CLASS=t>void </SPAN>SendKillSignal();
                 <SPAN CLASS=c>// Hardly kill the child process. Usually this should never be

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emListBox.cpp
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,10 +32,11 @@ emListBox::emListBox(
 	emRasterGroup(parent,name,caption,description,icon)
 {
 	SelType=selType;
-	Items.SetTuningLevel(1);
+	Items.SetTuningLevel(4);
+	AvlTree=NULL;
 	SelectedItemIndices.SetTuningLevel(4);
-	TriggeredItemIndex=-1;
-	PrevInputItemIndex=-1;
+	TriggeredItem=NULL;
+	PrevInputItem=NULL;
 	KeyWalkClock=0;
 
 	SetBorderType(OBT_INSTRUMENT,IBT_INPUT_FIELD);
@@ -51,7 +52,7 @@ void emListBox::SetSelectionType(SelectionType selType)
 {
 	if (SelType!=selType) {
 		SelType=selType;
-		if (SelType==READY_ONLY_SELECTION) {
+		if (SelType==READ_ONLY_SELECTION) {
 			if (GetInnerBorderType()==IBT_INPUT_FIELD) {
 				SetInnerBorderType(IBT_OUTPUT_FIELD);
 			}
@@ -65,27 +66,50 @@ void emListBox::SetSelectionType(SelectionType selType)
 }
 
 
-void emListBox::AddItem(const emString & text, const emAnything & data)
+void emListBox::AddItem(
+	const emString & name, const emString & text, const emAnything & data
+)
 {
-	InsertItem(Items.GetCount(),text,data);
+	InsertItem(Items.GetCount(),name,text,data);
 }
 
 
 void emListBox::InsertItem(
-	int index, const emString & text, const emAnything & data
+	int index, const emString & name, const emString & text,
+	const emAnything & data
 )
 {
+	EM_AVL_INSERT_VARS(Item)
+	emPanel * p1, * p2;
 	Item * item;
 	bool selectionChanged;
-	int i,j;
+	int i,j,d;
 
 	if (index<0) index=0;
 	if (index>Items.GetCount()) index=Items.GetCount();
-	Items.InsertNew(index);
-	item=&Items.GetWritable(index);
+	item=new Item;
+	Items.Insert(index,item);
+	for (i=index; i<Items.GetCount(); i++) Items[i]->Index=i;
+	item->Name=name;
 	item->Text=text;
 	item->Data=data;
+	item->Interface=NULL;
 	item->Selected=false;
+
+	EM_AVL_INSERT_BEGIN_SEARCH(Item,AvlNode,AvlTree)
+		d=strcmp(name.Get(),element->Name.Get());
+		if (d<0) EM_AVL_INSERT_GO_LEFT
+		else if (d>0) EM_AVL_INSERT_GO_RIGHT
+		else {
+			emFatalError(
+				"emListBox: Item name \"%s\" not unique within \"%s\".",
+				name.Get(),GetIdentity().Get()
+			);
+		}
+	EM_AVL_INSERT_END_SEARCH
+		element=item;
+	EM_AVL_INSERT_NOW(AvlNode)
+
 	selectionChanged=false;
 	for (i=SelectedItemIndices.GetCount()-1; i>=0; i--) {
 		j=SelectedItemIndices[i];
@@ -93,21 +117,145 @@ void emListBox::InsertItem(
 		SelectedItemIndices.Set(i,j+1);
 		selectionChanged=true;
 	}
-	if (index<=TriggeredItemIndex) TriggeredItemIndex++;
-	if (index<=PrevInputItemIndex) PrevInputItemIndex++;
 	KeyWalkChars.Clear();
 	if (selectionChanged) Signal(SelectionSignal);
-	InvalidateAutoExpansion();
+
+	if (IsAutoExpanded()) {
+		CreateItemPanel(GetItemName(index), index);
+		if (index<Items.GetCount()-1) {
+			p1=GetItemPanel(index);
+			p2=GetItemPanel(index+1);
+			if (p1 && p2) p1->BePrevOf(p2);
+		}
+	}
+}
+
+
+void emListBox::MoveItem(int fromIndex, int toIndex)
+{
+	Item * item;
+	emPanel * p1, * p2;
+	bool selectionChanged;
+	int i,j,k,d;
+
+	if (fromIndex<0 || fromIndex>=Items.GetCount()) return;
+	if (toIndex<0) toIndex=0;
+	if (toIndex>Items.GetCount()-1) toIndex=Items.GetCount()-1;
+	if (fromIndex==toIndex) return;
+
+	if (IsAutoExpanded()) {
+		p1=GetItemPanel(fromIndex);
+		p2=GetItemPanel(toIndex);
+		if (p1 && p2) {
+			if (fromIndex<toIndex) p1->BeNextOf(p2);
+			else                   p1->BePrevOf(p2);
+		}
+	}
+
+	item=Items[fromIndex];
+	d=(fromIndex<toIndex ? 1 : -1);
+	for (i=fromIndex; i!=toIndex; i+=d) {
+		Items.Set(i,Items[i+d]);
+		Items[i]->Index=i;
+	}
+	Items.Set(toIndex,item);
+	Items[toIndex]->Index=toIndex;
+
+	selectionChanged=false;
+	if (fromIndex<toIndex) { j=fromIndex; k=toIndex; }
+	else                   { j=toIndex; k=fromIndex; }
+	for (i=0; i<SelectedItemIndices.GetCount(); i++) {
+		if (SelectedItemIndices[i]>=j) break;
+	}
+	for (; j<=k; j++) {
+		if (Items[j]->Selected && i<SelectedItemIndices.GetCount()) {
+			if (SelectedItemIndices[i]!=j) {
+				SelectedItemIndices.Set(i,j);
+				selectionChanged=true;
+			}
+			i++;
+		}
+	}
+
+	KeyWalkChars.Clear();
+	if (selectionChanged) Signal(SelectionSignal);
+}
+
+
+bool emListBox::SortItems(
+	int(*compare)(
+		const emString & item1name, const emString & item1text,
+		const emAnything & item1data,
+		const emString & item2name, const emString & item2text,
+		const emAnything & item2data,
+		void * context
+	),
+	void * context
+)
+{
+	CompareContext cc;
+	emPanel * p1, * p2;
+	bool selectionChanged;
+	int i,j;
+
+	cc.origCompare=compare;
+	cc.origContext=context;
+	if (!Items.Sort(CompareItems,&cc)) return false;
+
+	for (i=0; i<Items.GetCount(); i++) Items[i]->Index=i;
+
+	selectionChanged=false;
+	for (i=0, j=0; j<Items.GetCount(); j++) {
+		if (Items[j]->Selected && i<SelectedItemIndices.GetCount()) {
+			if (SelectedItemIndices[i]!=j) {
+				SelectedItemIndices.Set(i,j);
+				selectionChanged=true;
+			}
+			i++;
+		}
+	}
+
+	KeyWalkChars.Clear();
+	if (selectionChanged) Signal(SelectionSignal);
+
+	if (IsAutoExpanded()) {
+		p1=GetItemPanel(0);
+		for (i=1; i<Items.GetCount(); i++) {
+			p2=GetItemPanel(i);
+			if (p2) {
+				if (p1) p2->BeNextOf(p1);
+				p1=p2;
+			}
+		}
+	}
+
+	return true;
 }
 
 
 void emListBox::RemoveItem(int index)
 {
+	EM_AVL_REMOVE_VARS(Item)
 	bool selectionChanged;
-	int i,j;
+	int i,j,d;
 
 	if (index>=0 && index<Items.GetCount()) {
+		if (Items[index]->Interface) delete Items[index]->Interface;
+
+		EM_AVL_REMOVE_BEGIN(Item,AvlNode,AvlTree)
+			d=strcmp(Items[index]->Name.Get(),element->Name.Get());
+			if (d<0) EM_AVL_REMOVE_GO_LEFT
+			else if (d>0) EM_AVL_REMOVE_GO_RIGHT
+			else EM_AVL_REMOVE_NOW
+		EM_AVL_REMOVE_END
+
+		if (TriggeredItem==Items[index]) TriggeredItem=NULL;
+		if (PrevInputItem==Items[index]) PrevInputItem=NULL;
+
+		delete Items[index];
 		Items.Remove(index);
+		for (i=index; i<Items.GetCount(); i++) Items[i]->Index=i;
+
 		selectionChanged=false;
 		for (i=SelectedItemIndices.GetCount()-1; i>=0; i--) {
 			j=SelectedItemIndices[i];
@@ -121,41 +269,66 @@ void emListBox::RemoveItem(int index)
 			SelectedItemIndices.Set(i,j-1);
 			selectionChanged=true;
 		}
-		if (index<=TriggeredItemIndex) {
-			if (index==TriggeredItemIndex) TriggeredItemIndex=-1;
-			else TriggeredItemIndex--;
-		}
-		if (index<=PrevInputItemIndex) {
-			if (index==PrevInputItemIndex) PrevInputItemIndex=-1;
-			else PrevInputItemIndex--;
-		}
 		KeyWalkChars.Clear();
 		if (selectionChanged) Signal(SelectionSignal);
-		InvalidateAutoExpansion();
 	}
 }
 
 
 void emListBox::ClearItems()
 {
+	int i;
+
 	if (!Items.IsEmpty()) {
+		for (i=Items.GetCount()-1; i>=0; i--) {
+			if (Items[i]->Interface) {
+				delete Items[i]->Interface;
+			}
+		}
+		for (i=Items.GetCount()-1; i>=0; i--) delete Items[i];
 		Items.Clear();
-		TriggeredItemIndex=-1;
-		PrevInputItemIndex=-1;
+		AvlTree=NULL;
+		TriggeredItem=NULL;
+		PrevInputItem=NULL;
 		if (!SelectedItemIndices.IsEmpty()) {
 			SelectedItemIndices.Clear();
 			Signal(SelectionSignal);
 		}
 		KeyWalkChars.Clear();
-		InvalidateAutoExpansion();
 	}
 }
 
 
-emString emListBox::GetItemText(int index) const
+const emString & emListBox::GetItemName(int index) const
 {
-	if (index>=0 && index<Items.GetCount()) return Items[index].Text;
-	else return emString();
+	static const emString emptyString;
+
+	if (index>=0 && index<Items.GetCount()) return Items[index]->Name;
+	else return emptyString;
+}
+
+
+int emListBox::GetItemIndex(const char * name) const
+{
+	EM_AVL_SEARCH_VARS(Item)
+	int d;
+
+	EM_AVL_SEARCH_BEGIN(Item,AvlNode,AvlTree)
+		d=strcmp(name,element->Name.Get());
+		if (d<0) EM_AVL_SEARCH_GO_LEFT
+		else if (d>0) EM_AVL_SEARCH_GO_RIGHT
+		else return element->Index;
+	EM_AVL_SEARCH_END
+	return -1;
+}
+
+
+const emString & emListBox::GetItemText(int index) const
+{
+	static const emString emptyString;
+
+	if (index>=0 && index<Items.GetCount()) return Items[index]->Text;
+	else return emptyString;
 }
 
 
@@ -164,8 +337,8 @@ void emListBox::SetItemText(int index, const emString & text)
 	ItemPanelInterface * ipf;
 
 	if (index>=0 && index<Items.GetCount()) {
-		if (Items[index].Text != text) {
-			Items.GetWritable(index).Text=text;
+		if (Items[index]->Text != text) {
+			Items[index]->Text=text;
 			KeyWalkChars.Clear();
 			ipf=GetItemPanelInterface(index);
 			if (ipf) ipf->ItemTextChanged();
@@ -176,7 +349,7 @@ void emListBox::SetItemText(int index, const emString & text)
 
 emAnything emListBox::GetItemData(int index) const
 {
-	if (index>=0 && index<Items.GetCount()) return Items[index].Data;
+	if (index>=0 && index<Items.GetCount()) return Items[index]->Data;
 	else return emAnything();
 }
 
@@ -186,7 +359,7 @@ void emListBox::SetItemData(int index, const emAnything & data)
 	ItemPanelInterface * ipf;
 
 	if (index>=0 && index<Items.GetCount()) {
-		Items.GetWritable(index).Data=data;
+		Items[index]->Data=data;
 		ipf=GetItemPanelInterface(index);
 		if (ipf) ipf->ItemDataChanged();
 	}
@@ -233,7 +406,7 @@ void emListBox::SetSelectedIndex(int index)
 bool emListBox::IsSelected(int index) const
 {
 	if (index>=0 && index<Items.GetCount()) {
-		return Items[index].Selected;
+		return Items[index]->Selected;
 	}
 	return false;
 }
@@ -255,12 +428,13 @@ void emListBox::Select(int index, bool solely)
 				Deselect(i);
 			}
 		}
-		if (!Items[index].Selected) {
-			Items.GetWritable(index).Selected=true;
+		if (!Items[index]->Selected) {
+			Items[index]->Selected=true;
 			SelectedItemIndices.BinaryInsert(index,emStdComparer<int>::Compare);
 			Signal(SelectionSignal);
 			ipf=GetItemPanelInterface(index);
 			if (ipf) ipf->ItemSelectionChanged();
+			PrevInputItem=NULL;
 		}
 	}
 	else {
@@ -268,7 +442,6 @@ void emListBox::Select(int index, bool solely)
 			ClearSelection();
 		}
 	}
-	PrevInputItemIndex=-1;
 }
 
 
@@ -276,14 +449,14 @@ void emListBox::Deselect(int index)
 {
 	ItemPanelInterface * ipf;
 
-	if (index>=0 && index<Items.GetCount() && Items[index].Selected) {
-		Items.GetWritable(index).Selected=false;
+	if (index>=0 && index<Items.GetCount() && Items[index]->Selected) {
+		Items[index]->Selected=false;
 		SelectedItemIndices.BinaryRemove(index,emStdComparer<int>::Compare);
 		Signal(SelectionSignal);
 		ipf=GetItemPanelInterface(index);
 		if (ipf) ipf->ItemSelectionChanged();
+		PrevInputItem=NULL;
 	}
-	PrevInputItemIndex=-1;
 }
 
 
@@ -314,22 +487,32 @@ void emListBox::ClearSelection()
 
 void emListBox::TriggerItem(int index)
 {
-	TriggeredItemIndex=index;
-	Signal(ItemTriggerSignal);
+	if (index>=0 && index<Items.GetCount()) {
+		TriggeredItem=Items[index];
+		Signal(ItemTriggerSignal);
+	}
 }
 
 
 emListBox::ItemPanelInterface::ItemPanelInterface(
 	emListBox & listBox, int itemIndex
 ) :
-	ListBox(listBox),
-	ItemIndex(itemIndex)
+	ListBox(listBox)
 {
+	if (itemIndex<0 || itemIndex>=listBox.Items.GetCount()) {
+		emFatalError("ItemPanelInterface: itemIndex out of range");
+	}
+	Item=listBox.Items[itemIndex];
+	if (((emListBox::Item*)Item)->Interface) {
+		emFatalError("ItemPanelInterface: Multiple instances for same item not allowed");
+	}
+	((emListBox::Item*)Item)->Interface=this;
 }
 
 
 emListBox::ItemPanelInterface::~ItemPanelInterface()
 {
+	((emListBox::Item*)Item)->Interface=NULL;
 }
 
 
@@ -337,7 +520,7 @@ void emListBox::ItemPanelInterface::ProcessItemInput(
 	emPanel * panel, emInputEvent & event, const emInputState & state
 )
 {
-	ListBox.ProcessItemInput(ItemIndex,panel,event,state);
+	ListBox.ProcessItemInput(((emListBox::Item*)Item)->Index,panel,event,state);
 }
 
 
@@ -376,7 +559,7 @@ void emListBox::DefaultItemPanel::Paint(
 	emColor bgColor,fgColor,hlColor;
 	bool selected;
 
-	if (GetListBox().GetSelectionType()!=READY_ONLY_SELECTION) {
+	if (GetListBox().GetSelectionType()!=READ_ONLY_SELECTION) {
 		bgColor=GetListBox().GetLook().GetInputBgColor();
 		fgColor=GetListBox().GetLook().GetInputFgColor();
 		hlColor=GetListBox().GetLook().GetInputHlColor();
@@ -442,41 +625,22 @@ void emListBox::DefaultItemPanel::ItemSelectionChanged()
 }
 
 
-void emListBox::CreateItemPanel(const emString & name, int itemIndex)
-{
-	new DefaultItemPanel(*this,name,itemIndex);
-}
-
-
-emString emListBox::GetItemPanelName(int index) const
-{
-	return emString::Format("%d",index);
-}
-
-
 emPanel * emListBox::GetItemPanel(int index) const
 {
-	return GetChild(GetItemPanelName(index));
+	return dynamic_cast<emPanel*>(GetItemPanelInterface(index));
 }
 
 
 emListBox::ItemPanelInterface * emListBox::GetItemPanelInterface(int index) const
 {
-	emPanel * panel;
-	ItemPanelInterface * ipf;
+	if (index>=0 && index<Items.GetCount()) return Items[index]->Interface;
+	else return NULL;
+}
 
-	panel = GetItemPanel(index);
-	if (!panel) return NULL;
-	ipf = dynamic_cast<ItemPanelInterface *>(panel);
-	if (!ipf) {
-		emFatalError(
-			"emListBox::GetItemPanelInterface: An item panel does"
-			" not implement emListBox::ItemPanelInterface (list box"
-			" type name is %s, item panel type name is %s)",
-			typeid(*this).name(), typeid(*panel).name()
-		);
-	}
-	return ipf;
+
+void emListBox::CreateItemPanel(const emString & name, int itemIndex)
+{
+	new DefaultItemPanel(*this,name,itemIndex);
 }
 
 
@@ -500,12 +664,13 @@ void emListBox::Input(
 
 	switch (event.GetKey()) {
 	case EM_KEY_A:
-		if (state.IsCtrlMod()) {
+		if (state.IsCtrlMod() || state.IsShiftCtrlMod()) {
 			if (
 				IsEnabled() &&
 				(SelType==MULTI_SELECTION || SelType==TOGGLE_SELECTION)
 			) {
-				SelectAll();
+				if (state.IsCtrlMod()) SelectAll();
+				else ClearSelection();
 			}
 			event.Eat();
 		}
@@ -525,20 +690,61 @@ void emListBox::AutoExpand()
 	emRasterGroup::AutoExpand();
 
 	for (i=0; i<Items.GetCount(); i++) {
-		CreateItemPanel(GetItemPanelName(i), i);
+		CreateItemPanel(Items[i]->Name, i);
+		if (!Items[i]->Interface) {
+			emFatalError(
+				"emListBox::AutoExpand: An item panel does not implement"
+				" emListBox::ItemPanelInterface (list box type name is %s).",
+				typeid(*this).name()
+			);
+		}
 	}
 }
 
 
-emPanel * emListBox::GetItemPanel(int index)
+void emListBox::AutoShrink()
 {
-	return ((const emListBox*)this)->GetItemPanel(index);
+	int i;
+
+	// This is needed because item panels may also be created outside
+	// AutoExpand().
+	for (i=Items.GetCount()-1; i>=0; i--) {
+		if (Items[i]->Interface) {
+			delete Items[i]->Interface;
+		}
+	}
+
+	emRasterGroup::AutoShrink();
 }
 
 
-emListBox::ItemPanelInterface * emListBox::GetItemPanelInterface(int index)
+bool emListBox::HasHowTo() const
 {
-	return ((const emListBox*)this)->GetItemPanelInterface(index);
+	return true;
+}
+
+
+emString emListBox::GetHowTo() const
+{
+	emString h;
+
+	h=emRasterGroup::GetHowTo();
+	h+=HowToListBox;
+	switch (SelType) {
+		case READ_ONLY_SELECTION:
+			h+=HowToReadOnlySelection;
+			break;
+		case SINGLE_SELECTION:
+			h+=HowToSingleSelection;
+			break;
+		case MULTI_SELECTION:
+			h+=HowToMultiSelection;
+			break;
+		case TOGGLE_SELECTION:
+			h+=HowToToggleSelection;
+			break;
+	}
+	return h;
 }
 
 
@@ -584,7 +790,7 @@ void emListBox::SelectByInput(int itemIndex, bool shift, bool ctrl, bool trigger
 	if (!IsEnabled()) return;
 
 	switch (SelType) {
-		case READY_ONLY_SELECTION:
+		case READ_ONLY_SELECTION:
 			break;
 		case SINGLE_SELECTION:
 			Select(itemIndex,true);
@@ -594,16 +800,12 @@ void emListBox::SelectByInput(int itemIndex, bool shift, bool ctrl, bool trigger
 			if (shift) {
 				i1=itemIndex;
 				i2=itemIndex;
-				if (
-					PrevInputItemIndex>=0 &&
-					PrevInputItemIndex<Items.GetCount() &&
-					PrevInputItemIndex!=itemIndex
-				) {
-					if (PrevInputItemIndex<itemIndex) {
-						i1=PrevInputItemIndex+1;
+				if (PrevInputItem && PrevInputItem->Index!=itemIndex) {
+					if (PrevInputItem->Index<itemIndex) {
+						i1=PrevInputItem->Index+1;
 					}
 					else {
-						i2=PrevInputItemIndex-1;
+						i2=PrevInputItem->Index-1;
 					}
 				}
 				for (i=i1; i<=i2; i++) {
@@ -623,16 +825,12 @@ void emListBox::SelectByInput(int itemIndex, bool shift, bool ctrl, bool trigger
 			if (shift) {
 				i1=itemIndex;
 				i2=itemIndex;
-				if (
-					PrevInputItemIndex>=0 &&
-					PrevInputItemIndex<Items.GetCount() &&
-					PrevInputItemIndex!=itemIndex
-				) {
-					if (PrevInputItemIndex<itemIndex) {
-						i1=PrevInputItemIndex+1;
+				if (PrevInputItem && PrevInputItem->Index!=itemIndex) {
+					if (PrevInputItem->Index<itemIndex) {
+						i1=PrevInputItem->Index+1;
 					}
 					else {
-						i2=PrevInputItemIndex-1;
+						i2=PrevInputItem->Index-1;
 					}
 				}
 				for (i=i1; i<=i2; i++) {
@@ -646,7 +844,7 @@ void emListBox::SelectByInput(int itemIndex, bool shift, bool ctrl, bool trigger
 			break;
 	}
 
-	PrevInputItemIndex=itemIndex;
+	PrevInputItem=Items[itemIndex];
 }
 
 
@@ -677,7 +875,7 @@ void emListBox::KeyWalk(emInputEvent & event, const emInputState & state)
 		// ??? undocumented feature: e.g. type "*bar" to find "FooBar".
 		for (i=0; i<Items.GetCount(); i++) {
 			s1=str.Get()+1;
-			s2=Items[i].Text;
+			s2=Items[i]->Text;
 			for (i=0;;) {
 				c1=(unsigned char)s1[i];
 				c2=(unsigned char)s2[i];
@@ -690,12 +888,12 @@ void emListBox::KeyWalk(emInputEvent & event, const emInputState & state)
 	}
 	else {
 		for (i=0; i<Items.GetCount(); i++) {
-			if (strncasecmp(str,Items[i].Text,len)==0) break;
+			if (strncasecmp(str,Items[i]->Text,len)==0) break;
 		}
 		if (i>=Items.GetCount()) {
 			for (i=0; i<Items.GetCount(); i++) {
 				s1=str;
-				s2=Items[i].Text;
+				s2=Items[i]->Text;
 				for (;;) {
 					c1=tolower((unsigned char)*s1++);
 					if (!c1) break;
@@ -711,7 +909,7 @@ void emListBox::KeyWalk(emInputEvent & event, const emInputState & state)
 
 	if (i<Items.GetCount()) {
 		KeyWalkChars=str;
-		if (IsEnabled() && SelType != READY_ONLY_SELECTION) {
+		if (IsEnabled() && SelType != READ_ONLY_SELECTION) {
 			Select(i,true);
 		}
 		panel=GetItemPanel(i);
@@ -727,3 +925,151 @@ void emListBox::KeyWalk(emInputEvent & event, const emInputState & state)
 
 	event.Eat();
 }
+
+
+int emListBox::CompareItems(
+	Item * const * item1, Item * const * item2, void * context
+)
+{
+	CompareContext * cc = (CompareContext*)context;
+	return cc->origCompare(
+		(*item1)->Name,(*item1)->Text,(*item1)->Data,
+		(*item2)->Name,(*item2)->Text,(*item2)->Data,
+		cc->origContext
+	);
+}
+
+
+const char * const emListBox::HowToListBox=
+	"\n"
+	"\n"
+	"LIST BOX\n"
+	"\n"
+	"This is a list box. It may show any number of items from which one or more may\n"
+	"be selected (by program or by user). Selected items are shown highlighted.\n"
+;
+
+
+const char * const emListBox::HowToReadOnlySelection=
+	"\n"
+	"\n"
+	"READ-ONLY\n"
+	"\n"
+	"This list box is read-only. You cannot modify the selection.\n"
+	"\n"
+	"Keyboard control:\n"
+	"\n"
+	"  Any normal key               - To find and focus an item, you can simply\n"
+	"                                 enter the first characters of its caption.\n"
+;
+
+
+const char * const emListBox::HowToSingleSelection=
+	"\n"
+	"\n"
+	"SINGLE-SELECTION\n"
+	"\n"
+	"This is a single-selection list box. You can select only one item.\n"
+	"\n"
+	"Mouse control:\n"
+	"\n"
+	"  Left-Button-Click            - Select the clicked item.\n"
+	"\n"
+	"  Left-Button-Double-Click     - Trigger the clicked item (application-defined\n"
+	"                                 function).\n"
+	"\n"
+	"Keyboard control:\n"
+	"\n"
+	"  Space                        - Select the focused item.\n"
+	"\n"
+	"  Enter                        - Trigger the focused item (application-defined\n"
+	"                                 function).\n"
+	"\n"
+	"  Any normal key               - To find, focus and select an item, you can simply\n"
+	"                                 enter the first characters of its caption.\n"
+;
+
+
+const char * const emListBox::HowToMultiSelection=
+	"\n"
+	"\n"
+	"MULTI-SELECTION\n"
+	"\n"
+	"This list box supports multi-selection. You can select one or more items.\n"
+	"\n"
+	"Mouse control:\n"
+	"\n"
+	"  Left-Button-Click            - Select the clicked item.\n"
+	"\n"
+	"  Shift+Left-Button-Click      - Select the range of items from the previously\n"
+	"                                 clicked item to this clicked item.\n"
+	"\n"
+	"  Ctrl+Left-Button-Click       - Invert the selection of the clicked item.\n"
+	"\n"
+	"  Shift+Ctrl+Left-Button-Click - Invert the selection of a range of items or\n"
+	"                                 select an additional range.\n"
+	"\n"
+	"  Left-Button-Double-Click     - Trigger the clicked item (application-defined\n"
+	"                                 function).\n"
+	"\n"
+	"Keyboard control:\n"
+	"\n"
+	"  Space                        - Select the focused item.\n"
+	"\n"
+	"  Shift+Space                  - Select the range of items from the previously\n"
+	"                                 selected item to the focused item.\n"
+	"\n"
+	"  Ctrl+Space                   - Invert the selection of the focused item.\n"
+	"\n"
+	"  Shift+Ctrl+Space             - Invert the selection of a range of items or\n"
+	"                                 select an additional range.\n"
+	"\n"
+	"  Ctrl+A                       - Select all items.\n"
+	"\n"
+	"  Shift+Ctrl+A                 - Clear the selection.\n"
+	"\n"
+	"  Enter                        - Trigger the focused item (application-defined\n"
+	"                                 function).\n"
+	"\n"
+	"  Any normal key               - To find, focus and select an item, you can simply\n"
+	"                                 enter the first characters of its caption.\n"
+;
+
+
+const char * const emListBox::HowToToggleSelection=
+	"\n"
+	"\n"
+	"TOGGLE-SELECTION\n"
+	"\n"
+	"This is a toggle-selection list box. You can select or deselect\n"
+	"individual items independently from other items.\n"
+	"\n"
+	"Mouse control:\n"
+	"\n"
+	"  Left-Button-Click            - Invert the selection of the clicked item.\n"
+	"\n"
+	"  Shift+Left-Button-Click      - Invert the selection of the range of items from\n"
+	"                                 the previously clicked item to this clicked\n"
+	"                                 item.\n"
+	"\n"
+	"  Left-Button-Double-Click     - Trigger the clicked item (application-defined\n"
+	"                                 function).\n"
+	"\n"
+	"Keyboard control:\n"
+	"\n"
+	"  Space                        - Invert the selection of the focused item.\n"
+	"\n"
+	"  Shift+Space                  - Invert the selection of the range of items from\n"
+	"                                 the previously selected item to the focused\n"
+	"                                 item.\n"
+	"\n"
+	"  Ctrl+A                       - Select all items.\n"
+	"\n"
+	"  Shift+Ctrl+A                 - Deselect all items.\n"
+	"\n"
+	"  Enter                        - Trigger the focused item (application-defined\n"
+	"                                 function).\n"
+	"\n"
+	"  Any normal key               - To find, focus and select an item, you can simply\n"
+	"                                 enter the first characters of its caption.\n"
+;

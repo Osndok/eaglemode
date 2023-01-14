@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFileSelectionBox_h.html#emFileSelectionBox">emFileSelectionBox</A>.h
 //
-// Copyright (C) 2015-2016 Oliver Hamann.
+// Copyright (C) 2015-2016,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,6 +36,10 @@
 
 #ifndef emListBox_h
 #include &lt;<A CLASS=f HREF="emCore_emListBox_h.html">emCore/emListBox.h</A>&gt;
+#endif
+
+#ifndef emSigModel_h
+#include &lt;<A CLASS=f HREF="emCore_emSigModel_h.html">emCore/emSigModel.h</A>&gt;
 #endif
 
 #ifndef emTextField_h
@@ -296,6 +300,8 @@
                 <SPAN CLASS=t>bool </SPAN>IsReadable;
                 <SPAN CLASS=t>bool </SPAN>IsHidden;
         <SPAN CLASS=b>}</SPAN>;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emSigModel_h.html#emSigModel">emSigModel</A>&gt; FileModelsUpdateSignalModel;
 
         <SPAN CLASS=t>bool </SPAN>MultiSelectionEnabled;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ParentDir;

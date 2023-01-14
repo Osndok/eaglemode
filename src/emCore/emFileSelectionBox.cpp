@@ -20,6 +20,7 @@
 
 #include <emCore/emFileSelectionBox.h>
 #include <emCore/emAvlTreeMap.h>
+#include <emCore/emFileModel.h>
 #include <emCore/emFpPlugin.h>
 #include <ctype.h>
 #if defined(_WIN32)
@@ -35,6 +36,8 @@ emFileSelectionBox::emFileSelectionBox(
 ) :
 	emBorder(parent,name,caption,description,icon)
 {
+	FileModelsUpdateSignalModel=emFileModel::AcquireUpdateSignalModel(GetRootContext());
+
 	MultiSelectionEnabled=false;
 	ParentDir=emGetCurrentDirectory();
 	SelectedNames.SetTuningLevel(1);
@@ -57,6 +60,8 @@ emFileSelectionBox::emFileSelectionBox(
 
 	SetAutoExpansionThreshold(500,VCT_AREA);
 	SetBorderType(OBT_GROUP,IBT_GROUP);
+
+	AddWakeUpSignal(FileModelsUpdateSignalModel->Sig);
 }
 
 
@@ -112,6 +117,9 @@ void emFileSelectionBox::SetParentDirectory(const emString & parentDirectory)
 			ParentDirField->SetText(ParentDir);
 		}
 		TriggeredFileName.Clear();
+		if (FilesLB && FilesLB->IsInActivePath() && !FilesLB->IsActive()) {
+			FilesLB->Activate(false);
+		}
 		InvalidateListing();
 		Signal(SelectionSignal);
 	}
@@ -259,7 +267,7 @@ void emFileSelectionBox::SetFilters(const emArray<emString> & filters)
 	if (FiltersLB) {
 		FiltersLB->ClearItems();
 		for (i=0; i<Filters.GetCount(); i++) {
-			FiltersLB->AddItem(Filters[i]);
+			FiltersLB->AddItem(emString::Format("%d",i),Filters[i]);
 		}
 		FiltersLB->SetSelectedIndex(SelectedFilterIndex);
 	}
@@ -381,6 +389,9 @@ bool emFileSelectionBox::Cycle()
 
 	busy=emBorder::Cycle();
 
+	if (IsSignaled(FileModelsUpdateSignalModel->Sig)) {
+		InvalidateListing();
+	}
 
 	if (ParentDirField && IsSignaled(ParentDirField->GetTextSignal())) {
 		if (ParentDir!=ParentDirField->GetText()) {
@@ -533,7 +544,7 @@ void emFileSelectionBox::AutoExpand()
 		FiltersLB=new emListBox(this,"filter","Filter");
 		FiltersLB->SetMaxChildTallness(0.1);
 		for (i=0; i<Filters.GetCount(); i++) {
-			FiltersLB->AddItem(Filters[i]);
+			FiltersLB->AddItem(emString::Format("%d",i),Filters[i]);
 		}
 		FiltersLB->SetSelectedIndex(SelectedFilterIndex);
 		AddWakeUpSignal(FiltersLB->GetSelectionSignal());
@@ -600,7 +611,7 @@ void emFileSelectionBox::ReloadListing()
 	emArray<emString> names;
 	FileItemData data;
 	emString path;
-	int i;
+	int i,d;
 
 	if (!FilesLB) return;
 
@@ -668,16 +679,25 @@ void emFileSelectionBox::ReloadListing()
 			continue;
 		}
 
-		if (i<FilesLB->GetItemCount()) {
-			FilesLB->SetItemText(i,names[i]);
+		for (;;) {
+			if (i<FilesLB->GetItemCount()) {
+				d=CompareNames(&names[i],&FilesLB->GetItemText(i),this);
+			}
+			else {
+				d=-1;
+			}
+			if (d<=0) break;
+			FilesLB->RemoveItem(i);
+		}
+		if (d==0) {
 			FilesLB->SetItemData(
 				i,
 				emCastAnything<emFileSelectionBox::FileItemData>(data)
 			);
 		}
 		else {
-			FilesLB->AddItem(
-				names[i],
+			FilesLB->InsertItem(
+				i,names[i],names[i],
 				emCastAnything<emFileSelectionBox::FileItemData>(data)
 			);
 		}
@@ -1035,8 +1055,6 @@ void emFileSelectionBox::FileItemPanel::Paint(
 			painter.PaintLine(
 				fx-t,fy-t,fx+t,fy+t,
 				r*0.22,
-				emPainter::LC_FLAT,
-				emPainter::LC_FLAT,
 				fgCol
 			);
 		}
@@ -1120,7 +1138,7 @@ emColor emFileSelectionBox::FileItemPanel::GetBgColor() const
 	emColor bgColor;
 
 	if (IsItemSelected()) {
-		if (GetListBox().GetSelectionType()==emListBox::READY_ONLY_SELECTION) {
+		if (GetListBox().GetSelectionType()==emListBox::READ_ONLY_SELECTION) {
 			bgColor=GetListBox().GetLook().GetOutputHlColor();
 		}
 		else {
@@ -1142,7 +1160,7 @@ emColor emFileSelectionBox::FileItemPanel::GetFgColor() const
 	const FileItemData * data;
 	emColor fgColor;
 
-	if (GetListBox().GetSelectionType()==emListBox::READY_ONLY_SELECTION) {
+	if (GetListBox().GetSelectionType()==emListBox::READ_ONLY_SELECTION) {
 		if (IsItemSelected()) {
 			fgColor=GetListBox().GetLook().GetOutputBgColor();
 		}

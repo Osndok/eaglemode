@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -148,8 +148,10 @@ public:
 		// this method should be overloaded and it should return a handy
 		// name for the file format. Thereby, emRecWriter and
 		// emRecReader are writing and checking a file format magic at
-		// the beginning of the file. The default implementation returns
-		// NULL which means to have no file format magic.
+		// the beginning of the file. When reading an empty file, the
+		// missing file format magic does not lead to an error. The
+		// default implementation returns NULL which means to have no
+		// file format magic.
 
 	void TryLoad(const emString & filePath);
 	void TrySave(const emString & filePath);

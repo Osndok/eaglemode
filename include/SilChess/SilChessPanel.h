@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // SilChessPanel.h
 //
-// Copyright (C) 2007-2008,2016-2017 Oliver Hamann.
+// Copyright (C) 2007-2008,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,6 +50,8 @@ public:
 	              SilChessModel * model);
 
 	virtual ~SilChessPanel();
+
+	virtual bool IsReloadAnnoying() const;
 
 	virtual emString GetTitle() const;
 	virtual emString GetIconFileName() const;

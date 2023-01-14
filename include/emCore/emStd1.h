@@ -38,8 +38,8 @@
 //==============================================================================
 
 #define EM_MAJOR_VERSION 0
-#define EM_MINOR_VERSION 95
-#define EM_MICRO_VERSION 2
+#define EM_MINOR_VERSION 96
+#define EM_MICRO_VERSION 0
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -53,7 +53,7 @@ class emCompatibilityCheckerClass {
 public:
 	emCompatibilityCheckerClass(int maj, int min, int mic, const char * postfix);
 };
-static emCompatibilityCheckerClass emCompatibilityChecker(
+static const emCompatibilityCheckerClass emCompatibilityChecker(
 	EM_MAJOR_VERSION,EM_MINOR_VERSION,EM_MICRO_VERSION,EM_VERSION_POSTFIX
 );
 
@@ -214,7 +214,7 @@ typedef emUInt8       emByte;
 	typedef unsigned __int32 emUInt32;
 #endif
 
-#if defined(__GNUC__) || defined(__SUNPRO_CC)
+#if (defined(__GNUC__) || defined(__SUNPRO_CC)) && defined(__WORDSIZE)
 #	if __WORDSIZE == 64
 		typedef signed   long emInt64;
 		typedef unsigned long emUInt64;

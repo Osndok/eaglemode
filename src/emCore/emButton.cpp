@@ -28,6 +28,7 @@ emButton::emButton(
 	: emBorder(parent,name,caption,description,icon)
 {
 	Pressed=false;
+	BoxPressed=false;
 	NoEOI=false;
 	ShownChecked=false;
 	ShownBoxed=false;
@@ -75,14 +76,17 @@ void emButton::Input(
 {
 	static const double minExt=7.0;
 	double vmx,vmy;
+	bool inBox;
 
 	if (
 		event.IsLeftButton() && (state.IsNoMod() || state.IsShiftMod()) &&
-		IsEnabled() && CheckMouse(mx,my) && GetViewCondition(VCT_MIN_EXT)>=minExt
+		IsEnabled() && CheckMouse(mx,my,&inBox) &&
+		GetViewCondition(VCT_MIN_EXT)>=minExt
 	) {
 		Focus();
 		event.Eat();
 		Pressed=true;
+		BoxPressed=inBox;
 		InvalidatePainting();
 		Signal(PressStateSignal);
 		PressStateChanged();
@@ -90,6 +94,7 @@ void emButton::Input(
 
 	if (Pressed && !state.GetLeftButton()) {
 		Pressed=false;
+		BoxPressed=false;
 		InvalidatePainting();
 		Signal(PressStateSignal);
 		PressStateChanged();
@@ -140,7 +145,7 @@ void emButton::PaintContent(
 	emColor canvasColor
 ) const
 {
-	DoButton(BUTTON_FUNC_PAINT,&painter,canvasColor,0,0,NULL);
+	DoButton(BUTTON_FUNC_PAINT,&painter,canvasColor,0,0,NULL,NULL);
 }
 
 
@@ -149,6 +154,7 @@ void emButton::PaintBoxSymbol(
 	emColor canvasColor
 ) const
 {
+	double xy[3*2];
 	double d;
 
 	if (ShownChecked) {
@@ -161,37 +167,29 @@ void emButton::PaintBoxSymbol(
 			);
 		}
 		else {
-			painter.PaintLine(
-				x+w*0.2,
-				y+h*0.6,
-				x+w*0.4,
-				y+h*0.8,
+			xy[0]=x+w*0.2;
+			xy[1]=y+h*0.6;
+			xy[2]=x+w*0.4;
+			xy[3]=y+h*0.8;
+			xy[4]=x+w*0.8;
+			xy[5]=y+h*0.2;
+			painter.PaintPolyline(
+				xy,3,
 				w*0.16,
-				emPainter::LC_ROUND,
-				emPainter::LC_ROUND,
-				GetLook().GetInputFgColor(),
+				emRoundedStroke(GetLook().GetInputFgColor()),
+				emStrokeEnd::CAP,emStrokeEnd::CAP,
 				canvasColor
-			);
-			painter.PaintLine(
-				x+w*0.4,
-				y+h*0.8,
-				x+w*0.8,
-				y+h*0.2,
-				w*0.16,
-				emPainter::LC_ROUND,
-				emPainter::LC_ROUND,
-				GetLook().GetInputFgColor()
 			);
 		}
 	}
 }
 
 
-bool emButton::CheckMouse(double mx, double my) const
+bool emButton::CheckMouse(double mx, double my, bool * pInBox) const
 {
 	bool b;
 
-	DoButton(BUTTON_FUNC_CHECK_MOUSE,NULL,0,mx,my,&b);
+	DoButton(BUTTON_FUNC_CHECK_MOUSE,NULL,0,mx,my,&b,pInBox);
 	return b;
 }
 
@@ -223,15 +221,9 @@ void emButton::SetShownRadioed(bool shownRadioed)
 }
 
 
-bool emButton::CheckMouse(double mx, double my)
-{
-	return ((const emButton*)this)->CheckMouse(mx,my);
-}
-
-
 void emButton::DoButton(
 	DoButtonFunc func, const emPainter * painter, emColor canvasColor,
-	double mx, double my, bool * pHit
+	double mx, double my, bool * pHit, bool * pInBox
 ) const
 {
 	double x,y,w,h,r,d,f,bx,by,bw,bh,fx,fy,fw,fh,fr,lx,ly,lw,lh,dx,dy;
@@ -287,6 +279,11 @@ void emButton::DoButton(
 			dx=emMax(emMax(x-mx,mx-x-w)+r,0.0);
 			dy=emMax(emMax(y-my,my-y-h)+r,0.0);
 			*pHit = dx*dx+dy*dy <= r*r;
+			if (pInBox) {
+				dx=emMax(emMax(fx-mx,mx-fx-fw)+fr,0.0);
+				dy=emMax(emMax(fy-my,my-fy-fh)+fr,0.0);
+				*pInBox = dx*dx+dy*dy <= fr*fr;
+			}
 			return;
 		}
 
@@ -294,7 +291,7 @@ void emButton::DoButton(
 		if (!IsEnabled()) color=color.GetTransparented(75.0F);
 
 		if (hasLabel) {
-			if (Pressed) {
+			if (Pressed && !BoxPressed) {
 				bx+=lw*0.003;
 				fx+=lw*0.003;
 				lx+=lw*0.003;
@@ -321,19 +318,19 @@ void emButton::DoButton(
 		painter->PaintImage(
 			bx,by,bw,bh,
 			ShownRadioed ? (
-				Pressed ?
+				BoxPressed ?
 					GetTkResources().ImgRadioBoxPressed :
 					GetTkResources().ImgRadioBox
 			)
 			: (
-				Pressed ?
+				BoxPressed ?
 					GetTkResources().ImgCheckBoxPressed :
 					GetTkResources().ImgCheckBox
 			),
 			255
 		);
 
-		if (Pressed) {
+		if (Pressed && !BoxPressed) {
 			painter->PaintBorderImage(
 				x,y,w,h,r,r,r,r,
 				GetTkResources().ImgGroupInnerBorder,
@@ -358,6 +355,7 @@ void emButton::DoButton(
 			dx=emMax(emMax(fx-mx,mx-fx-fw)+fr,0.0);
 			dy=emMax(emMax(fy-my,my-fy-fh)+fr,0.0);
 			*pHit = dx*dx+dy*dy <= fr*fr;
+			if (pInBox) *pInBox=false;
 			return;
 		}
 		color=GetLook().GetButtonBgColor();

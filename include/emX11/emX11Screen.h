@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2011,2016-2017,2019,2021 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017,2019,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,6 +63,8 @@ public:
 	) const;
 
 	virtual double GetDPI() const;
+
+	virtual bool CanMoveMousePointer() const;
 
 	virtual void MoveMousePointer(double dx, double dy);
 
@@ -138,7 +140,7 @@ private:
 		bool CursorChanged;
 	};
 
-	bool CheckIfUnreliableXWayland();
+	void DetectXWayland();
 
 	emThreadMiniMutex XMutex; // (XInitThreads was too buggy for me...)
 	Display * Disp;
@@ -160,7 +162,9 @@ private:
 	Atom      _NET_WM_STATE_FULLSCREEN;
 	bool      HaveXF86VidMode;
 	bool      HaveXinerama;
+	bool      IsXWayland;
 	bool      WorkAroundXWaylandFocusBug;
+	bool      WorkAroundXWaylandBackPixelBug;
 
 	Rect      DesktopRect;
 	emArray<Rect> MonitorRects;

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>.h
 //
-// Copyright (C) 2020 Oliver Hamann.
+// Copyright (C) 2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -142,7 +142,7 @@
                 UQ_ADAPTIVE            = <SPAN CLASS=u>5
         </SPAN><SPAN CLASS=b>}</SPAN>;
 
-        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<SPAN CLASS=u>0</SPAN>);
+        <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::GRAY);
         <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(emUInt32 packedColor);
                 <SPAN CLASS=c>// Construct an uni-colored texture. Please see <A CLASS=m HREF="emCore_emTexture_h.html#emColorTexture">emColorTexture</A>
                 // for details.
@@ -187,6 +187,12 @@
                 <SPAN CLASS=c>// Construct a radial gradient texture. Please see
                 // <A CLASS=m HREF="emCore_emTexture_h.html#emRadialGradientTexture">emRadialGradientTexture</A> for details.
 
+        </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>&amp; other);
+                <SPAN CLASS=c>// Construct a copied texture.
+
+        </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>&amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>&amp; other);
+                <SPAN CLASS=c>// Copy a texture.
+
         </SPAN>TextureType GetType() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the type of the texture.
 
@@ -228,8 +234,8 @@
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetImage() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetImage(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image);
-                <SPAN CLASS=c>// Get or set the image. This is valid only if the texture type
-                // is IMAGE or IMAGE_COLORED.
+                <SPAN CLASS=c>// Get or set the image. The image reference must be valid for the life time of the
+                // texture. This is valid only if the texture type is IMAGE or IMAGE_COLORED.
 
         </SPAN><SPAN CLASS=t>int </SPAN>GetSrcX() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetSrcX(<SPAN CLASS=t>int </SPAN>srcX);
@@ -266,7 +272,8 @@
 
         <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>;
 
-        TextureType Type;
+        <SPAN CLASS=c>// *** WARNING for future extensions: Copy constructor+operator do a memcpy!
+        </SPAN>TextureType Type;
         ExtensionType Extension;
         DownscaleQualityType DownscaleQuality;
         UpscaleQualityType UpscaleQuality;
@@ -323,7 +330,9 @@
                 //                         source rectangle of it) is fitted
                 //                         into this rectangle.
                 //   image               - The image. If the image has an alpha
-                //                         channel, it is used for blending.
+                //                         channel, it is used for blending. The
+                //                         image reference must be valid for the
+                //                         life time of the texture.
                 //   srcX,srcY,srcW,srcH - Upper-left corner and size of the
                 //                         source rectangle on the image. If
                 //                         these arguments are missing, the
@@ -387,7 +396,9 @@
                 //                         source rectangle of it) is fitted
                 //                         into this rectangle.
                 //   image               - The image. If the image has an alpha
-                //                         channel, it is used for blending.
+                //                         channel, it is used for blending. The
+                //                         image reference must be valid for the
+                //                         life time of the texture.
                 //   srcX,srcY,srcW,srcH - Upper-left corner and size of the
                 //                         source rectangle on the image. If
                 //                         these arguments are missing, the
@@ -542,6 +553,17 @@
         Type(RADIAL_GRADIENT),Color1(color1),Color2(color2),X(x),Y(y),W(w),H(h)
 <SPAN CLASS=b>{
 }
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>&amp; other)
+<SPAN CLASS=b>{
+        </SPAN>memcpy((<SPAN CLASS=t>void</SPAN>*)<SPAN CLASS=k>this</SPAN>,(<SPAN CLASS=t>const void</SPAN>*)&amp;other,<SPAN CLASS=k>sizeof</SPAN>(<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>));
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>&amp; <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>&amp; other)
+<SPAN CLASS=b>{
+        </SPAN>memcpy((<SPAN CLASS=t>void</SPAN>*)<SPAN CLASS=k>this</SPAN>,(<SPAN CLASS=t>const void</SPAN>*)&amp;other,<SPAN CLASS=k>sizeof</SPAN>(<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>));
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::TextureType <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetType() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{

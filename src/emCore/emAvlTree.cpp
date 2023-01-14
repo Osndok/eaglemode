@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTree.cpp
 //
-// Copyright (C) 2005-2008 Oliver Hamann.
+// Copyright (C) 2005-2008,2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,7 +21,7 @@
 #include <emCore/emAvlTree.h>
 
 
-int emAvlCheck(const emAvlTree tree)
+int emAvlCheck(emAvlTree tree)
 {
 	int l, r;
 

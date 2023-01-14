@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "emStocks"
+
+PosX  = 0.84
+PosY  = 0.37
+Width = 0.05
+ContentTallness = 0.473
+
+BorderScaling = 1.6
+
+BackgroundColor = "#272d40"
+BorderColor = "#3A3F43"
+TitleColor = "#EEC"
+
+FileName = "Stocks.emStocks"
+CopyToUser = true

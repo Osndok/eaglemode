@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -157,8 +157,10 @@
                 // this method should be overloaded and it should return a handy
                 // name for the file format. Thereby, <A CLASS=m HREF="emCore_emRec_h.html#emRecWriter">emRecWriter</A> and
                 // <A CLASS=m HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> are writing and checking a file format magic at
-                // the beginning of the file. The default implementation returns
-                // NULL which means to have no file format magic.
+                // the beginning of the file. When reading an empty file, the
+                // missing file format magic does not lead to an error. The
+                // default implementation returns NULL which means to have no
+                // file format magic.
 
         </SPAN><SPAN CLASS=t>void </SPAN>TryLoad(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);
         <SPAN CLASS=t>void </SPAN>TrySave(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; filePath);

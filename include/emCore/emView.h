@@ -694,7 +694,6 @@ private:
 	bool CursorInvalid;
 	bool SVPChoiceInvalid;
 	bool SVPChoiceByOpacityInvalid;
-	bool Reserved;
 	bool RestartInputRecursion;
 	bool ZoomedOutBeforeSG;
 	int SettingGeometry;

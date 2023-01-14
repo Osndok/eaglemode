@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>.h
 //
-// Copyright (C) 2004-2008,2010,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016-2017,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -122,6 +122,11 @@
                 // It means that the file model data can safely be shown and
                 // modified.
 
+        </SPAN><SPAN CLASS=t>virtual bool </SPAN>IsReloadAnnoying() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Whether a reload of the file model could currently be
+                // annoying for the user. The default implementation returns
+                // IsInActivePath().
+
         </SPAN><SPAN CLASS=t>virtual </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> GetIconFileName() <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>virtual bool </SPAN>IsContentReady(<SPAN CLASS=t>bool </SPAN>* pReadying=<SPAN CLASS=u>NULL</SPAN>) <SPAN CLASS=t>const</SPAN>;
@@ -146,7 +151,16 @@
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
-        <A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> FileModelClient;
+        <SPAN CLASS=t>class </SPAN>FileModelClientClass : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emFileModel_h.html#emFileModelClient">emFileModelClient</A> <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                <SPAN CLASS=t>virtual </SPAN>emUInt64 GetMemoryLimit() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>virtual double </SPAN>GetPriority() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>virtual bool </SPAN>IsReloadAnnoying() <SPAN CLASS=t>const</SPAN>;
+                <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> &amp; GetFilePanel() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=b>}</SPAN>;
+
+        FileModelClientClass FileModelClient;
+        emUInt64 MemoryLimit;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * CustomError;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> VirFileStateSignal;
 <SPAN CLASS=b>}</SPAN>;
@@ -159,6 +173,11 @@
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::GetVirFileStateSignal() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>VirFileStateSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A> &amp; <A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>::FileModelClientClass::GetFilePanel() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*(<A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>*)(((<SPAN CLASS=t>char</SPAN>*)<SPAN CLASS=k>this</SPAN>)-offsetof(<A CLASS=l HREF="emCore_emFilePanel_h.html#emFilePanel">emFilePanel</A>,FileModelClient));
 <SPAN CLASS=b>}
 
 

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emPainter_h.html#emPainter">emPainter</A>.h
 //
-// Copyright (C) 2001,2003-2010,2014,2016-2017,2020 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016-2017,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,6 +32,14 @@
 
 #ifndef emModel_h
 #include &lt;<A CLASS=f HREF="emCore_emModel_h.html">emCore/emModel.h</A>&gt;
+#endif
+
+#ifndef emStroke_h
+#include &lt;<A CLASS=f HREF="emCore_emStroke_h.html">emCore/emStroke.h</A>&gt;
+#endif
+
+#ifndef emStrokeEnd_h
+#include &lt;<A CLASS=f HREF="emCore_emStrokeEnd_h.html">emCore/emStrokeEnd.h</A>&gt;
 #endif
 
 #ifndef emTexture_h
@@ -271,8 +279,18 @@
         </SPAN><SPAN CLASS=t>bool </SPAN>EnterUserSpace() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Lock the user space mutex. Returns true if it was unlocked.
 
+        </SPAN><SPAN CLASS=t>class </SPAN>UserSpaceLeaveGuard <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                <SPAN CLASS=c>// RAII helper for the user space mutex: Calls LeaveUserSpace()
+                // on construction and undoes that on destruction.
+                </SPAN>UserSpaceLeaveGuard(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter);
+                ~UserSpaceLeaveGuard();
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> * PainterIfUnlocked;
+        <SPAN CLASS=b>}</SPAN>;
 
-        //--------------------------- Painting areas ---------------------------
+
+        <SPAN CLASS=c>//--------------------------- Painting areas ---------------------------
 
         </SPAN><SPAN CLASS=t>void </SPAN>Clear(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture=<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A>::BLACK,
                    <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
@@ -290,7 +308,8 @@
                           <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Paint a polygon. The polygon may have holes, and it does not
                 // matter whether the edges run clockwise or counterclockwise.
-                // But there must not be any crossings in the edges.
+                // But there should not be any crossings in the edges, otherwise
+                // areas may be painted multiple times or be canceled out.
                 // Arguments:
                 //   xy[]        - Coordinates of the polygon vertices. The
                 //                 array elements are:
@@ -313,14 +332,40 @@
                 // from (x1,y1) to (x2,y2), the first polygon must be on the
                 // left.
 
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintBezier(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
+                         <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint the area of a closed path made of cubic Bezier curves.
+                // Arguments:
+                //   xy[]        - Coordinates of the support polygon of the
+                //                 Bezier curves. The array elements are:
+                //                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
+                //                 Each cubic Bezier curve is defined by four
+                //                 points in the support polygon. The last
+                //                 support point of a curve is also the first of
+                //                 the next curve. And because the path is
+                //                 closed, the first point of the first curve is
+                //                 also the last point of the last curve.
+                //   n           - Number of points in the support polygon. This
+                //                 must be a multiple of three (n = 3, 6, 9,
+                //                 ...).
+                //   texture     - The texture by which to fill the area.
+                //   canvasColor - Please read the general comments more above.
+
         </SPAN><SPAN CLASS=t>void </SPAN>PaintEllipse(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
                           <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintEllipse(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                          <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
-                          <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
-                          <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// Paint an ellipse or a sector of an ellipse.
+                <SPAN CLASS=c>// Paint an ellipse.
+                // Arguments:
+                //   x,y,w,h     - Upper-left corner and size of the bounding
+                //                 rectangle of the ellipse.
+                //   texture     - The texture by which to fill the ellipse.
+                //   canvasColor - Please read the general comments more above.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintEllipseSector(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                                <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
+                                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
+                                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint a sector of an ellipse.
                 // Arguments:
                 //   x,y,w,h     - Upper-left corner and size of the bounding
                 //                 rectangle of the ellipse.
@@ -342,52 +387,112 @@
                 //   canvasColor - Please read the general comments more above.
 
 
-        //--------------------------- Painting lines ---------------------------
+        //--------------------- Painting non-closed lines ----------------------
 
-        </SPAN><SPAN CLASS=t>enum </SPAN>LineCap <SPAN CLASS=b>{
-                </SPAN>LC_FLAT,
-                LC_SQUARE,
-                LC_ROUND
-        <SPAN CLASS=b>}</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintLine(<SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2,
-                       <SPAN CLASS=t>double </SPAN>thickness, LineCap cap1, LineCap cap2,
-                       <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// Paint a line.
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintLine(<SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2,
+                       <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                       <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                       <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                       <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint a straight line.
                 // Arguments:
                 //   x1,y1       - Coordinates of the first end of the line.
                 //   x2,y2       - Coordinates of the other end of the line.
                 //   thickness   - Width of the stroke.
-                //   cap1,cap2   - How to paint the endings:
-                //                  LC_FLAT: Do not extend the ending.
-                //                  LC_SQUARE: Extend by thickness/2.
-                //                  LC_ROUND: Have a semicircle.
-                //   color       - The color (alpha part is used for blending).
+                //   stroke      - Style of the stroke (color, rounding, dashes).
+                //   strokeStart - Style of the beginning of the stroke.
+                //   strokeEnd   - Style of the end of the stroke.
                 //   canvasColor - Please read the general comments more above.
 
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintPolyline(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
+                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                           <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                           <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint a series of connected straight lines.
+                // Arguments:
+                //   xy[]        - Coordinates of the line vertices. The
+                //                 array elements are:
+                //                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
+                //   n           - Number of vertices.
+                //   thickness   - Width of the stroke.
+                //   stroke      - Style of the stroke (color, rounding, dashes).
+                //   strokeStart - Style of the beginning of the stroke.
+                //   strokeEnd   - Style of the end of the stroke.
+                //   canvasColor - Please read the general comments more above.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintBezierLine(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                             <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint a curved line made of cubic Bezier curves.
+                // Arguments:
+                //   xy[]        - Coordinates of the support polygon of the
+                //                 Bezier curves. The array elements are:
+                //                 x0, y0, x1, y1, x2, y2, ..., x(n-1), y(n-1)
+                //                 Each cubic Bezier curve is defined by four
+                //                 points in the support polygon. The last
+                //                 support point of a curve is also the first of
+                //                 the next curve.
+                //   n           - Number of points in the support polygon. This
+                //                 must be a multiple of three plus one (n = 4,
+                //                 7, 10, ...).
+                //   thickness   - Width of the stroke.
+                //   stroke      - Style of the stroke (color, rounding, dashes).
+                //   strokeStart - Style of the beginning of the stroke.
+                //   strokeEnd   - Style of the end of the stroke.
+                //   canvasColor - Please read the general comments more above.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>PaintEllipseArc(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                             <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
+                             <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                             <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd=<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>(),
+                             <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Paint the arc of an ellipse.
+                // Arguments:
+                //   x,y,w,h     - Upper-left corner and size of the bounding
+                //                 rectangle of the ellipse.
+                //   startAngle  - Start angle of the arc in degrees. Zero
+                //                 points to the right, 90 points down...
+                //   rangeAngle  - Range angle of the arc.
+                //   thickness   - Width of the stroke.
+                //   stroke      - Style of the stroke (color, rounding, dashes).
+                //   strokeStart - Style of the beginning of the stroke.
+                //   strokeEnd   - Style of the end of the stroke.
+                //   canvasColor - Please read the general comments more above.
+
+
+        //----------------------- Painting closed lines ------------------------
+
         </SPAN><SPAN CLASS=t>void </SPAN>PaintRectOutline(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                              <SPAN CLASS=t>double </SPAN>thickness, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color,
+                              <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
                               <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>PaintPolygonOutline(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
-                                 <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-        <SPAN CLASS=t>void </SPAN>PaintEllipseOutline(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                                 <SPAN CLASS=t>double </SPAN>thickness, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color,
+                                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
                                  <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>PaintBezierOutline(<SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
+                                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>PaintEllipseOutline(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
-                                 <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
-                                 <SPAN CLASS=t>double </SPAN>thickness, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color,
+                                 <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
                                  <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>PaintEllipseSectorOutline(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                                       <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
+                                       <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                                       <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>PaintRoundRectOutline(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
                                    <SPAN CLASS=t>double </SPAN>rx, <SPAN CLASS=t>double </SPAN>ry, <SPAN CLASS=t>double </SPAN>thickness,
-                                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=c>// These are like PaintRect, PaintPolygon, PaintEllipse and
-                // PaintRoundRect, but the objects are outlined instead of being
-                // filled. The argument thickness is the width of the stroke.
-                // The lines are centered on the boundary of the objects. The
-                // second version of PaintEllipseOutline paints just an arc
-                // (instead of the outline of a pie).
-                // ??? BUG: PaintPolygonOutline currently always ignores the
-                // canvasColor, and it does not produce correct results if the
-                // alpha channel of the color is not 255.
+                                   <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                                   <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// These are like PaintRect, PaintPolygon, PaintBezier,
+                // PaintEllipse, PaintEllipseSector and PaintRoundRect, but the
+                // objects are outlined instead of being filled. The thickness
+                // argument is the width of the stroke. The stroke argument
+                // describes the color, rounding of corners, and optional
+                // dashes. The lines are centered on the boundary of the
+                // objects.
 
 
         //------------------------ Painting from images ------------------------
@@ -604,9 +709,88 @@
                 // Returns: The width of the text.
 
 
-        //----------------------------------------------------------------------
+        //------------------------- Deprecated methods -------------------------
+
+        </SPAN>EM_DEPRECATED(
+                <SPAN CLASS=t>void </SPAN>PaintEllipse(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                                  <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
+                                  <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A> &amp; texture,
+                                  <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const
+        </SPAN>);
+
+        <SPAN CLASS=t>enum </SPAN>LineCap <SPAN CLASS=b>{
+                </SPAN>LC_FLAT,
+                LC_SQUARE,
+                LC_ROUND
+        <SPAN CLASS=b>}</SPAN>;
+        EM_DEPRECATED(
+                <SPAN CLASS=t>void </SPAN>PaintLine(<SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2,
+                               <SPAN CLASS=t>double </SPAN>thickness, LineCap cap1, LineCap cap2,
+                               <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const
+        </SPAN>);
+
+        EM_DEPRECATED(
+                <SPAN CLASS=t>void </SPAN>PaintEllipseOutline(<SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h,
+                                         <SPAN CLASS=t>double </SPAN>startAngle, <SPAN CLASS=t>double </SPAN>rangeAngle,
+                                         <SPAN CLASS=t>double </SPAN>thickness, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color,
+                                         <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=t>const
+        </SPAN>);
+
+
+        <SPAN CLASS=c>//----------------------------------------------------------------------
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>friend class </SPAN>UserSpaceLeaveGuard;
+
+        <SPAN CLASS=t>void </SPAN>PaintPolylineWithArrows(
+                <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>nx1, <SPAN CLASS=t>double </SPAN>ny1, <SPAN CLASS=t>double </SPAN>nx2,
+                <SPAN CLASS=t>double </SPAN>ny2, <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>PaintPolylineWithArrowsAlterBuf(
+                <SPAN CLASS=t>double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>nx1, <SPAN CLASS=t>double </SPAN>ny1, <SPAN CLASS=t>double </SPAN>nx2,
+                <SPAN CLASS=t>double </SPAN>ny2, <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>static double </SPAN>CalculateLinePointMinMaxRadius(
+                <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd
+        );
+
+        <SPAN CLASS=t>static double </SPAN>CutLineAtArrow(
+                <SPAN CLASS=t>double </SPAN>x1, <SPAN CLASS=t>double </SPAN>y1, <SPAN CLASS=t>double </SPAN>x2, <SPAN CLASS=t>double </SPAN>y2, <SPAN CLASS=t>double </SPAN>thickness,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd
+        );
+
+        <SPAN CLASS=t>void </SPAN>PaintArrow(
+                <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>nx, <SPAN CLASS=t>double </SPAN>ny, <SPAN CLASS=t>double </SPAN>thickness,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd,
+                <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>PaintPolylineWithoutArrows(
+                <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>PaintDashedPolyline(
+                <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>PaintSolidPolyline(
+                <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+        ) <SPAN CLASS=t>const</SPAN>;
 
         <SPAN CLASS=t>enum </SPAN>OptimizedPixelFormatIndex <SPAN CLASS=b>{
                 </SPAN>OPFI_NONE      = -<SPAN CLASS=u>1</SPAN>,
@@ -654,8 +838,16 @@
         <SPAN CLASS=t>bool </SPAN>* USMLockedByThisThread;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;SharedModel&gt; Model;
 
+        <SPAN CLASS=t>static const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> ButtEnd;
+        <SPAN CLASS=t>static const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> CapEnd;
+        <SPAN CLASS=t>static const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> NoEnd;
         <SPAN CLASS=t>static const double </SPAN>CharBoxTallness;
         <SPAN CLASS=t>static const double </SPAN>CircleQuality;
+        <SPAN CLASS=t>static const double </SPAN>MaxMiter;
+        <SPAN CLASS=t>static const double </SPAN>ArrowBaseSize;
+        <SPAN CLASS=t>static const double </SPAN>ArrowNotch;
+        <SPAN CLASS=t>static const double </SPAN>MaxDashes;
+        <SPAN CLASS=t>static const double </SPAN>MinRelSegLen;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::~<A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>()
@@ -776,6 +968,58 @@
         </SPAN><SPAN CLASS=k>return false</SPAN>;
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::UserSpaceLeaveGuard::UserSpaceLeaveGuard(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A> &amp; painter
+)
+<SPAN CLASS=b>{
+        </SPAN>PainterIfUnlocked=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(painter.USMLockedByThisThread &amp;&amp; *painter.USMLockedByThisThread) <SPAN CLASS=b>{
+                </SPAN>*painter.USMLockedByThisThread=<SPAN CLASS=k>false</SPAN>;
+                painter.UserSpaceMutex-&gt;Unlock();
+                PainterIfUnlocked=&amp;painter;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::UserSpaceLeaveGuard::~UserSpaceLeaveGuard()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(PainterIfUnlocked) <SPAN CLASS=b>{
+                </SPAN>PainterIfUnlocked-&gt;UserSpaceMutex-&gt;Lock();
+                *PainterIfUnlocked-&gt;USMLockedByThisThread=<SPAN CLASS=k>true</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintPolygonOutline(
+        <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>PaintPolyline(
+                xy,n,thickness,stroke,
+<SPAN CLASS=p>#ifdef EM_NO_DATA_EXPORT
+                </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::NO_END,<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::NO_END,
+<SPAN CLASS=p>#else
+                </SPAN>NoEnd,NoEnd,
+<SPAN CLASS=p>#endif
+                </SPAN>canvasColor
+        );
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintBezierOutline(
+        <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>PaintBezierLine(
+                xy,n,thickness,stroke,
+<SPAN CLASS=p>#ifdef EM_NO_DATA_EXPORT
+                </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::NO_END,<A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A>::NO_END,
+<SPAN CLASS=p>#else
+                </SPAN>NoEnd,NoEnd,
+<SPAN CLASS=p>#endif
+                </SPAN>canvasColor
+        );
+<SPAN CLASS=b>}
+
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintImage(
         <SPAN CLASS=t>double </SPAN>x, <SPAN CLASS=t>double </SPAN>y, <SPAN CLASS=t>double </SPAN>w, <SPAN CLASS=t>double </SPAN>h, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; img,
         <SPAN CLASS=t>int </SPAN>alpha, <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor, <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::ExtensionType extension
@@ -852,6 +1096,20 @@
                 srcL,srcT,srcR,srcB,color1,color2,canvasColor,whichSubRects
         );
 <SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>::PaintPolylineWithoutArrows(
+        <SPAN CLASS=t>const double </SPAN>xy[], <SPAN CLASS=t>int </SPAN>n, <SPAN CLASS=t>double </SPAN>thickness, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A> &amp; stroke,
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeStart, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emStrokeEnd_h.html#emStrokeEnd">emStrokeEnd</A> &amp; strokeEnd,
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> canvasColor
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(stroke.DashType!=<A CLASS=l HREF="emCore_emStroke_h.html#emStroke">emStroke</A>::SOLID) <SPAN CLASS=b>{
+                </SPAN>PaintDashedPolyline(xy,n,thickness,stroke,strokeStart,strokeEnd,canvasColor);
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>PaintSolidPolyline(xy,n,thickness,stroke,strokeStart,strokeEnd,canvasColor);
+        <SPAN CLASS=b>}
+}
 
 
 </SPAN><SPAN CLASS=p>#endif

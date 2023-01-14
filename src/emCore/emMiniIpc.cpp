@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMiniIpc.cpp - Minimalistic support for interprocess communication
 //
-// Copyright (C) 2004-2009,2011,2014,2018-2020 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014,2018-2021 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -321,7 +321,7 @@ static emString emMiniIpc_CalcFifoDir()
 {
 	return emGetChildPath(
 		emGetInstallPath(EM_IDT_TMP,"emCore"),
-		emString::Format("emMiniIpc-%s",emGetUserName().Get())
+		emString::Format(".emMiniIpc-%lu",(unsigned long)getuid())
 	);
 }
 

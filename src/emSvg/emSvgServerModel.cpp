@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011,2014,2017-2019 Oliver Hamann.
+// Copyright (C) 2010-2011,2014,2017-2019,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -113,31 +113,32 @@ void emSvgServerModel::CloseSvg(SvgHandle svgHandle)
 }
 
 
-void emSvgServerModel::Poll(unsigned maxMilliSecs)
+void emSvgServerModel::Poll(unsigned maxMillisecs)
 {
 	emUInt64 endTime,now;
 	int flags;
 
-	if (!FirstRunningJob && !FirstWaitingJob) {
-		if (
-			ProcSvgInstCount==0 &&
-			Process.IsRunning() &&
-			!ProcTerminating &&
-			emGetClockMS()-ProcIdleClock>=5000
-		) {
-			emDLog("emSvgServerModel: Terminating server process");
-			Process.CloseWriting();
-			ProcTerminating=true;
-		}
-		return;
-	}
+	endTime=emGetClockMS()+maxMillisecs;
 
-	endTime=emGetClockMS()+maxMilliSecs;
+	if (
+		!FirstRunningJob &&
+		!FirstWaitingJob &&
+		ProcSvgInstCount==0 &&
+		Process.IsRunning() &&
+		!ProcTerminating &&
+		emGetClockMS()-ProcIdleClock>=5000
+	) {
+		emDLog("emSvgServerModel: Terminating server process");
+		Process.CloseWriting();
+		ProcTerminating=true;
+	}
 
 	if (ProcTerminating) {
-		if (!Process.WaitForTermination(maxMilliSecs)) return;
+		if (!Process.WaitForTermination(maxMillisecs)) return;
 		ProcTerminating=false;
 	}
+
+	if (!FirstRunningJob && !FirstWaitingJob) return;
 
 	ProcIdleClock=emGetClockMS();
 

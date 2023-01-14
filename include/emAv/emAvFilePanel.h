@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFilePanel.h
 //
-// Copyright (C) 2005-2010,2016-2017,2020 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2017,2020,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,6 +46,8 @@ public:
 
 	virtual void SetFileModel(emFileModel * fileModel,
 	                          bool updateFileModel=true);
+
+	virtual bool IsReloadAnnoying() const;
 
 	virtual emString GetIconFileName() const;
 

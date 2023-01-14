@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2019,2021 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2019,2021-2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,7 +99,7 @@ void emTextFilePanel::Paint(const emPainter & painter, emColor canvasColor) cons
 {
 	if (IsVFSGood()) {
 
-		painter.LeaveUserSpace(); //!!!
+		emPainter::UserSpaceLeaveGuard userSpaceLeaveGuard(painter); //!!!
 
 		if (Model->GetCharEncoding()==emTextFileModel::CE_BINARY || AlternativeView) {
 			PaintAsHex(painter,canvasColor);
@@ -107,9 +107,6 @@ void emTextFilePanel::Paint(const emPainter & painter, emColor canvasColor) cons
 		else {
 			PaintAsText(painter,canvasColor);
 		}
-
-		painter.EnterUserSpace(); //!!!
-
 	}
 	else {
 		emFilePanel::Paint(painter,canvasColor);

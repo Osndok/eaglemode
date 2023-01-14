@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_gnu.pm
 #
-# Copyright (C) 2006-2011,2013,2017-2019,2021 Oliver Hamann.
+# Copyright (C) 2006-2011,2013,2017-2019,2021-2022 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -174,6 +174,9 @@ sub Link
 		if ($IsWinOrCygwin) {
 			push(@args,"-mthreads");
 			push(@args,"-shared-libgcc");
+		}
+		if ($IsWinOrCygwin and ($type eq 'cexe' or $type eq 'wexe')) {
+			push(@args,"-Wl,--stack=8388608");
 		}
 		if ($IsWin and $type eq 'wexe') { push(@args,"-mwindows"); }
 		foreach my $s (@{GetLibSearchDirs()}) { push(@args,"-L$s"); }

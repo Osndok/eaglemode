@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.h
 //
-// Copyright (C) 2005-2008,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018,2022 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -269,10 +269,11 @@ protected:
 
 private: friend class emFileModelClient;
 
-	void ClientsChanged();
 	bool StepLoading();
 	bool StepSaving();
 	bool UpdateFileProgress();
+	bool UpdateMemoryLimit();
+	void UpdatePriority();
 	void StartPSAgent();
 	void EndPSAgent();
 
@@ -289,6 +290,8 @@ private: friend class emFileModelClient;
 
 	emSignal FileStateSignal;
 	FileState State;
+	unsigned MemoryLimitInvalid : 1;
+	unsigned PriorityInvalid : 1;
 	emUInt64 MemoryNeed;
 	double FileProgress;
 	emUInt64 FileProgressClock;
@@ -342,8 +345,8 @@ class emFileModelClient : public emUncopyable {
 
 public:
 
-	// Class for a client on an emFileModel. Multiple clients can connect to
-	// the same file model. And:
+	// Abstract base class for a client on an emFileModel. Multiple clients
+	// can connect to the same file model. And:
 	//
 	// - Each client tells about the maximum memory which may be allocated
 	//   by the file model and one typical client (e.g. emFilePanel). If no
@@ -354,19 +357,13 @@ public:
 	//   the order of loading file models. The maximum priority of all
 	//   clients is taken.
 	//
-	// On each modification of a memory limit or a priority, the logics of
-	// emFileModel reacts automatically.
-	//
 	// Hint: Even have a look at the class emFilePanel. It's a base class
-	// for panels which want to be file mode clients.
+	// for panels which want to be file model clients.
 
-	emFileModelClient(emFileModel * model=NULL, emUInt64 memoryLimit=0,
-	                  double priority=0.0);
+	emFileModelClient(emFileModel * model=NULL);
 		// Constructor.
 		// Arguments:
-		//   model        - See SetModel below.
-		//   memoryLimit  - See SetMemoryLimit below.
-		//   priority     - See SetPriority below.
+		//   model - See SetModel below.
 
 	virtual ~emFileModelClient();
 		// Destructor.
@@ -376,23 +373,32 @@ public:
 		// The file model this client is connected to. NULL means to
 		// have disconnected state.
 
-	void SetMemoryLimit(emUInt64 bytes);
-	emUInt64 GetMemoryLimit() const;
+	virtual emUInt64 GetMemoryLimit() const = 0;
 		// Maximum memory need accepted for loading the file, from sight
 		// of this client. Usually, this should be set from
 		// emPanel::GetMemoryLimit().
 
-	double GetPriority() const;
-	void SetPriority(double priority);
+	virtual double GetPriority() const = 0;
 		// Priority in loading the file, from sight of this client.
 		// Usually, this should be set from
 		// emPanel::GetUpdatePriority().
 
+	virtual bool IsReloadAnnoying() const = 0;
+		// Whether a reload of the file model could currently be
+		// annoying for the user.
+
+	void InvalidateMemoryLimit();
+		// Indicate a change in the results of GetMemoryLimit().
+
+	void InvalidatePriority();
+		// Indicate a change in the results of GetPriority().
+
+	bool IsTheOnlyClient() const;
+		// Whether the file model has no other client.
+
 private: friend class emFileModel;
 
 	emRef<emFileModel> Model;
-	emUInt64 MemoryLimit;
-	double Priority;
 	emFileModelClient * * ThisPtrInList;
 	emFileModelClient * NextInList;
 };
@@ -402,15 +408,22 @@ inline emFileModel * emFileModelClient::GetModel() const
 	return Model;
 }
 
-inline emUInt64 emFileModelClient::GetMemoryLimit() const
-{
-	return MemoryLimit;
-}
 
-inline double emFileModelClient::GetPriority() const
-{
-	return Priority;
-}
+//==============================================================================
+//========================= emAbsoluteFileModelClient ==========================
+//==============================================================================
+
+class emAbsoluteFileModelClient : public emFileModelClient {
+
+public:
+
+	// Class for a file model client that demands loaded state in any case.
+
+	emAbsoluteFileModelClient(emFileModel * model=NULL);
+	virtual emUInt64 GetMemoryLimit() const;
+	virtual double GetPriority() const;
+	virtual bool IsReloadAnnoying() const;
+};
 
 
 #endif
