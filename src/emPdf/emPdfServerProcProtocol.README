@@ -3,6 +3,15 @@ emPdf Server Process Protocol
 
 client: open <file>
 server: instance: <inst>
+server: title: "<title>"
+server: author: "<author>"
+server: subject: "<subject>"
+server: keywords: "<keywords>"
+server: creator: "<creator>"
+server: producer: "<producer>"
+server: creation_date: <time_t>
+server: modification_date: <time_t>
+server: version: "<version>"
 server: pages: <page count>
 server: pageinfo: <page index> <width> <height> "<label>"
 server: pageinfo: <page index> <width> <height> "<label>"
@@ -10,8 +19,29 @@ server: ...
 server: ok
 or    : error: <message>
 
+client: get_areas <inst> <page>
+server: rect: <x1> <y1> <x2> <y2> <type> [<params...>]
+        Types:
+            0=text, no params
+            1=uri, params: "<uri>"
+            2=ref, params: <target page> <target y>
+server: rect: <x1> <y1> <x2> <y2> <type> [<params...>]
+server: rect: <x1> <y1> <x2> <y2> <type> [<params...>]
+server: ...
+server: ok
+or    : error: <message>
+
+client: get_selected_text <inst> <page> <style> <selx1> <sely1> <selx2> <sely2>
+        Styles: 0=glyphs, 1=words, 2=lines
+server: selected_text: <quoted text>
+
 client: render <inst> <page> <x> <y> <width> <height> <out width> <out height>
 server: <ppm P6 file contents>
+or    : error: <message>
+
+client: render_selection <inst> <page> <x> <y> <width> <height> <out width>
+        <out height> <style> <selx1> <sely1> <selx2> <sely2>
+server: <ppm P6 like file contents, but with two channels: gray and alpha>
 or    : error: <message>
 
 client: close <inst>

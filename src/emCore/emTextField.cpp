@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018,2021-2022 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018,2021-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -150,11 +150,16 @@ void emTextField::Select(int startIndex, int endIndex, bool publish)
 	if (startIndex>=endIndex) {
 		startIndex=0;
 		endIndex=0;
+		publish=false;
 	}
-	if (SelectionStartIndex==startIndex && SelectionEndIndex==endIndex) return;
-	startIndex=GetNormalizedIndex(startIndex);
-	endIndex=GetNormalizedIndex(endIndex);
-	if (SelectionStartIndex==startIndex && SelectionEndIndex==endIndex) return;
+	else if (SelectionStartIndex!=startIndex || SelectionEndIndex!=endIndex) {
+		startIndex=GetNormalizedIndex(startIndex);
+		endIndex=GetNormalizedIndex(endIndex);
+	}
+	if (
+		SelectionStartIndex==startIndex && SelectionEndIndex==endIndex &&
+		publish==(SelectionId!=-1)
+	) return;
 	if (SelectionId!=-1) {
 		Clipboard->Clear(true,SelectionId);
 		SelectionId=-1;
@@ -1379,10 +1384,17 @@ int emTextField::ColRow2Index(double column, double row, bool forCursor) const
 			if (c==0x0a || c==0x0d || c==0) break;
 			k=j+1;
 			if (c==0x09) k=(k+7)&~7;
-			if (column<=k) {
-				if (forCursor) { if (k-column<column-j) i+=n; }
-				else           { if (column==k)         i+=n; }
-				break;
+			if (forCursor) {
+				if (column<k+0.5) {
+					if (k-column<column-j) i+=n;
+					break;
+				}
+			}
+			else {
+				if (column<k+1.0) {
+					if (column>=k) i+=n;
+					break;
+				}
 			}
 		}
 	}

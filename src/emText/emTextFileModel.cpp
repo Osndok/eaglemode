@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.cpp
 //
-// Copyright (C) 2004-2011,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2018-2019,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,6 +26,211 @@ emRef<emTextFileModel> emTextFileModel::Acquire(
 )
 {
 	EM_IMPL_ACQUIRE(emTextFileModel,context,name,common)
+}
+
+
+bool emTextFileModel::IsSameCharEncoding() const
+{
+	switch (CharEncoding) {
+	case CE_BINARY:
+	case CE_7BIT:
+		return true;
+	case CE_8BIT:
+		return !emIsUtf8System();
+	case CE_UTF8:
+		return emIsUtf8System();
+	default:
+		return false;
+	}
+}
+
+
+int emTextFileModel::DecodeChar(int * pUcs4, int index, emMBState * mbState) const
+{
+	const char * src;
+	int srcLen,c,c2,sh1,sh2,n;
+
+	if ((unsigned int)index>=(unsigned int)Content.GetCount()) {
+		*pUcs4=0;
+		return 0;
+	}
+
+	src=Content.Get()+index;
+	srcLen=Content.GetCount()-index;
+
+	switch (CharEncoding) {
+	case CE_BINARY:
+		return emDecodeChar(pUcs4,src,srcLen,mbState);
+	case CE_8BIT:
+		if (!emIsUtf8System()) return emDecodeChar(pUcs4,src,srcLen,mbState);
+		c=(emByte)*src;
+		if (c>=0x80 && c<=0x9F) {
+			static const int latin1ExtraTab[32]={
+				0x20AC,0x0081,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,
+				0x02C6,0x2030,0x0160,0x2039,0x0152,0x0164,0x017D,0x0179,
+				0x0090,0x2035,0x2032,0x2036,0x2033,0x2022,0x2013,0x2014,
+				0x02DC,0x2122,0x0161,0x203A,0x0153,0x0165,0x017E,0x0178
+			};
+			c=latin1ExtraTab[c-0x80];
+		}
+		*pUcs4=c;
+		return 1;
+	case CE_UTF8:
+		n=emDecodeUtf8Char(pUcs4,src,srcLen);
+		if (n<=0) {
+			*pUcs4=(emByte)*src;
+			n=1;
+		}
+		return n;
+	case CE_UTF16LE:
+	case CE_UTF16BE:
+		if (GetCharEncoding()==CE_UTF16LE) { sh1=0; sh2=8; }
+		else { sh1=8; sh2=0; }
+		for (n=0;;) {
+			if (n+1>=srcLen) {
+				c=0;
+				n=srcLen;
+				break;
+			}
+			c=((((emByte)src[n])<<sh1)|(((emByte)src[n+1])<<sh2));
+			n+=2;
+			if (c!=0xFEFF) break;
+		}
+		if (c>=0xD800 && c<=0xDBFF && n+1<srcLen) {
+			c2=((((emByte)src[n])<<sh1)|(((emByte)src[n+1])<<sh2));
+			if (c2>=0xDC00 && c2<=0xDFFF) {
+				n+=2;
+				c=0x10000+((c&0x03FF)<<10)+(c2&0x03FF);
+			}
+		}
+		*pUcs4=c;
+		return n;
+	default:
+		*pUcs4=(emByte)*src;
+		return 1;
+	}
+}
+
+
+int emTextFileModel::ConvertToCurrentLocale(
+	char * tgt, int tgtSize, const char * * pSrc, const char * srcEnd,
+	emMBState * mbState
+) const
+{
+	const char * src;
+	int len,c,c2,sh1,sh2,n;
+
+	src=*pSrc;
+
+	switch (CharEncoding) {
+	case CE_8BIT:
+		if (!emIsUtf8System()) {
+			len=emMin(tgtSize,(int)(srcEnd-src));
+			memcpy(tgt,src,len);
+			src+=len;
+			break;
+		}
+		len=0;
+		while (src<srcEnd && len<=tgtSize-EM_MB_LEN_MAX) {
+			c=(emByte)*src++;
+			if (c<0x80) {
+				tgt[len++]=(char)c;
+			}
+			else {
+				if (c<=0x9F) {
+					static const int latin1ExtraTab[32]={
+						0x20AC,0x0081,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,
+						0x02C6,0x2030,0x0160,0x2039,0x0152,0x0164,0x017D,0x0179,
+						0x0090,0x2035,0x2032,0x2036,0x2033,0x2022,0x2013,0x2014,
+						0x02DC,0x2122,0x0161,0x203A,0x0153,0x0165,0x017E,0x0178
+					};
+					c=latin1ExtraTab[c-0x80];
+				}
+				len+=emEncodeChar(tgt+len,c,mbState);
+			}
+		}
+		break;
+	case CE_UTF8:
+		if (emIsUtf8System()) {
+			len=emMin(tgtSize,(int)(srcEnd-src));
+			memcpy(tgt,src,len);
+			src+=len;
+			break;
+		}
+		len=0;
+		while (src<srcEnd && len<=tgtSize-EM_MB_LEN_MAX) {
+			c=(emByte)*src;
+			if (c<0x80) {
+				src++;
+				tgt[len++]=(char)c;
+			}
+			else {
+				n=emDecodeUtf8Char(&c,src,srcEnd-src);
+				if (n<=0) { c=(emByte)*src; n=1; }
+				src+=n;
+				len+=emEncodeChar(tgt+len,c,mbState);
+			}
+		}
+		break;
+	case CE_UTF16LE:
+	case CE_UTF16BE:
+		if (GetCharEncoding()==CE_UTF16LE) { sh1=0; sh2=8; }
+		else { sh1=8; sh2=0; }
+		len=0;
+		while (src+1<srcEnd && len<=tgtSize-EM_MB_LEN_MAX) {
+			c=((((emByte)src[0])<<sh1)|(((emByte)src[1])<<sh2));
+			src+=2;
+			if (c<128) {
+				tgt[len++]=(char)c;
+			}
+			else if (c!=0xFEFF) {
+				if (c>=0xD800 && c<=0xDBFF && src+1<srcEnd) {
+					c2=((((emByte)src[0])<<sh1)|(((emByte)src[1])<<sh2));
+					if (c2>=0xDC00 && c2<=0xDFFF) {
+						src+=2;
+						c=0x10000+((c&0x03FF)<<10)+(c2&0x03FF);
+					}
+				}
+				len+=emEncodeChar(tgt+len,c,mbState);
+			}
+		}
+		break;
+	default:
+		len=emMin(tgtSize,(int)(srcEnd-src));
+		memcpy(tgt,src,len);
+		src+=len;
+		break;
+	}
+
+	*pSrc=src;
+	return len;
+}
+
+
+emString emTextFileModel::ConvertToCurrentLocale(
+	const char * src, const char * srcEnd
+) const
+{
+	char * buf;
+	int len,l,bufSize;
+
+	if (IsSameCharEncoding()) return emString(src,srcEnd-src);
+
+	bufSize=1024+EM_MB_LEN_MAX;
+	buf=(char*)malloc(bufSize);
+	len=0;
+	emMBState mbState;
+	for (;;) {
+		l=ConvertToCurrentLocale(buf+len,bufSize-len,&src,srcEnd,&mbState);
+		if (l<=0) break;
+		len+=l;
+		if (src>=srcEnd) break;
+		bufSize*=2;
+		buf=(char*)realloc(buf,bufSize);
+	}
+	emString res(buf,len);
+	free(buf);
+	return res;
 }
 
 
@@ -73,6 +278,153 @@ int emTextFileModel::GetLineEnd(int lineIndex) const
 }
 
 
+int emTextFileModel::ColRow2Index(
+	double column, double row, bool forCursor
+) const
+{
+	int i,j,k,n,c;
+
+	if (LineCount<=0) return 0;
+	if (row<0.0) row=0.0;
+	if (row>=LineCount) return Content.GetCount();
+	i=GetLineStart(emMin(LineCount-1,emMax(0,(int)row)));
+	emMBState mbState;
+	for (j=0; ; i+=n, j=k) {
+		n=DecodeChar(&c,i,&mbState);
+		if (c==0x0a || c==0x0d || c==0) break;
+		k=j+1;
+		if (c==0x09) k=(k+7)&~7;
+		if (forCursor) {
+			if (column<k+0.5) {
+				if (k-column<column-j) i+=n;
+				break;
+			}
+		}
+		else {
+			if (column<k+1.0) {
+				if (column>=k) i+=n;
+				break;
+			}
+		}
+	}
+	return i;
+}
+
+
+int emTextFileModel::Index2Row(int index) const
+{
+	int r1,r2,r;
+
+	r1=0;
+	r2=LineCount-1;
+	while (r1<r2) {
+		r=(r1+r2+1)>>1;
+		if (index<LineStarts[r]) r2=r-1; else r1=r;
+	}
+	return r1;
+}
+
+
+void emTextFileModel::Index2ColRow(int index, int * pColumn, int * pRow) const
+{
+	int i,col,row,n,c;
+
+	row=Index2Row(index);
+	i=GetLineStart(row);
+	col=0;
+	emMBState mbState;
+	while (i<index) {
+		n=DecodeChar(&c,i,&mbState);
+		if (!c || c==0x0a || c==0x0d) break;
+		i+=n;
+		if (i>index) break;
+		col++;
+		if (c==0x09) col=(col+7)&~7;
+	}
+	*pColumn=col;
+	*pRow=row;
+}
+
+
+int emTextFileModel::GetNextWordBoundaryIndex(int index) const
+{
+	int i,n,c;
+	bool prevDelim,delim,first;
+
+	i=GetLineStart(Index2Row(index));
+	emMBState mbState;
+	delim=false;
+	first=true;
+	for (;; i+=n) {
+		n=DecodeChar(&c,i,&mbState);
+		if (n<=0) break;
+		if (i<index) continue;
+		prevDelim=delim;
+		if (
+			(c>='0' && c<='9') ||
+			(c>='A' && c<='Z') ||
+			(c>='a' && c<='z') ||
+			c=='_' ||
+			c>127
+		) {
+			delim=false;
+		}
+		else {
+			delim=true;
+		}
+		if (!first && delim!=prevDelim) break;
+		first=false;
+	}
+	return i;
+}
+
+
+int emTextFileModel::GetPrevWordBoundaryIndex(int index) const
+{
+	int row,dr,i,j;
+
+	row=Index2Row(index);
+	dr=1;
+	for (;;) {
+		i=GetLineStart(row);
+		if (i<index) {
+			i=GetNextWordBoundaryIndex(i);
+			if (i<index) {
+				for (;; i=j) {
+					j=GetNextWordBoundaryIndex(i);
+					if (j>=index || j<=i) return i;
+				}
+			}
+		}
+		if (row<=0) return 0;
+		row-=dr;
+		if (row<0) row=0;
+		dr*=2;
+	}
+}
+
+
+int emTextFileModel::GetNextRowIndex(int index) const
+{
+	int row;
+
+	row=Index2Row(index)+1;
+	if (row>=LineCount) return Content.GetCount();
+	return GetLineStart(row);
+}
+
+
+int emTextFileModel::GetPrevRowIndex(int index) const
+{
+	int row;
+
+	if (index>=Content.GetCount()) row=LineCount-1;
+	else row=Index2Row(index)-1;
+	if (row<0) row=0;
+	return GetLineStart(row);
+}
+
+
 emTextFileModel::emTextFileModel(emContext & context, const emString & name)
 	: emFileModel(context,name)
 {
@@ -97,6 +449,7 @@ emTextFileModel::~emTextFileModel()
 
 void emTextFileModel::ResetData()
 {
+	if (!Content.IsEmpty()) Signal(ChangeSignal);
 	Content.Clear(true);
 	CharEncoding=CE_BINARY;
 	LineBreakEncoding=LBE_NONE;
@@ -590,6 +943,7 @@ bool emTextFileModel::TryContinueLoading()
 	case 16:
 		// Finished.
 		L->Progress=100.0;
+		Signal(ChangeSignal);
 		return true;
 	}
 	return false;

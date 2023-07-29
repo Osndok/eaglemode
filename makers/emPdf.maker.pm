@@ -41,10 +41,13 @@ sub Build
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emPdf",
+		"src/emPdf/emPdfControlPanel.cpp",
 		"src/emPdf/emPdfFileModel.cpp",
 		"src/emPdf/emPdfFilePanel.cpp",
 		"src/emPdf/emPdfFpPlugin.cpp",
+		"src/emPdf/emPdfPageAreasMap.cpp",
 		"src/emPdf/emPdfPagePanel.cpp",
+		"src/emPdf/emPdfSelection.cpp",
 		"src/emPdf/emPdfServerModel.cpp"
 	)==0 or return 0;
 

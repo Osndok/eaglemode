@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFileModel.h
 //
-// Copyright (C) 2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,8 +25,8 @@
 #include <emCore/emFileModel.h>
 #endif
 
-#ifndef emPdfServerModel_h
-#include <emPdf/emPdfServerModel.h>
+#ifndef emPdfPageAreasMap_h
+#include <emPdf/emPdfPageAreasMap.h>
 #endif
 
 
@@ -40,11 +40,14 @@ public:
 
 	emPdfServerModel * GetServerModel() const;
 	emPdfServerModel::PdfHandle GetPdfHandle() const;
+	const emPdfServerModel::DocumentInfo & GetDocumentInfo() const;
 	int GetPageCount() const;
 	const emPdfServerModel::PageInfo & GetPageInfo(int page) const;
 	double GetPageWidth(int page) const;
 	double GetPageHeight(int page) const;
 	const emString & GetPageLabel(int page) const;
+	const emSignal & GetChangeSignal() const;
+	emPdfPageAreasMap & GetPageAreasMap() const;
 
 protected:
 
@@ -68,6 +71,8 @@ private:
 	emUInt64 FileSize;
 	emUInt64 StartTime;
 	int PageCount;
+	emSignal ChangeSignal;
+	emPdfPageAreasMap PageAreasMap;
 };
 
 inline emPdfServerModel * emPdfFileModel::GetServerModel() const
@@ -78,6 +83,11 @@ inline emPdfServerModel * emPdfFileModel::GetServerModel() const
 inline emPdfServerModel::PdfHandle emPdfFileModel::GetPdfHandle() const
 {
 	return PdfHandle;
+}
+
+inline const emPdfServerModel::DocumentInfo & emPdfFileModel::GetDocumentInfo() const
+{
+	return ServerModel->GetDocumentInfo(PdfHandle);
 }
 
 inline int emPdfFileModel::GetPageCount() const
@@ -103,6 +113,16 @@ inline double emPdfFileModel::GetPageHeight(int page) const
 inline const emString & emPdfFileModel::GetPageLabel(int page) const
 {
 	return ServerModel->GetPageInfo(PdfHandle,page).Label;
+}
+
+inline const emSignal & emPdfFileModel::GetChangeSignal() const
+{
+	return ChangeSignal;
+}
+
+inline emPdfPageAreasMap & emPdfFileModel::GetPageAreasMap() const
+{
+	return (emPdfPageAreasMap&)PageAreasMap;
 }
 
 

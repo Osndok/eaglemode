@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.cpp
 //
-// Copyright (C) 2011-2014,2016,2020 Oliver Hamann.
+// Copyright (C) 2011-2014,2016,2020,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emPdf/emPdfFilePanel.h>
+#include <emPdf/emPdfControlPanel.h>
 #include <emCore/emRes.h>
 
 
@@ -26,7 +27,8 @@ emPdfFilePanel::emPdfFilePanel(
 	ParentArg parent, const emString & name,
 	emPdfFileModel * fileModel, bool updateFileModel
 )
-	: emFilePanel(parent,name,fileModel,updateFileModel)
+	: emFilePanel(parent,name,fileModel,updateFileModel),
+	Selection(GetView(),fileModel)
 {
 	BGColor=emColor(0,0,0,0);
 	FGColor=emColor(0,0,0);
@@ -48,14 +50,17 @@ void emPdfFilePanel::SetFileModel(
 	emFileModel * fileModel, bool updateFileModel
 )
 {
-	if (fileModel && (dynamic_cast<emPdfFileModel*>(fileModel))==NULL) {
-		fileModel=NULL;
-	}
+	emPdfFileModel * pdfFileModel;
+
+	pdfFileModel=dynamic_cast<emPdfFileModel*>(fileModel);
+	if (!pdfFileModel) fileModel=NULL;
 	if (GetFileModel() != fileModel) {
 		DestroyPagePanels();
 		emFilePanel::SetFileModel(fileModel,updateFileModel);
+		Selection.SetFileModel(pdfFileModel);
 		CalcLayout();
 		UpdatePagePanels();
+		InvalidateControlPanel();
 	}
 }
 
@@ -104,6 +109,32 @@ void emPdfFilePanel::Notice(NoticeFlags flags)
 		}
 		UpdatePagePanels();
 	}
+}
+
+
+void emPdfFilePanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	if (IsVFSGood() && !event.IsEmpty()) {
+		if (event.IsKey(EM_KEY_A) && state.IsCtrlMod()) {
+			Selection.SelectAll(true);
+			event.Eat();
+		}
+		if (event.IsKey(EM_KEY_A) && state.IsShiftCtrlMod()) {
+			Selection.EmptySelection();
+			event.Eat();
+		}
+		if (
+			(event.IsKey(EM_KEY_INSERT) && state.IsCtrlMod()) ||
+			(event.IsKey(EM_KEY_C) && state.IsCtrlMod())
+		) {
+			Selection.CopySelectedTextToClipboard();
+			event.Eat();
+		}
+	}
+
+	emFilePanel::Input(event,state,mx,my);
 }
 
 
@@ -214,7 +245,9 @@ emPanel * emPdfFilePanel::CreateControlPanel(
 	ParentArg parent, const emString & name
 )
 {
-	return NULL;
+	return new emPdfControlPanel(
+		parent,name,(emPdfFileModel*)GetFileModel(),Selection
+	);
 }
 
 
@@ -309,7 +342,9 @@ void emPdfFilePanel::CreatePagePanels()
 		n=fm->GetPageCount();
 		for (i=0; i<n; i++) {
 			sprintf(name,"%d",i);
-			PagePanels.Add(new emPdfPagePanel(this,name,fm,i));
+			PagePanels.Add(
+				new emPdfPagePanel(this,name,fm,i,Selection)
+			);
 		}
 	}
 }

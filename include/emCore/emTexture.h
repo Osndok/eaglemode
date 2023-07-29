@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTexture.h
 //
-// Copyright (C) 2020,2022 Oliver Hamann.
+// Copyright (C) 2020,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -225,8 +225,9 @@ public:
 
 	const emImage & GetImage() const;
 	void SetImage(const emImage & image);
-		// Get or set the image. The image reference must be valid for the life time of the
-		// texture. This is valid only if the texture type is IMAGE or IMAGE_COLORED.
+		// Get or set the image. The image reference must be valid for
+		// the life time of the texture. This is valid only if the
+		// texture type is IMAGE or IMAGE_COLORED.
 
 	int GetSrcX() const;
 	void SetSrcX(int srcX);
@@ -261,15 +262,13 @@ public:
 
 private:
 
-	friend class emPainter;
-
 	// *** WARNING for future extensions: Copy constructor+operator do a memcpy!
 	TextureType Type;
 	ExtensionType Extension;
 	DownscaleQualityType DownscaleQuality;
 	UpscaleQualityType UpscaleQuality;
-	union { emColor Color; emColor Color1; };
-	union { emColor Color2; int Alpha; };
+	emColor Color1;
+	union { emUInt32 Color2; int Alpha; };
 	const emImage * Image;
 	int SrcX,SrcY,SrcW,SrcH;
 	union { double X; double X1; };
@@ -472,12 +471,12 @@ public:
 //--------------------------------- emTexture ----------------------------------
 
 inline emTexture::emTexture(emColor color)
-	: Type(COLOR),Color(color)
+	: Type(COLOR),Color1(color)
 {
 }
 
 inline emTexture::emTexture(emUInt32 packedColor)
-	: Type(COLOR),Color(packedColor)
+	: Type(COLOR),Color1(packedColor)
 {
 }
 
@@ -643,12 +642,12 @@ inline void emTexture::SetY2(double y2)
 
 inline emColor emTexture::GetColor() const
 {
-	return Color;
+	return Color1;
 }
 
 inline void emTexture::SetColor(emColor color)
 {
-	Color=color;
+	Color1=color;
 }
 
 inline emColor emTexture::GetColor1() const

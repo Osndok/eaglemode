@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFilePanel.cpp
 //
-// Copyright (C) 2004-2010,2014-2019,2021-2022 Oliver Hamann.
+// Copyright (C) 2004-2010,2014-2019,2021-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,7 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emText/emTextFilePanel.h>
-#include <emCore/emToolkit.h>
+#include <emText/emTextFileControlPanel.h>
 
 
 emTextFilePanel::emTextFilePanel(
@@ -30,8 +30,23 @@ emTextFilePanel::emTextFilePanel(
 {
 	AlternativeView=alternativeView;
 	Model=NULL;
+	Clipboard=emClipboard::LookupInherited(GetView());
+	if (!Clipboard) {
+		emFatalError("emTextFilePanel: No emClipboard available.");
+	}
+	SelectionStartIndex=0;
+	SelectionEndIndex=0;
+	SelectionId=-1;
+	DragMode=DM_NONE;
+	DragIndex=0;
 	AddWakeUpSignal(GetVirFileStateSignal());
 	SetFileModel(fileModel,updateFileModel);
+	UpdateTextLayout();
+}
+
+
+emTextFilePanel::~emTextFilePanel()
+{
 }
 
 
@@ -39,8 +54,13 @@ void emTextFilePanel::SetFileModel(
 	emFileModel * fileModel, bool updateFileModel
 )
 {
+	if (Model) RemoveWakeUpSignal(Model->GetChangeSignal());
+	SelectionId=-1;
+	EmptySelection();
 	Model=dynamic_cast<emTextFileModel*>(fileModel);
 	emFilePanel::SetFileModel(Model,updateFileModel);
+	if (Model) AddWakeUpSignal(Model->GetChangeSignal());
+	InvalidateControlPanel();
 }
 
 
@@ -55,12 +75,81 @@ emString emTextFilePanel::GetIconFileName() const
 }
 
 
+bool emTextFilePanel::IsHexView() const
+{
+	return AlternativeView || Model->GetCharEncoding()==emTextFileModel::CE_BINARY;
+}
+
+
+void emTextFilePanel::Select(int startIndex, int endIndex, bool publish)
+{
+	int textLen;
+
+	textLen=0;
+	if (IsVFSGood() && !IsHexView()) textLen=Model->GetContent().GetCount();
+	if (startIndex<0) startIndex=0;
+	if (endIndex>textLen) endIndex=textLen;
+	if (startIndex>=endIndex) {
+		startIndex=0;
+		endIndex=0;
+		publish=false;
+	}
+	if (
+		SelectionStartIndex==startIndex && SelectionEndIndex==endIndex &&
+		publish==(SelectionId!=-1)
+	) return;
+	if (SelectionId!=-1) {
+		Clipboard->Clear(true,SelectionId);
+		SelectionId=-1;
+	}
+	SelectionStartIndex=startIndex;
+	SelectionEndIndex=endIndex;
+	InvalidatePainting();
+	if (publish) PublishSelection();
+	Signal(SelectionSignal);
+}
+
+
+void emTextFilePanel::SelectAll(bool publish)
+{
+	if (IsVFSGood() && !IsHexView()) {
+		Select(0,Model->GetContent().GetCount(),publish);
+	}
+}
+
+
+void emTextFilePanel::EmptySelection()
+{
+	Select(0,0,false);
+}
+
+
+void emTextFilePanel::PublishSelection()
+{
+	emString str;
+
+	if (SelectionId==-1) {
+		str=ConvertSelectedTextToCurrentLocale();
+		if (!str.IsEmpty()) SelectionId=Clipboard->PutText(str,true);
+	}
+}
+
+
+void emTextFilePanel::CopySelectedTextToClipboard()
+{
+	emString str;
+
+	str=ConvertSelectedTextToCurrentLocale();
+	if (!str.IsEmpty()) Clipboard->PutText(str);
+}
+
+
 bool emTextFilePanel::Cycle()
 {
 	static const char * const ALT_ERROR="Hex display is not an alternative.";
 
 	if (IsSignaled(GetVirFileStateSignal())) {
-		InvalidateControlPanel(); //??? very cheap solution, but okay for now.
+		UpdateTextLayout();
 		InvalidatePainting();
 		if (IsVFSGood()) {
 			if (AlternativeView && Model->GetCharEncoding()==emTextFileModel::CE_BINARY) {
@@ -79,8 +168,200 @@ bool emTextFilePanel::Cycle()
 				ClearCustomError();
 			}
 		}
+		if (!IsVFSGood() || IsHexView()) {
+			SelectionId=-1;
+			EmptySelection();
+		}
 	}
+	if (Model && IsSignaled(Model->GetChangeSignal())) {
+		SelectionId=-1;
+		EmptySelection();
+	}
+
 	return emFilePanel::Cycle();
+}
+
+
+void emTextFilePanel::Notice(NoticeFlags flags)
+{
+	emFilePanel::Notice(flags);
+
+	if (flags&NF_LAYOUT_CHANGED) {
+		UpdateTextLayout();
+	}
+}
+
+
+void emTextFilePanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	double mc,mr;
+	int i,i1,i2,j1,j2;
+	bool inArea;
+	emString str;
+
+	if (!IsVFSGood() || IsHexView()) {
+		SetDragMode(DM_NONE);
+		emFilePanel::Input(event,state,mx,my);
+		return;
+	}
+
+	inArea=CheckMouse(mx,my,&mc,&mr);
+	if (inArea && DragMode==DM_NONE) SetDragMode(DM_OVER_TEXT);
+	if (!inArea && DragMode==DM_OVER_TEXT) SetDragMode(DM_NONE);
+
+	switch (DragMode) {
+	case DM_NONE:
+		break;
+	case DM_OVER_TEXT:
+		if (
+			event.IsKey(EM_KEY_LEFT_BUTTON) &&
+			!state.GetCtrl() && !state.GetAlt() && !state.GetMeta()
+		) {
+			if (event.GetRepeat()==0) {
+				i=Model->ColRow2Index(mc,mr,true);
+				if (state.GetShift()) ModifySelection(i,i,false);
+				else EmptySelection();
+				DragIndex=i;
+				SetDragMode(DM_SELECT);
+			}
+			else if (event.GetRepeat()==1) {
+				i2=Model->GetNextWordBoundaryIndex(Model->ColRow2Index(mc,mr,false));
+				i1=Model->GetPrevWordBoundaryIndex(i2);
+				if (!state.GetShift() || IsSelectionEmpty()) {
+					Select(i1,i2,false);
+					DragIndex=i2;
+				}
+				else if (i2>SelectionEndIndex) {
+					ModifySelection(i2,i2,false);
+					DragIndex=i2;
+				}
+				else {
+					ModifySelection(i1,i1,false);
+					DragIndex=i1;
+				}
+				SetDragMode(DM_SELECT_BY_WORDS);
+			}
+			else if (event.GetRepeat()==2) {
+				i2=Model->GetNextRowIndex(Model->ColRow2Index(mc,mr,false));
+				i1=Model->GetPrevRowIndex(i2);
+				if (!state.GetShift() || IsSelectionEmpty()) {
+					Select(i1,i2,false);
+					DragIndex=i2;
+				}
+				else if (i2>SelectionEndIndex) {
+					ModifySelection(i2,i2,false);
+					DragIndex=i2;
+				}
+				else {
+					ModifySelection(i1,i1,false);
+					DragIndex=i1;
+				}
+				SetDragMode(DM_SELECT_BY_ROWS);
+			}
+			else {
+				SelectAll(true);
+				DragIndex=Model->GetContent().GetCount();
+			}
+			Focus();
+			event.Eat();
+		}
+		break;
+	case DM_SELECT:
+		i=Model->ColRow2Index(mc,mr,true);
+		if (i!=DragIndex) {
+			ModifySelection(DragIndex,i,false);
+			DragIndex=i;
+		}
+		if (!state.Get(EM_KEY_LEFT_BUTTON)) {
+			PublishSelection();
+			SetDragMode(inArea?DM_OVER_TEXT:DM_NONE);
+		}
+		break;
+	case DM_SELECT_BY_WORDS:
+		i2=Model->GetNextWordBoundaryIndex(Model->ColRow2Index(mc,mr,false));
+		i1=Model->GetPrevWordBoundaryIndex(i2);
+		if (IsSelectionEmpty()) {
+			Select(i1,i2,false);
+			DragIndex=i2;
+		}
+		else {
+			j1=SelectionStartIndex;
+			j2=SelectionEndIndex;
+			if (DragIndex<=j1) j1=Model->GetPrevWordBoundaryIndex(j2);
+			else j2=Model->GetNextWordBoundaryIndex(j1);
+			if (j1<=i1) {
+				Select(j1,i2,false);
+				DragIndex=i2;
+			}
+			else {
+				Select(i1,j2,false);
+				DragIndex=i1;
+			}
+		}
+		if (!state.Get(EM_KEY_LEFT_BUTTON)) {
+			PublishSelection();
+			SetDragMode(inArea?DM_OVER_TEXT:DM_NONE);
+		}
+		break;
+	case DM_SELECT_BY_ROWS:
+		i2=Model->GetNextRowIndex(Model->ColRow2Index(mc,mr,false));
+		i1=Model->GetPrevRowIndex(i2);
+		if (IsSelectionEmpty()) {
+			Select(i1,i2,false);
+			DragIndex=i2;
+		}
+		else {
+			j1=SelectionStartIndex;
+			j2=SelectionEndIndex;
+			if (DragIndex<=j1) j1=Model->GetPrevRowIndex(j2);
+			else j2=Model->GetNextRowIndex(j1);
+			if (j1<=i1) {
+				Select(j1,i2,false);
+				DragIndex=i2;
+			}
+			else {
+				Select(i1,j2,false);
+				DragIndex=i1;
+			}
+		}
+		if (!state.Get(EM_KEY_LEFT_BUTTON)) {
+			PublishSelection();
+			SetDragMode(inArea?DM_OVER_TEXT:DM_NONE);
+		}
+		break;
+	}
+
+	if (
+		!event.IsEmpty() &&
+		(DragMode==DM_NONE || DragMode==DM_OVER_TEXT)
+	) {
+		if (event.IsKey(EM_KEY_A) && state.IsCtrlMod()) {
+			SelectAll(true);
+			event.Eat();
+		}
+		if (event.IsKey(EM_KEY_A) && state.IsShiftCtrlMod()) {
+			EmptySelection();
+			event.Eat();
+		}
+		if (
+			(event.IsKey(EM_KEY_INSERT) && state.IsCtrlMod()) ||
+			(event.IsKey(EM_KEY_C) && state.IsCtrlMod())
+		) {
+			CopySelectedTextToClipboard();
+			event.Eat();
+		}
+	}
+
+	emFilePanel::Input(event,state,mx,my);
+}
+
+
+emCursor emTextFilePanel::GetCursor() const
+{
+	if (DragMode==DM_NONE) return emFilePanel::GetCursor();
+	return emCursor::TEXT;
 }
 
 
@@ -101,7 +382,7 @@ void emTextFilePanel::Paint(const emPainter & painter, emColor canvasColor) cons
 
 		emPainter::UserSpaceLeaveGuard userSpaceLeaveGuard(painter); //!!!
 
-		if (Model->GetCharEncoding()==emTextFileModel::CE_BINARY || AlternativeView) {
+		if (IsHexView()) {
 			PaintAsHex(painter,canvasColor);
 		}
 		else {
@@ -118,79 +399,168 @@ emPanel * emTextFilePanel::CreateControlPanel(
 	ParentArg parent, const emString & name
 )
 {
-	emRasterGroup * grp;
-	const char * p;
+	return new emTextFileControlPanel(parent,name,*this);
+}
 
-	if (
-		IsVFSGood() &&
-		Model->GetCharEncoding()!=emTextFileModel::CE_BINARY &&
-		!AlternativeView
-	) {
 
-		grp=new emRasterGroup(
-			parent,
-			name,
-			"Text File Info"
-		);
+void emTextFilePanel::SetDragMode(DragModeType dragMode)
+{
+	if (DragMode!=dragMode) {
+		DragMode=dragMode;
+		InvalidateCursor();
+	}
+}
 
-		grp->SetRowByRow();
-		grp->SetPrefChildTallness(0.1);
 
-		switch (Model->GetCharEncoding()) {
-			case emTextFileModel::CE_7BIT   : p="7-Bit"    ; break;
-			case emTextFileModel::CE_8BIT   : p="8-Bit"    ; break;
-			case emTextFileModel::CE_UTF8   : p="UTF-8"    ; break;
-			case emTextFileModel::CE_UTF16LE: p="UTF-16LE" ; break;
-			case emTextFileModel::CE_UTF16BE: p="UTF-16BE" ; break;
-			default                         : p="Binary"   ;
+void emTextFilePanel::UpdateTextLayout()
+{
+	int count,rows;
+	double h,f,t;
+
+	if (!IsVFSGood()) {
+		PageCount=PageRows=PageCols=0;
+		PageWidth=PageGap=CharWidth=CharHeight=0.0;
+	}
+	else if (IsHexView()) {
+		h=GetHeight();
+		count=Model->GetContent().GetCount();
+		rows=(int)(((unsigned)count+15)/16);
+		PageCols=73;
+		f=emPainter::GetTextSize("X",1.0,false);
+		PageGap=2.0;
+		t=0.5*PageGap/(PageCols+PageGap);
+		PageCount=(int)floor(t+sqrt((2*rows/(h*f*PageGap)+t)*t));
+		// PageCount*h/rows*f*(PageCols*PageCount+PageGap*(PageCount-1)) <= 1.0
+		if (PageCount<1) {
+			PageCount=1;
+			PageRows=rows;
+			CharWidth=1.0/PageCols;
+			CharHeight=CharWidth/f;
 		}
-		new emTextField(
-			grp,
-			"enc",
-			"Character Encoding",
-			emString(),
-			emImage(),
-			p
-		);
-
-		switch (Model->GetLineBreakEncoding()) {
-			case emTextFileModel::LBE_MAC  : p="MAC (CR)"  ; break;
-			case emTextFileModel::LBE_DOS  : p="DOS (CRLF)"; break;
-			case emTextFileModel::LBE_UNIX : p="UNIX (LF)" ; break;
-			case emTextFileModel::LBE_MIXED: p="Mixed"     ; break;
-			default                        : p="None"      ;
+		else {
+			PageRows=(rows+PageCount-1)/PageCount;
+			CharHeight=h/PageRows;
+			CharWidth=CharHeight*f;
 		}
-		new emTextField(
-			grp,
-			"lbenc",
-			"Line Break Encoding",
-			emString(),
-			emImage(),
-			p
-		);
-
-		new emTextField(
-			grp,
-			"lines",
-			"Number of Lines",
-			emString(),
-			emImage(),
-			emString::Format("%d",Model->GetLineCount())
-		);
-
-		new emTextField(
-			grp,
-			"columns",
-			"Number of Columns",
-			emString(),
-			emImage(),
-			emString::Format("%d",Model->GetColumnCount())
-		);
-		return grp;
+		PageGap*=CharWidth;
+		PageWidth=PageCols*CharWidth;
 	}
 	else {
-		return emFilePanel::CreateControlPanel(parent,name);
+		h=GetHeight();
+		rows=Model->GetLineCount();
+		PageCols=Model->GetColumnCount();
+		if (PageCols<8) PageCols=8;
+		f=emPainter::GetTextSize("X",1.0,false);
+		PageGap=1.0;
+		t=0.5*PageGap/(PageCols+PageGap);
+		PageCount=(int)floor(t+sqrt((2*rows/(h*f*PageGap)+t)*t));
+		// PageCount*h/rows*f*(PageCols*PageCount+PageGap*(PageCount-1)) <= 1.0
+		if (PageCount<1) {
+			PageCount=1;
+			PageRows=rows;
+			CharWidth=1.0/PageCols;
+			CharHeight=CharWidth/f;
+			PageWidth=1.0;
+			PageGap*=CharWidth;
+		}
+		else {
+			PageRows=(rows+PageCount-1)/PageCount;
+			CharHeight=h/PageRows;
+			CharWidth=CharHeight*f;
+			PageGap*=CharWidth;
+			PageWidth=(1.0-(PageCount-1)*PageGap)/PageCount;
+		}
 	}
+}
+
+
+bool emTextFilePanel::CheckMouse(
+	double mx, double my, double * pCol, double * pRow
+) const
+{
+	bool inArea;
+	double t;
+	int pg;
+
+	*pCol=0.0;
+	*pRow=0.0;
+	if (!IsVFSGood() || IsHexView()) return false;
+
+	inArea=true;
+	t=mx/(PageWidth+PageGap);
+	if (t<0.0) {
+		pg=0;
+		inArea=false;
+	}
+	else if (t>=PageCount) {
+		pg=PageCount-1;
+		inArea=false;
+	}
+	else {
+		pg=(int)t;
+	}
+
+	t=mx-pg*(PageWidth+PageGap);
+	if (t>PageWidth+PageGap*0.5 && pg+1<PageCount) {
+		t-=PageWidth+PageGap;
+		pg++;
+	}
+	if (t<0.0) {
+		*pCol=0.0;
+		inArea=false;
+	}
+	else if (t>=PageCols*CharWidth) {
+		*pCol=PageCols;
+		if (t>=PageWidth) inArea=false;
+	}
+	else {
+		*pCol=t/CharWidth;
+	}
+
+	t=my;
+	if (t<0.0) {
+		t=0.0;
+		inArea=false;
+	}
+	else if (t>=GetHeight()) {
+		t=GetHeight();
+		inArea=false;
+	}
+	*pRow=emMin(pg*PageRows+t/CharHeight,(double)Model->GetLineCount());
+
+	return inArea;
+}
+
+
+void emTextFilePanel::ModifySelection(int oldIndex, int newIndex, bool publish)
+{
+	int d1,d2;
+
+	if (SelectionStartIndex<SelectionEndIndex) {
+		d1=oldIndex-SelectionStartIndex; if (d1<0) d1=-d1;
+		d2=oldIndex-SelectionEndIndex; if (d2<0) d2=-d2;
+		if (d1<d2) oldIndex=SelectionEndIndex;
+		else oldIndex=SelectionStartIndex;
+	}
+	if (oldIndex<newIndex) Select(oldIndex,newIndex,publish);
+	else Select(newIndex,oldIndex,publish);
+}
+
+
+emString emTextFilePanel::ConvertSelectedTextToCurrentLocale() const
+{
+	const char * data;
+	int len,i1,i2;
+
+	if (!IsVFSGood() || IsHexView()) return emString();
+	data=Model->GetContent().Get();
+	len=Model->GetContent().GetCount();
+	i1=SelectionStartIndex;
+	i2=SelectionEndIndex;
+	if (i2>len) i2=len;
+	if (i1<0) i1=0;
+	if (i1>=i2) return emString();
+	return Model->ConvertToCurrentLocale(data+i1,data+i2);
 }
 
 
@@ -198,12 +568,8 @@ void emTextFilePanel::PaintAsText(
 	const emPainter & painter, emColor canvasColor
 ) const
 {
-	static const emColor textBgColor(255,255,255);
-	static const emColor textFgColor(0,0,0);
-	static const emColor textFgColor96(textFgColor,96);
-	const char * pContent, * pRow;
-	int i1,i2,i3,row,row2,col,cols,rows,page,pages,pagerows,step;
-	double h,ch,cw,f,t,pagew,gap,x,y,clipx1,clipy1,clipx2,clipy2;
+	double h,x,y,clipx1,clipy1,clipx2,clipy2;
+	int row,endRow,rows,page;
 
 	h=GetHeight();
 
@@ -212,369 +578,220 @@ void emTextFilePanel::PaintAsText(
 	clipx2=painter.GetUserClipX2();
 	clipy2=painter.GetUserClipY2();
 
-	pContent=Model->GetContent();
 	rows=Model->GetLineCount();
-	cols=Model->GetColumnCount();
-	if (cols<8) cols=8;
 
-	f=emPainter::GetTextSize("X",1.0,false);
-	gap=1.0;
-	t=0.5*gap/(cols+gap);
-	pages=(int)floor(t+sqrt((2*rows/(h*f*gap)+t)*t));
-	// pages*h/rows*f*(cols*pages+gap*(pages-1)) <= 1.0
-	if (pages<1) {
-		pages=1;
-		pagerows=rows;
-		cw=1.0/cols;
-		ch=cw/f;
-		pagew=1.0;
-		gap*=cw;
-	}
-	else {
-		pagerows=(rows+pages-1)/pages;
-		ch=h/pagerows;
-		cw=ch*f;
-		gap*=cw;
-		pagew=(1.0-(pages-1)*gap)/pages;
-	}
-
-	page=(int)(clipx1/(pagew+gap));
+	page=(int)(clipx1/(PageWidth+PageGap));
 	if (page<0) page=0;
-	x=page*(pagew+gap);
-	for (; page<pages && x<clipx2; page++, x+=pagew+gap) {
+	x=page*(PageWidth+PageGap);
+	for (; page<PageCount && x<clipx2; page++, x+=PageWidth+PageGap) {
 
 		painter.PaintRect(
 			x,
 			0.0,
-			pagew,
+			PageWidth,
 			h,
-			textBgColor,
+			TextBgColor,
 			canvasColor
 		);
 
-		row=(int)(clipy1/ch);
+		row=(int)(clipy1/CharHeight);
 		if (row<0) row=0;
-		y=row*ch;
-		row+=page*pagerows;
-		row2=(int)ceil(clipy2/ch);
-		if (row2>pagerows) row2=pagerows;
-		row2+=page*pagerows;
-		if (row2>rows) row2=rows;
+		y=row*CharHeight;
+		row+=page*PageRows;
+		endRow=(int)ceil(clipy2/CharHeight);
+		if (endRow>PageRows) endRow=PageRows;
+		endRow+=page*PageRows;
+		if (endRow>rows) endRow=rows;
 
-		if (ch*GetViewedWidth()<0.5) {
-			step=(int)(0.5/(ch*GetViewedWidth()));
-			if (step<1) step=1;
-			row=((row-1)/step+1)*step;
-			while (row<row2) {
-				f=cols*cw/255.0;
-				painter.PaintRect(
-					x+Model->GetRelativeLineIndent(row)*f,
-					y+ch*0.1,
-					Model->GetRelativeLineWidth(row)*f,
-					ch*step*0.8,
-					textFgColor96,
-					textBgColor
+		if (CharHeight*GetViewedWidth()<0.5) {
+			PaintTextRowsSilhouette(painter,x,y,row,endRow);
+		}
+		else {
+			PaintTextRows(painter,x,y,row,endRow);
+		}
+	}
+}
+
+
+void emTextFilePanel::PaintTextRowsSilhouette(
+	const emPainter & painter, double x, double y, int row, int endRow
+) const
+{
+	emColor fg,bg;
+	double xfac;
+	int step,selRow1,selRow2;
+
+	step=(int)(0.5/(CharHeight*GetViewedWidth()));
+	if (step<1) step=1;
+	row=((row-1)/step+1)*step;
+
+	selRow1=selRow2=0;
+	if (SelectionStartIndex<SelectionEndIndex) {
+		selRow1=Model->Index2Row(SelectionStartIndex);
+		selRow2=Model->Index2Row(SelectionEndIndex);
+		if (selRow1<selRow2) {
+			selRow2=emMax(selRow2,selRow1+step);
+		}
+		else {
+			selRow1=selRow2=0;
+		}
+	}
+
+	xfac=PageCols*CharWidth/255.0;
+	while (row<endRow) {
+		if (row<selRow2 && row>=selRow1) {
+			painter.PaintRect(
+				x,
+				y,
+				PageWidth,
+				CharHeight*step,
+				TextSelBgColor,
+				TextBgColor
+			);
+			fg=TextSelFg96Color;
+			bg=TextSelBgColor;
+		}
+		else {
+			fg=TextFg96Color;
+			bg=TextBgColor;
+		}
+		painter.PaintRect(
+			x+Model->GetRelativeLineIndent(row)*xfac,
+			y+CharHeight*0.1,
+			Model->GetRelativeLineWidth(row)*xfac,
+			CharHeight*step*0.8,
+			fg,
+			bg
+		);
+		y+=CharHeight*step;
+		row+=step;
+	}
+}
+
+
+void emTextFilePanel::PaintTextRows(
+	const emPainter & painter, double x, double y, int row, int endRow
+) const
+{
+	const char * pContent;
+	int i1,i2,i3,col;
+
+	pContent=Model->GetContent();
+	for (; row<endRow; row++, y+=CharHeight) {
+		i1=Model->GetLineStart(row);
+		i2=Model->GetLineEnd(row);
+		emMBState mbState;
+		if (
+			SelectionStartIndex>=SelectionEndIndex ||
+			SelectionStartIndex>=i2 ||
+			SelectionEndIndex<=i1
+		) {
+			if (i1<i2) {
+				PaintTextRowPart(
+					painter,x,y,0,pContent+i1,pContent+i2,&mbState,
+					TextFgColor,TextBgColor,TextBgColor
 				);
-				y+=ch*step;
-				row+=step;
 			}
 		}
 		else {
-			while (row<row2) {
-				i1=Model->GetLineStart(row);
-				pRow=pContent+i1;
-				i3=Model->GetLineEnd(row)-i1;
-				i2=0;
-				col=0;
-				for (;;) {
-					switch (Model->GetCharEncoding()) {
-					case emTextFileModel::CE_UTF16LE:
-						while (i2<i3 && (((emByte)pRow[i2])|(((emByte)pRow[i2+1])<<8))==0x09) {
-							col=(col+8)&~7;
-							i2+=2;
-						}
-						i1=i2;
-						while (i2<i3 && (((emByte)pRow[i2])|(((emByte)pRow[i2+1])<<8))!=0x09) {
-							i2+=2;
-						}
-						break;
-					case emTextFileModel::CE_UTF16BE:
-						while (i2<i3 && ((((emByte)pRow[i2])<<8)|((emByte)pRow[i2+1]))==0x09) {
-							col=(col+8)&~7;
-							i2+=2;
-						}
-						i1=i2;
-						while (i2<i3 && ((((emByte)pRow[i2])<<8)|((emByte)pRow[i2+1]))!=0x09) {
-							i2+=2;
-						}
-						break;
-					default:
-						while (i2<i3 && pRow[i2]==0x09) { col=(col+8)&~7; i2++; }
-						i1=i2;
-						while (i2<i3 && pRow[i2]!=0x09) i2++;
-						break;
-					}
-					if (i1>=i2) break;
-					switch (Model->GetCharEncoding()) {
-					case emTextFileModel::CE_8BIT:
-						if (emIsUtf8System()) {
-							col+=PaintTextLatin1(
-								painter,
-								x+col*cw,
-								y,
-								cw,
-								ch,
-								pRow+i1,
-								i2-i1,
-								textFgColor,
-								textBgColor
-							);
-						}
-						else {
-							painter.PaintText(
-								x+col*cw,
-								y,
-								pRow+i1,
-								ch,
-								1.0,
-								textFgColor,
-								textBgColor,
-								i2-i1
-							);
-							col+=emGetDecodedCharCount(pRow+i1,i2-i1);
-						}
-						break;
-					case emTextFileModel::CE_UTF8:
-						col+=PaintTextUtf8(
-							painter,
-							x+col*cw,
-							y,
-							cw,
-							ch,
-							pRow+i1,
-							i2-i1,
-							textFgColor,
-							textBgColor
-						);
-						break;
-					case emTextFileModel::CE_UTF16LE:
-					case emTextFileModel::CE_UTF16BE:
-						col+=PaintTextUtf16(
-							painter,
-							x+col*cw,
-							y,
-							cw,
-							ch,
-							pRow+i1,
-							i2-i1,
-							textFgColor,
-							textBgColor
-						);
-						break;
-					default:
-						painter.PaintText(
-							x+col*cw,
-							y,
-							pRow+i1,
-							ch,
-							1.0,
-							textFgColor,
-							textBgColor,
-							i2-i1
-						);
-						col+=i2-i1;
-						break;
-					}
-				}
-				y+=ch;
-				row++;
+			col=0;
+			if (i1<SelectionStartIndex) {
+				col=PaintTextRowPart(
+					painter,x,y,col,pContent+i1,pContent+SelectionStartIndex,
+					&mbState,TextFgColor,TextBgColor,TextBgColor
+				);
+				i1=SelectionStartIndex;
+			}
+			if (i1<SelectionEndIndex) {
+				i3=emMin(SelectionEndIndex,i2);
+				col=PaintTextRowPart(
+					painter,x,y,col,pContent+i1,pContent+i3,
+					&mbState,TextSelFgColor,TextSelBgColor,TextBgColor
+				);
+				i1=i3;
+			}
+			if (i1<i2) {
+				col=PaintTextRowPart(
+					painter,x,y,col,pContent+i1,pContent+i2,
+					&mbState,TextFgColor,TextBgColor,TextBgColor
+				);
+			}
+			if (i2<SelectionEndIndex) {
+				painter.PaintRect(
+					x+col*CharWidth,
+					y,
+					PageWidth-col*CharWidth,
+					CharHeight,
+					TextSelBgColor,
+					TextBgColor
+				);
 			}
 		}
 	}
 }
 
 
-int emTextFilePanel::PaintTextLatin1(
-	const emPainter & painter, double x, double y, double charWidth,
-	double charHeight, const char * text, int textLen,
-	emColor color, emColor canvasColor
+int emTextFilePanel::PaintTextRowPart(
+	const emPainter & painter, double rowX, double rowY, int column,
+	const char * src, const char * srcEnd, emMBState * mbState,
+	emColor fgColor, emColor bgColor, emColor canvasColor
 ) const
 {
-	char buf[256+EM_MB_LEN_MAX];
-	int i,l,c,bufPos;
+	char buf[512+EM_MB_LEN_MAX];
+	const char * p, * q, * e;
+	int len,c1,c2;
+	bool sameCharEncoding;
 
-	bufPos=0;
-	l=0;
-	emMBState mbState;
-	for (i=0; i<textLen; i++) {
-		if (l>=(int)sizeof(buf)-EM_MB_LEN_MAX) {
-			painter.PaintText(
-				x+bufPos*charWidth,
-				y,
-				buf,
-				charHeight,
-				1.0,
-				color,
-				canvasColor,
-				l
-			);
-			bufPos=i;
-			l=0;
-		}
-		c=(unsigned char)text[i];
-		if (c>=0x80) {
-			if (c<=0x9F) {
-				static const int latin1ExtraTap[32]={
-					0x20AC,0x0081,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,
-					0x02C6,0x2030,0x0160,0x2039,0x0152,0x0164,0x017D,0x0179,
-					0x0090,0x2035,0x2032,0x2036,0x2033,0x2022,0x2013,0x2014,
-					0x02DC,0x2122,0x0161,0x203A,0x0153,0x0165,0x017E,0x0178
-				};
-				c=latin1ExtraTap[c-0x80];
-			}
-			l+=emEncodeChar(buf+l,c,&mbState);
+	sameCharEncoding=Model->IsSameCharEncoding();
+
+	while (src<srcEnd) {
+		if (sameCharEncoding) {
+			p=src;
+			e=srcEnd;
+			src=srcEnd;
 		}
 		else {
-			buf[l++]=(char)c;
-		}
-	}
-	if (l>0) {
-		painter.PaintText(
-			x+bufPos*charWidth,
-			y,
-			buf,
-			charHeight,
-			1.0,
-			color,
-			canvasColor,
-			l
-		);
-	}
-	return textLen;
-}
-
-
-int emTextFilePanel::PaintTextUtf8(
-	const emPainter & painter, double x, double y, double charWidth,
-	double charHeight, const char * text, int textLen,
-	emColor color, emColor canvasColor
-) const
-{
-	char buf[256+EM_MB_LEN_MAX];
-	int i,l,c,pos,bufPos;
-
-	if (emIsUtf8System()) {
-		painter.PaintText(x,y,text,charHeight,1.0,color,canvasColor,textLen);
-		return emGetDecodedCharCount(text,textLen);
-	}
-
-	pos=0;
-	bufPos=0;
-	l=0;
-	emMBState mbState;
-	for (i=0; i<textLen; ) {
-		if (l>=(int)sizeof(buf)-EM_MB_LEN_MAX) {
-			painter.PaintText(
-				x+bufPos*charWidth,
-				y,
-				buf,
-				charHeight,
-				1.0,
-				color,
-				canvasColor,
-				l
+			len=Model->ConvertToCurrentLocale(
+				buf,sizeof(buf),&src,srcEnd,mbState
 			);
-			bufPos=pos;
-			l=0;
+			if (len<=0) break;
+			p=buf;
+			e=buf+len;
 		}
-		c=(unsigned char)text[i];
-		if (c>=128) {
-			i+=emDecodeUtf8Char(&c,text+i,textLen-i);
-			l+=emEncodeChar(buf+l,c,&mbState);
-		}
-		else {
-			i++;
-			buf[l++]=(char)c;
-		}
-		pos++;
-	}
-	if (l>0) {
-		painter.PaintText(
-			x+bufPos*charWidth,
-			y,
-			buf,
-			charHeight,
-			1.0,
-			color,
-			canvasColor,
-			l
-		);
-	}
-	return pos;
-}
-
-
-int emTextFilePanel::PaintTextUtf16(
-	const emPainter & painter, double x, double y, double charWidth,
-	double charHeight, const char * text, int textLen,
-	emColor color, emColor canvasColor
-) const
-{
-	char buf[256+EM_MB_LEN_MAX];
-	int i,l,c,c2,pos,bufPos,sh1,sh2;
-
-	if (Model->GetCharEncoding()==emTextFileModel::CE_UTF16LE) { sh1=0; sh2=8; }
-	else { sh1=8; sh2=0; }
-	pos=0;
-	bufPos=0;
-	l=0;
-	emMBState mbState;
-	for (i=0; i<textLen; ) {
-		if (l>=(int)sizeof(buf)-EM_MB_LEN_MAX) {
-			painter.PaintText(
-				x+bufPos*charWidth,
-				y,
-				buf,
-				charHeight,
-				1.0,
-				color,
-				canvasColor,
-				l
-			);
-			bufPos=pos;
-			l=0;
-		}
-		c=((((emByte)text[i])<<sh1)|(((emByte)text[i+1])<<sh2));
-		i+=2;
-		if (c<128) {
-			buf[l++]=(char)c;
-			pos++;
-		}
-		else if (c!=0xFEFF) {
-			if (c>=0xD800 && c<=0xDBFF && i<textLen) {
-				c2=((((emByte)text[i])<<sh1)|(((emByte)text[i+1])<<sh2));
-				if (c2>=0xDC00 && c2<=0xDFFF) {
-					i+=2;
-					c=0x10000+((c&0x03FF)<<10)+(c2&0x03FF);
-				}
+		for (;;) {
+			c1=column;
+			while (p<e && *p==0x09) {
+				column=(column+8)&~7;
+				p++;
 			}
-			l+=emEncodeChar(buf+l,c,&mbState);
-			pos++;
+			q=p;
+			while (p<e && *p!=0x09) p++;
+			c2=column;
+			column+=emGetDecodedCharCount(q,p-q);
+			if (bgColor!=canvasColor) {
+				painter.PaintRect(
+					rowX+c1*CharWidth,
+					rowY,
+					(column-c1)*CharWidth,
+					CharHeight,
+					bgColor,
+					canvasColor
+				);
+			}
+			if (q>=p) break;
+			painter.PaintText(
+				rowX+c2*CharWidth,
+				rowY,
+				q,
+				CharHeight,
+				1.0,
+				fgColor,
+				bgColor,
+				p-q
+			);
 		}
 	}
-	if (l>0) {
-		painter.PaintText(
-			x+bufPos*charWidth,
-			y,
-			buf,
-			charHeight,
-			1.0,
-			color,
-			canvasColor,
-			l
-		);
-	}
-	return pos;
+	return column;
 }
 
 
@@ -582,24 +799,14 @@ void emTextFilePanel::PaintAsHex(
 	const emPainter & painter, emColor canvasColor
 ) const
 {
-	static const emColor colBg(0,0,0);
-	static const emColor colAddr(64,128,64);
-	static const emColor colHex(128,128,64);
-	static const emColor colAsc(64,96,128);
-	static const emColor colAddr64(colAddr,64);
-	static const emColor colHex48(colHex,48);
-	static const emColor colAsc64(colAsc,64);
-	static const emColor colAddr96(colAddr,96);
-	static const emColor colHex96(colHex,96);
 	char buf[256];
 	char buf2[32];
 	const char * pStart, * pEnd, * p;
-	int i,j,k,count,row,cols,rows,page,pages,pagerows;
-	double h,cw,ch,f,t,pagex,gap,pagew,bx,rowy,clipx1,clipy1,clipx2,clipy2;
+	int i,j,k,row,page;
+	double h,f,pagex,bx,rowy,clipx1,clipy1,clipx2,clipy2;
 
-	count=Model->GetContent().GetCount();
 	pStart=Model->GetContent();
-	pEnd=pStart+count;
+	pEnd=pStart+Model->GetContent().GetCount();
 
 	h=GetHeight();
 	clipx1=painter.GetUserClipX1();
@@ -607,131 +814,109 @@ void emTextFilePanel::PaintAsHex(
 	clipx2=painter.GetUserClipX2();
 	clipy2=painter.GetUserClipY2();
 
-	painter.PaintRect(0,0,1,h,colBg,canvasColor);
-
-	rows=(int)(((unsigned)count+15)/16);
-	if (!rows) return;
-	cols=73;
-
-
-	f=emPainter::GetTextSize("X",1.0,false);
-	gap=2.0;
-	t=0.5*gap/(cols+gap);
-	pages=(int)floor(t+sqrt((2*rows/(h*f*gap)+t)*t));
-	// pages*h/rows*f*(cols*pages+gap*(pages-1)) <= 1.0
-	if (pages<1) {
-		pages=1;
-		pagerows=rows;
-		cw=1.0/cols;
-		ch=cw/f;
-	}
-	else {
-		pagerows=(rows+pages-1)/pages;
-		ch=h/pagerows;
-		cw=ch*f;
-	}
-	gap*=cw;
-	pagew=cols*cw+gap;
+	painter.PaintRect(0,0,1,h,HexBgColor,canvasColor);
 
 	p=pStart;
 	page=0;
 	pagex=0;
-	if (pagex+pagew<=clipx1) {
-		page=(int)((clipx1-pagex)/pagew);
-		pagex+=page*pagew;
-		p+=page*pagerows*16;
+	if (pagex+PageWidth+PageGap<=clipx1) {
+		page=(int)((clipx1-pagex)/(PageWidth+PageGap));
+		pagex+=page*(PageWidth+PageGap);
+		p+=page*PageRows*16;
 	}
-	if (ch*GetViewedWidth()<1.0) {
-		for (; page<pages && pagex<clipx2; page++, pagex+=pagew) {
-			f=(pEnd-p+15)/16*ch;
+	if (CharHeight*GetViewedWidth()<1.0) {
+		for (; page<PageCount && pagex<clipx2; page++, pagex+=PageWidth+PageGap) {
+			f=(pEnd-p+15)/16*CharHeight;
 			if (f>h) f=h;
 			painter.PaintRect(
 				pagex,
 				0,
-				cw*8,
+				CharWidth*8,
 				f,
-				colAddr64,
-				colBg
+				HexAddr64Color,
+				HexBgColor
 			);
 			painter.PaintRect(
-				pagex+cw*9,
+				pagex+CharWidth*9,
 				0,
-				cw*47,
+				CharWidth*47,
 				f,
-				colHex48,
-				colBg
+				HexData48Color,
+				HexBgColor
 			);
 			painter.PaintRect(
-				pagex+cw*(9+48),
+				pagex+CharWidth*(9+48),
 				0,
-				cw*16,
+				CharWidth*16,
 				f,
-				colAsc64,
-				colBg
+				HexAsc64Color,
+				HexBgColor
 			);
-			p+=16*pagerows;
+			p+=16*PageRows;
 		}
 	}
-	else if (ch*GetViewedWidth()<3.0) {
-		for (; page<pages && pagex<clipx2; page++, pagex+=pagew) {
+	else if (CharHeight*GetViewedWidth()<3.0) {
+		for (; page<PageCount && pagex<clipx2; page++, pagex+=PageWidth+PageGap) {
 			row=0;
 			rowy=0;
-			if (rowy+ch<=clipy1) {
-				row=(int)((clipy1-rowy)/ch);
-				rowy+=row*ch;
+			if (rowy+CharHeight<=clipy1) {
+				row=(int)((clipy1-rowy)/CharHeight);
+				rowy+=row*CharHeight;
 				p+=row*16;
 			}
-			while (row<pagerows && rowy<clipy2 && p<pEnd) {
+			while (row<PageRows && rowy<clipy2 && p<pEnd) {
 				bx=pagex;
 				painter.PaintRect(
 					bx,
-					rowy+ch*0.1,
-					cw*8,
-					ch*0.8,
-					colAddr96,
-					colBg
+					rowy+CharHeight*0.1,
+					CharWidth*8,
+					CharHeight*0.8,
+					HexAddr96Color,
+					HexBgColor
 				);
-				bx+=9*cw;
+				bx+=9*CharWidth;
 				for (i=0, j=0; i<16 && p<pEnd; i++, p++) {
 					k=(unsigned char)*p;
 					if (((unsigned)(k-0x20))<0x60) j++;
 					painter.PaintRect(
-						bx+3*i*cw,
-						rowy+ch*0.1,
-						cw*2,
-						ch*0.8,
-						colHex96,
-						colBg
+						bx+3*i*CharWidth,
+						rowy+CharHeight*0.1,
+						CharWidth*2,
+						CharHeight*0.8,
+						HexData96Color,
+						HexBgColor
 					);
 				}
 				painter.PaintRect(
-					bx+48*cw,
-					rowy+ch*0.1,
-					i*cw,
-					ch*0.8,
-					emColor(colAsc,(emByte)(32+j*64/i)),
-					colBg
+					bx+48*CharWidth,
+					rowy+CharHeight*0.1,
+					i*CharWidth,
+					CharHeight*0.8,
+					emColor(HexAscColor,(emByte)(32+j*64/i)),
+					HexBgColor
 				);
 				row++;
-				rowy+=ch;
+				rowy+=CharHeight;
 			}
-			p+=16*(pagerows-row);
+			p+=16*(PageRows-row);
 		}
 	}
 	else {
-		for (; page<pages && pagex<clipx2; page++, pagex+=pagew) {
+		for (; page<PageCount && pagex<clipx2; page++, pagex+=PageWidth+PageGap) {
 			row=0;
 			rowy=0;
-			if (rowy+ch<=clipy1) {
-				row=(int)((clipy1-rowy)/ch);
-				rowy+=row*ch;
+			if (rowy+CharHeight<=clipy1) {
+				row=(int)((clipy1-rowy)/CharHeight);
+				rowy+=row*CharHeight;
 				p+=row*16;
 			}
-			while (row<pagerows && rowy<clipy2 && p<pEnd) {
+			while (row<PageRows && rowy<clipy2 && p<pEnd) {
 				sprintf(buf,"%08X",(unsigned int)(p-pStart));
 				bx=pagex;
-				painter.PaintText(bx,rowy,buf,ch,1.0,colAddr,colBg);
-				bx+=9*cw;
+				painter.PaintText(
+					bx,rowy,buf,CharHeight,1.0,HexAddrColor,HexBgColor
+				);
+				bx+=9*CharWidth;
 				for (i=0; i<16 && p<pEnd; i++, p++) {
 					k=(unsigned char)*p;
 					j=(k>>4)+'0';
@@ -742,13 +927,36 @@ void emTextFilePanel::PaintAsHex(
 					buf[1]=(char)j;
 					if (((unsigned)(k-0x20))>=0x60) k='.';
 					buf2[i]=(char)k;
-					painter.PaintText(bx+3*i*cw,rowy,buf,ch,1.0,colHex,colBg,2);
+					painter.PaintText(
+						bx+3*i*CharWidth,rowy,buf,CharHeight,1.0,
+						HexDataColor,HexBgColor,2
+					);
 				}
-				painter.PaintText(bx+48*cw,rowy,buf2,ch,1.0,colAsc,colBg,i);
+				painter.PaintText(
+					bx+48*CharWidth,rowy,buf2,CharHeight,1.0,
+					HexAscColor,HexBgColor,i
+				);
 				row++;
-				rowy+=ch;
+				rowy+=CharHeight;
 			}
-			p+=16*(pagerows-row);
+			p+=16*(PageRows-row);
 		}
 	}
 }
+
+
+const emColor emTextFilePanel::TextBgColor(255,255,255);
+const emColor emTextFilePanel::TextFgColor(0,0,0);
+const emColor emTextFilePanel::TextFg96Color(TextFgColor,96);
+const emColor emTextFilePanel::TextSelFgColor(TextBgColor);
+const emColor emTextFilePanel::TextSelFg96Color(TextSelFgColor,96);
+const emColor emTextFilePanel::TextSelBgColor(16,56,192);
+const emColor emTextFilePanel::HexBgColor(0,0,0);
+const emColor emTextFilePanel::HexAddrColor(64,128,64);
+const emColor emTextFilePanel::HexDataColor(128,128,64);
+const emColor emTextFilePanel::HexAscColor(64,96,128);
+const emColor emTextFilePanel::HexAddr64Color(HexAddrColor,64);
+const emColor emTextFilePanel::HexData48Color(HexDataColor,48);
+const emColor emTextFilePanel::HexAsc64Color(HexAscColor,64);
+const emColor emTextFilePanel::HexAddr96Color(HexAddrColor,96);
+const emColor emTextFilePanel::HexData96Color(HexDataColor,96);

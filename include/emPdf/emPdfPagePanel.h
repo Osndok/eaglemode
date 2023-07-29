@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.h
 //
-// Copyright (C) 2011,2016 Oliver Hamann.
+// Copyright (C) 2011,2016,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,8 +25,8 @@
 #include <emCore/emPanel.h>
 #endif
 
-#ifndef emPdfFileModel_h
-#include <emPdf/emPdfFileModel.h>
+#ifndef emPdfSelection_h
+#include <emPdf/emPdfSelection.h>
 #endif
 
 
@@ -35,7 +35,8 @@ class emPdfPagePanel : public emPanel {
 public:
 
 	emPdfPagePanel(ParentArg parent, const emString & name,
-	               emPdfFileModel * fileModel, int pageIndex);
+	               emPdfFileModel * fileModel, int pageIndex,
+	               emPdfSelection & selection);
 
 	virtual ~emPdfPagePanel();
 
@@ -44,36 +45,82 @@ public:
 
 protected:
 
-	virtual void Notice(NoticeFlags flags);
 	virtual bool Cycle();
+	virtual void Notice(NoticeFlags flags);
+	virtual void Input(emInputEvent & event, const emInputState & state,
+	                   double mx, double my);
+	virtual emCursor GetCursor() const;
 	virtual bool IsOpaque() const;
 	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
 
 private:
 
-	void UpdatePageDisplay(bool viewingChanged);
+	enum LayerType {
+		LT_PREVIEW=0,
+		LT_CONTENT=1,
+		LT_SELECTION=2
+	};
+
+	struct Layer {
+		Layer();
+		~Layer();
+
+		emImage Img;
+		double SrcX,SrcY,SrcW,SrcH;
+
+		emPdfServerModel::JobHandle Job;
+		emString JobErrorText;
+
+		emImage JobImg;
+		double JobSrcX,JobSrcY,JobSrcW,JobSrcH;
+
+		union {
+			emUInt64 JobDelayStartTime;
+			emUInt64 JobStartTime;
+		};
+
+		bool CoordinatesUpToDate;
+		bool ContentUpToDate;
+		bool JobDelayStartTimeSet;
+		LayerType Type;
+	};
+
+	enum IconStateType {
+		IS_NONE,
+		IS_WAITING,
+		IS_RENDERING
+	};
+
+	enum RectType {
+		RT_NONE,
+		RT_TEXT,
+		RT_URI,
+		RT_REF
+	};
+
+	void ResetLayer(Layer & layer, bool clearImage);
+	bool UpdateLayer(Layer & layer);
+	void PaintLayer(
+		const emPainter & painter, const Layer & layer, emColor * canvasColor
+	) const;
+	void UpdateIconState();
+	void UpdateCurrentRect();
+	void TriggerCurrectRect();
 
 	emRef<emPdfServerModel> Server;
 	emRef<emPdfFileModel> FileModel;
 	int PageIndex;
-
-	emPdfServerModel::JobHandle Job;
-	emString JobErrorText;
-
-	emImage PreImg;
-
-	emImage Img;
-	double SrcX,SrcY,SrcW,SrcH;
-
-	emImage JobImg;
-	double JobSrcX,JobSrcY,JobSrcW,JobSrcH;
-	bool JobUpToDate;
-	emUInt64 JobDelayStartTime;
-	emTimer JobDelayTimer;
-
+	emPdfSelection & Selection;
+	emPdfSelection::PageSelection PageSelection;
+	Layer Layers[3];
 	emImage WaitIcon,RenderIcon;
-	emTimer IconTimer;
-	bool ShowIcon;
+	IconStateType IconState;
+	double CurrentMX,CurrentMY;
+	RectType CurrentRectType;
+	int CurrentRectIndex;
+	RectType PressedRectType;
+	int PressedRectIndex;
+	bool ForceTextCursor;
 };
 
 inline emPdfFileModel * emPdfPagePanel::GetFileModel() const

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextFileModel.h
 //
-// Copyright (C) 2004-2008,2010,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2017-2018,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,6 +49,18 @@ public:
 	};
 	CEType GetCharEncoding() const;
 
+	bool IsSameCharEncoding() const;
+
+	int DecodeChar(int * pUcs4, int index, emMBState * mbState) const;
+
+	int ConvertToCurrentLocale(
+		char * tgt, int tgtSize,
+		const char * * pSrc, const char * srcEnd,
+		emMBState * mbState
+	) const;
+
+	emString ConvertToCurrentLocale(const char * src, const char * srcEnd) const;
+
 	enum LBEType {
 		LBE_NONE,
 		LBE_DOS,
@@ -69,9 +81,19 @@ public:
 		// Index to the content: one after last character of a line
 		// without line feed.
 
+	int ColRow2Index(double column, double row, bool forCursor) const;
+	int Index2Row(int index) const;
+	void Index2ColRow(int index, int * pColumn, int * pRow) const;
+	int GetNextWordBoundaryIndex(int index) const;
+	int GetPrevWordBoundaryIndex(int index) const;
+	int GetNextRowIndex(int index) const;
+	int GetPrevRowIndex(int index) const;
+
 	emUInt8 GetRelativeLineIndent(int lineIndex) const;
 	emUInt8 GetRelativeLineWidth(int lineIndex) const;
 		// Indent and width of a line in units of ColumnCount/255.
+
+	const emSignal & GetChangeSignal() const;
 
 protected:
 
@@ -98,6 +120,7 @@ private:
 	int * LineStarts;
 	emUInt8 * RelativeLineIndents;
 	emUInt8 * RelativeLineWidths;
+	emSignal ChangeSignal;
 
 	struct LoadingState {
 		int Stage;
@@ -152,6 +175,11 @@ inline emUInt8 emTextFileModel::GetRelativeLineIndent(int lineIndex) const
 inline emUInt8 emTextFileModel::GetRelativeLineWidth(int lineIndex) const
 {
 	return RelativeLineWidths[lineIndex];
+}
+
+inline const emSignal & emTextFileModel::GetChangeSignal() const
+{
+	return ChangeSignal;
 }
 
 

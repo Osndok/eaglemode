@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainControlPanel.cpp
 //
-// Copyright (C) 2014-2022 Oliver Hamann.
+// Copyright (C) 2014-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,7 +36,7 @@ emMainControlPanel::emMainControlPanel(
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2022 Oliver Hamann.\n"
+		"Copyright (C) 2001-2023 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"

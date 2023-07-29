@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011,2014,2016,2020-2022 Oliver Hamann.
+// Copyright (C) 2011,2014,2016,2020-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,55 +19,201 @@
 //------------------------------------------------------------------------------
 
 #include <emPdf/emPdfPagePanel.h>
+#include <emCore/emDialog.h>
 #include <emCore/emRes.h>
 
 
 emPdfPagePanel::emPdfPagePanel(
 	ParentArg parent, const emString & name,
-	emPdfFileModel * fileModel, int pageIndex
+	emPdfFileModel * fileModel, int pageIndex,
+	emPdfSelection & selection
 ) :
 	emPanel(parent,name),
-	JobDelayTimer(GetScheduler()),
-	IconTimer(GetScheduler())
+	Selection(selection),
+	IconState(IS_NONE),
+	CurrentMX(0.0),
+	CurrentMY(0.0),
+	CurrentRectType(RT_NONE),
+	CurrentRectIndex(-1),
+	PressedRectType(RT_NONE),
+	PressedRectIndex(-1),
+	ForceTextCursor(false)
 {
 	Server=fileModel->GetServerModel();
 	FileModel=fileModel;
 	PageIndex=pageIndex;
-	Job=NULL;
-	JobUpToDate=false;
-	JobDelayStartTime=emGetClockMS();
+
+	Layers[LT_PREVIEW].Type=LT_PREVIEW;
+	Layers[LT_CONTENT].Type=LT_CONTENT;
+	Layers[LT_SELECTION].Type=LT_SELECTION;
+
 	WaitIcon=emGetInsResImage(GetRootContext(),"emPs","waiting.tga");
 	RenderIcon=emGetInsResImage(GetRootContext(),"emPs","rendering.tga");
-	ShowIcon=false;
-	AddWakeUpSignal(JobDelayTimer.GetSignal());
-	AddWakeUpSignal(IconTimer.GetSignal());
-	UpdatePageDisplay(false);
+	AddWakeUpSignal(FileModel->GetChangeSignal());
+	AddWakeUpSignal(Selection.GetSelectionSignal());
+	AddWakeUpSignal(FileModel->GetPageAreasMap().GetPageAreasSignal());
+
+	WakeUp();
 }
 
 
 emPdfPagePanel::~emPdfPagePanel()
 {
-	if (Job) Server->CloseJob(Job);
-}
+	int i;
 
-
-void emPdfPagePanel::Notice(NoticeFlags flags)
-{
-	emPanel::Notice(flags);
-
-	if ((flags&(NF_VIEWING_CHANGED|NF_MEMORY_LIMIT_CHANGED))!=0) {
-		UpdatePageDisplay(true);
-	}
-	if ((flags&NF_UPDATE_PRIORITY_CHANGED)!=0) {
-		if (Job) Server->SetJobPriority(Job,GetUpdatePriority());
+	for (i=0; i<3; i++) {
+		ResetLayer(Layers[i], true);
 	}
 }
 
 
 bool emPdfPagePanel::Cycle()
 {
-	UpdatePageDisplay(false);
-	return false;
+	int i;
+	bool busy;
+
+	busy=emPanel::Cycle();
+
+	if (IsSignaled(FileModel->GetChangeSignal())) {
+		for (i=0; i<3; i++) {
+			ResetLayer(Layers[i], true);
+		}
+		if (CurrentRectType!=RT_NONE) {
+			CurrentRectType=RT_NONE;
+			InvalidateCursor();
+		}
+		PressedRectType=RT_NONE;
+	}
+
+	if (
+		IsSignaled(Selection.GetSelectionSignal()) &&
+		PageSelection!=Selection.GetPageSelection(PageIndex)
+	) {
+		PageSelection=Selection.GetPageSelection(PageIndex);
+		Layers[LT_SELECTION].ContentUpToDate=false;
+	}
+
+	if (IsSignaled(FileModel->GetPageAreasMap().GetPageAreasSignal())) {
+		UpdateCurrentRect();
+	}
+
+	for (i=0; i<3; i++) {
+		if (UpdateLayer(Layers[i])) busy=true;
+	}
+
+	UpdateIconState();
+
+	return busy;
+}
+
+
+void emPdfPagePanel::Notice(NoticeFlags flags)
+{
+	int i;
+
+	emPanel::Notice(flags);
+
+	if ((flags&NF_VIEWING_CHANGED)!=0) {
+		Layers[LT_CONTENT].CoordinatesUpToDate=false;
+		if (PageSelection.NonEmpty) {
+			Layers[LT_SELECTION].CoordinatesUpToDate=false;
+		}
+		WakeUp();
+	}
+	if ((flags&NF_UPDATE_PRIORITY_CHANGED)!=0) {
+		for (i=0; i<3; i++) {
+			if (Layers[i].Job) {
+				Server->SetJobPriority(Layers[i].Job,GetUpdatePriority());
+			}
+		}
+	}
+}
+
+
+void emPdfPagePanel::Input(
+	emInputEvent & event, const emInputState & state, double mx, double my
+)
+{
+	bool forceTextCursor;
+
+	CurrentMX=mx;
+	CurrentMY=my;
+	UpdateCurrentRect();
+
+	if (
+		PageIndex<0 || PageIndex>=FileModel->GetPageCount() ||
+		!IsInViewedPath()
+	) {
+		PressedRectType=RT_NONE;
+		emPanel::Input(event,state,mx,my);
+		return;
+	}
+
+	if (
+		event.IsKey(EM_KEY_LEFT_BUTTON) &&
+		!state.GetCtrl() && !state.GetAlt() && !state.GetMeta() &&
+		(CurrentRectType==RT_URI || CurrentRectType==RT_REF)
+	) {
+		PressedRectType=CurrentRectType;
+		PressedRectIndex=CurrentRectIndex;
+		InvalidateCursor();
+		Focus();
+		event.Eat();
+	}
+
+	if (!state.Get(EM_KEY_LEFT_BUTTON) && PressedRectType!=RT_NONE) {
+		if (
+			PressedRectType==CurrentRectType &&
+			PressedRectIndex==CurrentRectIndex
+		) {
+			TriggerCurrectRect();
+		}
+		PressedRectType=RT_NONE;
+		InvalidateCursor();
+	}
+
+	Selection.PageInput(
+		PageIndex,event,state,
+		mx*FileModel->GetPageWidth(PageIndex),
+		my/GetHeight()*FileModel->GetPageHeight(PageIndex)
+	);
+
+	forceTextCursor=
+		Selection.IsSelectingByMouse() || (
+			PressedRectType==RT_NONE &&
+			(CurrentRectType==RT_URI || CurrentRectType==RT_REF) &&
+			(state.GetAlt() || state.GetMeta())
+		)
+	;
+	if (ForceTextCursor!=forceTextCursor) {
+		ForceTextCursor=forceTextCursor;
+		InvalidateCursor();
+	}
+
+	emPanel::Input(event,state,mx,my);
+}
+
+
+emCursor emPdfPagePanel::GetCursor() const
+{
+	if (ForceTextCursor) return emCursor::TEXT;
+	switch (CurrentRectType) {
+		case RT_TEXT:
+			return emCursor::TEXT;
+		case RT_URI:
+		case RT_REF:
+			if (
+				PressedRectType!=RT_NONE && (
+					PressedRectType!=CurrentRectType ||
+					PressedRectIndex!=CurrentRectIndex
+				)
+			) {
+				return emCursor::NORMAL;
+			}
+			return emCursor::HAND;
+		default:
+			return emCursor::NORMAL;
+	}
 }
 
 
@@ -81,96 +227,26 @@ void emPdfPagePanel::Paint(
 	const emPainter & painter, emColor canvasColor
 ) const
 {
-	static const emColor bgCol=emColor(221,255,255);
-	double h,fw,fh,ox,oy,ow,oh,sx,sy,sw,sh,ix,iy,iw,ih,t;
-	double sx1,sy1,sx2,sy2;
-	int pw,ph,px1,py1,px2,py2;
+	const emString * pErrText;
+	emString errText;
 	emImage ico;
+	double h,ix,iy,iw,ih,t;
+	int i;
 
-	ox=0.0;
-	oy=0.0;
-	ow=1.0;
-	oh=GetHeight();
-
-	if (!Img.IsEmpty()) {
-		fw=FileModel->GetPageWidth(PageIndex);
-		fh=FileModel->GetPageHeight(PageIndex);
-		sx=ox+SrcX*ow/fw;
-		sy=oy+SrcY*oh/fh;
-		sw=SrcW*ow/fw;
-		sh=SrcH*oh/fh;
-		emPainter(
-			painter,
-			painter.GetOriginX()+ox*painter.GetScaleX(),
-			painter.GetOriginY()+oy*painter.GetScaleY(),
-			painter.GetOriginX()+(ox+ow)*painter.GetScaleX(),
-			painter.GetOriginY()+(oy+oh)*painter.GetScaleY()
-		).PaintImage(
-			sx,sy,sw,sh,
-			Img,
-			255,
-			canvasColor
-		);
-		sx1=emMax(ox,sx);
-		sy1=emMax(oy,sy);
-		sx2=emMin(ox+ow,sx+sw);
-		sy2=emMin(oy+oh,sy+sh);
-		pw=PreImg.GetWidth();
-		ph=PreImg.GetHeight();
-		px1=(int)((sx1-ox)*pw/ow+0.5);
-		py1=(int)((sy1-oy)*ph/oh+0.5);
-		px2=(int)((sx2-oy)*pw/ow+0.5);
-		py2=(int)((sy2-oy)*ph/oh+0.5);
-		if (sy1>oy) painter.PaintImage(
-			ox,oy,ow,sy1-oy,
-			PreImg,
-			0,0,pw,py1,
-			255,canvasColor
-		);
-		if (sx1>ox) painter.PaintImage(
-			ox,sy1,sx1-ox,sy2-sy1,
-			PreImg,
-			0,py1,px1,py2-py1,
-			255,canvasColor
-		);
-		if (sx2<ox+ow) painter.PaintImage(
-			sx2,sy1,ox+ow-sx2,sy2-sy1,
-			PreImg,
-			px2,py1,pw-px2,py2-py1,
-			255,canvasColor
-		);
-		if (sy2<oy+oh) painter.PaintImage(
-			ox,sy2,ow,oy+oh-sy2,
-			PreImg,
-			0,py2,pw,ph-py2,
-			255,canvasColor
-		);
-		canvasColor=0;
-	}
-	else if (!PreImg.IsEmpty()) {
-		painter.PaintImage(
-			ox,oy,ow,oh,
-			PreImg,255,
-			canvasColor
-		);
-		canvasColor=0;
-	}
-	else {
-		painter.PaintRect(
-			ox,oy,ow,oh,
-			bgCol,
-			canvasColor
-		);
-		canvasColor=bgCol;
+	pErrText=FileModel->GetPageAreasMap().GetError(PageIndex);
+	if (pErrText) errText=*pErrText;
+	for (i=0; i<3; i++) {
+		PaintLayer(painter,Layers[i],&canvasColor);
+		if (!Layers[i].JobErrorText.IsEmpty()) errText=Layers[i].JobErrorText;
 	}
 
-	if (!JobErrorText.IsEmpty()) {
+	if (!errText.IsEmpty()) {
 		painter.PaintTextBoxed(
 			0.0,
 			0.0,
 			1.0,
 			GetHeight(),
-			"ERROR:\n" + JobErrorText,
+			"ERROR:\n" + errText,
 			GetHeight()/10,
 			emColor(255,0,0),
 			canvasColor,
@@ -178,8 +254,8 @@ void emPdfPagePanel::Paint(
 			EM_ALIGN_CENTER
 		);
 	}
-	else if (ShowIcon) {
-		if (Job && Server->GetJobState(Job)==emPdfServerModel::JS_WAITING) ico=WaitIcon;
+	else if (IconState!=IS_NONE) {
+		if (IconState==IS_WAITING) ico=WaitIcon;
 		else ico=RenderIcon;
 		h=GetHeight();
 		iw=ViewToPanelDeltaX(ico.GetWidth());
@@ -197,88 +273,115 @@ void emPdfPagePanel::Paint(
 }
 
 
-void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
+emPdfPagePanel::Layer::Layer()
+	: SrcX(0.0),
+	SrcY(0.0),
+	SrcW(0.0),
+	SrcH(0.0),
+	Job(NULL),
+	JobSrcX(0.0),
+	JobSrcY(0.0),
+	JobSrcW(0.0),
+	JobSrcH(0.0),
+	JobDelayStartTime(0),
+	CoordinatesUpToDate(false),
+	ContentUpToDate(false),
+	JobDelayStartTimeSet(false),
+	Type(LT_PREVIEW)
+{
+}
+
+
+emPdfPagePanel::Layer::~Layer()
+{
+}
+
+
+void emPdfPagePanel::ResetLayer(Layer & layer, bool clearImage)
+{
+	if (layer.Job) {
+		Server->CloseJob(layer.Job);
+		layer.Job=NULL;
+		layer.CoordinatesUpToDate=false;
+		layer.ContentUpToDate=false;
+	}
+	if (!layer.JobImg.IsEmpty()) {
+		layer.JobImg.Clear();
+	}
+	if (clearImage) {
+		if (!layer.Img.IsEmpty()) {
+			layer.Img.Clear();
+			InvalidatePainting();
+		}
+		if (!layer.JobErrorText.IsEmpty()) {
+			layer.JobErrorText.Clear();
+			InvalidatePainting();
+		}
+		layer.CoordinatesUpToDate=false;
+		layer.ContentUpToDate=false;
+	}
+	layer.JobDelayStartTimeSet=false;
+}
+
+
+bool emPdfPagePanel::UpdateLayer(Layer & layer)
 {
 	double fw,fh,ox,oy,ow,oh,ix,iy,iw,ih,sx,sy,sw,sh,qx1,qx2,qy1,qy2,q,tx,ty;
 	emUInt64 tm,dt;
 
-	if (!IsViewed() || PageIndex<0 || PageIndex>=FileModel->GetPageCount()) {
-		if (Job) {
-			Server->CloseJob(Job);
-			Job=NULL;
-		}
-		if (!JobImg.IsEmpty()) {
-			JobImg.Clear();
-		}
-		if (!Img.IsEmpty()) {
-			Img.Clear();
-			InvalidatePainting();
-		}
-		if (!PreImg.IsEmpty()) {
-			if (PageIndex<0 || PageIndex>=FileModel->GetPageCount()) {
-				PreImg.Clear();
-				InvalidatePainting();
-			}
-		}
-		if (!JobErrorText.IsEmpty()) {
-			JobErrorText.Clear();
-			InvalidatePainting();
-		}
-		JobUpToDate=false;
-		IconTimer.Stop(true);
-		ShowIcon=false;
-		return;
+	if (PageIndex<0 || PageIndex>=FileModel->GetPageCount()) {
+		ResetLayer(layer, true);
+		return false;
 	}
 
-	if (JobUpToDate) JobDelayStartTime=emGetClockMS();
-	if (viewingChanged) JobUpToDate=false;
+	if (!IsViewed()) {
+		ResetLayer(layer, layer.Type!=LT_PREVIEW);
+		return false;
+	}
 
-	if (Job) {
-		switch (Server->GetJobState(Job)) {
+	if (layer.Job) {
+		switch (Server->GetJobState(layer.Job)) {
 		case emPdfServerModel::JS_WAITING:
 		case emPdfServerModel::JS_RUNNING:
-			if (!ShowIcon && !IconTimer.IsRunning()) {
-				ShowIcon=true;
-				InvalidatePainting();
-			}
-			return;
+			return true;
 		case emPdfServerModel::JS_ERROR:
-			JobErrorText=Server->GetJobErrorText(Job);
-			if (JobErrorText.IsEmpty()) JobErrorText="unknown error";
-			Server->CloseJob(Job);
-			Job=NULL;
-			JobImg.Clear();
-			Img.Clear();
-			PreImg.Clear();
-			JobUpToDate=false;
-			IconTimer.Stop(true);
-			ShowIcon=false;
+			layer.JobErrorText=Server->GetJobErrorText(layer.Job);
+			if (layer.JobErrorText.IsEmpty()) {
+				layer.JobErrorText="unknown error";
+			}
+			Server->CloseJob(layer.Job);
+			layer.Job=NULL;
+			layer.JobImg.Clear();
+			layer.Img.Clear();
 			InvalidatePainting();
-			return;
+			return false;
 		case emPdfServerModel::JS_SUCCESS:
-			Server->CloseJob(Job);
-			Job=NULL;
-			if (PreImg.IsEmpty()) {
-				PreImg=JobImg;
-				JobUpToDate=false;
-			}
-			Img=JobImg;
-			SrcX=JobSrcX;
-			SrcY=JobSrcY;
-			SrcW=JobSrcW;
-			SrcH=JobSrcH;
-			JobImg.Clear();
-			if (JobUpToDate) {
-				IconTimer.Stop(true);
-				ShowIcon=false;
-			}
-			JobDelayStartTime=emGetClockMS();
+			Server->CloseJob(layer.Job);
+			layer.Job=NULL;
+			layer.Img=layer.JobImg;
+			layer.SrcX=layer.JobSrcX;
+			layer.SrcY=layer.JobSrcY;
+			layer.SrcW=layer.JobSrcW;
+			layer.SrcH=layer.JobSrcH;
+			layer.JobImg.Clear();
 			InvalidatePainting();
 			break;
 		}
 	}
 
-	if (JobUpToDate) return;
+	if (layer.CoordinatesUpToDate && layer.ContentUpToDate) return false;
+	if (!layer.JobErrorText.IsEmpty()) return false;
+
+	if (layer.Type==LT_SELECTION && !PageSelection.NonEmpty) {
+		ResetLayer(layer, true);
+		layer.CoordinatesUpToDate=true;
+		layer.ContentUpToDate=true;
+		return false;
+	}
+
+	if (layer.Type==LT_CONTENT && Layers[LT_PREVIEW].Img.IsEmpty()) {
+		return false;
+	}
 
 	fw=FileModel->GetPageWidth(PageIndex);
 	fh=FileModel->GetPageHeight(PageIndex);
@@ -288,8 +391,8 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 	ow=PanelToViewDeltaX(1.0);
 	oh=PanelToViewDeltaY(GetHeight());
 
-	if (PreImg.IsEmpty()) {
-		q=sqrt(1000.0/(fw*fh));
+	if (layer.Type==LT_PREVIEW) {
+		q=sqrt(3000.0/(fw*fh));
 		iw=fw*q;
 		ih=fh*q;
 		sx=0.0;
@@ -308,68 +411,319 @@ void emPdfPagePanel::UpdatePageDisplay(bool viewingChanged)
 		sh=ih*fh/oh;
 	}
 
-	if (iw<1.0 || ih<1.0 || iw/sw<=PreImg.GetWidth()/fw) {
-		Img.Clear();
-		SrcX=0.0;
-		SrcY=0.0;
-		SrcW=fw;
-		SrcH=fh;
-		InvalidatePainting();
-		JobUpToDate=true;
-		IconTimer.Stop(true);
-		ShowIcon=false;
-		return;
+	if (
+		iw<1.0 || ih<1.0 ||
+		(layer.Type==LT_CONTENT && iw/sw<=Layers[LT_PREVIEW].Img.GetWidth()/fw)
+	) {
+		ResetLayer(layer, true);
+		layer.CoordinatesUpToDate=true;
+		layer.ContentUpToDate=true;
+		return false;
 	}
 
-	if (!Img.IsEmpty()) {
-		if (Img.GetWidth()==iw && Img.GetHeight()==ih) {
-			tx=sw/Img.GetWidth()*0.05;
-			ty=sh/Img.GetHeight()*0.05;
+	if (
+		layer.Type!=LT_PREVIEW &&
+		layer.ContentUpToDate &&
+		!layer.Img.IsEmpty()
+	) {
+		if (layer.Img.GetWidth()==iw && layer.Img.GetHeight()==ih) {
+			tx=sw/layer.Img.GetWidth()*0.05;
+			ty=sh/layer.Img.GetHeight()*0.05;
 			if (
-				fabs(SrcX-sx)<=tx && fabs(SrcX+SrcW-sx-sw)<=tx &&
-				fabs(SrcY-sy)<=ty && fabs(SrcY+SrcH-sy-sh)<=ty
+				fabs(layer.SrcX-sx)<=tx &&
+				fabs(layer.SrcX+layer.SrcW-sx-sw)<=tx &&
+				fabs(layer.SrcY-sy)<=ty &&
+				fabs(layer.SrcY+layer.SrcH-sy-sh)<=ty
 			) {
-					JobUpToDate=true;
-					return;
+					layer.CoordinatesUpToDate=true;
+					return false;
 			}
 		}
-		qx1=emMax(SrcX,sx);
-		qx2=emMin(SrcX+SrcW,sx+sw);
-		qy1=emMax(SrcY,sy);
-		qy2=emMin(SrcY+SrcH,sy+sh);
+		qx1=emMax(layer.SrcX,sx);
+		qx2=emMin(layer.SrcX+layer.SrcW,sx+sw);
+		qy1=emMax(layer.SrcY,sy);
+		qy2=emMin(layer.SrcY+layer.SrcH,sy+sh);
 		if (qx2<qx1) qx2=qx1;
 		if (qy2<qy1) qy2=qy1;
 		q=(qx2-qx1)*(qy2-qy1)/(sw*sh);
 		q=(q-0.9)*10.0;
-		if (q>0.0 && Img.GetWidth()/SrcW>0.9*iw/sw) {
+		if (q>0.0 && layer.Img.GetWidth()/layer.SrcW>0.9*iw/sw) {
 			dt=(emUInt64)(q*q*500.0+0.5);
 			tm=emGetClockMS();
-			if (JobDelayStartTime+dt>tm) {
-				JobDelayTimer.Start(JobDelayStartTime+dt-tm);
-				return;
+			if (!layer.JobDelayStartTimeSet) {
+				layer.JobDelayStartTime=tm;
+				layer.JobDelayStartTimeSet=true;
+			}
+			if (tm-layer.JobDelayStartTime<dt) {
+				return true;
 			}
 		}
 	}
 
-	JobSrcX=sx;
-	JobSrcY=sy;
-	JobSrcW=sw;
-	JobSrcH=sh;
+	if (layer.Type==LT_SELECTION) {
+		layer.Job=Server->StartRenderSelectionJob(
+			FileModel->GetPdfHandle(),
+			PageIndex,sx,sy,sw,sh,
+			(int)(iw+0.5),(int)(ih+0.5),
+			PageSelection.Style,
+			PageSelection.X1,PageSelection.Y1,
+			PageSelection.X2,PageSelection.Y2,
+			&layer.JobImg,GetUpdatePriority(),this
+		);
+	}
+	else {
+		layer.Job=Server->StartRenderJob(
+			FileModel->GetPdfHandle(),
+			PageIndex,sx,sy,sw,sh,
+			(int)(iw+0.5),(int)(ih+0.5),
+			&layer.JobImg,GetUpdatePriority(),this
+		);
+	}
+	layer.JobSrcX=sx;
+	layer.JobSrcY=sy;
+	layer.JobSrcW=sw;
+	layer.JobSrcH=sh;
+	layer.CoordinatesUpToDate=true;
+	layer.ContentUpToDate=true;
+	layer.JobDelayStartTimeSet=false;
+	layer.JobStartTime=emGetClockMS();
+	return true;
+}
 
-	Job=Server->StartRenderJob(
-		FileModel->GetPdfHandle(),
-		PageIndex,
-		JobSrcX,
-		JobSrcY,
-		JobSrcW,
-		JobSrcH,
-		(int)(iw+0.5),
-		(int)(ih+0.5),
-		emColor(0xffffffff),
-		&JobImg,
-		GetUpdatePriority(),
-		this
+
+void emPdfPagePanel::PaintLayer(
+	const emPainter & painter, const Layer & layer, emColor * canvasColor
+) const
+{
+	static const emColor bgCol=emColor(221,255,255);
+	double fw,fh,ox,oy,ow,oh,sx,sy,sw,sh;
+	double sx1,sy1,sx2,sy2;
+	int pw,ph,px1,py1,px2,py2;
+
+	ox=0.0;
+	oy=0.0;
+	ow=1.0;
+	oh=GetHeight();
+
+	if (layer.Img.IsEmpty()) {
+		if (layer.Type == LT_PREVIEW) {
+			painter.PaintRect(
+				ox,oy,ow,oh,
+				bgCol,
+				*canvasColor
+			);
+			*canvasColor=bgCol;
+		}
+		return;
+	}
+
+	if (layer.Type == LT_PREVIEW) {
+		if (Layers[LT_CONTENT].Img.IsEmpty()) {
+			painter.PaintImage(
+				ox,oy,ow,oh,
+				layer.Img,255,
+				*canvasColor
+			);
+			*canvasColor=0;
+		}
+		return;
+	}
+
+	fw=FileModel->GetPageWidth(PageIndex);
+	fh=FileModel->GetPageHeight(PageIndex);
+	sx=ox+layer.SrcX*ow/fw;
+	sy=oy+layer.SrcY*oh/fh;
+	sw=layer.SrcW*ow/fw;
+	sh=layer.SrcH*oh/fh;
+
+	if (layer.Type == LT_SELECTION) {
+		painter.PaintImageColored(
+			sx,sy,sw,sh,
+			layer.Img,
+			emColor(16,56,192),
+			emColor(255,255,255),
+			*canvasColor
+		);
+		*canvasColor=0;
+		return;
+	}
+
+	painter.PaintImage(
+		sx,sy,sw,sh,
+		layer.Img,
+		255,
+		*canvasColor
 	);
-	if (!ShowIcon) IconTimer.Start(2000);
-	JobUpToDate=true;
+
+	if (!Layers[LT_PREVIEW].Img.IsEmpty()) {
+		sx1=emMax(ox,sx);
+		sy1=emMax(oy,sy);
+		sx2=emMin(ox+ow,sx+sw);
+		sy2=emMin(oy+oh,sy+sh);
+		pw=Layers[LT_PREVIEW].Img.GetWidth();
+		ph=Layers[LT_PREVIEW].Img.GetHeight();
+		px1=(int)((sx1-ox)*pw/ow+0.5);
+		py1=(int)((sy1-oy)*ph/oh+0.5);
+		px2=(int)((sx2-oy)*pw/ow+0.5);
+		py2=(int)((sy2-oy)*ph/oh+0.5);
+		if (sy1>oy) painter.PaintImage(
+			ox,oy,ow,sy1-oy,
+			Layers[LT_PREVIEW].Img,
+			0,0,pw,py1,
+			255,*canvasColor
+		);
+		if (sx1>ox) painter.PaintImage(
+			ox,sy1,sx1-ox,sy2-sy1,
+			Layers[LT_PREVIEW].Img,
+			0,py1,px1,py2-py1,
+			255,*canvasColor
+		);
+		if (sx2<ox+ow) painter.PaintImage(
+			sx2,sy1,ox+ow-sx2,sy2-sy1,
+			Layers[LT_PREVIEW].Img,
+			px2,py1,pw-px2,py2-py1,
+			255,*canvasColor
+		);
+		if (sy2<oy+oh) painter.PaintImage(
+			ox,sy2,ow,oy+oh-sy2,
+			Layers[LT_PREVIEW].Img,
+			0,py2,pw,ph-py2,
+			255,*canvasColor
+		);
+	}
+
+	*canvasColor=0;
+}
+
+
+void emPdfPagePanel::UpdateIconState()
+{
+	IconStateType iconState;
+	int i;
+
+	iconState=IS_NONE;
+	for (i=0; i<3; i++) {
+		if (!Layers[i].Job) continue;
+		if (emGetClockMS()-Layers[i].JobStartTime<2000) continue;
+		if (
+			iconState!=IS_RENDERING &&
+			Server->GetJobState(Layers[i].Job)==emPdfServerModel::JS_WAITING
+		) {
+			iconState=IS_WAITING;
+		}
+		else {
+			iconState=IS_RENDERING;
+		}
+	}
+	if (IconState!=iconState) {
+		IconState=iconState;
+		InvalidatePainting();
+	}
+}
+
+
+void emPdfPagePanel::UpdateCurrentRect()
+{
+	const emPdfServerModel::PageAreas * areas;
+	RectType newType;
+	int x,y,newIndex,i;
+
+	newType=RT_NONE;
+	newIndex=0;
+
+	if (
+		PageIndex>=0 && PageIndex<FileModel->GetPageCount() &&
+		IsInViewedPath() &&
+		CurrentMX>=0.0 && CurrentMX<1.0 &&
+		CurrentMY>=0.0 && CurrentMY<GetHeight()
+	) {
+		areas=FileModel->GetPageAreasMap().GetPageAreas(PageIndex);
+		if (areas) {
+			x=(int)(CurrentMX*FileModel->GetPageWidth(PageIndex)+0.5);
+			y=(int)(CurrentMY/GetHeight()*FileModel->GetPageHeight(PageIndex)+0.5);
+			for (i=areas->TextRects.GetCount()-1; i>=0; i--) {
+				if (areas->TextRects[i].Contains(x,y)) {
+					newType=RT_TEXT;
+					newIndex=i;
+					break;
+				}
+			}
+			for (i=areas->UriRects.GetCount()-1; i>=0; i--) {
+				if (areas->UriRects[i].Contains(x,y)) {
+					newType=RT_URI;
+					newIndex=i;
+					break;
+				}
+			}
+			for (i=areas->RefRects.GetCount()-1; i>=0; i--) {
+				if (areas->RefRects[i].Contains(x,y)) {
+					newType=RT_REF;
+					newIndex=i;
+					break;
+				}
+			}
+		}
+		else {
+			FileModel->GetPageAreasMap().RequestPageAreas(
+				PageIndex,GetUpdatePriority()
+			);
+		}
+	}
+
+	if (CurrentRectType!=newType || CurrentRectIndex!=newIndex) {
+		CurrentRectType=newType;
+		CurrentRectIndex=newIndex;
+		InvalidateCursor();
+	}
+}
+
+
+void emPdfPagePanel::TriggerCurrectRect()
+{
+	const emPdfServerModel::PageAreas * areas;
+	const emPdfServerModel::RefRect * rr;
+	emPanel * panel;
+	emPdfPagePanel * pagePanel;
+	double pw,ph,pt,vt,relX,relY,relA;
+
+	areas=FileModel->GetPageAreasMap().GetPageAreas(PageIndex);
+	if (!areas) return;
+
+	if (
+		CurrentRectType==RT_URI &&
+		CurrentRectIndex>=0 &&
+		CurrentRectIndex<areas->UriRects.GetCount()
+	) {
+		emDialog::ShowMessage(GetView(),"Error","Triggering URI not implemented");
+	}
+
+	if (
+		CurrentRectType==RT_REF &&
+		CurrentRectIndex>=0 &&
+		CurrentRectIndex<areas->RefRects.GetCount() &&
+		GetParent()
+	) {
+		rr=&areas->RefRects[CurrentRectIndex];
+		pagePanel=NULL;
+		for (panel=GetParent()->GetFirstChild(); panel; panel=panel->GetNext()) {
+			pagePanel=dynamic_cast<emPdfPagePanel*>(panel);
+			if (pagePanel && pagePanel->GetPageIndex()==rr->TargetPage) break;
+			pagePanel=NULL;
+		}
+		if (!pagePanel) return;
+
+		pw=FileModel->GetPageWidth(rr->TargetPage);
+		ph=FileModel->GetPageHeight(rr->TargetPage);
+		pt=ph/pw;
+		vt=GetView().GetCurrentTallness();
+		if (vt>=pt) {
+			GetView().VisitFullsized(pagePanel,true);
+			return;
+		}
+		relX=0.0;
+		relY=-(1.0-vt/pt)*0.5;
+		relY+=emMin(1.0-vt/pt,emMax(0.0,rr->TargetY/ph));
+		relA=vt/pt;
+		GetView().Visit(pagePanel,relX,relY,relA,true);
+	}
 }

@@ -7,13 +7,13 @@ Function = "emTmpConvFpPluginFunc"
 Properties = {
  {
   Name="OutFileEnding"
-  Value=".ps"
+  Value=".pdf"
  }
  {
   Name="Command"
   Value="
    exec htmldoc --webpage --header \"   \" --footer \"   \" \\
-    --format ps --outfile \"$OUTFILE\" \"$INFILE\" 1>&2
+    --format pdf --outfile \"$OUTFILE\" \"$INFILE\" 1>&2
   "
  }
 }

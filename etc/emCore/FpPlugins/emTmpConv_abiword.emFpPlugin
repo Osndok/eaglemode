@@ -22,7 +22,7 @@ Function = "emTmpConvFpPluginFunc"
 Properties = {
  {
   Name="OutFileEnding"
-  Value=".ps"
+  Value=".pdf"
  }
  {
   Name="Command"
@@ -51,7 +51,7 @@ Properties = {
     exit 1
    ;;
    esac
-   exec abiword --to=ps \"--to-name=$OUTFILE\" \"$INFILE\" > /dev/null
+   exec abiword --to=pdf \"--to-name=$OUTFILE\" \"$INFILE\" > /dev/null
   "
  }
 }

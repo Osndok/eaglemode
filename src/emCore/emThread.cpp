@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.cpp
 //
-// Copyright (C) 2009,2011,2016-2017,2022 Oliver Hamann.
+// Copyright (C) 2009,2011,2016-2017,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -410,7 +410,7 @@ int emThread::Run(void * arg)
 		// be implemented in emTMM_Xchg.
 	}
 
-#elif !defined(ANDROID)
+#elif !defined(ANDROID) && !defined(__APPLE__)
 
 	emThreadMiniMutex::emThreadMiniMutex()
 	{

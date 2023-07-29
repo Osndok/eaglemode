@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.h
 //
-// Copyright (C) 2011-2013,2016 Oliver Hamann.
+// Copyright (C) 2011-2013,2016,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,10 +23,6 @@
 
 #ifndef emFilePanel_h
 #include <emCore/emFilePanel.h>
-#endif
-
-#ifndef emPdfFileModel_h
-#include <emPdf/emPdfFileModel.h>
 #endif
 
 #ifndef emPdfPagePanel_h
@@ -61,6 +57,9 @@ protected:
 
 	virtual void Notice(NoticeFlags flags);
 
+	virtual void Input(emInputEvent & event, const emInputState & state,
+	                   double mx, double my);
+
 	virtual bool IsOpaque() const;
 
 	virtual void Paint(const emPainter & painter, emColor canvasColor) const;
@@ -90,6 +89,7 @@ private:
 	double PgX,PgY,PerPoint;
 	double ShadowSize;
 	emImage ShadowImage;
+	emPdfSelection Selection;
 	emArray<emPdfPagePanel*> PagePanels;
 };
 

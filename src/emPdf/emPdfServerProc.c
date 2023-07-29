@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011-2013,2017-2019,2022 Oliver Hamann.
+// Copyright (C) 2011-2013,2017-2019,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,12 +42,12 @@ static emPdfInst * * emPdfInstArray=NULL;
 static int emPdfInstArraySize=0;
 
 
-static void emPdfPrintQuoted(const char * str)
+static void emPdfPrintQuoted(const char * str, int maxLen)
 {
-	int c;
+	int i,c;
 
 	putchar('"');
-	if (str) for (;;) {
+	if (str) for (i=0; i<maxLen; i++) {
 		c=*str++;
 		if (!c) break;
 		if (c=='"' || c=='\\') printf("\\%c",c);
@@ -113,12 +113,14 @@ static void emPdfOpen(const char * args)
 {
 	const char * filePath;
 	const char * label;
+	gchar * str;
 	char genericLabel[256];
 	char * uri;
 	GError * err;
 	emPdfInst * inst;
 	PopplerPage * page;
 	double width,height;
+	time_t t;
 	int i,instId;
 
 	filePath=args;
@@ -197,48 +199,92 @@ static void emPdfOpen(const char * args)
 
 	printf("instance: %d\n",instId);
 
-#if 0
-	/* ???: Not in old version. */
-	printf("title: %s\n",poppler_document_get_title(inst->doc));
-	printf("author: %s\n",poppler_document_get_author(inst->doc));
-	printf("subject: %s\n",poppler_document_get_subject(inst->doc));
-	printf("keyword: %s\n",poppler_document_get_keyword(inst->doc));
-	printf("creator: %s\n",poppler_document_get_creator(inst->doc));
-	printf("producer: %s\n",poppler_document_get_producer(inst->doc));
-	time_t t1=poppler_document_get_creation_date(inst->doc);
-	time_t t2=poppler_document_get_modification_date(inst->doc);
-	gboolean lin=poppler_document_is_linearized(inst->doc);
-	PopplerPageLayout layout=poppler_document_get_page_layout(inst->doc);
-	PopplerPageMode pageMode=poppler_document_get_page_mode(inst->doc);
-	PopplerPermissions perm=poppler_document_get_permissions(inst->doc);
-	gchar * metadata=poppler_document_get_metadata(inst->doc);
-#endif
+	str=poppler_document_get_title(inst->doc);
+	if (str) {
+		printf("title: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
+
+	str=poppler_document_get_author(inst->doc);
+	if (str) {
+		printf("author: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
+
+	str=poppler_document_get_subject(inst->doc);
+	if (str) {
+		printf("subject: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
+
+	str=poppler_document_get_keywords(inst->doc);
+	if (str) {
+		printf("keywords: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
+
+	str=poppler_document_get_creator(inst->doc);
+	if (str) {
+		printf("creator: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
+
+	str=poppler_document_get_producer(inst->doc);
+	if (str) {
+		printf("producer: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
+
+	t=poppler_document_get_creation_date(inst->doc);
+	if (t!=-1) {
+		printf("creation_date: %ld\n",(long)t);
+	}
+
+	t=poppler_document_get_modification_date(inst->doc);
+	if (t!=-1) {
+		printf("modification_date: %ld\n",(long)t);
+	}
+
+	str=poppler_document_get_pdf_version_string(inst->doc);
+	if (str) {
+		printf("version: ");
+		emPdfPrintQuoted(str,8192);
+		putchar('\n');
+		g_free(str);
+	}
 
 	inst->pageCount=poppler_document_get_n_pages(inst->doc);
 
 	printf("pages: %d\n",inst->pageCount);
 
 	for (i=0; i<inst->pageCount; i++) {
+		width=1000;
+		height=1000;
 		sprintf(genericLabel,"%d",i+1);
+		label=genericLabel;
+		str=NULL;
 		page = poppler_document_get_page(inst->doc,i);
 		if (page) {
 			poppler_page_get_size(page,&width,&height);
-#if 0
-			/* ???: Not in old version. */
-			label=poppler_page_get_label(page);
-#else
-			label=NULL;
-#endif
-			if (!label || !*label) label=genericLabel;
+			str=poppler_page_get_label(page);
+			if (str && *str) label=str;
 			g_object_unref(page);
 		}
-		else {
-			width=1000;
-			height=1000;
-			label=genericLabel;
-		}
-		printf("pageinfo: %d %.16lg %.16lg ",i,width,height);
-		emPdfPrintQuoted(label);
+		printf("pageinfo: %d %.16g %.16g ",i,width,height);
+		emPdfPrintQuoted(label,256);
+		if (str) g_free(str);
 		putchar('\n');
 	}
 	printf("ok\n");
@@ -267,28 +313,240 @@ static void emPdfClose(const char * args)
 }
 
 
-static void emPdfRender(const char * args)
+static void emPdfGetAreas(const char * args)
 {
+	PopplerRectangle selection;
+	cairo_region_t * region;
+	cairo_rectangle_int_t rect;
+	GList * list, * node;
+	PopplerLinkMapping * mapping;
+	PopplerDest * dest, * foundDest;
+	emPdfInst * inst;
+	PopplerPage * page;
+	double width,height;
+	int i,n,instId,pageIndex,targetPage,targetY;
+
+	if (
+		sscanf(args,"%d %d",&instId,&pageIndex)!=2 ||
+		instId<0 || instId>=emPdfInstArraySize ||
+		!emPdfInstArray[instId] ||
+		pageIndex<0 || pageIndex>=emPdfInstArray[instId]->pageCount
+	) {
+		printf("error: emPdfGetAreas: illegal arguments.\n");
+		return;
+	}
+
+	inst=emPdfInstArray[instId];
+	page=poppler_document_get_page(inst->doc,pageIndex);
+	if (!page) {
+		printf("ok\n");
+		return;
+	}
+
+	poppler_page_get_size(page,&width,&height);
+	selection.x1=0.0;
+	selection.y1=0.0;
+	selection.x2=width;
+	selection.y2=height;
+	region=poppler_page_get_selected_region(
+		page,1.0,POPPLER_SELECTION_GLYPH,&selection
+	);
+	if (region) {
+		n=cairo_region_num_rectangles(region);
+		for (i=0; i<n; i++) {
+			cairo_region_get_rectangle(region,i,&rect);
+			printf(
+				"rect: %d %d %d %d 0\n",
+				rect.x,rect.y,
+				rect.x+rect.width,rect.y+rect.height
+			);
+		}
+		cairo_region_destroy(region);
+	}
+
+	list=poppler_page_get_link_mapping(page);
+	if (list) {
+		for (node=list; node; node=node->next) {
+			mapping=(PopplerLinkMapping *)node->data;
+			switch (mapping->action->type) {
+				case POPPLER_ACTION_GOTO_DEST:
+					dest=mapping->action->goto_dest.dest;
+					foundDest=NULL;
+					targetPage=-1;
+					targetY=0;
+					for (;;) {
+						switch (dest->type) {
+							case POPPLER_DEST_XYZ:
+							case POPPLER_DEST_FITH:
+							case POPPLER_DEST_FITR:
+							case POPPLER_DEST_FITBH:
+								targetPage=dest->page_num-1;
+								targetY=(int)(height-dest->top+0.5);
+								break;
+							case POPPLER_DEST_FIT:
+							case POPPLER_DEST_FITV:
+							case POPPLER_DEST_FITB:
+							case POPPLER_DEST_FITBV:
+								targetPage=dest->page_num-1;
+								break;
+							case POPPLER_DEST_NAMED:
+								if (foundDest) break;
+								foundDest=poppler_document_find_dest(
+									inst->doc,dest->named_dest
+								);
+								if (foundDest) {
+									dest=foundDest;
+									continue;
+								}
+								break;
+							default:
+								break;
+						}
+						break;
+					}
+					if (targetPage>=0 && targetPage<inst->pageCount) {
+						printf(
+							"rect: %d %d %d %d 2 %d %d\n",
+							(int)(mapping->area.x1+0.5),
+							(int)(height-mapping->area.y2+0.5),
+							(int)(mapping->area.x2+0.5),
+							(int)(height-mapping->area.y1+0.5),
+							targetPage,targetY
+						);
+					}
+					if (foundDest) {
+						poppler_dest_free(foundDest);
+					}
+					break;
+				case POPPLER_ACTION_URI:
+					if(mapping->action->uri.uri) {
+						printf(
+							"rect: %d %d %d %d 1 ",
+							(int)(mapping->area.x1+0.5),
+							(int)(height-mapping->area.y2+0.5),
+							(int)(mapping->area.x2+0.5),
+							(int)(height-mapping->area.y1+0.5)
+						);
+						emPdfPrintQuoted(mapping->action->uri.uri,1024);
+						putchar('\n');
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		poppler_page_free_link_mapping(list);
+	}
+
+	g_object_unref(page);
+
+	printf("ok\n");
+}
+
+
+static void emPdfGetSelectedText(const char * args)
+{
+	static const PopplerSelectionStyle styles[]={
+		POPPLER_SELECTION_GLYPH,
+		POPPLER_SELECTION_WORD,
+		POPPLER_SELECTION_LINE
+	};
+	PopplerRectangle selection;
+	char * text, * normalizedText;
+	PopplerPage * page;
+	double selX1,selY1,selX2,selY2;
+	int instId,pageIndex,style;
+
+	if (
+		sscanf(
+			args,"%d %d %d %lg %lg %lg %lg",
+			&instId,&pageIndex,&style,&selX1,&selY1,&selX2,&selY2
+		)!=7 ||
+		instId<0 || instId>=emPdfInstArraySize ||
+		!emPdfInstArray[instId] ||
+		pageIndex<0 || pageIndex>=emPdfInstArray[instId]->pageCount ||
+		style<0 || style>2
+	) {
+		printf("error: emPdfGetSelectedText: illegal arguments.\n");
+		return;
+	}
+
+	text=NULL;
+	normalizedText=NULL;
+	page=poppler_document_get_page(emPdfInstArray[instId]->doc,pageIndex);
+	if (page) {
+		selection.x1=selX1;
+		selection.y1=selY1;
+		selection.x2=selX2;
+		selection.y2=selY2;
+		text=poppler_page_get_selected_text(page,styles[style],&selection);
+		if (text) {
+			normalizedText=g_utf8_normalize(text,strlen(text),G_NORMALIZE_NFC);
+		}
+	}
+
+	printf("selected_text: ");
+	emPdfPrintQuoted(normalizedText?normalizedText:text?text:"",INT_MAX);
+	putchar('\n');
+
+	if (normalizedText) g_free(normalizedText);
+	if (text) g_free(text);
+	if (page) g_object_unref(page);
+}
+
+
+static void emPdfRender(const char * args, int renderSelection)
+{
+	static const PopplerSelectionStyle styles[]={
+		POPPLER_SELECTION_GLYPH,
+		POPPLER_SELECTION_WORD,
+		POPPLER_SELECTION_LINE
+	};
+	PopplerRectangle selection;
+	PopplerColor fgColor,bgColor;
 	unsigned char * buf, * ps, * pt, * pe;
 	PopplerPage * page;
 	cairo_surface_t * surface;
 	cairo_t * cr;
 	emPdfInst * inst;
 	FILE * f;
-	double srcX, srcY, srcW, srcH;
-	int instId, pageIndex, outW, outH;
+	double srcX, srcY, srcW, srcH, selX1, selY1, selX2, selY2;
+	int instId, pageIndex, outW, outH, style;
 	unsigned int v;
 
+	if (renderSelection) {
+		if (
+			sscanf(
+				args,"%d %d %lg %lg %lg %lg %d %d %d %lg %lg %lg %lg",
+				&instId,&pageIndex,&srcX,&srcY,&srcW,&srcH,&outW,&outH,
+				&style,&selX1,&selY1,&selX2,&selY2
+			)!=13
+		) {
+			printf("error: emPdfRender: illegal arguments.\n");
+			return;
+		}
+	}
+	else {
+		if (
+			sscanf(
+				args,"%d %d %lg %lg %lg %lg %d %d",
+				&instId,&pageIndex,&srcX,&srcY,&srcW,&srcH,&outW,&outH
+			)!=8
+		) {
+			printf("error: emPdfRender: illegal arguments.\n");
+			return;
+		}
+		style=0;
+		selX1=selY1=selX2=selY2=0.0;
+	}
+
 	if (
-		sscanf(
-			args,"%d %d %lg %lg %lg %lg %d %d",
-			&instId,&pageIndex,&srcX,&srcY,&srcW,&srcH,&outW,&outH
-		)!=8 ||
 		instId<0 || instId>=emPdfInstArraySize ||
 		!emPdfInstArray[instId] ||
 		pageIndex<0 || pageIndex>=emPdfInstArray[instId]->pageCount ||
 		srcW<=0.0 || srcH<=0.0 ||
-		outW<=0 || outH<=0
+		outW<=0 || outH<=0 ||
+		style<0 || style>2
 	) {
 		printf("error: emPdfRender: illegal arguments.\n");
 		return;
@@ -297,11 +555,11 @@ static void emPdfRender(const char * args)
 	inst=emPdfInstArray[instId];
 
 	buf=(unsigned char*)malloc(outW*outH*4);
-	memset(buf,0xff,outW*outH*4);
+	memset(buf,renderSelection?0x00:0xff,outW*outH*4);
 
 	surface=cairo_image_surface_create_for_data(
 		buf,
-		CAIRO_FORMAT_RGB24,
+		renderSelection ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_RGB24,
 		outW,
 		outH,
 		outW*4
@@ -331,7 +589,24 @@ static void emPdfRender(const char * args)
 
 	page = poppler_document_get_page(inst->doc,pageIndex);
 	if (page) {
-		poppler_page_render(page,cr);
+		if (renderSelection) {
+			selection.x1=selX1;
+			selection.y1=selY1;
+			selection.x2=selX2;
+			selection.y2=selY2;
+			fgColor.red  =0xFFFF;
+			fgColor.green=0xFFFF;
+			fgColor.blue =0xFFFF;
+			bgColor.red  =0x0000;
+			bgColor.green=0x0000;
+			bgColor.blue =0x0000;
+			poppler_page_render_selection(
+				page,cr,&selection,NULL,styles[style],&fgColor,&bgColor
+			);
+		}
+		else {
+			poppler_page_render(page,cr);
+		}
 		g_object_unref(page);
 	}
 	else {
@@ -346,19 +621,31 @@ static void emPdfRender(const char * args)
 #else
 	f=stdout;
 #endif
-	fprintf(f,"P6\n%d\n%d\n255\n",outW,outH);
 	ps=buf;
 	pt=buf;
 	pe=buf+outW*outH*4;
-	while (ps<pe) {
-		v=*(unsigned int*)ps;
-		pt[0]=(unsigned char)(v>>16);
-		pt[1]=(unsigned char)(v>>8);
-		pt[2]=(unsigned char)v;
-		ps+=4;
-		pt+=3;
+	if (renderSelection) {
+		fprintf(f,"PX\n%d\n%d\n255\n",outW,outH);
+		while (ps<pe) {
+			v=*(unsigned int*)ps;
+			pt[0]=(unsigned char)v;
+			pt[1]=(unsigned char)(v>>24);
+			ps+=4;
+			pt+=2;
+		}
 	}
-	fwrite(buf,outW*outH,3,f);
+	else {
+		fprintf(f,"P6\n%d\n%d\n255\n",outW,outH);
+		while (ps<pe) {
+			v=*(unsigned int*)ps;
+			pt[0]=(unsigned char)(v>>16);
+			pt[1]=(unsigned char)(v>>8);
+			pt[2]=(unsigned char)v;
+			ps+=4;
+			pt+=3;
+		}
+	}
+	fwrite(buf,pt-buf,1,f);
 	if (f!=stdout) fclose(f);
 
 	free(buf);
@@ -383,8 +670,11 @@ static int emPdfServe(int argc, char * argv[])
 		if (args) *args++=0;
 		else args=buf+len;
 		if      (strcmp(buf,"open")==0) emPdfOpen(args);
+		else if (strcmp(buf,"get_areas")==0) emPdfGetAreas(args);
+		else if (strcmp(buf,"get_selected_text")==0) emPdfGetSelectedText(args);
+		else if (strcmp(buf,"render")==0) emPdfRender(args, 0);
+		else if (strcmp(buf,"render_selection")==0) emPdfRender(args, 1);
 		else if (strcmp(buf,"close")==0) emPdfClose(args);
-		else if (strcmp(buf,"render")==0) emPdfRender(args);
 		else {
 			fprintf(stderr,"emPdfServerProc: illegal command.\n");
 			exit(1);

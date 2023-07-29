@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFileModel.cpp
 //
-// Copyright (C) 2011,2014,2018 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -30,7 +30,8 @@ emRef<emPdfFileModel> emPdfFileModel::Acquire(
 
 
 emPdfFileModel::emPdfFileModel(emContext & context, const emString & name)
-	: emFileModel(context,name)
+	: emFileModel(context,name),
+	PageAreasMap(GetScheduler())
 {
 	ServerModel=emPdfServerModel::Acquire(GetRootContext());
 	JobHandle=NULL;
@@ -54,10 +55,12 @@ void emPdfFileModel::ResetData()
 	if (PdfHandle) {
 		ServerModel->ClosePdf(PdfHandle);
 		PdfHandle=NULL;
+		Signal(ChangeSignal);
 	}
 	FileSize=0;
 	StartTime=0;
 	PageCount=0;
+	PageAreasMap.Reset();
 }
 
 
@@ -80,6 +83,8 @@ bool emPdfFileModel::TryContinueLoading()
 		throw emException("%s",ServerModel->GetJobErrorText(JobHandle).Get());
 	case emPdfServerModel::JS_SUCCESS:
 		PageCount=ServerModel->GetPageCount(PdfHandle);
+		PageAreasMap.Setup(*ServerModel,PdfHandle);
+		Signal(ChangeSignal);
 		return true;
 	default:
 		break;
@@ -116,7 +121,7 @@ void emPdfFileModel::QuitSaving()
 
 emUInt64 emPdfFileModel::CalcMemoryNeed()
 {
-	return 10000000+3*FileSize;
+	return 14000000+3*FileSize;
 }
 
 

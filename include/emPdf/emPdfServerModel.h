@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.h
 //
-// Copyright (C) 2011,2014,2018,2022 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,26 +38,14 @@ class emPdfServerModel : public emModel {
 
 public:
 
-	static emRef<emPdfServerModel> Acquire(emRootContext & rootContext);
-
 	typedef void * JobHandle;
 	typedef void * PdfHandle;
 
-	JobHandle StartOpenJob(
-		const emString & filePath, PdfHandle * pdfHandleReturn,
-		double priority=0.0, emEngine * listenEngine=NULL
-	);
-
-	JobHandle StartRenderJob(
-		PdfHandle pdfHandle, int page, double srcX, double srcY,
-		double srcWidth, double srcHeight, int tgtWidth, int tgtHeight,
-		emColor bgColor, emImage * outputImage, double priority=0.0,
-		emEngine * listenEngine=NULL
-	);
-
-	void SetJobPriority(JobHandle jobHandle, double priority);
-
-	void SetJobListenEngine(JobHandle jobHandle, emEngine * listenEngine);
+	enum SelectionStyle {
+		SEL_GLYPHS=0,
+		SEL_WORDS =1,
+		SEL_LINES =2
+	};
 
 	enum JobState {
 		JS_WAITING,
@@ -65,13 +53,20 @@ public:
 		JS_ERROR,
 		JS_SUCCESS
 	};
-	JobState GetJobState(JobHandle jobHandle) const;
 
-	const emString & GetJobErrorText(JobHandle jobHandle) const;
-
-	void CloseJob(JobHandle jobHandle);
-
-	int GetPageCount(PdfHandle pdfHandle) const;
+	struct DocumentInfo {
+		DocumentInfo();
+		~DocumentInfo();
+		emString Title;
+		emString Author;
+		emString Subject;
+		emString Keywords;
+		emString Creator;
+		emString Producer;
+		time_t CreationDate;
+		time_t ModificationDate;
+		emString Version;
+	};
 
 	struct PageInfo {
 		PageInfo();
@@ -82,6 +77,76 @@ public:
 		double Height;
 		emString Label;
 	};
+
+	struct TextRect {
+		int X1,Y1,X2,Y2;
+		bool Contains(int x, int y) const;
+	};
+
+	struct UriRect : TextRect {
+		emString Uri;
+	};
+
+	struct RefRect : TextRect {
+		int TargetPage;
+		int TargetY;
+	};
+
+	struct PageAreas {
+		PageAreas();
+		~PageAreas();
+		emArray<TextRect> TextRects;
+		emArray<UriRect> UriRects;
+		emArray<RefRect> RefRects;
+	};
+
+	static emRef<emPdfServerModel> Acquire(emRootContext & rootContext);
+
+	JobHandle StartOpenJob(
+		const emString & filePath, PdfHandle * pdfHandleReturn,
+		double priority=0.0, emEngine * listenEngine=NULL
+	);
+
+	JobHandle StartGetAreasJob(
+		PdfHandle pdfHandle, int page, PageAreas * outputAreas,
+		double priority=0.0, emEngine * listenEngine=NULL
+	);
+
+	JobHandle StartGetSelectedTextJob(
+		PdfHandle pdfHandle, int page, SelectionStyle style,
+		double selX1, double selY1, double selX2, double selY2,
+		emString * outputString, double priority=0.0,
+		emEngine * listenEngine=NULL
+	);
+
+	JobHandle StartRenderJob(
+		PdfHandle pdfHandle, int page, double srcX, double srcY,
+		double srcWidth, double srcHeight, int tgtWidth, int tgtHeight,
+		emImage * outputImage, double priority=0.0,
+		emEngine * listenEngine=NULL
+	);
+
+	JobHandle StartRenderSelectionJob(
+		PdfHandle pdfHandle, int page, double srcX, double srcY,
+		double srcWidth, double srcHeight, int tgtWidth, int tgtHeight,
+		SelectionStyle style, double selX1, double selY1, double selX2,
+		double selY2, emImage * outputImage, double priority=0.0,
+		emEngine * listenEngine=NULL
+	);
+
+	void SetJobPriority(JobHandle jobHandle, double priority);
+
+	void SetJobListenEngine(JobHandle jobHandle, emEngine * listenEngine);
+
+	JobState GetJobState(JobHandle jobHandle) const;
+
+	const emString & GetJobErrorText(JobHandle jobHandle) const;
+
+	void CloseJob(JobHandle jobHandle);
+
+	const DocumentInfo & GetDocumentInfo(PdfHandle pdfHandle) const;
+
+	int GetPageCount(PdfHandle pdfHandle) const;
 
 	const PageInfo & GetPageInfo(PdfHandle pdfHandle, int page) const;
 
@@ -103,12 +168,16 @@ private:
 		~PdfInstance();
 		emUInt64 ProcRunId;
 		int InstanceId;
+		DocumentInfo Document;
 		emArray<PageInfo> Pages;
 	};
 
 	enum JobType {
 		JT_OPEN_JOB,
+		JT_GET_AREAS_JOB,
+		JT_GET_SELECTED_TEXT_JOB,
 		JT_RENDER_JOB,
+		JT_RENDER_SELECTION_JOB,
 		JT_CLOSE_JOB
 	};
 
@@ -133,6 +202,26 @@ private:
 		PdfHandle * PdfHandleReturn;
 	};
 
+	struct GetAreasJob : Job {
+		GetAreasJob();
+		virtual ~GetAreasJob();
+		emUInt64 ProcRunId;
+		int InstanceId;
+		int Page;
+		PageAreas * OutputAreas;
+	};
+
+	struct GetSelectedTextJob : Job {
+		GetSelectedTextJob();
+		virtual ~GetSelectedTextJob();
+		emUInt64 ProcRunId;
+		int InstanceId;
+		int Page;
+		SelectionStyle Style;
+		double SelX1, SelY1, SelX2, SelY2;
+		emString * OutputString;
+	};
+
 	struct RenderJob : Job {
 		RenderJob();
 		virtual ~RenderJob();
@@ -140,11 +229,17 @@ private:
 		int InstanceId;
 		int Page;
 		double SrcX, SrcY, SrcWidth, SrcHeight;
-		emColor BgColor;
-		emImage * OutputImage;
 		int TgtW, TgtH;
+		emImage * OutputImage;
 		int ReadStage;
 		int ReadPos;
+	};
+
+	struct RenderSelectionJob : RenderJob {
+		RenderSelectionJob();
+		virtual ~RenderSelectionJob();
+		SelectionStyle Style;
+		double SelX1, SelY1, SelX2, SelY2;
 	};
 
 	struct CloseJobStruct : Job {
@@ -155,13 +250,18 @@ private:
 	};
 
 	void TryStartJobs();
-	void TryStartOpenJob(OpenJob * openJob);
-	void TryStartRenderJob(RenderJob * renderJob);
-	void TryStartCloseJob(CloseJobStruct * closeJob);
+	void TryStartOpenJob(OpenJob * job);
+	void TryStartGetAreasJob(GetAreasJob * job);
+	void TryStartGetSelectedTextJob(GetSelectedTextJob * job);
+	void TryStartRenderJob(RenderJob * job);
+	void TryStartRenderSelectionJob(RenderSelectionJob * job);
+	void TryStartCloseJob(CloseJobStruct * job);
 
 	void TryFinishJobs();
 	bool TryFinishOpenJob(OpenJob * job);
-	bool TryFinishRenderJob(RenderJob * job);
+	bool TryFinishGetAreasJob(GetAreasJob * job);
+	bool TryFinishGetSelectedTextJob(GetSelectedTextJob * job);
+	bool TryFinishRenderJob(RenderJob * job, bool isRenderSelectionJob);
 
 	void FailAllRunningJobs(emString errorText);
 	void FailAllJobs(emString errorText);
@@ -170,7 +270,8 @@ private:
 	emString ReadLineFromProc();
 	bool TryProcIO();
 
-	Job * SearchBestNextJob() const;
+	static int CompareJobs(Job * job1, Job * job2, void * context);
+	static int GetJobTypePriority(JobType type);
 
 	void AddJobToWaitingList(Job * job);
 	void AddJobToRunningList(Job * job);
@@ -196,17 +297,26 @@ private:
 	Job * LastRunningJob;
 };
 
+inline bool emPdfServerModel::TextRect::Contains(int x, int y) const
+{
+	return x>=X1 && x<X2 && y>=Y1 && y<Y2;
+}
+
 inline void emPdfServerModel::SetJobPriority(JobHandle jobHandle, double priority)
 {
 	((Job*)jobHandle)->Priority=priority;
 }
 
-inline void emPdfServerModel::SetJobListenEngine(JobHandle jobHandle, emEngine * listenEngine)
+inline void emPdfServerModel::SetJobListenEngine(
+	JobHandle jobHandle, emEngine * listenEngine
+)
 {
 	((Job*)jobHandle)->ListenEngine=listenEngine;
 }
 
-inline emPdfServerModel::JobState emPdfServerModel::GetJobState(JobHandle jobHandle) const
+inline emPdfServerModel::JobState emPdfServerModel::GetJobState(
+	JobHandle jobHandle
+) const
 {
 	return ((Job*)jobHandle)->State;
 }
@@ -214,6 +324,13 @@ inline emPdfServerModel::JobState emPdfServerModel::GetJobState(JobHandle jobHan
 inline const emString & emPdfServerModel::GetJobErrorText(JobHandle jobHandle) const
 {
 	return ((Job*)jobHandle)->ErrorText;
+}
+
+inline const emPdfServerModel::DocumentInfo & emPdfServerModel::GetDocumentInfo(
+	PdfHandle pdfHandle
+) const
+{
+	return ((PdfInstance*)pdfHandle)->Document;
 }
 
 inline int emPdfServerModel::GetPageCount(PdfHandle pdfHandle) const

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A>.h
 //
-// Copyright (C) 2020,2022 Oliver Hamann.
+// Copyright (C) 2020,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -234,8 +234,9 @@
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; GetImage() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetImage(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> &amp; image);
-                <SPAN CLASS=c>// Get or set the image. The image reference must be valid for the life time of the
-                // texture. This is valid only if the texture type is IMAGE or IMAGE_COLORED.
+                <SPAN CLASS=c>// Get or set the image. The image reference must be valid for
+                // the life time of the texture. This is valid only if the
+                // texture type is IMAGE or IMAGE_COLORED.
 
         </SPAN><SPAN CLASS=t>int </SPAN>GetSrcX() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>void </SPAN>SetSrcX(<SPAN CLASS=t>int </SPAN>srcX);
@@ -270,15 +271,13 @@
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
-        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emPainter_h.html#emPainter">emPainter</A>;
-
         <SPAN CLASS=c>// *** WARNING for future extensions: Copy constructor+operator do a memcpy!
         </SPAN>TextureType Type;
         ExtensionType Extension;
         DownscaleQualityType DownscaleQuality;
         UpscaleQualityType UpscaleQuality;
-        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color; <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color1; <SPAN CLASS=b>}</SPAN>;
-        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color2; <SPAN CLASS=t>int </SPAN>Alpha; <SPAN CLASS=b>}</SPAN>;
+        <A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> Color1;
+        <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN>emUInt32 Color2; <SPAN CLASS=t>int </SPAN>Alpha; <SPAN CLASS=b>}</SPAN>;
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> * Image;
         <SPAN CLASS=t>int </SPAN>SrcX,SrcY,SrcW,SrcH;
         <SPAN CLASS=t>union </SPAN><SPAN CLASS=b>{ </SPAN><SPAN CLASS=t>double </SPAN>X; <SPAN CLASS=t>double </SPAN>X1; <SPAN CLASS=b>}</SPAN>;
@@ -481,12 +480,12 @@
 //--------------------------------- <A CLASS=m HREF="emCore_emTexture_h.html#emTexture">emTexture</A> ----------------------------------
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
-        : Type(COLOR),Color(color)
+        : Type(COLOR),Color1(color)
 <SPAN CLASS=b>{
 }
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::<A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>(emUInt32 packedColor)
-        : Type(COLOR),Color(packedColor)
+        : Type(COLOR),Color1(packedColor)
 <SPAN CLASS=b>{
 }
 
@@ -652,12 +651,12 @@
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetColor() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Color;
+        </SPAN><SPAN CLASS=k>return </SPAN>Color1;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::SetColor(<A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> color)
 <SPAN CLASS=b>{
-        </SPAN>Color=color;
+        </SPAN>Color1=color;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emColor_h.html#emColor">emColor</A> <A CLASS=l HREF="emCore_emTexture_h.html#emTexture">emTexture</A>::GetColor1() <SPAN CLASS=t>const

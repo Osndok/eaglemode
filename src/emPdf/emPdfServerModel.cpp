@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.cpp
 //
-// Copyright (C) 2011,2014,2017-2019,2022 Oliver Hamann.
+// Copyright (C) 2011,2014,2017-2019,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,75 +20,18 @@
 
 #include <emPdf/emPdfServerModel.h>
 #include <emCore/emInstallInfo.h>
+#include <emCore/emList.h>
 
 
-emRef<emPdfServerModel> emPdfServerModel::Acquire(emRootContext & rootContext)
+emPdfServerModel::DocumentInfo::DocumentInfo()
+	: CreationDate(0),
+	ModificationDate(0)
 {
-	EM_IMPL_ACQUIRE_COMMON(emPdfServerModel,rootContext,"")
 }
 
 
-emPdfServerModel::JobHandle emPdfServerModel::StartOpenJob(
-	const emString & filePath, PdfHandle * pdfHandleReturn,
-	double priority, emEngine * listenEngine
-)
+emPdfServerModel::DocumentInfo::~DocumentInfo()
 {
-	OpenJob * job;
-
-	job=new OpenJob;
-	job->Priority=priority;
-	job->ListenEngine=listenEngine;
-	job->FilePath=filePath;
-	job->Instance=new PdfInstance;
-	job->PdfHandleReturn=pdfHandleReturn;
-	AddJobToWaitingList(job);
-	WakeUp();
-	return job;
-}
-
-
-emPdfServerModel::JobHandle emPdfServerModel::StartRenderJob(
-	PdfHandle pdfHandle, int page, double srcX, double srcY,
-	double srcWidth, double srcHeight,  int tgtWidth, int tgtHeight,
-	emColor bgColor, emImage * outputImage, double priority,
-	emEngine * listenEngine
-)
-{
-	RenderJob * job;
-
-	job=new RenderJob;
-	job->Priority=priority;
-	job->ListenEngine=listenEngine;
-	job->ProcRunId=((PdfInstance*)pdfHandle)->ProcRunId;
-	job->InstanceId=((PdfInstance*)pdfHandle)->InstanceId;
-	job->Page=page;
-	job->SrcX=srcX;
-	job->SrcY=srcY;
-	job->SrcWidth=srcWidth;
-	job->SrcHeight=srcHeight;
-	job->BgColor=bgColor;
-	job->OutputImage=outputImage;
-	job->TgtW=tgtWidth;
-	job->TgtH=tgtHeight;
-	AddJobToWaitingList(job);
-	WakeUp();
-	return job;
-}
-
-
-void emPdfServerModel::CloseJob(JobHandle jobHandle)
-{
-	Job * job;
-
-	job=(Job*)jobHandle;
-	if (job->State==JS_RUNNING) {
-		job->ListenEngine=NULL;
-		job->Orphan=true;
-	}
-	else {
-		if (job->State==JS_WAITING) RemoveJobFromList(job);
-		delete job;
-	}
 }
 
 
@@ -120,6 +63,166 @@ emPdfServerModel::PageInfo & emPdfServerModel::PageInfo::operator = (
 	Height=pageInfo.Height;
 	Label=pageInfo.Label;
 	return *this;
+}
+
+
+emPdfServerModel::PageAreas::PageAreas()
+{
+	TextRects.SetTuningLevel(4);
+	UriRects.SetTuningLevel(1);
+	RefRects.SetTuningLevel(4);
+}
+
+
+emPdfServerModel::PageAreas::~PageAreas()
+{
+}
+
+
+emRef<emPdfServerModel> emPdfServerModel::Acquire(emRootContext & rootContext)
+{
+	EM_IMPL_ACQUIRE_COMMON(emPdfServerModel,rootContext,"")
+}
+
+
+emPdfServerModel::JobHandle emPdfServerModel::StartOpenJob(
+	const emString & filePath, PdfHandle * pdfHandleReturn,
+	double priority, emEngine * listenEngine
+)
+{
+	OpenJob * job;
+
+	job=new OpenJob;
+	job->Priority=priority;
+	job->ListenEngine=listenEngine;
+	job->FilePath=filePath;
+	job->Instance=new PdfInstance;
+	job->PdfHandleReturn=pdfHandleReturn;
+	AddJobToWaitingList(job);
+	WakeUp();
+	return job;
+}
+
+
+emPdfServerModel::JobHandle emPdfServerModel::StartGetAreasJob(
+	PdfHandle pdfHandle, int page, PageAreas * outputAreas,
+	double priority, emEngine * listenEngine
+)
+{
+	GetAreasJob * job;
+
+	job=new GetAreasJob;
+	job->Priority=priority;
+	job->ListenEngine=listenEngine;
+	job->ProcRunId=((PdfInstance*)pdfHandle)->ProcRunId;
+	job->InstanceId=((PdfInstance*)pdfHandle)->InstanceId;
+	job->Page=page;
+	job->OutputAreas=outputAreas;
+	AddJobToWaitingList(job);
+	WakeUp();
+	return job;
+}
+
+
+emPdfServerModel::JobHandle emPdfServerModel::StartGetSelectedTextJob(
+	PdfHandle pdfHandle, int page, SelectionStyle style, double selX1,
+	double selY1, double selX2, double selY2, emString * outputString,
+	double priority, emEngine * listenEngine
+)
+{
+	GetSelectedTextJob * job;
+
+	job=new GetSelectedTextJob;
+	job->Priority=priority;
+	job->ListenEngine=listenEngine;
+	job->ProcRunId=((PdfInstance*)pdfHandle)->ProcRunId;
+	job->InstanceId=((PdfInstance*)pdfHandle)->InstanceId;
+	job->Page=page;
+	job->Style=style;
+	job->SelX1=selX1;
+	job->SelY1=selY1;
+	job->SelX2=selX2;
+	job->SelY2=selY2;
+	job->OutputString=outputString;
+	AddJobToWaitingList(job);
+	WakeUp();
+	return job;
+}
+
+
+emPdfServerModel::JobHandle emPdfServerModel::StartRenderJob(
+	PdfHandle pdfHandle, int page, double srcX, double srcY,
+	double srcWidth, double srcHeight,  int tgtWidth, int tgtHeight,
+	emImage * outputImage, double priority, emEngine * listenEngine
+)
+{
+	RenderJob * job;
+
+	job=new RenderJob;
+	job->Priority=priority;
+	job->ListenEngine=listenEngine;
+	job->ProcRunId=((PdfInstance*)pdfHandle)->ProcRunId;
+	job->InstanceId=((PdfInstance*)pdfHandle)->InstanceId;
+	job->Page=page;
+	job->SrcX=srcX;
+	job->SrcY=srcY;
+	job->SrcWidth=srcWidth;
+	job->SrcHeight=srcHeight;
+	job->TgtW=tgtWidth;
+	job->TgtH=tgtHeight;
+	job->OutputImage=outputImage;
+	AddJobToWaitingList(job);
+	WakeUp();
+	return job;
+}
+
+
+emPdfServerModel::JobHandle emPdfServerModel::StartRenderSelectionJob(
+	PdfHandle pdfHandle, int page, double srcX, double srcY, double srcWidth,
+	double srcHeight, int tgtWidth, int tgtHeight, SelectionStyle style,
+	double selX1, double selY1, double selX2, double selY2,
+	emImage * outputImage, double priority, emEngine * listenEngine
+)
+{
+	RenderSelectionJob * job;
+
+	job=new RenderSelectionJob;
+	job->Priority=priority;
+	job->ListenEngine=listenEngine;
+	job->ProcRunId=((PdfInstance*)pdfHandle)->ProcRunId;
+	job->InstanceId=((PdfInstance*)pdfHandle)->InstanceId;
+	job->Page=page;
+	job->SrcX=srcX;
+	job->SrcY=srcY;
+	job->SrcWidth=srcWidth;
+	job->SrcHeight=srcHeight;
+	job->TgtW=tgtWidth;
+	job->TgtH=tgtHeight;
+	job->OutputImage=outputImage;
+	job->Style=style;
+	job->SelX1=selX1;
+	job->SelY1=selY1;
+	job->SelX2=selX2;
+	job->SelY2=selY2;
+	AddJobToWaitingList(job);
+	WakeUp();
+	return job;
+}
+
+
+void emPdfServerModel::CloseJob(JobHandle jobHandle)
+{
+	Job * job;
+
+	job=(Job*)jobHandle;
+	if (job->State==JS_RUNNING) {
+		job->ListenEngine=NULL;
+		job->Orphan=true;
+	}
+	else {
+		if (job->State==JS_WAITING) RemoveJobFromList(job);
+		delete job;
+	}
 }
 
 
@@ -309,6 +412,38 @@ emPdfServerModel::OpenJob::~OpenJob()
 }
 
 
+emPdfServerModel::GetAreasJob::GetAreasJob()
+{
+	Type=JT_GET_AREAS_JOB;
+	ProcRunId=0;
+	InstanceId=-1;
+	Page=0;
+	OutputAreas=NULL;
+}
+
+
+emPdfServerModel::GetAreasJob::~GetAreasJob()
+{
+}
+
+
+emPdfServerModel::GetSelectedTextJob::GetSelectedTextJob()
+{
+	Type=JT_GET_SELECTED_TEXT_JOB;
+	ProcRunId=0;
+	InstanceId=-1;
+	Page=0;
+	Style=SEL_GLYPHS;
+	SelX1=SelY1=SelX2=SelY2=0.0;
+	OutputString=NULL;
+}
+
+
+emPdfServerModel::GetSelectedTextJob::~GetSelectedTextJob()
+{
+}
+
+
 emPdfServerModel::RenderJob::RenderJob()
 {
 	Type=JT_RENDER_JOB;
@@ -319,16 +454,28 @@ emPdfServerModel::RenderJob::RenderJob()
 	SrcY=0.0;
 	SrcWidth=0.0;
 	SrcHeight=0.0;
-	BgColor=0;
-	OutputImage=NULL;
 	TgtW=0;
 	TgtH=0;
+	OutputImage=NULL;
 	ReadStage=0;
 	ReadPos=0;
 }
 
 
 emPdfServerModel::RenderJob::~RenderJob()
+{
+}
+
+
+emPdfServerModel::RenderSelectionJob::RenderSelectionJob()
+{
+	Type=JT_RENDER_SELECTION_JOB;
+	Style=SEL_GLYPHS;
+	SelX1=SelY1=SelX2=SelY2=0.0;
+}
+
+
+emPdfServerModel::RenderSelectionJob::~RenderSelectionJob()
 {
 }
 
@@ -349,21 +496,53 @@ emPdfServerModel::CloseJobStruct::~CloseJobStruct()
 void emPdfServerModel::TryStartJobs()
 {
 	Job * job;
-	int n;
+	int costlyJobs;
 
-	for (;;) {
-		for (n=0, job=FirstRunningJob; job; job=job->Next) {
-			if (job->Type!=JT_CLOSE_JOB) n++;
+	emSortDoubleLinkedList(
+		(void**)(void*)&FirstWaitingJob,
+		(void**)(void*)&LastWaitingJob,
+		offsetof(Job,Next),
+		offsetof(Job,Prev),
+		(int(*)(void*,void*,void*))CompareJobs,
+		NULL
+	);
+
+	costlyJobs=0;
+	for (job=FirstRunningJob; job; job=job->Next) {
+		switch (job->Type) {
+		case JT_OPEN_JOB:
+		case JT_GET_AREAS_JOB:
+		case JT_RENDER_JOB:
+		case JT_RENDER_SELECTION_JOB:
+			costlyJobs++;
+			break;
+		default:
+			break;
 		}
-		if (n>=4) break;
-		job=SearchBestNextJob();
-		if (!job) break;
+	}
+
+	while (FirstWaitingJob && costlyJobs<4) {
+		job=FirstWaitingJob;
+		RemoveJobFromList(job);
 		switch (job->Type) {
 		case JT_OPEN_JOB:
 			TryStartOpenJob((OpenJob*)job);
+			costlyJobs++;
+			break;
+		case JT_GET_AREAS_JOB:
+			TryStartGetAreasJob((GetAreasJob*)job);
+			costlyJobs++;
+			break;
+		case JT_GET_SELECTED_TEXT_JOB:
+			TryStartGetSelectedTextJob((GetSelectedTextJob*)job);
 			break;
 		case JT_RENDER_JOB:
 			TryStartRenderJob((RenderJob*)job);
+			costlyJobs++;
+			break;
+		case JT_RENDER_SELECTION_JOB:
+			TryStartRenderSelectionJob((RenderSelectionJob*)job);
+			costlyJobs++;
 			break;
 		case JT_CLOSE_JOB:
 			TryStartCloseJob((CloseJobStruct*)job);
@@ -373,72 +552,154 @@ void emPdfServerModel::TryStartJobs()
 }
 
 
-void emPdfServerModel::TryStartOpenJob(OpenJob * openJob)
+void emPdfServerModel::TryStartOpenJob(OpenJob * job)
 {
-	RemoveJobFromList(openJob);
-	if (openJob->Orphan) {
-		delete openJob;
+	if (job->Orphan) {
+		delete job;
 	}
 	else {
 		WriteLineToProc(
 			emString::Format(
 				"open %s",
-				openJob->FilePath.Get()
+				job->FilePath.Get()
 			)
 		);
-		AddJobToRunningList(openJob);
-		openJob->State=JS_RUNNING;
-		if (openJob->ListenEngine) openJob->ListenEngine->WakeUp();
+		AddJobToRunningList(job);
+		job->State=JS_RUNNING;
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
 	}
 }
 
 
-void emPdfServerModel::TryStartRenderJob(RenderJob * renderJob)
+void emPdfServerModel::TryStartGetAreasJob(GetAreasJob * job)
 {
-	RemoveJobFromList(renderJob);
-	if (renderJob->Orphan) {
-		delete renderJob;
+	if (job->Orphan) {
+		delete job;
 	}
-	else if (renderJob->ProcRunId!=ProcRunId) {
-		renderJob->State=JS_ERROR;
-		renderJob->ErrorText="PDF server process restarted";
-		if (renderJob->ListenEngine) renderJob->ListenEngine->WakeUp();
+	else if (job->ProcRunId!=ProcRunId) {
+		job->State=JS_ERROR;
+		job->ErrorText="PDF server process restarted";
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
 	}
 	else {
 		WriteLineToProc(emString::Format(
-			"render %d %d %.16lg %.16lg %.16lg %.16lg %d %d",
-			renderJob->InstanceId,
-			renderJob->Page,
-			renderJob->SrcX,
-			renderJob->SrcY,
-			renderJob->SrcWidth,
-			renderJob->SrcHeight,
-			renderJob->TgtW,
-			renderJob->TgtH
+			"get_areas %d %d",
+			job->InstanceId,
+			job->Page
 		));
-		AddJobToRunningList(renderJob);
-		renderJob->State=JS_RUNNING;
-		if (renderJob->ListenEngine) renderJob->ListenEngine->WakeUp();
+		AddJobToRunningList(job);
+		job->State=JS_RUNNING;
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
 	}
 }
 
 
-void emPdfServerModel::TryStartCloseJob(CloseJobStruct * closeJob)
+void emPdfServerModel::TryStartGetSelectedTextJob(GetSelectedTextJob * job)
 {
-	RemoveJobFromList(closeJob);
-	if (closeJob->ProcRunId==ProcRunId) {
+	if (job->Orphan) {
+		delete job;
+	}
+	else if (job->ProcRunId!=ProcRunId) {
+		job->State=JS_ERROR;
+		job->ErrorText="PDF server process restarted";
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+	else {
+		WriteLineToProc(emString::Format(
+			"get_selected_text %d %d %d %.16g %.16g %.16g %.16g",
+			job->InstanceId,
+			job->Page,
+			job->Style,
+			job->SelX1,
+			job->SelY1,
+			job->SelX2,
+			job->SelY2
+		));
+		AddJobToRunningList(job);
+		job->State=JS_RUNNING;
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+}
+
+
+void emPdfServerModel::TryStartRenderJob(RenderJob * job)
+{
+	if (job->Orphan) {
+		delete job;
+	}
+	else if (job->ProcRunId!=ProcRunId) {
+		job->State=JS_ERROR;
+		job->ErrorText="PDF server process restarted";
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+	else {
+		WriteLineToProc(emString::Format(
+			"render %d %d %.16g %.16g %.16g %.16g %d %d",
+			job->InstanceId,
+			job->Page,
+			job->SrcX,
+			job->SrcY,
+			job->SrcWidth,
+			job->SrcHeight,
+			job->TgtW,
+			job->TgtH
+		));
+		AddJobToRunningList(job);
+		job->State=JS_RUNNING;
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+}
+
+
+void emPdfServerModel::TryStartRenderSelectionJob(RenderSelectionJob * job)
+{
+	if (job->Orphan) {
+		delete job;
+	}
+	else if (job->ProcRunId!=ProcRunId) {
+		job->State=JS_ERROR;
+		job->ErrorText="PDF server process restarted";
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+	else {
+		WriteLineToProc(emString::Format(
+			"render_selection %d %d %.16g %.16g %.16g %.16g %d %d %d %.16g %.16g %.16g %.16g",
+			job->InstanceId,
+			job->Page,
+			job->SrcX,
+			job->SrcY,
+			job->SrcWidth,
+			job->SrcHeight,
+			job->TgtW,
+			job->TgtH,
+			job->Style,
+			job->SelX1,
+			job->SelY1,
+			job->SelX2,
+			job->SelY2
+		));
+		AddJobToRunningList(job);
+		job->State=JS_RUNNING;
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+}
+
+
+void emPdfServerModel::TryStartCloseJob(CloseJobStruct * job)
+{
+	if (job->ProcRunId==ProcRunId) {
 		WriteLineToProc(emString::Format(
 			"close %d",
-			closeJob->InstanceId
+			job->InstanceId
 		));
 		ProcPdfInstCount--;
 	}
-	if (closeJob->Orphan) {
-		delete closeJob;
+	if (job->Orphan) {
+		delete job;
 	}
 	else {
-		closeJob->State=JS_SUCCESS;
-		if (closeJob->ListenEngine) closeJob->ListenEngine->WakeUp();
+		job->State=JS_SUCCESS;
+		if (job->ListenEngine) job->ListenEngine->WakeUp();
 	}
 }
 
@@ -453,8 +714,17 @@ void emPdfServerModel::TryFinishJobs()
 		if (job->Type==JT_OPEN_JOB) {
 			if (!TryFinishOpenJob((OpenJob*)job)) break;
 		}
+		else if (job->Type==JT_GET_AREAS_JOB) {
+			if (!TryFinishGetAreasJob((GetAreasJob*)job)) break;
+		}
+		else if (job->Type==JT_GET_SELECTED_TEXT_JOB) {
+			if (!TryFinishGetSelectedTextJob((GetSelectedTextJob*)job)) break;
+		}
 		else if (job->Type==JT_RENDER_JOB) {
-			if (!TryFinishRenderJob((RenderJob*)job)) break;
+			if (!TryFinishRenderJob((RenderJob*)job,false)) break;
+		}
+		else if (job->Type==JT_RENDER_SELECTION_JOB) {
+			if (!TryFinishRenderJob((RenderJob*)job,true)) break;
 		}
 		else {
 			emFatalError("emPdfServerModel::TryFinishJobs: illegal job in running list");
@@ -497,6 +767,33 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job)
 		}
 		job->Instance->ProcRunId=ProcRunId;
 		job->Instance->InstanceId=i1;
+	}
+	else if (cmd=="title:") {
+		job->Instance->Document.Title=Unquote(args);
+	}
+	else if (cmd=="author:") {
+		job->Instance->Document.Author=Unquote(args);
+	}
+	else if (cmd=="subject:") {
+		job->Instance->Document.Subject=Unquote(args);
+	}
+	else if (cmd=="keywords:") {
+		job->Instance->Document.Keywords=Unquote(args);
+	}
+	else if (cmd=="creator:") {
+		job->Instance->Document.Creator=Unquote(args);
+	}
+	else if (cmd=="producer:") {
+		job->Instance->Document.Producer=Unquote(args);
+	}
+	else if (cmd=="creation_date:") {
+		job->Instance->Document.CreationDate=atol(args.Get());
+	}
+	else if (cmd=="modification_date:") {
+		job->Instance->Document.ModificationDate=atol(args.Get());
+	}
+	else if (cmd=="version:") {
+		job->Instance->Document.Version=Unquote(args);
 	}
 	else if (cmd=="pages:") {
 		r=sscanf(args,"%d",&i1);
@@ -541,9 +838,136 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job)
 }
 
 
-bool emPdfServerModel::TryFinishRenderJob(RenderJob * job)
+bool emPdfServerModel::TryFinishGetAreasJob(GetAreasJob * job)
 {
-	int len,total,type,width,height,maxColor;
+	PageAreas * areas;
+	emString cmd,args;
+	const char * p;
+	int l,r,x1,y1,x2,y2,type,pos;
+
+	args=ReadLineFromProc();
+	if (args.IsEmpty()) return false;
+	p=strchr(args.Get(),' ');
+	if (p) {
+		l=p-args.Get();
+		cmd=args.GetSubString(0,l);
+		args.Remove(0,l+1);
+	}
+	else {
+		cmd=args;
+		args.Clear();
+	}
+
+	if (cmd=="error:") {
+		RemoveJobFromList(job);
+		job->State=JS_ERROR;
+		job->ErrorText=args;
+		if (job->Orphan) delete job;
+		else if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+	else if (cmd=="rect:") {
+		r=sscanf(args,"%d %d %d %d %d%n",&x1,&y1,&x2,&y2,&type,&pos);
+		if (
+			r<5 || pos<=0 || type<0 || type>2 ||
+			(type!=0 && args[pos]!=' ')
+		) {
+			throw emException("PDF server protocol error (%d)",__LINE__);
+		}
+		areas=job->OutputAreas;
+		if (type==0 && areas) {
+			areas->TextRects.AddNew();
+			TextRect & tr=areas->TextRects.GetWritable(areas->TextRects.GetCount()-1);
+			tr.X1=x1;
+			tr.Y1=y1;
+			tr.X2=x2;
+			tr.Y2=y2;
+		}
+		else if (type==1 && areas) {
+			areas->UriRects.AddNew();
+			UriRect & ur=areas->UriRects.GetWritable(areas->UriRects.GetCount()-1);
+			ur.X1=x1;
+			ur.Y1=y1;
+			ur.X2=x2;
+			ur.Y2=y2;
+			ur.Uri=Unquote(args.Get()+pos+1);
+		}
+		else if (type==2 && areas) {
+			areas->RefRects.AddNew();
+			RefRect & rr=areas->RefRects.GetWritable(areas->RefRects.GetCount()-1);
+			rr.X1=x1;
+			rr.Y1=y1;
+			rr.X2=x2;
+			rr.Y2=y2;
+			r=sscanf(args.Get()+pos+1,"%d %d",&rr.TargetPage,&rr.TargetY);
+			if (r<2) {
+				throw emException("PDF server protocol error (%d)",__LINE__);
+			}
+		}
+	}
+	else if (cmd=="ok") {
+		RemoveJobFromList(job);
+		job->State=JS_SUCCESS;
+		if (job->Orphan) delete job;
+		else if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+	else {
+		throw emException("PDF server protocol error (%d)",__LINE__);
+	}
+
+	return true;
+}
+
+
+bool emPdfServerModel::TryFinishGetSelectedTextJob(GetSelectedTextJob * job)
+{
+	emString cmd,args;
+	const char * p;
+	int l;
+
+	args=ReadLineFromProc();
+	if (args.IsEmpty()) return false;
+	p=strchr(args.Get(),' ');
+	if (p) {
+		l=p-args.Get();
+		cmd=args.GetSubString(0,l);
+		args.Remove(0,l+1);
+	}
+	else {
+		cmd=args;
+		args.Clear();
+	}
+
+	if (cmd=="error:") {
+		RemoveJobFromList(job);
+		job->State=JS_ERROR;
+		job->ErrorText=args;
+		if (job->Orphan) delete job;
+		else if (job->ListenEngine) job->ListenEngine->WakeUp();
+	}
+	else if (cmd=="selected_text:") {
+		RemoveJobFromList(job);
+		job->State=JS_SUCCESS;
+		if (job->Orphan) {
+			delete job;
+		}
+		else {
+			if (job->OutputString) *job->OutputString=Unquote(args);
+			if (job->ListenEngine) job->ListenEngine->WakeUp();
+		}
+	}
+	else {
+		throw emException("PDF server protocol error (%d)",__LINE__);
+	}
+
+	return true;
+}
+
+
+bool emPdfServerModel::TryFinishRenderJob(
+	RenderJob * job, bool isRenderSelectionJob
+)
+{
+	int len,total,type,channels,width,height,maxColor;
 	emString line;
 	const char * p;
 	bool progress;
@@ -574,7 +998,10 @@ bool emPdfServerModel::TryFinishRenderJob(RenderJob * job)
 		if (len<=0) return progress;
 		emDLog("emPdfServerModel: Receiving: P%c %d %d %d ...",type,width,height,maxColor);
 		ReadBuf.Remove(0,len);
-		if (type!='6' || width!=job->TgtW || height!=job->TgtH || maxColor!=255) {
+		if (
+			type!=(isRenderSelectionJob?'X':'6') ||
+			width!=job->TgtW || height!=job->TgtH || maxColor!=255
+		) {
 			throw emException("PDF server protocol error (%d)",__LINE__);
 		}
 		job->ReadStage=1;
@@ -582,16 +1009,17 @@ bool emPdfServerModel::TryFinishRenderJob(RenderJob * job)
 	}
 
 	if (ReadBuf.IsEmpty()) return progress;
-	total=job->TgtW*job->TgtH*3;
+	channels=isRenderSelectionJob?2:3;
+	total=job->TgtW*job->TgtH*channels;
 	len=ReadBuf.GetCount();
 	if (len>total-job->ReadPos) len=total-job->ReadPos;
 	if (!job->Orphan) {
 		if (
 			job->OutputImage->GetWidth()!=job->TgtW ||
 			job->OutputImage->GetHeight()!=job->TgtH ||
-			job->OutputImage->GetChannelCount()!=3
+			job->OutputImage->GetChannelCount()!=channels
 		) {
-			job->OutputImage->Setup(job->TgtW,job->TgtH,3);
+			job->OutputImage->Setup(job->TgtW,job->TgtH,channels);
 		}
 		memcpy(
 			job->OutputImage->GetWritableMap()+job->ReadPos,
@@ -701,44 +1129,31 @@ bool emPdfServerModel::TryProcIO()
 }
 
 
-emPdfServerModel::Job * emPdfServerModel::SearchBestNextJob() const
+int emPdfServerModel::CompareJobs(Job * job1, Job * job2, void * context)
 {
-	Job * job, * bestJob;
+	int tp1, tp2;
+	double d;
 
-	bestJob=FirstWaitingJob;
-	if (!bestJob) return NULL;
-	for (job=bestJob->Next; job; job=job->Next) {
-		switch (bestJob->Type) {
-		case JT_OPEN_JOB:
-			switch (job->Type) {
-			case JT_OPEN_JOB:
-				if (bestJob->Priority<job->Priority) bestJob=job;
-				break;
-			case JT_RENDER_JOB:
-				break;
-			case JT_CLOSE_JOB:
-				bestJob=job;
-				break;
-			}
-			break;
-		case JT_RENDER_JOB:
-			switch (job->Type) {
-			case JT_OPEN_JOB:
-				bestJob=job;
-				break;
-			case JT_RENDER_JOB:
-				if (bestJob->Priority<job->Priority) bestJob=job;
-				break;
-			case JT_CLOSE_JOB:
-				bestJob=job;
-				break;
-			}
-			break;
-		case JT_CLOSE_JOB:
-			break;
-		}
+	tp1=GetJobTypePriority(job1->Type);
+	tp2=GetJobTypePriority(job2->Type);
+	if (tp1!=tp2) return tp2-tp1;
+
+	d=job2->Priority-job1->Priority;
+	return d>0.0 ? 1 : d<0.0 ? -1 : 0;
+}
+
+
+int emPdfServerModel::GetJobTypePriority(JobType type)
+{
+	switch (type) {
+		case JT_OPEN_JOB:              return 3;
+		case JT_GET_AREAS_JOB:         return 2;
+		case JT_GET_SELECTED_TEXT_JOB: return 5;
+		case JT_RENDER_JOB:            return 1;
+		case JT_RENDER_SELECTION_JOB:  return 4;
+		case JT_CLOSE_JOB:             return 6;
+		default:                       return 0;
 	}
-	return bestJob;
 }
 
 

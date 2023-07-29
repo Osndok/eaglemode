@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2012,2014,2016-2017,2021 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2021,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -300,9 +300,9 @@ public:
 		// panel.
 		// Arguments:
 		//   pRelX, pRelY - Pointers for returning the distance vector
-		//                  between the center of the view and the
-		//                  center of the panel, measured in view widths
-		//                  and heights.
+		//                  between the center of the panel and the
+		//                  center of the view, measured in panel
+		//                  widths and heights.
 		//   pRelA        - Pointer for returning the area size of the
 		//                  view relative to the area size of the panel.
 		// Returns:
@@ -319,8 +319,8 @@ public:
 		//   panel     - The panel to be visited.
 		//   identity  - Identity of the panel to be visited.
 		//   relX,relY - Desired distance vector between the center of
-		//               the view and the center of the panel, measured
-		//               in view widths and heights.
+		//               the panel and the center of the view, measured
+		//               in panel widths and heights.
 		//   relA      - Desired area size of the view relative to the
 		//               area size of the panel.
 		//   adherent  - Whether the activation shall be adherent.

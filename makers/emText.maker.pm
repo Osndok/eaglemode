@@ -40,6 +40,7 @@ sub Build
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
 		"--name"          , "emText",
+		"src/emText/emTextFileControlPanel.cpp",
 		"src/emText/emTextFileModel.cpp",
 		"src/emText/emTextFilePanel.cpp",
 		"src/emText/emTextFpPlugin.cpp"

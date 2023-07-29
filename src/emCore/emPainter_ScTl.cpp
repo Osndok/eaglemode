@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter_ScTl.cpp
 //
-// Copyright (C) 2020 Oliver Hamann.
+// Copyright (C) 2020,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -117,16 +117,16 @@ bool emPainter::ScanlineTool::Init(
 
 	switch (texture.GetType()) {
 	case emTexture::COLOR:
-		Color1=texture.Color;
+		Color1=texture.GetColor();
 		if (!Color1.GetAlpha()) return false;
 		if ((Color1.Get()|0xFF) == canvasColor.Get()) return false;
 		PaintScanline=psFuncPtr[PSF_COL];
 		break;
 	case emTexture::IMAGE:
-		Alpha=texture.Alpha;
+		Alpha=texture.GetAlpha();
 		if (Alpha<=0) return false;
-		psFuncPtr+=(texture.Image->GetChannelCount()-1)<<3;
-		if (texture.Alpha>=255) {
+		psFuncPtr+=(texture.GetImage().GetChannelCount()-1)<<3;
+		if (texture.GetAlpha()>=255) {
 			PaintScanline=psFuncPtr[PSF_INT];
 		}
 		else {
@@ -134,9 +134,9 @@ bool emPainter::ScanlineTool::Init(
 		}
 		goto L_SET_INTERPOLATE_IMAGE;
 	case emTexture::IMAGE_COLORED:
-		psFuncPtr+=(texture.Image->GetChannelCount()-1)<<3;
-		Color1=texture.Color1;
-		Color2=texture.Color2;
+		psFuncPtr+=(texture.GetImage().GetChannelCount()-1)<<3;
+		Color1=texture.GetColor1();
+		Color2=texture.GetColor2();
 		if (!Color1.GetAlpha()) {
 			if (!Color2.GetAlpha()) return false;
 			if ((Color2.Get()|0xFF) == canvasColor.Get()) return false;
@@ -154,8 +154,8 @@ bool emPainter::ScanlineTool::Init(
 		goto L_SET_INTERPOLATE_IMAGE;
 	case emTexture::LINEAR_GRADIENT:
 		{
-			Color1=texture.Color1;
-			Color2=texture.Color2;
+			Color1=texture.GetColor1();
+			Color2=texture.GetColor2();
 			if (!Color1.GetAlpha()) {
 				if (!Color2.GetAlpha()) return false;
 				if ((Color2.Get()|0xFF) == canvasColor.Get()) return false;
@@ -171,10 +171,10 @@ bool emPainter::ScanlineTool::Init(
 				PaintScanline=psFuncPtr[PSF_INT_G1G2];
 			}
 			Channels=1;
-			double tx1=texture.X1*Painter.ScaleX+Painter.OriginX;
-			double ty1=texture.Y1*Painter.ScaleY+Painter.OriginY;
-			double tx2=texture.X2*Painter.ScaleX+Painter.OriginX;
-			double ty2=texture.Y2*Painter.ScaleY+Painter.OriginY;
+			double tx1=texture.GetX1()*Painter.ScaleX+Painter.OriginX;
+			double ty1=texture.GetY1()*Painter.ScaleY+Painter.OriginY;
+			double tx2=texture.GetX2()*Painter.ScaleX+Painter.OriginX;
+			double ty2=texture.GetY2()*Painter.ScaleY+Painter.OriginY;
 			double nx=tx2-tx1;
 			double ny=ty2-ty1;
 			double nn=nx*nx+ny*ny;
@@ -189,8 +189,8 @@ bool emPainter::ScanlineTool::Init(
 		break;
 	case emTexture::RADIAL_GRADIENT:
 		{
-			Color1=texture.Color1;
-			Color2=texture.Color2;
+			Color1=texture.GetColor1();
+			Color2=texture.GetColor2();
 			if (!Color1.GetAlpha()) {
 				if (!Color2.GetAlpha()) return false;
 				if ((Color2.Get()|0xFF) == canvasColor.Get()) return false;
@@ -206,14 +206,14 @@ bool emPainter::ScanlineTool::Init(
 				PaintScanline=psFuncPtr[PSF_INT_G1G2];
 			}
 			Channels=1;
-			double rx=texture.W*Painter.ScaleX*0.5;
-			double ry=texture.H*Painter.ScaleY*0.5;
+			double rx=texture.GetW()*Painter.ScaleX*0.5;
+			double ry=texture.GetH()*Painter.ScaleY*0.5;
 			if (rx<1E-3) rx=1E-3;
 			if (ry<1E-3) ry=1E-3;
 			double nx=(((emInt64)255)<<23)/rx;
 			double ny=(((emInt64)255)<<23)/ry;
-			double tx=(texture.X*Painter.ScaleX+Painter.OriginX+rx-0.5)*nx;
-			double ty=(texture.Y*Painter.ScaleY+Painter.OriginY+ry-0.5)*ny;
+			double tx=(texture.GetX()*Painter.ScaleX+Painter.OriginX+rx-0.5)*nx;
+			double ty=(texture.GetY()*Painter.ScaleY+Painter.OriginY+ry-0.5)*ny;
 			TX=(emInt64)tx;
 			TY=(emInt64)ty;
 			TDX=(emInt64)nx;
@@ -227,21 +227,21 @@ bool emPainter::ScanlineTool::Init(
 
 L_SET_INTERPOLATE_IMAGE:
 
-	int iw=texture.Image->GetWidth();
-	int sx=texture.SrcX;
-	int sx2=sx+texture.SrcW;
+	int iw=texture.GetImage().GetWidth();
+	int sx=texture.GetSrcX();
+	int sx2=sx+texture.GetSrcW();
 	if(sx<0) sx=0;
 	if(sx2>iw) sx2=iw;
 	if (sx>=sx2) return false;
-	int ih=texture.Image->GetHeight();
-	int sy=texture.SrcY;
-	int sy2=sy+texture.SrcH;
+	int ih=texture.GetImage().GetHeight();
+	int sy=texture.GetSrcY();
+	int sy2=sy+texture.GetSrcH();
 	if(sy<0) sy=0;
 	if(sy2>ih) sy2=ih;
 	if (sy>=sy2) return false;
-	int channels=texture.Image->GetChannelCount();
+	int channels=texture.GetImage().GetChannelCount();
 	Channels=channels;
-	ImgMap=texture.Image->GetMap()+(sy*(size_t)iw+sx)*channels;
+	ImgMap=texture.GetImage().GetMap()+(sy*(size_t)iw+sx)*channels;
 	ImgW=sx2-sx;
 	ImgH=sy2-sy;
 	ImgDX=channels;
@@ -282,14 +282,14 @@ L_SET_INTERPOLATE_IMAGE:
 	}
 	iiFuncPtr+=ext<<2;
 
-	double tw=texture.W*Painter.ScaleX;
-	double th=texture.H*Painter.ScaleY;
+	double tw=texture.GetW()*Painter.ScaleX;
+	double th=texture.GetH()*Painter.ScaleY;
 	double tdx=(((emInt64)ImgW)<<24)/tw;
 	double tdy=(((emInt64)ImgH)<<24)/th;
 	if (tdx<0.0 || tdx>2.8E14) return false;
 	if (tdy<0.0 || tdy>2.8E14) return false;
-	double tx=texture.X*Painter.ScaleX+Painter.OriginX;
-	double ty=texture.Y*Painter.ScaleY+Painter.OriginY;
+	double tx=texture.GetX()*Painter.ScaleX+Painter.OriginX;
+	double ty=texture.GetY()*Painter.ScaleY+Painter.OriginY;
 	TDX=(emInt64)tdx;
 	TDY=(emInt64)tdy;
 

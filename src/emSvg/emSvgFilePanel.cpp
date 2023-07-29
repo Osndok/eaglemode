@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010-2011,2014-2016 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016,2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -282,7 +282,7 @@ emPanel * emSvgFilePanel::CreateControlPanel(
 			emString(),
 			emImage(),
 			emString::Format(
-				"%lg x %lg",
+				"%g x %g",
 				fm->GetWidth(),
 				fm->GetHeight()
 			)

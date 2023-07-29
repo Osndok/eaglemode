@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011,2014,2017-2019,2022 Oliver Hamann.
+// Copyright (C) 2010-2011,2014,2017-2019,2022-2023 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -419,7 +419,7 @@ bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob)
 	}
 
 	WriteLineToProc(emString::Format(
-		"render %d %.16lg %.16lg %.16lg %.16lg %d %d %d",
+		"render %d %.16g %.16g %.16g %.16g %d %d %d",
 		renderJob->InstanceId,
 		renderJob->SrcX,
 		renderJob->SrcY,
