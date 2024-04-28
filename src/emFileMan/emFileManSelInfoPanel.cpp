@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManSelInfoPanel.cpp
 //
-// Copyright (C) 2007-2009,2014-2016,2019,2021 Oliver Hamann.
+// Copyright (C) 2007-2009,2014-2016,2019,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -362,7 +362,7 @@ void emFileManSelInfoPanel::PaintSize(
 			painter.PaintText(
 				x,
 				y+h*0.75,
-				"kMGTPEZY"+k,
+				&"kMGTPEZY"[k],
 				h/5,
 				ws,
 				color,

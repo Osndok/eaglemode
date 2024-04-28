@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPageAreasMap.cpp
 //
-// Copyright (C) 2023 Oliver Hamann.
+// Copyright (C) 2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -159,7 +159,27 @@ emPdfPageAreasMap::Entry::Entry()
 }
 
 
+emPdfPageAreasMap::Entry::Entry(const Entry & entry)
+	: Requested(entry.Requested),
+	JobHandle(entry.JobHandle),
+	Areas(entry.Areas),
+	ErrorText(entry.ErrorText)
+{
+}
+
+
 emPdfPageAreasMap::Entry::~Entry()
 {
 }
 
+
+emPdfPageAreasMap::Entry & emPdfPageAreasMap::Entry::operator = (
+	const Entry & entry
+)
+{
+	Requested=entry.Requested;
+	JobHandle=entry.JobHandle;
+	Areas=entry.Areas;
+	ErrorText=entry.ErrorText;
+	return *this;
+}

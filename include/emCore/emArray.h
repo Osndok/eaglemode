@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArray.h
 //
-// Copyright (C) 2005-2009,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -753,7 +753,10 @@ template <class OBJ> inline void emArray<OBJ>::Add(
 	const OBJ * array, int count, bool compact
 )
 {
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wuse-after-free"
 	PrivRep(Data->Count,0,array,true,count,compact);
+#	pragma GCC diagnostic pop
 }
 
 template <class OBJ> inline void emArray<OBJ>::Add(
@@ -1102,7 +1105,10 @@ template <class OBJ> void emArray<OBJ>::Construct(
 				} while (count>0);
 			}
 			else {
+#				pragma GCC diagnostic push
+#				pragma GCC diagnostic ignored "-Wclass-memaccess"
 				memcpy(array,src,count*sizeof(OBJ));
+#				pragma GCC diagnostic pop
 			}
 		}
 	}
@@ -1153,7 +1159,10 @@ template <class OBJ> void emArray<OBJ>::Copy(
 				}
 			}
 			else {
+#				pragma GCC diagnostic push
+#				pragma GCC diagnostic ignored "-Wclass-memaccess"
 				memmove(array,src,count*sizeof(OBJ));
+#				pragma GCC diagnostic pop
 			}
 		}
 	}
@@ -1184,7 +1193,10 @@ template <class OBJ> void emArray<OBJ>::Move(
 			}
 		}
 		else {
+#			pragma GCC diagnostic push
+#			pragma GCC diagnostic ignored "-Wclass-memaccess"
 			memmove(array,srcArray,count*sizeof(OBJ));
+#			pragma GCC diagnostic pop
 		}
 	}
 }
@@ -1335,10 +1347,13 @@ template <class OBJ> void emArray<OBJ>::PrivRep(
 			Destruct(d->Obj+newCount,remCount-insCount);
 		}
 		if (d->Capacity!=cap) {
+#			pragma GCC diagnostic push
+#			pragma GCC diagnostic ignored "-Wclass-memaccess"
 			d=(SharedData*)realloc(
 				d,
 				sizeof(SharedData)-sizeof(OBJ)*16+sizeof(OBJ)*cap
 			);
+#			pragma GCC diagnostic pop
 			d->Capacity=cap;
 			Data=d;
 		}
@@ -1348,10 +1363,13 @@ template <class OBJ> void emArray<OBJ>::PrivRep(
 
 	if (src<d->Obj || src>d->Obj+d->Count) {
 		if (d->Capacity!=cap) {
+#			pragma GCC diagnostic push
+#			pragma GCC diagnostic ignored "-Wclass-memaccess"
 			d=(SharedData*)realloc(
 				d,
 				sizeof(SharedData)-sizeof(OBJ)*16+sizeof(OBJ)*cap
 			);
+#			pragma GCC diagnostic pop
 			d->Capacity=cap;
 			Data=d;
 		}
@@ -1369,11 +1387,18 @@ template <class OBJ> void emArray<OBJ>::PrivRep(
 	}
 
 	if (d->Capacity!=cap) {
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wclass-memaccess"
 		Data=(SharedData*)realloc(
 			d,
 			sizeof(SharedData)-sizeof(OBJ)*16+sizeof(OBJ)*cap
 		);
+#		pragma GCC diagnostic pop
+
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wuse-after-free"
 		src+=Data->Obj-d->Obj;
+#		pragma GCC diagnostic pop
 		d=Data;
 		d->Capacity=cap;
 	}

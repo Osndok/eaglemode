@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.h
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,13 +37,14 @@ enum emInstallDirType {
 	EM_IDT_INCLUDE    = 1,
 	EM_IDT_LIB        = 2,
 	EM_IDT_HTML_DOC   = 3,
+	EM_IDT_PDF_DOC    =10,
 	EM_IDT_PS_DOC     = 4,
 	EM_IDT_USER_CONFIG= 5,
 	EM_IDT_HOST_CONFIG= 6,
 	EM_IDT_TMP        = 7,
 	EM_IDT_RES        = 8,
 	EM_IDT_HOME       = 9,
-	EM_NUMBER_OF_IDTS =10
+	EM_NUMBER_OF_IDTS =11
 };
 
 emString emGetInstallPath(emInstallDirType idt, const char * prj,
@@ -65,6 +66,7 @@ emString emGetInstallPath(emInstallDirType idt, const char * prj,
 	// EM_IDT_INCLUDE     | <em>/include/<prj>     | /usr/include/<prj>
 	// EM_IDT_LIB         | <em>/lib               | /usr/lib
 	// EM_IDT_HTML_DOC    | <em>/doc/html          | /usr/share/doc/em/<prj>/html
+	// EM_IDT_PDF_DOC     | <em>/doc/pdf           | /usr/share/doc/em/<prj>/pdf
 	// EM_IDT_PS_DOC      | <em>/doc/ps            | /usr/share/doc/em/<prj>/ps
 	// EM_IDT_USER_CONFIG | <home>/.eaglemode/<prj>| <home>/.em/<prj>
 	// EM_IDT_HOST_CONFIG | <em>/etc/<prj>         | /etc/em/<prj>

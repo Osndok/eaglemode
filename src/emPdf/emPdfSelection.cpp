@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfSelection.cpp
 //
-// Copyright (C) 2023 Oliver Hamann.
+// Copyright (C) 2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -417,8 +417,29 @@ emPdfSelection::PageData::PageData()
 }
 
 
+emPdfSelection::PageData::PageData(const PageData & pageData)
+	: Selection(pageData.Selection),
+	GetSelectedTextJob(pageData.GetSelectedTextJob),
+	TempText(pageData.TempText),
+	ErrorText(pageData.ErrorText)
+{
+}
+
+
 emPdfSelection::PageData::~PageData()
 {
+}
+
+
+emPdfSelection::PageData & emPdfSelection::PageData::operator = (
+	const PageData & pageData
+)
+{
+	Selection=pageData.Selection;
+	GetSelectedTextJob=pageData.GetSelectedTextJob;
+	TempText=pageData.TempText;
+	ErrorText=pageData.ErrorText;
+	return *this;
 }
 
 

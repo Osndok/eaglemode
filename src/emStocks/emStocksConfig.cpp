@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksConfig.cpp
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -139,10 +139,7 @@ emStocksConfig::emStocksConfig(emContext & context, const emString & name)
 	),
 	MinVisibleInterest(this,"MinVisibleInterest",
 		emStocksFileModel::LOW_INTEREST,
-		"HIGH_INTEREST",
-		"MEDIUM_INTEREST",
-		"LOW_INTEREST",
-		NULL
+		false
 	),
 	VisibleCountries(this,"VisibleCountries"),
 	VisibleSectors(this,"VisibleSectors"),

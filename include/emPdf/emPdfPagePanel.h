@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.h
 //
-// Copyright (C) 2011,2016,2023 Oliver Hamann.
+// Copyright (C) 2011,2016,2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,8 +21,8 @@
 #ifndef emPdfPagePanel_h
 #define emPdfPagePanel_h
 
-#ifndef emPanel_h
-#include <emCore/emPanel.h>
+#ifndef emDialog_h
+#include <emCore/emDialog.h>
 #endif
 
 #ifndef emPdfSelection_h
@@ -106,6 +106,9 @@ private:
 	void UpdateIconState();
 	void UpdateCurrentRect();
 	void TriggerCurrectRect();
+	void TriggerRef(const emPdfServerModel::RefRect & refRect);
+	void TriggerUri(const emPdfServerModel::UriRect & uriRect);
+	void OpenCurrentUrl();
 
 	emRef<emPdfServerModel> Server;
 	emRef<emPdfFileModel> FileModel;
@@ -121,6 +124,8 @@ private:
 	RectType PressedRectType;
 	int PressedRectIndex;
 	bool ForceTextCursor;
+	emCrossPtr<emDialog> OpenUrlDialog;
+	emString CurrentUrl;
 };
 
 inline emPdfFileModel * emPdfPagePanel::GetFileModel() const

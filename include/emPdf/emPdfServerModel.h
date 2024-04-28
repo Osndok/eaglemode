@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.h
 //
-// Copyright (C) 2011,2014,2018,2022-2023 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2022-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -94,7 +94,9 @@ public:
 
 	struct PageAreas {
 		PageAreas();
+		PageAreas(const PageAreas & pageAreas);
 		~PageAreas();
+		PageAreas & operator = (const PageAreas & pageAreas);
 		emArray<TextRect> TextRects;
 		emArray<UriRect> UriRects;
 		emArray<RefRect> RefRects;

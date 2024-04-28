@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksRec.cpp
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -40,6 +40,44 @@ const char * emStocksRec::GetFormatName() const
 }
 
 
+emStocksRec::InterestRec::InterestRec(
+	emStructRec * parent, const char * varIdentifier,
+	int defaultValue, bool bugInDeprecatedIdentifiers
+) :
+	emEnumRec(parent,varIdentifier,defaultValue,"HIGH","MEDIUM","LOW",NULL),
+	BugInDeprecatedIdentifiers(bugInDeprecatedIdentifiers)
+{
+}
+
+
+emStocksRec::InterestRec & emStocksRec::InterestRec::operator = (int value)
+{
+	Set(value);
+	return *this;
+}
+
+
+void emStocksRec::InterestRec::TryStartReading(emRecReader & reader)
+{
+	const char * idf;
+	int val;
+
+	idf=reader.TryReadIdentifier();
+	val=GetValueOf(idf);
+	if (val<0) {
+		if (strcasecmp(idf,"LOW_INTEREST")==0)
+			val=BugInDeprecatedIdentifiers?HIGH_INTEREST:LOW_INTEREST;
+		else if (strcasecmp(idf,"MEDIUM_INTEREST")==0)
+			val=MEDIUM_INTEREST;
+		else if (strcasecmp(idf,"HIGH_INTEREST")==0)
+			val=BugInDeprecatedIdentifiers?LOW_INTEREST:HIGH_INTEREST;
+		else
+			reader.ThrowElemError("Unknown identifier.");
+	}
+	Set(val);
+}
+
+
 emStocksRec::StockRec::StockRec()
 	: emStructRec(),
 	Id(this,"Id"),
@@ -63,10 +101,7 @@ emStocksRec::StockRec::StockRec()
 	Interest(
 		this,"Interest",
 		MEDIUM_INTEREST,
-		"LOW_INTEREST",
-		"MEDIUM_INTEREST",
-		"HIGH_INTEREST",
-		NULL
+		true
 	),
 	WebPages(this,"WebPages")
 {
@@ -694,7 +729,12 @@ void emStocksRec::SharePriceToString(
 		}
 	}
 	sprintf(frmt,"%%.%df",d);
+
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wformat-nonliteral"
 	snprintf(buf,bufSize,frmt,price);
+#	pragma clang diagnostic pop
+
 	buf[bufSize-1]=0;
 }
 

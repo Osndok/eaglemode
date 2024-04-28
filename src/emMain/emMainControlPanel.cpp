@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainControlPanel.cpp
 //
-// Copyright (C) 2014-2023 Oliver Hamann.
+// Copyright (C) 2014-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -36,7 +36,7 @@ emMainControlPanel::emMainControlPanel(
 	const char * aboutTextFormat=
 		"This is Eagle Mode version %s\n"
 		"\n"
-		"Copyright (C) 2001-2023 Oliver Hamann.\n"
+		"Copyright (C) 2001-2024 Oliver Hamann.\n"
 		"\n"
 		"Homepage: http://eaglemode.sourceforge.net/\n"
 		"\n"
@@ -106,9 +106,12 @@ emMainControlPanel::emMainControlPanel(
 				emGetInsResImage(GetRootContext(),"icons","eaglemode.tga")
 			);
 			iconLabel->SetLabelAlignment(EM_ALIGN_CENTER);
+#			pragma clang diagnostic push
+#			pragma clang diagnostic ignored "-Wformat-nonliteral"
 			textLabel=new emLabel(grAbout,"text",
 				emString::Format(aboutTextFormat,emGetVersion())
 			);
+#			pragma clang diagnostic pop
 		coreConfigPanel=new emCoreConfigPanel(
 			lAbtCfg,"core config"
 		);

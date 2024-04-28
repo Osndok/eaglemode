@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>.h
 //
-// Copyright (C) 2005-2009,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -762,8 +762,11 @@
         <SPAN CLASS=t>const </SPAN>OBJ * array, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
 )
 <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wuse-after-free"
         </SPAN>PrivRep(Data-&gt;Count,<SPAN CLASS=u>0</SPAN>,array,<SPAN CLASS=k>true</SPAN>,count,compact);
-<SPAN CLASS=b>}
+<SPAN CLASS=p>#       pragma GCC diagnostic pop
+</SPAN><SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Add(
         <SPAN CLASS=t>const </SPAN>OBJ &amp; obj, <SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact
@@ -1111,8 +1114,11 @@
                                 <SPAN CLASS=b>} </SPAN><SPAN CLASS=k>while </SPAN>(count&gt;<SPAN CLASS=u>0</SPAN>);
                         <SPAN CLASS=b>}
                         </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#                               pragma GCC diagnostic push
+#                               pragma GCC diagnostic ignored "-Wclass-memaccess"
                                 </SPAN>memcpy(array,src,count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
-                        <SPAN CLASS=b>}
+<SPAN CLASS=p>#                               pragma GCC diagnostic pop
+                        </SPAN><SPAN CLASS=b>}
                 }
         }
 }
@@ -1162,8 +1168,11 @@
                                 <SPAN CLASS=b>}
                         }
                         </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#                               pragma GCC diagnostic push
+#                               pragma GCC diagnostic ignored "-Wclass-memaccess"
                                 </SPAN>memmove(array,src,count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
-                        <SPAN CLASS=b>}
+<SPAN CLASS=p>#                               pragma GCC diagnostic pop
+                        </SPAN><SPAN CLASS=b>}
                 }
         }
 }
@@ -1193,8 +1202,11 @@
                         <SPAN CLASS=b>}
                 }
                 </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#                       pragma GCC diagnostic push
+#                       pragma GCC diagnostic ignored "-Wclass-memaccess"
                         </SPAN>memmove(array,srcArray,count*<SPAN CLASS=k>sizeof</SPAN>(OBJ));
-                <SPAN CLASS=b>}
+<SPAN CLASS=p>#                       pragma GCC diagnostic pop
+                </SPAN><SPAN CLASS=b>}
         }
 }
 
@@ -1344,11 +1356,14 @@
                         Destruct(d-&gt;Obj+newCount,remCount-insCount);
                 <SPAN CLASS=b>}
                 </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap) <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#                       pragma GCC diagnostic push
+#                       pragma GCC diagnostic ignored "-Wclass-memaccess"
                         </SPAN>d=(SharedData*)realloc(
                                 d,
                                 <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*cap
                         );
-                        d-&gt;Capacity=cap;
+<SPAN CLASS=p>#                       pragma GCC diagnostic pop
+                        </SPAN>d-&gt;Capacity=cap;
                         Data=d;
                 <SPAN CLASS=b>}
                 </SPAN>d-&gt;Count=newCount;
@@ -1357,11 +1372,14 @@
 
         </SPAN><SPAN CLASS=k>if </SPAN>(src&lt;d-&gt;Obj || src&gt;d-&gt;Obj+d-&gt;Count) <SPAN CLASS=b>{
                 </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap) <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#                       pragma GCC diagnostic push
+#                       pragma GCC diagnostic ignored "-Wclass-memaccess"
                         </SPAN>d=(SharedData*)realloc(
                                 d,
                                 <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*cap
                         );
-                        d-&gt;Capacity=cap;
+<SPAN CLASS=p>#                       pragma GCC diagnostic pop
+                        </SPAN>d-&gt;Capacity=cap;
                         Data=d;
                 <SPAN CLASS=b>}
                 </SPAN><SPAN CLASS=k>if </SPAN>(remCount&gt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
@@ -1378,12 +1396,19 @@
         <SPAN CLASS=b>}
 
         </SPAN><SPAN CLASS=k>if </SPAN>(d-&gt;Capacity!=cap) <SPAN CLASS=b>{
+</SPAN><SPAN CLASS=p>#               pragma GCC diagnostic push
+#               pragma GCC diagnostic ignored "-Wclass-memaccess"
                 </SPAN>Data=(SharedData*)realloc(
                         d,
                         <SPAN CLASS=k>sizeof</SPAN>(SharedData)-<SPAN CLASS=k>sizeof</SPAN>(OBJ)*<SPAN CLASS=u>16</SPAN>+<SPAN CLASS=k>sizeof</SPAN>(OBJ)*cap
                 );
-                src+=Data-&gt;Obj-d-&gt;Obj;
-                d=Data;
+<SPAN CLASS=p>#               pragma GCC diagnostic pop
+
+#               pragma GCC diagnostic push
+#               pragma GCC diagnostic ignored "-Wuse-after-free"
+                </SPAN>src+=Data-&gt;Obj-d-&gt;Obj;
+<SPAN CLASS=p>#               pragma GCC diagnostic pop
+                </SPAN>d=Data;
                 d-&gt;Capacity=cap;
         <SPAN CLASS=b>}
         </SPAN>Construct(d-&gt;Obj+d-&gt;Count,<SPAN CLASS=u>NULL</SPAN>,<SPAN CLASS=k>false</SPAN>,insCount-remCount);

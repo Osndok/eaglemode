@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_gnu.pm
 #
-# Copyright (C) 2006-2011,2013,2017-2019,2021-2022 Oliver Hamann.
+# Copyright (C) 2006-2011,2013,2017-2019,2021-2022,2024 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -131,6 +131,7 @@ sub Compile
 		if ($GccVersion<4.3) { #??? GCC 4.3.0 does not inline several destructors.
 			push(@args,"-Winline");
 		}
+		push(@args,"-Wno-unknown-pragmas");
 		push(@args,"-Wpointer-arith");
 		push(@args,"-Wredundant-decls");
 		push(@args,"-Wsign-compare");
@@ -139,7 +140,6 @@ sub Compile
 			push(@args,"-Wsign-promo");
 			push(@args,"-Wsynth");
 			if ($GccVersion>=4.0) { push(@args,"-Wno-invalid-offsetof"); }
-			if ($GccVersion>=8.0) { push(@args,"-Wno-class-memaccess"); }
 		}
 		if ($GccVersion>=4.7) { push(@args,"-Wno-unused-but-set-variable"); }
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-I$s"); }

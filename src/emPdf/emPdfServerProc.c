@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011-2013,2017-2019,2022-2023 Oliver Hamann.
+// Copyright (C) 2011-2013,2017-2019,2022-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,6 +57,46 @@ static void emPdfPrintQuoted(const char * str, int maxLen)
 		else if ((unsigned char)c>=32) putchar(c);
 	}
 	putchar('"');
+}
+
+
+static void emPdfPrintQuotedFromUtf8(const char * str, int maxLen)
+{
+	char * normalized, * converted;
+	const gchar * charset;
+	int len;
+
+	normalized=NULL;
+	converted=NULL;
+
+	if (str) {
+		len=strlen(str);
+		normalized=g_utf8_normalize(
+			str,
+			maxLen<len?maxLen:len,
+			G_NORMALIZE_NFC
+		);
+		if (normalized) str=normalized;
+		if (!g_get_charset(&charset)) {
+			len=strlen(str);
+			converted=g_convert_with_fallback(
+				str,
+				maxLen<len?maxLen:len,
+				charset,
+				"UTF-8",
+				"?",
+				NULL,
+				NULL,
+				NULL
+			);
+			if (converted) str=converted;
+		}
+	}
+
+	emPdfPrintQuoted(str,maxLen);
+
+	if (converted) g_free(converted);
+	if (normalized) g_free(normalized);
 }
 
 
@@ -202,7 +242,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_title(inst->doc);
 	if (str) {
 		printf("title: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -210,7 +250,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_author(inst->doc);
 	if (str) {
 		printf("author: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -218,7 +258,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_subject(inst->doc);
 	if (str) {
 		printf("subject: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -226,7 +266,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_keywords(inst->doc);
 	if (str) {
 		printf("keywords: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -234,7 +274,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_creator(inst->doc);
 	if (str) {
 		printf("creator: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -242,7 +282,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_producer(inst->doc);
 	if (str) {
 		printf("producer: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -260,7 +300,7 @@ static void emPdfOpen(const char * args)
 	str=poppler_document_get_pdf_version_string(inst->doc);
 	if (str) {
 		printf("version: ");
-		emPdfPrintQuoted(str,8192);
+		emPdfPrintQuotedFromUtf8(str,8192);
 		putchar('\n');
 		g_free(str);
 	}
@@ -283,7 +323,7 @@ static void emPdfOpen(const char * args)
 			g_object_unref(page);
 		}
 		printf("pageinfo: %d %.16g %.16g ",i,width,height);
-		emPdfPrintQuoted(label,256);
+		emPdfPrintQuotedFromUtf8(label,256);
 		if (str) g_free(str);
 		putchar('\n');
 	}
@@ -427,7 +467,7 @@ static void emPdfGetAreas(const char * args)
 							(int)(mapping->area.x2+0.5),
 							(int)(height-mapping->area.y1+0.5)
 						);
-						emPdfPrintQuoted(mapping->action->uri.uri,1024);
+						emPdfPrintQuotedFromUtf8(mapping->action->uri.uri,1024);
 						putchar('\n');
 					}
 					break;
@@ -452,7 +492,7 @@ static void emPdfGetSelectedText(const char * args)
 		POPPLER_SELECTION_LINE
 	};
 	PopplerRectangle selection;
-	char * text, * normalizedText;
+	char * text;
 	PopplerPage * page;
 	double selX1,selY1,selX2,selY2;
 	int instId,pageIndex,style;
@@ -472,7 +512,6 @@ static void emPdfGetSelectedText(const char * args)
 	}
 
 	text=NULL;
-	normalizedText=NULL;
 	page=poppler_document_get_page(emPdfInstArray[instId]->doc,pageIndex);
 	if (page) {
 		selection.x1=selX1;
@@ -480,16 +519,12 @@ static void emPdfGetSelectedText(const char * args)
 		selection.x2=selX2;
 		selection.y2=selY2;
 		text=poppler_page_get_selected_text(page,styles[style],&selection);
-		if (text) {
-			normalizedText=g_utf8_normalize(text,strlen(text),G_NORMALIZE_NFC);
-		}
 	}
 
 	printf("selected_text: ");
-	emPdfPrintQuoted(normalizedText?normalizedText:text?text:"",INT_MAX);
+	emPdfPrintQuotedFromUtf8(text?text:"",INT_MAX);
 	putchar('\n');
 
-	if (normalizedText) g_free(normalizedText);
 	if (text) g_free(text);
 	if (page) g_object_unref(page);
 }

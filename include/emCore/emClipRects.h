@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emClipRects.h
 //
-// Copyright (C) 2011-2012,2014 Oliver Hamann.
+// Copyright (C) 2011-2012,2014,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -874,7 +874,10 @@ template <class NUM> void emClipRects<NUM>::DeleteData()
 			Data->BlockList=b->Next;
 			delete b;
 		}
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wfree-nonheap-object"
 		delete Data;
+#		pragma GCC diagnostic pop
 	}
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emListBox.cpp
 //
-// Copyright (C) 2015-2016,2021-2022 Oliver Hamann.
+// Copyright (C) 2015-2016,2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,7 +33,7 @@ emListBox::emListBox(
 {
 	SelType=selType;
 	Items.SetTuningLevel(4);
-	AvlTree=NULL;
+	ItemAvlTree=NULL;
 	SelectedItemIndices.SetTuningLevel(4);
 	TriggeredItem=NULL;
 	PrevInputItem=NULL;
@@ -96,7 +96,7 @@ void emListBox::InsertItem(
 	item->Interface=NULL;
 	item->Selected=false;
 
-	EM_AVL_INSERT_BEGIN_SEARCH(Item,AvlNode,AvlTree)
+	EM_AVL_INSERT_BEGIN_SEARCH(Item,AvlNode,ItemAvlTree)
 		d=strcmp(name.Get(),element->Name.Get());
 		if (d<0) EM_AVL_INSERT_GO_LEFT
 		else if (d>0) EM_AVL_INSERT_GO_RIGHT
@@ -242,7 +242,7 @@ void emListBox::RemoveItem(int index)
 	if (index>=0 && index<Items.GetCount()) {
 		if (Items[index]->Interface) delete Items[index]->Interface;
 
-		EM_AVL_REMOVE_BEGIN(Item,AvlNode,AvlTree)
+		EM_AVL_REMOVE_BEGIN(Item,AvlNode,ItemAvlTree)
 			d=strcmp(Items[index]->Name.Get(),element->Name.Get());
 			if (d<0) EM_AVL_REMOVE_GO_LEFT
 			else if (d>0) EM_AVL_REMOVE_GO_RIGHT
@@ -287,7 +287,7 @@ void emListBox::ClearItems()
 		}
 		for (i=Items.GetCount()-1; i>=0; i--) delete Items[i];
 		Items.Clear();
-		AvlTree=NULL;
+		ItemAvlTree=NULL;
 		TriggeredItem=NULL;
 		PrevInputItem=NULL;
 		if (!SelectedItemIndices.IsEmpty()) {
@@ -313,7 +313,7 @@ int emListBox::GetItemIndex(const char * name) const
 	EM_AVL_SEARCH_VARS(Item)
 	int d;
 
-	EM_AVL_SEARCH_BEGIN(Item,AvlNode,AvlTree)
+	EM_AVL_SEARCH_BEGIN(Item,AvlNode,ItemAvlTree)
 		d=strcmp(name,element->Name.Get());
 		if (d<0) EM_AVL_SEARCH_GO_LEFT
 		else if (d>0) EM_AVL_SEARCH_GO_RIGHT

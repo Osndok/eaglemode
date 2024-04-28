@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emInstallInfo.h
 //
-// Copyright (C) 2006-2008,2010-2011 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -46,13 +46,14 @@
         EM_IDT_INCLUDE    = <SPAN CLASS=u>1</SPAN>,
         EM_IDT_LIB        = <SPAN CLASS=u>2</SPAN>,
         EM_IDT_HTML_DOC   = <SPAN CLASS=u>3</SPAN>,
+        EM_IDT_PDF_DOC    =<SPAN CLASS=u>10</SPAN>,
         EM_IDT_PS_DOC     = <SPAN CLASS=u>4</SPAN>,
         EM_IDT_USER_CONFIG= <SPAN CLASS=u>5</SPAN>,
         EM_IDT_HOST_CONFIG= <SPAN CLASS=u>6</SPAN>,
         EM_IDT_TMP        = <SPAN CLASS=u>7</SPAN>,
         EM_IDT_RES        = <SPAN CLASS=u>8</SPAN>,
         EM_IDT_HOME       = <SPAN CLASS=u>9</SPAN>,
-        EM_NUMBER_OF_IDTS =<SPAN CLASS=u>10
+        EM_NUMBER_OF_IDTS =<SPAN CLASS=u>11
 </SPAN><SPAN CLASS=b>}</SPAN>;
 
 <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> emGetInstallPath(emInstallDirType idt, <SPAN CLASS=t>const char </SPAN>* prj,
@@ -74,6 +75,7 @@
         // EM_IDT_INCLUDE     | &lt;em&gt;/include/&lt;prj&gt;     | /usr/include/&lt;prj&gt;
         // EM_IDT_LIB         | &lt;em&gt;/lib               | /usr/lib
         // EM_IDT_HTML_DOC    | &lt;em&gt;/doc/html          | /usr/share/doc/em/&lt;prj&gt;/html
+        // EM_IDT_PDF_DOC     | &lt;em&gt;/doc/pdf           | /usr/share/doc/em/&lt;prj&gt;/pdf
         // EM_IDT_PS_DOC      | &lt;em&gt;/doc/ps            | /usr/share/doc/em/&lt;prj&gt;/ps
         // EM_IDT_USER_CONFIG | &lt;home&gt;/.eaglemode/&lt;prj&gt;| &lt;home&gt;/.em/&lt;prj&gt;
         // EM_IDT_HOST_CONFIG | &lt;em&gt;/etc/&lt;prj&gt;         | /etc/em/&lt;prj&gt;

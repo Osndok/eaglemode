@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "HMI Demo"
+
+PosX  = 0.925
+PosY  = 0.835
+Width = 0.015
+ContentTallness = 0.5625
+
+BorderScaling = 1.2
+
+BackgroundColor = { 255 255 255 255 }
+BorderColor = { 160 160 80 255 }
+TitleColor = { 255 255 255 255 }
+
+FileName = "emHmiDemo.emHmiDemo"
+CopyToUser = false

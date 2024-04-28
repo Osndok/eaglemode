@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_vlc.c
 //
-// Copyright (C) 2018-2020,2022 Oliver Hamann.
+// Copyright (C) 2018-2020,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -78,9 +78,11 @@ static pthread_t emAvTimeoutThread;
 
 static void * emAvTimeoutThreadRoutine(void * arg)
 {
-	for (int i=0; ; i++) {
+	int i,done;
+
+	for (i=0; ; i++) {
 		pthread_mutex_lock(&emAvTimeoutMutex);
-		int done=emAvTimeoutThreadDone;
+		done=emAvTimeoutThreadDone;
 		pthread_mutex_unlock(&emAvTimeoutMutex);
 		if (done) break;
 		if (i*10>emAvTimeoutThreadMilliseconds) {
@@ -678,7 +680,12 @@ static void emAvContMsgV(const char * format, va_list args)
 
 	p=emAvPipeOutBuf+emAvPipeOutBufFill;
 	a=emAvPipeBufSize-emAvPipeOutBufFill;
+
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wformat-nonliteral"
 	l=vsnprintf(p,a,format,args);
+#	pragma clang diagnostic pop
+
 	if (l<0 || l>a) l=a; /* just clip it... */
 	for (i=0; i<l; i++) {
 		if (p[i]==0x0a) p[i]=0x1a;
@@ -933,7 +940,7 @@ static void emAvSendInfo(int instIndex)
 	emAvBeginMsg(instIndex,"set");
 	emAvContMsg(":info:");
 
-	static struct {
+	static const struct {
 		libvlc_meta_t meta;
 		const char * name;
 		int always;
@@ -1818,7 +1825,7 @@ static void emAvHandleMsg(int instIndex, const char * tag, const char * data)
 {
 	const char * err, * p1, * p2, * p3;
 
-	EM_AV_LOG(tag);
+	EM_AV_LOG("%s",tag);
 
 	if (instIndex<0 || instIndex>=EM_AV_MAX_INSTANCES) {
 		emAvSendMsg(instIndex,"error","Instance index out of range.");

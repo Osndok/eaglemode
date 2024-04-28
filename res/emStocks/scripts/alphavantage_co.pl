@@ -2,8 +2,8 @@
 #-------------------------------------------------------------------------------
 # This stock API script fetches the prices from alphavantage.co. A valid API key
 # must be provided. The script limits the requests to five per minute and it
-# uses TIME_SERIES_DAILY_ADJUSTED instead of TIME_SERIES_DAILY, so that a free
-# non-premium API key should work.
+# uses the TIME_SERIES_DAILY function, so that a free non-premium API key should
+# work.
 #-------------------------------------------------------------------------------
 
 use strict;
@@ -67,7 +67,7 @@ my $days=int((time()-timelocal(0,0,0,$3,$2-1,$1-1900))/86400+1);
 
 my $url=
 	'https://www.alphavantage.co/query'.
-	'?function=TIME_SERIES_DAILY_ADJUSTED'.
+	'?function=TIME_SERIES_DAILY'.
 	'&symbol='.$symbol.
 	'&outputsize='.($days <= 100 ? 'compact' : 'full').
 	'&datatype=csv'.

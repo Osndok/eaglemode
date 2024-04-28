@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.cpp
 //
-// Copyright (C) 2004-2012,2014,2016-2017,2020-2021 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2020-2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -50,6 +50,7 @@ emDirEntryPanel::emDirEntryPanel(
 	FileMan=emFileManModel::Acquire(GetRootContext());
 	Config=emFileManViewConfig::Acquire(GetView());
 	BgColor=0;
+	RecursiveCall=false;
 
 	AddWakeUpSignal(FileMan->GetSelectionSignal());
 	AddWakeUpSignal(Config->GetChangeSignal());
@@ -102,16 +103,16 @@ emString emDirEntryPanel::GetTitle() const
 
 emString emDirEntryPanel::GetIconFileName() const
 {
-	static int recursive = 0; //??? Not good
 	emString icon;
 	emPanel * p;
 
-	if (recursive <= 0) {
+	bool & recursiveCall=((emDirEntryPanel*)this)->RecursiveCall;
+	if (!recursiveCall) {
 		p=GetChild(ContentName);
 		if (p) {
-			recursive++;
+			recursiveCall=true;
 			icon = p->GetIconFileName(); // May call the parent, i.e. this!
-			recursive--;
+			recursiveCall=false;
 			return icon;
 		}
 	}
@@ -697,7 +698,7 @@ void emDirEntryPanel::PaintInfo(
 		k=(len-i-j)/3-1;
 		if (k>=0) {
 			painter.PaintText(
-				x,by[4]+bh[4]*0.75,"kMGTPEZY"+k,bh[4]/5,ws,
+				x,by[4]+bh[4]*0.75,&"kMGTPEZY"[k],bh[4]/5,ws,
 				theme->InfoColor,canvasColor,1
 			);
 		}

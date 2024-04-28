@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPageAreasMap.h
 //
-// Copyright (C) 2023 Oliver Hamann.
+// Copyright (C) 2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,7 +54,9 @@ private:
 
 	struct Entry {
 		Entry();
+		Entry(const Entry & entry);
 		~Entry();
+		Entry & operator = (const Entry & entry);
 		bool Requested;
 		emPdfServerModel::JobHandle JobHandle;
 		emPdfServerModel::PageAreas Areas;

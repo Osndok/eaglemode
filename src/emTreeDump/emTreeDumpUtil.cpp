@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpUtil.cpp
 //
-// Copyright (C) 2007-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2007-2009,2014,2018-2019,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -398,6 +398,7 @@ void emTreeDumpFromRootContext(emRootContext * rootContext, emTreeDumpRec * rec)
 		"\nInclude    : " + emGetInstallPath(EM_IDT_INCLUDE    ,"emCore") +
 		"\nLib        : " + emGetInstallPath(EM_IDT_LIB        ,"emCore") +
 		"\nHtml Doc   : " + emGetInstallPath(EM_IDT_HTML_DOC   ,"emCore") +
+		"\nPdf Doc    : " + emGetInstallPath(EM_IDT_PDF_DOC    ,"emCore") +
 		"\nPs Doc     : " + emGetInstallPath(EM_IDT_PS_DOC     ,"emCore") +
 		"\nUser Config: " + emGetInstallPath(EM_IDT_USER_CONFIG,"emCore") +
 		"\nHost Config: " + emGetInstallPath(EM_IDT_HOST_CONFIG,"emCore") +

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010,2014,2016,2018-2020 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016,2018-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -213,7 +213,10 @@ void emImage::TryParseXpm(
 		}
 		if (i<n) {
 			memmove(syms+i+1,syms+i,sizeof(emUInt32)*(n-i));
+#			pragma GCC diagnostic push
+#			pragma GCC diagnostic ignored "-Wclass-memaccess"
 			memmove(cols+i+1,cols+i,sizeof(emColor)*(n-i));
+#			pragma GCC diagnostic pop
 		}
 		syms[i]=sym;
 		cols[i]=col;

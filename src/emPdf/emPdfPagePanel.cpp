@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011,2014,2016,2020-2023 Oliver Hamann.
+// Copyright (C) 2011,2014,2016,2020-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,8 +19,9 @@
 //------------------------------------------------------------------------------
 
 #include <emPdf/emPdfPagePanel.h>
-#include <emCore/emDialog.h>
+#include <emCore/emLabel.h>
 #include <emCore/emRes.h>
+#include <emCore/emTextField.h>
 
 
 emPdfPagePanel::emPdfPagePanel(
@@ -61,6 +62,8 @@ emPdfPagePanel::~emPdfPagePanel()
 {
 	int i;
 
+	if (OpenUrlDialog) OpenUrlDialog->Finish(emDialog::NEGATIVE);
+
 	for (i=0; i<3; i++) {
 		ResetLayer(Layers[i], true);
 	}
@@ -95,6 +98,14 @@ bool emPdfPagePanel::Cycle()
 
 	if (IsSignaled(FileModel->GetPageAreasMap().GetPageAreasSignal())) {
 		UpdateCurrentRect();
+	}
+
+	if (OpenUrlDialog && IsSignaled(OpenUrlDialog->GetFinishSignal())) {
+		if (OpenUrlDialog->GetResult()==emDialog::POSITIVE) {
+			OpenCurrentUrl();
+		}
+		OpenUrlDialog=NULL;
+		CurrentUrl.Clear();
 	}
 
 	for (i=0; i<3; i++) {
@@ -681,10 +692,6 @@ void emPdfPagePanel::UpdateCurrentRect()
 void emPdfPagePanel::TriggerCurrectRect()
 {
 	const emPdfServerModel::PageAreas * areas;
-	const emPdfServerModel::RefRect * rr;
-	emPanel * panel;
-	emPdfPagePanel * pagePanel;
-	double pw,ph,pt,vt,relX,relY,relA;
 
 	areas=FileModel->GetPageAreasMap().GetPageAreas(PageIndex);
 	if (!areas) return;
@@ -694,36 +701,192 @@ void emPdfPagePanel::TriggerCurrectRect()
 		CurrentRectIndex>=0 &&
 		CurrentRectIndex<areas->UriRects.GetCount()
 	) {
-		emDialog::ShowMessage(GetView(),"Error","Triggering URI not implemented");
+		TriggerUri(areas->UriRects[CurrentRectIndex]);
 	}
-
-	if (
+	else if (
 		CurrentRectType==RT_REF &&
 		CurrentRectIndex>=0 &&
-		CurrentRectIndex<areas->RefRects.GetCount() &&
-		GetParent()
+		CurrentRectIndex<areas->RefRects.GetCount()
 	) {
-		rr=&areas->RefRects[CurrentRectIndex];
-		pagePanel=NULL;
-		for (panel=GetParent()->GetFirstChild(); panel; panel=panel->GetNext()) {
-			pagePanel=dynamic_cast<emPdfPagePanel*>(panel);
-			if (pagePanel && pagePanel->GetPageIndex()==rr->TargetPage) break;
-			pagePanel=NULL;
-		}
-		if (!pagePanel) return;
+		TriggerRef(areas->RefRects[CurrentRectIndex]);
+	}
+}
 
-		pw=FileModel->GetPageWidth(rr->TargetPage);
-		ph=FileModel->GetPageHeight(rr->TargetPage);
-		pt=ph/pw;
-		vt=GetView().GetCurrentTallness();
-		if (vt>=pt) {
-			GetView().VisitFullsized(pagePanel,true);
-			return;
+
+void emPdfPagePanel::TriggerRef(const emPdfServerModel::RefRect & refRect)
+{
+	emPanel * panel;
+	emPdfPagePanel * pagePanel;
+	double pw,ph,pt,vt,relX,relY,relA;
+
+	if (!GetParent()) return;
+	pagePanel=NULL;
+	for (panel=GetParent()->GetFirstChild(); panel; panel=panel->GetNext()) {
+		pagePanel=dynamic_cast<emPdfPagePanel*>(panel);
+		if (pagePanel && pagePanel->GetPageIndex()==refRect.TargetPage) break;
+		pagePanel=NULL;
+	}
+	if (!pagePanel) return;
+
+	pw=FileModel->GetPageWidth(refRect.TargetPage);
+	ph=FileModel->GetPageHeight(refRect.TargetPage);
+	pt=ph/pw;
+	vt=GetView().GetCurrentTallness();
+	if (vt>=pt) {
+		GetView().VisitFullsized(pagePanel,true);
+		return;
+	}
+	relX=0.0;
+	relY=-(1.0-vt/pt)*0.5;
+	relY+=emMin(1.0-vt/pt,emMax(0.0,refRect.TargetY/ph));
+	relA=vt/pt;
+	GetView().Visit(pagePanel,relX,relY,relA,true);
+}
+
+
+void emPdfPagePanel::TriggerUri(const emPdfServerModel::UriRect & uriRect)
+{
+	static const char * eaglemodeUriStart = "eaglemode:";
+	static const char * allowedUrlStarts[] = {
+		// "file://" is not included here because the file could be executed instead
+		// of being shown or edited (default on Windows for .BAT etc.). That may
+		// not be what the user expects, and it could be a security risk.
+		"http://",
+		"https://",
+		"mailto://"
+	};
+	static const char * allowedSpecialUrlCharacters = "#%&+-./:=?@_~";
+	emTextField * tf;
+	emString str;
+	const char * p;
+	char * q;
+	int i,n;
+	char c;
+	bool urlGood;
+
+	// Support special URIs of the form eaglemode:<panel identity> where the
+	// identified panel is visited without ask. Characters can be quoted
+	// with %<hex><hex> as usual.
+	if (strncasecmp(
+		uriRect.Uri.Get(),eaglemodeUriStart,strlen(eaglemodeUriStart)
+	)==0) {
+		str=uriRect.Uri.Get()+strlen(eaglemodeUriStart);
+		q=str.GetWritable();
+		p=q;
+		while (*p) {
+			c=*p++;
+			*q++=c;
+			if (c!='%') continue;
+			n=0;
+			for (i=0; i<2; i++) {
+				n<<=4;
+				c=p[i];
+				if (c>='0' && c<='9') n|=c-'0';
+				else if (c>='A' && c<='F') n|=c-'A'+10;
+				else if (c>='a' && c<='f') n|=c-'a'+10;
+				else break;
+			}
+			if (i<2) continue;
+			q[-1]=(char)n;
+			p+=2;
 		}
-		relX=0.0;
-		relY=-(1.0-vt/pt)*0.5;
-		relY+=emMin(1.0-vt/pt,emMax(0.0,rr->TargetY/ph));
-		relA=vt/pt;
-		GetView().Visit(pagePanel,relX,relY,relA,true);
+		n=q-str.Get();
+		str.Remove(n,str.GetLen()-n);
+		GetView().VisitFullsized(str,true);
+		return;
+	}
+
+	// Support ordinary URLs, but do not allow every protocol or unusual
+	// characters for security reason.
+	n=sizeof(allowedUrlStarts)/sizeof(allowedUrlStarts[0]);
+	urlGood=false;
+	for (i=0; i<n; i++) {
+		p=allowedUrlStarts[i];
+		if (strncasecmp(uriRect.Uri.Get(),p,strlen(p))==0) {
+			urlGood=true;
+			break;
+		}
+	}
+	for (p=uriRect.Uri.Get(); *p; p++) {
+		c=*p;
+		if (c>='A' && c<='Z') continue;
+		if (c>='a' && c<='z') continue;
+		if (c>='0' && c<='9') continue;
+		if (strchr(allowedSpecialUrlCharacters, c)) continue;
+		urlGood=false;
+		break;
+	}
+	if (!urlGood) {
+		emDialog::ShowMessage(
+			GetViewContext(),"Error",
+			"Invalid or disallowed URL:\n"+uriRect.Uri
+		);
+		return;
+	}
+
+	// Ask user if he really wants to open that URL.
+	if (OpenUrlDialog) OpenUrlDialog->Finish(emDialog::NEGATIVE);
+	OpenUrlDialog=new emDialog(GetViewContext());
+	OpenUrlDialog->SetRootTitle("Open URL");
+	new emLabel(
+		OpenUrlDialog->GetContentPanel(),"l",
+		"Are you sure to open the following URL\n"
+		"with the assigned preferred application\n"
+		"(by executing "
+#	ifdef _WIN32
+		"cmd /C START"
+#	else
+		"xdg-open"
+#	endif
+		")?"
+	);
+	tf=new emTextField(
+		OpenUrlDialog->GetContentPanel(),"t","","",emImage(),uriRect.Uri
+	);
+	tf->SetOuterBorderType(emBorder::OBT_MARGIN);
+	OpenUrlDialog->AddOKCancelButtons();
+	OpenUrlDialog->EnableAutoDeletion();
+	AddWakeUpSignal(OpenUrlDialog->GetFinishSignal());
+	CurrentUrl=uriRect.Uri;
+}
+
+
+void emPdfPagePanel::OpenCurrentUrl()
+{
+	emArray<emString> args;
+
+	// When changing this, remember to adapt the text in emPdfPagePanel::TriggerUri.
+#	ifdef _WIN32
+		args.Add("cmd");
+		args.Add("/E:ON");
+		args.Add("/F:OFF");
+		args.Add("/V:OFF");
+		args.Add("/C");
+		args.Add("START");
+		// If the next argument is in double quotes, then the START
+		// command interprets that as the title. Thus a dummy title is
+		// needed for the case emProcess puts the URL in double quotes.
+		// A space in the title is needed to force emProcess to put the
+		// title in double quotes.
+		args.Add("Open URL");
+		args.Add(CurrentUrl);
+#	else
+		args.Add("xdg-open");
+		args.Add(CurrentUrl);
+#	endif
+
+	try {
+		emProcess::TryStartUnmanaged(
+			args,
+			emArray<emString>(),
+			NULL,
+			emProcess::SF_SHARE_STDIN|
+			emProcess::SF_SHARE_STDOUT|
+			emProcess::SF_SHARE_STDERR|
+			emProcess::SF_NO_WINDOW
+		);
+	}
+	catch (const emException & exception) {
+		emDialog::ShowMessage(GetViewContext(),"Error",exception.GetText());
 	}
 }

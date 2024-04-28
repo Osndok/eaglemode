@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfSelection.h
 //
-// Copyright (C) 2023 Oliver Hamann.
+// Copyright (C) 2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -103,7 +103,9 @@ private:
 
 	struct PageData {
 		PageData();
+		PageData(const PageData & pageData);
 		~PageData();
+		PageData & operator = (const PageData & pageData);
 		PageSelection Selection;
 		emPdfServerModel::JobHandle GetSelectedTextJob;
 		emString TempText;

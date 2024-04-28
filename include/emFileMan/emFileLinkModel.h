@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkModel.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -40,12 +40,13 @@ public:
 		BPT_INCLUDE     =  2,
 		BPT_LIB         =  3,
 		BPT_HTML_DOC    =  4,
-		BPT_PS_DOC      =  5,
-		BPT_USER_CONFIG =  6,
-		BPT_HOST_CONFIG =  7,
-		BPT_TMP         =  8,
-		BPT_RES         =  9,
-		BPT_HOME        = 10
+		BPT_PDF_DOC     =  5,
+		BPT_PS_DOC      =  6,
+		BPT_USER_CONFIG =  7,
+		BPT_HOST_CONFIG =  8,
+		BPT_TMP         =  9,
+		BPT_RES         = 10,
+		BPT_HOME        = 11
 	};
 	emEnumRec BasePathType;
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter.cpp
 //
-// Copyright (C) 2001,2003-2011,2016-2020,2022 Oliver Hamann.
+// Copyright (C) 2001,2003-2011,2016-2020,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -3318,7 +3318,10 @@ void emPainter::PaintSolidPolyline(
 	else {
 		vtx=(Vertex*)malloc(n*sizeof(Vertex));
 		autoOutMem=(double*)autoVtxAndOutMem;
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wsizeof-array-div"
 		xyOutSize=sizeof(autoVtxAndOutMem)/sizeof(double);
+#		pragma GCC diagnostic pop
 	}
 
 	minSegLen=MinRelSegLen*thickness*1.01;

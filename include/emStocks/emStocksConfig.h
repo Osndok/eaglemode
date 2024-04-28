@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksConfig.h
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emConfigModel_h
 #include <emCore/emConfigModel.h>
+#endif
+
+#ifndef emStocksRec_h
+#include <emStocks/emStocksRec.h>
 #endif
 
 
@@ -72,7 +76,7 @@ public:
 	emBoolRec AutoUpdateDates;
 	emBoolRec TriggeringOpensWebPage;
 	emEnumRec ChartPeriod;
-	emEnumRec MinVisibleInterest;
+	emStocksRec::InterestRec MinVisibleInterest;
 	emTArrayRec<emStringRec> VisibleCountries;
 	emTArrayRec<emStringRec> VisibleSectors;
 	emTArrayRec<emStringRec> VisibleCollections;

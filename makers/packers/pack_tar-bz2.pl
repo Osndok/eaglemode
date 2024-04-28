@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_tar-bz2.pl
 #
-# Copyright (C) 2010,2017 Oliver Hamann.
+# Copyright (C) 2010,2017,2024 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -36,7 +36,7 @@ if ($Config{'osname'} eq "MSWin32" || $Config{'osname'} eq "cygwin") {
 
 # Make sure to have the documentation up-to-date.
 system('perl',Var('PRJ_DIR').'/doc/html/src/make-CppApiRef.pl')==0 || exit(1);
-system('perl',Var('PRJ_DIR').'/doc/ps/src/make-ps.pl')==0 || exit(1);
+system('perl',Var('PRJ_DIR').'/doc/pdf/src/make-pdf.pl')==0 || exit(1);
 
 # Have an empty temporary directory.
 my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-tar-bz2-packing-'.$>);

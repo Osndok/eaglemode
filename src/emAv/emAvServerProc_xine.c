@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_xine.c
 //
-// Copyright (C) 2008,2010-2013,2015,2019-2021 Oliver Hamann.
+// Copyright (C) 2008,2010-2013,2015,2019-2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -394,7 +394,12 @@ static void emAvContMsgV(const char * format, va_list args)
 
 	p=emAvPipeOutBuf+emAvPipeOutBufFill;
 	a=emAvPipeBufSize-emAvPipeOutBufFill;
+
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wformat-nonliteral"
 	l=vsnprintf(p,a,format,args);
+#	pragma clang diagnostic pop
+
 	if (l<0 || l>a) l=a; /* just clip it... */
 	for (i=0; i<l; i++) {
 		if (p[i]==0x0a) p[i]=0x1a;

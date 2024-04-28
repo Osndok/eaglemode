@@ -1,5 +1,5 @@
 #%rec:emFileLink%#
 
-BasePathType=PsDoc
+BasePathType=PdfDoc
 BasePathProject="emMain"
-Path="GeneralUserGuide.ps"
+Path="GeneralUserGuide.pdf"

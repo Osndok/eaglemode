@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emSvgServerProc.c
 //
-// Copyright (C) 2010-2011,2017-2020,2022 Oliver Hamann.
+// Copyright (C) 2010-2011,2017-2020,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,12 +24,7 @@
 #include <string.h>
 #include <locale.h>
 #include <librsvg/rsvg.h>
-#if defined(LIBRSVG_CHECK_VERSION)
-#	if !LIBRSVG_CHECK_VERSION(2,36,2)
-#		include <librsvg/rsvg-cairo.h>
-#	endif
-#else
-#	include <librsvg/librsvg-features.h>
+#if !LIBRSVG_CHECK_VERSION(2,36,2)
 #	include <librsvg/rsvg-cairo.h>
 #endif
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -45,7 +40,8 @@
 
 typedef struct {
 	RsvgHandle * handle;
-	RsvgDimensionData dimData;
+	gdouble width;
+	gdouble height;
 } emSvgInst;
 
 
@@ -57,6 +53,28 @@ static int emSvgInstArraySize=0;
 static HANDLE emSvgShmHdl=NULL;
 #endif
 static void * emSvgShmPtr=NULL;
+
+
+static char * emSvgConvertGError(GError * * err)
+{
+	char * msg, * p;
+
+	if (err && *err && (*err)->message[0]) {
+		msg=strdup((*err)->message);
+		for (p=msg;;) {
+			if ((p=strchr(p,'\n'))==NULL) break;
+			*p=' ';
+		}
+	}
+	else {
+		msg=strdup("unknown error");
+	}
+	if (err && *err) {
+		g_error_free(*err);
+		*err=NULL;
+	}
+	return msg;
+}
 
 
 static void emSvgAttachShm(const char * args)
@@ -142,9 +160,9 @@ static void emSvgPrintQuoted(const char * str)
 static void emSvgOpen(const char * args)
 {
 	const char * filePath, * title, * desc;
-	char * msg, * p;
-	GError * err;
 	emSvgInst * inst;
+	GError * err;
+	char * msg;
 	int instId;
 
 	filePath=args;
@@ -192,32 +210,52 @@ static void emSvgOpen(const char * args)
 	inst->handle=rsvg_handle_new_from_file(filePath,&err);
 #endif
 	if (!inst->handle) {
-		msg=strdup(
-			(err && err->message && err->message[0]) ? err->message : "unknown error"
-		);
-		for (p=msg;;) {
-			if ((p=strchr(p,'\n'))==NULL) break;
-			*p=' ';
-		}
+		msg=emSvgConvertGError(&err);
 		printf("error: Failed to read %s (%s)\n",filePath,msg);
 		free(msg);
-		if (err) g_error_free(err);
 		free(inst);
 		return;
 	}
 
-	rsvg_handle_get_dimensions(inst->handle,&inst->dimData);
+#if LIBRSVG_CHECK_VERSION(2,52,0)
+	if (!rsvg_handle_get_intrinsic_size_in_pixels(
+		inst->handle,&inst->width,&inst->height
+	)) {
+		/* rsvg_handle_get_intrinsic_dimensions did not help in this
+		   case. Thus, call the deprecated function as long as it is
+		   available. */
+#	if 1 /* !LIBRSVG_CHECK_VERSION(?,?,?) */
+		RsvgDimensionData dimData;
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		rsvg_handle_get_dimensions(inst->handle,&dimData);
+#		pragma GCC diagnostic pop
+		inst->width=dimData.width;
+		inst->height=dimData.height;
+#	else
+		printf("error: Failed to get dimensions\n");
+		g_object_unref(inst->handle);
+		free(inst);
+		return;
+#	endif
+	}
+#else
+	RsvgDimensionData dimData;
+	rsvg_handle_get_dimensions(inst->handle,&dimData);
+	inst->width=dimData.width;
+	inst->height=dimData.height;
+#endif
 
 	if (
-		inst->dimData.width<=0 ||
-		inst->dimData.height<=0 ||
-		inst->dimData.width<inst->dimData.height/100 ||
-		inst->dimData.height<inst->dimData.width/100
+		inst->width<=0.0 ||
+		inst->height<=0.0 ||
+		inst->width<inst->height/100.0 ||
+		inst->height<inst->width/100.0
 	) {
 		printf(
-			"error: Unsupported SVG image dimensions: %d x %d\n",
-			inst->dimData.width,
-			inst->dimData.height
+			"error: Unsupported SVG image dimensions: %f x %f\n",
+			inst->width,
+			inst->height
 		);
 		g_object_unref(inst->handle);
 		free(inst);
@@ -241,21 +279,17 @@ static void emSvgOpen(const char * args)
 	}
 	emSvgInstArray[instId]=inst;
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	title = rsvg_handle_get_title(inst->handle);
 	desc = rsvg_handle_get_desc(inst->handle);
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
 #	pragma GCC diagnostic pop
-#endif
 
 	printf(
-		"opened: %d %d %d ",
+		"opened: %d %f %f ",
 		instId,
-		inst->dimData.width,
-		inst->dimData.height
+		inst->width,
+		inst->height
 	);
 	emSvgPrintQuoted(title);
 	putchar(' ');
@@ -290,6 +324,11 @@ static void emSvgRender(const char * args)
 	cairo_surface_t * surface;
 	cairo_t * cr;
 	emSvgInst * inst;
+#if LIBRSVG_CHECK_VERSION(2,52,0)
+	GError * err;
+	char * msg;
+	RsvgRectangle viewport;
+#endif
 	double srcX, srcY, srcW, srcH;
 	int instId, shmOffset, shmW, shmH;
 
@@ -346,7 +385,23 @@ static void emSvgRender(const char * args)
 	cairo_scale(cr,shmW/srcW,shmH/srcH);
 	cairo_translate(cr,-srcX,-srcY);
 
+#if LIBRSVG_CHECK_VERSION(2,52,0)
+	viewport.x=0.0;
+	viewport.y=0.0;
+	viewport.width=inst->width;
+	viewport.height=inst->height;
+	err=NULL;
+	if (!rsvg_handle_render_document(inst->handle,cr,&viewport,&err)) {
+		msg=emSvgConvertGError(&err);
+		printf("error: SVG rendering failed (%s)\n",msg);
+		free(msg);
+		cairo_destroy(cr);
+		cairo_surface_destroy(surface);
+		return;
+	}
+#else
 	rsvg_handle_render_cairo(inst->handle,cr);
+#endif
 
 #if defined(EM_SVG_DEBUG_BY_WRITING_PNG)
 	cairo_surface_write_to_png(surface,"/tmp/emSvgTest.png");
@@ -364,18 +419,14 @@ static int emSvgServe(int argc, char * argv[])
 	char * buf,* args;
 	int bufSize,len;
 
-#if defined(LIBRSVG_CHECK_VERSION)
-#	if !LIBRSVG_CHECK_VERSION(2,35,0)
+#if !LIBRSVG_CHECK_VERSION(2,35,0)
 	rsvg_init();
-#	elif defined(GLIB_CHECK_VERSION)
-#		if !GLIB_CHECK_VERSION(2,36,0)
-	g_type_init();
-#		endif
-#	else
+#elif defined(GLIB_CHECK_VERSION)
+#	if !GLIB_CHECK_VERSION(2,36,0)
 	g_type_init();
 #	endif
 #else
-	rsvg_init();
+	g_type_init();
 #endif
 
 	setlocale(LC_NUMERIC,"C");
@@ -402,11 +453,7 @@ static int emSvgServe(int argc, char * argv[])
 
 	free(buf);
 
-#if defined(LIBRSVG_CHECK_VERSION)
-#	if !LIBRSVG_CHECK_VERSION(2,35,0)
-	rsvg_term();
-#	endif
-#else
+#if !LIBRSVG_CHECK_VERSION(2,35,0)
 	rsvg_term();
 #endif
 

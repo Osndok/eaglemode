@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emInstallInfo.cpp
 //
-// Copyright (C) 2006-2012,2014,2019-2020 Oliver Hamann.
+// Copyright (C) 2006-2012,2014,2019-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,6 +58,8 @@ static void emInitBaseInstallPaths(emString basePaths[EM_NUMBER_OF_IDTS])
 	basePaths[EM_IDT_LIB]=emGetChildPath(prefix,"lib");
 
 	basePaths[EM_IDT_HTML_DOC]=emGetChildPath(emGetChildPath(prefix,"doc"),"html");
+
+	basePaths[EM_IDT_PDF_DOC]=emGetChildPath(emGetChildPath(prefix,"doc"),"pdf");
 
 	basePaths[EM_IDT_PS_DOC]=emGetChildPath(emGetChildPath(prefix,"doc"),"ps");
 
@@ -141,6 +143,7 @@ emString emGetInstallPath(
 		case EM_IDT_BIN:
 		case EM_IDT_LIB:
 		case EM_IDT_HTML_DOC:
+		case EM_IDT_PDF_DOC:
 		case EM_IDT_PS_DOC:
 		case EM_IDT_TMP:
 		case EM_IDT_HOME:

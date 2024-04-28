@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.cpp
 //
-// Copyright (C) 2011,2014,2017-2019,2022-2023 Oliver Hamann.
+// Copyright (C) 2011,2014,2017-2019,2022-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -74,8 +74,27 @@ emPdfServerModel::PageAreas::PageAreas()
 }
 
 
+emPdfServerModel::PageAreas::PageAreas(const PageAreas & pageAreas)
+	: TextRects(pageAreas.TextRects),
+	UriRects(pageAreas.UriRects),
+	RefRects(pageAreas.RefRects)
+{
+}
+
+
 emPdfServerModel::PageAreas::~PageAreas()
 {
+}
+
+
+emPdfServerModel::PageAreas & emPdfServerModel::PageAreas::operator = (
+	const PageAreas & pageAreas
+)
+{
+	TextRects=pageAreas.TextRects;
+	UriRects=pageAreas.UriRects;
+	RefRects=pageAreas.RefRects;
+	return *this;
 }
 
 
@@ -840,7 +859,6 @@ bool emPdfServerModel::TryFinishOpenJob(OpenJob * job)
 
 bool emPdfServerModel::TryFinishGetAreasJob(GetAreasJob * job)
 {
-	PageAreas * areas;
 	emString cmd,args;
 	const char * p;
 	int l,r,x1,y1,x2,y2,type,pos;
@@ -873,34 +891,36 @@ bool emPdfServerModel::TryFinishGetAreasJob(GetAreasJob * job)
 		) {
 			throw emException("PDF server protocol error (%d)",__LINE__);
 		}
-		areas=job->OutputAreas;
-		if (type==0 && areas) {
-			areas->TextRects.AddNew();
-			TextRect & tr=areas->TextRects.GetWritable(areas->TextRects.GetCount()-1);
-			tr.X1=x1;
-			tr.Y1=y1;
-			tr.X2=x2;
-			tr.Y2=y2;
-		}
-		else if (type==1 && areas) {
-			areas->UriRects.AddNew();
-			UriRect & ur=areas->UriRects.GetWritable(areas->UriRects.GetCount()-1);
-			ur.X1=x1;
-			ur.Y1=y1;
-			ur.X2=x2;
-			ur.Y2=y2;
-			ur.Uri=Unquote(args.Get()+pos+1);
-		}
-		else if (type==2 && areas) {
-			areas->RefRects.AddNew();
-			RefRect & rr=areas->RefRects.GetWritable(areas->RefRects.GetCount()-1);
-			rr.X1=x1;
-			rr.Y1=y1;
-			rr.X2=x2;
-			rr.Y2=y2;
-			r=sscanf(args.Get()+pos+1,"%d %d",&rr.TargetPage,&rr.TargetY);
-			if (r<2) {
-				throw emException("PDF server protocol error (%d)",__LINE__);
+		if (!job->Orphan && job->OutputAreas) {
+			PageAreas & areas=*job->OutputAreas;
+			if (type==0) {
+				areas.TextRects.AddNew();
+				TextRect & tr=areas.TextRects.GetWritable(areas.TextRects.GetCount()-1);
+				tr.X1=x1;
+				tr.Y1=y1;
+				tr.X2=x2;
+				tr.Y2=y2;
+			}
+			else if (type==1) {
+				areas.UriRects.AddNew();
+				UriRect & ur=areas.UriRects.GetWritable(areas.UriRects.GetCount()-1);
+				ur.X1=x1;
+				ur.Y1=y1;
+				ur.X2=x2;
+				ur.Y2=y2;
+				ur.Uri=Unquote(args.Get()+pos+1);
+			}
+			else if (type==2) {
+				areas.RefRects.AddNew();
+				RefRect & rr=areas.RefRects.GetWritable(areas.RefRects.GetCount()-1);
+				rr.X1=x1;
+				rr.Y1=y1;
+				rr.X2=x2;
+				rr.Y2=y2;
+				r=sscanf(args.Get()+pos+1,"%d %d",&rr.TargetPage,&rr.TargetY);
+				if (r<2) {
+					throw emException("PDF server protocol error (%d)",__LINE__);
+				}
 			}
 		}
 	}

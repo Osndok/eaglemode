@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_clang.pm
 #
-# Copyright (C) 2018,2020-2022 Oliver Hamann.
+# Copyright (C) 2018,2020-2022,2024 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -116,6 +116,7 @@ sub Compile
 		push(@args,"-Wno-c++98-compat-pedantic");
 		push(@args,"-Wno-cast-align");
 		push(@args,"-Wno-cast-qual");
+		push(@args,"-Wno-comma");
 		push(@args,"-Wno-covered-switch-default");
 		push(@args,"-Wno-disabled-macro-expansion");
 		push(@args,"-Wno-documentation");
@@ -135,9 +136,13 @@ sub Compile
 		push(@args,"-Wno-shadow");
 		push(@args,"-Wno-shorten-64-to-32");
 		push(@args,"-Wno-sign-conversion");
+		push(@args,"-Wno-strict-prototypes");
 		push(@args,"-Wno-suggest-destructor-override");
 		push(@args,"-Wno-suggest-override");
 		push(@args,"-Wno-switch-enum");
+		push(@args,"-Wno-unknown-warning-option");
+		push(@args,"-Wno-unsafe-buffer-usage");
+		push(@args,"-Wno-unused-but-set-variable");
 		push(@args,"-Wno-unused-parameter");
 		push(@args,"-Wno-zero-as-null-pointer-constant");
 		foreach my $s (@{GetIncSearchDirs()}) { push(@args,"-I$s"); }

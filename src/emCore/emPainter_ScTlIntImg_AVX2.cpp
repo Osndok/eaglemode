@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPainter_ScTlIntImg_AVX2.cpp
 //
-// Copyright (C) 2020-2021 Oliver Hamann.
+// Copyright (C) 2020-2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,6 +32,8 @@
 //==============================================================================
 
 #include "emPainter_ScTl.h"
+
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #if EM_HAVE_X86_INTRINSICS
 #	if defined(_MSC_VER)

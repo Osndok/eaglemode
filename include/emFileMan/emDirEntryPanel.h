@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryPanel.h
 //
-// Copyright (C) 2004-2010,2016-2017 Oliver Hamann.
+// Copyright (C) 2004-2010,2016-2017,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -104,6 +104,7 @@ private:
 	emRef<emFileManViewConfig> Config;
 	emDirEntry DirEntry;
 	emColor BgColor;
+	bool RecursiveCall;
 };
 
 inline const emDirEntry & emDirEntryPanel::GetDirEntry() const

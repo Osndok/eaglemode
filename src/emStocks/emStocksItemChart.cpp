@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksItemChart.cpp
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -727,7 +727,10 @@ void emStocksItemChart::PaintYScaleLabels(const emPainter & painter) const
 		if (t<minTextHeight) continue;
 		if (t>maxTextHeight) t=maxTextHeight;
 		sprintf(frmt,"%%.%df",level>=0?0:((1-level)>>1));
+#		pragma clang diagnostic push
+#		pragma clang diagnostic ignored "-Wformat-nonliteral"
 		snprintf(tmp,sizeof(tmp),frmt,price);
+#		pragma clang diagnostic pop
 		tmp[sizeof(tmp)-1]=0;
 		painter.PaintTextBoxed(xt,y-t,x+w-xt,t,tmp,t,c,0,EM_ALIGN_LEFT);
 	}

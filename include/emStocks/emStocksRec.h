@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksRec.h
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -45,6 +45,18 @@ public:
 		LOW_INTEREST    = 2
 	};
 
+	class InterestRec : public emEnumRec {
+	public:
+		// Class exists only for supporting deprecated (partly buggy)
+		// identifiers.
+		InterestRec(emStructRec * parent, const char * varIdentifier,
+		            int defaultValue, bool bugInDeprecatedIdentifiers);
+		InterestRec & operator = (int value);
+		virtual void TryStartReading(emRecReader & reader);
+	private:
+		bool BugInDeprecatedIdentifiers;
+	};
+
 	class StockRec : public emStructRec {
 	public:
 		StockRec();
@@ -83,7 +95,7 @@ public:
 		emStringRec InquiryDate;
 			// When did one update desired price and expected dividend
 
-		emEnumRec Interest;
+		InterestRec Interest;
 
 		emTArrayRec<emStringRec> WebPages;
 

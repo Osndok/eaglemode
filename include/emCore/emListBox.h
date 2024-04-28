@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emListBox.h
 //
-// Copyright (C) 2015-2016,2021 Oliver Hamann.
+// Copyright (C) 2015-2016,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -398,7 +398,7 @@ private:
 
 	SelectionType SelType;
 	emArray<Item*> Items;
-	emAvlTree AvlTree;
+	emAvlTree ItemAvlTree;
 	emArray<int> SelectedItemIndices;
 	Item * TriggeredItem;
 	Item * PrevInputItem;

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emClipRects_h.html#emClipRects">emClipRects</A>.h
 //
-// Copyright (C) 2011-2012,2014 Oliver Hamann.
+// Copyright (C) 2011-2012,2014,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -883,8 +883,11 @@ typename </SPAN><A CLASS=l HREF="emCore_emClipRects_h.html#emClipRects">emClipRe
                         </SPAN>Data-&gt;BlockList=b-&gt;Next;
                         <SPAN CLASS=k>delete </SPAN>b;
                 <SPAN CLASS=b>}
+</SPAN><SPAN CLASS=p>#               pragma GCC diagnostic push
+#               pragma GCC diagnostic ignored "-Wfree-nonheap-object"
                 </SPAN><SPAN CLASS=k>delete </SPAN>Data;
-        <SPAN CLASS=b>}
+<SPAN CLASS=p>#               pragma GCC diagnostic pop
+        </SPAN><SPAN CLASS=b>}
 }
 
 

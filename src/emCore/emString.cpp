@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emString.cpp
 //
-// Copyright (C) 2004-2008,2011,2014,2020 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014,2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -111,7 +111,10 @@ emString emString::VFormat(const char * format, va_list args)
 	int len,len2;
 
 	va_copy(args2,args);
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wformat-nonliteral"
 	len=vsnprintf(autobuf,sizeof(autobuf),format,args2);
+#	pragma clang diagnostic pop
 	va_end(args2);
 
 	if (len>0 && len<=(int)sizeof(autobuf)) {
@@ -129,7 +132,10 @@ emString emString::VFormat(const char * format, va_list args)
 			d=(SharedData*)malloc(sizeof(SharedData)-sizeof(unsigned int)+1+len);
 			d->RefCount=1;
 			va_copy(args2,args);
+#			pragma clang diagnostic push
+#			pragma clang diagnostic ignored "-Wformat-nonliteral"
 			len2=vsnprintf(d->Buf,len+1,format,args2);
+#			pragma clang diagnostic pop
 			va_end(args2);
 			if (len2<0) {
 				if (len>1000000) {

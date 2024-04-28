@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileLinkModel.cpp
 //
-// Copyright (C) 2007-2008,2010 Oliver Hamann.
+// Copyright (C) 2007-2008,2010,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,6 +57,9 @@ emString emFileLinkModel::GetFullPath() const
 	case BPT_HTML_DOC:
 		basePath=emGetInstallPath(EM_IDT_HTML_DOC,basePathProject);
 		break;
+	case BPT_PDF_DOC:
+		basePath=emGetInstallPath(EM_IDT_PDF_DOC,basePathProject);
+		break;
 	case BPT_PS_DOC:
 		basePath=emGetInstallPath(EM_IDT_PS_DOC,basePathProject);
 		break;
@@ -95,6 +98,7 @@ emFileLinkModel::emFileLinkModel(emContext & context, const emString & name)
 		"Include",
 		"Lib",
 		"HtmlDoc",
+		"PdfDoc",
 		"PsDoc",
 		"UserConfig",
 		"HostConfig",

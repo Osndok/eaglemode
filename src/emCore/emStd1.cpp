@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2012,2014,2016,2018-2020 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016,2018-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -646,7 +646,10 @@ static void emRawLog(const char * pre, const char * format, va_list args)
 	__android_log_write(ANDROID_LOG_INFO,"eaglemode",message.Get());
 #else
 	if (pre) fputs(pre,stderr);
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wformat-nonliteral"
 	vfprintf(stderr,format,args);
+#	pragma clang diagnostic pop
 	fputs("\n",stderr);
 #endif
 }

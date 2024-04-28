@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,12 +34,17 @@ static void emTiff_ErrorHandler(const char* module, const char* fmt, va_list ap)
 	emTiff_ErrorMutex.Lock();
 	emTiff_ErrorThread=emThread::GetCurrentThreadId();
 	emTiff_Error[sizeof(emTiff_Error)-1]=0;
+
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wformat-nonliteral"
 	vsnprintf(
 		emTiff_Error,
 		sizeof(emTiff_Error)-1,
 		fmt,
 		ap
 	);
+#	pragma clang diagnostic pop
+
 	emTiff_ErrorMutex.Unlock();
 }
 
@@ -78,8 +83,8 @@ void emTiffImageFileModel::TryStartLoading()
 	int samplesPerPixel,bitsPerSample,compression,photometric;
 	emString compStr;
 	char * imageDesc;
-	uint32 u32;
-	uint16 u16;
+	emUInt32 u32;
+	emUInt16 u16;
 	TIFF * t;
 
 	L=new LoadingState;
@@ -186,8 +191,8 @@ bool emTiffImageFileModel::TryContinueLoading()
 {
 	TIFF * t;
 	unsigned char * map, * tgt;
-	uint32 * src;
-	uint32 pix;
+	emUInt32 * src;
+	emUInt32 pix;
 	int r,x,y,x2,y2;
 
 	//??? PartW*PartH is often not less than ImgW*ImgH!
@@ -195,7 +200,7 @@ bool emTiffImageFileModel::TryContinueLoading()
 	t=(TIFF*)L->Tif;
 
 	if (!L->Buffer) {
-		L->Buffer=new uint32[L->PartW*(size_t)L->PartH];
+		L->Buffer=new emUInt32[L->PartW*(size_t)L->PartH];
 		Image.Setup(L->ImgW,L->ImgH,L->Channels);
 		Signal(ChangeSignal);
 		return false;
@@ -203,10 +208,10 @@ bool emTiffImageFileModel::TryContinueLoading()
 
 	if (L->CurrentOp==0) {
 		if (L->Tiled) {
-			r=TIFFReadRGBATile(t,L->CurrentX,L->CurrentY,(uint32*)L->Buffer);
+			r=TIFFReadRGBATile(t,L->CurrentX,L->CurrentY,(emUInt32*)L->Buffer);
 		}
 		else {
-			r=TIFFReadRGBAStrip(t,L->CurrentY,(uint32*)L->Buffer);
+			r=TIFFReadRGBAStrip(t,L->CurrentY,(emUInt32*)L->Buffer);
 		}
 		if (!r) ThrowTiffError();
 		L->CurrentOp=1;
@@ -217,7 +222,7 @@ bool emTiffImageFileModel::TryContinueLoading()
 	y2=L->CurrentY+L->PartH; if (y2>L->ImgH) y2=L->ImgH;
 	map=Image.GetWritableMap();
 	for (y=L->CurrentY; y<y2; y++) {
-		src=((uint32*)L->Buffer)+(y2-1-y)*(size_t)L->PartW;
+		src=((emUInt32*)L->Buffer)+(y2-1-y)*(size_t)L->PartW;
 		tgt=map+(y*(size_t)L->ImgW+L->CurrentX)*L->Channels;
 		switch (L->Channels) {
 		case 1:
@@ -281,7 +286,7 @@ bool emTiffImageFileModel::TryContinueLoading()
 void emTiffImageFileModel::QuitLoading()
 {
 	if (L) {
-		if (L->Buffer) delete [] (uint32*)L->Buffer;
+		if (L->Buffer) delete [] (emUInt32*)L->Buffer;
 		if (L->Tif) TIFFClose((TIFF*)L->Tif);
 		delete L;
 		L=NULL;

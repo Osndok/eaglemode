@@ -20,7 +20,7 @@ Stocks = {
 		DesiredPrice = "74.0"
 		ExpectedDividend = "3.4"
 		InquiryDate = "2022-06-27"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -42,7 +42,7 @@ Stocks = {
 		DesiredPrice = "17.5"
 		ExpectedDividend = "2.0"
 		InquiryDate = "2022-07-19"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -64,7 +64,7 @@ Stocks = {
 		DesiredPrice = "25"
 		ExpectedDividend = "2.9"
 		InquiryDate = "2021-11-17"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -86,7 +86,7 @@ Stocks = {
 		DesiredPrice = "25.5"
 		ExpectedDividend = "5.0"
 		InquiryDate = "2022-09-22"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -108,7 +108,7 @@ Stocks = {
 		DesiredPrice = "62.0"
 		ExpectedDividend = "3.7"
 		InquiryDate = "2021-06-14"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -130,7 +130,7 @@ Stocks = {
 		DesiredPrice = "630.0"
 		ExpectedDividend = "0.0"
 		InquiryDate = "2022-10-04"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -152,7 +152,7 @@ Stocks = {
 		DesiredPrice = "350"
 		ExpectedDividend = "5.0"
 		InquiryDate = "2022-11-21"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -174,7 +174,7 @@ Stocks = {
 		DesiredPrice = "9.60"
 		ExpectedDividend = "3.0"
 		InquiryDate = "2020-12-31"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -196,7 +196,7 @@ Stocks = {
 		DesiredPrice = ""
 		ExpectedDividend = ""
 		InquiryDate = ""
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -218,7 +218,7 @@ Stocks = {
 		DesiredPrice = "280.0"
 		ExpectedDividend = "2.0"
 		InquiryDate = "2022-06-14"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -240,7 +240,7 @@ Stocks = {
 		DesiredPrice = "140.0"
 		ExpectedDividend = "2.1"
 		InquiryDate = "2022-11-28"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -262,7 +262,7 @@ Stocks = {
 		DesiredPrice = "15.0"
 		ExpectedDividend = "4.5"
 		InquiryDate = "2022-02-16"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -284,7 +284,7 @@ Stocks = {
 		DesiredPrice = "105.0"
 		ExpectedDividend = "2.8"
 		InquiryDate = "2022-10-24"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -306,7 +306,7 @@ Stocks = {
 		DesiredPrice = "93.0"
 		ExpectedDividend = "1.4"
 		InquiryDate = "2022-03-22"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -328,7 +328,7 @@ Stocks = {
 		DesiredPrice = "35.0"
 		ExpectedDividend = "0.0"
 		InquiryDate = "2022-04-05"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -350,7 +350,7 @@ Stocks = {
 		DesiredPrice = "10.25"
 		ExpectedDividend = "1.9"
 		InquiryDate = "2022-09-09"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -372,7 +372,7 @@ Stocks = {
 		DesiredPrice = "64.0"
 		ExpectedDividend = "4.0"
 		InquiryDate = "2022-09-28"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -394,7 +394,7 @@ Stocks = {
 		DesiredPrice = "63.0"
 		ExpectedDividend = "2.3"
 		InquiryDate = "2022-11-16"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -416,7 +416,7 @@ Stocks = {
 		DesiredPrice = "15.0"
 		ExpectedDividend = "3.7"
 		InquiryDate = "2021-10-15"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -438,7 +438,7 @@ Stocks = {
 		DesiredPrice = "62.00"
 		ExpectedDividend = "4.5"
 		InquiryDate = "2022-02-16"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -460,7 +460,7 @@ Stocks = {
 		DesiredPrice = "60.00"
 		ExpectedDividend = "0.5"
 		InquiryDate = "2021-12-16"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -482,7 +482,7 @@ Stocks = {
 		DesiredPrice = "175.0"
 		ExpectedDividend = "1.0"
 		InquiryDate = "2022-03-29"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -504,7 +504,7 @@ Stocks = {
 		DesiredPrice = "117.0"
 		ExpectedDividend = "3.1"
 		InquiryDate = "2022-08-3"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 	{
@@ -526,7 +526,7 @@ Stocks = {
 		DesiredPrice = "153.0"
 		ExpectedDividend = "3.1"
 		InquiryDate = "2022-11-17"
-		Interest = MEDIUM_INTEREST
+		Interest = MEDIUM
 		WebPages = {}
 	}
 }
