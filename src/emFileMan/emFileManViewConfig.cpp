@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.cpp
 //
-// Copyright (C) 2004-2008,2010,2014,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -269,7 +269,6 @@ emFileManViewConfig::emFileManViewConfig(
 	: emModel(view,name),
 	View(view)
 {
-	RevisitEngine=NULL;
 	FileManConfig=emFileManConfig::Acquire(GetRootContext());
 	SortCriterion=(SortCriterionType)FileManConfig->SortCriterion.Get();
 	NameSortingStyle=(NameSortingStyleType)FileManConfig->NameSortingStyle.Get();
@@ -286,7 +285,6 @@ emFileManViewConfig::emFileManViewConfig(
 
 emFileManViewConfig::~emFileManViewConfig()
 {
-	if (RevisitEngine) delete RevisitEngine;
 }
 
 
@@ -327,7 +325,6 @@ emFileManViewConfig::RevisitEngineClass::RevisitEngineClass(
 		VisIdentity=p->GetIdentity();
 		Subject=p->GetTitle();
 	}
-	VisitingVA=NULL;
 	SetEnginePriority(VERY_LOW_PRIORITY);
 	WakeUp();
 }
@@ -335,7 +332,6 @@ emFileManViewConfig::RevisitEngineClass::RevisitEngineClass(
 
 emFileManViewConfig::RevisitEngineClass::~RevisitEngineClass()
 {
-	if (VisitingVA) delete VisitingVA;
 }
 
 
@@ -358,7 +354,7 @@ bool emFileManViewConfig::RevisitEngineClass::Cycle()
 		return true;
 	}
 	else {
-		Config.RevisitEngine=NULL;
+		Config.RevisitEngine.Release();
 		delete this;
 		return false;
 	}

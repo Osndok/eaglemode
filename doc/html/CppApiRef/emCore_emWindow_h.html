@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emWindow_h.html#emWindow">emWindow</A>.h
 //
-// Copyright (C) 2005-2010,2016-2018,2022 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -217,7 +217,7 @@
         WindowFlags WFlags;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> WMResName;
         <A CLASS=l HREF="emCore_emImage_h.html#emImage">emImage</A> WindowIcon;
-        <A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> * WindowPort;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>&gt; WindowPort;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> WindowFlagsSignal;
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> CloseSignal;
         AutoDeleteEngineClass AutoDeleteEngine;
@@ -318,7 +318,7 @@
 
 </SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetWindowPort() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>*WindowPort;
+        </SPAN><SPAN CLASS=k>return </SPAN>(<A CLASS=l HREF="emCore_emWindow_h.html#emWindowPort">emWindowPort</A>&amp;)*WindowPort;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A>::GetCloseSignal() <SPAN CLASS=t>const

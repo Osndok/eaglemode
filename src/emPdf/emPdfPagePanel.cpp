@@ -134,7 +134,7 @@ void emPdfPagePanel::Notice(NoticeFlags flags)
 	if ((flags&NF_UPDATE_PRIORITY_CHANGED)!=0) {
 		for (i=0; i<3; i++) {
 			if (Layers[i].Job) {
-				Server->SetJobPriority(Layers[i].Job,GetUpdatePriority());
+				Layers[i].Job->SetPriority(GetUpdatePriority());
 			}
 		}
 	}
@@ -289,11 +289,6 @@ emPdfPagePanel::Layer::Layer()
 	SrcY(0.0),
 	SrcW(0.0),
 	SrcH(0.0),
-	Job(NULL),
-	JobSrcX(0.0),
-	JobSrcY(0.0),
-	JobSrcW(0.0),
-	JobSrcH(0.0),
 	JobDelayStartTime(0),
 	CoordinatesUpToDate(false),
 	ContentUpToDate(false),
@@ -311,13 +306,10 @@ emPdfPagePanel::Layer::~Layer()
 void emPdfPagePanel::ResetLayer(Layer & layer, bool clearImage)
 {
 	if (layer.Job) {
-		Server->CloseJob(layer.Job);
+		Server->AbortJob(*layer.Job);
 		layer.Job=NULL;
 		layer.CoordinatesUpToDate=false;
 		layer.ContentUpToDate=false;
-	}
-	if (!layer.JobImg.IsEmpty()) {
-		layer.JobImg.Clear();
 	}
 	if (clearImage) {
 		if (!layer.Img.IsEmpty()) {
@@ -351,32 +343,34 @@ bool emPdfPagePanel::UpdateLayer(Layer & layer)
 	}
 
 	if (layer.Job) {
-		switch (Server->GetJobState(layer.Job)) {
-		case emPdfServerModel::JS_WAITING:
-		case emPdfServerModel::JS_RUNNING:
+		switch (layer.Job->GetState()) {
+		case emJob::ST_WAITING:
+		case emJob::ST_RUNNING:
 			return true;
-		case emPdfServerModel::JS_ERROR:
-			layer.JobErrorText=Server->GetJobErrorText(layer.Job);
+		case emJob::ST_ERROR:
+			layer.JobErrorText=layer.Job->GetErrorText();
 			if (layer.JobErrorText.IsEmpty()) {
 				layer.JobErrorText="unknown error";
 			}
-			Server->CloseJob(layer.Job);
 			layer.Job=NULL;
-			layer.JobImg.Clear();
 			layer.Img.Clear();
 			InvalidatePainting();
 			return false;
-		case emPdfServerModel::JS_SUCCESS:
-			Server->CloseJob(layer.Job);
+		case emJob::ST_SUCCESS:
+			layer.SrcX=layer.Job->GetSrcX();
+			layer.SrcY=layer.Job->GetSrcY();
+			layer.SrcW=layer.Job->GetSrcWidth();
+			layer.SrcH=layer.Job->GetSrcHeight();
+			layer.Img=layer.Job->GetImage();
 			layer.Job=NULL;
-			layer.Img=layer.JobImg;
-			layer.SrcX=layer.JobSrcX;
-			layer.SrcY=layer.JobSrcY;
-			layer.SrcW=layer.JobSrcW;
-			layer.SrcH=layer.JobSrcH;
-			layer.JobImg.Clear();
 			InvalidatePainting();
 			break;
+		default:
+			layer.JobErrorText="Unexpected job state";
+			layer.Job=NULL;
+			layer.Img.Clear();
+			InvalidatePainting();
+			return false;
 		}
 	}
 
@@ -472,28 +466,27 @@ bool emPdfPagePanel::UpdateLayer(Layer & layer)
 	}
 
 	if (layer.Type==LT_SELECTION) {
-		layer.Job=Server->StartRenderSelectionJob(
-			FileModel->GetPdfHandle(),
+		layer.Job=new emPdfServerModel::RenderSelectionJob(
+			FileModel->GetPdfInstance(),
 			PageIndex,sx,sy,sw,sh,
 			(int)(iw+0.5),(int)(ih+0.5),
 			PageSelection.Style,
 			PageSelection.X1,PageSelection.Y1,
 			PageSelection.X2,PageSelection.Y2,
-			&layer.JobImg,GetUpdatePriority(),this
+			GetUpdatePriority()
 		);
 	}
 	else {
-		layer.Job=Server->StartRenderJob(
-			FileModel->GetPdfHandle(),
+		layer.Job=new emPdfServerModel::RenderJob(
+			FileModel->GetPdfInstance(),
 			PageIndex,sx,sy,sw,sh,
 			(int)(iw+0.5),(int)(ih+0.5),
-			&layer.JobImg,GetUpdatePriority(),this
+			GetUpdatePriority()
 		);
 	}
-	layer.JobSrcX=sx;
-	layer.JobSrcY=sy;
-	layer.JobSrcW=sw;
-	layer.JobSrcH=sh;
+	Server->EnqueueJob(*layer.Job);
+	AddWakeUpSignal(layer.Job->GetStateSignal());
+
 	layer.CoordinatesUpToDate=true;
 	layer.ContentUpToDate=true;
 	layer.JobDelayStartTimeSet=false;
@@ -618,7 +611,7 @@ void emPdfPagePanel::UpdateIconState()
 		if (emGetClockMS()-Layers[i].JobStartTime<2000) continue;
 		if (
 			iconState!=IS_RENDERING &&
-			Server->GetJobState(Layers[i].Job)==emPdfServerModel::JS_WAITING
+			Layers[i].Job->GetState()==emJob::ST_WAITING
 		) {
 			iconState=IS_WAITING;
 		}
@@ -753,7 +746,7 @@ void emPdfPagePanel::TriggerUri(const emPdfServerModel::UriRect & uriRect)
 		// not be what the user expects, and it could be a security risk.
 		"http://",
 		"https://",
-		"mailto://"
+		"mailto:"
 	};
 	static const char * allowedSpecialUrlCharacters = "#%&+-./:=?@_~";
 	emTextField * tf;

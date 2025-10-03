@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2020 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1428,19 +1428,21 @@ void emCloseLib(emLibHandle handle)
 
 	emLibTableMutex.Lock();
 	e=(emLibTableEntry*)handle;
-	if (e->RefCount && !e->RefCount--) {
+	if (e->RefCount) {
+		if (!--e->RefCount) {
 #if defined(_WIN32)
-		FreeLibrary(e->HModule);
-		e->HModule=NULL;
+			FreeLibrary(e->HModule);
+			e->HModule=NULL;
 #else
-		dlclose(e->DLHandle);
-		e->DLHandle=NULL;
+			dlclose(e->DLHandle);
+			e->DLHandle=NULL;
 #endif
-		emLibTable.BinaryRemoveByKey(
-			(void*)e->Filename.Get(),
-			emCompareLibEntryFilename
-		);
-		delete e;
+			emLibTable.BinaryRemoveByKey(
+				(void*)e->Filename.Get(),
+				emCompareLibEntryFilename
+			);
+			delete e;
+		}
 	}
 	emLibTableMutex.Unlock();
 }

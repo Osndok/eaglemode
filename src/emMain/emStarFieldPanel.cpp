@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStarFieldPanel.cpp
 //
-// Copyright (C) 2007-2008,2016,2020-2022 Oliver Hamann.
+// Copyright (C) 2007-2008,2016,2020-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,7 +69,6 @@ emStarFieldPanel::emStarFieldPanel(
 
 emStarFieldPanel::~emStarFieldPanel()
 {
-	if (Stars) delete [] Stars;
 }
 
 

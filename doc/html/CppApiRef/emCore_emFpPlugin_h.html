@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>.h
 //
-// Copyright (C) 2006-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,6 +29,10 @@
 
 </SPAN><SPAN CLASS=p>#ifndef emFpPlugin_h
 #define emFpPlugin_h
+
+#ifndef emOwnPtrArray_h
+#include &lt;<A CLASS=f HREF="emCore_emOwnPtrArray_h.html">emCore/emOwnPtrArray.h</A>&gt;
+#endif
 
 #ifndef emPanel_h
 #include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
@@ -198,11 +202,11 @@
 <SPAN CLASS=t>private</SPAN>:
 
         <SPAN CLASS=t>static int </SPAN>CmpReversePluginPriorities(
-                <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * <SPAN CLASS=t>const </SPAN>* obj1, <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * <SPAN CLASS=t>const </SPAN>* obj2,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * obj1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * obj2,
                 <SPAN CLASS=t>void </SPAN>* context
         );
 
-        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>*&gt; Plugins;
+        <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>&gt; Plugins;
                 <SPAN CLASS=c>// Sorted by descending priority, secondly by file name.
 </SPAN><SPAN CLASS=b>}</SPAN>;
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.h
 //
-// Copyright (C) 2006-2011,2016-2017,2022 Oliver Hamann.
+// Copyright (C) 2006-2011,2016-2017,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -119,7 +119,7 @@ private:
 	emWndsScreen * NextInstance;
 	int WindowProcRecursion;
 	emWndsScheduler * WndsScheduler;
-	WaitCursorThread * WCThread;
+	emOwnPtr<WaitCursorThread> WCThread;
 	emString WinClassName;
 
 	RECT DesktopRect;
@@ -136,7 +136,7 @@ private:
 	double MouseWarpX,MouseWarpY;
 	emArray<emWndsWindowPort*> WinPorts;
 
-	emWndsViewRenderer * ViewRenderer;
+	emOwnPtr<emWndsViewRenderer> ViewRenderer;
 };
 
 

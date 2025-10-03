@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>.h
 //
-// Copyright (C) 2015-2016,2021 Oliver Hamann.
+// Copyright (C) 2015-2016,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,8 +47,8 @@
         // key/value pairs and are sorted by the keys. <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A> has
         // copy-on-write behavior and stable iterators. The template parameter
         // KEY describes the type of the keys, and the template parameter VALUE
-        // describes the type of the values. Keys are compared with the normal
-        // comparison operators (==, &lt;=, &gt;...).
+        // describes the type of the values. Keys are compared with the less
+        // than and greater than operators (&lt;, &gt;).
 
         </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>();
                 <SPAN CLASS=c>// Construct an empty map.

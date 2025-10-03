@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # common.pm
 #
-# Copyright (C) 2010-2014,2017,2019-2021,2023 Oliver Hamann.
+# Copyright (C) 2010-2014,2017,2019-2021,2023-2024 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -77,7 +77,7 @@ if ($Config{'osname'} eq "linux") {
 }
 $V{'DEB_BUILD_DEPENDS'}=
 	'debhelper (>= 5), g++ (>= 4), perl, libx11-dev, libjpeg-dev, '.
-	'libpng-dev, libtiff5-dev, libwebp-dev, libvlc-dev, librsvg2-dev, '.
+	'libpng-dev, libtiff-dev, libwebp-dev, libvlc-dev, librsvg2-dev, '.
 	'libpoppler-glib-dev, libgtk2.0-dev, libfreetype6-dev';
 $V{'DEB_DEPENDS'}=
 	'perl, xterm, ghostscript, libc6, libgcc1, libstdc++6, libx11-6, '.
@@ -85,7 +85,7 @@ $V{'DEB_DEPENDS'}=
 	'vlc-plugin-base, librsvg2-2, libpoppler-glib8, libgtk2.0-0, '.
 	'libfreetype6';
 $V{'DEB_RECOMMENDS'}=
-	'abiword, genisoimage, htmldoc, libwebp6, libtiff5, netpbm, transfig';
+	'abiword, genisoimage, htmldoc, libwebp7, libtiff6, netpbm, transfig';
 
 $V{'RPM_PACKAGE_VERSION'}='1';
 $V{'RPM_GROUP'}='System/GUI/Other';
@@ -106,7 +106,7 @@ $V{'RPM_REQUIRES'}=
 	" libX11.so.6()(64bit)".
 	" libjpeg.so.62()(64bit)".
 	" libpng16.so.16()(64bit)".
-	" libtiff.so.5()(64bit)".
+	" libtiff.so.6()(64bit)".
 	" libwebp.so.7()(64bit)".
 	" libvlc.so.5()(64bit)".
 	" librsvg-2.so.2()(64bit)".
@@ -122,7 +122,7 @@ $V{'RPM_REQUIRES'}=
 	" libX11.so.6".
 	" libjpeg.so.62".
 	" libpng16.so.16".
-	" libtiff.so.5".
+	" libtiff.so.6".
 	" libwebp.so.7".
 	" libvlc.so.5".
 	" librsvg-2.so.2".

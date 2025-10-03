@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFileModel.cpp
 //
-// Copyright (C) 2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2010,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,12 +29,17 @@ emRef<emSvgFileModel> emSvgFileModel::Acquire(
 }
 
 
+emSvgServerModel::SvgInstance & emSvgFileModel::GetSvgInstance() const
+{
+	if (!SvgInstance) emFatalError("SvgInstance is NULL");
+	return *SvgInstance;
+}
+
+
 emSvgFileModel::emSvgFileModel(emContext & context, const emString & name)
 	: emFileModel(context,name)
 {
 	ServerModel=emSvgServerModel::Acquire(GetRootContext());
-	JobHandle=NULL;
-	SvgHandle=NULL;
 	FileSize=0;
 	Width=0.0;
 	Height=0.0;
@@ -51,10 +56,7 @@ emSvgFileModel::~emSvgFileModel()
 
 void emSvgFileModel::ResetData()
 {
-	if (SvgHandle) {
-		ServerModel->CloseSvg(SvgHandle);
-		SvgHandle=NULL;
-	}
+	SvgInstance=NULL;
 	FileSize=0;
 	Width=0.0;
 	Height=0.0;
@@ -71,19 +73,23 @@ void emSvgFileModel::TryStartLoading()
 
 bool emSvgFileModel::TryContinueLoading()
 {
-	if (!JobHandle) {
-		JobHandle=ServerModel->StartOpenJob(GetFilePath(),&SvgHandle);
+	if (!OpenJob) {
+		OpenJob=new emSvgServerModel::OpenJob(GetFilePath(),-1E200);
+		ServerModel->EnqueueJob(*OpenJob);
 		return false;
 	}
 	ServerModel->Poll(10);
-	switch (ServerModel->GetJobState(JobHandle)) {
-	case emSvgServerModel::JS_ERROR:
-		throw emException("%s",ServerModel->GetJobErrorText(JobHandle).Get());
-	case emSvgServerModel::JS_SUCCESS:
-		Width=ServerModel->GetSvgWidth(SvgHandle);
-		Height=ServerModel->GetSvgHeight(SvgHandle);
-		Title=ServerModel->GetSvgTitle(SvgHandle);
-		Description=ServerModel->GetSvgDescription(SvgHandle);
+	switch (OpenJob->GetState()) {
+	case emJob::ST_ERROR:
+		throw emException("%s",OpenJob->GetErrorText().Get());
+	case emJob::ST_ABORTED:
+		throw emException("Aborted");
+	case emJob::ST_SUCCESS:
+		SvgInstance=OpenJob->GetSvgInstance();
+		Width=SvgInstance->GetWidth();
+		Height=SvgInstance->GetHeight();
+		Title=SvgInstance->GetTitle();
+		Description=SvgInstance->GetDescription();
 		return true;
 	default:
 		break;
@@ -94,9 +100,12 @@ bool emSvgFileModel::TryContinueLoading()
 
 void emSvgFileModel::QuitLoading()
 {
-	if (JobHandle) {
-		ServerModel->CloseJob(JobHandle);
-		JobHandle=NULL;
+	if (OpenJob) {
+		if (
+			OpenJob->GetState()==emJob::ST_WAITING ||
+			OpenJob->GetState()==emJob::ST_RUNNING
+		) ServerModel->AbortJob(*OpenJob);
+		OpenJob=NULL;
 	}
 }
 
@@ -126,9 +135,7 @@ emUInt64 emSvgFileModel::CalcMemoryNeed()
 
 double emSvgFileModel::CalcFileProgress()
 {
-	if (
-		JobHandle &&
-		ServerModel->GetJobState(JobHandle)!=emSvgServerModel::JS_WAITING
-	) return 50.0;
+	if (SvgInstance) return 99.0;
+	if (OpenJob && OpenJob->GetState()!=emJob::ST_WAITING) return 50.0;
 	return 0.0;
 }

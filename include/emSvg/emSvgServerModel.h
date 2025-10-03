@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.h
 //
-// Copyright (C) 2010,2014,2017-2018,2022 Oliver Hamann.
+// Copyright (C) 2010,2014,2017-2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -25,6 +25,10 @@
 #include <emCore/emImage.h>
 #endif
 
+#ifndef emJob_h
+#include <emCore/emJob.h>
+#endif
+
 #ifndef emModel_h
 #include <emCore/emModel.h>
 #endif
@@ -40,42 +44,59 @@ public:
 
 	static emRef<emSvgServerModel> Acquire(emRootContext & rootContext);
 
-	typedef void * JobHandle;
-	typedef void * SvgHandle;
-
-	JobHandle StartOpenJob(
-		const emString & filePath, SvgHandle * svgHandleReturn,
-		double priority=0.0, emEngine * listenEngine=NULL
-	);
-
-	JobHandle StartRenderJob(
-		SvgHandle svgHandle, double srcX, double srcY, double srcWidth,
-		double srcHeight, emColor bgColor, emImage * outputImage,
-		double priority=0.0, emEngine * listenEngine=NULL
-	);
-
-	void SetJobPriority(JobHandle jobHandle, double priority);
-
-	void SetJobListenEngine(JobHandle jobHandle, emEngine * listenEngine);
-
-	enum JobState {
-		JS_WAITING,
-		JS_RUNNING,
-		JS_ERROR,
-		JS_SUCCESS
+	class SvgInstance : public emRefTarget, public emUncopyable {
+	public:
+		virtual ~SvgInstance();
+		double GetWidth() const;
+		double GetHeight() const;
+		const emString & GetTitle() const;
+		const emString & GetDescription() const;
+	private:
+		friend class emSvgServerModel;
+		SvgInstance(emSvgServerModel & svgServerModel);
+		emCrossPtr<emSvgServerModel> SvgServerModel;
+		emUInt64 ProcRunId;
+		int InstanceId;
+		double Width;
+		double Height;
+		emString Title;
+		emString Description;
 	};
-	JobState GetJobState(JobHandle jobHandle) const;
 
-	const emString & GetJobErrorText(JobHandle jobHandle) const;
+	class OpenJob : public emJob {
+	public:
+		OpenJob(const emString & filePath, double priority=0.0);
+		const emRef<SvgInstance>& GetSvgInstance() const;
+	private:
+		friend class emSvgServerModel;
+		emString FilePath;
+		emRef<SvgInstance> SvgInst;
+	};
 
-	void CloseJob(JobHandle jobHandle);
+	class RenderJob : public emJob {
+	public:
+		RenderJob(
+			SvgInstance & svgInstance, double srcX, double srcY,
+			double srcWidth, double srcHeight, emColor bgColor,
+			int tgtWidth, int tgtHeight, double priority=0.0
+		);
+		double GetSrcX() const;
+		double GetSrcY() const;
+		double GetSrcWidth() const;
+		double GetSrcHeight() const;
+		const emImage & GetImage() const;
+	private:
+		friend class emSvgServerModel;
+		emRef<SvgInstance> SvgInst;
+		double SrcX, SrcY, SrcWidth, SrcHeight;
+		emColor BgColor;
+		int TgtW, TgtH;
+		int ShmOffset;
+		emImage Image;
+	};
 
-	double GetSvgWidth(SvgHandle svgHandle) const;
-	double GetSvgHeight(SvgHandle svgHandle) const;
-	const emString & GetSvgTitle(SvgHandle svgHandle) const;
-	const emString & GetSvgDescription(SvgHandle svgHandle) const;
-
-	void CloseSvg(SvgHandle svgHandle);
+	void EnqueueJob(emJob & job);
+	void AbortJob(emJob & job);
 
 	void Poll(unsigned maxMillisecs);
 
@@ -88,75 +109,27 @@ protected:
 
 private:
 
-	struct SvgInstance {
-		SvgInstance();
-		~SvgInstance();
-		emUInt64 ProcRunId;
-		int InstanceId;
-		double Width;
-		double Height;
-		emString Title;
-		emString Description;
-	};
+	friend class SvgInstance;
 
-	enum JobType {
-		JT_OPEN_JOB,
-		JT_RENDER_JOB,
-		JT_CLOSE_JOB
-	};
-
-	struct Job {
-		Job();
-		virtual ~Job();
-		JobType Type;
-		JobState State;
-		emString ErrorText;
-		double Priority;
-		emEngine * ListenEngine;
-		bool Orphan;
-		Job * Prev;
-		Job * Next;
-	};
-
-	struct OpenJob : Job {
-		OpenJob();
-		virtual ~OpenJob();
-		emString FilePath;
-		SvgHandle * SvgHandleReturn;
-	};
-
-	struct RenderJob : Job {
-		RenderJob();
-		virtual ~RenderJob();
-		emUInt64 ProcRunId;
-		int InstanceId;
-		double SrcX, SrcY, SrcWidth, SrcHeight;
-		emColor BgColor;
-		emImage * OutputImage;
-		int TgtW, TgtH;
-		int ShmOffset;
-	};
-
-	struct CloseJobStruct : Job {
-		CloseJobStruct();
-		virtual ~CloseJobStruct();
+	class CloseJob : public emJob {
+	public:
+		CloseJob(emUInt64 procRunId, int instanceId);
+	private:
+		friend class emSvgServerModel;
 		emUInt64 ProcRunId;
 		int InstanceId;
 	};
 
 	void TryStartJobs();
-	void TryStartOpenJob(OpenJob * openJob);
-	bool TryStartRenderJob(RenderJob * renderJob);
-	void TryStartCloseJob(CloseJobStruct * closeJob);
+	void TryStartOpenJob(OpenJob & openJob);
+	bool TryStartRenderJob(RenderJob & renderJob);
+	void TryStartCloseJob(CloseJob & closeJob);
 
 	void TryFinishJobs();
-	void TryFinishOpenJob(OpenJob * openJob, const char * args);
-	void TryFinishRenderJob(RenderJob * renderJob);
+	void TryFinishOpenJob(OpenJob & openJob, const char * args);
+	void TryFinishRenderJob(RenderJob & renderJob);
 
 	void TryWriteAttachShm();
-
-	void FailAllRunningJobs(emString errorText);
-	void FailAllJobs(emString errorText);
 
 	void WriteLineToProc(const char * str);
 	emString ReadLineFromProc();
@@ -164,12 +137,6 @@ private:
 
 	void TryAllocShm(int size);
 	void FreeShm();
-
-	Job * SearchBestNextJob() const;
-
-	void AddJobToWaitingList(Job * job);
-	void AddJobToRunningList(Job * job);
-	void RemoveJobFromList(Job * job);
 
 	emProcess Process;
 	emUInt64 ProcRunId;
@@ -179,10 +146,7 @@ private:
 	emArray<char> ReadBuf;
 	emArray<char> WriteBuf;
 
-	Job * FirstWaitingJob;
-	Job * LastWaitingJob;
-	Job * FirstRunningJob;
-	Job * LastRunningJob;
+	emJobQueue JobQueue;
 
 	int ShmSize;
 
@@ -200,44 +164,56 @@ private:
 	static const int MinShmSize;
 };
 
-inline void emSvgServerModel::SetJobPriority(JobHandle jobHandle, double priority)
+
+inline double emSvgServerModel::SvgInstance::GetWidth() const
 {
-	((Job*)jobHandle)->Priority=priority;
+	return Width;
 }
 
-inline void emSvgServerModel::SetJobListenEngine(JobHandle jobHandle, emEngine * listenEngine)
+inline double emSvgServerModel::SvgInstance::GetHeight() const
 {
-	((Job*)jobHandle)->ListenEngine=listenEngine;
+	return Height;
 }
 
-inline emSvgServerModel::JobState emSvgServerModel::GetJobState(JobHandle jobHandle) const
+inline const emString & emSvgServerModel::SvgInstance::GetTitle() const
 {
-	return ((Job*)jobHandle)->State;
+	return Title;
 }
 
-inline const emString & emSvgServerModel::GetJobErrorText(JobHandle jobHandle) const
+inline const emString & emSvgServerModel::SvgInstance::GetDescription() const
 {
-	return ((Job*)jobHandle)->ErrorText;
+	return Description;
 }
 
-inline double emSvgServerModel::GetSvgWidth(SvgHandle svgHandle) const
+inline const emRef<emSvgServerModel::SvgInstance>&
+	emSvgServerModel::OpenJob::GetSvgInstance() const
 {
-	return ((SvgInstance*)svgHandle)->Width;
+	return SvgInst;
 }
 
-inline double emSvgServerModel::GetSvgHeight(SvgHandle svgHandle) const
+inline double emSvgServerModel::RenderJob::GetSrcX() const
 {
-	return ((SvgInstance*)svgHandle)->Height;
+	return SrcX;
 }
 
-inline const emString & emSvgServerModel::GetSvgTitle(SvgHandle svgHandle) const
+inline double emSvgServerModel::RenderJob::GetSrcY() const
 {
-	return ((SvgInstance*)svgHandle)->Title;
+	return SrcY;
 }
 
-inline const emString & emSvgServerModel::GetSvgDescription(SvgHandle svgHandle) const
+inline double emSvgServerModel::RenderJob::GetSrcWidth() const
 {
-	return ((SvgInstance*)svgHandle)->Description;
+	return SrcWidth;
+}
+
+inline double emSvgServerModel::RenderJob::GetSrcHeight() const
+{
+	return SrcHeight;
+}
+
+inline const emImage & emSvgServerModel::RenderJob::GetImage() const
+{
+	return Image;
 }
 
 

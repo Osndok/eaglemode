@@ -1253,8 +1253,11 @@
         </SPAN><SPAN CLASS=k>if </SPAN>(!Data-&gt;IsStaticEmpty) <SPAN CLASS=b>{
                 </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;TuningLevel&lt;<SPAN CLASS=u>3</SPAN>) <SPAN CLASS=b>{
                         </SPAN>i=Data-&gt;Count;
-                        <SPAN CLASS=k>while </SPAN>(--i&gt;=<SPAN CLASS=u>0</SPAN>) Data-&gt;Obj[i].~OBJ();
-                <SPAN CLASS=b>}
+<SPAN CLASS=p>#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+                        </SPAN><SPAN CLASS=k>while </SPAN>(--i&gt;=<SPAN CLASS=u>0</SPAN>) Data-&gt;Obj[i].~OBJ();
+<SPAN CLASS=p>#pragma GCC diagnostic pop
+                </SPAN><SPAN CLASS=b>}
 </SPAN><SPAN CLASS=p>#if defined(__GNUC__) &amp;&amp; __GNUC__&gt;=5
 #       pragma GCC diagnostic push
 #       pragma GCC diagnostic ignored "-Wfree-nonheap-object"

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.h
 //
-// Copyright (C) 2005-2010,2016-2018,2022 Oliver Hamann.
+// Copyright (C) 2005-2010,2016-2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -208,7 +208,7 @@ private:
 	WindowFlags WFlags;
 	emString WMResName;
 	emImage WindowIcon;
-	emWindowPort * WindowPort;
+	emOwnPtr<emWindowPort> WindowPort;
 	emSignal WindowFlagsSignal;
 	emSignal CloseSignal;
 	AutoDeleteEngineClass AutoDeleteEngine;
@@ -309,7 +309,7 @@ inline const emString & emWindow::GetWMResName() const
 
 inline emWindowPort & emWindow::GetWindowPort() const
 {
-	return *WindowPort;
+	return (emWindowPort&)*WindowPort;
 }
 
 inline const emSignal & emWindow::GetCloseSignal() const

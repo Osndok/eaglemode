@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.cpp
 //
-// Copyright (C) 2010-2012,2014,2018 Oliver Hamann.
+// Copyright (C) 2010-2012,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -514,9 +514,6 @@ emNetwalkModel::Solver::Solver(emNetwalkModel * model)
 
 emNetwalkModel::Solver::~Solver()
 {
-	delete [] Pieces;
-	delete [] Groups;
-	delete [] TBBuf;
 }
 
 

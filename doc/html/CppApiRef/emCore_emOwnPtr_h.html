@@ -1,0 +1,276 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emOwnPtr.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>.h
+//
+// Copyright (C) 2024 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emOwnPtr_h
+#define emOwnPtr_h
+
+#ifndef emStd1_h
+#include &lt;<A CLASS=f HREF="emCore_emStd1_h.html">emCore/emStd1.h</A>&gt;
+#endif
+
+
+<A NAME="emOwnPtrBase"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a smart pointer which owns the referenced object.
+        // The object is deleted by calling the given DELETER when the pointer
+        // is destructed.
+
+        </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>(OBJECT * ptr=<SPAN CLASS=u>NULL</SPAN>);
+                <SPAN CLASS=c>// Construct from an object pointer. Ownership of that object
+                // goes to this <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>. NULL means to own no object.
+
+        </SPAN>~<A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>();
+                <SPAN CLASS=c>// Destructor. This deletes the owned object.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(OBJECT * ptr = <SPAN CLASS=u>NULL</SPAN>);
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A> &amp; <SPAN CLASS=t>operator </SPAN>= (OBJECT * ptr);
+                <SPAN CLASS=c>// Assign an object pointer and take ownership of the pointed
+                // object. Assigning NULL is allowed. The previously owned
+                // object is deleted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Reset();
+                <SPAN CLASS=c>// Same as Set(NULL).
+
+        </SPAN>OBJECT * Release();
+                <SPAN CLASS=c>// Release ownership of the object, make this <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A> a
+                // NULL pointer, and return the object pointer.
+
+        </SPAN><SPAN CLASS=t>operator const </SPAN>OBJECT * () <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>operator </SPAN>OBJECT * ();
+                <SPAN CLASS=c>// Cast this to a normal pointer (can be NULL).
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJECT * Get() <SPAN CLASS=t>const</SPAN>;
+        OBJECT * Get();
+                <SPAN CLASS=c>// Get the normal pointer (can be NULL).
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJECT * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+        OBJECT * <SPAN CLASS=t>operator </SPAN>-&gt; ();
+                <SPAN CLASS=c>// This makes this class a so-called "smart pointer". For
+                // example, if p is an <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A> to an object which has a
+                // method named Hello(), one could say p-&gt;Hello() instead of
+                // p.Get()-&gt;Hello().
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&amp;);
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&amp;);
+                <SPAN CLASS=c>// Copying is not allowed.
+
+        </SPAN>OBJECT * Ptr;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt; <SPAN CLASS=t>struct </SPAN>emOwnPtrDeleter <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>void operator </SPAN>() (OBJECT * ptr) <SPAN CLASS=t>const</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt; <SPAN CLASS=t>struct </SPAN>emOwnArrayPtrDeleter <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>void operator </SPAN>() (OBJECT * ptr) <SPAN CLASS=t>const</SPAN>;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emOwnPtr"></A><SPAN CLASS=c>//==============================================================================
+//================================== <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A> ==================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A> :
+        <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, emOwnPtrDeleter&lt;OBJECT&gt; &gt; <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>, but the object is deleted by calling the normal
+        // delete operator.
+
+        </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>(OBJECT * ptr=<SPAN CLASS=u>NULL</SPAN>);
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A> &amp; <SPAN CLASS=t>operator </SPAN>= (OBJECT * ptr);
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emOwnArrayPtr"></A><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A> :
+        <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, emOwnArrayPtrDeleter&lt;OBJECT&gt; &gt; <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Like <A CLASS=m HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>, but the object is deleted by calling the array
+        // delete operator (delete []).
+
+        </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>(OBJECT * ptr=<SPAN CLASS=u>NULL</SPAN>);
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A> &amp; <SPAN CLASS=t>operator </SPAN>= (OBJECT * ptr);
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>(OBJECT * ptr)
+        : Ptr(ptr)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::~<A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Ptr) <SPAN CLASS=b>{
+                </SPAN>DELETER()(Ptr);
+                Ptr=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::Set(OBJECT * ptr)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Ptr!=ptr) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Ptr) DELETER()(Ptr);
+                Ptr=ptr;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt; &amp; <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<SPAN CLASS=t>operator </SPAN>=
+        (OBJECT * ptr)
+<SPAN CLASS=b>{
+        </SPAN>Set(ptr);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::Reset()
+<SPAN CLASS=b>{
+        </SPAN>Set(<SPAN CLASS=u>NULL</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN>OBJECT * <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::Release()
+<SPAN CLASS=b>{
+        </SPAN>OBJECT * ptr = Ptr;
+        Ptr=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<SPAN CLASS=t>operator const </SPAN>OBJECT * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<SPAN CLASS=t>operator </SPAN>OBJECT * ()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline const </SPAN>OBJECT * <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN>OBJECT * <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::Get()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline const </SPAN>OBJECT * <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN>OBJECT * <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<SPAN CLASS=t>operator </SPAN>-&gt; ()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&amp;)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT, <SPAN CLASS=t>class </SPAN>DELETER&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt; &amp; <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, DELETER&gt;::<SPAN CLASS=t>operator </SPAN>=
+        (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&amp;)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt;
+<SPAN CLASS=t>inline void </SPAN>emOwnPtrDeleter&lt;OBJECT&gt;::<SPAN CLASS=t>operator </SPAN>() (OBJECT * ptr) <SPAN CLASS=t>const </SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>delete </SPAN>ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt;
+<SPAN CLASS=t>inline void </SPAN>emOwnArrayPtrDeleter&lt;OBJECT&gt;::<SPAN CLASS=t>operator </SPAN>() (OBJECT * ptr) <SPAN CLASS=t>const </SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>delete </SPAN>[] ptr;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;OBJECT&gt;::<A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>(OBJECT * ptr)
+        : <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, emOwnPtrDeleter&lt;OBJECT&gt; &gt;(ptr)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;OBJECT&gt; &amp; <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;OBJECT&gt;::<SPAN CLASS=t>operator </SPAN>= (OBJECT * ptr)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>this</SPAN>-&gt;Set(ptr);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>&lt;OBJECT&gt;::<A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>(OBJECT * ptr)
+        : <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtrBase">emOwnPtrBase</A>&lt;OBJECT, emOwnArrayPtrDeleter&lt;OBJECT&gt; &gt;(ptr)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJECT&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>&lt;OBJECT&gt; &amp; <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>&lt;OBJECT&gt;::<SPAN CLASS=t>operator </SPAN>= (OBJECT * ptr)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>this</SPAN>-&gt;Set(ptr);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFileModel.cpp
 //
-// Copyright (C) 2011,2014,2018,2023 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -29,13 +29,18 @@ emRef<emPdfFileModel> emPdfFileModel::Acquire(
 }
 
 
+emPdfServerModel::PdfInstance & emPdfFileModel::GetPdfInstance() const
+{
+	if (!PdfInstance) emFatalError("PdfInstance is NULL");
+	return *PdfInstance;
+}
+
+
 emPdfFileModel::emPdfFileModel(emContext & context, const emString & name)
 	: emFileModel(context,name),
 	PageAreasMap(GetScheduler())
 {
 	ServerModel=emPdfServerModel::Acquire(GetRootContext());
-	JobHandle=NULL;
-	PdfHandle=NULL;
 	FileSize=0;
 	StartTime=0;
 	PageCount=0;
@@ -52,15 +57,14 @@ emPdfFileModel::~emPdfFileModel()
 
 void emPdfFileModel::ResetData()
 {
-	if (PdfHandle) {
-		ServerModel->ClosePdf(PdfHandle);
-		PdfHandle=NULL;
+	PageAreasMap.Reset();
+	if (PdfInstance) {
+		PdfInstance=NULL;
 		Signal(ChangeSignal);
 	}
 	FileSize=0;
 	StartTime=0;
 	PageCount=0;
-	PageAreasMap.Reset();
 }
 
 
@@ -72,18 +76,22 @@ void emPdfFileModel::TryStartLoading()
 
 bool emPdfFileModel::TryContinueLoading()
 {
-	if (!JobHandle) {
-		JobHandle=ServerModel->StartOpenJob(GetFilePath(),&PdfHandle);
+	if (!OpenJob) {
+		OpenJob=new emPdfServerModel::OpenJob(GetFilePath());
+		ServerModel->EnqueueJob(*OpenJob);
 		StartTime=emGetClockMS();
 		return false;
 	}
 	ServerModel->Poll(10);
-	switch (ServerModel->GetJobState(JobHandle)) {
-	case emPdfServerModel::JS_ERROR:
-		throw emException("%s",ServerModel->GetJobErrorText(JobHandle).Get());
-	case emPdfServerModel::JS_SUCCESS:
-		PageCount=ServerModel->GetPageCount(PdfHandle);
-		PageAreasMap.Setup(*ServerModel,PdfHandle);
+	switch (OpenJob->GetState()) {
+	case emJob::ST_ERROR:
+		throw emException("%s",OpenJob->GetErrorText().Get());
+	case emJob::ST_ABORTED:
+		throw emException("Aborted");
+	case emJob::ST_SUCCESS:
+		PdfInstance=OpenJob->GetPdfInstance();
+		PageCount=PdfInstance->GetPageCount();
+		PageAreasMap.Setup(*ServerModel,*PdfInstance);
 		Signal(ChangeSignal);
 		return true;
 	default:
@@ -95,9 +103,12 @@ bool emPdfFileModel::TryContinueLoading()
 
 void emPdfFileModel::QuitLoading()
 {
-	if (JobHandle) {
-		ServerModel->CloseJob(JobHandle);
-		JobHandle=NULL;
+	if (OpenJob) {
+		if (
+			OpenJob->GetState()==emJob::ST_WAITING ||
+			OpenJob->GetState()==emJob::ST_RUNNING
+		) ServerModel->AbortJob(*OpenJob);
+		OpenJob=NULL;
 	}
 }
 
@@ -130,12 +141,12 @@ double emPdfFileModel::CalcFileProgress()
 	emUInt64 t;
 
 	t=emGetClockMS();
-	if (JobHandle) {
-		switch (ServerModel->GetJobState(JobHandle)) {
-		case emPdfServerModel::JS_SUCCESS:
+	if (OpenJob) {
+		switch (OpenJob->GetState()) {
+		case emJob::ST_SUCCESS:
 			return 100.0;
-		case emPdfServerModel::JS_WAITING:
-		case emPdfServerModel::JS_ERROR:
+		case emJob::ST_WAITING:
+		case emJob::ST_ERROR:
 			StartTime=t;
 			break;
 		default:

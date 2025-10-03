@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018-2019,2021 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018-2019,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,7 +28,6 @@ emColorField::emColorField(
 )
 	: emBorder(parent,name,caption,description,icon)
 {
-	Exp=NULL;
 	Color=color;
 	Editable=editable;
 	AlphaEnabled=alphaEnabled;
@@ -40,7 +39,6 @@ emColorField::emColorField(
 
 emColorField::~emColorField()
 {
-	if (Exp) delete Exp;
 }
 
 
@@ -332,8 +330,7 @@ void emColorField::AutoExpand()
 void emColorField::AutoShrink()
 {
 	emBorder::AutoShrink();
-	delete Exp;
-	Exp=NULL;
+	Exp.Reset();
 }
 
 

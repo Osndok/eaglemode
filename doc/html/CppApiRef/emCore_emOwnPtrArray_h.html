@@ -1,0 +1,495 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emOwnPtrArray.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>.h
+//
+// Copyright (C) 2024 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emOwnPtrArray_h
+#define emOwnPtrArray_h
+
+#ifndef emArray_h
+#include &lt;<A CLASS=f HREF="emCore_emArray_h.html">emCore/emArray.h</A>&gt;
+#endif
+
+
+<A NAME="emOwnPtrArray"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//=============================== <A CLASS=m HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Template class for a dynamic array of smart pointers which own the
+        // referenced objects. The objects are deleted by calling the normal
+        // delete operator. NULL pointers are allowed.
+
+        </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>();
+        ~<A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>();
+
+        <SPAN CLASS=t>int </SPAN>GetCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get number of elements.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>SetCount(<SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Set the number of elements in this array. Additional elements
+                // are set to NULL.
+                // Arguments:
+                //   count   - The new number of elements in the array.
+                //   compact - Whether to make the capacity equal to the count.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Compact();
+                <SPAN CLASS=c>// Make the capacity equal to the count.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* Get() <SPAN CLASS=t>const</SPAN>;
+        OBJ * * Get();
+                <SPAN CLASS=c>// Get a pointer to the pointer to the first element in this
+                // array, that is, get the array as a normal C array.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        OBJ * Get(<SPAN CLASS=t>int </SPAN>index);
+        <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
+        OBJ * <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Get a pointer to an element. The index must be within the
+                // range of 0 to GetCount()-1.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>int </SPAN>index, OBJ * obj);
+                <SPAN CLASS=c>// Assign an object pointer at the given index and take
+                // ownership of the pointed object. Assigning NULL is allowed.
+                // The previously owned object is deleted.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Reset(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Same as Set(index,NULL).
+
+        </SPAN>OBJ * Release(<SPAN CLASS=t>int </SPAN>index);
+                <SPAN CLASS=c>// Release ownership of the object at the given index, set NULL
+                // there, and return the object pointer.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Add(OBJ * obj, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+        <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A> &amp; <SPAN CLASS=t>operator </SPAN>+= (OBJ * obj);
+        <SPAN CLASS=t>void </SPAN>Insert(<SPAN CLASS=t>int </SPAN>index, OBJ * obj, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Take ownership of the given object and add it to the end of
+                // the array, or insert it at the given index. NULL is allowed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Remove(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount=<SPAN CLASS=u>1</SPAN>, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Remove objects at a particular position.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Clear(<SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+                <SPAN CLASS=c>// Remove all objects.
+                // Arguments:
+                //   compact - Whether to minimize the internal array capacity.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Ask whether the number of objects is zero.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>Sort(
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>);
+                <SPAN CLASS=c>// Sort this array. The order of equal elements is preserved.
+                // Arguments:
+                //   compare - Function for comparing two elements.
+                //             If you want the elements to be compared via the
+                //             operators '&lt;' and '&gt;', say:
+                //               <A CLASS=m HREF="emCore_emStd1_h.html#emStdComparer">emStdComparer</A>&lt;OBJ&gt;::Compare
+                //             with OBJ replaced by the real type of the
+                //             elements. The context argument is ignored then.
+                //             Arguments:
+                //               obj1    - Pointer to first element.
+                //               obj2    - Pointer to second element.
+                //               context - See below.
+                //             Returns: Zero if the elements are equal, a value
+                //               greater than zero if the first element is
+                //               greater than the second one, and a value less
+                //               than zero if the first element is less than the
+                //               second one.
+                //   context - Any pointer to be forwarded to the compare
+                //             function.
+                // Returns: Whether there was a change.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>BinarySearchByKey(
+                <SPAN CLASS=t>void </SPAN>* key,
+                <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL
+        </SPAN>) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Binary search for an element that matches the given key. The
+                // array must already be sorted accordingly.
+                // Arguments:
+                //   key           - The key to search for.
+                //   compareObjKey - Function for comparing an object with the
+                //                   key.
+                //   context       - Any pointer to be forwarded to the compare
+                //                   function.
+                // Returns:
+                //   If a matching element could be found, the index of that
+                //   element is returned. Otherwise a value less than zero is
+                //   returned: the binary inversion of the index for insertion.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>BinaryInsert(
+                OBJ * obj,
+                <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2,
+                              <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Insert an element by sorting it into the array, even if there
+                // is already an element which equals the given object. The
+                // array must already be sorted by the same compare function.
+                // Arguments:
+                //   obj     - An object to be copied for the insertion.
+                //   compare - Please see the Sort method.
+                //   context - Please see the Sort method.
+                //   compact - Whether to minimize the capacity.
+
+        </SPAN><SPAN CLASS=t>bool </SPAN>BinaryRemoveByKey(
+                <SPAN CLASS=t>void </SPAN>* key,
+                <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context),
+                <SPAN CLASS=t>void </SPAN>* context=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false
+        </SPAN>);
+                <SPAN CLASS=c>// Like BinarySearchByKey, but remove the found element, or
+                // return false if no such element can been found.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>struct </SPAN>WrappedCmpContext <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context);
+                <SPAN CLASS=t>void </SPAN>* context;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>struct </SPAN>WrappedCmpObjKeyContext <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context);
+                <SPAN CLASS=t>void </SPAN>* context;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>AdaptCapacity(<SPAN CLASS=t>int </SPAN>newCount, <SPAN CLASS=t>bool </SPAN>compact=<SPAN CLASS=k>false</SPAN>);
+
+        <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&amp;);
+        <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A> &amp;);
+                <SPAN CLASS=c>// Copying is not allowed.
+
+        </SPAN><SPAN CLASS=t>static int </SPAN>WrappedCompare(
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* obj1, <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* obj2, <SPAN CLASS=t>void </SPAN>* context
+        );
+
+        <SPAN CLASS=t>static int </SPAN>WrappedCompareObjKey(
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context
+        );
+
+        <SPAN CLASS=t>int </SPAN>Count, Capacity;
+        OBJ * * Array;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>()
+        : Count(<SPAN CLASS=u>0</SPAN>),
+        Capacity(<SPAN CLASS=u>0</SPAN>),
+        Array(<SPAN CLASS=u>NULL</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::~<A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>()
+<SPAN CLASS=b>{
+        </SPAN>SetCount(<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::GetCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Count;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::SetCount(<SPAN CLASS=t>int </SPAN>count, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Count&lt;count) <SPAN CLASS=b>{
+                </SPAN>AdaptCapacity(count, compact);
+                memset(Array+Count,<SPAN CLASS=u>0</SPAN>,<SPAN CLASS=k>sizeof</SPAN>(OBJ*)*(count-Count));
+                Count=count;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(count&lt;<SPAN CLASS=u>0</SPAN>) count=<SPAN CLASS=u>0</SPAN>;
+                <SPAN CLASS=k>while </SPAN>(Count&gt;count) <SPAN CLASS=b>{
+                        </SPAN>Count--;
+                        <SPAN CLASS=k>if </SPAN>(Array[Count]) <SPAN CLASS=k>delete </SPAN>Array[Count];
+                <SPAN CLASS=b>}
+                </SPAN>AdaptCapacity(Count, compact);
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Compact()
+<SPAN CLASS=b>{
+        </SPAN>AdaptCapacity(Count,<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN>OBJ * * <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Get()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Get(<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Get(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>[](<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>[](<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Set(<SPAN CLASS=t>int </SPAN>index, OBJ * obj)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(Array[index]) <SPAN CLASS=k>delete </SPAN>Array[index];
+        Array[index] = obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Reset(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN>Set(index,<SPAN CLASS=u>NULL</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN>OBJ *  <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Release(<SPAN CLASS=t>int </SPAN>index)
+<SPAN CLASS=b>{
+        </SPAN>OBJ * e;
+
+        e=Array[index];
+        Array[index]=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>e;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Add(OBJ * obj, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN>Insert(Count,obj,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>+= (OBJ * obj)
+<SPAN CLASS=b>{
+        </SPAN>Add(obj);
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Insert(<SPAN CLASS=t>int </SPAN>index, OBJ * obj, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>n;
+
+        <SPAN CLASS=k>if </SPAN>(index&lt;<SPAN CLASS=u>0</SPAN>) index=<SPAN CLASS=u>0</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(index&gt;Count) index=Count;
+        Count++;
+        AdaptCapacity(Count,compact);
+        n=Count-index-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>if </SPAN>(n&gt;<SPAN CLASS=u>0</SPAN>) memmove(Array+index+<SPAN CLASS=u>1</SPAN>,Array+index,<SPAN CLASS=k>sizeof</SPAN>(OBJ*)*n);
+        Array[index]=obj;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Remove(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>int </SPAN>remCount, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i,n;
+
+        <SPAN CLASS=k>if </SPAN>(index&lt;<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{ </SPAN>remCount+=index; index=<SPAN CLASS=u>0</SPAN>; <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(remCount&gt;Count-index) remCount=Count-index;
+        <SPAN CLASS=k>if </SPAN>(remCount&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=k>return</SPAN>;
+        <SPAN CLASS=k>for </SPAN>(i=index; i&lt;index+remCount; i++) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(Array[i]) <SPAN CLASS=k>delete </SPAN>Array[i];
+        <SPAN CLASS=b>}
+        </SPAN>n=Count-index-remCount;
+        <SPAN CLASS=k>if </SPAN>(n&gt;<SPAN CLASS=u>0</SPAN>) memmove(Array+index,Array+index+remCount,<SPAN CLASS=k>sizeof</SPAN>(OBJ*)*n);
+        Count-=remCount;
+        AdaptCapacity(Count,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Clear(<SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN>SetCount(<SPAN CLASS=u>0</SPAN>,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Count==<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::Sort(
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN>WrappedCmpContext wrapped;
+
+        wrapped.compare=compare;
+        wrapped.context=context;
+        <SPAN CLASS=k>return </SPAN>emSortArray((<SPAN CLASS=t>const </SPAN>OBJ**)Array,Count,WrappedCompare,&amp;wrapped);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::BinarySearchByKey(
+        <SPAN CLASS=t>void </SPAN>* key,
+        <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN>WrappedCmpObjKeyContext wrapped;
+
+        wrapped.compareObjKey=compareObjKey;
+        wrapped.context=context;
+        <SPAN CLASS=k>return </SPAN>emBinarySearch((<SPAN CLASS=t>const </SPAN>OBJ**)Array,Count,key,WrappedCompareObjKey,&amp;wrapped);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::BinaryInsert(
+        OBJ * obj,
+        <SPAN CLASS=t>int</SPAN>(*compare)(<SPAN CLASS=t>const </SPAN>OBJ * obj1, <SPAN CLASS=t>const </SPAN>OBJ * obj2, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN>WrappedCmpContext wrapped;
+        <SPAN CLASS=t>int </SPAN>i;
+
+        wrapped.compare=compare;
+        wrapped.context=context;
+        i=emBinarySearch(
+                (<SPAN CLASS=t>const </SPAN>OBJ * *)Array,Count,
+                (<SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>*)&amp;obj,
+                WrappedCompare,&amp;wrapped
+        );
+        <SPAN CLASS=k>if </SPAN>(i&lt;<SPAN CLASS=u>0</SPAN>) i=~i;
+        Insert(i,obj,compact);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>bool </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::BinaryRemoveByKey(
+        <SPAN CLASS=t>void </SPAN>* key,
+        <SPAN CLASS=t>int</SPAN>(*compareObjKey)(<SPAN CLASS=t>const </SPAN>OBJ * obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context),
+        <SPAN CLASS=t>void </SPAN>* context, <SPAN CLASS=t>bool </SPAN>compact
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>i;
+
+        i=BinarySearchByKey(key,compareObjKey,context);
+        <SPAN CLASS=k>if </SPAN>(i&gt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>Remove(i,<SPAN CLASS=u>1</SPAN>,compact);
+                <SPAN CLASS=k>return true</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>if </SPAN>(compact) Compact();
+                <SPAN CLASS=k>return false</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::AdaptCapacity(<SPAN CLASS=t>int </SPAN>newCount, <SPAN CLASS=t>bool </SPAN>compact)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>int </SPAN>capacity;
+
+        <SPAN CLASS=k>if </SPAN>(compact) capacity=newCount;
+        <SPAN CLASS=k>else if </SPAN>(Capacity&lt;newCount || Capacity&gt;=newCount*<SPAN CLASS=u>3</SPAN>) capacity=newCount*<SPAN CLASS=u>2</SPAN>;
+        <SPAN CLASS=k>else return</SPAN>;
+
+        <SPAN CLASS=k>if </SPAN>(Capacity==capacity) <SPAN CLASS=k>return</SPAN>;
+
+        <SPAN CLASS=k>if </SPAN>(capacity==<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN>free(Array);
+                Array=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>else </SPAN><SPAN CLASS=b>{
+                </SPAN>Array=(OBJ**)realloc((<SPAN CLASS=t>void</SPAN>*)Array,<SPAN CLASS=k>sizeof</SPAN>(OBJ*)*capacity);
+        <SPAN CLASS=b>}
+        </SPAN>Capacity=capacity;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::<A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&amp;)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::<SPAN CLASS=t>operator </SPAN>=
+        (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&amp;)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::WrappedCompare(
+        <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* obj1, <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* obj2, <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>WrappedCmpContext * wrapped;
+
+        wrapped=(WrappedCmpContext*)context;
+        <SPAN CLASS=k>return </SPAN>wrapped-&gt;compare(*obj1,*obj2,wrapped-&gt;context);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt;
+<SPAN CLASS=t>int </SPAN><A CLASS=l HREF="emCore_emOwnPtrArray_h.html#emOwnPtrArray">emOwnPtrArray</A>&lt;OBJ&gt;::WrappedCompareObjKey(
+        <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>const </SPAN>* obj, <SPAN CLASS=t>void </SPAN>* key, <SPAN CLASS=t>void </SPAN>* context
+)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>WrappedCmpObjKeyContext * wrapped;
+
+        wrapped=(WrappedCmpObjKeyContext*)context;
+        <SPAN CLASS=k>return </SPAN>wrapped-&gt;compareObjKey(*obj,key,wrapped-&gt;context);
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

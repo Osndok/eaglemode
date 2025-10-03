@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsPagePanel.cpp
 //
-// Copyright (C) 2006-2008,2014,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,8 +31,7 @@ emPsPagePanel::emPsPagePanel(
 	Document=document;
 	PageIndex=pageIndex;
 	Renderer=emPsRenderer::Acquire(GetRootContext());
-	Job=NULL;
-	JobState=emPsRenderer::JS_SUCCESS;
+	JobState=emJob::ST_SUCCESS;
 	WaitIcon=emGetInsResImage(GetRootContext(),"emPs","waiting.tga");
 	RenderIcon=emGetInsResImage(GetRootContext(),"emPs","rendering.tga");
 	UpdateJobAndImage();
@@ -41,7 +40,7 @@ emPsPagePanel::emPsPagePanel(
 
 emPsPagePanel::~emPsPagePanel()
 {
-	if (Job) Renderer->CloseJob(Job);
+	if (Job) Renderer->AbortJob(*Job);
 }
 
 
@@ -49,13 +48,13 @@ void emPsPagePanel::SetPage(const emPsDocument & document, int pageIndex)
 {
 	if (Document==document && PageIndex==pageIndex) return;
 	if (Job) {
-		Renderer->CloseJob(Job);
+		Renderer->AbortJob(*Job);
 		Job=NULL;
 	}
 	Document=document;
 	PageIndex=pageIndex;
 	Image.Clear();
-	JobState=emPsRenderer::JS_SUCCESS;
+	JobState=emJob::ST_SUCCESS;
 	JobErrorText.Clear();
 	InvalidatePainting();
 	UpdateJobAndImage();
@@ -70,7 +69,7 @@ void emPsPagePanel::Notice(NoticeFlags flags)
 		UpdateJobAndImage();
 	}
 	if ((flags&NF_UPDATE_PRIORITY_CHANGED)!=0) {
-		if (Job) Renderer->SetJobPriority(Job,GetUpdatePriority());
+		if (Job) Job->SetPriority(GetUpdatePriority());
 	}
 }
 
@@ -92,7 +91,7 @@ void emPsPagePanel::Paint(
 	const emPainter & painter, emColor canvasColor
 ) const
 {
-	static const emColor bgCol=emColor(221,255,255);
+	static const emColor bgCol=emColor(230,255,255);
 	double h,ix,iy,iw,ih,t;
 	emImage ico;
 
@@ -109,7 +108,7 @@ void emPsPagePanel::Paint(
 		canvasColor=0;
 	}
 
-	if (JobState==emPsRenderer::JS_ERROR) {
+	if (JobState==emJob::ST_ERROR) {
 		painter.PaintTextBoxed(
 			0.0,
 			0.0,
@@ -123,8 +122,8 @@ void emPsPagePanel::Paint(
 			EM_ALIGN_CENTER
 		);
 	}
-	else if (JobState!=emPsRenderer::JS_SUCCESS) {
-		if (JobState==emPsRenderer::JS_WAITING) ico=WaitIcon;
+	else if (JobState!=emJob::ST_SUCCESS) {
+		if (JobState==emJob::ST_WAITING) ico=WaitIcon;
 		else ico=RenderIcon;
 		h=GetHeight();
 		iw=ViewToPanelDeltaX(ico.GetWidth());
@@ -144,16 +143,24 @@ void emPsPagePanel::Paint(
 
 void emPsPagePanel::UpdateJobAndImage()
 {
-	emPsRenderer::JobState s;
+	emJob::StateEnum s;
 	emString e;
 	double hrel,wmin,hmin,wmax,hmax,t;
-	int iw,ih;
-	emImage * oldImg;
+	int currentWidth,currentHeight,iw,ih;
 
-	static const double maxImageArea=5000*5000; //??? To be reconsidered
-	static const double maxImageSize=10000;     //???   every 3 years.
+	static const double maxImageArea=5000*5000;
+	static const double maxImageSize=10000;
 
-	if (JobState==emPsRenderer::JS_ERROR) return;
+	if (JobState==emJob::ST_ERROR) return;
+
+	if (Job) {
+		currentWidth=Job->GetWidth();
+		currentHeight=Job->GetHeight();
+	}
+	else {
+		currentWidth=Image.GetWidth();
+		currentHeight=Image.GetHeight();
+	}
 
 	if (!IsViewed() || PageIndex<0 || PageIndex>=Document.GetPageCount()) {
 		iw=0;
@@ -178,74 +185,61 @@ void emPsPagePanel::UpdateJobAndImage()
 			iw=0;
 			ih=0;
 		}
-		else if (Image.GetWidth()<=wmin-1.0 || Image.GetHeight()<=hmin-1.0) {
+		else if (currentWidth<=wmin-1.0 || currentHeight<=hmin-1.0) {
 			iw=(int)(wmax+0.5);
 			ih=(int)(hmax+0.5);
 		}
-		else if (Image.GetWidth()>=wmax+1.0 || Image.GetHeight()>=hmax+1.0) {
+		else if (currentWidth>=wmax+1.0 || currentHeight>=hmax+1.0) {
 			iw=(int)(wmin+0.5);
 			ih=(int)(hmin+0.5);
 		}
 		else {
-			iw=Image.GetWidth();
-			ih=Image.GetHeight();
+			iw=currentWidth;
+			ih=currentHeight;
 		}
 	}
 
-	if (Image.GetWidth()!=iw || Image.GetHeight()!=ih) {
+	if (currentWidth!=iw || currentHeight!=ih) {
 		if (Job) {
-			Renderer->CloseJob(Job);
+			Renderer->AbortJob(*Job);
 			Job=NULL;
-			JobState=emPsRenderer::JS_SUCCESS;
+			JobState=emJob::ST_SUCCESS;
 		}
 		if (iw<=0 || ih<=0) {
 			Image.Clear();
 		}
 		else {
-			if (Image.IsEmpty()) oldImg=NULL;
-			else oldImg=new emImage(Image);
-			Image.Setup(iw,ih,3);
-			if (oldImg) {
-				Image.CopyTransformed(
-					0,0,iw,ih,
-					emScaleATM(
-						((double)iw)/oldImg->GetWidth(),
-						((double)ih)/oldImg->GetHeight()
-					),
-					*oldImg,
-					false,
-					emColor::WHITE
-				);
-				delete oldImg;
-			}
-			else {
-				Image.Fill(emColor(238,255,255));
-			}
-			Job=Renderer->StartJob(
+			Job=new emPsRenderer::RenderJob(
 				Document,
 				PageIndex,
-				Image,
-				GetUpdatePriority(),
-				this
+				iw,ih,
+				GetUpdatePriority()
 			);
+			Renderer->EnqueueJob(*Job);
+			JobState=Job->GetState();
+			AddWakeUpSignal(Job->GetStateSignal());
 		}
 		InvalidatePainting();
 	}
 
 	if (Job) {
-		s=Renderer->GetJobState(Job);
+		s=Job->GetState();
 		if (JobState!=s) {
 			JobState=s;
 			InvalidatePainting();
 		}
-		if (s==emPsRenderer::JS_ERROR) {
-			JobErrorText=Renderer->GetJobErrorText(Job);
-			Renderer->CloseJob(Job);
-			Job=NULL;
+		if (s==emJob::ST_ERROR) {
 			Image.Clear();
+			JobErrorText=Job->GetErrorText();
+			Job=NULL;
 		}
-		else if (s==emPsRenderer::JS_SUCCESS) {
-			Renderer->CloseJob(Job);
+		else if (s==emJob::ST_SUCCESS) {
+			Image=Job->GetImage();
+			Job=NULL;
+		}
+		else if (s==emJob::ST_ABORTED) {
+			Image.Clear();
+			JobErrorText="Aborted";
 			Job=NULL;
 		}
 	}

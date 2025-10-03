@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.cpp
 //
-// Copyright (C) 2004-2008,2016-2018,2022 Oliver Hamann.
+// Copyright (C) 2004-2008,2016-2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -28,14 +28,12 @@ emFilePanel::emFilePanel(
 	: emPanel(parent,name)
 {
 	MemoryLimit=GetMemoryLimit();
-	CustomError=NULL;
 	SetFileModel(fileModel,updateFileModel);
 }
 
 
 emFilePanel::~emFilePanel()
 {
-	if (CustomError) delete CustomError;
 }
 
 
@@ -76,7 +74,6 @@ void emFilePanel::SetFileModel(emFileModel * fileModel, bool updateFileModel)
 
 void emFilePanel::SetCustomError(const emString & message)
 {
-	if (CustomError) delete CustomError;
 	CustomError=new emString(message);
 	Signal(VirFileStateSignal);
 	InvalidatePainting();
@@ -86,8 +83,7 @@ void emFilePanel::SetCustomError(const emString & message)
 void emFilePanel::ClearCustomError()
 {
 	if (CustomError) {
-		delete CustomError;
-		CustomError=NULL;
+		CustomError.Reset();
 		Signal(VirFileStateSignal);
 		InvalidatePainting();
 	}

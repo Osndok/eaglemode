@@ -209,9 +209,6 @@ emHmiDemoControls::emHmiDemoControls(
 
 emHmiDemoControls::~emHmiDemoControls()
 {
-	delete [] Fi;
-	delete [] Bu;
-	delete [] Ad;
 }
 
 

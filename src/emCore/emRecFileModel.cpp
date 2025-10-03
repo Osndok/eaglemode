@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRecFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2018-2019,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,8 +24,6 @@
 emRecFileModel::emRecFileModel(emContext & context, const emString & name)
 	: emFileModel(context,name), Link(*this)
 {
-	Reader=NULL;
-	Writer=NULL;
 	ProtectFileState=0;
 	MemoryNeed=0;
 	MemoryNeedOutOfDate=true;
@@ -42,14 +40,6 @@ void emRecFileModel::PostConstruct(emRec & rec)
 
 emRecFileModel::~emRecFileModel()
 {
-	if (Reader) {
-		delete Reader;
-		Reader=NULL;
-	}
-	if (Writer) {
-		delete Writer;
-		Writer=NULL;
-	}
 }
 
 
@@ -109,8 +99,7 @@ void emRecFileModel::QuitLoading()
 	if (Reader) {
 		ProtectFileState++;
 		Reader->QuitReading();
-		delete Reader;
-		Reader=NULL;
+		Reader.Reset();
 		ProtectFileState--;
 		ReadStep=0;
 		ReadStepOfMemCalc=0;
@@ -155,8 +144,7 @@ void emRecFileModel::QuitSaving()
 	if (Writer) {
 		ProtectFileState++;
 		Writer->QuitWriting();
-		delete Writer;
-		Writer=NULL;
+		Writer.Reset();
 		ProtectFileState--;
 	}
 }

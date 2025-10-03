@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.h
 //
-// Copyright (C) 2010,2016 Oliver Hamann.
+// Copyright (C) 2010,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -75,14 +75,12 @@ private:
 
 	emRef<emSvgServerModel> ServerModel;
 
-	emSvgServerModel::JobHandle Job;
+	emRef<emSvgServerModel::RenderJob> RenderJob;
 	emString RenderError;
 
 	emImage Img;
 	double SrcX,SrcY,SrcW,SrcH;
 
-	emImage JobImg;
-	double JobSrcX,JobSrcY,JobSrcW,JobSrcH;
 	bool JobUpToDate;
 	emUInt64 JobDelayStartTime;
 	emTimer JobDelayTimer;

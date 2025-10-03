@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.cpp
 //
-// Copyright (C) 2006-2012,2014-2017,2022 Oliver Hamann.
+// Copyright (C) 2006-2012,2014-2017,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -347,7 +347,6 @@ emMainWindow::StartupEngineClass::StartupEngineClass(
 	VisitAdherent(visitAdherent),
 	VisitSubject(visitSubject),
 	CeColor(ceColor),
-	VisitingVA(NULL),
 	Clk(0)
 {
 	State=0;
@@ -357,7 +356,6 @@ emMainWindow::StartupEngineClass::StartupEngineClass(
 
 emMainWindow::StartupEngineClass::~StartupEngineClass()
 {
-	if (VisitingVA) delete VisitingVA;
 }
 
 
@@ -458,8 +456,7 @@ bool emMainWindow::StartupEngineClass::Cycle()
 		if (emGetClockMS()<Clk+2000 && VisitingVA->IsActive()) {
 			return true;
 		}
-		delete VisitingVA;
-		VisitingVA=NULL;
+		VisitingVA.Reset();
 		MainWin.MainPanel->GetContentView().RawZoomOut();
 		MainWin.MainPanel->GetContentView().SetActivePanel(MainWin.ContentPanel);
 		MainWin.MainPanel->SetStartupOverlay(false);

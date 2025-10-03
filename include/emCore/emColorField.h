@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.h
 //
-// Copyright (C) 2005-2010,2014-2016,2021 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -133,7 +133,7 @@ private:
 	};
 
 	emSignal ColorSignal;
-	Expansion * Exp;
+	emOwnPtr<Expansion> Exp;
 	emColor Color;
 	bool Editable;
 	bool AlphaEnabled;

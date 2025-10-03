@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>.h
 //
-// Copyright (C) 2006-2008,2010-2011,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -115,13 +115,13 @@
         <SPAN CLASS=t>friend class </SPAN>SubViewClass;
         <SPAN CLASS=t>friend class </SPAN>SubViewPortClass;
 
-        SubViewClass * SubView;
-        SubViewPortClass * SubViewPort;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;SubViewClass&gt; SubView;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;SubViewPortClass&gt; SubViewPort;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emView_h.html#emView">emView</A> &amp; <A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::GetSubView() <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>*SubView;
+        </SPAN><SPAN CLASS=k>return </SPAN>(<A CLASS=l HREF="emCore_emView_h.html#emView">emView</A>&amp;)*SubView;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emSubViewPanel_h.html#emSubViewPanel">emSubViewPanel</A>::InvalidatePaintingOnView(

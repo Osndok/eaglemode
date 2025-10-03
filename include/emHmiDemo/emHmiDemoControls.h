@@ -44,9 +44,9 @@ public:
 	void SetState(int state);
 private:
 	int AdCount, BuCount, FiCount;
-	emHmiDemoAnalogDisplay * * Ad;
-	emHmiDemoButton * * Bu;
-	emHmiDemoFile * * Fi;
+	emOwnArrayPtr<emHmiDemoAnalogDisplay *> Ad;
+	emOwnArrayPtr<emHmiDemoButton *> Bu;
+	emOwnArrayPtr<emHmiDemoFile *> Fi;
 	emRasterLayout * AdRL;
 	emRasterLayout * BuRL;
 	emRasterLayout * FiRL;

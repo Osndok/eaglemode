@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.h
 //
-// Copyright (C) 2006-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emFpPlugin_h
 #define emFpPlugin_h
+
+#ifndef emOwnPtrArray_h
+#include <emCore/emOwnPtrArray.h>
+#endif
 
 #ifndef emPanel_h
 #include <emCore/emPanel.h>
@@ -189,11 +193,11 @@ protected:
 private:
 
 	static int CmpReversePluginPriorities(
-		emFpPlugin * const * obj1, emFpPlugin * const * obj2,
+		const emFpPlugin * obj1, const emFpPlugin * obj2,
 		void * context
 	);
 
-	emArray<emFpPlugin*> Plugins;
+	emOwnPtrArray<emFpPlugin> Plugins;
 		// Sorted by descending priority, secondly by file name.
 };
 

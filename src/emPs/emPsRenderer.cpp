@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.cpp
 //
-// Copyright (C) 2006-2011,2014,2017-2019,2021-2022 Oliver Hamann.
+// Copyright (C) 2006-2011,2014,2017-2019,2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,67 +27,45 @@ emRef<emPsRenderer> emPsRenderer::Acquire(emRootContext & rootContext)
 }
 
 
-emPsRenderer::JobHandle emPsRenderer::StartJob(
-	const emPsDocument & document, int pageIndex,
-	emImage & outputImage, double priority,
-	emEngine * listenEngine
-)
+emPsRenderer::RenderJob::RenderJob(
+	const emPsDocument & document, int pageIndex, int width, int height,
+	double priority
+) : emJob(priority),
+	Document(document),
+	PageIndex(pageIndex),
+	Width(width),
+	Height(height)
 {
-	Job * job;
+}
 
-	job=new Job;
-	job->Document=document;
-	job->PageIndex=pageIndex;
-	job->Image=&outputImage;
-	job->Priority=priority;
-	job->ListenEngine=listenEngine;
-	job->State=JS_WAITING;
-	job->Prev=NULL;
-	job->Next=NULL;
-	AddToJobList(job);
+
+void emPsRenderer::EnqueueJob(RenderJob & renderJob)
+{
+	JobQueue.EnqueueJob(renderJob);
 	PSPriorityValid=false;
 	WakeUp();
-	return job;
 }
 
 
-void emPsRenderer::SetJobPriority(JobHandle jobHandle, double priority)
+void emPsRenderer::AbortJob(RenderJob & renderJob)
 {
-	Job * job;
-
-	job=(Job*)jobHandle;
-	if (job->Priority!=priority) {
-		job->Priority=priority;
-		if (job->State==JS_WAITING) {
-			PSPriorityValid=false;
-			WakeUp();
-		}
+	if (CurrentJob==&renderJob) CurrentJob=NULL;
+	if (renderJob.GetState()==emJob::ST_WAITING) {
+		PSPriorityValid=false;
+		WakeUp();
 	}
-}
-
-
-void emPsRenderer::CloseJob(JobHandle jobHandle)
-{
-	Job * job;
-
-	job=(Job*)jobHandle;
-	if (job->State!=JS_SUCCESS && job->State!=JS_ERROR) {
-		job->ListenEngine=NULL;
-		SetJobState(job,JS_ERROR);
-	}
-	delete job;
+	JobQueue.AbortJob(renderJob);
 }
 
 
 emPsRenderer::emPsRenderer(emContext & context, const emString & name)
 	: emModel(context,name),
 	Timer(GetScheduler()),
-	PSAgent(*this)
+	PSAgent(*this),
+	JobQueue(GetScheduler())
 {
 	SetMinCommonLifetime(5);
 	PSPriorityValid=false;
-	FirstJob=NULL;
-	LastJob=NULL;
 	MainState=COLD_WAIT_JOB;
 	CurrentJob=NULL;
 	CurrentPageIndex=0;
@@ -97,8 +75,6 @@ emPsRenderer::emPsRenderer(emContext & context, const emString & name)
 
 emPsRenderer::~emPsRenderer()
 {
-	while (FirstJob) CloseJob(FirstJob);
-	if (CurrentJob) CloseJob(CurrentJob);
 	Process.Terminate();
 }
 
@@ -106,7 +82,7 @@ emPsRenderer::~emPsRenderer()
 bool emPsRenderer::Cycle()
 {
 	bool busy,readProceeded,writeProceeded;
-	Job * job;
+	RenderJob * job;
 	int flags;
 
 	busy=false;
@@ -118,7 +94,7 @@ L_ENTER_COLD_WAIT_JOB:
 		PSAgent.ReleaseAccess();
 		MainState=COLD_WAIT_JOB;
 	case COLD_WAIT_JOB:
-		if (FirstJob) goto L_ENTER_COLD_WAIT_ACCESS;
+		if (JobQueue.GetFirstWaitingJob()) goto L_ENTER_COLD_WAIT_ACCESS;
 		break;
 
 L_ENTER_COLD_WAIT_ACCESS:
@@ -126,7 +102,7 @@ L_ENTER_COLD_WAIT_ACCESS:
 		PSAgent.RequestAccess();
 		MainState=COLD_WAIT_ACCESS;
 	case COLD_WAIT_ACCESS:
-		if (!FirstJob) goto L_ENTER_COLD_WAIT_JOB;
+		if (!JobQueue.GetFirstWaitingJob()) goto L_ENTER_COLD_WAIT_JOB;
 		if (PSAgent.HasAccess()) goto L_ENTER_PREPARE_PROCESS;
 		UpdatePSPriority();
 		break;
@@ -171,8 +147,11 @@ L_ENTER_RUN_JOB:
 		if (CurrentDocument.GetDataRefCount()<=1) goto L_ENTER_QUIT_PROCESS;
 		job=SearchBestSameDocJob();
 		if (!job) goto L_ENTER_QUIT_PROCESS;
-		SetJobState(job,JS_RUNNING);
+		JobQueue.StartJob(*job);
+		CurrentJob=job;
 		CurrentPageIndex=CurrentJob->PageIndex;
+		PSPriorityValid=false;
+		WakeUp();
 		PrepareWritingPage();
 		PrepareReadingPage();
 		Timer.Start(8000);
@@ -196,7 +175,10 @@ L_ENTER_RUN_JOB:
 				goto L_ENTER_QUIT_PROCESS;
 			}
 			if (IsReadingFinished()) {
-				if (CurrentJob) SetJobState(CurrentJob,JS_SUCCESS);
+				if (CurrentJob) {
+					JobQueue.SucceedJob(*CurrentJob);
+					CurrentJob=NULL;
+				}
 				goto L_ENTER_HOT_WAIT_JOB;
 			}
 			if (IsTimeSliceAtEnd()) break;
@@ -215,7 +197,7 @@ L_ENTER_HOT_WAIT_JOB:
 		MainState=HOT_WAIT_JOB;
 	case HOT_WAIT_JOB:
 		if (CurrentDocument.GetDataRefCount()<=1) goto L_ENTER_QUIT_PROCESS;
-		if (FirstJob) goto L_ENTER_HOT_WAIT_ACCESS;
+		if (JobQueue.GetFirstWaitingJob()) goto L_ENTER_HOT_WAIT_ACCESS;
 		if (!Timer.IsRunning()) goto L_ENTER_QUIT_PROCESS;
 		busy=true;
 		break;
@@ -226,7 +208,7 @@ L_ENTER_HOT_WAIT_ACCESS:
 		MainState=HOT_WAIT_ACCESS;
 	case HOT_WAIT_ACCESS:
 		if (CurrentDocument.GetDataRefCount()<=1) goto L_ENTER_QUIT_PROCESS;
-		if (!FirstJob) goto L_ENTER_QUIT_PROCESS;
+		if (!JobQueue.GetFirstWaitingJob()) goto L_ENTER_QUIT_PROCESS;
 		if (PSAgent.HasAccess()) goto L_ENTER_RUN_JOB;
 		UpdatePSPriority();
 		busy=true;
@@ -256,137 +238,89 @@ L_ENTER_QUIT_PROCESS:
 }
 
 
-void emPsRenderer::AddToJobList(Job * job)
+emPsRenderer::RenderJob * emPsRenderer::SearchBestJob()
 {
-	job->Prev=LastJob;
-	job->Next=NULL;
-	if (LastJob) LastJob->Next=job; else FirstJob=job;
-	LastJob=job;
-}
-
-
-void emPsRenderer::RemoveFromJobList(Job * job)
-{
-	if (job->Prev) job->Prev->Next=job->Next;
-	else FirstJob=job->Next;
-	if (job->Next) job->Next->Prev=job->Prev;
-	else LastJob=job->Prev;
-	job->Prev=NULL;
-	job->Next=NULL;
-}
-
-
-emPsRenderer::Job * emPsRenderer::SearchBestJob()
-{
-	Job * job, * bestJob;
+	emJob * job, * bestJob;
+	RenderJob * renderJob;
 	double bestPri;
 
-	bestJob=FirstJob;
+	bestJob=JobQueue.GetFirstWaitingJob();
 	if (bestJob) {
-		bestPri=bestJob->Priority;
-		for (job=bestJob->Next; job; job=job->Next) {
-			if (bestPri<job->Priority) {
-				bestPri=job->Priority;
+		bestPri=bestJob->GetPriority();
+		for (job=bestJob->GetNext(); job; job=job->GetNext()) {
+			if (bestPri<job->GetPriority()) {
+				bestPri=job->GetPriority();
 				bestJob=job;
 			}
 		}
 	}
-	return bestJob;
+	renderJob=dynamic_cast<RenderJob*>(bestJob);
+	if (!renderJob) emFatalError("emPsRenderer: Illegal job class");
+	return renderJob;
 }
 
 
-emPsRenderer::Job * emPsRenderer::SearchBestSameDocJob()
+emPsRenderer::RenderJob * emPsRenderer::SearchBestSameDocJob()
 {
-	Job * job, * bestJob;
+	RenderJob * renderJob, * bestJob;
+	emJob * job;
 
-	for (bestJob=FirstJob; bestJob; bestJob=bestJob->Next) {
-		if (CurrentDocument==bestJob->Document) break;
-	}
-	if (bestJob) {
-		for (job=bestJob->Next; job; job=job->Next) {
-			if (bestJob->Priority<job->Priority && bestJob->Document==job->Document) {
-				bestJob=job;
+	bestJob=NULL;
+	for (job=JobQueue.GetFirstWaitingJob(); job; job=job->GetNext()) {
+		if (!bestJob || bestJob->GetPriority()<job->GetPriority()) {
+			renderJob=dynamic_cast<RenderJob*>(job);
+			if (!renderJob) emFatalError("emPsRenderer: Illegal job class");
+			if (CurrentDocument==renderJob->Document) {
+				bestJob=renderJob;
 			}
 		}
 	}
 	return bestJob;
-}
-
-
-void emPsRenderer::SetJobState(Job * job, JobState state, emString errorText)
-{
-	switch (job->State) {
-	case JS_WAITING:
-		RemoveFromJobList(job);
-		PSPriorityValid=false;
-		WakeUp();
-		break;
-	case JS_RUNNING:
-		CurrentJob=NULL;
-		break;
-	default:
-		break;
-	}
-
-	job->State=state;
-	job->ErrorText=errorText;
-	if (job->ListenEngine) job->ListenEngine->WakeUp();
-
-	switch (job->State) {
-	case JS_WAITING:
-		AddToJobList(job);
-		PSPriorityValid=false;
-		WakeUp();
-		break;
-	case JS_RUNNING:
-		CurrentJob=job;
-		break;
-	default:
-		break;
-	}
-}
-
-
-void emPsRenderer::FailCurrentJob(emString errorMessage)
-{
-	if (CurrentJob) SetJobState(CurrentJob,JS_ERROR,errorMessage);
 }
 
 
 void emPsRenderer::FailDocJobs(emString errorMessage)
 {
-	Job * * pJob;
-	Job * job;
+	emJob * job, * nextJob;
+	RenderJob * renderJob;
 
-	for (pJob=&FirstJob;;) {
-		job=*pJob;
-		if (!job) break;
-		if (job->Document==CurrentDocument) {
-			SetJobState(job,JS_ERROR,errorMessage);
-		}
-		else {
-			pJob=&job->Next;
+	if (CurrentJob) {
+		JobQueue.FailJob(*CurrentJob,errorMessage);
+		CurrentJob=NULL;
+	}
+
+	for (job=JobQueue.GetFirstWaitingJob(); job; job=nextJob) {
+		nextJob=job->GetNext();
+		renderJob=dynamic_cast<RenderJob*>(job);
+		if (!renderJob) emFatalError("emPsRenderer: Illegal job class");
+		if (renderJob->Document==CurrentDocument) {
+			JobQueue.FailJob(*renderJob,errorMessage);
+			PSPriorityValid=false;
+			WakeUp();
 		}
 	}
-	if (CurrentJob) SetJobState(CurrentJob,JS_ERROR,errorMessage);
 }
 
 
 void emPsRenderer::FailAllJobs(emString errorMessage)
 {
-	while (FirstJob) SetJobState(FirstJob,JS_ERROR,errorMessage);
-	if (CurrentJob) SetJobState(CurrentJob,JS_ERROR,errorMessage);
+	if (JobQueue.GetFirstWaitingJob()) {
+		PSPriorityValid=false;
+		WakeUp();
+	}
+	JobQueue.FailAllJobs(errorMessage);
+	CurrentJob=NULL;
 }
 
 
 void emPsRenderer::UpdatePSPriority()
 {
-	Job * job;
+	RenderJob * job;
 	double pri;
 
 	if (!PSPriorityValid) {
 		job=SearchBestJob();
-		if (job) pri=job->Priority;
+		if (job) pri=job->GetPriority();
 		else pri=0.0;
 		PSAgent.SetAccessPriority(pri);
 		PSPriorityValid=true;
@@ -449,9 +383,9 @@ void emPsRenderer::PrepareWritingPage()
 	double rx,ry,rt;
 	int w,h,t;
 
-	if (CurrentJob && CurrentJob->Image) {
-		w=CurrentJob->Image->GetWidth();
-		h=CurrentJob->Image->GetHeight();
+	if (CurrentJob) {
+		w=CurrentJob->GetWidth();
+		h=CurrentJob->GetHeight();
 	}
 	else {
 		w=10;
@@ -759,22 +693,18 @@ int emPsRenderer::ParseImageData(const char * buf, int len)
 
 	if (CurrentJob) {
 		landscape=CurrentDocument.IsLandscapePage(CurrentPageIndex);
-		img=CurrentJob->Image;
-		if (img) {
-			if (landscape) {
-				if (img->GetWidth()!=RdImgH || img->GetHeight()!=RdImgW) {
-					return -1;
-				}
-			}
-			else {
-				if (img->GetWidth()!=RdImgW || img->GetHeight()!=RdImgH) {
-					return -1;
-				}
-			}
-			if (img->GetChannelCount()!=3) {
-				emFatalError("emPsRenderer: Output image must have 3 channels.");
+		if (landscape) {
+			if (CurrentJob->Width!=RdImgH || CurrentJob->Height!=RdImgW) {
+				return -1;
 			}
 		}
+		else {
+			if (CurrentJob->Width!=RdImgW || CurrentJob->Height!=RdImgH) {
+				return -1;
+			}
+		}
+		CurrentJob->Image.Setup(CurrentJob->Width,CurrentJob->Height,3);
+		img=&CurrentJob->Image;
 	}
 	else {
 		img=NULL;

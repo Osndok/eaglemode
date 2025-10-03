@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.h
 //
-// Copyright (C) 2005-2010,2014-2016,2021 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2016,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -414,7 +414,7 @@ private:
 	emString Caption;
 	emString Description;
 	emImage Icon;
-	AuxData * Aux;
+	emOwnPtr<AuxData> Aux;
 	emLook Look;
 	double MaxIconAreaTallness;
 	double BorderScaling;

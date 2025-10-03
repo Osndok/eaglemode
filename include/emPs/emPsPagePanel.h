@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsPagePanel.h
 //
-// Copyright (C) 2006-2008,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,9 +58,9 @@ private:
 	emPsDocument Document;
 	int PageIndex;
 	emRef<emPsRenderer> Renderer;
-	emPsRenderer::JobHandle Job;
+	emRef<emPsRenderer::RenderJob> Job;
 	emImage Image;
-	emPsRenderer::JobState JobState;
+	emJob::StateEnum JobState;
 	emString JobErrorText;
 	emImage WaitIcon,RenderIcon;
 };

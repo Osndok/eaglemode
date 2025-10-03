@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2011,2015-2017,2022 Oliver Hamann.
+// Copyright (C) 2006-2011,2015-2017,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -185,11 +185,9 @@ emWndsScreen::~emWndsScreen()
 {
 	emWndsScreen * * pp;
 
-	delete WCThread;
-	WCThread=NULL;
+	WCThread.Reset();
 
-	delete ViewRenderer;
-	ViewRenderer=NULL;
+	ViewRenderer.Reset();
 
 	UnregisterClass(WinClassName.Get(),NULL);
 	InstanceListMutex.Lock();

@@ -107,7 +107,7 @@ private:
 		~PageData();
 		PageData & operator = (const PageData & pageData);
 		PageSelection Selection;
-		emPdfServerModel::JobHandle GetSelectedTextJob;
+		emRef<emPdfServerModel::GetSelectedTextJob> GetSelectedTextJob;
 		emString TempText;
 		emString ErrorText;
 	};

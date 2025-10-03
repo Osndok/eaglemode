@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.h
 //
-// Copyright (C) 2006-2008,2022 Oliver Hamann.
+// Copyright (C) 2006-2008,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -115,7 +115,7 @@ private:
 	bool TmpSelected;
 	time_t FileTime;
 	emUInt64 FileSize;
-	PSAgentClass * PSAgent;
+	emOwnPtr<PSAgentClass> PSAgent;
 	emProcess Process;
 	emArray<char> ErrPipeBuf;
 	emTmpConvModelClient * ClientList;

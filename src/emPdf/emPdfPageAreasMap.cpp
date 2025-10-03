@@ -24,7 +24,7 @@
 emPdfPageAreasMap::emPdfPageAreasMap(emScheduler & scheduler)
 	: emEngine(scheduler),
 	ServerModel(NULL),
-	PdfHandle(NULL)
+	PdfInstance(NULL)
 {
 }
 
@@ -36,13 +36,13 @@ emPdfPageAreasMap::~emPdfPageAreasMap()
 
 
 void emPdfPageAreasMap::Setup(
-	emPdfServerModel & serverModel, emPdfServerModel::PdfHandle pdfHandle
+	emPdfServerModel & serverModel, emPdfServerModel::PdfInstance & pdfInstance
 )
 {
 	Reset();
 	ServerModel=&serverModel;
-	PdfHandle=pdfHandle;
-	Entries.SetCount(ServerModel->GetPageCount(pdfHandle));
+	PdfInstance=&pdfInstance;
+	Entries.SetCount(pdfInstance.GetPageCount());
 }
 
 
@@ -50,15 +50,15 @@ void emPdfPageAreasMap::Reset()
 {
 	int i;
 
-	if (ServerModel && PdfHandle) {
+	if (ServerModel) {
 		for (i=Entries.GetCount()-1; i>=0; i--) {
-			if (Entries[i].JobHandle) {
-				ServerModel->CloseJob(Entries[i].JobHandle);
+			if (Entries[i].Job) {
+				ServerModel->AbortJob(*Entries[i].Job);
 			}
 		}
 	}
 	ServerModel=NULL;
-	PdfHandle=NULL;
+	PdfInstance=NULL;
 	Entries.Clear();
 }
 
@@ -68,26 +68,28 @@ bool emPdfPageAreasMap::RequestPageAreas(int page, double priority)
 	Entry * e;
 	int i;
 
-	if (!ServerModel || !PdfHandle) return false;
+	if (!ServerModel || !PdfInstance) return false;
 	if (page<0 || page>=Entries.GetCount()) return false;
 
 	if (Entries[page].Requested) return true;
 
 	for (i=Entries.GetCount()-1; i>=0; i--) {
-		if (!Entries[i].JobHandle) continue;
+		if (!Entries[i].Job) continue;
 		e=&Entries.GetWritable(i);
-		if (ServerModel->GetJobState(e->JobHandle) == emPdfServerModel::JS_WAITING) {
-			ServerModel->CloseJob(e->JobHandle);
+		if (e->Job->GetState() == emJob::ST_WAITING) {
+			ServerModel->AbortJob(*e->Job);
 			e->Requested=false;
-			e->JobHandle=NULL;
+			e->Job=NULL;
 		}
 	}
 
 	e=&Entries.GetWritable(page);
-	if (e->JobHandle) return true;
-	e->JobHandle=ServerModel->StartGetAreasJob(
-		PdfHandle,page,&e->Areas,priority,this
+	if (e->Job) return true;
+	e->Job=new emPdfServerModel::GetAreasJob(
+		*PdfInstance,page,priority
 	);
+	ServerModel->EnqueueJob(*e->Job);
+	AddWakeUpSignal(e->Job->GetStateSignal());
 	e->Requested=true;
 	return true;
 }
@@ -101,7 +103,7 @@ const emPdfServerModel::PageAreas * emPdfPageAreasMap::GetPageAreas(
 
 	if (page>=0 && page<Entries.GetCount()) {
 		e=&Entries[page];
-		if (e->Requested && !e->JobHandle) {
+		if (e->Requested && !e->Job) {
 			return &e->Areas;
 		}
 	}
@@ -115,7 +117,7 @@ const emString * emPdfPageAreasMap::GetError(int page) const
 
 	if (page>=0 && page<Entries.GetCount()) {
 		e=&Entries[page];
-		if (e->Requested && !e->JobHandle && !e->ErrorText.IsEmpty()) {
+		if (e->Requested && !e->Job && !e->ErrorText.IsEmpty()) {
 			return &e->ErrorText;
 		}
 	}
@@ -129,18 +131,22 @@ bool emPdfPageAreasMap::Cycle()
 	int i;
 
 	for (i=Entries.GetCount()-1; i>=0; i--) {
-		if (!Entries[i].JobHandle) continue;
+		if (!Entries[i].Job) continue;
 		e=&Entries.GetWritable(i);
-		switch (ServerModel->GetJobState(e->JobHandle)) {
-		case emPdfServerModel::JS_ERROR:
-			e->ErrorText=ServerModel->GetJobErrorText(e->JobHandle);
-			ServerModel->CloseJob(e->JobHandle);
-			e->JobHandle=NULL;
+		switch (e->Job->GetState()) {
+		case emJob::ST_ERROR:
+			e->ErrorText=e->Job->GetErrorText();
+			e->Job=NULL;
 			Signal(PageAreasSignal);
 			break;
-		case emPdfServerModel::JS_SUCCESS:
-			ServerModel->CloseJob(e->JobHandle);
-			e->JobHandle=NULL;
+		case emJob::ST_ABORTED:
+			e->ErrorText="Aborted";
+			e->Job=NULL;
+			Signal(PageAreasSignal);
+			break;
+		case emJob::ST_SUCCESS:
+			e->Areas=e->Job->GetAreas();
+			e->Job=NULL;
 			Signal(PageAreasSignal);
 			break;
 		default:
@@ -153,15 +159,14 @@ bool emPdfPageAreasMap::Cycle()
 
 
 emPdfPageAreasMap::Entry::Entry()
-	: Requested(false),
-	JobHandle(NULL)
+	: Requested(false)
 {
 }
 
 
 emPdfPageAreasMap::Entry::Entry(const Entry & entry)
 	: Requested(entry.Requested),
-	JobHandle(entry.JobHandle),
+	Job(entry.Job),
 	Areas(entry.Areas),
 	ErrorText(entry.ErrorText)
 {
@@ -178,7 +183,7 @@ emPdfPageAreasMap::Entry & emPdfPageAreasMap::Entry::operator = (
 )
 {
 	Requested=entry.Requested;
-	JobHandle=entry.JobHandle;
+	Job=entry.Job;
 	Areas=entry.Areas;
 	ErrorText=entry.ErrorText;
 	return *this;

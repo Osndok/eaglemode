@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emWndsAdapterProc.c
 //
-// Copyright (C) 2017-2018,2022 Oliver Hamann.
+// Copyright (C) 2017-2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -51,7 +51,7 @@ static const char * getLastErrorText()
 		sizeof(text)-1,
 		NULL
 	)) {
-		sprintf(text,"error #%d",errorNumber);
+		sprintf(text,"error #%lu",(unsigned long)errorNumber);
 	}
 	return text;
 }

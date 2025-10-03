@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018,2022 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emColor_h
 #include <emCore/emColor.h>
+#endif
+
+#ifndef emOwnPtr_h
+#include <emCore/emOwnPtr.h>
 #endif
 
 class emRecReader;
@@ -1107,9 +1111,9 @@ private:
 		emRecAllocator Allocator;
 	};
 
-	VariantType * TypeArray;
+	emOwnArrayPtr<VariantType> TypeArray;
 	int VariantCount, DefaultVariant, Variant;
-	emRec * Record;
+	emOwnPtr<emRec> Record;
 };
 
 inline int emUnionRec::GetVariant() const

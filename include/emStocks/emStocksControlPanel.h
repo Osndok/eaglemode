@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksControlPanel.h
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -69,7 +69,7 @@ private:
 	public:
 		FileFieldPanel(
 			ParentArg parent, const emString & name,
-			emStocksControlPanel & itemPanel,
+			emStocksControlPanel & controlPanel,
 			FileFieldType type,
 			const emString & caption=emString(),
 			const emString & description=emString(),

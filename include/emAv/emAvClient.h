@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvClient.h
 //
-// Copyright (C) 2008,2020 Oliver Hamann.
+// Copyright (C) 2008,2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emAvClient_h
 #define emAvClient_h
+
+#ifndef emOwnPtrArray_h
+#include <emCore/emOwnPtrArray.h>
+#endif
 
 #ifndef emAvServerModel_h
 #include <emAv/emAvServerModel.h>
@@ -83,15 +87,13 @@ private:
 
 	void PropertyOKFromServer(const emString & name);
 
-	static int CmpPropName(
-		Property * const * obj, void * key, void * context
-	);
+	static int CmpPropName(const Property * obj, void * key, void * context);
 
 	emRef<emAvServerModel> ServerModel;
 	emAvServerModel::Instance * Instance;
 	StreamStateType StreamState;
 	emString StreamErrorText;
-	emArray<Property*> Properties;
+	emOwnPtrArray<Property> Properties;
 };
 
 inline emAvClient::StreamStateType emAvClient::GetStreamState() const

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.h
 //
-// Copyright (C) 2004-2012,2014,2016-2017,2021,2023 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2021,2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,6 +35,10 @@
 
 #ifndef emCoreConfig_h
 #include <emCore/emCoreConfig.h>
+#endif
+
+#ifndef emOwnPtr_h
+#include <emCore/emOwnPtr.h>
 #endif
 
 class emPanel;
@@ -658,7 +662,7 @@ private:
 
 	emCrossPtrList CrossPtrList;
 	emRef<emCoreConfig> CoreConfig;
-	emViewPort * DummyViewPort;
+	emOwnPtr<emViewPort> DummyViewPort;
 	emViewPort * HomeViewPort;
 	emViewPort * CurrentViewPort;
 	emWindow * Window;
@@ -667,8 +671,8 @@ private:
 	emViewInputFilter * FirstVIF;
 	emViewInputFilter * LastVIF;
 	emViewAnimator * ActiveAnimator;
-	emMagneticViewAnimator * MagneticVA;
-	emVisitingViewAnimator * VisitingVA;
+	emOwnPtr<emMagneticViewAnimator> MagneticVA;
+	emOwnPtr<emVisitingViewAnimator> VisitingVA;
 	emPanel * RootPanel;
 	emPanel * SupremeViewedPanel;
 	emPanel * MinSVP, * MaxSVP;
@@ -701,11 +705,11 @@ private:
 	emUInt64 SVPUpdSlice;
 	emInputEvent NoEvent;
 	PanelRingNode NoticeList;
-	UpdateEngineClass * UpdateEngine;
-	EOIEngineClass * EOIEngine;
+	emOwnPtr<UpdateEngineClass> UpdateEngine;
+	emOwnPtr<EOIEngineClass> EOIEngine;
 	emPanel * SeekPosPanel;
 	emString SeekPosChildName;
-	StressTestClass * StressTest;
+	emOwnPtr<StressTestClass> StressTest;
 
 	static const double MaxSVPSize;
 	static const double MaxSVPSearchSize;

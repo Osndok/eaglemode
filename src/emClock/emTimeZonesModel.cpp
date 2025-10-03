@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.cpp
 //
-// Copyright (C) 2006-2009,2014,2017-2019 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017-2019,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -148,7 +148,6 @@ emTimeZonesModel::emTimeZonesModel(emContext & context, const emString & name)
 	: emModel(context,name)
 {
 	Time=time(NULL);
-	Cities.SetTuningLevel(4);
 	ChildProcState=CP_STOPPED;
 	ChildProcIdleClock=0;
 	ReadBufFill=0;
@@ -164,11 +163,8 @@ emTimeZonesModel::emTimeZonesModel(emContext & context, const emString & name)
 
 emTimeZonesModel::~emTimeZonesModel()
 {
-	int i;
-
 	ChildProc.Terminate();
 	Requests.Clear();
-	for (i=0; i<Cities.GetCount(); i++) delete Cities[i];
 	Cities.Clear();
 	free(ReadBuf);
 	free(WriteBuf);
@@ -571,13 +567,13 @@ void emTimeZonesModel::ManageChildProc()
 
 
 int emTimeZonesModel::CmpCityAndName(
-	City * const * obj, void * key, void * context
+	const City * obj, void * key, void * context
 )
 {
 	const City * city;
 	const char * name;
 
-	city=*obj;
+	city=obj;
 	name=(const char*)key;
 	return strcmp(city->Name.Get(),name);
 }

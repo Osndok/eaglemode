@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBorder.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2020-2021 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020-2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,8 +63,6 @@ emBorder::emBorder(
 		r->ImgTunnel=emGetResImage(*rc,emGetChildPath(resDir,"Tunnel.tga"));
 	}
 
-	Aux=NULL;
-
 	for (p=GetParent(); p; p=p->GetParent()) {
 		tkp=dynamic_cast<emBorder*>(p);
 		if (tkp) {
@@ -87,7 +85,6 @@ emBorder::emBorder(
 
 emBorder::~emBorder()
 {
-	if (Aux) delete Aux;
 }
 
 
@@ -269,8 +266,7 @@ void emBorder::HaveAux(const emString & panelName, double tallness)
 void emBorder::RemoveAux()
 {
 	if (Aux) {
-		delete Aux;
-		Aux=NULL;
+		Aux.Reset();
 		InvalidatePainting();
 		InvalidateChildrenLayout();
 	}

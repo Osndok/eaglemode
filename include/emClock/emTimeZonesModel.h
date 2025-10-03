@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTimeZonesModel.h
 //
-// Copyright (C) 2006-2009,2014,2017-2018 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2017-2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,10 @@
 
 #ifndef emModel_h
 #include <emCore/emModel.h>
+#endif
+
+#ifndef emOwnPtrArray_h
+#include <emCore/emOwnPtrArray.h>
 #endif
 
 #ifndef emProcess_h
@@ -115,14 +119,12 @@ private:
 
 	void ManageChildProc();
 
-	static int CmpCityAndName(
-		City * const * obj, void * key, void * context
-	);
+	static int CmpCityAndName(const City * obj, void * key, void * context);
 
 	emString ZoneInfoDir;
 	emSignal TimeSignal;
 	time_t Time;
-	emArray<City*> Cities; // Sorted by name
+	emOwnPtrArray<City> Cities; // Sorted by name
 	emList<City*> Requests;
 
 	emProcess ChildProc;

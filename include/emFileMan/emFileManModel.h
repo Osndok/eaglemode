@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.h
 //
-// Copyright (C) 2004-2008,2014,2016-2017,2021 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2016-2017,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -189,7 +189,7 @@ private:
 	emString ShiftTgtSelPath;
 	unsigned int SelCmdCounter;
 
-	IpcServerClass * IpcServer;
+	emOwnPtr<IpcServerClass> IpcServer;
 
 	emRef<emSigModel> FileUpdateSignalModel;
 

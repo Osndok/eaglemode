@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTreeSet.h
 //
-// Copyright (C) 2016,2021 Oliver Hamann.
+// Copyright (C) 2016,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,8 +37,8 @@ public:
 	// Template class for an AVL tree which holds a sorted set of unique
 	// elements. This class provides copy-on-write behavior and stable
 	// iterators. The template parameter OBJ describes the type of the
-	// elements. Elements are compared with the normal comparison operators
-	// (==, <=, >...).
+	// elements. Elements are compared with the less than and greater than
+	// operators (<, >).
 
 	emAvlTreeSet();
 		// Construct an empty set.

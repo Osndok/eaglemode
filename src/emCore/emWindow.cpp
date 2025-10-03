@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWindow.cpp
 //
-// Copyright (C) 2005-2010,2014,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2010,2014,2016,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,7 +48,6 @@ emWindow::emWindow(
 			break;
 		}
 	}
-	WindowPort=NULL;
 
 	emView::SetWindowAndScreen(this);
 
@@ -107,8 +106,7 @@ emWindow::~emWindow()
 			break;
 		}
 	}
-	delete WindowPort;
-	WindowPort=NULL;
+	WindowPort.Reset();
 }
 
 

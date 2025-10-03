@@ -1,0 +1,17 @@
+#%rec:emVirtualCosmosItem%#
+
+Title = "OpenStreetMap"
+
+PosX  = 0.900
+PosY  = 0.770
+Width = 0.010
+ContentTallness = 1.0
+
+BorderScaling = 1.0
+
+BackgroundColor = { 160 192 192 255 }
+BorderColor = { 90 150 150 255 }
+TitleColor = { 255 255 255 255 }
+
+FileName = "Osm1.emOsm"
+CopyToUser = true

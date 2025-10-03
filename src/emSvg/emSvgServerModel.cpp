@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011,2014,2017-2019,2022-2023 Oliver Hamann.
+// Copyright (C) 2010-2011,2014,2017-2019,2022-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,82 +34,63 @@ emRef<emSvgServerModel> emSvgServerModel::Acquire(emRootContext & rootContext)
 }
 
 
-emSvgServerModel::JobHandle emSvgServerModel::StartOpenJob(
-	const emString & filePath, SvgHandle * svgHandleReturn,
-	double priority, emEngine * listenEngine
+emSvgServerModel::SvgInstance::~SvgInstance()
+{
+	if (InstanceId!=-1 && SvgServerModel) {
+		emRef<CloseJob> job=new CloseJob(ProcRunId,InstanceId);
+		SvgServerModel->EnqueueJob(*job);
+	}
+}
+
+
+emSvgServerModel::SvgInstance::SvgInstance(emSvgServerModel & svgServerModel)
+	: SvgServerModel(&svgServerModel),
+	ProcRunId(0),
+	InstanceId(-1),
+	Width(0.0),
+	Height(0.0)
+{
+}
+
+
+emSvgServerModel::OpenJob::OpenJob(const emString & filePath, double priority)
+	: emJob(priority),
+	FilePath(filePath)
+{
+}
+
+
+emSvgServerModel::RenderJob::RenderJob(
+	SvgInstance & svgInstance, double srcX, double srcY,
+	double srcWidth, double srcHeight, emColor bgColor,
+	int tgtWidth, int tgtHeight, double priority
 )
+	: emJob(priority),
+	SvgInst(&svgInstance),
+	SrcX(srcX),
+	SrcY(srcY),
+	SrcWidth(srcWidth),
+	SrcHeight(srcHeight),
+	BgColor(bgColor),
+	TgtW(tgtWidth),
+	TgtH(tgtHeight),
+	ShmOffset(0)
 {
-	OpenJob * job;
+}
 
-	job=new OpenJob;
-	job->Priority=priority;
-	job->ListenEngine=listenEngine;
-	job->FilePath=filePath;
-	job->SvgHandleReturn=svgHandleReturn;
-	AddJobToWaitingList(job);
+
+void emSvgServerModel::EnqueueJob(emJob & job)
+{
+	JobQueue.EnqueueJob(job);
 	WakeUp();
-	return job;
 }
 
 
-emSvgServerModel::JobHandle emSvgServerModel::StartRenderJob(
-	SvgHandle svgHandle, double srcX, double srcY, double srcWidth,
-	double srcHeight, emColor bgColor, emImage * outputImage,
-	double priority, emEngine * listenEngine
-)
+void emSvgServerModel::AbortJob(emJob & job)
 {
-	RenderJob * job;
-
-	job=new RenderJob;
-	job->Priority=priority;
-	job->ListenEngine=listenEngine;
-	job->ProcRunId=((SvgInstance*)svgHandle)->ProcRunId;
-	job->InstanceId=((SvgInstance*)svgHandle)->InstanceId;
-	job->SrcX=srcX;
-	job->SrcY=srcY;
-	job->SrcWidth=srcWidth;
-	job->SrcHeight=srcHeight;
-	job->BgColor=bgColor;
-	job->OutputImage=outputImage;
-	job->TgtW=outputImage->GetWidth();
-	job->TgtH=outputImage->GetHeight();
-	AddJobToWaitingList(job);
-	WakeUp();
-	return job;
-}
-
-
-void emSvgServerModel::CloseJob(JobHandle jobHandle)
-{
-	Job * job;
-
-	job=(Job*)jobHandle;
-	if (job->State==JS_RUNNING) {
-		job->ListenEngine=NULL;
-		job->Orphan=true;
+	if (job.GetState() != emJob::ST_RUNNING) {
+		JobQueue.AbortJob(job);
 	}
-	else {
-		if (job->State==JS_WAITING) RemoveJobFromList(job);
-		delete job;
-	}
-}
-
-
-void emSvgServerModel::CloseSvg(SvgHandle svgHandle)
-{
-	CloseJobStruct * job;
-	SvgInstance * inst;
-
-	inst=(SvgInstance*)svgHandle;
-	if (inst->ProcRunId==ProcRunId) {
-		job=new CloseJobStruct;
-		job->ProcRunId=inst->ProcRunId;
-		job->InstanceId=inst->InstanceId;
-		job->Orphan=true;
-		AddJobToWaitingList(job);
-		WakeUp();
-	}
-	delete inst;
 }
 
 
@@ -121,8 +102,7 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 	endTime=emGetClockMS()+maxMillisecs;
 
 	if (
-		!FirstRunningJob &&
-		!FirstWaitingJob &&
+		JobQueue.IsEmpty() &&
 		ProcSvgInstCount==0 &&
 		Process.IsRunning() &&
 		!ProcTerminating &&
@@ -138,7 +118,7 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 		ProcTerminating=false;
 	}
 
-	if (!FirstRunningJob && !FirstWaitingJob) return;
+	if (JobQueue.IsEmpty()) return;
 
 	ProcIdleClock=emGetClockMS();
 
@@ -174,7 +154,7 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 				TryFinishJobs();
 				TryStartJobs();
 			}
-			if (!FirstRunningJob && WriteBuf.IsEmpty()) break;
+			if (!JobQueue.GetFirstRunningJob() && WriteBuf.IsEmpty()) break;
 			now=emGetClockMS();
 			if (now>=endTime) break;
 			flags=emProcess::WF_WAIT_STDOUT;
@@ -183,8 +163,8 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 		}
 	}
 	catch (const emException & exception) {
-		if (!FirstRunningJob) FailAllJobs(exception.GetText());
-		else FailAllRunningJobs(exception.GetText());
+		if (!JobQueue.GetFirstRunningJob()) JobQueue.FailAllJobs(exception.GetText());
+		else JobQueue.FailAllRunningJobs(exception.GetText());
 		Process.SendTerminationSignal();
 		ProcTerminating=true;
 	}
@@ -192,7 +172,8 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 
 
 emSvgServerModel::emSvgServerModel(emContext & context, const emString & name)
-	: emModel(context,name)
+	: emModel(context,name),
+	JobQueue(GetScheduler())
 {
 	ProcRunId=0;
 	ProcSvgInstCount=0;
@@ -200,10 +181,6 @@ emSvgServerModel::emSvgServerModel(emContext & context, const emString & name)
 	ProcTerminating=false;
 	ReadBuf.SetTuningLevel(4);
 	WriteBuf.SetTuningLevel(4);
-	FirstWaitingJob=NULL;
-	LastWaitingJob=NULL;
-	FirstRunningJob=NULL;
-	LastRunningJob=NULL;
 	ShmSize=0;
 #if defined(_WIN32) || defined(__CYGWIN__)
 	ShmId[0]=0;
@@ -221,18 +198,6 @@ emSvgServerModel::emSvgServerModel(emContext & context, const emString & name)
 
 emSvgServerModel::~emSvgServerModel()
 {
-	Job * job;
-
-	for (;;) {
-		job=FirstRunningJob;
-		if (!job) job=FirstWaitingJob;
-		if (!job) break;
-		if (!job->Orphan) {
-			emFatalError("emSvgServerModel::~emSvgServerModel: Job not closed.");
-		}
-		RemoveJobFromList(job);
-		delete job;
-	}
 	Process.Terminate();
 	FreeShm();
 }
@@ -247,7 +212,7 @@ bool emSvgServerModel::Cycle()
 	Poll(IsTimeSliceAtEnd()?0:10);
 
 	if (
-		FirstRunningJob || FirstWaitingJob || !WriteBuf.IsEmpty() ||
+		!JobQueue.IsEmpty() || !WriteBuf.IsEmpty() ||
 		(Process.IsRunning() && !ProcSvgInstCount)
 	) busy=true;
 
@@ -255,145 +220,64 @@ bool emSvgServerModel::Cycle()
 }
 
 
-emSvgServerModel::SvgInstance::SvgInstance()
-{
-	ProcRunId=0;
-	InstanceId=-1;
-	Width=0.0;
-	Height=0.0;
-}
-
-
-emSvgServerModel::SvgInstance::~SvgInstance()
-{
-}
-
-
-emSvgServerModel::Job::Job()
-{
-	State=JS_WAITING;
-	Priority=0.0;
-	ListenEngine=NULL;
-	Orphan=false;
-	Prev=NULL;
-	Next=NULL;
-}
-
-
-emSvgServerModel::Job::~Job()
-{
-}
-
-
-emSvgServerModel::OpenJob::OpenJob()
-{
-	Type=JT_OPEN_JOB;
-	SvgHandleReturn=NULL;
-}
-
-
-emSvgServerModel::OpenJob::~OpenJob()
-{
-}
-
-
-emSvgServerModel::RenderJob::RenderJob()
-{
-	Type=JT_RENDER_JOB;
-	ProcRunId=0;
-	InstanceId=-1;
-	SrcX=0.0;
-	SrcY=0.0;
-	SrcWidth=0.0;
-	SrcHeight=0.0;
-	BgColor=0;
-	OutputImage=NULL;
-	TgtW=0;
-	TgtH=0;
-	ShmOffset=0;
-}
-
-
-emSvgServerModel::RenderJob::~RenderJob()
-{
-}
-
-
-emSvgServerModel::CloseJobStruct::CloseJobStruct()
-{
-	Type=JT_CLOSE_JOB;
-	ProcRunId=0;
-	InstanceId=-1;
-}
-
-
-emSvgServerModel::CloseJobStruct::~CloseJobStruct()
+emSvgServerModel::CloseJob::CloseJob(emUInt64 procRunId, int instanceId)
+	: emJob(1E200),
+	ProcRunId(procRunId),
+	InstanceId(instanceId)
 {
 }
 
 
 void emSvgServerModel::TryStartJobs()
 {
-	Job * job;
+	emJob * job;
 
-	while ((job=SearchBestNextJob())!=NULL) {
-		if (job->Type==JT_OPEN_JOB) {
-			TryStartOpenJob((OpenJob*)job);
+	JobQueue.UpdateSortingOfWaitingJobs();
+
+	while ((job=JobQueue.GetFirstWaitingJob())!=NULL) {
+		if (OpenJob * openJob=dynamic_cast<OpenJob*>(job)) {
+			TryStartOpenJob(*openJob);
 		}
-		else if (job->Type==JT_RENDER_JOB) {
-			if (!TryStartRenderJob((RenderJob*)job)) break;
+		else if (RenderJob * renderJob=dynamic_cast<RenderJob*>(job)) {
+			if (!TryStartRenderJob(*renderJob)) break;
 		}
-		else if (job->Type==JT_CLOSE_JOB) {
-			TryStartCloseJob((CloseJobStruct*)job);
+		else if (CloseJob * closeJob=dynamic_cast<CloseJob*>(job)) {
+			TryStartCloseJob(*closeJob);
+		}
+		else {
+			JobQueue.FailJob(*job,"Unsupported job class");
 		}
 	}
 }
 
 
-void emSvgServerModel::TryStartOpenJob(OpenJob * openJob)
+void emSvgServerModel::TryStartOpenJob(OpenJob & openJob)
 {
-	if (openJob->Orphan) {
-		RemoveJobFromList(openJob);
-		delete openJob;
-		return;
-	}
 	WriteLineToProc(
 		emString::Format(
 			"open %s",
-			openJob->FilePath.Get()
+			openJob.FilePath.Get()
 		)
 	);
-	RemoveJobFromList(openJob);
-	AddJobToRunningList(openJob);
-	openJob->State=JS_RUNNING;
-	if (openJob->ListenEngine) openJob->ListenEngine->WakeUp();
+	JobQueue.StartJob(openJob);
 }
 
 
-bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob)
+bool emSvgServerModel::TryStartRenderJob(RenderJob & renderJob)
 {
 	emByte * t, * e;
 	emUInt32 u;
 	int size;
 
-	if (renderJob->Orphan) {
-		RemoveJobFromList(renderJob);
-		delete renderJob;
+	if (renderJob.SvgInst->ProcRunId!=ProcRunId) {
+		JobQueue.FailJob(renderJob,"SVG server process restarted");
 		return true;
 	}
 
-	if (renderJob->ProcRunId!=ProcRunId) {
-		RemoveJobFromList(renderJob);
-		renderJob->State=JS_ERROR;
-		renderJob->ErrorText="SVG server process restarted";
-		if (renderJob->ListenEngine) renderJob->ListenEngine->WakeUp();
-		return true;
-	}
-
-	size=renderJob->TgtW*renderJob->TgtH*4;
-	if (!FirstRunningJob || ShmAllocBegin==ShmAllocEnd) {
+	size=renderJob.TgtW*renderJob.TgtH*4;
+	if (!JobQueue.GetFirstRunningJob() || ShmAllocBegin==ShmAllocEnd) {
 		if (size>ShmSize) {
-			if (FirstRunningJob) return false;
+			if (JobQueue.GetFirstRunningJob()) return false;
 			TryAllocShm(size);
 			TryWriteAttachShm();
 		}
@@ -407,12 +291,12 @@ bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob)
 		if (size>=ShmAllocBegin) return false;
 		ShmAllocEnd=0;
 	}
-	renderJob->ShmOffset=ShmAllocEnd;
+	renderJob.ShmOffset=ShmAllocEnd;
 	ShmAllocEnd+=size;
 
-	t=ShmPtr+renderJob->ShmOffset;
+	t=ShmPtr+renderJob.ShmOffset;
 	e=t+size;
-	u=renderJob->BgColor.Get()>>8;
+	u=renderJob.BgColor.Get()>>8;
 	while (t<e) {
 		*(emUInt32*)t=u;
 		t+=4;
@@ -420,39 +304,30 @@ bool emSvgServerModel::TryStartRenderJob(RenderJob * renderJob)
 
 	WriteLineToProc(emString::Format(
 		"render %d %.16g %.16g %.16g %.16g %d %d %d",
-		renderJob->InstanceId,
-		renderJob->SrcX,
-		renderJob->SrcY,
-		renderJob->SrcWidth,
-		renderJob->SrcHeight,
-		renderJob->ShmOffset,
-		renderJob->TgtW,
-		renderJob->TgtH
+		renderJob.SvgInst->InstanceId,
+		renderJob.SrcX,
+		renderJob.SrcY,
+		renderJob.SrcWidth,
+		renderJob.SrcHeight,
+		renderJob.ShmOffset,
+		renderJob.TgtW,
+		renderJob.TgtH
 	));
-	RemoveJobFromList(renderJob);
-	AddJobToRunningList(renderJob);
-	renderJob->State=JS_RUNNING;
-	if (renderJob->ListenEngine) renderJob->ListenEngine->WakeUp();
+	JobQueue.StartJob(renderJob);
 	return true;
 }
 
 
-void emSvgServerModel::TryStartCloseJob(CloseJobStruct * closeJob)
+void emSvgServerModel::TryStartCloseJob(CloseJob & closeJob)
 {
-	if (closeJob->ProcRunId==ProcRunId) {
+	if (closeJob.ProcRunId==ProcRunId) {
 		WriteLineToProc(emString::Format(
 			"close %d",
-			closeJob->InstanceId
+			closeJob.InstanceId
 		));
 		ProcSvgInstCount--;
 	}
-	RemoveJobFromList(closeJob);
-	if (closeJob->Orphan) {
-		delete closeJob;
-		return;
-	}
-	closeJob->State=JS_SUCCESS;
-	if (closeJob->ListenEngine) closeJob->ListenEngine->WakeUp();
+	JobQueue.SucceedJob(closeJob);
 }
 
 
@@ -460,7 +335,9 @@ void emSvgServerModel::TryFinishJobs()
 {
 	emString cmd,args;
 	const char * p;
-	Job * job;
+	emJob * job;
+	OpenJob * openJob;
+	RenderJob * renderJob;
 	int l;
 
 	for (;;) {
@@ -476,33 +353,40 @@ void emSvgServerModel::TryFinishJobs()
 			cmd=args;
 			args.Clear();
 		}
-		job=FirstRunningJob;
-		if (cmd=="error:" && job) {
-			RemoveJobFromList(job);
-			job->State=JS_ERROR;
-			job->ErrorText=args;
-			if (job->Orphan) delete job;
-			else if (job->ListenEngine) job->ListenEngine->WakeUp();
+
+		job=JobQueue.GetFirstRunningJob();
+		if (job) {
+			if (cmd=="error:") {
+				JobQueue.FailJob(*job,args);
+				continue;
+			}
+			if (cmd=="opened:") {
+				openJob=dynamic_cast<OpenJob*>(job);
+				if (openJob) {
+					TryFinishOpenJob(*openJob,args);
+					continue;
+				}
+			}
+			if (cmd=="rendered") {
+				renderJob=dynamic_cast<RenderJob*>(job);
+				if (renderJob) {
+					TryFinishRenderJob(*renderJob);
+					continue;
+				}
+			}
 		}
-		else if (cmd=="opened:" && job && job->Type==JT_OPEN_JOB) {
-			TryFinishOpenJob((OpenJob*)job,args);
-		}
-		else if (cmd=="rendered" && job && job->Type==JT_RENDER_JOB) {
-			TryFinishRenderJob((RenderJob*)job);
-		}
-		else {
-			throw emException("SVG server protocol error");
-		}
+
+		throw emException("SVG server protocol error");
 	}
 }
 
 
-void emSvgServerModel::TryFinishOpenJob(OpenJob * openJob, const char * args)
+void emSvgServerModel::TryFinishOpenJob(OpenJob & openJob, const char * args)
 {
 	int instId,pos,r;
 	double width,height;
 	emString title,desc,str;
-	SvgInstance * inst;
+	emRef<SvgInstance> inst;
 	char c;
 
 	pos=-1;
@@ -534,7 +418,7 @@ void emSvgServerModel::TryFinishOpenJob(OpenJob * openJob, const char * args)
 
 	ProcSvgInstCount++;
 
-	inst=new SvgInstance;
+	inst=new SvgInstance(*this);
 	inst->ProcRunId=ProcRunId;
 	inst->InstanceId=instId;
 	inst->Width=width;
@@ -542,39 +426,24 @@ void emSvgServerModel::TryFinishOpenJob(OpenJob * openJob, const char * args)
 	inst->Title=title;
 	inst->Description=desc;
 
-	if (!openJob->Orphan && openJob->SvgHandleReturn) {
-		*openJob->SvgHandleReturn=inst;
-	}
-	else {
-		CloseSvg(inst);
-	}
-
-	RemoveJobFromList(openJob);
-	openJob->State=JS_SUCCESS;
-	if (openJob->Orphan) delete openJob;
-	else if (openJob->ListenEngine) openJob->ListenEngine->WakeUp();
+	openJob.SvgInst=inst;
+	JobQueue.SucceedJob(openJob);
 }
 
 
-void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob)
+void emSvgServerModel::TryFinishRenderJob(RenderJob & renderJob)
 {
 	emByte * s, * t, * e;
-	emImage * img;
 	emUInt32 u;
 	int size;
 
-	size=renderJob->TgtW*renderJob->TgtH*4;
-	ShmAllocBegin=renderJob->ShmOffset+size;
-	if (
-		!renderJob->Orphan &&
-		(img=renderJob->OutputImage)!=NULL  &&
-		img->GetWidth()==renderJob->TgtW &&
-		img->GetHeight()==renderJob->TgtH &&
-		img->GetChannelCount()==3
-	) {
-		s=ShmPtr+renderJob->ShmOffset;
+	size=renderJob.TgtW*renderJob.TgtH*4;
+	ShmAllocBegin=renderJob.ShmOffset+size;
+	if (renderJob.GetRefCount() > 1) {
+		renderJob.Image.Setup(renderJob.TgtW,renderJob.TgtH,3);
+		s=ShmPtr+renderJob.ShmOffset;
 		e=s+size;
-		t=img->GetWritableMap();
+		t=renderJob.Image.GetWritableMap();
 		while (s<e) {
 			u=*(emUInt32*)s;
 			t[0]=(emByte)(u>>16);
@@ -584,10 +453,7 @@ void emSvgServerModel::TryFinishRenderJob(RenderJob * renderJob)
 			s+=4;
 		}
 	}
-	RemoveJobFromList(renderJob);
-	renderJob->State=JS_SUCCESS;
-	if (renderJob->Orphan) delete renderJob;
-	else if (renderJob->ListenEngine) renderJob->ListenEngine->WakeUp();
+	JobQueue.SucceedJob(renderJob);
 }
 
 
@@ -598,39 +464,6 @@ void emSvgServerModel::TryWriteAttachShm()
 #else
 	WriteLineToProc(emString::Format("attachshm %d",ShmId));
 #endif
-}
-
-
-void emSvgServerModel::FailAllRunningJobs(emString errorText)
-{
-	Job * job;
-
-	for (;;) {
-		job=FirstRunningJob;
-		if (!job) break;
-		RemoveJobFromList(job);
-		job->State=JS_ERROR;
-		job->ErrorText=errorText;
-		if (job->Orphan) delete job;
-		else if (job->ListenEngine) job->ListenEngine->WakeUp();
-	}
-}
-
-
-void emSvgServerModel::FailAllJobs(emString errorText)
-{
-	Job * job;
-
-	FailAllRunningJobs(errorText);
-	for (;;) {
-		job=FirstWaitingJob;
-		if (!job) break;
-		RemoveJobFromList(job);
-		job->State=JS_ERROR;
-		job->ErrorText=errorText;
-		if (job->Orphan) delete job;
-		else if (job->ListenEngine) job->ListenEngine->WakeUp();
-	}
 }
 
 
@@ -810,68 +643,6 @@ void emSvgServerModel::FreeShm()
 	ShmSize=0;
 	ShmAllocBegin=0;
 	ShmAllocEnd=0;
-}
-
-
-emSvgServerModel::Job * emSvgServerModel::SearchBestNextJob() const
-{
-	Job * job, * bestJob;
-
-	bestJob=FirstWaitingJob;
-	if (!bestJob) return NULL;
-	for (job=bestJob->Next; job; job=job->Next) {
-		switch (bestJob->Type) {
-		case JT_OPEN_JOB:
-			if (
-				job->Type!=JT_OPEN_JOB ||
-				job->Priority>bestJob->Priority
-			) bestJob=job;
-			break;
-		case JT_RENDER_JOB:
-			if (
-				job->Type==JT_RENDER_JOB &&
-				job->Priority>bestJob->Priority
-			) bestJob=job;
-			break;
-		case JT_CLOSE_JOB:
-			if (job->Type==JT_RENDER_JOB) bestJob=job;
-			break;
-		}
-	}
-	return bestJob;
-}
-
-
-void emSvgServerModel::AddJobToWaitingList(Job * job)
-{
-	job->Prev=LastWaitingJob;
-	job->Next=NULL;
-	if (LastWaitingJob) LastWaitingJob->Next=job;
-	else FirstWaitingJob=job;
-	LastWaitingJob=job;
-}
-
-
-void emSvgServerModel::AddJobToRunningList(Job * job)
-{
-	job->Prev=LastRunningJob;
-	job->Next=NULL;
-	if (LastRunningJob) LastRunningJob->Next=job;
-	else FirstRunningJob=job;
-	LastRunningJob=job;
-}
-
-
-void emSvgServerModel::RemoveJobFromList(Job * job)
-{
-	if (job->Prev) job->Prev->Next=job->Next;
-	else if (FirstWaitingJob==job) FirstWaitingJob=job->Next;
-	else if (FirstRunningJob==job) FirstRunningJob=job->Next;
-	if (job->Next) job->Next->Prev=job->Prev;
-	else if (LastWaitingJob==job) LastWaitingJob=job->Prev;
-	else if (LastRunningJob==job) LastRunningJob=job->Prev;
-	job->Prev=NULL;
-	job->Next=NULL;
 }
 
 

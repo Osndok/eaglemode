@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMainWindow.h
 //
-// Copyright (C) 2006-2012,2016-2017,2022 Oliver Hamann.
+// Copyright (C) 2006-2012,2016-2017,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -106,7 +106,7 @@ private:
 		bool VisitAdherent;
 		emString VisitSubject;
 		emColor CeColor;
-		emVisitingViewAnimator * VisitingVA;
+		emOwnPtr<emVisitingViewAnimator> VisitingVA;
 		int State;
 		emUInt64 Clk;
 	};

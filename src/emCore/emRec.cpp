@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.cpp - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018-2020,2022 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018-2020,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1559,8 +1559,6 @@ emUnionRec::emUnionRec(
 
 emUnionRec::~emUnionRec()
 {
-	delete Record;
-	delete [] TypeArray;
 }
 
 
@@ -1570,7 +1568,6 @@ void emUnionRec::SetVariant(int variant)
 	if (variant>=VariantCount) variant=VariantCount-1;
 	if (Variant!=variant) {
 		Variant=variant;
-		delete Record;
 		Record=TypeArray[Variant].Allocator();
 		BeTheParentOf(Record);
 		Changed();

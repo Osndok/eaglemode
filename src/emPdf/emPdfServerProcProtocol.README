@@ -34,6 +34,7 @@ or    : error: <message>
 client: get_selected_text <inst> <page> <style> <selx1> <sely1> <selx2> <sely2>
         Styles: 0=glyphs, 1=words, 2=lines
 server: selected_text: <quoted text>
+or    : error: <message>
 
 client: render <inst> <page> <x> <y> <width> <height> <out width> <out height>
 server: <ppm P6 file contents>

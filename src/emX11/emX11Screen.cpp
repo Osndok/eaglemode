@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2022 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -329,11 +329,9 @@ emX11Screen::~emX11Screen()
 {
 	int i;
 
-	delete WCThread;
-	WCThread=NULL;
+	WCThread.Reset();
 
-	delete ViewRenderer;
-	ViewRenderer=NULL;
+	ViewRenderer.Reset();
 
 	XMutex.Lock();
 
@@ -1216,6 +1214,8 @@ void emX11Screen::DetectXWayland()
 	// The X.Org Foundation | 12101001 | Fedora 34, Ubuntu 21.04 | focus, back pixel flicker
 	// The X.Org Foundation | 12101002 | Fedora 36               | focus, back pixel flicker
 	// The X.Org Foundation | 12101003 | Ubuntu 22.10            | focus, back pixel flicker
+	// The X.Org Foundation | 12302000 | Ubuntu 23.10            | focus, back pixel flicker
+	// The X.Org Foundation | 12302006 | Ubuntu 24.04            | focus, back pixel flicker
 	vendor=ServerVendor(Disp);
 	release=VendorRelease(Disp);
 	if (

@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_mic.pm
 #
-# Copyright (C) 2006-2008,2018,2022 Oliver Hamann.
+# Copyright (C) 2006-2008,2018,2022,2025 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -81,6 +81,7 @@ sub Compile
 		if (HaveDebug) { push(@args,"/MDd"); }
 		else { push(@args,"/MD"); }
 		push(@args,"/W4");
+		push(@args,"/wd4068");
 		push(@args,"/wd4100");
 		push(@args,"/wd4244");
 		push(@args,"/wd4245");

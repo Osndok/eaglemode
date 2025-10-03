@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSubViewPanel.h
 //
-// Copyright (C) 2006-2008,2010-2011,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2010-2011,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -106,13 +106,13 @@ private:
 	friend class SubViewClass;
 	friend class SubViewPortClass;
 
-	SubViewClass * SubView;
-	SubViewPortClass * SubViewPort;
+	emOwnPtr<SubViewClass> SubView;
+	emOwnPtr<SubViewPortClass> SubViewPort;
 };
 
 inline emView & emSubViewPanel::GetSubView() const
 {
-	return *SubView;
+	return (emView&)*SubView;
 }
 
 inline void emSubViewPanel::InvalidatePaintingOnView(

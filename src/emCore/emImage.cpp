@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emImage.h>
+#include <emCore/emOwnPtr.h>
 #include <emCore/emPainter.h>
 
 
@@ -114,15 +115,12 @@ void emImage::TryParseXpm(
 	char tmp[256];
 	const char * s, * s2, * s3, * s4, * s5;
 	emByte * p;
-	emUInt32 * syms;
+	emOwnArrayPtr<emUInt32> syms;
 	emUInt32 sym;
-	emColor * cols;
+	emOwnArrayPtr<emColor> cols;
 	emColor col;
 	bool colFound;
 	int width,height,num_colors,sym_size,n,i,j,k,x,y;
-
-	syms=NULL;
-	cols=NULL;
 
 	s=*(xpm++);
 	if (!s) goto L_Error;
@@ -275,13 +273,9 @@ void emImage::TryParseXpm(
 			}
 		}
 	}
-	delete [] cols;
-	delete [] syms;
 	return;
 
 L_Error:
-	if (cols) delete [] cols;
-	if (syms) delete [] syms;
 	Clear();
 	throw emException("Unsupported XPM format");
 }
@@ -292,13 +286,11 @@ void emImage::TryParseTga(
 )
 {
 	const unsigned char * tgaEnd, * p;
-	emColor * palette;
+	emOwnArrayPtr<emColor> palette;
 	emColor runCol;
 	size_t n;
 	int runLen,i,x,y,c,w,h,idLen,palType,palBitsPP,bitsPP,desc,palSize;
 	int alphaMask,imgType,maxCC;
-
-	palette=NULL;
 
 	tgaEnd=tgaData+tgaSize;
 
@@ -474,11 +466,9 @@ void emImage::TryParseTga(
 			SetPixel(x,(desc&0x20)?y:h-y-1,runCol);
 		}
 	}
-	if (palette) delete [] palette;
 	return;
 
 L_Error:
-	if (palette) delete [] palette;
 	Clear();
 	throw emException("Unsupported TGA format");
 }

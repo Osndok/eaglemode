@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A>.h
 //
-// Copyright (C) 2005-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -35,7 +35,46 @@
 #endif
 
 
-<A NAME="emRef"></A></SPAN><SPAN CLASS=c>//==============================================================================
+<A NAME="emRefTarget"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Base class for an object that can be referenced by an <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A>.
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>();
+                <SPAN CLASS=c>// Construct with zero reference count.
+
+        </SPAN><SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>();
+                <SPAN CLASS=c>// The destructor calls emFatalError when the reference count
+                // isn't zero.
+
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>&amp; other);
+        <A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>&amp; other);
+                <SPAN CLASS=c>// When copying an <A CLASS=m HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>, the reference count is not
+                // copied.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Alloc();
+                <SPAN CLASS=c>// Increment the reference count by one. This method is usually
+                // only to be called by <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A> and special containers.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Free();
+                <SPAN CLASS=c>// Decrement the reference count by one. If it reaches zero,
+                // then this object is deleted. This method is usually only to
+                // be called by <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A> and special containers.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetRefCount() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get the reference count.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>int </SPAN>RefCount;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emRef"></A><SPAN CLASS=c>//==============================================================================
 //=================================== <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A> ====================================
 //==============================================================================
 
@@ -43,15 +82,16 @@
 
 </SPAN><SPAN CLASS=t>public</SPAN>:
 
-        <SPAN CLASS=c>// Template class for a reference to an <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>, or to a similar class
-        // which also has the methods Alloc and Free. The template parameter CLS
-        // must be the model class. On each construction of a non-NULL
-        // reference, Alloc is called on the model. And on each destruction of a
-        // non-NULL reference, Free is called on the model. Reference assignment
-        // behaves like destructing and constructing. Through Alloc and Free,
-        // the model increments and decrements an internal reference counter,
-        // and it deletes itself through Free when the reference counter gets
-        // zero. Note that a common <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A> is also referred by its <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>.
+        <SPAN CLASS=c>// Template class for a reference to an <A CLASS=m HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>, <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>, or to a
+        // similar class which also has the methods Alloc and Free. The template
+        // parameter CLS must be the referenceable object class. On each
+        // construction of a non-NULL reference, Alloc is called on the object.
+        // And on each destruction of a non-NULL reference, Free is called on
+        // the object. Reference assignment behaves like destructing and
+        // constructing. Through Alloc and Free, the object increments and
+        // decrements an internal reference counter, and it deletes itself in
+        // Free when the reference counter gets zero. Note that a common <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A>
+        // is also referred by its <A CLASS=m HREF="emCore_emContext_h.html#emContext">emContext</A>.
 
         </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>();
                 <SPAN CLASS=c>// Construct a NULL reference.
@@ -86,7 +126,45 @@
         CLS * Mdl;
 <SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>()
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>::<A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>()
+        : RefCount(<SPAN CLASS=u>0</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>::<A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>&amp;)
+        : RefCount(<SPAN CLASS=u>0</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A> &amp; <A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>&amp;)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>::Alloc()
+<SPAN CLASS=b>{
+        </SPAN>RefCount++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>::Free()
+<SPAN CLASS=b>{
+        </SPAN>RefCount--;
+        <SPAN CLASS=k>if </SPAN>(RefCount&lt;=<SPAN CLASS=u>0</SPAN>) <SPAN CLASS=b>{
+                </SPAN><SPAN CLASS=k>delete this</SPAN>;
+        <SPAN CLASS=b>}
+}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>::GetRefCount() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>RefCount;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>()
 <SPAN CLASS=b>{
         </SPAN>Mdl=<SPAN CLASS=u>NULL</SPAN>;
 <SPAN CLASS=b>}
@@ -105,8 +183,11 @@
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::~<A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>()
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>if </SPAN>(Mdl) Mdl-&gt;Free();
-<SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(Mdl) <SPAN CLASS=b>{
+                </SPAN>Mdl-&gt;Free();
+                Mdl=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; ref)
 <SPAN CLASS=b>{

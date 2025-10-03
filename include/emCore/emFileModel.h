@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.h
 //
-// Copyright (C) 2005-2008,2014,2016,2018,2022 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -27,6 +27,10 @@
 
 #ifndef emSigModel_h
 #include <emCore/emSigModel.h>
+#endif
+
+#ifndef emOwnPtr_h
+#include <emCore/emOwnPtr.h>
 #endif
 
 class emFileModelClient;
@@ -302,7 +306,7 @@ private: friend class emFileModelClient;
 	time_t LastCTime;
 	emUInt64 LastFSize;
 	emUInt64 LastINode;
-	PSAgentClass * PSAgent;
+	emOwnPtr<PSAgentClass> PSAgent;
 	emRef<emSigModel> UpdateSignalModel; // NULL if ignored
 };
 

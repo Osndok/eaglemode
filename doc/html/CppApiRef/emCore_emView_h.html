@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emView_h.html#emView">emView</A>.h
 //
-// Copyright (C) 2004-2012,2014,2016-2017,2021,2023 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016-2017,2021,2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,6 +44,10 @@
 
 #ifndef emCoreConfig_h
 #include &lt;<A CLASS=f HREF="emCore_emCoreConfig_h.html">emCore/emCoreConfig.h</A>&gt;
+#endif
+
+#ifndef emOwnPtr_h
+#include &lt;<A CLASS=f HREF="emCore_emOwnPtr_h.html">emCore/emOwnPtr.h</A>&gt;
 #endif
 
 </SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>;
@@ -667,7 +671,7 @@
 
         <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtrList">emCrossPtrList</A> CrossPtrList;
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emCoreConfig_h.html#emCoreConfig">emCoreConfig</A>&gt; CoreConfig;
-        <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * DummyViewPort;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A>&gt; DummyViewPort;
         <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * HomeViewPort;
         <A CLASS=l HREF="emCore_emView_h.html#emViewPort">emViewPort</A> * CurrentViewPort;
         <A CLASS=l HREF="emCore_emWindow_h.html#emWindow">emWindow</A> * Window;
@@ -676,8 +680,8 @@
         <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * FirstVIF;
         <A CLASS=l HREF="emCore_emViewInputFilter_h.html#emViewInputFilter">emViewInputFilter</A> * LastVIF;
         <A CLASS=l HREF="emCore_emViewAnimator_h.html#emViewAnimator">emViewAnimator</A> * ActiveAnimator;
-        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emMagneticViewAnimator">emMagneticViewAnimator</A> * MagneticVA;
-        <A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A> * VisitingVA;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emViewAnimator_h.html#emMagneticViewAnimator">emMagneticViewAnimator</A>&gt; MagneticVA;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emViewAnimator_h.html#emVisitingViewAnimator">emVisitingViewAnimator</A>&gt; VisitingVA;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * RootPanel;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * SupremeViewedPanel;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * MinSVP, * MaxSVP;
@@ -710,11 +714,11 @@
         emUInt64 SVPUpdSlice;
         <A CLASS=l HREF="emCore_emInput_h.html#emInputEvent">emInputEvent</A> NoEvent;
         PanelRingNode NoticeList;
-        UpdateEngineClass * UpdateEngine;
-        EOIEngineClass * EOIEngine;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;UpdateEngineClass&gt; UpdateEngine;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;EOIEngineClass&gt; EOIEngine;
         <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * SeekPosPanel;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> SeekPosChildName;
-        StressTestClass * StressTest;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;StressTestClass&gt; StressTest;
 
         <SPAN CLASS=t>static const double </SPAN>MaxSVPSize;
         <SPAN CLASS=t>static const double </SPAN>MaxSVPSearchSize;

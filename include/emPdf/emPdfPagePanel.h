@@ -68,11 +68,8 @@ private:
 		emImage Img;
 		double SrcX,SrcY,SrcW,SrcH;
 
-		emPdfServerModel::JobHandle Job;
+		emRef<emPdfServerModel::RenderJob> Job;
 		emString JobErrorText;
-
-		emImage JobImg;
-		double JobSrcX,JobSrcY,JobSrcW,JobSrcH;
 
 		union {
 			emUInt64 JobDelayStartTime;

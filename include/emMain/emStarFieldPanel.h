@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStarFieldPanel.h
 //
-// Copyright (C) 2007-2008,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,7 +97,7 @@ private:
 	emUInt32 RandomSeed;
 	emUInt32 ChildRandomSeed[4];
 	int StarCount;
-	Star * Stars;
+	emOwnArrayPtr<Star> Stars;
 	emImage StarShape;
 
 	static const emColor BgColor;

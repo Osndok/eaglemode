@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvClient.cpp
 //
-// Copyright (C) 2008,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2008,2014,2018-2019,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -26,7 +26,6 @@ emAvClient::emAvClient(emAvServerModel * serverModel)
 	ServerModel=serverModel;
 	Instance=NULL;
 	StreamState=STREAM_CLOSED;
-	Properties.SetTuningLevel(4);
 }
 
 
@@ -73,8 +72,6 @@ void emAvClient::CloseStream()
 
 void emAvClient::ResetAll()
 {
-	int i;
-
 	if (Instance) {
 		ServerModel->SendCommand(Instance,"close","");
 		Instance->Client=NULL;
@@ -82,7 +79,6 @@ void emAvClient::ResetAll()
 	}
 	StreamState=STREAM_CLOSED;
 	StreamErrorText.Clear();
-	for (i=Properties.GetCount()-1; i>=0; i--) delete Properties[i];
 	Properties.Clear(true);
 }
 
@@ -173,7 +169,7 @@ void emAvClient::PropertyOKFromServer(const emString & name)
 }
 
 
-int emAvClient::CmpPropName(Property * const * obj, void * key, void * context)
+int emAvClient::CmpPropName(const Property * obj, void * key, void * context)
 {
-	return strcmp((*obj)->Name.Get(),(const char*)key);
+	return strcmp(obj->Name.Get(),(const char*)key);
 }

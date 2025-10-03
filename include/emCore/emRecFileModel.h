@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRecFileModel.h
 //
-// Copyright (C) 2005-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,8 +90,8 @@ private:
 
 	emSignal ChangeSignal;
 	RecLink Link;
-	emRecFileReader * Reader;
-	emRecFileWriter * Writer;
+	emOwnPtr<emRecFileReader> Reader;
+	emOwnPtr<emRecFileWriter> Writer;
 	int ProtectFileState;
 	emUInt64 MemoryNeed;
 	int MemoryNeedOutOfDate;

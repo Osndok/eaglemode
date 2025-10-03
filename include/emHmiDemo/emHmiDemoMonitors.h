@@ -32,7 +32,7 @@ public:
 	virtual ~emHmiDemoMonitors();
 
 private:
-	emHmiDemoFile * * Ca;
+	emOwnArrayPtr<emHmiDemoFile *> Ca;
 };
 
 

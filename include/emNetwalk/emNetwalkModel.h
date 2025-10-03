@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.h
 //
-// Copyright (C) 2010-2012,2014,2018 Oliver Hamann.
+// Copyright (C) 2010-2012,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -146,9 +146,10 @@ private:
 		int GroupCount;
 		int FrontRing;
 		int Current;
-		Piece * Pieces;
-		Group * Groups;
-		TBEntry * TBBuf, * TBTop, * TBEnd;
+		emOwnArrayPtr<Piece> Pieces;
+		emOwnArrayPtr<Group> Groups;
+		emOwnArrayPtr<TBEntry> TBBuf;
+		TBEntry * TBTop, * TBEnd;
 	};
 	friend class Solver;
 

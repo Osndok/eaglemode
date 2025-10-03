@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRecFileModel_h.html#emRecFileModel">emRecFileModel</A>.h
 //
-// Copyright (C) 2005-2008,2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -99,8 +99,8 @@
 
         <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> ChangeSignal;
         RecLink Link;
-        <A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A> * Reader;
-        <A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A> * Writer;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emRec_h.html#emRecFileReader">emRecFileReader</A>&gt; Reader;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emRec_h.html#emRecFileWriter">emRecFileWriter</A>&gt; Writer;
         <SPAN CLASS=t>int </SPAN>ProtectFileState;
         emUInt64 MemoryNeed;
         <SPAN CLASS=t>int </SPAN>MemoryNeedOutOfDate;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWorldClockPanel.cpp
 //
-// Copyright (C) 2006-2008,2010,2014,2016-2017 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014,2016-2017,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -446,7 +446,8 @@ void emWorldClockPanel::PrepareLandPolygons()
 
 void emWorldClockPanel::PrepareShadowPolygon(int n)
 {
-	double * tempMem, * sunrise, * sunset;
+	emOwnArrayPtr<double> tempMem;
+	double * sunrise, * sunset;
 	double * xy;
 	int pt[6],ps[6],pe[6],pd[6];
 	double cos_sla,sin_sla,t,r,s,la,lo;
@@ -547,8 +548,6 @@ void emWorldClockPanel::PrepareShadowPolygon(int n)
 			xy+=2;
 		}
 	}
-
-	delete [] tempMem;
 }
 
 

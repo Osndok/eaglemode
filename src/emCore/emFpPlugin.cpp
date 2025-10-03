@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009,2011,2014,2018-2020 Oliver Hamann.
+// Copyright (C) 2006-2009,2011,2014,2018-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -201,8 +201,6 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 
 	SetMinCommonLifetime(UINT_MAX);
 
-	Plugins.SetTuningLevel(4);
-
 	dirPath=emGetConfigDirOverloadable(GetRootContext(),"emCore","FpPlugins");
 
 	try {
@@ -235,19 +233,16 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 
 emFpPluginList::~emFpPluginList()
 {
-	int i;
-
-	for (i=Plugins.GetCount()-1; i>=0; i--) delete Plugins[i];
 }
 
 
 int emFpPluginList::CmpReversePluginPriorities(
-	emFpPlugin * const * obj1, emFpPlugin * const * obj2, void * context
+	const emFpPlugin * obj1, const emFpPlugin * obj2, void * context
 )
 {
 	double d;
 
-	d = (*obj1)->Priority - (*obj2)->Priority;
+	d = obj1->Priority - obj2->Priority;
 	if (d<0.0) return 1;
 	if (d>0.0) return -1;
 	return 0;

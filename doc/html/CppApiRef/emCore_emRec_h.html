@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018,2022 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,6 +32,10 @@
 
 #ifndef emColor_h
 #include &lt;<A CLASS=f HREF="emCore_emColor_h.html">emCore/emColor.h</A>&gt;
+#endif
+
+#ifndef emOwnPtr_h
+#include &lt;<A CLASS=f HREF="emCore_emOwnPtr_h.html">emCore/emOwnPtr.h</A>&gt;
 #endif
 
 </SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A>;
@@ -1116,9 +1120,9 @@
                 <A CLASS=l HREF="emCore_emRec_h.html#emRecAllocator">emRecAllocator</A> Allocator;
         <SPAN CLASS=b>}</SPAN>;
 
-        VariantType * TypeArray;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>&lt;VariantType&gt; TypeArray;
         <SPAN CLASS=t>int </SPAN>VariantCount, DefaultVariant, Variant;
-        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * Record;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnPtr">emOwnPtr</A>&lt;<A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A>&gt; Record;
 <SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emUnionRec">emUnionRec</A>::GetVariant() <SPAN CLASS=t>const

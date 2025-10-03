@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -152,8 +152,11 @@
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::~<A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>()
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>if </SPAN>(Obj) Unlink();
-<SPAN CLASS=b>}
+        </SPAN><SPAN CLASS=k>if </SPAN>(Obj) <SPAN CLASS=b>{
+                </SPAN>Unlink();
+                Obj=<SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=b>}
+}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; crossPtr

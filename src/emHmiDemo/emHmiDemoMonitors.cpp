@@ -72,5 +72,4 @@ emHmiDemoMonitors::emHmiDemoMonitors(
 
 emHmiDemoMonitors::~emHmiDemoMonitors()
 {
-	delete [] Ca;
 }

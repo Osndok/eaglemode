@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2016,2018-2019,2022 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018-2019,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -199,7 +199,6 @@ emFileModel::emFileModel(
 	LastCTime=0;
 	LastFSize=0;
 	LastINode=0;
-	PSAgent=NULL;
 	UpdateSignalModel=NULL;
 	SetIgnoreUpdateSignal(false);
 }
@@ -571,10 +570,7 @@ void emFileModel::StartPSAgent()
 
 void emFileModel::EndPSAgent()
 {
-	if (PSAgent) {
-		delete PSAgent;
-		PSAgent=NULL;
-	}
+	PSAgent.Reset();
 }
 
 

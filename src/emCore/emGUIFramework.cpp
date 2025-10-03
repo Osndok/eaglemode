@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.cpp
 //
-// Copyright (C) 2007-2008,2011,2014,2019-2020 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014,2019-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -65,20 +65,11 @@ emGUIFramework::emGUIFramework()
 	Scheduler=createSchedulerFunc();
 	RootContext=new emRootContext(*Scheduler);
 	installDriversFunc(RootContext);
-	AutoTerminator=NULL;
 }
 
 
 emGUIFramework::~emGUIFramework()
 {
-	if (AutoTerminator) {
-		delete AutoTerminator;
-		AutoTerminator=NULL;
-	}
-	delete RootContext;
-	RootContext=NULL;
-	delete Scheduler;
-	Scheduler=NULL;
 }
 
 
@@ -89,9 +80,8 @@ void emGUIFramework::EnableAutoTermination(bool autoTermination)
 			AutoTerminator=new AutoTerminatorClass(*RootContext);
 		}
 	}
-	else if (AutoTerminator) {
-		delete AutoTerminator;
-		AutoTerminator=NULL;
+	else {
+		AutoTerminator.Reset();
 	}
 }
 

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSubViewPanel.cpp
 //
-// Copyright (C) 2006-2008,2011,2016 Oliver Hamann.
+// Copyright (C) 2006-2008,2011,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,8 +31,6 @@ emSubViewPanel::emSubViewPanel(ParentArg parent, const emString & name)
 
 emSubViewPanel::~emSubViewPanel()
 {
-	delete SubViewPort;
-	delete SubView;
 }
 
 

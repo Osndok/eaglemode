@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.cpp
 //
-// Copyright (C) 2009,2014-2020 Oliver Hamann.
+// Copyright (C) 2009,2014-2020,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,7 +42,7 @@ void emFontCache::GetChar(
 	emUInt64 t;
 
 	i1=0;
-	i2=EntryCount;
+	i2=EntryArray.GetCount();
 	for (;;) {
 		if (i1>=i2) {
 			*ppImg=&ImgUnknownChar;
@@ -117,8 +117,6 @@ emFontCache::emFontCache(emContext & context, const emString & name)
 		1
 	);
 	SomeLoadedNewly=false;
-	EntryArray=NULL;
-	EntryCount=0;
 	Stress=0.0;
 	Clock=0;
 	LastLoadTime=0;
@@ -146,7 +144,7 @@ bool emFontCache::Cycle()
 
 		while (MemoryUse>((emUInt64)MaxMegabytes)*1024*1024) {
 			j=-1;
-			for (i=EntryCount-1; i>=0; i--) {
+			for (i=EntryArray.GetCount()-1; i>=0; i--) {
 				if (EntryArray[i]->Loaded) {
 					if (
 						j<0 ||
@@ -160,7 +158,7 @@ bool emFontCache::Cycle()
 			UnloadEntry(EntryArray[j]);
 		}
 
-		for (i=EntryCount-1; i>=0; i--) {
+		for (i=EntryArray.GetCount()-1; i>=0; i--) {
 			if (EntryArray[i]->Loaded) {
 				EntryArray[i]->LoadedInEarlierTimeSlice=true;
 			}
@@ -240,7 +238,6 @@ void emFontCache::LoadFontDir()
 		emFatalError("%s",exception.GetText().Get());
 	}
 	dir.Sort(emStdComparer<emString>::Compare);
-	EntryArray=new Entry*[dir.GetCount()];
 	for (i=0; i<dir.GetCount(); i++) {
 		name=dir[i];
 		path=emGetChildPath(FontDir,name);
@@ -259,26 +256,18 @@ void emFontCache::LoadFontDir()
 		entry->ColumnCount=1;
 		entry->LastUseClock=0;
 		entry->MemoryNeed=((emUInt64)(lc-fc+1))*cw*ch;
-		for (j=EntryCount; j>0; j--) {
+		for (j=EntryArray.GetCount(); j>0; j--) {
 			if (EntryArray[j-1]->FirstCode<=fc) break;
-			EntryArray[j]=EntryArray[j-1];
 		}
-		EntryArray[j]=entry;
-		EntryCount++;
+		EntryArray.Insert(j,entry);
 	}
+	EntryArray.Compact();
 }
 
 
 void emFontCache::Clear()
 {
-	int i;
-
-	if (EntryArray) {
-		for (i=EntryCount-1; i>=0; i--) delete EntryArray[i];
-		delete [] EntryArray;
-	}
-	EntryArray=NULL;
-	EntryCount=0;
+	EntryArray.Clear(true);
 	Stress=0.0;
 	LastLoadTime=0;
 	MemoryUse=0;

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFileModel.h
 //
-// Copyright (C) 2011,2014,2018,2023 Oliver Hamann.
+// Copyright (C) 2011,2014,2018,2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,7 +39,7 @@ public:
 	);
 
 	emPdfServerModel * GetServerModel() const;
-	emPdfServerModel::PdfHandle GetPdfHandle() const;
+	emPdfServerModel::PdfInstance & GetPdfInstance() const;
 	const emPdfServerModel::DocumentInfo & GetDocumentInfo() const;
 	int GetPageCount() const;
 	const emPdfServerModel::PageInfo & GetPageInfo(int page) const;
@@ -66,8 +66,8 @@ protected:
 private:
 
 	emRef<emPdfServerModel> ServerModel;
-	emPdfServerModel::JobHandle JobHandle;
-	emPdfServerModel::PdfHandle PdfHandle;
+	emRef<emPdfServerModel::OpenJob> OpenJob;
+	emRef<emPdfServerModel::PdfInstance> PdfInstance;
 	emUInt64 FileSize;
 	emUInt64 StartTime;
 	int PageCount;
@@ -80,14 +80,9 @@ inline emPdfServerModel * emPdfFileModel::GetServerModel() const
 	return ServerModel;
 }
 
-inline emPdfServerModel::PdfHandle emPdfFileModel::GetPdfHandle() const
-{
-	return PdfHandle;
-}
-
 inline const emPdfServerModel::DocumentInfo & emPdfFileModel::GetDocumentInfo() const
 {
-	return ServerModel->GetDocumentInfo(PdfHandle);
+	return GetPdfInstance().GetDocumentInfo();
 }
 
 inline int emPdfFileModel::GetPageCount() const
@@ -97,22 +92,22 @@ inline int emPdfFileModel::GetPageCount() const
 
 inline const emPdfServerModel::PageInfo & emPdfFileModel::GetPageInfo(int page) const
 {
-	return ServerModel->GetPageInfo(PdfHandle,page);
+	return GetPdfInstance().GetPageInfo(page);
 }
 
 inline double emPdfFileModel::GetPageWidth(int page) const
 {
-	return ServerModel->GetPageInfo(PdfHandle,page).Width;
+	return GetPdfInstance().GetPageInfo(page).Width;
 }
 
 inline double emPdfFileModel::GetPageHeight(int page) const
 {
-	return ServerModel->GetPageInfo(PdfHandle,page).Height;
+	return GetPdfInstance().GetPageInfo(page).Height;
 }
 
 inline const emString & emPdfFileModel::GetPageLabel(int page) const
 {
-	return ServerModel->GetPageInfo(PdfHandle,page).Label;
+	return GetPdfInstance().GetPageInfo(page).Label;
 }
 
 inline const emSignal & emPdfFileModel::GetChangeSignal() const

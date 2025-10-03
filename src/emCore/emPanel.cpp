@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014-2017,2021-2022 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2017,2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1342,7 +1342,7 @@ void emPanel::GetSubstanceRect(
 	double * pX, double * pY, double * pW, double * pH, double * pR
 )
 {
-	return ((const emPanel*)this)->GetSubstanceRect(pX,pY,pW,pH,pR);
+	((const emPanel*)this)->GetSubstanceRect(pX,pY,pW,pH,pR);
 }
 
 
@@ -1350,7 +1350,7 @@ void emPanel::GetEssenceRect(
 	double * pX, double * pY, double * pW, double * pH
 )
 {
-	return ((const emPanel*)this)->GetEssenceRect(pX,pY,pW,pH);
+	((const emPanel*)this)->GetEssenceRect(pX,pY,pW,pH);
 }
 
 

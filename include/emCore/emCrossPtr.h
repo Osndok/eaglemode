@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCrossPtr.h
 //
-// Copyright (C) 2007-2008 Oliver Hamann.
+// Copyright (C) 2007-2008,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -143,7 +143,10 @@ template <class CLS> inline emCrossPtr<CLS>::emCrossPtr(CLS * obj)
 
 template <class CLS> inline emCrossPtr<CLS>::~emCrossPtr()
 {
-	if (Obj) Unlink();
+	if (Obj) {
+		Unlink();
+		Obj=NULL;
+	}
 }
 
 template <class CLS> emCrossPtr<CLS> & emCrossPtr<CLS>::operator = (

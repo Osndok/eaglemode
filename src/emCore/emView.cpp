@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2011,2014,2016,2018,2021 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2016,2018,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,8 +44,6 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	FirstVIF=NULL;
 	LastVIF=NULL;
 	ActiveAnimator=NULL;
-	MagneticVA=NULL;
-	VisitingVA=NULL;
 	RootPanel=NULL;
 	SupremeViewedPanel=NULL;
 	MinSVP=NULL;
@@ -81,9 +79,7 @@ emView::emView(emContext & parentContext, ViewFlags viewFlags)
 	NoticeList.Prev=&NoticeList;
 	NoticeList.Next=&NoticeList;
 	UpdateEngine=new UpdateEngineClass(*this);
-	EOIEngine=NULL;
 	SeekPosPanel=NULL;
-	StressTest=NULL;
 
 	UpdateEngine->WakeUp();
 
@@ -113,18 +109,18 @@ emView::~emView()
 	//??? windows? If so, remember to adapt emSubViewPanel. (No panic,
 	//??? child views are deleted at least by the context destructor)
 	if (RootPanel) delete RootPanel;
-	if (StressTest) delete StressTest;
+	StressTest.Reset();
 	while (LastVIF) delete LastVIF;
-	if (EOIEngine) delete EOIEngine;
-	delete UpdateEngine;
-	if (VisitingVA) { delete VisitingVA; VisitingVA=NULL; }
-	if (MagneticVA) { delete MagneticVA; MagneticVA=NULL; }
+	EOIEngine.Reset();
+	UpdateEngine.Reset();
+	VisitingVA.Reset();
+	MagneticVA.Reset();
 	if (HomeViewPort!=DummyViewPort) {
 		emFatalError("emView::~emView: View port must be destructed first.");
 	}
 	DummyViewPort->HomeView=NULL;
 	DummyViewPort->CurrentView=NULL;
-	delete DummyViewPort;
+	DummyViewPort.Reset();
 }
 
 
@@ -168,8 +164,7 @@ void emView::SetViewFlags(ViewFlags viewFlags)
 		}
 		else {
 			if (StressTest) {
-				delete StressTest;
-				StressTest=NULL;
+				StressTest.Reset();
 				InvalidatePainting();
 			}
 		}
@@ -2547,7 +2542,7 @@ bool emView::EOIEngineClass::Cycle()
 	CountDown--;
 	if (CountDown>0) return true;
 	Signal(View.EOISignal);
-	View.EOIEngine=NULL;
+	View.EOIEngine.Release();
 	delete this;
 	return false;
 }

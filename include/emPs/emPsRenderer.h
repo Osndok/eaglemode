@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPsRenderer.h
 //
-// Copyright (C) 2006-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2006-2009,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,6 +37,10 @@
 #include <emCore/emImage.h>
 #endif
 
+#ifndef emJob_h
+#include <emCore/emJob.h>
+#endif
+
 #ifndef emPsDocument_h
 #include <emPs/emPsDocument.h>
 #endif
@@ -48,29 +52,23 @@ public:
 
 	static emRef<emPsRenderer> Acquire(emRootContext & rootContext);
 
-	typedef void * JobHandle;
-
-	JobHandle StartJob(
-		const emPsDocument & document, int pageIndex,
-		emImage & outputImage, double priority=0.0,
-		emEngine * listenEngine=NULL
-	);
-
-	void SetJobPriority(JobHandle jobHandle, double priority);
-
-	void SetJobListenEngine(JobHandle jobHandle, emEngine * listenEngine);
-
-	enum JobState {
-		JS_WAITING,
-		JS_RUNNING,
-		JS_ERROR,
-		JS_SUCCESS
+	class RenderJob : public emJob {
+	public:
+		RenderJob(const emPsDocument & document, int pageIndex,
+		          int width, int height, double priority=0.0);
+		int GetWidth() const;
+		int GetHeight() const;
+		const emImage & GetImage() const;
+	private:
+		friend class emPsRenderer;
+		emPsDocument Document;
+		int PageIndex;
+		int Width,Height;
+		emImage Image;
 	};
-	JobState GetJobState(JobHandle jobHandle) const;
 
-	const emString & GetJobErrorText(JobHandle jobHandle) const;
-
-	void CloseJob(JobHandle jobHandle);
+	void EnqueueJob(RenderJob & renderJob);
+	void AbortJob(RenderJob & renderJob);
 
 protected:
 
@@ -80,18 +78,6 @@ protected:
 	virtual bool Cycle();
 
 private:
-
-	struct Job {
-		emPsDocument Document;
-		int PageIndex;
-		emImage * Image;
-		double Priority;
-		emEngine * ListenEngine;
-		JobState State;
-		emString ErrorText;
-		Job * Prev;
-		Job * Next;
-	};
 
 	enum MainStateType {
 		COLD_WAIT_JOB,
@@ -103,14 +89,9 @@ private:
 		QUIT_PROCESS
 	};
 
-	void AddToJobList(Job * job);
-	void RemoveFromJobList(Job * job);
+	RenderJob * SearchBestJob();
+	RenderJob * SearchBestSameDocJob();
 
-	Job * SearchBestJob();
-	Job * SearchBestSameDocJob();
-
-	void SetJobState(Job * job, JobState state, emString errorText="");
-	void FailCurrentJob(emString errorMessage);
 	void FailDocJobs(emString errorMessage);
 	void FailAllJobs(emString errorMessage);
 
@@ -147,12 +128,11 @@ private:
 	PSAgentClass PSAgent;
 	bool PSPriorityValid;
 
-	Job * FirstJob;
-	Job * LastJob;
+	emJobQueue JobQueue;
 
 	MainStateType MainState;
 
-	Job * CurrentJob;
+	RenderJob * CurrentJob;
 	emPsDocument CurrentDocument;
 	int CurrentPageIndex;
 
@@ -183,25 +163,20 @@ private:
 	static const char * const SyncString;
 };
 
-inline void emPsRenderer::SetJobListenEngine(
-	JobHandle jobHandle, emEngine * listenEngine
-)
+
+inline int emPsRenderer::RenderJob::GetWidth() const
 {
-	((Job*)jobHandle)->ListenEngine=listenEngine;
+	return Width;
 }
 
-inline emPsRenderer::JobState emPsRenderer::GetJobState(
-	JobHandle jobHandle
-) const
+inline int emPsRenderer::RenderJob::GetHeight() const
 {
-	return ((Job*)jobHandle)->State;
+	return Height;
 }
 
-inline const emString & emPsRenderer::GetJobErrorText(
-	JobHandle jobHandle
-) const
+inline const emImage & emPsRenderer::RenderJob::GetImage() const
 {
-	return ((Job*)jobHandle)->ErrorText;
+	return Image;
 }
 
 inline bool emPsRenderer::IsWritingFinished() const

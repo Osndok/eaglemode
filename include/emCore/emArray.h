@@ -1244,7 +1244,10 @@ template <class OBJ> void emArray<OBJ>::FreeData()
 	if (!Data->IsStaticEmpty) {
 		if (Data->TuningLevel<3) {
 			i=Data->Count;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 			while (--i>=0) Data->Obj[i].~OBJ();
+#pragma GCC diagnostic pop
 		}
 #if defined(__GNUC__) && __GNUC__>=5
 #	pragma GCC diagnostic push

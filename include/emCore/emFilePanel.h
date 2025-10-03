@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFilePanel.h
 //
-// Copyright (C) 2004-2008,2010,2016-2017,2022 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016-2017,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -152,7 +152,7 @@ private:
 
 	FileModelClientClass FileModelClient;
 	emUInt64 MemoryLimit;
-	emString * CustomError;
+	emOwnPtr<emString> CustomError;
 	emSignal VirFileStateSignal;
 };
 

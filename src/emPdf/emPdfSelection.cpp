@@ -204,7 +204,7 @@ void emPdfSelection::EmptySelection(bool unpublish)
 			changed=true;
 		}
 		if (page->GetSelectedTextJob) {
-			FileModel->GetServerModel()->CloseJob(page->GetSelectedTextJob);
+			FileModel->GetServerModel()->AbortJob(*page->GetSelectedTextJob);
 			page->GetSelectedTextJob=NULL;
 		}
 		page->TempText.Clear();
@@ -233,7 +233,6 @@ void emPdfSelection::EmptySelection(bool unpublish)
 void emPdfSelection::PublishSelection()
 {
 	emPdfServerModel * serverModel;
-	emPdfServerModel::PdfHandle pdfHandle;
 	PageData * page;
 	int i,pageCount;
 
@@ -244,8 +243,6 @@ void emPdfSelection::PublishSelection()
 	if (pageCount<=0 || pageCount!=FileModel->GetPageCount()) return;
 
 	serverModel=FileModel->GetServerModel();
-	pdfHandle=FileModel->GetPdfHandle();
-	if (!pdfHandle) return;
 
 	for (i=0; i<pageCount; i++) {
 		page=&Pages.GetWritable(i);
@@ -254,18 +251,18 @@ void emPdfSelection::PublishSelection()
 			!page->GetSelectedTextJob &&
 			page->TempText.IsEmpty()
 		) {
-			page->GetSelectedTextJob=serverModel->StartGetSelectedTextJob(
-				pdfHandle,
+			page->GetSelectedTextJob=new emPdfServerModel::GetSelectedTextJob(
+				FileModel->GetPdfInstance(),
 				i,
 				page->Selection.Style,
 				page->Selection.X1,
 				page->Selection.Y1,
 				page->Selection.X2,
 				page->Selection.Y2,
-				&page->TempText,
-				0.0,
-				this
+				0.0
 			);
+			serverModel->EnqueueJob(*page->GetSelectedTextJob);
+			AddWakeUpSignal(page->GetSelectedTextJob->GetStateSignal());
 		}
 	}
 }
@@ -412,7 +409,6 @@ bool emPdfSelection::Cycle()
 
 
 emPdfSelection::PageData::PageData()
-	: GetSelectedTextJob(NULL)
 {
 }
 
@@ -458,14 +454,17 @@ void emPdfSelection::FinishJobs()
 	for (i=0; i<Pages.GetCount(); i++) {
 		page=&Pages.GetWritable(i);
 		if (!page->GetSelectedTextJob) continue;
-		switch (serverModel->GetJobState(page->GetSelectedTextJob)) {
-		case emPdfServerModel::JS_ERROR:
-			page->ErrorText=serverModel->GetJobErrorText(page->GetSelectedTextJob);
-			serverModel->CloseJob(page->GetSelectedTextJob);
+		switch (page->GetSelectedTextJob->GetState()) {
+		case emJob::ST_ERROR:
+			page->ErrorText=page->GetSelectedTextJob->GetErrorText();
 			page->GetSelectedTextJob=NULL;
 			break;
-		case emPdfServerModel::JS_SUCCESS:
-			serverModel->CloseJob(page->GetSelectedTextJob);
+		case emJob::ST_ABORTED:
+			page->ErrorText="Aborted";
+			page->GetSelectedTextJob=NULL;
+			break;
+		case emJob::ST_SUCCESS:
+			page->TempText=page->GetSelectedTextJob->GetSelectedText();
 			page->GetSelectedTextJob=NULL;
 			break;
 		default:

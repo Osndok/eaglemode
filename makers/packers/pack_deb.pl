@@ -68,7 +68,7 @@ CreateFile(
 );
 CreateFile(
 	catfile($debian,'compat'),
-	'6'."\n"
+	'7'."\n"
 );
 CreateFile(
 	catfile($debian,'control'),

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2022 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,22 +31,24 @@
 	#include <execinfo.h>
 	#include <unistd.h>
 
-	static void CrashHandler(int sig)
-	{
-		static void * bt[1024];
-		const char * p;
+	extern "C" {
+		static void CrashHandler(int sig)
+		{
+			static void * bt[1024];
+			const char * p;
 
-		if (sig==SIGFPE) p="\n--- Arithmetic Exception ---\n";
-		else p="\n--- Segmentation Fault ---\n";
-		if (write(STDERR_FILENO,p,strlen(p))<0) _exit(128+sig);
-		p="Stack Trace (first two entries normally by signal handling):\n";
-		if (write(STDERR_FILENO,p,strlen(p))<0) _exit(128+sig);
-		backtrace_symbols_fd(
-			bt,
-			backtrace(bt,sizeof(bt)/sizeof(void*)),
-			STDERR_FILENO
-		);
-		_exit(128+sig);
+			if (sig==SIGFPE) p="\n--- Arithmetic Exception ---\n";
+			else p="\n--- Segmentation Fault ---\n";
+			if (write(STDERR_FILENO,p,strlen(p))<0) _exit(128+sig);
+			p="Stack Trace (first two entries normally by signal handling):\n";
+			if (write(STDERR_FILENO,p,strlen(p))<0) _exit(128+sig);
+			backtrace_symbols_fd(
+				bt,
+				backtrace(bt,sizeof(bt)/sizeof(void*)),
+				STDERR_FILENO
+			);
+			_exit(128+sig);
+		}
 	}
 
 	static void __attribute((constructor)) InstallCrashHandler()

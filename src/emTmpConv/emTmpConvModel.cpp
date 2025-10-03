@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTmpConvModel.cpp
 //
-// Copyright (C) 2006-2008,2014,2017,2019-2020,2022 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2017,2019-2020,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,7 +81,6 @@ emTmpConvModel::emTmpConvModel(
 	TmpSelected=false;
 	FileTime=0;
 	FileSize=0;
-	PSAgent=NULL;
 	ErrPipeBuf.SetTuningLevel(4);
 	ClientList=NULL;
 	ConversionWanted=false;
@@ -282,10 +281,7 @@ void emTmpConvModel::StartPSAgent()
 
 void emTmpConvModel::EndPSAgent()
 {
-	if (PSAgent) {
-		delete PSAgent;
-		PSAgent=NULL;
-	}
+	PSAgent.Reset();
 }
 
 

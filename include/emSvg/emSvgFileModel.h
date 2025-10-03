@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFileModel.h
 //
-// Copyright (C) 2010,2014,2018 Oliver Hamann.
+// Copyright (C) 2010,2014,2018,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -44,7 +44,7 @@ public:
 	const emString & GetDescription() const;
 
 	emSvgServerModel * GetServerModel() const;
-	emSvgServerModel::SvgHandle GetSvgHandle() const;
+	emSvgServerModel::SvgInstance & GetSvgInstance() const;
 
 protected:
 
@@ -63,8 +63,8 @@ protected:
 private:
 
 	emRef<emSvgServerModel> ServerModel;
-	emSvgServerModel::JobHandle JobHandle;
-	emSvgServerModel::SvgHandle SvgHandle;
+	emRef<emSvgServerModel::OpenJob> OpenJob;
+	emRef<emSvgServerModel::SvgInstance> SvgInstance;
 	emUInt64 FileSize;
 	double Width;
 	double Height;
@@ -95,11 +95,6 @@ inline const emString & emSvgFileModel::GetDescription() const
 inline emSvgServerModel * emSvgFileModel::GetServerModel() const
 {
 	return ServerModel;
-}
-
-inline emSvgServerModel::SvgHandle emSvgFileModel::GetSvgHandle() const
-{
-	return SvgHandle;
 }
 
 

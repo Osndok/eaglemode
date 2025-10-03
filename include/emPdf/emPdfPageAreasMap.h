@@ -34,7 +34,7 @@ public:
 	virtual ~emPdfPageAreasMap();
 
 	void Setup(emPdfServerModel & serverModel,
-	           emPdfServerModel::PdfHandle pdfHandle);
+	           emPdfServerModel::PdfInstance & pdfInstance);
 
 	void Reset();
 
@@ -58,13 +58,13 @@ private:
 		~Entry();
 		Entry & operator = (const Entry & entry);
 		bool Requested;
-		emPdfServerModel::JobHandle JobHandle;
+		emRef<emPdfServerModel::GetAreasJob> Job;
 		emPdfServerModel::PageAreas Areas;
 		emString ErrorText;
 	};
 
 	emPdfServerModel * ServerModel;
-	emPdfServerModel::PdfHandle PdfHandle;
+	emPdfServerModel::PdfInstance * PdfInstance;
 	emArray<Entry> Entries;
 	emSignal PageAreasSignal;
 };

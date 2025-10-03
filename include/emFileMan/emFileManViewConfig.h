@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManViewConfig.h
 //
-// Copyright (C) 2004-2008,2010,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -112,12 +112,12 @@ private:
 		double VisRelX,VisRelY,VisRelA;
 		bool VisAdherent;
 		emString Subject;
-		emVisitingViewAnimator * VisitingVA;
+		emOwnPtr<emVisitingViewAnimator> VisitingVA;
 	};
 	friend class RevisitEngineClass;
 
 	emView & View;
-	RevisitEngineClass * RevisitEngine;
+	emOwnPtr<RevisitEngineClass> RevisitEngine;
 	emSignal ChangeSignal;
 	emRef<emFileManConfig> FileManConfig;
 	SortCriterionType SortCriterion;

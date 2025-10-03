@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTimeZonesProc.c
 //
-// Copyright (C) 2008-2009,2017-2018,2022 Oliver Hamann.
+// Copyright (C) 2008-2009,2017-2018,2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -475,7 +475,14 @@ static int tzServe(int argc, char * argv[])
 		}
 		if (j==0 && rBufFill>=rBufSize) {
 			rBufSize*=2;
+#if defined(__GNUC__) && __GNUC__>=14
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Walloc-size-larger-than="
+#endif
 			rBuf=(char*)realloc(rBuf,rBufSize);
+#if defined(__GNUC__) && __GNUC__>=14
+#	pragma GCC diagnostic pop
+#endif
 			continue;
 		}
 		rBufFill-=j;

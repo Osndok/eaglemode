@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010-2011,2014-2016,2023 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016,2023-2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -32,7 +32,6 @@ emSvgFilePanel::emSvgFilePanel(
 	IconTimer(GetScheduler())
 {
 	ServerModel=emSvgServerModel::Acquire(GetRootContext());
-	Job=NULL;
 	JobUpToDate=false;
 	JobDelayStartTime=emGetClockMS();
 	RenderIcon=emGetInsResImage(GetRootContext(),"emPs","rendering.tga");
@@ -99,8 +98,8 @@ void emSvgFilePanel::Notice(NoticeFlags flags)
 		UpdateSvgDisplay(true);
 	}
 	if (flags&NF_UPDATE_PRIORITY_CHANGED) {
-		if (Job) {
-			ServerModel->SetJobPriority(Job,GetUpdatePriority());
+		if (RenderJob) {
+			RenderJob->SetPriority(GetUpdatePriority());
 		}
 	}
 	emFilePanel::Notice(flags);
@@ -334,12 +333,9 @@ void emSvgFilePanel::GetOutputRect(
 
 void emSvgFilePanel::ClearSvgDisplay()
 {
-	if (Job) {
-		ServerModel->CloseJob(Job);
-		Job=NULL;
-	}
-	if (!JobImg.IsEmpty()) {
-		JobImg.Clear();
+	if (RenderJob) {
+		ServerModel->AbortJob(*RenderJob);
+		RenderJob=NULL;
 	}
 	if (!Img.IsEmpty()) {
 		Img.Clear();
@@ -368,36 +364,22 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 	if (JobUpToDate) JobDelayStartTime=emGetClockMS();
 	if (viewingChanged) JobUpToDate=false;
 
-	if (Job) {
-		switch (ServerModel->GetJobState(Job)) {
-		case emSvgServerModel::JS_WAITING:
-		case emSvgServerModel::JS_RUNNING:
+	if (RenderJob) {
+		switch (RenderJob->GetState()) {
+		case emJob::ST_WAITING:
+		case emJob::ST_RUNNING:
 			if (!ShowIcon && !IconTimer.IsRunning()) {
 				ShowIcon=true;
 				InvalidatePainting();
 			}
 			return;
-		case emSvgServerModel::JS_ERROR:
-			RenderError=ServerModel->GetJobErrorText(Job);
-			if (RenderError.IsEmpty()) RenderError="unknown error";
-			ServerModel->CloseJob(Job);
-			Job=NULL;
-			JobImg.Clear();
-			Img.Clear();
-			JobUpToDate=false;
-			IconTimer.Stop(true);
-			ShowIcon=false;
-			InvalidatePainting();
-			return;
-		case emSvgServerModel::JS_SUCCESS:
-			ServerModel->CloseJob(Job);
-			Job=NULL;
-			Img=JobImg;
-			SrcX=JobSrcX;
-			SrcY=JobSrcY;
-			SrcW=JobSrcW;
-			SrcH=JobSrcH;
-			JobImg.Clear();
+		case emJob::ST_SUCCESS:
+			SrcX=RenderJob->GetSrcX();
+			SrcY=RenderJob->GetSrcY();
+			SrcW=RenderJob->GetSrcWidth();
+			SrcH=RenderJob->GetSrcHeight();
+			Img=RenderJob->GetImage();
+			RenderJob=NULL;
 			if (JobUpToDate) {
 				IconTimer.Stop(true);
 				ShowIcon=false;
@@ -405,6 +387,21 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 			JobDelayStartTime=emGetClockMS();
 			InvalidatePainting();
 			break;
+		default:
+			if (RenderJob->GetState()==emJob::ST_ERROR) {
+				RenderError=RenderJob->GetErrorText();
+				if (RenderError.IsEmpty()) RenderError="unknown error";
+			}
+			else {
+				RenderError="Aborted";
+			}
+			RenderJob=NULL;
+			Img.Clear();
+			JobUpToDate=false;
+			IconTimer.Stop(true);
+			ShowIcon=false;
+			InvalidatePainting();
+			return;
 		}
 	}
 
@@ -460,23 +457,15 @@ void emSvgFilePanel::UpdateSvgDisplay(bool viewingChanged)
 		}
 	}
 
-	JobSrcX=sx;
-	JobSrcY=sy;
-	JobSrcW=sw;
-	JobSrcH=sh;
-	JobImg.Setup((int)(iw+0.5),(int)(ih+0.5),3);
-
-	Job=ServerModel->StartRenderJob(
-		fm->GetSvgHandle(),
-		JobSrcX,
-		JobSrcY,
-		JobSrcW,
-		JobSrcH,
+	RenderJob=new emSvgServerModel::RenderJob(
+		fm->GetSvgInstance(),
+		sx,sy,sw,sh,
 		emColor(0xffffffff),
-		&JobImg,
-		GetUpdatePriority(),
-		this
+		(int)(iw+0.5),(int)(ih+0.5),
+		GetUpdatePriority()
 	);
+	ServerModel->EnqueueJob(*RenderJob);
+	AddWakeUpSignal(RenderJob->GetStateSignal());
 	if (!ShowIcon) IconTimer.Start(500);
 	JobUpToDate=true;
 }

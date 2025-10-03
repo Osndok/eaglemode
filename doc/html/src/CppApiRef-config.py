@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2017,2020,2022 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2017,2020,2022,2024 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -69,6 +69,7 @@ Topics=[
 		files=[
 			AutoSectionsFile("emCore/emString.h"),
 			AutoSectionsFile("emCore/emArray.h"),
+			AutoSectionsFile("emCore/emOwnPtrArray.h"),
 			AutoSectionsFile("emCore/emList.h"),
 			AutoSectionsFile("emCore/emAvlTree.h"),
 			AutoSectionsFile("emCore/emAvlTreeMap.h"),
@@ -78,11 +79,12 @@ Topics=[
 	),
 	Topic(text="Smart Pointers",
 		files=[
+			AutoSectionsFile("emCore/emOwnPtr.h"),
 			AutoSectionsFile("emCore/emRef.h"),
 			AutoSectionsFile("emCore/emCrossPtr.h")
 		]
 	),
-	Topic(text="CPU Control",
+	Topic(text="Execution Management",
 		files=[
 			AutoSectionsFile("emCore/emEngine.h"),
 			AutoSectionsFile("emCore/emSignal.h"),
@@ -91,6 +93,7 @@ Topics=[
 			AutoSectionsFile("emCore/emPriSchedAgent.h"),
 			AutoSectionsFile("emCore/emThread.h"),
 			AutoSectionsFile("emCore/emProcess.h"),
+			AutoSectionsFile("emCore/emJob.h"),
 			AutoSectionsFile("emCore/emMiniIpc.h"),
 			AutoSectionsFile("emCore/emRenderThreadPool.h")
 		]

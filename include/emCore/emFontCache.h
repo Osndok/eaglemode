@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.h
 //
-// Copyright (C) 2009,2016 Oliver Hamann.
+// Copyright (C) 2009,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emFontCache_h
 #define emFontCache_h
+
+#ifndef emOwnPtrArray_h
+#include <emCore/emOwnPtrArray.h>
+#endif
 
 #ifndef emModel_h
 #include <emCore/emModel.h>
@@ -78,8 +82,7 @@ private:
 	emImage ImgCostlyChar;
 	emThreadMutex Mutex;
 	bool SomeLoadedNewly;
-	Entry * * EntryArray;
-	int EntryCount;
+	emOwnPtrArray<Entry> EntryArray;
 	double Stress;
 	emUInt64 Clock;
 	emUInt64 LastLoadTime;

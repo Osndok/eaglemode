@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.h
 //
-// Copyright (C) 2007-2008,2011,2016 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2016,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,6 +23,10 @@
 
 #ifndef emScreen_h
 #include <emCore/emScreen.h>
+#endif
+
+#ifndef emOwnPtr_h
+#include <emCore/emOwnPtr.h>
 #endif
 
 
@@ -105,19 +109,19 @@ private:
 		emRef<emScreen> Screen;
 	};
 
-	emScheduler * Scheduler;
-	emRootContext * RootContext;
-	AutoTerminatorClass * AutoTerminator;
+	emOwnPtr<emScheduler> Scheduler;
+	emOwnPtr<emRootContext> RootContext;
+	emOwnPtr<AutoTerminatorClass> AutoTerminator;
 };
 
 inline emScheduler & emGUIFramework::GetScheduler() const
 {
-	return *Scheduler;
+	return (emScheduler&)*Scheduler;
 }
 
 inline emRootContext & emGUIFramework::GetRootContext() const
 {
-	return *RootContext;
+	return (emRootContext&)*RootContext;
 }
 
 inline int emGUIFramework::Run()

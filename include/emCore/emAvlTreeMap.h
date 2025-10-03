@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTreeMap.h
 //
-// Copyright (C) 2015-2016,2021 Oliver Hamann.
+// Copyright (C) 2015-2016,2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -38,8 +38,8 @@ public:
 	// key/value pairs and are sorted by the keys. emAvlTreeMap has
 	// copy-on-write behavior and stable iterators. The template parameter
 	// KEY describes the type of the keys, and the template parameter VALUE
-	// describes the type of the values. Keys are compared with the normal
-	// comparison operators (==, <=, >...).
+	// describes the type of the values. Keys are compared with the less
+	// than and greater than operators (<, >).
 
 	emAvlTreeMap();
 		// Construct an empty map.

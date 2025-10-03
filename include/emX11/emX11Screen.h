@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.h
 //
-// Copyright (C) 2005-2011,2016-2017,2019,2021-2022 Oliver Hamann.
+// Copyright (C) 2005-2011,2016-2017,2019,2021-2022,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -144,7 +144,7 @@ private:
 
 	emThreadMiniMutex XMutex; // (XInitThreads was too buggy for me...)
 	Display * Disp;
-	WaitCursorThread * WCThread;
+	emOwnPtr<WaitCursorThread> WCThread;
 	XIM       InputMethod;
 	int       Scrn;
 	Window    RootWin;
@@ -184,7 +184,7 @@ private:
 	emX11Clipboard * Clipboard;
 	emTimer   ScreensaverUpdateTimer;
 
-	emX11ViewRenderer * ViewRenderer;
+	emOwnPtr<emX11ViewRenderer> ViewRenderer;
 
 	static emThreadMiniMutex ErrorHandlerMutex;
 	static bool ErrorHandlerCalled;

@@ -1,0 +1,198 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emJob.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emJob_h.html#emJob">emJob</A>.h
+//
+// Copyright (C) 2024 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emJob_h
+#define emJob_h
+
+#ifndef emRef_h
+#include &lt;<A CLASS=f HREF="emCore_emRef_h.html">emCore/emRef.h</A>&gt;
+#endif
+
+#ifndef emSignal_h
+#include &lt;<A CLASS=f HREF="emCore_emSignal_h.html">emCore/emSignal.h</A>&gt;
+#endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>;
+
+
+<A NAME="emJob"></A><SPAN CLASS=c>//==============================================================================
+//=================================== <A CLASS=m HREF="emCore_emJob_h.html#emJob">emJob</A> ====================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRefTarget">emRefTarget</A>, <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>(<SPAN CLASS=t>double </SPAN>priority=<SPAN CLASS=u>0.0</SPAN>);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>();
+
+        <SPAN CLASS=t>double </SPAN>GetPriority() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetPriority(<SPAN CLASS=t>double </SPAN>priority);
+
+        <SPAN CLASS=t>enum </SPAN>StateEnum <SPAN CLASS=b>{
+                </SPAN>ST_NOT_ENQUEUED,
+                ST_WAITING,
+                ST_RUNNING,
+                ST_ABORTED,
+                ST_SUCCESS,
+                ST_ERROR
+        <SPAN CLASS=b>}</SPAN>;
+
+        StateEnum GetState() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetStateSignal() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetErrorText() <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * GetPrev() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * GetNext() <SPAN CLASS=t>const</SPAN>;
+
+<SPAN CLASS=t>private</SPAN>:
+        <SPAN CLASS=t>friend class </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>;
+
+        <SPAN CLASS=t>double </SPAN>Priority;
+        StateEnum State;
+        <A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> StateSignal;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> ErrorText;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A> * Queue;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * Prev;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * Next;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<A NAME="emJobQueue"></A><SPAN CLASS=c>//==============================================================================
+//================================= <A CLASS=m HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A> =================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A> : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emStd1_h.html#emUncopyable">emUncopyable</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>(<A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; scheduler);
+        <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>();
+
+        <SPAN CLASS=t>void </SPAN>EnqueueJob(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job);
+
+        <SPAN CLASS=t>bool </SPAN>IsEmpty() <SPAN CLASS=t>const</SPAN>;
+
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * GetFirstWaitingJob() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * GetLastWaitingJob() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * GetFirstRunningJob() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * GetLastRunningJob() <SPAN CLASS=t>const</SPAN>;
+
+        <SPAN CLASS=t>void </SPAN>InvalidateSortingOfWaitingJobs();
+        <SPAN CLASS=t>virtual int </SPAN>CompareForSortingOfWaitingJobs(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job1, <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job2) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>UpdateSortingOfWaitingJobs();
+
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * StartNextJob();
+        <SPAN CLASS=t>void </SPAN>StartJob(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job);
+        <SPAN CLASS=t>void </SPAN>AbortJob(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job);
+        <SPAN CLASS=t>void </SPAN>SucceedJob(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job);
+        <SPAN CLASS=t>void </SPAN>FailJob(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; errorText);
+        <SPAN CLASS=t>void </SPAN>FailAllRunningJobs(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> errorText);
+        <SPAN CLASS=t>void </SPAN>FailAllJobs(<A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> errorText);
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>RemoveJobFromList(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> &amp; job);
+        <SPAN CLASS=t>static int </SPAN>CompareJobs(<A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * job1, <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * job2, <SPAN CLASS=t>void </SPAN>* context);
+
+        <A CLASS=l HREF="emCore_emScheduler_h.html#emScheduler">emScheduler</A> &amp; Scheduler;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * FirstWaitingJob;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * LastWaitingJob;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * FirstRunningJob;
+        <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * LastRunningJob;
+        <SPAN CLASS=t>bool </SPAN>SortingOfWaitingJobsInvalid;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>inline double </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::GetPriority() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Priority;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::StateEnum <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::GetState() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>State;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::GetStateSignal() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>StateSignal;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::GetErrorText() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ErrorText;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::GetPrev() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Prev;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * <A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A>::GetNext() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Next;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>::IsEmpty() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>!FirstWaitingJob &amp;&amp; !FirstRunningJob;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * <A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>::GetFirstWaitingJob() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstWaitingJob;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * <A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>::GetLastWaitingJob() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LastWaitingJob;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * <A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>::GetFirstRunningJob() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>FirstRunningJob;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emJob_h.html#emJob">emJob</A> * <A CLASS=l HREF="emCore_emJob_h.html#emJobQueue">emJobQueue</A>::GetLastRunningJob() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>LastRunningJob;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

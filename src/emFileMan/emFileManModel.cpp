@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2021 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2021,2024 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -458,7 +458,7 @@ emFileManModel::emFileManModel(emContext & context, const emString & name)
 
 emFileManModel::~emFileManModel()
 {
-	delete IpcServer;
+	IpcServer.Reset();
 	ClearCommands();
 }
 
@@ -744,7 +744,8 @@ bool emFileManModel::CheckCommandFileEnding(const char * name)
 
 void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 {
-	char * buf, * p, * name;
+	emOwnArrayPtr<char> buf;
+	char * p, * name;
 	const char * miss;
 	CommandNode * cmd;
 	FILE * file;
@@ -770,7 +771,6 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 	cmd->CmdPath=cmdPath;
 	cmd->Look=parent->Look;
 
-	buf=NULL;
 	file=NULL;
 
 	bufsize=65536;
@@ -968,8 +968,7 @@ void emFileManModel::LoadCommand(CommandNode * parent, const emString & cmdPath)
 	fclose(file);
 	file=NULL;
 
-	delete [] buf;
-	buf=NULL;
+	buf.Reset();
 
 	if (cmd->Hotkey.IsValid()) {
 		if (!cmd->Description.IsEmpty()) cmd->Description+="\n\n";
@@ -1037,7 +1036,6 @@ L_ErrFile:
 	goto L_Err;
 L_Err:
 	if (file) fclose(file);
-	if (buf) delete [] buf;
 	if (cmd) delete cmd;
 }
 
