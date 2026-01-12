@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emDiskDrives" }
+FileFormatName = "Disk Drives"
 Priority = 1.0
 Library = "emFileMan"
 Function = "emDiskDrivesFpPluginFunc"

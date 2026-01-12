@@ -13,6 +13,7 @@ FileTypes = {
  ".xz"
  ".zip" ".jar"
 }
+FileFormatName="Archive"
 Priority = 0.5
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"

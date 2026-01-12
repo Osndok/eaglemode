@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".tga" }
+FileFormatName = "TARGA"
 Priority = 1.0
 Library = "emTga"
 Function = "emTgaFpPluginFunc"
+ModelFunction = "emTgaFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emTgaImageFileModel" }
+ModelAbleToSave = yes

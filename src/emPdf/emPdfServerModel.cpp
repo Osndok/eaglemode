@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfServerModel.cpp
 //
-// Copyright (C) 2011,2014,2017-2019,2022-2024 Oliver Hamann.
+// Copyright (C) 2011,2014,2017-2019,2022-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -520,7 +520,7 @@ emPdfServerModel::PdfJobBase::RcvRes emPdfServerModel::RenderJob::TryReceive(
 			mdl.ReadBuf.Get(),mdl.ReadBuf.GetCount(),&type,&width,&height,&maxColor
 		);
 		if (len<=0) return RCV_WAIT;
-		emDLog("emPdfServerModel: Receiving: P%c %d %d %d ...",type,width,height,maxColor);
+		EM_DLOG("Receiving: P%c %d %d %d ...",type,width,height,maxColor);
 		mdl.ReadBuf.Remove(0,len);
 		if (
 			type!=(IsRenderSelectionJob?'X':'6') ||
@@ -631,7 +631,7 @@ void emPdfServerModel::Poll(unsigned maxMillisecs)
 			!ProcTerminating &&
 			emGetClockMS()-ProcIdleClock>=5000
 		) {
-			emDLog("emPdfServerModel: Terminating server process");
+			EM_DLOG("Terminating server process");
 			Process.CloseWriting();
 			ProcTerminating=true;
 		}
@@ -653,7 +653,7 @@ void emPdfServerModel::Poll(unsigned maxMillisecs)
 			ProcPdfInstCount=0;
 			ReadBuf.Clear();
 			WriteBuf.Clear();
-			emDLog("emPdfServerModel: Starting server process");
+			EM_DLOG("Starting server process");
 			Process.TryStart(
 				emArray<emString>(
 					emGetChildPath(
@@ -831,7 +831,7 @@ void emPdfServerModel::TryFinishJobs()
 
 void emPdfServerModel::WriteLineToProc(const char * str)
 {
-	emDLog("emPdfServerModel: Sending: %s",str);
+	EM_DLOG("Sending: %s",str);
 	WriteBuf.Add(str,strlen(str));
 	WriteBuf.Add((char)'\n');
 }
@@ -851,7 +851,7 @@ emString emPdfServerModel::ReadLineFromProc()
 			ReadBuf.Remove(0,l+1);
 		}
 	}
-	if (!res.IsEmpty()) emDLog("emPdfServerModel: Receiving: %s",res.Get());
+	if (!res.IsEmpty()) EM_DLOG("Receiving: %s",res.Get());
 	return res;
 }
 

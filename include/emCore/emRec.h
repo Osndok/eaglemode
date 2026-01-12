@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRec.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018,2022,2024 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1193,6 +1193,10 @@ public:
 		// Get a reference to an element. The index must be within the
 		// range of 0 to GetCount()-1.
 
+	const emRec * const * Get() const;
+	emRec * * Get();
+		// Get a pointer to the internal array of element pointers.
+
 	virtual void SetToDefault();
 	virtual bool IsSetToDefault() const;
 	virtual void TryStartReading(emRecReader & reader);
@@ -1249,6 +1253,16 @@ inline emRec & emArrayRec::operator [] (int index)
 	return *Array[index];
 }
 
+inline const emRec * const * emArrayRec::Get() const
+{
+	return Array;
+}
+
+inline emRec * * emArrayRec::Get()
+{
+	return Array;
+}
+
 
 //==============================================================================
 //================================ emTArrayRec =================================
@@ -1271,6 +1285,52 @@ public:
 	const REC & operator [] (int index) const;
 	REC & operator [] (int index);
 		// Like with emArrayRec, but the results are cast to template type.
+
+	const REC * const * Get() const;
+	REC * * Get();
+		// Get a pointer to the internal array of element pointers.
+
+	class ConstIterator {
+	public:
+		ConstIterator();
+		ConstIterator(const ConstIterator & iter);
+		ConstIterator(const emTArrayRec<REC> & array, int index = 0);
+		ConstIterator & operator = (const ConstIterator & iter);
+		operator const REC * () const;
+		const REC * Get() const;
+		const REC & operator * () const;
+		const REC * operator -> () const;
+		ConstIterator & operator ++();
+		ConstIterator & operator --();
+		bool operator == (const ConstIterator & iter) const;
+		bool operator != (const ConstIterator & iter) const;
+	private:
+		const REC * const * Pos;
+	};
+
+	class Iterator {
+	public:
+		Iterator();
+		Iterator(const Iterator & iter);
+		Iterator(emTArrayRec<REC> & array, int index = 0);
+		Iterator & operator = (const Iterator & iter);
+		operator REC * () const;
+		REC * Get() const;
+		REC & operator * () const;
+		REC * operator -> () const;
+		Iterator & operator ++();
+		Iterator & operator --();
+		bool operator == (const Iterator & iter) const;
+		bool operator != (const Iterator & iter) const;
+	private:
+		REC * * Pos;
+	};
+
+	ConstIterator begin() const; // NOLINT(*-identifier-naming)
+	Iterator begin(); // NOLINT(*-identifier-naming)
+	ConstIterator end() const; // NOLINT(*-identifier-naming)
+	Iterator end(); // NOLINT(*-identifier-naming)
+		// Support range-based for loops.
 };
 
 template <class REC> inline emTArrayRec<REC>::emTArrayRec(
@@ -1309,6 +1369,172 @@ template <class REC> inline const REC & emTArrayRec<REC>::operator [] (
 template <class REC> inline REC & emTArrayRec<REC>::operator [] (int index)
 {
 	return (REC &)emArrayRec::Get(index);
+}
+
+template <class REC> inline const REC * const * emTArrayRec<REC>::Get() const
+{
+	return (const REC * const *)emArrayRec::Get();
+}
+
+template <class REC> inline REC * * emTArrayRec<REC>::Get()
+{
+	return (REC**)emArrayRec::Get();
+}
+
+template <class REC> inline emTArrayRec<REC>::ConstIterator::ConstIterator()
+	: Pos(NULL)
+{
+}
+
+template <class REC> inline emTArrayRec<REC>::ConstIterator::ConstIterator(
+	const ConstIterator & iter
+) : Pos(iter.Pos)
+{
+}
+
+template <class REC> inline emTArrayRec<REC>::ConstIterator::ConstIterator(
+	const emTArrayRec<REC> & array, int index
+) : Pos(array.Get() + index)
+{
+}
+
+template <class REC> inline
+emTArrayRec<REC>::ConstIterator::operator const REC *() const
+{
+	return *Pos;
+}
+
+template <class REC> inline
+const REC * emTArrayRec<REC>::ConstIterator::Get() const
+{
+	return *Pos;
+}
+
+template <class REC> inline
+const REC & emTArrayRec<REC>::ConstIterator::operator *() const
+{
+	return **Pos;
+}
+
+template <class REC> inline
+const REC * emTArrayRec<REC>::ConstIterator::operator ->() const
+{
+	return *Pos;
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::ConstIterator &
+emTArrayRec<REC>::ConstIterator::operator ++()
+{
+	Pos++;
+	return *this;
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::ConstIterator &
+emTArrayRec<REC>::ConstIterator::operator --()
+{
+	Pos--;
+	return *this;
+}
+
+template <class REC> inline bool
+emTArrayRec<REC>::ConstIterator::operator == (const ConstIterator & iter) const
+{
+	return Pos==iter.Pos;
+}
+
+template <class REC> inline bool
+emTArrayRec<REC>::ConstIterator::operator != (const ConstIterator & iter) const
+{
+	return Pos!=iter.Pos;
+}
+
+template <class REC> inline emTArrayRec<REC>::Iterator::Iterator()
+	: Pos(NULL)
+{
+}
+
+template <class REC> inline emTArrayRec<REC>::Iterator::Iterator(
+	const Iterator & iter
+) : Pos(iter.Pos)
+{
+}
+
+template <class REC> inline emTArrayRec<REC>::Iterator::Iterator(
+	emTArrayRec<REC> & array, int index
+) : Pos(array.Get() + index)
+{
+}
+
+template <class REC> inline emTArrayRec<REC>::Iterator::operator REC *() const
+{
+	return *Pos;
+}
+
+template <class REC> inline REC * emTArrayRec<REC>::Iterator::Get() const
+{
+	return *Pos;
+}
+
+template <class REC> inline REC & emTArrayRec<REC>::Iterator::operator *() const
+{
+	return **Pos;
+}
+
+template <class REC> inline REC * emTArrayRec<REC>::Iterator::operator ->() const
+{
+	return *Pos;
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::Iterator & emTArrayRec<REC>::Iterator::operator ++()
+{
+	Pos++;
+	return *this;
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::Iterator & emTArrayRec<REC>::Iterator::operator --()
+{
+	Pos--;
+	return *this;
+}
+
+template <class REC> inline bool
+emTArrayRec<REC>::Iterator::operator == (const Iterator & iter) const
+{
+	return Pos==iter.Pos;
+}
+
+template <class REC> inline bool
+emTArrayRec<REC>::Iterator::operator != (const Iterator & iter) const
+{
+	return Pos!=iter.Pos;
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::ConstIterator emTArrayRec<REC>::begin() const
+{
+	return ConstIterator(*this);
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::Iterator emTArrayRec<REC>::begin()
+{
+	return Iterator(*this);
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::ConstIterator emTArrayRec<REC>::end() const
+{
+	return ConstIterator(*this,GetCount());
+}
+
+template <class REC> inline
+typename emTArrayRec<REC>::Iterator emTArrayRec<REC>::end()
+{
+	return Iterator(*this,GetCount());
 }
 
 

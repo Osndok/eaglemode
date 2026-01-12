@@ -57,7 +57,7 @@ sub Build
 	)==0 or return 0;
 
 	my @libpopplerglibFlags=split("\n",readpipe(
-		"perl \"".$options{'utils'}."/PkgConfig.pl\" gtk+-2.0 poppler-glib"
+		"perl \"".$options{'utils'}."/PkgConfig.pl\" gtk+-3.0 poppler-glib"
 	));
 	if (!@libpopplerglibFlags) {
 		@libpopplerglibFlags=("--link","poppler-glib");

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emDirEntryAltPanel.cpp
 //
-// Copyright (C) 2007-2010,2014,2016-2017,2020-2021 Oliver Hamann.
+// Copyright (C) 2007-2010,2014,2016-2017,2020-2021,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -21,7 +21,6 @@
 #include <emCore/emRes.h>
 #include <emCore/emFpPlugin.h>
 #include <emFileMan/emDirEntryAltPanel.h>
-#include <emFileMan/emFileManControlPanel.h>
 
 
 emDirEntryAltPanel::emDirEntryAltPanel(

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTextField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018,2021-2023 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018,2021-2023,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -354,7 +354,7 @@ void emTextField::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const double minExt=9;
+	static const double minExt=10.0;
 	double mc,mr;
 	UndoMergeType undoMerge;
 	int col,row,i,i1,i2,j1,j2;

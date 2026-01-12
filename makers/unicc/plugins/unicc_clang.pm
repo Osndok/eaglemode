@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # unicc_clang.pm
 #
-# Copyright (C) 2018,2020-2022,2024 Oliver Hamann.
+# Copyright (C) 2018,2020-2022,2024-2025 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -132,6 +132,7 @@ sub Compile
 		push(@args,"-Wno-missing-noreturn");
 		push(@args,"-Wno-missing-prototypes");
 		push(@args,"-Wno-nested-anon-types");
+		push(@args,"-Wno-nontrivial-memcall");
 		push(@args,"-Wno-null-pointer-subtraction");
 		push(@args,"-Wno-old-style-cast");
 		push(@args,"-Wno-padded");
@@ -146,6 +147,8 @@ sub Compile
 		push(@args,"-Wno-switch-default");
 		push(@args,"-Wno-switch-enum");
 		push(@args,"-Wno-unknown-warning-option");
+		push(@args,"-Wno-unreachable-code-break");
+		push(@args,"-Wno-unreachable-code-loop-increment");
 		push(@args,"-Wno-unsafe-buffer-usage");
 		push(@args,"-Wno-unused-but-set-variable");
 		push(@args,"-Wno-unused-parameter");

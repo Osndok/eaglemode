@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFpPlugin.cpp
 //
-// Copyright (C) 2006-2009,2011,2014,2018-2020,2024 Oliver Hamann.
+// Copyright (C) 2006-2009,2011,2014,2018-2020,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,9 +18,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <emCore/emFpPlugin.h>
 #include <emCore/emInstallInfo.h>
 #include <emCore/emErrorPanel.h>
-#include <emCore/emFpPlugin.h>
 
 
 //==============================================================================
@@ -30,12 +30,17 @@
 emFpPlugin::emFpPlugin()
 	: emStructRec(),
 	FileTypes(this,"FileTypes"),
+	FileFormatName(this,"FileFormatName"),
 	Priority(this,"Priority",1.0),
 	Library(this,"Library","unknown"),
 	Function(this,"Function","unknown"),
-	Properties(this,"Properties")
+	ModelFunction(this,"ModelFunction"),
+	ModelClasses(this,"ModelClasses"),
+	ModelAbleToSave(this,"ModelAbleToSave",false),
+	Properties(this,"Properties"),
+	CachedFunc(NULL),
+	CachedModelFunc(NULL)
 {
-	CachedFunc=NULL;
 }
 
 
@@ -75,18 +80,26 @@ emPanel * emFpPlugin::TryCreateFilePanel(
 	emString errorBuf;
 	emPanel * panel;
 
-	if (!CachedFunc || CachedFuncLib!=Library || CachedFuncName!=Function) {
-		CachedFunc=emTryResolveSymbol(Library.Get(),false,Function.Get());
-		CachedFuncLib=Library;
+	if (CachedLibName!=Library) {
+		CachedFunc=NULL;
+		CachedModelFunc=NULL;
+		CachedLibName=Library;
+	}
+
+	if (!CachedFunc || CachedFuncName!=Function) {
+		if (Function.Get().IsEmpty()) {
+			throw emException("emFpPlugin: Function name is empty");
+		}
+		CachedFunc=(emFpPluginFunc)emTryResolveSymbol(
+			Library.Get(),false,Function.Get()
+		);
 		CachedFuncName=Function;
 	}
-	errorBuf.Clear();
-	panel=((emFpPluginFunc)CachedFunc)(
-		parent,name,path,this,&errorBuf
-	);
+
+	panel=CachedFunc(parent,name,path,this,&errorBuf);
 	if (!panel) {
 		if (errorBuf.IsEmpty()) {
-			errorBuf=emString::Format(
+			throw emException(
 				"Plugin function %s in %s failed.",
 				Function.Get().Get(),
 				Library.Get().Get()
@@ -101,6 +114,52 @@ emPanel * emFpPlugin::TryCreateFilePanel(
 const char * emFpPlugin::GetFormatName() const
 {
 	return "emFpPlugin";
+}
+
+
+emRef<emModel> emFpPlugin::TryAcquireModelImpl(
+	emContext & context, const char * className,
+	const emString & name, bool common
+)
+{
+	emString errorBuf;
+	emRef<emModel> model;
+
+	if (CachedLibName!=Library) {
+		CachedFunc=NULL;
+		CachedModelFunc=NULL;
+		CachedLibName=Library;
+	}
+
+	if (!CachedModelFunc || CachedModelFuncName!=ModelFunction) {
+		if (ModelFunction.Get().IsEmpty()) {
+			throw emException("emFpPlugin: Model function name is empty");
+		}
+		CachedModelFunc=(emFpPluginModelFunc)emTryResolveSymbol(
+			Library.Get(),false,ModelFunction.Get()
+		);
+		CachedModelFuncName=ModelFunction;
+	}
+
+	if (!CachedModelFunc(context,className,name,common,this,&model,&errorBuf)) {
+		if (errorBuf.IsEmpty()) {
+			throw emException(
+				"Plugin model function %s in %s failed.",
+				ModelFunction.Get().Get(),
+				Library.Get().Get()
+			);
+		}
+		throw emException("%s",errorBuf.Get());
+	}
+
+	if (model==NULL) {
+		throw emException(
+			"Plugin model function %s in %s returned true but no model.",
+			ModelFunction.Get().Get(),
+			Library.Get().Get()
+		);
+	}
+	return model;
 }
 
 
@@ -136,58 +195,93 @@ emPanel * emFpPluginList::CreateFilePanel(
 	int alternative
 )
 {
-	emFpPlugin * plugin, * found;
-	const char * fn, * type;
-	int i,j,fnLen,typeLen;
+	emFpPlugin * plugin;
 
 	if (statErr) {
 		return new emErrorPanel(parent,name,emGetErrorText(statErr));
 	}
 
-	found=NULL;
-	fn=emGetNameInPath(absolutePath);
-	fnLen=strlen(fn);
+	plugin=SearchPlugin(NULL,absolutePath,false,alternative,statMode);
+	if (!plugin) {
+		return new emErrorPanel(
+			parent,name,
+			alternative<=0 ?
+				"This file type cannot be shown."
+			:
+				"No alternative file panel plugin available."
+		);
+	}
+
+	try {
+		return plugin->TryCreateFilePanel(parent,name,absolutePath);
+	}
+	catch (const emException & exception) {
+		return new emErrorPanel(parent,name,exception.GetText());
+	}
+}
+
+
+emFpPlugin * emFpPluginList::SearchPlugin(
+	const char * modelClassName, const char * filePath,
+	bool requireAbleToSave, int alternative, long statMode
+)
+{
+	const char * fn;
+	int i,fnLen;
+
+	if (filePath) {
+		fn=emGetNameInPath(filePath);
+		fnLen=strlen(fn);
+	}
+	else {
+		fn=NULL;
+		fnLen=0;
+	}
+
 	for (i=0; i<Plugins.GetCount(); i++) {
-		plugin=Plugins[i];
-		for (j=0; j<plugin->FileTypes.GetCount(); j++) {
-			type=plugin->FileTypes[j].Get();
-			if (type[0]=='.') {
-				if ((statMode&S_IFMT)==S_IFREG) {
-					typeLen=strlen(type);
-					if (
-						typeLen<fnLen &&
-						strcasecmp(fn+fnLen-typeLen,type)==0
-					) break;
-				}
-			}
-			else if (strcmp(type,"file")==0) {
-				if ((statMode&S_IFMT)==S_IFREG) break;
-			}
-			else if (strcmp(type,"directory")==0) {
-				if ((statMode&S_IFMT)==S_IFDIR) break;
-			}
-		}
-		if (j<plugin->FileTypes.GetCount()) {
-			found=plugin;
+		if (
+			IsMatchingPlugin(
+				*Plugins[i],modelClassName,fn,fnLen,requireAbleToSave,statMode
+			)
+		) {
+			if (alternative<=0) return Plugins[i];
 			alternative--;
-			if (alternative<0) break;
 		}
 	}
 
-	if (!found) {
-		return new emErrorPanel(parent,name,"This file type cannot be shown.");
-	}
-	else if (alternative>=0) {
-		return new emErrorPanel(parent,name,"No alternative file panel plugin available.");
+	return NULL;
+}
+
+
+emArray<emFpPlugin*> emFpPluginList::SearchPlugins(
+	const char * modelClassName, const char * filePath,
+	bool requireAbleToSave, long statMode
+)
+{
+	emArray<emFpPlugin*> result;
+	const char * fn;
+	int i,fnLen;
+
+	if (filePath) {
+		fn=emGetNameInPath(filePath);
+		fnLen=strlen(fn);
 	}
 	else {
-		try {
-			return found->TryCreateFilePanel(parent,name,absolutePath);
-		}
-		catch (const emException & exception) {
-			return new emErrorPanel(parent,name,exception.GetText());
+		fn=NULL;
+		fnLen=0;
+	}
+
+	for (i=0; i<Plugins.GetCount(); i++) {
+		if (
+			IsMatchingPlugin(
+				*Plugins[i],modelClassName,fn,fnLen,requireAbleToSave,statMode
+			)
+		) {
+			result.Add(Plugins[i]);
 		}
 	}
+
+	return result;
 }
 
 
@@ -233,6 +327,76 @@ emFpPluginList::emFpPluginList(emContext & context, const emString & name)
 
 emFpPluginList::~emFpPluginList()
 {
+}
+
+
+emRef<emModel> emFpPluginList::TryAcquireModelImpl(
+	emContext & context, const char * className,
+	const emString & name, bool nameIsFilePath,
+	bool common, int alternative, long statMode
+)
+{
+	emFpPlugin * plugin;
+
+	plugin=SearchPlugin(
+		className,
+		nameIsFilePath ? name.Get() : NULL,
+		false,
+		alternative,
+		statMode
+	);
+
+	if (!plugin) throw emException("No suitable plugin found");
+
+	return plugin->TryAcquireModel<emModel>(
+		context,className,name,common
+	);
+}
+
+
+bool emFpPluginList::IsMatchingPlugin(
+	const emFpPlugin & plugin, const char * modelClassName,
+	const char * fileName, int fileNameLen,
+	bool requireAbleToSave, long statMode
+)
+{
+	const char * type;
+	int i,n,typeLen;
+
+	if (modelClassName) {
+		n=plugin.ModelClasses.GetCount();
+		for (i=0; i<n; i++) {
+			if (plugin.ModelClasses[i].Get() == modelClassName) break;
+		}
+		if (i>=n) return false;
+	}
+
+	if (fileName) {
+		n=plugin.FileTypes.GetCount();
+		for (i=0; i<n; i++) {
+			type=plugin.FileTypes[i].Get();
+			if (type[0]=='.') {
+				if ((statMode&S_IFMT)==S_IFREG) {
+					typeLen=strlen(type);
+					if (
+						typeLen<fileNameLen &&
+						strcasecmp(fileName+fileNameLen-typeLen,type)==0
+					) break;
+				}
+			}
+			else if (strcmp(type,"file")==0) {
+				if ((statMode&S_IFMT)==S_IFREG) break;
+			}
+			else if (strcmp(type,"directory")==0) {
+				if ((statMode&S_IFMT)==S_IFDIR) break;
+			}
+		}
+		if (i>=n) return false;
+	}
+
+	if (requireAbleToSave && !plugin.ModelAbleToSave) return false;
+
+	return true;
 }
 
 

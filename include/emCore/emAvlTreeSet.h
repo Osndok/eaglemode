@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTreeSet.h
 //
-// Copyright (C) 2016,2021,2024 Oliver Hamann.
+// Copyright (C) 2016,2021,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -208,27 +208,30 @@ public:
 			// Copy an iterator.
 
 		operator const OBJ * () const;
-		const OBJ * operator * () const;
+		const OBJ & operator * () const;
 		const OBJ * operator -> () const;
 		const OBJ * Get() const;
-			// Get the element pointer. It is NULL if this iterator
-			// does not point to any element.
+			// Get the element pointer or reference. It is NULL if
+			// this iterator does not point to any element.
 
-		const OBJ * Set(const Iterator & iter);
-			// Copy the given iterator and return the element
-			// pointer.
+		void Set(const Iterator & iter);
+			// Copy the given iterator.
 
-		const OBJ * Set(const emAvlTreeSet<OBJ> & set, const OBJ * elem);
+		void Set(const emAvlTreeSet<OBJ> & set, const OBJ * elem);
 			// Set this iterator to the given element of the given
-			// set and return the element pointer.
+			// set.
 
-		const OBJ * SetFirst(const emAvlTreeSet<OBJ> & set);
-		const OBJ * SetLast(const emAvlTreeSet<OBJ> & set);
+		void SetFirst(const emAvlTreeSet<OBJ> & set);
+		void SetLast(const emAvlTreeSet<OBJ> & set);
 			// Set this iterator to the first or last element of the
-			// given set and return the element pointer.
+			// given set.
 
-		const OBJ * SetNext();
-		const OBJ * SetPrev();
+		void SetNext();
+		void SetPrev();
+			// Set this iterator to the next or previous element.
+			// This must be called only if the old element pointer
+			// is not NULL.
+
 		const OBJ * operator ++();
 		const OBJ * operator --();
 			// Set this iterator to the next or previous element and
@@ -241,8 +244,6 @@ public:
 
 		bool operator == (const Iterator & iter) const;
 		bool operator != (const Iterator & iter) const;
-		bool operator == (const OBJ * elem) const;
-		bool operator != (const OBJ * elem) const;
 			// Ordinary compare operators.
 
 		const emAvlTreeSet<OBJ> * GetSet() const;
@@ -270,6 +271,12 @@ public:
 		emAvlTreeSet<OBJ> * Ats;
 		Iterator * NextIter; // Undefined if Ats==NULL
 	};
+
+	Iterator begin() const; // NOLINT(*-identifier-naming)
+	Iterator end() const; // NOLINT(*-identifier-naming)
+		// Support range-based for loops. This only allows to loop
+		// constant Element references. If you want to modify elements
+		// within such a loop, make use of GetWritable.
 
 private:
 	friend class Iterator;
@@ -831,9 +838,9 @@ emAvlTreeSet<OBJ>::Iterator::operator const OBJ * () const
 }
 
 template <class OBJ> inline
-const OBJ * emAvlTreeSet<OBJ>::Iterator::operator * () const
+const OBJ & emAvlTreeSet<OBJ>::Iterator::operator * () const
 {
-	return Pos;
+	return *Pos;
 }
 
 template <class OBJ> inline
@@ -847,7 +854,7 @@ template <class OBJ> inline const OBJ * emAvlTreeSet<OBJ>::Iterator::Get() const
 	return Pos;
 }
 
-template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::Set(
+template <class OBJ> void emAvlTreeSet<OBJ>::Iterator::Set(
 	const Iterator & iter
 )
 {
@@ -856,10 +863,9 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::Set(
 		AvlIterValid=false;
 		Pos=iter.Pos;
 	}
-	return Pos;
 }
 
-template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::Set(
+template <class OBJ> void emAvlTreeSet<OBJ>::Iterator::Set(
 	const emAvlTreeSet<OBJ> & set, const OBJ * elem
 )
 {
@@ -868,10 +874,9 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::Set(
 		AvlIterValid=false;
 		Pos=elem;
 	}
-	return Pos;
 }
 
-template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetFirst(
+template <class OBJ> void emAvlTreeSet<OBJ>::Iterator::SetFirst(
 	const emAvlTreeSet<OBJ> & set
 )
 {
@@ -881,10 +886,9 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetFirst(
 	EM_AVL_ITER_FIRST(Element,AvlNode,Ats->Data->AvlTree,AvlIter)
 	AvlIterValid=true;
 	Pos=(element ? &element->Obj : NULL);
-	return Pos;
 }
 
-template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetLast(
+template <class OBJ> void emAvlTreeSet<OBJ>::Iterator::SetLast(
 	const emAvlTreeSet<OBJ> & set
 )
 {
@@ -894,10 +898,9 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetLast(
 	EM_AVL_ITER_LAST(Element,AvlNode,Ats->Data->AvlTree,AvlIter)
 	AvlIterValid=true;
 	Pos=(element ? &element->Obj : NULL);
-	return Pos;
 }
 
-template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetNext()
+template <class OBJ> void emAvlTreeSet<OBJ>::Iterator::SetNext()
 {
 	EM_AVL_ITER_VARS(Element)
 
@@ -906,10 +909,9 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetNext()
 		EM_AVL_ITER_NEXT(Element,AvlNode,AvlIter)
 		Pos=(element ? &element->Obj : NULL);
 	}
-	return Pos;
 }
 
-template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetPrev()
+template <class OBJ> void emAvlTreeSet<OBJ>::Iterator::SetPrev()
 {
 	EM_AVL_ITER_VARS(Element)
 
@@ -918,17 +920,18 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetPrev()
 		EM_AVL_ITER_PREV(Element,AvlNode,AvlIter)
 		Pos=(element ? &element->Obj : NULL);
 	}
-	return Pos;
 }
 
 template <class OBJ> inline const OBJ * emAvlTreeSet<OBJ>::Iterator::operator ++()
 {
-	return SetNext();
+	SetNext();
+	return Pos;
 }
 
 template <class OBJ> inline const OBJ * emAvlTreeSet<OBJ>::Iterator::operator --()
 {
-	return SetPrev();
+	SetPrev();
+	return Pos;
 }
 
 template <class OBJ> inline const OBJ * emAvlTreeSet<OBJ>::Iterator::operator ++(int)
@@ -957,20 +960,6 @@ template <class OBJ> inline bool emAvlTreeSet<OBJ>::Iterator::operator != (
 ) const
 {
 	return Pos!=iter.Pos;
-}
-
-template <class OBJ> inline bool emAvlTreeSet<OBJ>::Iterator::operator == (
-	const OBJ * elem
-) const
-{
-	return Pos==elem;
-}
-
-template <class OBJ> inline bool emAvlTreeSet<OBJ>::Iterator::operator != (
-	const OBJ * elem
-) const
-{
-	return Pos!=elem;
 }
 
 template <class OBJ> inline
@@ -1023,6 +1012,18 @@ template <class OBJ> const OBJ * emAvlTreeSet<OBJ>::Iterator::SetPos(
 	AvlIterValid=true;
 	Pos=(element ? &element->Obj : NULL);
 	return Pos;
+}
+
+template <class OBJ> inline
+typename emAvlTreeSet<OBJ>::Iterator emAvlTreeSet<OBJ>::begin() const
+{
+	return Iterator(*this,GetFirst());
+}
+
+template <class OBJ> inline
+typename emAvlTreeSet<OBJ>::Iterator emAvlTreeSet<OBJ>::end() const
+{
+	return Iterator();
 }
 
 template <class OBJ> void emAvlTreeSet<OBJ>::MakeWritable(

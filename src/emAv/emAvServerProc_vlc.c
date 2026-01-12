@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emAvServerProc_vlc.c
 //
-// Copyright (C) 2018-2020,2022,2024 Oliver Hamann.
+// Copyright (C) 2018-2020,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -333,7 +333,7 @@ static void * emAvVideoLockCb(void * opaque, void * * planes)
 		EM_AV_LOG("*** Leaving out a frame ***");
 		if (v->DummyMemSize<v->MinShmSize) {
 			v->DummyMemSize=v->MinShmSize;
-			v->DummyMem=realloc(v->DummyMem,v->DummyMemSize);
+			v->DummyMem=(char*)realloc(v->DummyMem,v->DummyMemSize);
 		}
 		pi=(int*)v->DummyMem;
 	}

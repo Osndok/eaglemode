@@ -16,6 +16,7 @@ FileTypes = {
  ".wri"
  ".zabw"
 }
+FileFormatName="Document"
 Priority = 0.4
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"

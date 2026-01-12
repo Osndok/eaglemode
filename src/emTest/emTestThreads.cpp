@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestThreads.cpp
 //
-// Copyright (C) 2009,2018,2021 Oliver Hamann.
+// Copyright (C) 2009,2018,2021,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,9 +20,6 @@
 
 #include <emCore/emThread.h>
 
-#define MY_ASSERT(c) \
-	if (!(c)) emFatalError("%s, %d: assertion failed: %s",__FILE__,__LINE__,#c)
-
 
 //----------------------------------- Test1 ------------------------------------
 
@@ -31,9 +28,9 @@ static emThreadEvent Event1;
 
 static int ThreadFunc1(void * arg)
 {
-	MY_ASSERT(strcmp((char*)arg,"hello 1")==0);
+	EM_ASSERT(strcmp((char*)arg,"hello 1")==0);
 	emSleepMS(1500);
-	MY_ASSERT(Event1.GetCount()==-1);
+	EM_ASSERT(Event1.GetCount()==-1);
 	Event1.Send();
 	return 0;
 }
@@ -43,8 +40,8 @@ static void Test1()
 {
 	printf("Test1...\n");
 	emThread::StartUnmanaged(ThreadFunc1,(void*)"hello 1");
-	MY_ASSERT(!Event1.Receive(1,1000));
-	MY_ASSERT(Event1.Receive(1,1000));
+	EM_ASSERT(!Event1.Receive(1,1000));
+	EM_ASSERT(Event1.Receive(1,1000));
 }
 
 
@@ -52,7 +49,7 @@ static void Test1()
 
 static int ThreadFunc2a(void * arg)
 {
-	MY_ASSERT(strcmp((char*)arg,"hello 2a")==0);
+	EM_ASSERT(strcmp((char*)arg,"hello 2a")==0);
 	emSleepMS(1500);
 	return 4711;
 }
@@ -60,7 +57,7 @@ static int ThreadFunc2a(void * arg)
 
 static int ThreadFunc2b(void * arg)
 {
-	MY_ASSERT(emThread::GetCurrentThreadId()==((emThread*)arg)->GetThreadId());
+	EM_ASSERT(emThread::GetCurrentThreadId()==((emThread*)arg)->GetThreadId());
 	emThread::ExitCurrentThread(-12343782);
 	return 0;
 }
@@ -72,13 +69,13 @@ static void Test2()
 	emThread t;
 
 	t.Start(ThreadFunc2a,(void*)"hello 2a");
-	MY_ASSERT(!t.WaitForTermination(1000));
-	MY_ASSERT(t.WaitForTermination(1000));
-	MY_ASSERT(t.GetExitStatus()==4711);
+	EM_ASSERT(!t.WaitForTermination(1000));
+	EM_ASSERT(t.WaitForTermination(1000));
+	EM_ASSERT(t.GetExitStatus()==4711);
 
 	t.Start(ThreadFunc2b,(void*)&t);
-	MY_ASSERT(t.WaitForTermination(500));
-	MY_ASSERT(t.GetExitStatus()==-12343782);
+	EM_ASSERT(t.WaitForTermination(500));
+	EM_ASSERT(t.GetExitStatus()==-12343782);
 }
 
 
@@ -91,56 +88,56 @@ static void Test3()
 	emThreadMutex m;
 	emThreadRecursiveMutex rm;
 
-	MY_ASSERT(!e.Receive(1,0));
+	EM_ASSERT(!e.Receive(1,0));
 	e.Send(1);
-	MY_ASSERT(!e.Receive(2,0));
-	MY_ASSERT(e.Receive(1,0));
+	EM_ASSERT(!e.Receive(2,0));
+	EM_ASSERT(e.Receive(1,0));
 	e.Send(2);
-	MY_ASSERT(e.Receive(1,0));
-	MY_ASSERT(e.Receive(1,0));
-	MY_ASSERT(!e.Receive(1,0));
+	EM_ASSERT(e.Receive(1,0));
+	EM_ASSERT(e.Receive(1,0));
+	EM_ASSERT(!e.Receive(1,0));
 	e.Send(-1);
-	MY_ASSERT(e.Receive(-1,0));
-	MY_ASSERT(!e.Receive(1,0));
+	EM_ASSERT(e.Receive(-1,0));
+	EM_ASSERT(!e.Receive(1,0));
 	e.Send(37494661);
 	e.Send(9342378);
-	MY_ASSERT(e.Receive(238475,0));
-	MY_ASSERT(e.GetCount()==37494661+9342378-238475);
-	MY_ASSERT(e.Receive(e.GetCount(),0));
-	MY_ASSERT(e.GetCount()==0);
+	EM_ASSERT(e.Receive(238475,0));
+	EM_ASSERT(e.GetCount()==37494661+9342378-238475);
+	EM_ASSERT(e.Receive(e.GetCount(),0));
+	EM_ASSERT(e.GetCount()==0);
 	e.Send(7);
 	e.Clear();
-	MY_ASSERT(e.GetCount()==0);
+	EM_ASSERT(e.GetCount()==0);
 
-	MY_ASSERT(m.Lock(0));
-	MY_ASSERT(m.IsLocked());
-	MY_ASSERT(m.IsLockedAnyhow());
-	MY_ASSERT(!m.Lock(0));
-	MY_ASSERT(!m.LockReadOnly(0));
+	EM_ASSERT(m.Lock(0));
+	EM_ASSERT(m.IsLocked());
+	EM_ASSERT(m.IsLockedAnyhow());
+	EM_ASSERT(!m.Lock(0));
+	EM_ASSERT(!m.LockReadOnly(0));
 	m.Unlock();
-	MY_ASSERT(!m.IsLocked());
-	MY_ASSERT(!m.IsLockedAnyhow());
-	MY_ASSERT(m.LockReadOnly(0));
-	MY_ASSERT(m.LockReadOnly(0));
-	MY_ASSERT(m.LockReadOnly(0));
-	MY_ASSERT(!m.IsLocked());
-	MY_ASSERT(m.IsLockedAnyhow());
-	MY_ASSERT(!m.Lock(0));
+	EM_ASSERT(!m.IsLocked());
+	EM_ASSERT(!m.IsLockedAnyhow());
+	EM_ASSERT(m.LockReadOnly(0));
+	EM_ASSERT(m.LockReadOnly(0));
+	EM_ASSERT(m.LockReadOnly(0));
+	EM_ASSERT(!m.IsLocked());
+	EM_ASSERT(m.IsLockedAnyhow());
+	EM_ASSERT(!m.Lock(0));
 	m.UnlockReadOnly();
-	MY_ASSERT(!m.Lock(0));
+	EM_ASSERT(!m.Lock(0));
 	m.UnlockReadOnly();
-	MY_ASSERT(!m.Lock(0));
+	EM_ASSERT(!m.Lock(0));
 	m.UnlockReadOnly();
-	MY_ASSERT(m.Lock(0));
+	EM_ASSERT(m.Lock(0));
 
-	MY_ASSERT(rm.Lock(0));
-	MY_ASSERT(rm.IsLocked());
-	MY_ASSERT(rm.Lock(0));
-	MY_ASSERT(rm.IsLocked());
+	EM_ASSERT(rm.Lock(0));
+	EM_ASSERT(rm.IsLocked());
+	EM_ASSERT(rm.Lock(0));
+	EM_ASSERT(rm.IsLocked());
 	rm.Unlock();
-	MY_ASSERT(rm.IsLocked());
+	EM_ASSERT(rm.IsLocked());
 	rm.Unlock();
-	MY_ASSERT(!rm.IsLocked());
+	EM_ASSERT(!rm.IsLocked());
 }
 
 
@@ -154,26 +151,26 @@ static int Int4;
 static int ThreadFunc4(void * arg)
 {
 	Mutex4a.Lock();
-	MY_ASSERT(Int4++==1);
+	EM_ASSERT(Int4++==1);
 	emSleepMS(200);
-	MY_ASSERT(Int4++==2);
+	EM_ASSERT(Int4++==2);
 	Mutex4b.Lock();
 	Mutex4a.Unlock();
 	emSleepMS(100);
 	Mutex4a.Lock();
 	Mutex4a.Unlock();
-	MY_ASSERT(Int4++==5);
+	EM_ASSERT(Int4++==5);
 	emSleepMS(100);
-	MY_ASSERT(Int4++==6);
+	EM_ASSERT(Int4++==6);
 	Mutex4b.Unlock();
 	emSleepMS(100);
-	MY_ASSERT(!Mutex4b.LockReadOnly(100));
-	MY_ASSERT(Mutex4b.LockReadOnly(1000));
+	EM_ASSERT(!Mutex4b.LockReadOnly(100));
+	EM_ASSERT(Mutex4b.LockReadOnly(1000));
 	Mutex4c.Lock();
 	Mutex4b.UnlockReadOnly();
-	MY_ASSERT(Int4++==9);
+	EM_ASSERT(Int4++==9);
 	emSleepMS(200);
-	MY_ASSERT(Int4++==10);
+	EM_ASSERT(Int4++==10);
 	Mutex4c.Unlock();
 
 	return 0;
@@ -189,24 +186,24 @@ static void Test4()
 	Mutex4a.Lock();
 	t.Start(ThreadFunc4,NULL);
 	emSleepMS(100);
-	MY_ASSERT(Int4++==0);
+	EM_ASSERT(Int4++==0);
 	Mutex4a.Unlock();
 	emSleepMS(100);
 	Mutex4a.Lock();
-	MY_ASSERT(Int4++==3);
+	EM_ASSERT(Int4++==3);
 	emSleepMS(100);
-	MY_ASSERT(Int4++==4);
+	EM_ASSERT(Int4++==4);
 	Mutex4a.Unlock();
 	Mutex4b.Lock();
-	MY_ASSERT(Int4++==7);
+	EM_ASSERT(Int4++==7);
 	emSleepMS(500);
-	MY_ASSERT(Int4++==8);
+	EM_ASSERT(Int4++==8);
 	Mutex4b.Unlock();
 	emSleepMS(100);
 	Mutex4c.Lock();
-	MY_ASSERT(Int4++==11);
-	MY_ASSERT(Mutex4b.Lock(0));
-	MY_ASSERT(t.WaitForTermination(1000)==true);
+	EM_ASSERT(Int4++==11);
+	EM_ASSERT(Mutex4b.Lock(0));
+	EM_ASSERT(t.WaitForTermination(1000)==true);
 }
 
 
@@ -234,15 +231,15 @@ static int ThreadFunc5(void * arg)
 				Mutex5.Lock();
 					printf("%s: start writing\n",threadIdStr);
 					Writers5++;
-					MY_ASSERT(Readers5==0);
-					MY_ASSERT(Writers5==1);
+					EM_ASSERT(Readers5==0);
+					EM_ASSERT(Writers5==1);
 				Mutex5.Unlock();
 				quit=QuitEvent5.Receive(1,emGetIntRandom(50,150));
 				Mutex5.Lock();
 					printf("%s: stop writing\n",threadIdStr);
 					Writers5--;
-					MY_ASSERT(Readers5==0);
-					MY_ASSERT(Writers5==0);
+					EM_ASSERT(Readers5==0);
+					EM_ASSERT(Writers5==0);
 				Mutex5.Unlock();
 			RWMutex5.Unlock();
 		}
@@ -252,15 +249,15 @@ static int ThreadFunc5(void * arg)
 					printf("%s: start reading\n",threadIdStr);
 					Readers5++;
 					if (MaxReaders5<Readers5) MaxReaders5=Readers5;
-					MY_ASSERT(Readers5>=1);
-					MY_ASSERT(Writers5==0);
+					EM_ASSERT(Readers5>=1);
+					EM_ASSERT(Writers5==0);
 				Mutex5.Unlock();
 				quit=QuitEvent5.Receive(1,emGetIntRandom(50,150));
 				Mutex5.Lock();
 					printf("%s: stop reading\n",threadIdStr);
 					Readers5--;
-					MY_ASSERT(Readers5>=0);
-					MY_ASSERT(Writers5==0);
+					EM_ASSERT(Readers5>=0);
+					EM_ASSERT(Writers5==0);
 				Mutex5.Unlock();
 			RWMutex5.UnlockReadOnly();
 		}
@@ -281,9 +278,9 @@ static void Test5()
 	emSleepMS(3000);
 	QuitEvent5.Send(Test5_Threads);
 	for (i=0; i<Test5_Threads; i++) t[i].WaitForTermination();
-	MY_ASSERT(Readers5==0);
-	MY_ASSERT(Writers5==0);
-	MY_ASSERT(MaxReaders5>1);
+	EM_ASSERT(Readers5==0);
+	EM_ASSERT(Writers5==0);
+	EM_ASSERT(MaxReaders5>1);
 }
 
 //------------------------ Test6 (Dining Philosophers) -------------------------
@@ -390,11 +387,11 @@ static void Test6()
 			" ?  -  ? \n"
 		);
 		PrintDataMutex.Lock();
-		MY_ASSERT(!p[0]->IsEating() || !p[1]->IsEating());
-		MY_ASSERT(!p[1]->IsEating() || !p[2]->IsEating());
-		MY_ASSERT(!p[2]->IsEating() || !p[3]->IsEating());
-		MY_ASSERT(!p[3]->IsEating() || !p[4]->IsEating());
-		MY_ASSERT(!p[4]->IsEating() || !p[0]->IsEating());
+		EM_ASSERT(!p[0]->IsEating() || !p[1]->IsEating());
+		EM_ASSERT(!p[1]->IsEating() || !p[2]->IsEating());
+		EM_ASSERT(!p[2]->IsEating() || !p[3]->IsEating());
+		EM_ASSERT(!p[3]->IsEating() || !p[4]->IsEating());
+		EM_ASSERT(!p[4]->IsEating() || !p[0]->IsEating());
 		if (p[0]->IsThinking()) str[04]='T';
 		if (p[1]->IsThinking()) str[28]='T';
 		if (p[2]->IsThinking()) str[47]='T';

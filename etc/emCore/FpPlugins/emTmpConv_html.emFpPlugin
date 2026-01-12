@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".html" ".htm" }
+FileFormatName = "HTML"
 Priority = 0.5
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"

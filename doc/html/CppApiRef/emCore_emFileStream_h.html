@@ -1,0 +1,279 @@
+<HTML>
+<HEAD>
+	<TITLE>emCore/emFileStream.h</TITLE>
+	<LINK REL="stylesheet" TYPE="text/css" HREF="styles.css">
+	<SCRIPT TYPE="text/javascript" SRC="script.js"></SCRIPT>
+</HEAD>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">TopBar();</SCRIPT>
+<PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
+// <A CLASS=m HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>.h
+//
+// Copyright (C) 2025 Oliver Hamann.
+//
+// Homepage: http://eaglemode.sourceforge.net/
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 3 as published by the
+// Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License version 3 for
+// more details.
+//
+// You should have received a copy of the GNU General Public License version 3
+// along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+//------------------------------------------------------------------------------
+
+</SPAN><SPAN CLASS=p>#ifndef emFileStream_h
+#define emFileStream_h
+
+#ifndef emOwnPtr_h
+#include &lt;<A CLASS=f HREF="emCore_emOwnPtr_h.html">emCore/emOwnPtr.h</A>&gt;
+#endif
+
+#ifndef emStd2_h
+#include &lt;<A CLASS=f HREF="emCore_emStd2_h.html">emCore/emStd2.h</A>&gt;
+#endif
+
+
+<A NAME="emFileStream"></A></SPAN><SPAN CLASS=c>//==============================================================================
+//================================ <A CLASS=m HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A> ================================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A> <SPAN CLASS=b>{
+
+</SPAN><SPAN CLASS=t>public</SPAN>:
+
+        <SPAN CLASS=c>// Class for a FILE* with an additional buffer. That buffer makes
+        // reading and writing of many small blocks faster.
+
+        </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>(FILE * file=<SPAN CLASS=u>NULL</SPAN>, size_t bufSize=<SPAN CLASS=u>8192</SPAN>);
+        ~<A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>();
+
+        <SPAN CLASS=t>void </SPAN>TryOpen(<SPAN CLASS=t>const char </SPAN>* filePath, <SPAN CLASS=t>const char </SPAN>* mode);
+        <SPAN CLASS=t>void </SPAN>TryClose();
+        <SPAN CLASS=t>void </SPAN>Close();
+
+        <SPAN CLASS=t>bool </SPAN>IsOpen() <SPAN CLASS=t>const</SPAN>;
+
+        emInt64 TryTell();
+        <SPAN CLASS=t>void </SPAN>TrySeek(emInt64 pos);
+        <SPAN CLASS=t>void </SPAN>TrySeekEnd(emInt64 posFromEnd=<SPAN CLASS=u>0</SPAN>);
+        <SPAN CLASS=t>void </SPAN>TrySkip(emInt64 offset);
+
+        <SPAN CLASS=t>void </SPAN>TryRead(<SPAN CLASS=t>void </SPAN>* buf, size_t len);
+        size_t TryReadAtMost(<SPAN CLASS=t>void </SPAN>* buf, size_t maxLen);
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> TryReadLine(<SPAN CLASS=t>bool </SPAN>removeLineBreak=<SPAN CLASS=k>false</SPAN>);
+        <SPAN CLASS=t>int </SPAN>TryReadCharOrEOF();
+        emInt8 TryReadInt8();
+        emUInt8 TryReadUInt8();
+        emInt16 TryReadInt16LE();
+        emInt16 TryReadInt16BE();
+        emUInt16 TryReadUInt16LE();
+        emUInt16 TryReadUInt16BE();
+        emInt32 TryReadInt32LE();
+        emInt32 TryReadInt32BE();
+        emUInt32 TryReadUInt32LE();
+        emUInt32 TryReadUInt32BE();
+        emInt64 TryReadInt64LE();
+        emInt64 TryReadInt64BE();
+        emUInt64 TryReadUInt64LE();
+        emUInt64 TryReadUInt64BE();
+
+        <SPAN CLASS=t>void </SPAN>TryWrite(<SPAN CLASS=t>const void </SPAN>* buf, size_t len);
+        <SPAN CLASS=t>void </SPAN>TryWrite(<SPAN CLASS=t>const char </SPAN>* str);
+        <SPAN CLASS=t>void </SPAN>TryWriteChar(<SPAN CLASS=t>int </SPAN>value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt8(emInt8 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt8(emUInt8 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt16LE(emInt16 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt16BE(emInt16 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt16LE(emUInt16 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt16BE(emUInt16 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt32LE(emInt32 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt32BE(emInt32 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt32LE(emUInt32 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt32BE(emUInt32 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt64LE(emInt64 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteInt64BE(emInt64 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt64LE(emUInt64 value);
+        <SPAN CLASS=t>void </SPAN>TryWriteUInt64BE(emUInt64 value);
+
+        <SPAN CLASS=t>void </SPAN>TryFlush();
+
+        FILE * TryGetFile();
+
+<SPAN CLASS=t>private</SPAN>:
+
+        <SPAN CLASS=t>void </SPAN>TryFlushAndResetBuffer();
+        <SPAN CLASS=t>void </SPAN>TryFlushBuffer();
+        <SPAN CLASS=t>const </SPAN>emByte * TryReadBuffered(size_t size);
+        emByte * TryWriteBuffered(size_t size);
+        emByte * TryFillBufferForReading(size_t minSize);
+        emByte * TryPrepareBufferForWriting(size_t minSize);
+
+        FILE * File;
+        emInt64 FilePos;
+        <A CLASS=l HREF="emCore_emOwnPtr_h.html#emOwnArrayPtr">emOwnArrayPtr</A>&lt;emByte&gt; Buf;
+        size_t BufSize;
+        emByte * BufPos;
+        emByte * BufReadEnd;
+        emByte * BufWriteEnd;
+<SPAN CLASS=b>}</SPAN>;
+
+
+<SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::IsOpen() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>File!=<SPAN CLASS=u>NULL</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline int </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadCharOrEOF()
+<SPAN CLASS=b>{
+        </SPAN>emByte * p=BufPos;
+        <SPAN CLASS=k>if </SPAN>(p&gt;=BufReadEnd) <SPAN CLASS=b>{
+                </SPAN>p=TryFillBufferForReading(<SPAN CLASS=u>0</SPAN>);
+                <SPAN CLASS=k>if </SPAN>(p&gt;=BufReadEnd) <SPAN CLASS=k>return </SPAN>-<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=b>}
+        </SPAN>BufPos=p+<SPAN CLASS=u>1</SPAN>;
+        <SPAN CLASS=k>return </SPAN>p[<SPAN CLASS=u>0</SPAN>];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt8 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt8()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*TryReadBuffered(<SPAN CLASS=u>1</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt8 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadUInt8()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*TryReadBuffered(<SPAN CLASS=u>1</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt16 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt16LE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TryReadUInt16LE();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt16 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt16BE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TryReadUInt16BE();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt16 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadUInt16LE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>emByte * p=TryReadBuffered(<SPAN CLASS=u>2</SPAN>);
+        <SPAN CLASS=k>return </SPAN>((emUInt16)p[<SPAN CLASS=u>0</SPAN>]) | (((emUInt16)p[<SPAN CLASS=u>1</SPAN>])&lt;&lt;<SPAN CLASS=u>8</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emUInt16 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadUInt16BE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>emByte * p=TryReadBuffered(<SPAN CLASS=u>2</SPAN>);
+        <SPAN CLASS=k>return </SPAN>(((emUInt16)p[<SPAN CLASS=u>0</SPAN>])&lt;&lt;<SPAN CLASS=u>8</SPAN>) | ((emUInt16)p[<SPAN CLASS=u>1</SPAN>]);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt32 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt32LE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TryReadUInt32LE();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt32 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt32BE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TryReadUInt32BE();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt64 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt64LE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TryReadUInt64LE();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emInt64 <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadInt64BE()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>TryReadUInt64BE();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWrite(<SPAN CLASS=t>const char </SPAN>* str)
+<SPAN CLASS=b>{
+        </SPAN>TryWrite(str,strlen(str));
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteChar(<SPAN CLASS=t>int </SPAN>value)
+<SPAN CLASS=b>{
+        </SPAN>*TryWriteBuffered(<SPAN CLASS=u>1</SPAN>)=(emByte)value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt8(emInt8 value)
+<SPAN CLASS=b>{
+        </SPAN>*TryWriteBuffered(<SPAN CLASS=u>1</SPAN>)=value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteUInt8(emUInt8 value)
+<SPAN CLASS=b>{
+        </SPAN>*TryWriteBuffered(<SPAN CLASS=u>1</SPAN>)=value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt16LE(emInt16 value)
+<SPAN CLASS=b>{
+        </SPAN>TryWriteUInt16LE(value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt16BE(emInt16 value)
+<SPAN CLASS=b>{
+        </SPAN>TryWriteUInt16BE(value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteUInt16LE(emUInt16 value)
+<SPAN CLASS=b>{
+        </SPAN>emByte * p=TryWriteBuffered(<SPAN CLASS=u>2</SPAN>);
+        p[<SPAN CLASS=u>0</SPAN>]=(emByte)value;
+        p[<SPAN CLASS=u>1</SPAN>]=(emByte)(value&gt;&gt;<SPAN CLASS=u>8</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteUInt16BE(emUInt16 value)
+<SPAN CLASS=b>{
+        </SPAN>emByte * p=TryWriteBuffered(<SPAN CLASS=u>2</SPAN>);
+        p[<SPAN CLASS=u>0</SPAN>]=(emByte)(value&gt;&gt;<SPAN CLASS=u>8</SPAN>);
+        p[<SPAN CLASS=u>1</SPAN>]=(emByte)value;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt32LE(emInt32 value)
+<SPAN CLASS=b>{
+        </SPAN>TryWriteUInt32LE(value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt32BE(emInt32 value)
+<SPAN CLASS=b>{
+        </SPAN>TryWriteUInt32BE(value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt64LE(emInt64 value)
+<SPAN CLASS=b>{
+        </SPAN>TryWriteUInt64LE(value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteInt64BE(emInt64 value)
+<SPAN CLASS=b>{
+        </SPAN>TryWriteUInt64BE(value);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline const </SPAN>emByte * <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryReadBuffered(size_t size)
+<SPAN CLASS=b>{
+        </SPAN>emByte * p=BufPos;
+        <SPAN CLASS=k>if </SPAN>(p+size&gt;BufReadEnd) p=TryFillBufferForReading(size);
+        BufPos=p+size;
+        <SPAN CLASS=k>return </SPAN>p;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN>emByte * <A CLASS=l HREF="emCore_emFileStream_h.html#emFileStream">emFileStream</A>::TryWriteBuffered(size_t size)
+<SPAN CLASS=b>{
+        </SPAN>emByte * p=BufPos;
+        <SPAN CLASS=k>if </SPAN>(p+size&gt;BufWriteEnd) p=TryPrepareBufferForWriting(size);
+        BufPos=p+size;
+        <SPAN CLASS=k>return </SPAN>p;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
+</SPAN></SPAN></TT></PRE>
+</BODY>
+</HTML>

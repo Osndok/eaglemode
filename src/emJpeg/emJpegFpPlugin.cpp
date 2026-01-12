@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emJpegFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -39,5 +39,29 @@ extern "C" {
 				parent.GetRootContext(),path
 			)
 		);
+	}
+
+	bool emJpegFpPluginModelFunc(
+		emContext & context, const char * className,
+		const emString & name, bool common, emFpPlugin * plugin,
+		emRef<emModel> * pResult, emString * errorBuf
+	)
+	{
+		if (
+			strcmp(className,"emFileModel")==0 ||
+			strcmp(className,"emImageFileModel")==0 ||
+			strcmp(className,"emJpegImageFileModel")==0
+		)
+		{
+			*pResult=emJpegImageFileModel::Acquire(context,name,common);
+			return true;
+		}
+		else {
+			*errorBuf=emString::Format(
+				"emJpegFpPluginModelFunc: Unsupported class name: %s",
+				className
+			);
+			return false;
+		}
 	}
 }

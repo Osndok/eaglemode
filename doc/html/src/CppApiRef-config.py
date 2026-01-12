@@ -7,7 +7,7 @@ MainIntro="""
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>C++ API Reference</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010-2017,2020,2022,2024 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010-2017,2020,2022,2024-2025 Oliver Hamann.
 Homepage: <A CLASS=main HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 <H1>Introduction</H1>
@@ -31,7 +31,7 @@ SourceIntro="""
 
 def AutoSectionsFile(path):
 	sections=[]
-	r=re.compile("^//====*[\s]+([^\s].*[^\s])[\s]+====*$")
+	r=re.compile("^//====*[\\s]+([^\\s].*[^\\s])[\\s]+====*$")
 	sr=re.compile("^(em|EM)[a-zA-Z0-9_@]*$")
 	lineNum=0
 	f=open(SourceBaseDir+"/"+path)
@@ -60,6 +60,7 @@ Topics=[
 		files=[
 			AutoSectionsFile("emCore/emStd1.h"),
 			AutoSectionsFile("emCore/emStd2.h"),
+			AutoSectionsFile("emCore/emFileStream.h"),
 			AutoSectionsFile("emCore/emTmpFile.h"),
 			AutoSectionsFile("emCore/emInstallInfo.h"),
 			AutoSectionsFile("emCore/emRes.h")
@@ -217,7 +218,7 @@ function TopBar()
 			'<A CLASS=nav HREF="index-noframes.html">Go Up</A>'
 		)
 	}
-	else if (document.URL.match(/^https?:\/\/eaglemode[.]sourceforge[.]net\//i)) {
+	else if (document.URL.match(/^https?:\\/\\/eaglemode[.]sourceforge[.]net\\//i)) {
 		document.write(
 			'<A CLASS=nav HREF="../doc.html" TARGET="_top">Go Up</A>'
 		)
@@ -230,7 +231,7 @@ function TopBar()
 	document.write(
 		'</TD><TD ALIGN=RIGHT WIDTH="33%">'
 	)
-	if (document.URL.match(/^https?:\/\/eaglemode[.]sourceforge[.]net\//i)) {
+	if (document.URL.match(/^https?:\\/\\/eaglemode[.]sourceforge[.]net\\//i)) {
 		document.write(
 			'<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0><TR>',
 			'<TD><FONT SIZE=1 COLOR="#505050">Hosted&nbsp;at&nbsp;</FONT></TD>',

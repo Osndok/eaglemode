@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".pnm" ".pbm" ".pgm" ".ppm" }
+FileFormatName = "PNM"
 Priority = 1.0
 Library = "emPnm"
 Function = "emPnmFpPluginFunc"
+ModelFunction = "emPnmFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emPnmImageFileModel" }
+ModelAbleToSave = yes

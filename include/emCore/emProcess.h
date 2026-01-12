@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.h
 //
-// Copyright (C) 2006-2010,2014,2017-2018,2022 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017-2018,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -206,6 +206,10 @@ public:
 
 	int GetExitStatus() const;
 		// Get the exit status of a terminated child process.
+
+	const emString & GetArg0() const;
+		// Get first program argument of the process. This can be useful
+		// for error messages.
 
 private:
 

@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".pov" }
+FileFormatName = "POV"
 Priority = 0.5
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"

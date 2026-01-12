@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.cpp
 //
-// Copyright (C) 2010-2011,2014,2017-2019,2022-2024 Oliver Hamann.
+// Copyright (C) 2010-2011,2014,2017-2019,2022-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -60,6 +60,11 @@ emSvgServerModel::OpenJob::OpenJob(const emString & filePath, double priority)
 }
 
 
+emSvgServerModel::OpenJob::~OpenJob()
+{
+}
+
+
 emSvgServerModel::RenderJob::RenderJob(
 	SvgInstance & svgInstance, double srcX, double srcY,
 	double srcWidth, double srcHeight, emColor bgColor,
@@ -75,6 +80,11 @@ emSvgServerModel::RenderJob::RenderJob(
 	TgtW(tgtWidth),
 	TgtH(tgtHeight),
 	ShmOffset(0)
+{
+}
+
+
+emSvgServerModel::RenderJob::~RenderJob()
 {
 }
 
@@ -108,7 +118,7 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 		!ProcTerminating &&
 		emGetClockMS()-ProcIdleClock>=5000
 	) {
-		emDLog("emSvgServerModel: Terminating server process");
+		EM_DLOG("Terminating server process");
 		Process.CloseWriting();
 		ProcTerminating=true;
 	}
@@ -128,7 +138,7 @@ void emSvgServerModel::Poll(unsigned maxMillisecs)
 			ProcSvgInstCount=0;
 			ReadBuf.Clear();
 			WriteBuf.Clear();
-			emDLog("emSvgServerModel: Starting server process");
+			EM_DLOG("Starting server process");
 			Process.TryStart(
 				emArray<emString>(
 					emGetChildPath(
@@ -224,6 +234,11 @@ emSvgServerModel::CloseJob::CloseJob(emUInt64 procRunId, int instanceId)
 	: emJob(1E200),
 	ProcRunId(procRunId),
 	InstanceId(instanceId)
+{
+}
+
+
+emSvgServerModel::CloseJob::~CloseJob()
 {
 }
 
@@ -469,7 +484,7 @@ void emSvgServerModel::TryWriteAttachShm()
 
 void emSvgServerModel::WriteLineToProc(const char * str)
 {
-	emDLog("emSvgServerModel: Sending: %s",str);
+	EM_DLOG("Sending: %s",str);
 	WriteBuf.Add(str,strlen(str));
 	WriteBuf.Add((char)'\n');
 }
@@ -489,7 +504,7 @@ emString emSvgServerModel::ReadLineFromProc()
 			ReadBuf.Remove(0,l+1);
 		}
 	}
-	if (!res.IsEmpty()) emDLog("emSvgServerModel: Receiving: %s",res.Get());
+	if (!res.IsEmpty()) EM_DLOG("Receiving: %s",res.Get());
 	return res;
 }
 
@@ -533,9 +548,10 @@ void emSvgServerModel::TryAllocShm(int size)
 	static unsigned long sharedCounter=0;
 	unsigned long counter;
 
-	sharedCounterMutex.Lock();
-	counter=sharedCounter++;
-	sharedCounterMutex.Unlock();
+	{
+		emThreadMiniMutex::Locker mutexLocker(sharedCounterMutex);
+		counter=sharedCounter++;
+	}
 
 	sprintf(
 		ShmId,
@@ -545,7 +561,7 @@ void emSvgServerModel::TryAllocShm(int size)
 		(unsigned long)GetTickCount(),
 		(unsigned long)emGetUInt64Random(0,0xffffffff) //???
 	);
-	emDLog("emSvgServerModel: ShmId=%s",ShmId);
+	EM_DLOG("ShmId=%s",ShmId);
 
 	SetLastError(ERROR_SUCCESS);
 	ShmHdl=CreateFileMapping(

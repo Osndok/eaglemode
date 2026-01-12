@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPnmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,46 +34,44 @@ emPnmImageFileModel::emPnmImageFileModel(
 )
 	: emImageFileModel(context,name)
 {
-	L=NULL;
 }
 
 
 emPnmImageFileModel::~emPnmImageFileModel()
 {
-	emPnmImageFileModel::QuitLoading();
-	emPnmImageFileModel::QuitSaving();
 }
 
 
 void emPnmImageFileModel::TryStartLoading()
 {
-	errno=0;
-
 	L=new LoadingState;
-	memset(L,0,sizeof(LoadingState));
+	L->Format=0;
+	L->Width=0;
+	L->Height=0;
+	L->MaxVal=0;
+	L->NextY=0;
+	L->ImagePrepared=false;
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto Err;
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	if (Read8()!='P') goto Err;
-	L->Format=ReadDecimal();
+	if (L->File.TryReadUInt8()!='P') goto Err;
+	L->Format=TryReadDecimal();
 	if (L->Format<1 || L->Format>6) goto Err;
 
-	L->Width=ReadDecimal();
-	L->Height=ReadDecimal();
+	L->Width=TryReadDecimal();
+	L->Height=TryReadDecimal();
 	if (L->Width<1 || L->Height<1) goto Err;
 	if (L->Width>0x7fffff || L->Height>0x7fffff) goto Err;
 
 	if (L->Format==2 || L->Format==3 || L->Format==5 || L->Format==6) {
-		L->MaxVal=ReadDecimal();
+		L->MaxVal=TryReadDecimal();
 		if (L->MaxVal<1 || L->MaxVal>65535) goto Err;
 	}
 
 	return;
 
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("PNM format error");
+	throw emException("PNM format error");
 }
 
 
@@ -82,20 +80,11 @@ bool emPnmImageFileModel::TryContinueLoading()
 	unsigned char * map, * mapEnd;
 	int i,n,v;
 
-	errno=0;
-
 	if (L->Format==3 || L->Format==6) n=3; else n=1;
 
 	if (!L->ImagePrepared) {
 		Image.Setup(L->Width,L->Height,n);
-		switch (L->Format) {
-		case 1: FileFormatInfo="PNM P1 (PBM ASCII)"; break;
-		case 2: FileFormatInfo="PNM P2 (PGM ASCII)"; break;
-		case 3: FileFormatInfo="PNM P3 (PPM ASCII)"; break;
-		case 4: FileFormatInfo="PNM P4 (PBM RAW)"; break;
-		case 5: FileFormatInfo="PNM P5 (PGM RAW)"; break;
-		case 6: FileFormatInfo="PNM P6 (PPM RAW)"; break;
-		}
+		FileFormatInfo=FormatToString(L->Format);
 		Signal(ChangeSignal);
 		L->ImagePrepared=true;
 		return false;
@@ -110,7 +99,7 @@ bool emPnmImageFileModel::TryContinueLoading()
 
 	if (L->Format==1) {
 		for (; map<mapEnd; map++) {
-			v=ReadDigit(true);
+			v=TryReadDigit(true);
 			if (v<0 || v>1) goto Err;
 			map[0]=(unsigned char)(v?0:255);
 		}
@@ -118,7 +107,7 @@ bool emPnmImageFileModel::TryContinueLoading()
 	else if (L->Format==4) {
 		for (i=0, v=0; map<mapEnd; map++, i=(i+1)&7) {
 			if (i==0) {
-				v=Read8();
+				v=L->File.TryReadUInt8();
 				if (v<0) goto Err;
 			}
 			map[0]=(unsigned char)((v&(128>>i))?0:255);
@@ -126,28 +115,26 @@ bool emPnmImageFileModel::TryContinueLoading()
 	}
 	else if (L->Format==2 || L->Format==5) {
 		for (; map<mapEnd; map++) {
-			v=ReadVal();
+			v=TryReadVal();
 			if (v<0) goto Err;
 			map[0]=(unsigned char)v;
 		}
 	}
 	else if (L->Format==3 || L->Format==6) {
 		for (; map<mapEnd; map+=3) {
-			v=ReadVal();
+			v=TryReadVal();
 			if (v<0) goto Err;
 			map[0]=(unsigned char)v;
-			v=ReadVal();
+			v=TryReadVal();
 			if (v<0) goto Err;
 			map[1]=(unsigned char)v;
-			v=ReadVal();
+			v=TryReadVal();
 			if (v<0) goto Err;
 			map[2]=(unsigned char)v;
 		}
 	}
 
 	Signal(ChangeSignal);
-
-	if (ferror(L->File)) goto Err;
 
 	L->NextY++;
 	if (L->NextY>=L->Height) {
@@ -157,35 +144,121 @@ bool emPnmImageFileModel::TryContinueLoading()
 	return false;
 
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("PNM format error");
+	throw emException("PNM format error");
 }
 
 
 void emPnmImageFileModel::QuitLoading()
 {
-	if (L) {
-		if (L->File) fclose(L->File);
-		delete L;
-		L=NULL;
-	}
+	L.Reset();
 }
 
 
 void emPnmImageFileModel::TryStartSaving()
 {
-	throw emException("emPnmImageFileModel: Saving not implemented.");
+	const char * ext;
+	emArray<emColor> pal;
+	int i;
+	emByte r;
+
+	S=new SavingState;
+	S->Format=0;
+	S->NextY=0;
+
+	ext=emGetExtensionInPath(GetFilePath());
+	if (strcasecmp(ext,".pbm")==0) {
+		S->Format=4;
+	}
+	else if (strcasecmp(ext,".pgm")==0) {
+		S->Format=5;
+	}
+	else if (strcasecmp(ext,".ppm")==0) {
+		S->Format=6;
+	}
+	else if (GetImage().HasAnyNonGreyPixel()) {
+		S->Format=6;
+	}
+	else {
+		pal=GetImage().DetermineAllColorsSorted(2);
+		if (!pal.IsEmpty()) {
+			for (i=0; i<pal.GetCount(); i++) {
+				r=pal[i].GetRed();
+				if (r!=255 && r!=0) break;
+			}
+			S->Format=(i==pal.GetCount()?4:5);
+		}
+		else {
+			S->Format=5;
+		}
+	}
+
+	S->File.TryOpen(GetFilePath(),"wb");
+	S->File.TryWrite(emString::Format(
+		"P%d\n%d %d\n",S->Format,GetImage().GetWidth(),GetImage().GetHeight()
+	));
+	if (S->Format!=4) {
+		S->File.TryWrite("255\n");
+	}
 }
 
 
 bool emPnmImageFileModel::TryContinueSaving()
 {
+	emString str;
+	int width,height,x,y,val,shift;
+	emColor c;
+
+	width=Image.GetWidth();
+	height=Image.GetHeight();
+
+	if (S->NextY<height) {
+		y=S->NextY++;
+		if (S->Format==4) {
+			val=0;
+			shift=8;
+			for (x=0; x<width; x++) {
+				c=Image.GetPixel(x,y);
+				shift--;
+				if (c.GetGrey()<128) val|=1<<shift;
+				if (shift==0 || x+1>=width) {
+					S->File.TryWriteUInt8((emUInt8)val);
+					val=0;
+					shift=8;
+				}
+			}
+		}
+		else if (S->Format==5) {
+			for (x=0; x<width; x++) {
+				c=Image.GetPixel(x,y);
+				S->File.TryWriteUInt8(c.GetGrey());
+			}
+		}
+		else {
+			for (x=0; x<width; x++) {
+				c=Image.GetPixel(x,y);
+				S->File.TryWriteUInt8(c.GetRed());
+				S->File.TryWriteUInt8(c.GetGreen());
+				S->File.TryWriteUInt8(c.GetBlue());
+			}
+		}
+		return false;
+	}
+
+	S->File.TryClose();
+
+	str=FormatToString(S->Format);
+	if (FileFormatInfo!=str) {
+		FileFormatInfo=str;
+		Signal(ChangeSignal);
+	}
+
 	return true;
 }
 
 
 void emPnmImageFileModel::QuitSaving()
 {
+	S.Reset();
 }
 
 
@@ -211,38 +284,25 @@ double emPnmImageFileModel::CalcFileProgress()
 	if (L && L->Height>0) {
 		return 100.0*L->NextY/L->Height;
 	}
+	else if (S && GetImage().GetHeight()>0) {
+		return 100.0*S->NextY/GetImage().GetHeight();
+	}
 	else {
 		return 0.0;
 	}
 }
 
 
-int emPnmImageFileModel::Read8()
-{
-	return (unsigned char)fgetc(L->File);
-}
-
-
-int emPnmImageFileModel::Read16()
-{
-	int i;
-
-	i=Read8()<<8;
-	i|=Read8();
-	return i;
-}
-
-
-int emPnmImageFileModel::ReadDigit(bool allowSpace)
+int emPnmImageFileModel::TryReadDigit(bool allowSpace)
 {
 	int c;
 
 	for (;;) {
-		c=fgetc(L->File);
+		c=L->File.TryReadCharOrEOF();
 		if (c>='0' && c<='9') return c-'0';
 		if (c=='#') {
 			do {
-				c=fgetc(L->File);
+				c=L->File.TryReadCharOrEOF();
 				if (c<0) return -1;
 			} while (c!=0x0a);
 		}
@@ -251,14 +311,14 @@ int emPnmImageFileModel::ReadDigit(bool allowSpace)
 }
 
 
-int emPnmImageFileModel::ReadDecimal()
+int emPnmImageFileModel::TryReadDecimal()
 {
 	int i,j;
 
-	i=ReadDigit(true);
+	i=TryReadDigit(true);
 	if (i>=0) {
 		for (;;) {
-			j=ReadDigit(false);
+			j=TryReadDigit(false);
 			if (j<0) break;
 			i=i*10+j;
 		}
@@ -267,13 +327,27 @@ int emPnmImageFileModel::ReadDecimal()
 }
 
 
-int emPnmImageFileModel::ReadVal()
+int emPnmImageFileModel::TryReadVal()
 {
 	int v;
 
-	if (L->Format<=3) v=ReadDecimal();
-	else if (L->MaxVal<=255) v=Read8();
-	else v=Read16();
+	if (L->Format<=3) v=TryReadDecimal();
+	else if (L->MaxVal<=255) v=L->File.TryReadUInt8();
+	else v=L->File.TryReadUInt16BE();
 	if (v<0 || v>L->MaxVal) return -1;
 	return (v*255+L->MaxVal/2)/L->MaxVal;
+}
+
+
+const char * emPnmImageFileModel::FormatToString(int format)
+{
+	switch (format) {
+		case 1: return "PNM P1 (PBM ASCII)";
+		case 2: return "PNM P2 (PGM ASCII)";
+		case 3: return "PNM P3 (PPM ASCII)";
+		case 4: return "PNM P4 (PBM RAW)";
+		case 5: return "PNM P5 (PGM RAW)";
+		case 6: return "PNM P6 (PPM RAW)";
+		default: return "Unknown PNM format";
+	}
 }

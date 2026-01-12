@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emTimeZonesProc.c
 //
-// Copyright (C) 2008-2009,2017-2018,2022,2024 Oliver Hamann.
+// Copyright (C) 2008-2009,2017-2018,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -222,7 +222,7 @@ static int checkTzFile(const char * zoneInfoDir, const char * tz)
 	struct stat st;
 	int sr;
 
-	path=malloc(strlen(zoneInfoDir)+strlen(tz)+2);
+	path=(char*)malloc(strlen(zoneInfoDir)+strlen(tz)+2);
 	strcpy(path,zoneInfoDir);
 	strcat(path,"/");
 	strcat(path,tz);
@@ -236,11 +236,11 @@ static int checkTzFile(const char * zoneInfoDir, const char * tz)
 #if !defined(_WIN32)
 static int checkTzFileCached(const char * zoneInfoDir, const char * tz)
 {
-	struct cacheEntry {
+	struct CacheEntry {
 		char * tz;
 		int result;
 	};
-	static struct cacheEntry * * cache = NULL;
+	static struct CacheEntry * * cache = NULL;
 	static int cacheElems = 0;
 	static int cacheSize = 0;
 	int i,j,k,l;
@@ -256,14 +256,14 @@ static int checkTzFileCached(const char * zoneInfoDir, const char * tz)
 	}
 	if (cacheElems>=cacheSize) {
 		cacheSize+=256;
-		if (cache) cache=realloc(cache,sizeof(struct cacheEntry*)*cacheSize);
-		else cache=malloc(sizeof(struct cacheEntry*)*cacheSize);
+		if (cache) cache=(struct CacheEntry**)realloc(cache,sizeof(struct CacheEntry*)*cacheSize);
+		else cache=(struct CacheEntry**)malloc(sizeof(struct CacheEntry*)*cacheSize);
 	}
 	if (i<cacheElems) {
-		memmove(cache+i+1,cache+i,sizeof(struct cacheEntry*)*(cacheElems-i));
+		memmove(cache+i+1,cache+i,sizeof(struct CacheEntry*)*(cacheElems-i));
 	}
 	cacheElems++;
-	cache[i]=malloc(sizeof(struct cacheEntry));
+	cache[i]=(struct CacheEntry*)malloc(sizeof(struct CacheEntry));
 	cache[i]->tz=strdup(tz);
 	cache[i]->result=checkTzFile(zoneInfoDir,tz);
 	return cache[i]->result;

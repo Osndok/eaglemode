@@ -10,7 +10,7 @@ sub GetDependencies
 
 sub IsEssential
 {
-	return 0;
+	return 1;
 }
 
 sub GetFileHandlingRules

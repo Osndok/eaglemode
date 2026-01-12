@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emVirtualCosmos.cpp
 //
-// Copyright (C) 2007-2009,2012,2014-2020 Oliver Hamann.
+// Copyright (C) 2007-2009,2012,2014-2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -171,7 +171,6 @@ void emVirtualCosmosModel::Reload()
 		}
 		catch (const emException & exception) {
 			emFatalError("%s",exception.GetText().Get());
-			mt=0;
 		}
 		for (;;) {
 			j--;

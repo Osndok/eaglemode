@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.h
 //
-// Copyright (C) 2001,2003-2008,2010,2014,2018,2022 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2010,2014,2018,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,16 +72,19 @@ public:
 		// Construct by copying a color, but override the alpha
 		// component.
 
+	emColor & operator = (const emColor & color);
+	emColor & operator = (emUInt32 packed);
+		// Copy a color or a packed color.
+
+	emString ToString() const;
+		// Convert this color to a string like "#f8a91c".
+
 	void TryParse(const char * str);
 		// Try to set this color by interpreting the given string as a
 		// color. Throw an error message on failure. Currently, this
 		// tries to interpret only X11 color strings like "#f8a91c" or
 		// "Powder Blue". Future extension may even accept additional
 		// formats.
-
-	emColor & operator = (const emColor & color);
-	emColor & operator = (emUInt32 packed);
-		// Copy a color or a packed color.
 
 	operator emUInt32 () const;
 	emUInt32 Get() const;

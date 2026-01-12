@@ -7,7 +7,7 @@
 Description="\
 emArch.sh
 
-Copyright (C) 2007-2008,2010-2011,2019-2021 Oliver Hamann.
+Copyright (C) 2007-2008,2010-2011,2019-2021,2025-2026 Oliver Hamann.
 
 Homepage: http://eaglemode.sourceforge.net/
 
@@ -31,26 +31,26 @@ the contents of an archive, and it is used by some user commands of emFileMan.
 
 SUPPORTED FORMATS:
 
-Archive file name suffices    | Required system tools
-------------------------------+----------------------
+Archive file name suffices    | Required system tools (if default config)
+------------------------------+------------------------------------------
 .7z                           | 7z
 .ar|.a|.deb|.ipk              | ar
 .bz             (unpack only) | bzip2
 .bz2                          | bzip2
-.gz                           | gzip
+.gz                           | pigz
 .lzma                         | xz
 .lzo                          | lzop
 .tar                          | tar
 .tar.bz|.tbz    (unpack only) | tar, bzip2
 .tar.bz2|.tbz2|.tgj           | tar, bzip2
-.tar.gz|.tgz                  | tar, gzip
+.tar.gz|.tgz                  | tar, pigz
 .tar.lzma|.tlz                | tar, xz
 .tar.lzo|.tzo                 | tar, lzop
 .tar.xz|.txz                  | tar, xz
-.tar.Z|.taz     (unpack only) | tar, gzip
+.tar.Z|.taz     (unpack only) | tar, pigz
 .xz                           | xz
-.Z              (unpack only) | gzip
-.zip|.jar                     | zip, unzip
+.Z              (unpack only) | pigz
+.zip|.jar                     | 7z
 
 SECURITY / SPEED-LOSS:
 
@@ -120,7 +120,7 @@ Trust_unzip=no
 
 # Whether to use pigz or 7z instead of gzip for gz archives.
 # (At most one of these may be set to yes.)
-Use_pigz=no
+Use_pigz=yes
 Use_7z_for_gz=no
 
 # Whether to use pbzip2, lbzip2 or 7z instead of bzip2 for bz2 archives.
@@ -129,14 +129,13 @@ Use_pbzip2=no
 Use_lbzip2=no
 Use_7z_for_bz2=no
 
-# Whether to use pixz, pxz or 7z instead of xz for xz archives.
+# Whether to use pixz or 7z instead of xz for xz archives.
 # (At most one of these may be set to yes.)
 Use_pixz=no
-Use_pxz=no
 Use_7z_for_xz=no
 
 # Whether to use 7z instead of zip/unzip for zip archives.
-Use_7z_for_zip=no
+Use_7z_for_zip=yes
 
 
 #===============================================================================
@@ -159,16 +158,17 @@ if test $# = 0 ; then
 	exit 1
 fi
 
-# This is a paranoid test whether 'egrep -v' has the expected behavior, because
-# our security checks depend on it. The alternative option --invert-match is not
-# supported by every egrep implementation. Besides, I saw an egrep where
-# [[:space:]] did not work, and therefore I always say ( |[[:space:]]) instead.
-echo "xcbax" | egrep -v "abc" > /dev/null
+# This is a paranoid test whether the -v option of grep has the expected
+# behavior, because our security checks depend on it. The alternative option
+# --invert-match is not supported by every grep implementation. Besides, I saw a
+# grep -E where [[:space:]] did not work, and therefore I always say
+# ( |[[:space:]]) instead.
+echo "xcbax" | grep -E -v "abc" > /dev/null
 r1=$?
-echo "xabcx" | egrep -v "abc" > /dev/null
+echo "xabcx" | grep -E -v "abc" > /dev/null
 r2=$?
 if test $r1 != 0 || test $r2 != 1 ; then
-	Error "Testing 'egrep -v' failed."
+	Error "Testing 'grep -E -v' failed."
 fi
 
 Cmd="$1"
@@ -288,7 +288,7 @@ case ".$Format" in
 #----------------------------------- pack 7z -----------------------------------
 *.7z|*.7Z)
 
-basename "$ArchFile" | egrep ".\.." > /dev/null
+basename "$ArchFile" | grep -E ".\.." > /dev/null
 case $? in
 	0)
 		break
@@ -427,8 +427,6 @@ fi
 } | {
 	if test $Use_pixz = yes ; then
 		pixz
-	elif test $Use_pxz = yes ; then
-		pxz --stdout
 	elif test $Use_7z_for_xz = yes ; then
 		7z a -si -so .xz
 	else
@@ -442,7 +440,7 @@ CheckErrorHintAnd $?
 *.zip|*.ZIP|*.Zip|\
 *.jar|*.JAR|*.Jar)
 
-basename "$ArchFile" | egrep ".\.." > /dev/null
+basename "$ArchFile" | grep -E ".\.." > /dev/null
 case $? in
 	0)
 		break
@@ -566,8 +564,6 @@ fi
 
 if test $Use_pixz = yes ; then
 	exec pixz -t < "$1" > "$ArchFile"
-elif test $Use_pxz = yes ; then
-	exec pxz --stdout -- "$1" > "$ArchFile"
 elif test $Use_7z_for_xz = yes ; then
 	exec 7z a -so -- .xz "$1" > "$ArchFile"
 else
@@ -607,7 +603,7 @@ if test $TrustByOption != yes && test $Trust_7z != yes ; then
 		# echo "1234 ../bla"
 		# echo "1234 bla/../bla"
 	} | {
-		egrep -v "^(Listing archive:|Path =)( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+		grep -E -v "^(Listing archive:|Path =)( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
 		case $? in
 			0|1)
 				break;
@@ -616,7 +612,7 @@ if test $TrustByOption != yes && test $Trust_7z != yes ; then
 				SetErrorHint
 			;;
 		esac
-	} | egrep "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -652,7 +648,7 @@ if test $TrustByOption != yes && test $Trust_ar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -685,7 +681,7 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -738,7 +734,7 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -800,7 +796,7 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -849,7 +845,7 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -898,7 +894,7 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -947,7 +943,7 @@ if test $TrustByOption != yes && test $Trust_tar != yes ; then
 		# echo "  /bla"
 		# echo "  ../bla"
 		# echo "bla/../bla"
-	} | egrep "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "(^( |[[:space:]])*(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in
@@ -990,9 +986,9 @@ if test $TrustByOption != yes && test $Trust_unzip != yes ; then
 		# echo "1234 bla/../bla"
 	} | {
 		if test $Use_7z_for_zip = yes ; then
-			egrep -v "^(Listing archive:|Path =)( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+			grep -E -v "^(Listing archive:|Path =)( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
 		else
-			egrep -v "^Archive:( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
+			grep -E -v "^Archive:( |[[:space:]])*`echo "$ArchFile" | tr '\\\\^?*+|\!\$()[]{}' '.'`\$"
 		fi
 		case $? in
 			0|1)
@@ -1002,7 +998,7 @@ if test $TrustByOption != yes && test $Trust_unzip != yes ; then
 				SetErrorHint
 			;;
 		esac
-	} | egrep "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
+	} | grep -E "((^| |[[:space:]])(/|\.\./))|(/\.\./)" > /dev/null
 	ret=$?
 	CheckErrorHint
 	case $ret in

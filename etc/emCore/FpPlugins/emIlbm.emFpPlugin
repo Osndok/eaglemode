@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".ilbm" ".lbm" }
+FileFormatName = "ILBM"
 Priority = 1.0
 Library = "emIlbm"
 Function = "emIlbmFpPluginFunc"
+ModelFunction = "emIlbmFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emIlbmImageFileModel" }
+ModelAbleToSave = no

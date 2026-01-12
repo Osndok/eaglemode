@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #-------------------------------------------------------------------------------
-# pack_tar-bz2.pl
+# pack_tar-xz.pl
 #
-# Copyright (C) 2010,2017,2024 Oliver Hamann.
+# Copyright (C) 2010,2017,2024,2026 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -39,7 +39,7 @@ system('perl',Var('PRJ_DIR').'/doc/html/src/make-CppApiRef.pl')==0 || exit(1);
 system('perl',Var('PRJ_DIR').'/doc/pdf/src/make-pdf.pl')==0 || exit(1);
 
 # Have an empty temporary directory.
-my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-tar-bz2-packing-'.$>);
+my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-tar-xz-packing-'.$>);
 if (-e $tmpDir) { RemoveTree($tmpDir); }
 CreateDirPath($tmpDir);
 
@@ -89,15 +89,15 @@ chdir($oldDir) or die;
 
 # Pack the package.
 CreateDirPath(Var('PKG_DIR'));
-my $tbzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2');
-if (-e $tbzFile) { RemoveTree($tbzFile); }
-print("Creating package: $tbzFile\n");
+my $xzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.xz');
+if (-e $xzFile) { RemoveTree($xzFile); }
+print("Creating package: $xzFile\n");
 my $oldDir2=getcwd();
 chdir(dirname($srcDir)) or die;
 system(
 	"tar",
-	"cfj",
-	$tbzFile,
+	"cfJ",
+	$xzFile,
 	basename($srcDir)
 )==0 or die("tar failed, stopped");
 chdir($oldDir2) or die;

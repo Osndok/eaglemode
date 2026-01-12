@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emOsmTilePanel.cpp
 //
-// Copyright (C) 2011-2012,2014-2017,2019,2022,2024 Oliver Hamann.
+// Copyright (C) 2011-2012,2014-2017,2019,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -125,7 +125,7 @@ void emOsmTilePanel::Paint(const emPainter & painter, emColor canvasColor) const
 	}
 	else if (State==S_ERROR) {
 		painter.PaintTextBoxed(
-			0.0,0.0,1.0,h,
+			0.1,0.1*h,0.8,0.8*h,
 			ErrorText,
 			h/5,
 			emColor(255,0,0,255),

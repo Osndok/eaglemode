@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".pcx" }
+FileFormatName = "PCX"
 Priority = 1.0
 Library = "emPcx"
 Function = "emPcxFpPluginFunc"
+ModelFunction = "emPcxFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emPcxImageFileModel" }
+ModelAbleToSave = no

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCrossPtr.h
 //
-// Copyright (C) 2007-2008,2024 Oliver Hamann.
+// Copyright (C) 2007-2008,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -68,8 +68,14 @@ public:
 		// Destructor.
 
 	emCrossPtr & operator = (const emCrossPtr & crossPtr);
+		// Copy a cross pointer.
+
+	void Set(CLS * obj = NULL);
 	emCrossPtr & operator = (CLS * obj);
-		// Copy operators (NULL-pointer is allowed).
+		// Assign an object pointer. NULL is allowed.
+
+	void Reset();
+		// Same as Set(NULL).
 
 	operator CLS * () const;
 		// Cast this to a normal pointer (can be NULL).
@@ -159,12 +165,23 @@ template <class CLS> emCrossPtr<CLS> & emCrossPtr<CLS>::operator = (
 	return *this;
 }
 
-template <class CLS> emCrossPtr<CLS> & emCrossPtr<CLS>::operator = (CLS * obj)
+template <class CLS> void emCrossPtr<CLS>::Set(CLS * obj)
 {
 	if (Obj) Unlink();
 	Obj=obj;
 	if (obj) obj->LinkCrossPtr(*this);
+}
+
+template <class CLS>
+inline emCrossPtr<CLS> & emCrossPtr<CLS>::operator = (CLS * obj)
+{
+	Set(obj);
 	return *this;
+}
+
+template <class CLS> inline void emCrossPtr<CLS>::Reset()
+{
+	Set(NULL);
 }
 
 template <class CLS> inline emCrossPtr<CLS>::operator CLS * () const

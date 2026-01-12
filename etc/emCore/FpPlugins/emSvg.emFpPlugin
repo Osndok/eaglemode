@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".svg" ".svgz" ".svg.gz" }
+FileFormatName = "SVG"
 Priority = 1.0
 Library = "emSvg"
 Function = "emSvgFpPluginFunc"

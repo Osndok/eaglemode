@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emGifFileModel_h
 #define emGifFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emFileModel_h
 #include <emCore/emFileModel.h>
@@ -82,8 +86,6 @@ protected:
 private:
 
 	bool PostProcess();
-	int Read8();
-	int Read16();
 
 	struct Render {
 		Render * Next;
@@ -110,7 +112,7 @@ private:
 	emString Comment;
 	emColor * Colors;
 	Render * * RenderArray;
-	FILE * File;
+	emOwnPtr<emFileStream> File;
 	bool InLoadingRenderData;
 	int NextDisposal;
 	bool NextUserInput;

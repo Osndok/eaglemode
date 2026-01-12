@@ -26,8 +26,8 @@ use File::Basename;
 BEGIN { require (abs_path(dirname($0).'/common.pm')); }
 
 # Dependencies
-my $tbzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2');
-if (!-e $tbzFile) { system('perl','pack_tar-bz2.pl')==0 || exit(1); }
+my $xzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.xz');
+if (!-e $xzFile) { system('perl','pack_tar-xz.pl')==0 || exit(1); }
 
 # Create spec file.
 CreateFile(
@@ -43,7 +43,7 @@ CreateFile(
 	'Vendor: '.Var('PACKAGE_MAINTAINER')."\n".
 	'License: '.Var('LICENSE')."\n".
 	'Summary: '.Var('SHORT_DESCRIPTION')."\n".
-	'Source: %{name}-%{version}.tar.bz2'."\n".
+	'Source: %{name}-%{version}.tar.xz'."\n".
 	'BuildRoot: %{_tmppath}/%{name}-%{version}-build'."\n".
 	'AutoReqProv: no'."\n".
 	''."\n".
@@ -92,7 +92,7 @@ CopyFile(
 	catfile($rpmDir,'SPECS')
 );
 CopyFile(
-	catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2'),
+	catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.xz'),
 	catfile($rpmDir,'SOURCES')
 );
 

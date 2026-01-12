@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emView.cpp
 //
-// Copyright (C) 2004-2011,2014,2016,2018,2021,2024 Oliver Hamann.
+// Copyright (C) 2004-2011,2014,2016,2018,2021,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -252,7 +252,7 @@ void emView::GetMaxPopupViewRect(
 			}
 		}
 		if (found) {
-			// This is just for that the users sees more than
+			// This is just for that the user sees more than
 			// nothing even when the monitor rectangles are
 			// completely wrong.
 			cx=HomeX+HomeWidth*0.5;
@@ -280,9 +280,7 @@ void emView::SetActivePanel(emPanel * panel, bool adherent)
 	while (!panel->Focusable) panel=panel->Parent;
 
 	if (ActivePanel!=panel) {
-		if (emIsDLogEnabled()) {
-			emDLog("emView %p: Active=\"%s\"",(const void*)this,panel->GetIdentity().Get());
-		}
+		EM_DLOG("%p: Active=\"%s\"",(const void*)this,panel->GetIdentity().Get());
 		if (ActivePanel) InvalidateHighlight();
 		flags=emPanel::NF_ACTIVE_CHANGED;
 		if (Focused) flags|=emPanel::NF_FOCUS_CHANGED;
@@ -1035,7 +1033,7 @@ void emView::Input(emInputEvent & event, const emInputState & state)
 		RestartInputRecursion=false;
 		RecurseInput(event,state);
 		if (RestartInputRecursion) {
-			emDLog("emView %p: Restarting input recursion.",(const void*)this);
+			EM_DLOG("%p: Restarting input recursion.",(const void*)this);
 		}
 	} while (RestartInputRecursion);
 }
@@ -1325,7 +1323,7 @@ void emView::Update()
 					) break;
 				}
 				if (SupremeViewedPanel!=p) {
-					emDLog("emView %p: SVP choice invalid by opacity.",(const void*)this);
+					EM_DLOG("%p: SVP choice invalid by opacity.",(const void*)this);
 					SVPChoiceInvalid=true;
 				}
 			}
@@ -1751,9 +1749,7 @@ void emView::RawVisitAbs(
 				vw*=emGetDblRandom(0.9999999999,1.0000000001);
 			}
 		}
-		if (emIsDLogEnabled()) {
-			emDLog("emView %p: SVP=\"%s\"",(const void*)this,vp->GetIdentity().Get());
-		}
+		EM_DLOG("%p: SVP=\"%s\"",(const void*)this,vp->GetIdentity().Get());
 		p=SupremeViewedPanel;
 		if (p) {
 			p->InViewedPath=0;

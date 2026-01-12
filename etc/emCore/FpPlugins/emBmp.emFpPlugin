@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".bmp" ".cur" ".dib" ".ico" }
+FileFormatName = "BMP"
 Priority = 1.0
 Library = "emBmp"
 Function = "emBmpFpPluginFunc"
+ModelFunction = "emBmpFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emBmpImageFileModel" }
+ModelAbleToSave = yes

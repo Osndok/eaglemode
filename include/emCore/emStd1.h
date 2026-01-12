@@ -39,7 +39,7 @@
 
 #define EM_MAJOR_VERSION 0
 #define EM_MINOR_VERSION 96
-#define EM_MICRO_VERSION 3
+#define EM_MICRO_VERSION 4
 #define EM_VERSION_POSTFIX ""
 	// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -288,8 +288,8 @@ int emDecodeUtf8Char(int * pUcs4, const char * utf8, int utf8Len=INT_MAX);
 	// Returns:
 	//   On success, the number of bytes read from the UTF-8 string is
 	//   returned (1 - 6). If the UTF-8 string is empty, zero is returned.
-	//   And if the UTF-8 string does not contain a valid and complete code
-	//   sequence, -1 is returned.
+	//   If the UTF-8 string contains an invalid code sequence, -1 is
+	//   returned. And if the code sequence is incomplete, -2 is returned.
 
 //------------------ Character encoding of the current locale ------------------
 
@@ -325,7 +325,15 @@ int emDecodeChar(int * pUcs4, const char * str, int strLen=INT_MAX,
 	//   strLen - Maximum number of bytes to be read from the encoded
 	//            string, if it is not null-terminated.
 	//   state  - Input and output of character encoding state or shift state.
-	// Returns: Number of bytes read from the encoded string (>=0).
+	// Returns: Number of bytes read from the encoded string (>=0). If the
+	// code sequence is invalid or incomplete, one character is eaten as is
+	// and 1 is returned.
+
+int emDecodeCharStrictly(int * pUcs4, const char * str, int strLen=INT_MAX,
+                         emMBState * state=NULL);
+	// Like emDecodeChar, but if the UTF-8 string contains an invalid code
+	// sequence, -1 is returned. And if the code sequence is incomplete, -2
+	// is returned.
 
 int emGetDecodedCharCount(const char * str, int strLen=INT_MAX);
 	// Get the number of 31-bit Unicode characters which could be decoded
@@ -348,22 +356,44 @@ void emLog(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
 	// a temp directory (the directory returned by the Win-API function
 	// GetTempPath).
 
-void emEnableDLog(bool devLogEnabled=true);
-bool emIsDLogEnabled();
-	// Whether messages for development and debugging should be made. This
-	// is to be modified by the main program only, maybe through a command
-	// line option. The default is 'false'.
+void emMLog(const char * srcFile, const char * format, ...) EM_FUNC_ATTR_PRINTF(2);
+	// Like emLog, but prefix the message with a module name (plus colon and
+	// space). The module name is extracted from the given source file path.
+	// It's the pure file name without extension.
 
-void emDLog(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
-	// Like emLog, but the call is ignored if emIsDLogEnabled()==false.
+void emEnableDLog(bool devLogEnabled=true);
+void emEnableDLog(bool devLogEnabled, const char * moduleSelection);
+	// Enable or disable debug log messages which are produced with EM_DLOG.
+	// Arguments:
+	//   devLogEnabled   - Whether to enable (true) or disable (false).
+	//   moduleSelection - When enabling, and if this is not NULL, then it
+	//                     is a filter to output debug log messages only
+	//                     from certain modules. It is interpreted as a
+	//                     comma-separated list of module names (with colon)
+	//                     or module name beginnings (without colon).
+
+bool emIsDLogEnabled();
+bool emIsDLogEnabled(const char * srcFile);
+	// Whether debug log is enabled for the given source file.
+
+EM_DEPRECATED(void emDLog(const char * format, ...) EM_FUNC_ATTR_PRINTF(1));
+
+#define EM_DLOG(...) \
+	emIsDLogEnabled(__FILE__) ? emMLog(__FILE__,__VA_ARGS__) : (void)0
+	// Output a debug log message with the module name from the currenct
+	// source file, if enabled by emEnableDLog(..).
 
 void emWarning(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
 	// Like emLog, but "WARNING: " is prepended.
 
-void emFatalError(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
+[[noreturn]] void emFatalError(const char * format, ...) EM_FUNC_ATTR_PRINTF(1);
 	// Output an error message and exit this process. The message is written
 	// to stderr (a line break is appended). Optionally it is also shown in
 	// a GUI message box - see emSetFatalErrorGraphical.
+
+#define EM_ASSERT(C) \
+	(C) ? (void)0: emFatalError("%s, %d: Assertion failed: %s",__FILE__,__LINE__,#C)
+	// Assert that the given condition is true or call emFatalError.
 
 void emSetFatalErrorGraphical(bool graphical);
 	// Whether to show the fatal error message in a dialog (default: false).

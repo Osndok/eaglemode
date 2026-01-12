@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,7 +47,7 @@ emIlbmImageFileModel::~emIlbmImageFileModel()
 
 void emIlbmImageFileModel::TryStartLoading()
 {
-	int name;
+	emUInt32 name;
 
 	L=new LoadingState;
 	L->HeaderFound=false;
@@ -56,21 +56,17 @@ void emIlbmImageFileModel::TryStartLoading()
 	L->Depth=0;
 	L->Compress=0;
 	L->NextY=0;
-	L->File=NULL;
 	L->Palette=NULL;
 	L->RowBuf=NULL;
 	L->BodyPos=0;
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) throw emException("%s",emGetErrorText(errno).Get());
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	Read32();
-	Read32();
-	name=Read32();
+	L->File.TryReadUInt32BE();
+	L->File.TryReadUInt32BE();
+	name=L->File.TryReadUInt32BE();
 
-	if (ferror(L->File)) throw emException("%s",emGetErrorText(errno).Get());
-
-	if (feof(L->File) || name!=0x494C424D/*ILBM*/) {
+	if (name!=0x494C424D/*ILBM*/) {
 		throw emException("ILBM format error");
 	}
 }
@@ -80,23 +76,21 @@ bool emIlbmImageFileModel::TryContinueLoading()
 {
 	unsigned char * map, * row, * bm;
 	long size;
-	int name,x,y,bb,b,d,pbw,c,cb;
+	emUInt32 name;
+	int x,y,bb,b,d,pbw,c,cb;
 
 	if (!L->BodyPos || !L->Palette || !L->HeaderFound) {
-		name=Read32();
-		size=(emUInt32)Read32();
-		if (ferror(L->File)) goto ErrFile;
-		if (feof(L->File)) goto ErrFormat;
+		name=L->File.TryReadUInt32BE();
+		size=L->File.TryReadUInt32BE();
 		if (name==0x424D4844/*BMHD*/) {
 			if (size<11) goto ErrFormat;
-			L->Width=Read16();
-			L->Height=Read16();
-			Read32();
-			L->Depth=Read8();
-			Read8();
-			L->Compress=Read8();
-			fseek(L->File,((size+1)&~1)-11,SEEK_CUR);
-			if (ferror(L->File)) goto ErrFile;
+			L->Width=L->File.TryReadUInt16BE();
+			L->Height=L->File.TryReadUInt16BE();
+			L->File.TryReadUInt32BE();
+			L->Depth=L->File.TryReadUInt8();
+			L->File.TryReadUInt8();
+			L->Compress=L->File.TryReadUInt8();
+			L->File.TrySkip(((size+1)&~1)-11);
 			if (L->Depth>8 || L->Compress>1 ||
 			    L->Width<=0 || L->Height<=0) goto ErrFormat;
 			L->HeaderFound=true;
@@ -104,26 +98,23 @@ bool emIlbmImageFileModel::TryContinueLoading()
 		else if (name==0x434D4150/*CMAP*/) {
 			if (!L->HeaderFound || L->Palette || size<(3<<L->Depth)) goto ErrFormat;
 			L->Palette=new unsigned char[3<<L->Depth];
-			if (fread(L->Palette,1,3<<L->Depth,L->File)!=(size_t)(3<<L->Depth)) goto ErrFormat;
-			fseek(L->File,((size+1)&~1)-(3<<L->Depth),SEEK_CUR);
-			if (ferror(L->File)) goto ErrFile;
+			L->File.TryRead(L->Palette,3<<L->Depth);
+			L->File.TrySkip(((size+1)&~1)-(3<<L->Depth));
 		}
 		else if (name==0x424F4459/*BODY*/) {
 			if (!L->HeaderFound || L->BodyPos) goto ErrFormat;
-			L->BodyPos=ftell(L->File);
-			fseek(L->File,(size+1)&~1,SEEK_CUR);
-			if (ferror(L->File)) goto ErrFile;
+			L->BodyPos=L->File.TryTell();
+			L->File.TrySkip((size+1)&~1);
 		}
 		else {
-			fseek(L->File,(size+1)&~1,SEEK_CUR);
-			if (ferror(L->File)) goto ErrFile;
+			L->File.TrySkip((size+1)&~1);
 		}
 		return false;
 	}
 
 	if (!L->RowBuf) {
 		L->RowBuf=new unsigned char[L->Width+15];
-		fseek(L->File,L->BodyPos,SEEK_SET);
+		L->File.TrySeek(L->BodyPos);
 		Image.Setup(L->Width,L->Height,3);
 		return false;
 	}
@@ -140,7 +131,7 @@ bool emIlbmImageFileModel::TryContinueLoading()
 			x=0;
 			if (L->Compress==0) {
 				while (x<pbw) {
-					b=Read8();
+					b=L->File.TryReadUInt8();
 					for(bb=128; bb!=0; bb>>=1) {
 						if ( (b & bb) !=0) *bm|=(unsigned char)cb;
 						bm++;
@@ -150,11 +141,11 @@ bool emIlbmImageFileModel::TryContinueLoading()
 			}
 			else { // Compress==1
 				while(x<pbw) {
-					c=Read8();
+					c=L->File.TryReadUInt8();
 					if(c<128) {
 						c=c+x; if (c>=pbw) c=pbw-1;
 						while (x<=c) {
-							b=Read8();
+							b=L->File.TryReadUInt8();
 							for(bb=128; bb!=0; bb>>=1) {
 								if ( (b & bb) !=0) *bm|=(unsigned char)cb;
 								bm++;
@@ -164,7 +155,7 @@ bool emIlbmImageFileModel::TryContinueLoading()
 					}
 					else if (c!=128) {
 						c=256-c+x; if (c>=pbw) c=pbw-1;
-						b=Read8();
+						b=L->File.TryReadUInt8();
 						while (x<=c) {
 							for(bb=128; bb!=0; bb>>=1) {
 								if ( (b & bb) !=0) *bm|=(unsigned char)cb;
@@ -196,8 +187,6 @@ bool emIlbmImageFileModel::TryContinueLoading()
 
 	return true;
 
-ErrFile:
-	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
 	throw emException("ILBM format error");
 }
@@ -206,7 +195,6 @@ ErrFormat:
 void emIlbmImageFileModel::QuitLoading()
 {
 	if (L) {
-		if (L->File) fclose(L->File);
 		if (L->Palette) delete [] L->Palette;
 		if (L->RowBuf) delete [] L->RowBuf;
 		delete L;
@@ -258,30 +246,4 @@ double emIlbmImageFileModel::CalcFileProgress()
 		}
 	}
 	return progress;
-}
-
-
-int emIlbmImageFileModel::Read8()
-{
-	return (unsigned char)fgetc(L->File);
-}
-
-
-int emIlbmImageFileModel::Read16()
-{
-	int i;
-
-	i=Read8()<<8;
-	i|=Read8();
-	return i;
-}
-
-
-int emIlbmImageFileModel::Read32()
-{
-	int i;
-
-	i=Read16()<<16;
-	i|=Read16();
-	return i;
 }

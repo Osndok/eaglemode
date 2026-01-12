@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.h
 //
-// Copyright (C) 2004-2011,2014-2015,2018-2020 Oliver Hamann.
+// Copyright (C) 2004-2011,2014-2015,2018-2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -57,6 +57,9 @@ public:
 
 	emException & operator = (const emException & exception);
 		// Copy an exception.
+
+	void SetText(const emString & text);
+		// Set the text.
 
 	const emString & GetText() const;
 		// Get the text.
@@ -311,7 +314,7 @@ emString emCalcHashName(const char * src, int srcLen, int hashLen);
 	//   hashLen - Length of the resulting hash name.
 	// Returns:
 	//   The hash name. It has hashLen characters and consists of
-	//   letters (A-Z) and digits (0-9) only.
+	//   letters (A-Z and a-z) and digits (0-9) only.
 
 
 //==============================================================================
@@ -331,6 +334,11 @@ inline emException & emException::operator = (const emException & exception)
 {
 	Text=exception.Text;
 	return *this;
+}
+
+inline void emException::SetText(const emString & text)
+{
+	Text=text;
 }
 
 inline const emString & emException::GetText() const

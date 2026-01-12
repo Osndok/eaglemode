@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emMain.cpp
 //
-// Copyright (C) 2005-2011,2014-2022,2024 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -114,7 +114,7 @@ emMain::emMain(emContext & context, bool serve)
 
 	if (serve) {
 		name=CalcServerName();
-		emDLog("emMain: MiniIPC server name is \"%s\".",name.Get());
+		EM_DLOG("MiniIPC server name is \"%s\".",name.Get());
 		StartServing(name);
 	}
 }
@@ -427,8 +427,8 @@ void emMain::CheckIfInstalledOverOldVersion()
 			continue;
 		}
 		crc32=emCalcCRC32(file.Get(),file.GetCount());
-		emDLog(
-			"emMain::CheckIfInstalledOverOldVersion: found %s, crc=0x%lX",
+		EM_DLOG(
+			"CheckIfInstalledOverOldVersion: found %s, crc=0x%lX",
 			path.Get(),
 			(unsigned long)crc32
 		);
@@ -477,23 +477,26 @@ static int wrapped_main(int argc, char * argv[])
 				"Usage:\n"
 				"  %s [<option>]...\n"
 				"Options:\n"
-				"  -help                   Print this help and exit.\n"
-				"  -version                Print version and exit.\n"
-				"  -dlog                   Enable debug messages (for this process).\n"
-				"  -noclient               Force to run the window by the new process,\n"
-				"                          instead of trying to join with another process\n"
-				"                          of same user, host and display.\n"
-				"  -noserver               Do not allow joining with this process.\n"
-				"  -geometry <geometry>    Set geometry of window (e.g. \"700x500+10+10\").\n"
-				"  -cecolor <color>        Set color of unused areas beside control view\n"
-				"                          (could be used to indicate root privileges).\n"
-				"  -wmresname <name>       Set WM resource name of the main window\n"
-				"                          (default: emMainWindow).\n"
-				"  -maximized              Show the window maximized.\n"
-				"  -fullscreen             Show the window in fullscreen mode.\n"
-				"  -undecorated            Show the window without decorations.\n"
-				"  -visit <panel identity> Panel to be visited initially.\n"
-				"  -reload                 Just tell the server process to reload files.\n",
+				"  -help                     Print this help and exit.\n"
+				"  -version                  Print version and exit.\n"
+				"  -dlog                     Enable debug messages (for this process).\n"
+				"  -dlogm <module selection> Enable debug messages for certain modules given as\n"
+				"                            a comma-separated list of module names (with colon)\n"
+				"                            or module name beginnings (without colon).\n"
+				"  -noclient                 Force to run the window by the new process, instead\n"
+				"                            of trying to join with another process of the same\n"
+				"                            user, host and display.\n"
+				"  -noserver                 Do not allow joining with this process.\n"
+				"  -geometry <geometry>      Set geometry of window (e.g. \"700x500+10+10\").\n"
+				"  -cecolor <color>          Set color of unused areas beside control view\n"
+				"                            (could be used to indicate root privileges).\n"
+				"  -wmresname <name>         Set WM resource name of the main window\n"
+				"                            (default: emMainWindow).\n"
+				"  -maximized                Show the window maximized.\n"
+				"  -fullscreen               Show the window in fullscreen mode.\n"
+				"  -undecorated              Show the window without decorations.\n"
+				"  -visit <panel identity>   Panel to be visited initially.\n"
+				"  -reload                   Just tell the server process to reload files.\n",
 				argv[0]
 			);
 			return 0;
@@ -507,6 +510,9 @@ static int wrapped_main(int argc, char * argv[])
 		}
 		else if (strcmp(opt,"-dlog")==0) {
 			emEnableDLog();
+		}
+		else if (strcmp(opt,"-dlogm")==0 && i<argc) {
+			emEnableDLog(true,argv[i++]);
 		}
 		else if (strcmp(opt,"-noclient")==0) {
 			optNoClient=true;

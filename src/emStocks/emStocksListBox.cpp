@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStocksListBox.cpp
 //
-// Copyright (C) 2021-2022 Oliver Hamann.
+// Copyright (C) 2021-2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -363,7 +363,7 @@ void emStocksListBox::DeleteStocks(bool ask)
 		}
 	}
 	for (it.SetLast(set); it; --it) {
-		FileModel.Stocks.Remove(**it);
+		FileModel.Stocks.Remove(*it);
 	}
 }
 

@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_txz.pl
 #
-# Copyright (C) 2010,2017 Oliver Hamann.
+# Copyright (C) 2010,2017,2026 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -31,8 +31,8 @@ if ($>!=0) {
 }
 
 # Dependencies
-my $tbzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2');
-if (!-e $tbzFile) { system('perl','pack_tar-bz2.pl')==0 || exit(1); }
+my $xzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.xz');
+if (!-e $xzFile) { system('perl','pack_tar-xz.pl')==0 || exit(1); }
 
 # Have an empty temporary directory.
 my $tmpDir=catfile(Var('TMP_DIR'),Var('NAME').'-slackware-packing-'.$>);
@@ -44,7 +44,7 @@ my $srcDir=catfile($tmpDir,Var('NAME').'-'.Var('VERSION'));
 print("Unpacking the source package to $srcDir\n");
 my $oldDir=getcwd();
 chdir($tmpDir) or die;
-system('tar','xfj',$tbzFile)==0 || exit 1;
+system('tar','xfJ',$xzFile)==0 || exit 1;
 chdir($oldDir) or die;
 
 # Compile it

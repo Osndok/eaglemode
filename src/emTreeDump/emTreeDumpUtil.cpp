@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTreeDumpUtil.cpp
 //
-// Copyright (C) 2007-2009,2014,2018-2019,2024 Oliver Hamann.
+// Copyright (C) 2007-2009,2014,2018-2019,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -196,7 +196,7 @@ void emTreeDumpFromObject(emEngine * object, emTreeDumpRec * rec)
 			(asView->IsFocused() ? "yes" : "no"),
 			(asView->IsActivationAdherent() ? "yes" : "no"),
 			(asView->IsPoppedUp() ? "yes" : "no"),
-			(int)asView->GetBackgroundColor(),
+			(unsigned int)asView->GetBackgroundColor(),
 			asView->GetHomeX(),
 			asView->GetHomeY(),
 			asView->GetHomeWidth(),

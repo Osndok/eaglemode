@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emProcess_h.html#emProcess">emProcess</A>.h
 //
-// Copyright (C) 2006-2010,2014,2017-2018,2022 Oliver Hamann.
+// Copyright (C) 2006-2010,2014,2017-2018,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -215,6 +215,10 @@
 
         </SPAN><SPAN CLASS=t>int </SPAN>GetExitStatus() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Get the exit status of a terminated child process.
+
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; GetArg0() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=c>// Get first program argument of the process. This can be useful
+                // for error messages.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 

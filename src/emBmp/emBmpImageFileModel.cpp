@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.cpp
 //
-// Copyright (C) 2004-2010,2014,2018-2019,2022 Oliver Hamann.
+// Copyright (C) 2004-2010,2014,2018-2019,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,14 +34,11 @@ emBmpImageFileModel::emBmpImageFileModel(
 )
 	: emImageFileModel(context,name)
 {
-	L=NULL;
 }
 
 
 emBmpImageFileModel::~emBmpImageFileModel()
 {
-	emBmpImageFileModel::QuitLoading();
-	emBmpImageFileModel::QuitSaving();
 }
 
 
@@ -52,70 +49,41 @@ void emBmpImageFileModel::TryStartLoading()
 	long bestOffset,bihOffset,bihSize,bestSize,size,offset;
 	int w,h,pixels,bestPixels,i,iconCnt;
 
-	errno=0;
-
 	L=new LoadingState;
-	L->Width=0;
-	L->Height=0;
-	L->Channels=0;
-	L->BitsPerPixel=0;
-	L->BitsOffset=0;
-	L->ColsOffset=0;
-	L->ColSize=0;
-	L->ColsUsed=0;
-	L->Compress=0;
-	L->Y=0;
-	for (i=0; i<3; i++) L->CMax[i]=0;
-	for (i=0; i<3; i++) L->CPos[i]=0;
-	L->IsIcon=false;
-	L->IsPng=false;
-	L->PngLib=NULL;
-	L->PngStartDecoding=NULL;
-	L->PngContinueDecoding=NULL;
-	L->PngQuitDecoding=NULL;
-	L->PngInst=NULL;
-	L->PassCount=0;
-	L->Pass=0;
-	L->ImagePrepared=false;
-	L->File=NULL;
-	L->Palette=NULL;
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto Err;
-
-	w=Read16();
+	w=L->File.TryReadUInt16LE();
 	if (w==0x4D42) {
 		// BMP file.
-		Read32();
-		Read32();
-		L->BitsOffset=(emUInt32)Read32();
+		L->File.TryReadUInt32LE();
+		L->File.TryReadUInt32LE();
+		L->BitsOffset=L->File.TryReadUInt32LE();
 		bihOffset=14;
 	}
 	else if (w==0) {
 		// ICO or CUR file.
-		w=Read16();
+		w=L->File.TryReadUInt16LE();
 		if (w!=1 && w!=2) goto Err;
-		iconCnt=Read16();
+		iconCnt=L->File.TryReadUInt16LE();
 		if (iconCnt<1) goto Err;
 		bestOffset=0;
 		bestPixels=0;
 		bestSize=0;
 		for (i=0; i<iconCnt; i++) {
-			w=Read8();
+			w=L->File.TryReadUInt8();
 			if (!w) w=256;
-			h=Read8();
+			h=L->File.TryReadUInt8();
 			if (!h) h=256;
 			pixels=w*h;
-			Read16();
-			Read32();
-			size=(emUInt32)Read32();
-			offset=(emUInt32)Read32();
+			L->File.TryReadUInt16LE();
+			L->File.TryReadUInt32LE();
+			size=L->File.TryReadUInt32LE();
+			offset=L->File.TryReadUInt32LE();
 			if (bestPixels<pixels || (bestPixels==pixels && bestSize<size)) {
 				bestOffset=offset;
 				bestPixels=pixels;
 				bestSize=size;
 			}
-			if (ferror(L->File) || feof(L->File)) goto Err;
 		}
 		bihOffset=bestOffset;
 		L->BitsOffset=0;
@@ -125,35 +93,34 @@ void emBmpImageFileModel::TryStartLoading()
 		goto Err;
 	}
 
-	fseek(L->File,bihOffset,SEEK_SET);
-	if (ferror(L->File) || feof(L->File)) goto Err;
-	bihSize=(emUInt32)Read32();
+	L->File.TrySeek(bihOffset);
+	bihSize=L->File.TryReadUInt32LE();
 	L->ColsOffset=bihOffset+bihSize;
 
 	if (bihSize==40) {
-		L->Width=Read32();
-		L->Height=Read32();
-		if (Read16()!=1) goto Err;
-		L->BitsPerPixel=Read16();
-		L->Compress=Read32();
-		Read32();
-		Read32();
-		Read32();
-		L->ColsUsed=Read32();
+		L->Width=L->File.TryReadUInt32LE();
+		L->Height=L->File.TryReadUInt32LE();
+		if (L->File.TryReadUInt16LE()!=1) goto Err;
+		L->BitsPerPixel=L->File.TryReadUInt16LE();
+		L->Compress=L->File.TryReadUInt32LE();
+		L->File.TryReadUInt32LE();
+		L->File.TryReadUInt32LE();
+		L->File.TryReadUInt32LE();
+		L->ColsUsed=L->File.TryReadUInt32LE();
 		L->ColSize=4;
 	}
 	else if (bihSize==12) {
-		L->Width=Read16();
-		L->Height=Read16();
-		if (Read16()!=1) goto Err;
-		L->BitsPerPixel=Read16();
+		L->Width=L->File.TryReadUInt16LE();
+		L->Height=L->File.TryReadUInt16LE();
+		if (L->File.TryReadUInt16LE()!=1) goto Err;
+		L->BitsPerPixel=L->File.TryReadUInt16LE();
 		L->Compress=0;
 		L->ColsUsed=0;
 		L->ColSize=3;
 	}
 	else if (bihSize==0x474E5089 && L->IsIcon) {
 		L->IsPng=true;
-		fseek(L->File,bihOffset,SEEK_SET);
+		L->File.TrySeek(bihOffset);
 		L->PngLib=emTryOpenLib("emPng",false);
 		L->PngStartDecoding=(PngStartDecodingFunc)
 			emTryResolveSymbolFromLib(L->PngLib,"emPngStartDecoding")
@@ -167,7 +134,7 @@ void emBmpImageFileModel::TryStartLoading()
 		infoBuf[0]=0;
 		errorBuf[0]=0;
 		L->PngInst=L->PngStartDecoding(
-			L->File,&L->Width,&L->Height,&L->Channels,&L->PassCount,
+			L->File.TryGetFile(),&L->Width,&L->Height,&L->Channels,&L->PassCount,
 			infoBuf,sizeof(infoBuf),errorBuf,sizeof(errorBuf)
 		);
 		if (!L->PngInst) throw emException("%s",errorBuf);
@@ -197,7 +164,6 @@ void emBmpImageFileModel::TryStartLoading()
 		else if (L->BitsPerPixel<=8) L->BitsOffset+=L->ColSize*L->ColsUsed;
 	}
 
-	if (ferror(L->File) || feof(L->File)) goto Err;
 	if (
 		L->Width<1 || L->Width>0x7fffff ||
 		L->Height<1 || L->Height>0x7fffff
@@ -227,8 +193,7 @@ void emBmpImageFileModel::TryStartLoading()
 	return;
 
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("BMP format error");
+	throw emException("BMP format error");
 }
 
 
@@ -240,40 +205,37 @@ bool emBmpImageFileModel::TryContinueLoading()
 	emUInt32 msk;
 	int x,n,t,i,j,y,r;
 
-	errno = 0;
-
 	if (!L->ImagePrepared) {
 		Image.Setup(L->Width,L->Height,L->Channels);
 		Signal(ChangeSignal);
 		L->ImagePrepared=true;
 		if (L->IsPng) return false;
 		if (L->BitsPerPixel<=8) {
-			fseek(L->File,L->ColsOffset,SEEK_SET);
+			L->File.TrySeek(L->ColsOffset);
 			L->Palette=new unsigned char[4<<L->BitsPerPixel];
-			memset(L->Palette,0,4<<L->BitsPerPixel);
+			memset(L->Palette.Get(),0,4<<L->BitsPerPixel);
 			if (L->ColSize==4) {
-				if (fread(L->Palette,1,4*L->ColsUsed,L->File)!=(size_t)(4*L->ColsUsed)) goto Err;
+				L->File.TryRead(L->Palette.Get(),4*L->ColsUsed);
 			}
 			else {
 				for (i=0; i<L->ColsUsed; i++) {
 					for (j=0; j<L->ColSize; j++) {
-						t=Read8();
+						t=L->File.TryReadUInt8();
 						if (j<4) L->Palette[i*4+j]=(unsigned char)t;
 					}
 				}
 			}
 		}
 		else if (L->Compress==3) {
-			fseek(L->File,L->ColsOffset,SEEK_SET);
+			L->File.TrySeek(L->ColsOffset);
 			for (i=0; i<3; i++) {
-				msk=Read32();
+				msk=L->File.TryReadUInt32LE();
 				for (j=0; msk && (msk&1)==0; j++) msk>>=1;
 				L->CMax[i]=msk;
 				L->CPos[i]=j;
 			}
 		}
-		fseek(L->File,L->BitsOffset,SEEK_SET);
-		if (ferror(L->File) || feof(L->File)) goto Err;
+		L->File.TrySeek(L->BitsOffset);
 		return false;
 	}
 
@@ -303,24 +265,24 @@ bool emBmpImageFileModel::TryContinueLoading()
 	if (L->Compress==0) {
 		if (L->BitsPerPixel==32) {
 			for (x=0; x<L->Width; x++) {
-				map[2]=(unsigned char)Read8();
-				map[1]=(unsigned char)Read8();
-				map[0]=(unsigned char)Read8();
-				map[3]=(unsigned char)Read8();
+				map[2]=L->File.TryReadUInt8();
+				map[1]=L->File.TryReadUInt8();
+				map[0]=L->File.TryReadUInt8();
+				map[3]=L->File.TryReadUInt8();
 				map+=L->Channels;
 			}
 		}
 		else if (L->BitsPerPixel==24) {
 			for (x=0; x<L->Width; x++) {
-				map[2]=(unsigned char)Read8();
-				map[1]=(unsigned char)Read8();
-				map[0]=(unsigned char)Read8();
+				map[2]=L->File.TryReadUInt8();
+				map[1]=L->File.TryReadUInt8();
+				map[0]=L->File.TryReadUInt8();
 				map+=L->Channels;
 			}
 		}
 		else if (L->BitsPerPixel==16) {
 			for (x=0; x<L->Width; x++) {
-				n=Read16();
+				n=L->File.TryReadUInt16LE();
 				map[2]=(unsigned char)(((n&0x1f)*255+15)/31);
 				map[1]=(unsigned char)((((n>>5)&0x1f)*255+15)/31);
 				map[0]=(unsigned char)((((n>>10)&0x1f)*255+15)/31);
@@ -329,7 +291,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 		}
 		else if (L->BitsPerPixel==8) {
 			for (x=0; x<L->Width; x++) {
-				t=Read8();
+				t=L->File.TryReadUInt8();
 				map[0]=L->Palette[t*4+2];
 				map[1]=L->Palette[t*4+1];
 				map[2]=L->Palette[t*4+0];
@@ -338,7 +300,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 		}
 		else if (L->BitsPerPixel==4) {
 			for (n=0,x=0; x<L->Width; x++) {
-				if ((x&1)==0) n=Read8(); else n<<=4;
+				if ((x&1)==0) n=L->File.TryReadUInt8(); else n<<=4;
 				t=(n>>4)&15;
 				map[0]=L->Palette[t*4+2];
 				map[1]=L->Palette[t*4+1];
@@ -348,7 +310,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 		}
 		else if (L->BitsPerPixel==1) {
 			for (n=0,x=0; x<L->Width; x++) {
-				if ((x&7)==0) n=Read8(); else n<<=1;
+				if ((x&7)==0) n=L->File.TryReadUInt8(); else n<<=1;
 				t=(n>>7)&1;
 				map[0]=L->Palette[t*4+2];
 				map[1]=L->Palette[t*4+1];
@@ -360,10 +322,10 @@ bool emBmpImageFileModel::TryContinueLoading()
 	}
 	else if (L->Compress==1 && L->BitsPerPixel==8) {
 		for (x=0;;) {
-			n=Read8();
+			n=L->File.TryReadUInt8();
 			if (n>0) {
 				if (x+n>L->Width) goto Err;
-				t=Read8();
+				t=L->File.TryReadUInt8();
 				for (i=0; i<n; i++) {
 					map[0]=L->Palette[t*4+2];
 					map[1]=L->Palette[t*4+1];
@@ -373,7 +335,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 				x+=n;
 			}
 			else {
-				n=Read8();
+				n=L->File.TryReadUInt8();
 				if (n<=1) {
 					if (x!=L->Width) goto Err;
 					if (n==1 && L->Y+1!=L->Height) goto Err;
@@ -382,23 +344,23 @@ bool emBmpImageFileModel::TryContinueLoading()
 				if (n==2) goto Err;
 				if (x+n>L->Width) goto Err;
 				for (i=0; i<n; i++) {
-					t=Read8();
+					t=L->File.TryReadUInt8();
 					map[0]=L->Palette[t*4+2];
 					map[1]=L->Palette[t*4+1];
 					map[2]=L->Palette[t*4+0];
 					map+=L->Channels;
 				}
 				x+=n;
-				if (n&1) Read8();
+				if (n&1) L->File.TryReadUInt8();
 			}
 		}
 	}
 	else if (L->Compress==2 && L->BitsPerPixel==4) {
 		for (x=0;;) {
-			n=Read8();
+			n=L->File.TryReadUInt8();
 			if (n>0) {
 				if (x+n>L->Width) goto Err;
-				t=Read8();
+				t=L->File.TryReadUInt8();
 				for (i=0; i<n; i++) {
 					t=((t>>4)&0x0f)|((t<<4)&0xf0);
 					map[0]=L->Palette[(t&0x0f)*4+2];
@@ -409,7 +371,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 				x+=n;
 			}
 			else {
-				n=Read8();
+				n=L->File.TryReadUInt8();
 				if (n<=1) {
 					if (x!=L->Width) goto Err;
 					if (n==1 && L->Y+1!=L->Height) goto Err;
@@ -418,7 +380,7 @@ bool emBmpImageFileModel::TryContinueLoading()
 				if (n==2) goto Err;
 				if (x+n>L->Width) goto Err;
 				for (i=0, t=0; i<n; i++) {
-					if ((i&1)==0) t=Read8();
+					if ((i&1)==0) t=L->File.TryReadUInt8();
 					t=((t>>4)&0x0f)|((t<<4)&0xf0);
 					map[0]=L->Palette[(t&0x0f)*4+2];
 					map[1]=L->Palette[(t&0x0f)*4+1];
@@ -426,13 +388,14 @@ bool emBmpImageFileModel::TryContinueLoading()
 					map+=L->Channels;
 				}
 				x+=n;
-				if (((n+1)/2)&1) Read8();
+				if (((n+1)/2)&1) L->File.TryReadUInt8();
 			}
 		}
 	}
 	else if (L->Compress==3 && (L->BitsPerPixel==16 || L->BitsPerPixel==32)) {
 		for (x=0; x<L->Width; x++) {
-			if (L->BitsPerPixel==16) n=Read16(); else n=Read32();
+			if (L->BitsPerPixel==16) n=L->File.TryReadUInt16LE();
+			else n=L->File.TryReadUInt32LE();
 			for (i=0; i<3; i++) {
 				t=L->CMax[i];
 				if (t) t=(((n>>L->CPos[i])&t)*255+(t>>1))/t;
@@ -446,10 +409,8 @@ bool emBmpImageFileModel::TryContinueLoading()
 	Signal(ChangeSignal);
 
 	if (L->Compress==0 || L->Compress==3) {
-		fseek(L->File,(0-((L->Width*L->BitsPerPixel+7)>>3))&3,SEEK_CUR);
+		L->File.TrySkip((0-((L->Width*L->BitsPerPixel+7)>>3))&3);
 	}
-
-	if (ferror(L->File)) goto Err;
 
 	L->Y++;
 	if (L->Y<L->Height) return false;
@@ -458,13 +419,12 @@ bool emBmpImageFileModel::TryContinueLoading()
 		for (y=0; y<L->Height; y++) {
 			map=Image.GetWritableMap()+(L->Height-y-1)*(size_t)L->Width*L->Channels;
 			for (n=0, x=0; x<L->Width; x++) {
-				if ((x&7)==0) n=Read8(); else n<<=1;
+				if ((x&7)==0) n=L->File.TryReadUInt8(); else n<<=1;
 				t=(n>>7)&1;
 				map[3]=(unsigned char)(t ? 0 : 255);
 				map+=L->Channels;
 			}
-			fseek(L->File,(0-((L->Width+7)>>3))&3,SEEK_CUR);
-			if (ferror(L->File)) goto Err;
+			L->File.TrySkip((0-((L->Width+7)>>3))&3);
 		}
 	}
 
@@ -484,38 +444,144 @@ bool emBmpImageFileModel::TryContinueLoading()
 	return true;
 
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("BMP format error");
+	throw emException("BMP format error");
 }
 
 
 void emBmpImageFileModel::QuitLoading()
 {
-	if (L) {
-		if (L->PngInst) L->PngQuitDecoding(L->PngInst);
-		if (L->PngLib) emCloseLib(L->PngLib);
-		if (L->File) fclose(L->File);
-		if (L->Palette) delete [] L->Palette;
-		delete L;
-		L=NULL;
-	}
+	L.Reset();
 }
 
 
 void emBmpImageFileModel::TryStartSaving()
 {
-	throw emException("emBmpImageFileModel: Saving not implemented.");
+	const char * ext;
+
+	ext=emGetExtensionInPath(GetFilePath());
+	if (strcasecmp(ext,".ico")==0) {
+		throw emException("Saving ICO format is not supported.");
+	}
+	if (strcasecmp(ext,".cur")==0) {
+		throw emException("Saving CUR format is not supported.");
+	}
+	if (strcasecmp(ext,".dib")==0) {
+		throw emException("Saving DIB format is not supported.");
+	}
+
+	S=new SavingState;
+
+	if (Image.HasAnyTransparentPixel()) {
+		S->BitsPerPixel=32;
+	}
+	else {
+		S->Palette=Image.DetermineAllColorsSorted(256);
+		if (S->Palette.IsEmpty()) {
+			S->BitsPerPixel=24;
+		}
+		else if (S->Palette.GetCount()<=2) {
+			S->BitsPerPixel=1;
+		}
+		else if (S->Palette.GetCount()<=16) {
+			S->BitsPerPixel=4;
+		}
+		else {
+			S->BitsPerPixel=8;
+		}
+	}
 }
 
 
 bool emBmpImageFileModel::TryContinueSaving()
 {
+	int bitsPerPixel,width,height,rowBytes,alignBytes,palSize;
+	int x,y,i,j,k,val,shift;
+	emColor c;
+	emString str;
+
+	bitsPerPixel=S->BitsPerPixel;
+	width=Image.GetWidth();
+	height=Image.GetHeight();
+	rowBytes=(width*bitsPerPixel+7)/8;
+	alignBytes=((rowBytes+3)&(~3))-rowBytes;
+
+	if (!S->File.IsOpen()) {
+		palSize=bitsPerPixel<=8 ? (1<<bitsPerPixel) : 0;
+		S->File.TryOpen(GetFilePath(),"wb");
+		S->File.TryWriteInt16LE(0x4D42);
+		S->File.TryWriteInt32LE(54+palSize*4+(rowBytes+alignBytes)*height);
+		S->File.TryWriteInt32LE(0);
+		S->File.TryWriteInt32LE(54+palSize*4);
+		S->File.TryWriteInt32LE(40);
+		S->File.TryWriteInt32LE(width);
+		S->File.TryWriteInt32LE(height);
+		S->File.TryWriteInt16LE(1);
+		S->File.TryWriteInt16LE(bitsPerPixel);
+		S->File.TryWriteInt32LE(0);
+		S->File.TryWriteInt32LE((rowBytes+alignBytes)*height);
+		S->File.TryWriteInt32LE(0);
+		S->File.TryWriteInt32LE(0);
+		S->File.TryWriteInt32LE(0);
+		S->File.TryWriteInt32LE(0);
+		for (i=0; i<palSize; i++) {
+			if (i<S->Palette.GetCount()) c=S->Palette[i]; else c=0;
+			S->File.TryWriteUInt8(c.GetBlue());
+			S->File.TryWriteUInt8(c.GetGreen());
+			S->File.TryWriteUInt8(c.GetRed());
+			S->File.TryWriteUInt8(0);
+		}
+		return false;
+	}
+
+	if (S->NextY<height) {
+		y=height-1-S->NextY;
+		S->NextY++;
+		val=0;
+		shift=8;
+		for (x=0; x<width; x++) {
+			c=Image.GetPixel(x,y);
+			if (bitsPerPixel<=8) {
+				for (i=0, j=S->Palette.GetCount(); i<j;) {
+					k=(i+j)/2;
+					if (S->Palette[k].Get()<c.Get()) i=k+1; else j=k;
+				}
+				shift-=bitsPerPixel;
+				val|=i<<shift;
+				if (shift==0 || x+1>=width) {
+					S->File.TryWriteUInt8((emUInt8)val);
+					val=0;
+					shift=8;
+				}
+			}
+			else {
+				S->File.TryWriteUInt8(c.GetBlue());
+				S->File.TryWriteUInt8(c.GetGreen());
+				S->File.TryWriteUInt8(c.GetRed());
+				if (bitsPerPixel==32) S->File.TryWriteUInt8(c.GetAlpha());
+			}
+		}
+		for (i=0; i<alignBytes; i++) S->File.TryWriteUInt8(0);
+		return false;
+	}
+
+	S->File.TryClose();
+
+	str=emString::Format(
+		"MS Windows BMP file, %d-bit uncompressed",
+		S->BitsPerPixel
+	);
+	if (FileFormatInfo!=str) {
+		FileFormatInfo=str;
+		Signal(ChangeSignal);
+	}
+
 	return true;
 }
 
 
 void emBmpImageFileModel::QuitSaving()
 {
+	S.Reset();
 }
 
 
@@ -537,8 +603,11 @@ double emBmpImageFileModel::CalcFileProgress()
 	if (L && L->IsPng && L->Height>0 && L->PassCount>0) {
 		return 100.0*(L->Pass*L->Height+L->Y)/(L->PassCount*L->Height);
 	}
-	if (L && L->Height>0) {
+	else if (L && L->Height>0) {
 		return 100.0*L->Y/L->Height;
+	}
+	else if (S && GetImage().GetHeight()>0) {
+		return 100.0*S->NextY/GetImage().GetHeight();
 	}
 	else {
 		return 0.0;
@@ -546,27 +615,49 @@ double emBmpImageFileModel::CalcFileProgress()
 }
 
 
-int emBmpImageFileModel::Read8()
-{
-	return (unsigned char)fgetc(L->File);
-}
-
-
-int emBmpImageFileModel::Read16()
+emBmpImageFileModel::LoadingState::LoadingState()
+	: Width(0),
+	Height(0),
+	Channels(0),
+	BitsPerPixel(0),
+	BitsOffset(0),
+	ColsOffset(0),
+	ColSize(0),
+	ColsUsed(0),
+	Compress(0),
+	Y(0),
+	IsIcon(false),
+	IsPng(false),
+	PngLib(NULL),
+	PngStartDecoding(NULL),
+	PngContinueDecoding(NULL),
+	PngQuitDecoding(NULL),
+	PngInst(NULL),
+	PassCount(0),
+	Pass(0),
+	ImagePrepared(false)
 {
 	int i;
 
-	i=Read8();
-	i|=Read8()<<8;
-	return i;
+	for (i=0; i<3; i++) CMax[i]=0;
+	for (i=0; i<3; i++) CPos[i]=0;
 }
 
 
-int emBmpImageFileModel::Read32()
+emBmpImageFileModel::LoadingState::~LoadingState()
 {
-	int i;
+	if (PngInst) PngQuitDecoding(PngInst);
+	if (PngLib) emCloseLib(PngLib);
+}
 
-	i=Read16();
-	i|=Read16()<<16;
-	return i;
+
+emBmpImageFileModel::SavingState::SavingState()
+	: BitsPerPixel(0),
+	NextY(0)
+{
+}
+
+
+emBmpImageFileModel::SavingState::~SavingState()
+{
 }

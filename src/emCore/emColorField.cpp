@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColorField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2018-2019,2021,2024 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2018-2019,2021,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -194,7 +194,7 @@ bool emColorField::Cycle()
 			catch (const emException &) {
 				Color=oldColor;
 			}
-			Color.SetAlpha(oldColor.GetAlpha());
+			if (!AlphaEnabled) Color.SetAlpha(255);
 			textChanged=true;
 		}
 	}
@@ -442,12 +442,7 @@ void emColorField::UpdateHSVOutput(bool initial)
 void emColorField::UpdateNameOutput()
 {
 	if (!Exp) return;
-	Exp->NameOut=emString::Format(
-		"#%02X%02X%02X",
-		(int)Color.GetRed(),
-		(int)Color.GetGreen(),
-		(int)Color.GetBlue()
-	);
+	Exp->NameOut=Color.ToString();
 	Exp->TfName->SetText(Exp->NameOut);
 }
 

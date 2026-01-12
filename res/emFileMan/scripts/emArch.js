@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArch.js
 //
-// Copyright (C) 2019-2021 Oliver Hamann.
+// Copyright (C) 2019-2021,2025-2026 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -31,23 +31,23 @@ var Description=
 "\n"+
 "SUPPORTED FORMATS:\n"+
 "\n"+
-"Archive file name suffices    | Required system tools\n"+
-"------------------------------+----------------------\n"+
+"Archive file name suffices    | Required system tools (if default config)\n"+
+"------------------------------+------------------------------------------\n"+
 ".7z                           | 7za\n"+
 ".bz             (unpack only) | bzip2\n"+
 ".bz2                          | bzip2\n"+
-".gz                           | gzip\n"+
+".gz                           | pigz\n"+
 ".lzma                         | xz\n"+
 ".tar                          | tar\n"+
 ".tar.bz|.tbz    (unpack only) | tar, bzip2\n"+
 ".tar.bz2|.tbz2|.tgj           | tar, bzip2\n"+
-".tar.gz|.tgz                  | tar, gzip\n"+
+".tar.gz|.tgz                  | tar, pigz\n"+
 ".tar.lzma|.tlz                | tar, xz\n"+
 ".tar.xz|.txz                  | tar, xz\n"+
-".tar.Z|.taz     (unpack only) | tar, gzip\n"+
+".tar.Z|.taz     (unpack only) | tar, pigz\n"+
 ".xz                           | xz\n"+
-".Z              (unpack only) | gzip\n"+
-".zip|.jar                     | zip, unzip\n"+
+".Z              (unpack only) | pigz\n"+
+".zip|.jar                     | 7za\n"+
 "\n"+
 "SECURITY / SPEED-LOSS:\n"+
 "\n"+
@@ -93,7 +93,7 @@ var Description=
 
 // Whether to use pigz or 7za instead of gzip for gz archives.
 // (At most one of these may be set to true.)
-var Use_pigz=false;
+var Use_pigz=true;
 var Use_7za_for_gz=false;
 
 // Whether to use pbzip2, lbzip2 or 7za instead of bzip2 for bz2 archives.
@@ -102,14 +102,13 @@ var Use_pbzip2=false;
 var Use_lbzip2=false;
 var Use_7za_for_bz2=false;
 
-// Whether to use pixz, pxz or 7za instead of xz for xz archives.
+// Whether to use pixz or 7za instead of xz for xz archives.
 // (At most one of these may be set to true.)
 var Use_pixz=false;
-var Use_pxz=false;
 var Use_7za_for_xz=false;
 
 // Whether to use 7za instead of zip/unzip for zip archives.
-var Use_7za_for_zip=false;
+var Use_7za_for_zip=true;
 
 
 //============================== General Helpers ===============================
@@ -361,7 +360,6 @@ function Pack(format,archive,names)
 		Exec(
 			true,true,"tar cvf - -- "+WshShellCmdFromArgs(names)+" | "+(
 				Use_pixz ? "pixz" :
-				Use_pxz ? "pxz --stdout" :
 				Use_7za_for_xz ? "7za a -si -so .xz" :
 				"xz --stdout"
 			)+" > "+WshShellQuoteArg(archive)
@@ -430,7 +428,6 @@ function Pack(format,archive,names)
 		Exec(
 			true,true,(
 				Use_pixz ? "pixz -t <" :
-				Use_pxz ? "pxz --stdout --" :
 				Use_7za_for_xz ? "7za a -so -- .xz" :
 				"xz --stdout --"
 			)+" "+WshShellQuoteArg(names[0])+" > "+WshShellQuoteArg(archive)

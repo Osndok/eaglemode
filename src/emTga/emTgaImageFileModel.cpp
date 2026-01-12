@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTgaImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,14 +34,11 @@ emTgaImageFileModel::emTgaImageFileModel(
 )
 	: emImageFileModel(context,name)
 {
-	L=NULL;
 }
 
 
 emTgaImageFileModel::~emTgaImageFileModel()
 {
-	emTgaImageFileModel::QuitLoading();
-	emTgaImageFileModel::QuitSaving();
 }
 
 
@@ -50,8 +47,6 @@ void emTgaImageFileModel::TryStartLoading()
 	int i,c;
 
 	L=new LoadingState;
-	L->File=NULL;
-	L->Palette=NULL;
 	L->RunCol.SetGrey(0);
 	L->IDLen=0;
 	L->CMapType=0;
@@ -67,25 +62,22 @@ void emTgaImageFileModel::TryStartLoading()
 	L->RunLen=0;
 	L->ImagePrepared=false;
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto ErrFile;
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	L->IDLen=Read8();
-	L->CMapType=Read8();
-	L->IMapType=Read8();
-	Read16();
-	L->CMapSize=Read16();
-	L->CMapBitsPP=Read8();
-	Read16();
-	Read16();
-	L->Width=Read16();
-	L->Height=Read16();
-	L->BitsPP=Read8();
-	L->Descriptor=Read8();
-	for (i=0; i<L->IDLen; i++) Read8();
+	L->IDLen=L->File.TryReadUInt8();
+	L->CMapType=L->File.TryReadUInt8();
+	L->IMapType=L->File.TryReadUInt8();
+	L->File.TryReadUInt16LE();
+	L->CMapSize=L->File.TryReadUInt16LE();
+	L->CMapBitsPP=L->File.TryReadUInt8();
+	L->File.TryReadUInt16LE();
+	L->File.TryReadUInt16LE();
+	L->Width=L->File.TryReadUInt16LE();
+	L->Height=L->File.TryReadUInt16LE();
+	L->BitsPP=L->File.TryReadUInt8();
+	L->Descriptor=L->File.TryReadUInt8();
+	L->File.TrySkip(L->IDLen);
 
-	if (ferror(L->File)) goto ErrFile;
-	if (feof(L->File)) goto ErrFormat;
 	if (L->Width<1 || L->Height<1) goto ErrFormat;
 
 	if ((L->IMapType&~8)==1) {
@@ -95,23 +87,23 @@ void emTgaImageFileModel::TryStartLoading()
 		L->ChannelCount=1;
 		for (i=0; i<L->CMapSize; i++) {
 			if (L->CMapBitsPP==16) {
-				c=Read16();
+				c=L->File.TryReadUInt16LE();
 				L->Palette[i].SetRed((emByte)((((c>>10)&31)*255)/31));
 				L->Palette[i].SetGreen((emByte)((((c>>5)&31)*255)/31));
 				L->Palette[i].SetBlue((emByte)(((c&31)*255)/31));
 				L->Palette[i].SetAlpha((emByte)((c&0x8000)?255:0));
 			}
 			else if (L->CMapBitsPP==24) {
-				L->Palette[i].SetBlue((emByte)Read8());
-				L->Palette[i].SetGreen((emByte)Read8());
-				L->Palette[i].SetRed((emByte)Read8());
+				L->Palette[i].SetBlue(L->File.TryReadUInt8());
+				L->Palette[i].SetGreen(L->File.TryReadUInt8());
+				L->Palette[i].SetRed(L->File.TryReadUInt8());
 				L->Palette[i].SetAlpha(255);
 			}
 			else if (L->CMapBitsPP==32) {
-				L->Palette[i].SetBlue((emByte)Read8());
-				L->Palette[i].SetGreen((emByte)Read8());
-				L->Palette[i].SetRed((emByte)Read8());
-				L->Palette[i].SetAlpha((emByte)Read8());
+				L->Palette[i].SetBlue(L->File.TryReadUInt8());
+				L->Palette[i].SetGreen(L->File.TryReadUInt8());
+				L->Palette[i].SetRed(L->File.TryReadUInt8());
+				L->Palette[i].SetAlpha(L->File.TryReadUInt8());
 			}
 			else goto ErrFormat;
 			if (L->ChannelCount<3 && !L->Palette[i].IsGrey()) {
@@ -121,8 +113,6 @@ void emTgaImageFileModel::TryStartLoading()
 				L->ChannelCount+=1;
 			}
 		}
-		if (ferror(L->File)) goto ErrFile;
-		if (feof(L->File)) goto ErrFormat;
 	}
 	else if ((L->IMapType&~8)==2) {
 		if (L->CMapType!=0) goto ErrFormat;
@@ -158,8 +148,6 @@ void emTgaImageFileModel::TryStartLoading()
 
 	return;
 
-ErrFile:
-	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
 	throw emException("TGA format error");
 }
@@ -180,12 +168,12 @@ bool emTgaImageFileModel::TryContinueLoading()
 		if ((L->IMapType&8)!=0 && L->RunLen<0) L->RunLen++;
 		else {
 			if ((L->IMapType&8)!=0 && L->RunLen==0) {
-				L->RunLen=Read8();
+				L->RunLen=L->File.TryReadUInt8();
 				if (L->RunLen&0x80) L->RunLen=-(L->RunLen&0x7f)+1;
 				else L->RunLen++;
 			}
 			L->RunLen--;
-			for (c=0, i=0; i<L->BitsPP; i+=8) c|=(Read8()&255)<<i;
+			for (c=0, i=0; i<L->BitsPP; i+=8) c|=L->File.TryReadUInt8()<<i;
 			if ((L->IMapType&~8)==1) {
 				if (c<0 || c>=L->CMapSize) throw emException("TGA format error");
 				L->RunCol=L->Palette[c];
@@ -220,8 +208,6 @@ bool emTgaImageFileModel::TryContinueLoading()
 
 	Signal(ChangeSignal);
 
-	if (ferror(L->File)) throw emException("%s",emGetErrorText(errno).Get());
-
 	L->NextY++;
 	if (L->NextY>=L->Height) {
 		return true;
@@ -232,29 +218,121 @@ bool emTgaImageFileModel::TryContinueLoading()
 
 void emTgaImageFileModel::QuitLoading()
 {
-	if (L) {
-		if (L->File) fclose(L->File);
-		if (L->Palette) delete [] L->Palette;
-		delete L;
-		L=NULL;
-	}
+	L.Reset();
 }
 
 
 void emTgaImageFileModel::TryStartSaving()
 {
-	throw emException("emTgaImageFileModel: Saving not implemented.");
+	if (GetImage().GetWidth()>65535 || GetImage().GetHeight()>65535) {
+		throw emException(
+			"Image to large for a TGA file (maximum possible size is 65535 x 65535)"
+		);
+	}
+
+	S=new SavingState;
+	S->HaveColor=GetImage().HasAnyNonGreyPixel();
+	S->HaveAlpha=GetImage().HasAnyTransparentPixel();
+	if (S->HaveColor || S->HaveAlpha) {
+		S->Pal=GetImage().DetermineAllColorsSorted(256);
+	}
+
+	S->PixelSize=
+		!S->Pal.IsEmpty() ? 1 : (S->HaveColor ? 3 : 1) + (S->HaveAlpha ? 1 : 0)
+	;
+
+	S->NextY=0;
 }
 
 
 bool emTgaImageFileModel::TryContinueSaving()
 {
+	int i,j,k,y,width,height,palSize,pixelSize;
+	const emColor * pal;
+	emString str;
+	emColor c;
+	emInt32 v;
+
+	width=GetImage().GetWidth();
+	height=GetImage().GetHeight();
+
+	if (!S->Encoder) {
+		S->File.TryOpen(GetFilePath(),"wb");
+		S->File.TryWriteUInt8(0);
+		S->File.TryWriteUInt8(!S->Pal.IsEmpty() ? 1 : 0);
+		S->File.TryWriteUInt8(!S->Pal.IsEmpty() ? 9 : S->HaveColor ? 10 : 11);
+		S->File.TryWriteUInt16LE(0);
+		S->File.TryWriteUInt16LE(S->Pal.GetCount());
+		S->File.TryWriteUInt8(S->Pal.IsEmpty() ? 0 : S->HaveAlpha ? 32 : 24);
+		S->File.TryWriteUInt16LE(0);
+		S->File.TryWriteUInt16LE(0);
+		S->File.TryWriteUInt16LE(width);
+		S->File.TryWriteUInt16LE(height);
+		S->File.TryWriteUInt8(S->PixelSize*8);
+		S->File.TryWriteUInt8(0x20 + (S->HaveAlpha ? 8 : 0));
+		for (emColor col: S->Pal) {
+			S->File.TryWriteUInt8(col.GetBlue());
+			S->File.TryWriteUInt8(col.GetGreen());
+			S->File.TryWriteUInt8(col.GetRed());
+			if (S->HaveAlpha) S->File.TryWriteUInt8(col.GetAlpha());
+		}
+		S->Encoder=new RleEncoder(S->File,S->PixelSize);
+		return false;
+	}
+
+	y=S->NextY++;
+	if (y<height) {
+		pal=S->Pal.Get();
+		palSize=S->Pal.GetCount();
+		pixelSize=S->PixelSize;
+		for (int x=0; x<width; x++) {
+			c=Image.GetPixel(x,y);
+			if (palSize>0) {
+				for (i=0, j=palSize; i<j;) {
+					k=(i+j)/2;
+					if (pal[k].Get()<c.Get()) i=k+1; else j=k;
+				}
+				v=i;
+			}
+			else {
+				if (pixelSize<=2) {
+					v=c.GetGreen();
+					if (pixelSize==2) v|=c.GetAlpha()<<8;
+				}
+				else {
+					v=c.GetBlue()|(c.GetGreen()<<8)|(c.GetRed()<<16);
+					if (pixelSize==4) v|=c.GetAlpha()<<24;
+				}
+			}
+			S->Encoder->TryPut(v);
+		}
+		return false;
+	}
+
+	S->Encoder->TryFlush();
+	S->File.TryClose();
+
+	str=emString::Format("Targa - %d bits/pixel",S->PixelSize*8);
+	if (!S->HaveColor)          str+=" RLE-compressed grey";
+	else if (!S->Pal.IsEmpty()) str+=" RLE-compressed color-mapped";
+	else                        str+=" RLE-compressed RGB";
+	if (S->HaveAlpha) str+=" with alpha";
+	str+=emString::Format(
+		" (%d channels)",
+		(S->HaveColor ? 3 : 1) + (S->HaveAlpha ? 1 : 0)
+	);
+	if (FileFormatInfo!=str) {
+		FileFormatInfo=str;
+		Signal(ChangeSignal);
+	}
+
 	return true;
 }
 
 
 void emTgaImageFileModel::QuitSaving()
 {
+	S.Reset();
 }
 
 
@@ -276,23 +354,99 @@ double emTgaImageFileModel::CalcFileProgress()
 	if (L && L->Height>0) {
 		return 100.0*L->NextY/L->Height;
 	}
+	else if (S && GetImage().GetHeight()>0) {
+		return 100.0*S->NextY/GetImage().GetHeight();
+	}
 	else {
 		return 0.0;
 	}
 }
 
 
-int emTgaImageFileModel::Read8()
+emTgaImageFileModel::RleEncoder::RleEncoder(emFileStream & file, int pixelSize)
+	: File(file),
+	PixelSize(pixelSize),
+	Pos(0),
+	Fill(0)
 {
-	return (unsigned char)fgetc(L->File);
 }
 
 
-int emTgaImageFileModel::Read16()
+void emTgaImageFileModel::RleEncoder::TryFlush()
 {
-	int i;
+	while (Fill) TryWriteNext();
+}
 
-	i=Read8();
-	i|=Read8()<<8;
-	return i;
+
+void emTgaImageFileModel::RleEncoder::TryWriteNext()
+{
+	emUInt32 c,c2;
+	int i,n,k;
+
+	c=Buf[Pos];
+	if (Fill>=2 && c==Buf[(Pos+1)&255]) {
+		n=2;
+		k=Fill; if (k>128) k=128;
+		while (n<k && c==Buf[(Pos+n)&255]) n++;
+		File.TryWriteUInt8((emUInt8)(0x7f+n));
+		switch (PixelSize) {
+			case 4:
+				File.TryWriteUInt32LE(c);
+				break;
+			case 3:
+				File.TryWriteUInt8((emUInt8)c);
+				File.TryWriteUInt8((emUInt8)(c>>8));
+				File.TryWriteUInt8((emUInt8)(c>>16));
+				break;
+			case 2:
+				File.TryWriteUInt16LE((emUInt16)c);
+				break;
+			default:
+				File.TryWriteUInt8((emUInt8)c);
+		}
+		Pos=(Pos+n)&255;
+		Fill-=n;
+	}
+	else {
+		n=Fill;
+		if (n>128) n=128;
+		k=n+1;
+		if (k>Fill) k=Fill;
+		for (i=1; i<k; i++) {
+			c2=Buf[(Pos+i)&255];
+			if (c==c2) {
+				if (
+					PixelSize>1 ||
+					i+1>=k ||
+					c==Buf[(Pos+i+1)&255]
+				) {
+					n=i-1;
+					break;
+				}
+			}
+			c=c2;
+		}
+		File.TryWriteUInt8((emUInt8)(n-1));
+		Fill-=n;
+		do {
+			c=Buf[Pos];
+			switch (PixelSize) {
+				case 4:
+					File.TryWriteUInt32LE(c);
+					break;
+				case 3:
+					File.TryWriteUInt8((emUInt8)c);
+					File.TryWriteUInt8((emUInt8)(c>>8));
+					File.TryWriteUInt8((emUInt8)(c>>16));
+					break;
+				case 2:
+					File.TryWriteUInt16LE((emUInt16)c);
+					break;
+				default:
+					File.TryWriteUInt8((emUInt8)c);
+			}
+			n--;
+			Pos=(Pos+1)&255;
+		} while (n>0);
+	}
 }

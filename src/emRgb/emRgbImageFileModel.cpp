@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRgbImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -61,27 +61,22 @@ void emRgbImageFileModel::TryStartLoading()
 	L->NextZ=0;
 	L->ZUse=0;
 	L->ImagePrepared=false;
-	L->File=NULL;
 	L->OffsetTable=NULL;
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto ErrFile;
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	magic=Read16();
-	L->Storage=Read8();
-	L->BytesPerChannel=Read8();
-	dimension=Read16();
-	L->XSize=Read16();
-	L->YSize=Read16();
-	L->ZSize=Read16();
-	L->PixMin=Read32();
-	L->PixMax=Read32();
-	fseek(L->File,84,SEEK_CUR);
-	colorMapId=Read32();
-	fseek(L->File,404,SEEK_CUR);
-
-	if (ferror(L->File)) goto ErrFile;
-	if (feof(L->File)) goto ErrFormat;
+	magic=L->File.TryReadUInt16BE();
+	L->Storage=L->File.TryReadUInt8();
+	L->BytesPerChannel=L->File.TryReadUInt8();
+	dimension=L->File.TryReadUInt16BE();
+	L->XSize=L->File.TryReadUInt16BE();
+	L->YSize=L->File.TryReadUInt16BE();
+	L->ZSize=L->File.TryReadUInt16BE();
+	L->PixMin=L->File.TryReadUInt32BE();
+	L->PixMax=L->File.TryReadUInt32BE();
+	L->File.TrySkip(84);
+	colorMapId=L->File.TryReadUInt32BE();
+	L->File.TrySkip(404);
 
 	if (magic!=474) goto ErrFormat;
 	if (L->Storage<0 || L->Storage>1) goto ErrFormat;
@@ -102,8 +97,6 @@ void emRgbImageFileModel::TryStartLoading()
 	if (L->ZUse>4) L->ZUse=4;
 
 	return;
-ErrFile:
-	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
 	throw emException("SGI image file format error.");
 ErrUnsupported:
@@ -135,8 +128,8 @@ bool emRgbImageFileModel::TryContinueLoading()
 
 	if (L->Storage==0) {
 		for (x=0; x<L->XSize; x++) {
-			val=(unsigned char)fgetc(L->File);
-			if (L->BytesPerChannel>1) val=(val<<8)|(unsigned char)fgetc(L->File);
+			val=L->File.TryReadUInt8();
+			if (L->BytesPerChannel>1) val=(val<<8)|L->File.TryReadUInt8();
 			val=((val-L->PixMin)*255+(L->PixMax-L->PixMin)/2)/(L->PixMax-L->PixMin);
 			map[x*L->ZUse]=(unsigned char)val;
 		}
@@ -144,18 +137,14 @@ bool emRgbImageFileModel::TryContinueLoading()
 	else {
 		if (L->Storage && !L->OffsetTable) {
 			L->OffsetTable=new emUInt32[L->ZUse*L->YSize];
-			for (x=0; x<L->ZUse*L->YSize; x++) L->OffsetTable[x]=(emUInt32)Read32();
-			if (ferror(L->File)) goto ErrFile;
-			if (feof(L->File)) goto ErrFormat;
+			for (x=0; x<L->ZUse*L->YSize; x++) L->OffsetTable[x]=L->File.TryReadUInt32BE();
 			return false;
 		}
-		fseek(L->File,L->OffsetTable[L->YSize*L->NextZ+L->NextY],SEEK_SET);
-		if (ferror(L->File)) goto ErrFile;
-		if (feof(L->File)) goto ErrFormat;
+		L->File.TrySeek(L->OffsetTable[L->YSize*L->NextZ+L->NextY]);
 		for (x=0;;) {
 			cnt=1;
-			rpt=(unsigned char)fgetc(L->File);
-			if (L->BytesPerChannel>1) rpt=(unsigned char)fgetc(L->File);
+			rpt=L->File.TryReadUInt8();
+			if (L->BytesPerChannel>1) rpt=L->File.TryReadUInt8();
 			if (rpt&0x80) {
 				cnt=rpt&0x7f;
 				rpt=1;
@@ -166,8 +155,8 @@ bool emRgbImageFileModel::TryContinueLoading()
 			}
 			if (x+rpt*cnt>L->XSize) goto ErrFormat;
 			do {
-				val=(unsigned char)fgetc(L->File);
-				if (L->BytesPerChannel>1) val=(val<<8)|(unsigned char)fgetc(L->File);
+				val=L->File.TryReadUInt8();
+				if (L->BytesPerChannel>1) val=(val<<8)|L->File.TryReadUInt8();
 				val=((val-L->PixMin)*255+(L->PixMax-L->PixMin)/2)/(L->PixMax-L->PixMin);
 				for (i=0; i<rpt; i++) map[(x+i)*L->ZUse]=(unsigned char)val;
 				x+=rpt;
@@ -186,8 +175,6 @@ bool emRgbImageFileModel::TryContinueLoading()
 	}
 	return false;
 
-ErrFile:
-	throw emException("%s",emGetErrorText(errno).Get());
 ErrFormat:
 	throw emException("SGI image file format error.");
 }
@@ -197,7 +184,6 @@ void emRgbImageFileModel::QuitLoading()
 {
 	if (L) {
 		if (L->OffsetTable) delete [] L->OffsetTable;
-		if (L->File) fclose(L->File);
 		delete L;
 		L=NULL;
 	}
@@ -242,30 +228,4 @@ double emRgbImageFileModel::CalcFileProgress()
 	else {
 		return 0.0;
 	}
-}
-
-
-int emRgbImageFileModel::Read8()
-{
-	return (unsigned char)fgetc(L->File);
-}
-
-
-int emRgbImageFileModel::Read16()
-{
-	int i;
-
-	i=Read8()<<8;
-	i|=Read8();
-	return i;
-}
-
-
-int emRgbImageFileModel::Read32()
-{
-	int i;
-
-	i=Read16()<<16;
-	i|=Read16();
-	return i;
 }

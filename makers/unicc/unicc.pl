@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # unicc.pl
 #
-# Copyright (C) 2006-2008,2017,2020-2021 Oliver Hamann.
+# Copyright (C) 2006-2008,2017,2020-2021,2025 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -311,7 +311,7 @@ sub GetSrcUpdateTime
 
 if ($Cpus eq 'auto') {
 	if ($Config{'osname'} eq 'linux') {
-		$Cpus=`egrep -c '^processor\\s*:' /proc/cpuinfo`;
+		$Cpus=`grep -E -c '^processor\\s*:' /proc/cpuinfo`;
 	}
 	elsif ($Config{'osname'} eq 'freebsd') {
 		$Cpus=`sysctl -n hw.ncpu`;

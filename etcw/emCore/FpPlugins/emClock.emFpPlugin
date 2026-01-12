@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emClock" }
+FileFormatName = "emClock"
 Priority = 1.0
 Library = "emClock"
 Function = "emClockFpPluginFunc"

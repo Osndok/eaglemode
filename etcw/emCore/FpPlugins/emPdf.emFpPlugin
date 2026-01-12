@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".pdf" }
+FileFormatName = "PDF"
 Priority = 1.0
 Library = "emPdf"
 Function = "emPdfFpPluginFunc"

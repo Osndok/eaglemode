@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPnmImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emPnmImageFileModel_h
 #define emPnmImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -51,19 +55,24 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
-	int ReadDigit(bool allowSpace);
-	int ReadDecimal();
-	int ReadVal();
+	int TryReadDigit(bool allowSpace);
+	int TryReadDecimal();
+	int TryReadVal();
+	static const char * FormatToString(int format);
 
 	struct LoadingState {
 		int Format,Width,Height,MaxVal,NextY;
 		bool ImagePrepared;
-		FILE * File;
+		emFileStream File;
 	};
 
-	LoadingState * L;
+	struct SavingState {
+		int Format,NextY;
+		emFileStream File;
+	};
+
+	emOwnPtr<LoadingState> L;
+	emOwnPtr<SavingState> S;
 };
 
 

@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRef_h.html#emRef">emRef</A>.h
 //
-// Copyright (C) 2005-2008,2010,2016,2024 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -106,8 +106,14 @@
                 <SPAN CLASS=c>// Destructor.
 
         </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; ref);
+                <SPAN CLASS=c>// Copy a reference.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(CLS * model = <SPAN CLASS=u>NULL</SPAN>);
         <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A> &amp; <SPAN CLASS=t>operator </SPAN>= (CLS * model);
-                <SPAN CLASS=c>// Copy from a reference or pointer (NULL-pointer is allowed).
+                <SPAN CLASS=c>// Assign an object pointer. NULL is allowed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Reset();
+                <SPAN CLASS=c>// Same as Set(NULL).
 
         </SPAN><SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Cast this reference to a pointer (can be NULL).
@@ -197,12 +203,22 @@
         <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (CLS * model)
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::Set(CLS * model)
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(model) model-&gt;Alloc();
         <SPAN CLASS=k>if </SPAN>(Mdl) Mdl-&gt;Free();
         Mdl=model;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (CLS * model)
+<SPAN CLASS=b>{
+        </SPAN>Set(model);
         <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::Reset()
+<SPAN CLASS=b>{
+        </SPAN>Set(<SPAN CLASS=u>NULL</SPAN>);
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const

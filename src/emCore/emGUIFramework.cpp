@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGUIFramework.cpp
 //
-// Copyright (C) 2007-2008,2011,2014,2019-2020,2024 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014,2019-2020,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -59,7 +59,6 @@ emGUIFramework::emGUIFramework()
 	}
 	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText().Get());
-		exit(255); // Just to avoid compiler warnings (never executed).
 	}
 
 	Scheduler=createSchedulerFunc();

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTiffImageFileModel.h
 //
-// Copyright (C) 2004-2009,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -53,13 +53,22 @@ private:
 
 	struct LoadingState {
 		void * Tif;
-		void * Buffer;
+		emOwnArrayPtr<emUInt32> Buffer;
 		bool Tiled;
 		int ImgW,ImgH,PartW,PartH,Channels;
 		int CurrentX,CurrentY,CurrentOp;
 	};
 
+	struct SavingState {
+		void * Tif;
+		emArray<emColor> Pal;
+		emOwnArrayPtr<emByte> RowBuf;
+		int PixelSize;
+		int NextY;
+	};
+
 	LoadingState * L;
+	SavingState * S;
 };
 
 

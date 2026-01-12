@@ -6,7 +6,7 @@
 <CENTER>
 <FONT SIZE=4><B>Eagle Mode -</B></FONT><BR>
 <FONT SIZE=7><B>Advanced Configuration</B></FONT><P>
-<FONT SIZE=2>Copyright &copy; 2010,2016,2018-2020,2024 Oliver Hamann.
+<FONT SIZE=2>Copyright &copy; 2010,2016,2018-2020,2024-2025 Oliver Hamann.
 Homepage: <A HREF="http://eaglemode.sourceforge.net/">http://eaglemode.sourceforge.net/</A></FONT>
 </CENTER>
 
@@ -179,6 +179,9 @@ FileTypes = { ".cherry" ".pear" ".banana" }
   # either a file name ending including the leading dot, or "file" which means
   # all regular file types, or "directory".
 
+FileFormatName = "Fruit"
+  # A display name for the file type(s).
+
 Priority = 1.0
   # Priority for the plugin. This is important when there are multiple plugins
   # able to show a file type. Then, the plugin with the highest priority is used
@@ -206,6 +209,10 @@ Properties = { { Name="color" Value="blue" } { Name="size" Value="7" } }
   # strings. The possible parameters are defined by the individual plugins. For
   # an example, see the description of emTmpConv below.</TT></PRE>
 <P>
+In addition, there some optional attributes about model acquisition for advanced
+use. Details about this can be found in the C++ header file
+<TT>emFpPlugin.h</TT>.
+<P>
 For any modifications of the emFpPlugin files to take effect, Eagle Mode must be
 restarted.
 
@@ -225,7 +232,7 @@ one is optional:
     # Specifies the file name ending of the temporary file, including the
     # leading dot. This is important because the final file viewer is chosen by
     # that. For example, if you want the temporary file to be shown by the
-    # PostScript viewer, say ".ps".
+    # PDF viewer, say ".pdf".
 
   { Name="Command" Value="insert your script here" }
     # Specifies the shell script for performing the conversion. It is executed

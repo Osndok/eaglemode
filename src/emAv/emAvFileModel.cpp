@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvFileModel.cpp
 //
-// Copyright (C) 2005-2008,2011,2014,2017-2018,2020 Oliver Hamann.
+// Copyright (C) 2005-2008,2011,2014,2017-2018,2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -578,10 +578,7 @@ void emAvFileModel::PropertyChanged(const emString & name, const emString & valu
 		}
 	}
 	else {
-		emDLog(
-			"emAvFileModel::PropertyChanged: Unsupported property name \"%s\".",
-			name.Get()
-		);
+		EM_DLOG("PropertyChanged: Unsupported property name \"%s\".",name.Get());
 	}
 }
 

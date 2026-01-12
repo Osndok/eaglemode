@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.h
 //
-// Copyright (C) 2001,2003-2010,2014,2018,2020 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2018,2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -138,23 +138,6 @@ public:
 		//   channelCount - Channel count of the returned image (1-4),
 		//                  or -1 to select the best channel count from
 		//                  the X Pixmap.
-		// Throws: An error message on failure.
-
-	void TryParseTga(const unsigned char * tgaData, size_t tgaSize,
-	                 int channelCount=-1);
-		// -------------------------------------------------------------
-		// This method is deprecated and should not be used any longer.
-		// -------------------------------------------------------------
-		// Set this image by parsing a Targa image (TGA). The idea is
-		// to convert a run-length encoded TGA file to a C source file,
-		// and to include that source file in the C++ source, and to
-		// convert it to an emImage at run-time using this function.
-		// Arguments:
-		//   tgaData      - Byte array with the contents of a TGA file.
-		//   tgaSize      - Number of bytes in the array.
-		//   channelCount - Channel count of the returned image (1-4),
-		//                  or -1 to select the best channel count from
-		//                  the TGA image.
 		// Throws: An error message on failure.
 
 	void Clear();
@@ -326,6 +309,20 @@ public:
 	emImage GetCroppedByAlpha(int channelCount=-1) const;
 		// Like GetCropped with a rectangle returned by
 		// GetAlphaMinMaxRect.
+
+	bool HasAnyNonGreyPixel() const;
+		// Whether there is any pixel where the red, green, and blue
+		// components are not equal.
+
+	bool HasAnyTransparentPixel() const;
+		// Whether there is any pixel where the alpha component is not 100%.
+
+	emArray<emColor> DetermineAllColorsSorted(int limit) const;
+		// Determine all colors that appear in the image, sorted in
+		// ascending order by the emUInt32 representation. If there are
+		// more colors then the given limit, then the methods aborts and
+		// returns an empty array. Limit should not be too large because
+		// the algorithm uses binary insertion.
 
 	bool PreparePainter(emPainter * painter, emRootContext & rootContext,
 	                    double clipX1=0.0, double clipY1=0.0,

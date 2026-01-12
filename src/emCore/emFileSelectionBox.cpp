@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileSelectionBox.cpp
 //
-// Copyright (C) 2015-2016,2019-2022 Oliver Hamann.
+// Copyright (C) 2015-2016,2019-2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -304,7 +304,7 @@ void emFileSelectionBox::SetHiddenFilesShown(bool hiddenFilesShown)
 
 void emFileSelectionBox::TriggerFile(const emString & name)
 {
-	emDLog("emFileSelectionBox::TriggerFile: %s",name.Get());
+	EM_DLOG("TriggerFile: %s",name.Get());
 	TriggeredFileName=name;
 	Signal(FileTriggerSignal);
 }
@@ -315,7 +315,7 @@ void emFileSelectionBox::EnterSubDir(const emString & name)
 	emString path;
 	bool readable;
 
-	emDLog("emFileSelectionBox::EnterSubDir: %s",name.Get());
+	EM_DLOG("EnterSubDir: %s",name.Get());
 	path=emGetChildPath(ParentDir,name);
 	if (name=="..") {
 		SetParentDirectory(path);
@@ -928,7 +928,7 @@ void emFileSelectionBox::FileItemPanel::Notice(NoticeFlags flags)
 	if (flags&(NF_ACTIVE_CHANGED|NF_VIEWING_CHANGED)) {
 		// This is a hack or to be defined as a design pattern.
 		if (IsInActivePath() && !IsActive() && IsViewed()) {
-			emDLog("emFileSelectionBox::FileItemPanel::Notice: Stealing activation...");
+			EM_DLOG("FileItemPanel::Notice: Stealing activation...");
 			Activate(GetView().IsActivationAdherent());
 		}
 	}

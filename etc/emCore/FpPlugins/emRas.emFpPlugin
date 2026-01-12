@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".ras" }
+FileFormatName = "RAS"
 Priority = 1.0
 Library = "emRas"
 Function = "emRasFpPluginFunc"
+ModelFunction = "emRasFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emRasImageFileModel" }
+ModelAbleToSave = no

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emOwnPtrArray.h
 //
-// Copyright (C) 2024 Oliver Hamann.
+// Copyright (C) 2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,15 +54,13 @@ public:
 	void Compact();
 		// Make the capacity equal to the count.
 
-	const OBJ * const * Get() const;
+	OBJ * const * Get() const;
 	OBJ * * Get();
 		// Get a pointer to the pointer to the first element in this
 		// array, that is, get the array as a normal C array.
 
-	const OBJ * Get(int index) const;
-	OBJ * Get(int index);
-	const OBJ * operator [] (int index) const;
-	OBJ * operator [] (int index);
+	OBJ * Get(int index) const;
+	OBJ * operator [] (int index) const;
 		// Get a pointer to an element. The index must be within the
 		// range of 0 to GetCount()-1.
 
@@ -163,6 +161,12 @@ public:
 		// Like BinarySearchByKey, but remove the found element, or
 		// return false if no such element can been found.
 
+	OBJ * const * begin() const; // NOLINT(*-identifier-naming)
+	OBJ * * begin(); // NOLINT(*-identifier-naming)
+	OBJ * const * end() const; // NOLINT(*-identifier-naming)
+	OBJ * * end(); // NOLINT(*-identifier-naming)
+		// Support range-based for loops over object pointers.
+
 private:
 
 	struct WrappedCmpContext {
@@ -243,7 +247,7 @@ inline void emOwnPtrArray<OBJ>::Compact()
 }
 
 template <class OBJ>
-inline const OBJ * const * emOwnPtrArray<OBJ>::Get() const
+inline OBJ * const * emOwnPtrArray<OBJ>::Get() const
 {
 	return Array;
 }
@@ -255,25 +259,13 @@ inline OBJ * * emOwnPtrArray<OBJ>::Get()
 }
 
 template <class OBJ>
-inline const OBJ * emOwnPtrArray<OBJ>::Get(int index) const
+inline OBJ * emOwnPtrArray<OBJ>::Get(int index) const
 {
 	return Array[index];
 }
 
 template <class OBJ>
-inline OBJ * emOwnPtrArray<OBJ>::Get(int index)
-{
-	return Array[index];
-}
-
-template <class OBJ>
-inline const OBJ * emOwnPtrArray<OBJ>::operator [](int index) const
-{
-	return Array[index];
-}
-
-template <class OBJ>
-inline OBJ * emOwnPtrArray<OBJ>::operator [](int index)
+inline OBJ * emOwnPtrArray<OBJ>::operator [](int index) const
 {
 	return Array[index];
 }
@@ -302,9 +294,10 @@ inline OBJ *  emOwnPtrArray<OBJ>::Release(int index)
 }
 
 template <class OBJ>
-inline void emOwnPtrArray<OBJ>::Add(OBJ * obj, bool compact)
+void emOwnPtrArray<OBJ>::Add(OBJ * obj, bool compact)
 {
-	Insert(Count,obj,compact);
+	AdaptCapacity(Count+1,compact);
+	Array[Count++]=obj;
 }
 
 template <class OBJ>
@@ -422,6 +415,26 @@ bool emOwnPtrArray<OBJ>::BinaryRemoveByKey(
 		if (compact) Compact();
 		return false;
 	}
+}
+
+template <class OBJ> OBJ * const * emOwnPtrArray<OBJ>::begin() const
+{
+	return Array;
+}
+
+template <class OBJ> OBJ * * emOwnPtrArray<OBJ>::begin()
+{
+	return Array;
+}
+
+template <class OBJ> OBJ * const * emOwnPtrArray<OBJ>::end() const
+{
+	return Array+Count;
+}
+
+template <class OBJ> OBJ * * emOwnPtrArray<OBJ>::end()
+{
+	return Array+Count;
 }
 
 template <class OBJ>

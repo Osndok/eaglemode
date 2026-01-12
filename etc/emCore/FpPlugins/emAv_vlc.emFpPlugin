@@ -34,6 +34,7 @@ FileTypes = {
  ".vob"
  ".wmv"
 }
+FileFormatName = "Audio/Video"
 Priority = 1.0
 Library = "emAv"
 Function = "emAvFpPluginFunc"

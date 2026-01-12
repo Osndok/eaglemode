@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emHmiDemo" }
+FileFormatName = "emHmiDemo"
 Priority = 1.0
 Library = "emHmiDemo"
 Function = "emHmiDemoFpPluginFunc"

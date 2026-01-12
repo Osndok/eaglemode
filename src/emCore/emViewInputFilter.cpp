@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewInputFilter.cpp
 //
-// Copyright (C) 2011-2012,2014-2016,2018-2020,2022 Oliver Hamann.
+// Copyright (C) 2011-2012,2014-2016,2018-2020,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -875,9 +875,9 @@ void emDefaultTouchVIF::Input(emInputEvent & event, const emInputState & state)
 	}
 
 	//???:
-	emDLog("emDefaultTouchVIF[%p]::Input:",(const void*)this);
+	EM_DLOG("emDefaultTouchVIF[%p]::Input:",(const void*)this);
 	for (i=0; i<state.GetTouchCount(); i++) {
-		emDLog(
+		EM_DLOG(
 			"  touch: id=%ld x=%g y=%g",
 			(long)state.GetTouchId(i),
 			state.GetTouchX(i),

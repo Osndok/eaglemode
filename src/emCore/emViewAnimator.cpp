@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emViewAnimator.cpp
 //
-// Copyright (C) 2014-2017,2021-2022 Oliver Hamann.
+// Copyright (C) 2014-2017,2021-2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -79,7 +79,7 @@ void emViewAnimator::Activate()
 		}
 		*UpperActivePtr=this;
 		WakeUp();
-		emDLog("emViewAnimator::Activate: class = %s",typeid(*this).name());
+		EM_DLOG("Activate: class = %s",typeid(*this).name());
 	}
 }
 
@@ -92,7 +92,7 @@ void emViewAnimator::Deactivate()
 
 	if (*UpperActivePtr==this) {
 		*UpperActivePtr=NULL;
-		emDLog("emViewAnimator::Deactivate: class = %s",typeid(*this).name());
+		EM_DLOG("Deactivate: class = %s",typeid(*this).name());
 	}
 }
 

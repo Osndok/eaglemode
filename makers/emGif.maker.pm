@@ -42,7 +42,8 @@ sub Build
 		"--name"          , "emGif",
 		"src/emGif/emGifFileModel.cpp",
 		"src/emGif/emGifFilePanel.cpp",
-		"src/emGif/emGifFpPlugin.cpp"
+		"src/emGif/emGifFpPlugin.cpp",
+		"src/emGif/emGifImageFileModel.cpp"
 	)==0 or return 0;
 
 	return 1;

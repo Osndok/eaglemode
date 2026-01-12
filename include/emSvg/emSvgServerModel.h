@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgServerModel.h
 //
-// Copyright (C) 2010,2014,2017-2018,2022,2024 Oliver Hamann.
+// Copyright (C) 2010,2014,2017-2018,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -66,6 +66,7 @@ public:
 	class OpenJob : public emJob {
 	public:
 		OpenJob(const emString & filePath, double priority=0.0);
+		virtual ~OpenJob();
 		const emRef<SvgInstance>& GetSvgInstance() const;
 	private:
 		friend class emSvgServerModel;
@@ -80,6 +81,7 @@ public:
 			double srcWidth, double srcHeight, emColor bgColor,
 			int tgtWidth, int tgtHeight, double priority=0.0
 		);
+		virtual ~RenderJob();
 		double GetSrcX() const;
 		double GetSrcY() const;
 		double GetSrcWidth() const;
@@ -114,6 +116,7 @@ private:
 	class CloseJob : public emJob {
 	public:
 		CloseJob(emUInt64 procRunId, int instanceId);
+		virtual ~CloseJob();
 	private:
 		friend class emSvgServerModel;
 		emUInt64 ProcRunId;

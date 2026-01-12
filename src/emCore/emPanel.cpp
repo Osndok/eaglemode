@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPanel.cpp
 //
-// Copyright (C) 2004-2008,2011,2014-2017,2021-2022,2024 Oliver Hamann.
+// Copyright (C) 2004-2008,2011,2014-2017,2021-2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -772,7 +772,7 @@ void emPanel::SetFocusable(bool focusable)
 {
 	if (((bool)Focusable)!=focusable) {
 		if (!Parent && !focusable) {
-			emDLog("emPanel::SetFocusable: a root panel cannot be set unfocusable");
+			EM_DLOG("SetFocusable: a root panel cannot be set unfocusable");
 			return;
 		}
 		Focusable=focusable;

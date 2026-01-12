@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11ExtDynamic.cpp
 //
-// Copyright (C) 2008-2009,2014,2016,2018-2019,2021 Oliver Hamann.
+// Copyright (C) 2008-2009,2014,2016,2018-2019,2021,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -72,24 +72,17 @@ void emX11_TryLoadLibXext()
 	emLibHandle h;
 	int i;
 
-	emX11_LibXextLoadMutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(emX11_LibXextLoadMutex);
 	if (!emX11_LibXextLoaded) {
-		try {
-			h=emTryOpenLib(emX11_LibXextName,true);
-			for (i=0; i<(int)(sizeof(emX11_LibXextFunctions)/sizeof(void*)); i++) {
-				emX11_LibXextFunctions[i]=emTryResolveSymbolFromLib(
-					h,
-					emX11_LibXextFuncNames[i]
-				);
-			}
-		}
-		catch (const emException & exception) {
-			emX11_LibXextLoadMutex.Unlock();
-			throw exception;
+		h=emTryOpenLib(emX11_LibXextName,true);
+		for (i=0; i<(int)(sizeof(emX11_LibXextFunctions)/sizeof(void*)); i++) {
+			emX11_LibXextFunctions[i]=emTryResolveSymbolFromLib(
+				h,
+				emX11_LibXextFuncNames[i]
+			);
 		}
 		emX11_LibXextLoaded=true;
 	}
-	emX11_LibXextLoadMutex.Unlock();
 }
 
 
@@ -141,24 +134,17 @@ void emX11_TryLoadLibXxf86vm()
 	emLibHandle h;
 	int i;
 
-	emX11_LibXxf86vmLoadMutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(emX11_LibXxf86vmLoadMutex);
 	if (!emX11_LibXxf86vmLoaded) {
-		try {
-			h=emTryOpenLib(emX11_LibXxf86vmName,true);
-			for (i=0; i<(int)(sizeof(emX11_LibXxf86vmFunctions)/sizeof(void*)); i++) {
-				emX11_LibXxf86vmFunctions[i]=emTryResolveSymbolFromLib(
-					h,
-					emX11_LibXxf86vmFuncNames[i]
-				);
-			}
-		}
-		catch (const emException & exception) {
-			emX11_LibXxf86vmLoadMutex.Unlock();
-			throw exception;
+		h=emTryOpenLib(emX11_LibXxf86vmName,true);
+		for (i=0; i<(int)(sizeof(emX11_LibXxf86vmFunctions)/sizeof(void*)); i++) {
+			emX11_LibXxf86vmFunctions[i]=emTryResolveSymbolFromLib(
+				h,
+				emX11_LibXxf86vmFuncNames[i]
+			);
 		}
 		emX11_LibXxf86vmLoaded=true;
 	}
-	emX11_LibXxf86vmLoadMutex.Unlock();
 }
 
 
@@ -210,24 +196,17 @@ void emX11_TryLoadLibXinerama()
 	emLibHandle h;
 	int i;
 
-	emX11_LibXineramaLoadMutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(emX11_LibXineramaLoadMutex);
 	if (!emX11_LibXineramaLoaded) {
-		try {
-			h=emTryOpenLib(emX11_LibXineramaName,true);
-			for (i=0; i<(int)(sizeof(emX11_LibXineramaFunctions)/sizeof(void*)); i++) {
-				emX11_LibXineramaFunctions[i]=emTryResolveSymbolFromLib(
-					h,
-					emX11_LibXineramaFuncNames[i]
-				);
-			}
-		}
-		catch (const emException & exception) {
-			emX11_LibXineramaLoadMutex.Unlock();
-			throw exception;
+		h=emTryOpenLib(emX11_LibXineramaName,true);
+		for (i=0; i<(int)(sizeof(emX11_LibXineramaFunctions)/sizeof(void*)); i++) {
+			emX11_LibXineramaFunctions[i]=emTryResolveSymbolFromLib(
+				h,
+				emX11_LibXineramaFuncNames[i]
+			);
 		}
 		emX11_LibXineramaLoaded=true;
 	}
-	emX11_LibXineramaLoadMutex.Unlock();
 }
 
 

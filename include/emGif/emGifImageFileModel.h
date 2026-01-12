@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-// emPsFileModel.h
+// emGifImageFileModel.h
 //
-// Copyright (C) 2006-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,33 +18,30 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef emPsFileModel_h
-#define emPsFileModel_h
+#ifndef emGifImageFileModel_h
+#define emGifImageFileModel_h
 
-#ifndef emFileModel_h
-#include <emCore/emFileModel.h>
+#ifndef emImageFile_h
+#include <emCore/emImageFile.h>
 #endif
 
-#ifndef emPsDocument_h
-#include <emPs/emPsDocument.h>
+#ifndef emGifFileModel_h
+#include <emGif/emGifFileModel.h>
 #endif
 
 
-class emPsFileModel : public emFileModel {
+class emGifImageFileModel : public emImageFileModel {
 
 public:
 
-	static emRef<emPsFileModel> Acquire(
+	static emRef<emGifImageFileModel> Acquire(
 		emContext & context, const emString & name, bool common=true
 	);
 
-	const emPsDocument & GetDocument() const;
-
 protected:
 
-	emPsFileModel(emContext & context, const emString & name);
-	virtual ~emPsFileModel();
-	virtual void ResetData();
+	emGifImageFileModel(emContext & context, const emString & name);
+	virtual ~emGifImageFileModel();
 	virtual void TryStartLoading();
 	virtual bool TryContinueLoading();
 	virtual void QuitLoading();
@@ -57,20 +54,12 @@ protected:
 private:
 
 	struct LoadingState {
-		FILE * File;
-		int FileSize,FilePos;
-		emArray<char> Buffer;
+		emRef<emGifFileModel> GifFileModel;
+		emAbsoluteFileModelClient FmClient;
 	};
 
-	LoadingState * L;
-
-	emPsDocument Document;
+	emOwnPtr<LoadingState> L;
 };
-
-inline const emPsDocument & emPsFileModel::GetDocument() const
-{
-	return Document;
-}
 
 
 #endif

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImageFile.h
 //
-// Copyright (C) 2004-2008,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2016,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -54,6 +54,13 @@ public:
 	void SetFileFormatInfo(const emString & fileFormatInfo);
 		// User-readable Information about the file format. Setting this
 		// may not be useful.
+
+	int GetSavingQuality() const;
+	void SetSavingQuality(int qualityPercent);
+		// Desired quality in percent when saving the image to a file.
+		// The higher this value, the better the image is preserved and
+		// the worse is the compression. This is not supported by every
+		// image file format.
 
 	const emSignal & GetChangeSignal() const;
 		// Signaled on every change of the image, the comment or the

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd1.cpp
 //
-// Copyright (C) 2004-2012,2014,2016,2018-2020,2024 Oliver Hamann.
+// Copyright (C) 2004-2012,2014,2016,2018-2020,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -76,13 +76,12 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 	{
 		char * p;
 
-		em_time_func_mutex.Lock();
+		emThreadMiniMutex::Locker mutexLocker(em_time_func_mutex);
 		p=asctime(ptm);
 		if (p) {
 			strcpy(buf,p);
 			p=buf;
 		}
-		em_time_func_mutex.Unlock();
 		return p;
 	}
 
@@ -91,13 +90,12 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 	{
 		char * p;
 
-		em_time_func_mutex.Lock();
+		emThreadMiniMutex::Locker mutexLocker(em_time_func_mutex);
 		p=ctime(ptime);
 		if (p) {
 			strcpy(buf,p);
 			p=buf;
 		}
-		em_time_func_mutex.Unlock();
 		return p;
 	}
 
@@ -106,13 +104,12 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 	{
 		struct tm * p;
 
-		em_time_func_mutex.Lock();
+		emThreadMiniMutex::Locker mutexLocker(em_time_func_mutex);
 		p=gmtime(ptime);
 		if (p) {
 			memcpy(buf,p,sizeof(struct tm));
 			p=buf;
 		}
-		em_time_func_mutex.Unlock();
 		return p;
 	}
 
@@ -121,13 +118,12 @@ emCompatibilityCheckerClass::emCompatibilityCheckerClass(
 	{
 		struct tm * p;
 
-		em_time_func_mutex.Lock();
+		emThreadMiniMutex::Locker mutexLocker(em_time_func_mutex);
 		p=localtime(ptime);
 		if (p) {
 			memcpy(buf,p,sizeof(struct tm));
 			p=buf;
 		}
-		em_time_func_mutex.Unlock();
 		return p;
 	}
 
@@ -337,63 +333,70 @@ int emDecodeUtf8Char(int * pUcs4, const char * utf8, int utf8Len)
 		return 1;
 	}
 
-	if (utf8Len<2) goto Err;
+	if (utf8Len<2) goto ErrIncomplete;
 	b=(unsigned char)utf8[1];
-	if ((b&0xc0)!=0x80) goto Err;
+	if ((b&0xc0)!=0x80) goto ErrIncompleteOrInvalid;
 	c=b&0x3f;
 	if ((a&0xe0)==0xc0) {
 		c|=(a&0x1f)<<6;
-		if (c<0x00000080) goto Err;
+		if (c<0x00000080) goto ErrInvalid;
 		*pUcs4=c;
 		return 2;
 	}
 
-	if (utf8Len<3) goto Err;
+	if (utf8Len<3) goto ErrIncomplete;
 	b=(unsigned char)utf8[2];
-	if ((b&0xc0)!=0x80) goto Err;
+	if ((b&0xc0)!=0x80) goto ErrIncompleteOrInvalid;
 	c=(c<<6)|(b&0x3f);
 	if ((a&0xf0)==0xe0) {
 		c|=(a&0x0f)<<12;
-		if (c<0x00000800) goto Err;
+		if (c<0x00000800) goto ErrInvalid;
 		*pUcs4=c;
 		return 3;
 	}
 
-	if (utf8Len<4) goto Err;
+	if (utf8Len<4) goto ErrIncomplete;
 	b=(unsigned char)utf8[3];
-	if ((b&0xc0)!=0x80) goto Err;
+	if ((b&0xc0)!=0x80) goto ErrIncompleteOrInvalid;
 	c=(c<<6)|(b&0x3f);
 	if ((a&0xf8)==0xf0) {
 		c|=(a&0x07)<<18;
-		if (c<0x00010000) goto Err;
+		if (c<0x00010000) goto ErrInvalid;
 		*pUcs4=c;
 		return 4;
 	}
 
-	if (utf8Len<5) goto Err;
+	if (utf8Len<5) goto ErrIncomplete;
 	b=(unsigned char)utf8[4];
-	if ((b&0xc0)!=0x80) goto Err;
+	if ((b&0xc0)!=0x80) goto ErrIncompleteOrInvalid;
 	c=(c<<6)|(b&0x3f);
 	if ((a&0xfc)==0xf8) {
 		c|=(a&0x03)<<24;
-		if (c<0x00200000) goto Err;
+		if (c<0x00200000) goto ErrInvalid;
 		*pUcs4=c;
 		return 5;
 	}
 
-	if (utf8Len<6) goto Err;
+	if (utf8Len<6) goto ErrIncomplete;
 	b=(unsigned char)utf8[5];
-	if ((b&0xc0)!=0x80) goto Err;
+	if ((b&0xc0)!=0x80) goto ErrIncompleteOrInvalid;
 	c=(c<<6)|(b&0x3f);
 	if ((a&0xfe)==0xfc) {
 		c|=(a&0x01)<<30;
-		if (c<0x04000000) goto Err;
+		if (c<0x04000000) goto ErrInvalid;
 		*pUcs4=c;
 		return 6;
 	}
-Err:
+	goto ErrInvalid;
+
+ErrIncompleteOrInvalid:
+	if (!b) goto ErrIncomplete;
+ErrInvalid:
 	*pUcs4=a;
 	return -1;
+ErrIncomplete:
+	*pUcs4=a;
+	return -2;
 }
 
 
@@ -479,6 +482,15 @@ int emEncodeChar(char * str, int ucs4, emMBState * state)
 
 int emDecodeChar(int * pUcs4, const char * str, int strLen, emMBState * state)
 {
+	int r=emDecodeCharStrictly(pUcs4,str,strLen,state);
+	if (r<0) r=1;
+	return r;
+}
+
+int emDecodeCharStrictly(
+	int * pUcs4, const char * str, int strLen, emMBState * state
+)
+{
 	int c,c2,r,r2;
 	wchar_t w;
 
@@ -498,12 +510,7 @@ int emDecodeChar(int * pUcs4, const char * str, int strLen, emMBState * state)
 	}
 
 	if (emUtf8System) {
-		r=emDecodeUtf8Char(pUcs4,str,strLen);
-		if (r<0) {
-			*pUcs4=c;
-			r=1;
-		}
-		return r;
+		return emDecodeUtf8Char(pUcs4,str,strLen);
 	}
 
 	if (emLatin1System) {
@@ -535,19 +542,23 @@ int emDecodeChar(int * pUcs4, const char * str, int strLen, emMBState * state)
 
 	r=(int)mbrtowc(&w,str,strLen,state?&state->State:NULL);
 	if (r<=0) {
-		if (r==0) {
-			*pUcs4=0;
-			return 0;
-		}
-		*pUcs4=c;
-		return 1;
+		if (r==0) *pUcs4=0; else *pUcs4=c;
+		return r;
 	}
 	c=(int)w;
 	if (sizeof(wchar_t)<4) {
 		// Assuming UTF-16
 		c&=0xFFFF;
-		if (c>=0xD800 && c<=0xDBFF && r<strLen) {
+		if (c>=0xD800 && c<=0xDBFF) {
+			if (r>=strLen) {
+				*pUcs4=(unsigned char)str[0];
+				return -2;
+			}
 			r2=(int)mbrtowc(&w,str+r,strLen-r,state?&state->State:NULL);
+			if (r2<0) {
+				*pUcs4=(unsigned char)str[0];
+				return r2;
+			}
 			if (r2>0) {
 				c2=(emUInt16)w;
 				if (c2>=0xDC00 && c2<=0xDFFF) {
@@ -665,18 +676,85 @@ void emLog(const char * format, ...)
 }
 
 
+void emMLog(const char * srcFile, const char * format, ...)
+{
+	emString pre;
+	if (srcFile) {
+		const char * n=emGetNameInPath(srcFile);
+		const char * e=emGetExtensionInPath(n);
+		pre=emString(n,e-n)+": ";
+	}
+	va_list args;
+	va_start(args,format);
+	emRawLog(pre,format,args);
+	va_end(args);
+}
+
+
+static emThreadMiniMutex emDevLogMutex;
 static bool emDevLogEnabled=false;
+static emArray<emString> emDevLogModuleSelection;
 
 
 void emEnableDLog(bool devLogEnabled)
 {
+	emEnableDLog(devLogEnabled,NULL);
+}
+
+
+void emEnableDLog(bool devLogEnabled, const char * moduleSelection)
+{
+	emDevLogMutex.Lock();
 	emDevLogEnabled=devLogEnabled;
+	emDevLogModuleSelection.Clear();
+	if (moduleSelection) {
+		if (!*moduleSelection) {
+			emDevLogEnabled=false;
+		}
+		else {
+			for (const char * p=moduleSelection;;) {
+				const char * s=strchr(p,',');
+				if (!s) {
+					emDevLogModuleSelection+=emString(p);
+					break;
+				}
+				emDevLogModuleSelection+=emString(p,s-p);
+				p=s+1;
+			}
+		}
+	}
+	emDevLogMutex.Unlock();
 }
 
 
 bool emIsDLogEnabled()
 {
-	return emDevLogEnabled;
+	return emIsDLogEnabled(NULL);
+}
+
+
+bool emIsDLogEnabled(const char * srcFile)
+{
+	emDevLogMutex.Lock();
+	bool result=emDevLogEnabled;
+	if (result && srcFile && !emDevLogModuleSelection.IsEmpty()) {
+		const char * m=emGetNameInPath(srcFile);
+		int mLen=emGetExtensionInPath(m)-m;
+		char mdl[256];
+		if (mLen>(int)sizeof(mdl)-1) mLen=sizeof(mdl)-1;
+		memcpy(mdl,m,mLen);
+		mdl[mLen++]=':';
+		result=false;
+		for (const emString & s: emDevLogModuleSelection) {
+			int sLen=s.GetLen();
+			if (sLen<=mLen && memcmp(s.Get(),mdl,sLen)==0) {
+				result=true;
+				break;
+			}
+		}
+	}
+	emDevLogMutex.Unlock();
+	return result;
 }
 
 

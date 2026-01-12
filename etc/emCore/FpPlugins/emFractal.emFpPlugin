@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emFractal" }
+FileFormatName = "emFractal"
 Priority = 1.0
 Library = "emFractal"
 Function = "emFractalFpPluginFunc"

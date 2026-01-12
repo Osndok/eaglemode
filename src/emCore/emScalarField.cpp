@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emScalarField.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2020-2022 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2020-2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -232,6 +232,7 @@ void emScalarField::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
+	static const double minExt=12.0;
 	bool inArea;
 	emInt64 mv;
 
@@ -248,7 +249,7 @@ void emScalarField::Input(
 	}
 	else if (
 		inArea && event.IsKey(EM_KEY_LEFT_BUTTON) && IsEditable() &&
-		IsEnabled() && GetViewCondition(VCT_MIN_EXT)>=12.0
+		IsEnabled() && GetViewCondition(VCT_MIN_EXT)>=minExt
 	) {
 		Pressed=true;
 		InvalidatePainting();
@@ -256,11 +257,17 @@ void emScalarField::Input(
 			SetValue(mv);
 		}
 	}
-	else if (strcmp(event.GetChars(),"+")==0 && IsEditable() && IsEnabled()) {
+	else if (
+		strcmp(event.GetChars(),"+")==0 && IsEditable() && IsEnabled() &&
+		GetViewCondition(VCT_MIN_EXT)>=minExt
+	) {
 		StepByKeyboard(1);
 		event.Eat();
 	}
-	else if (strcmp(event.GetChars(),"-")==0 && IsEditable() && IsEnabled()) {
+	else if (
+		strcmp(event.GetChars(),"-")==0 && IsEditable() && IsEnabled() &&
+		GetViewCondition(VCT_MIN_EXT)>=minExt
+	) {
 		StepByKeyboard(-1);
 		event.Eat();
 	}

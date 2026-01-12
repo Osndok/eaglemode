@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvlTreeMap.h
 //
-// Copyright (C) 2015-2016,2021,2024 Oliver Hamann.
+// Copyright (C) 2015-2016,2021,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -212,28 +212,31 @@ public:
 			// Copy an iterator.
 
 		operator const Element * () const;
-		const Element * operator * () const;
+		const Element & operator * () const;
 		const Element * operator -> () const;
 		const Element * Get() const;
-			// Get the element pointer. It is NULL if this iterator
-			// does not point to any element.
+			// Get the element pointer or reference. It is NULL if
+			// this iterator does not point to any element.
 
-		const Element * Set(const Iterator & iter);
-			// Copy the given iterator and return the element
-			// pointer.
+		void Set(const Iterator & iter);
+			// Copy the given iterator.
 
-		const Element * Set(const emAvlTreeMap<KEY,VALUE> & map, const KEY & key);
-		const Element * Set(const emAvlTreeMap<KEY,VALUE> & map, const Element * elem);
+		void Set(const emAvlTreeMap<KEY,VALUE> & map, const KEY & key);
+		void Set(const emAvlTreeMap<KEY,VALUE> & map, const Element * elem);
 			// Set this iterator to the given element of the given
-			// map and return the element pointer.
+			// map.
 
-		const Element * SetFirst(const emAvlTreeMap<KEY,VALUE> & map);
-		const Element * SetLast(const emAvlTreeMap<KEY,VALUE> & map);
+		void SetFirst(const emAvlTreeMap<KEY,VALUE> & map);
+		void SetLast(const emAvlTreeMap<KEY,VALUE> & map);
 			// Set this iterator to the first or last element of the
-			// given map and return the element pointer.
+			// given map.
 
-		const Element * SetNext();
-		const Element * SetPrev();
+		void SetNext();
+		void SetPrev();
+			// Set this iterator to the next or previous element.
+			// This must be called only if the old element pointer
+			// is not NULL.
+
 		const Element * operator ++();
 		const Element * operator --();
 			// Set this iterator to the next or previous element and
@@ -246,8 +249,6 @@ public:
 
 		bool operator == (const Iterator & iter) const;
 		bool operator != (const Iterator & iter) const;
-		bool operator == (const Element * elem) const;
-		bool operator != (const Element * elem) const;
 			// Ordinary compare operators.
 
 		const emAvlTreeMap<KEY,VALUE> * GetMap() const;
@@ -274,6 +275,12 @@ public:
 		emAvlTreeMap<KEY,VALUE> * Map;
 		Iterator * NextIter; // Undefined if Map==NULL
 	};
+
+	Iterator begin() const; // NOLINT(*-identifier-naming)
+	Iterator end() const; // NOLINT(*-identifier-naming)
+		// Support range-based for loops. This only allows to loop
+		// constant Element references. If you want to modify elements
+		// within such a loop, make use of SetValue or GetValueWritable.
 
 private:
 	friend class Iterator;
@@ -715,10 +722,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::operator const typename emAvlTreeMap<KEY,VALU
 }
 
 template <class KEY, class VALUE> inline
-const typename emAvlTreeMap<KEY,VALUE>::Element *
+const typename emAvlTreeMap<KEY,VALUE>::Element &
 emAvlTreeMap<KEY,VALUE>::Iterator::operator * () const
 {
-	return Pos;
+	return *Pos;
 }
 
 template <class KEY, class VALUE> inline
@@ -736,8 +743,7 @@ emAvlTreeMap<KEY,VALUE>::Iterator::Get() const
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::Set(
+void emAvlTreeMap<KEY,VALUE>::Iterator::Set(
 	const Iterator & iter
 )
 {
@@ -746,12 +752,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::Set(
 		AvlIterValid=false;
 		Pos=iter.Pos;
 	}
-	return Pos;
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::Set(
+void emAvlTreeMap<KEY,VALUE>::Iterator::Set(
 	const emAvlTreeMap<KEY,VALUE> & map, const KEY & key
 )
 {
@@ -764,12 +768,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::Set(
 	EM_AVL_ITER_START_ANY_END
 	AvlIterValid=true;
 	Pos=element;
-	return Pos;
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::Set(
+void emAvlTreeMap<KEY,VALUE>::Iterator::Set(
 	const emAvlTreeMap<KEY,VALUE> & map, const Element * elem
 )
 {
@@ -778,12 +780,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::Set(
 		AvlIterValid=false;
 		Pos=elem;
 	}
-	return Pos;
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::SetFirst(
+void emAvlTreeMap<KEY,VALUE>::Iterator::SetFirst(
 	const emAvlTreeMap<KEY,VALUE> & map
 )
 {
@@ -793,12 +793,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::SetFirst(
 	EM_AVL_ITER_FIRST(Element,AvlNode,Map->Data->AvlTree,AvlIter)
 	AvlIterValid=true;
 	Pos=element;
-	return Pos;
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::SetLast(
+void emAvlTreeMap<KEY,VALUE>::Iterator::SetLast(
 	const emAvlTreeMap<KEY,VALUE> & map
 )
 {
@@ -808,12 +806,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::SetLast(
 	EM_AVL_ITER_LAST(Element,AvlNode,Map->Data->AvlTree,AvlIter)
 	AvlIterValid=true;
 	Pos=element;
-	return Pos;
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::SetNext()
+void emAvlTreeMap<KEY,VALUE>::Iterator::SetNext()
 {
 	EM_AVL_ITER_VARS(Element)
 
@@ -822,12 +818,10 @@ emAvlTreeMap<KEY,VALUE>::Iterator::SetNext()
 		EM_AVL_ITER_NEXT(Element,AvlNode,AvlIter)
 		Pos=element;
 	}
-	return Pos;
 }
 
 template <class KEY, class VALUE>
-const typename emAvlTreeMap<KEY,VALUE>::Element *
-emAvlTreeMap<KEY,VALUE>::Iterator::SetPrev()
+void emAvlTreeMap<KEY,VALUE>::Iterator::SetPrev()
 {
 	EM_AVL_ITER_VARS(Element)
 
@@ -836,21 +830,22 @@ emAvlTreeMap<KEY,VALUE>::Iterator::SetPrev()
 		EM_AVL_ITER_PREV(Element,AvlNode,AvlIter)
 		Pos=element;
 	}
-	return Pos;
 }
 
 template <class KEY, class VALUE> inline
 const typename emAvlTreeMap<KEY,VALUE>::Element *
 emAvlTreeMap<KEY,VALUE>::Iterator::operator ++()
 {
-	return SetNext();
+	SetNext();
+	return Pos;
 }
 
 template <class KEY, class VALUE> inline
 const typename emAvlTreeMap<KEY,VALUE>::Element *
 emAvlTreeMap<KEY,VALUE>::Iterator::operator --()
 {
-	return SetPrev();
+	SetPrev();
+	return Pos;
 }
 
 template <class KEY, class VALUE> inline
@@ -885,22 +880,6 @@ bool emAvlTreeMap<KEY,VALUE>::Iterator::operator != (
 ) const
 {
 	return Pos!=iter.Pos;
-}
-
-template <class KEY, class VALUE> inline
-bool emAvlTreeMap<KEY,VALUE>::Iterator::operator == (
-	const Element * elem
-) const
-{
-	return Pos==elem;
-}
-
-template <class KEY, class VALUE> inline
-bool emAvlTreeMap<KEY,VALUE>::Iterator::operator != (
-	const Element * elem
-) const
-{
-	return Pos!=elem;
 }
 
 template <class KEY, class VALUE> inline
@@ -941,6 +920,18 @@ void emAvlTreeMap<KEY,VALUE>::Iterator::SetMap(
 			Map->Iterators=this;
 		}
 	}
+}
+
+template <class KEY, class VALUE> inline
+typename emAvlTreeMap<KEY,VALUE>::Iterator emAvlTreeMap<KEY,VALUE>::begin() const
+{
+	return Iterator(*this,GetFirst());
+}
+
+template <class KEY, class VALUE> inline
+typename emAvlTreeMap<KEY,VALUE>::Iterator emAvlTreeMap<KEY,VALUE>::end() const
+{
+	return Iterator();
 }
 
 template <class KEY, class VALUE>

@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".rgb" }
+FileFormatName = "RGB"
 Priority = 1.0
 Library = "emRgb"
 Function = "emRgbFpPluginFunc"
+ModelFunction = "emRgbFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emRgbImageFileModel" }
+ModelAbleToSave = no

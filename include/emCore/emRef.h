@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRef.h
 //
-// Copyright (C) 2005-2008,2010,2016,2024 Oliver Hamann.
+// Copyright (C) 2005-2008,2010,2016,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -97,8 +97,14 @@ public:
 		// Destructor.
 
 	emRef & operator = (const emRef & ref);
+		// Copy a reference.
+
+	void Set(CLS * model = NULL);
 	emRef & operator = (CLS * model);
-		// Copy from a reference or pointer (NULL-pointer is allowed).
+		// Assign an object pointer. NULL is allowed.
+
+	void Reset();
+		// Same as Set(NULL).
 
 	operator CLS * () const;
 		// Cast this reference to a pointer (can be NULL).
@@ -188,12 +194,22 @@ template <class CLS> emRef<CLS> & emRef<CLS>::operator = (const emRef & ref)
 	return *this;
 }
 
-template <class CLS> emRef<CLS> & emRef<CLS>::operator = (CLS * model)
+template <class CLS> void emRef<CLS>::Set(CLS * model)
 {
 	if (model) model->Alloc();
 	if (Mdl) Mdl->Free();
 	Mdl=model;
+}
+
+template <class CLS> inline emRef<CLS> & emRef<CLS>::operator = (CLS * model)
+{
+	Set(model);
 	return *this;
+}
+
+template <class CLS> inline void emRef<CLS>::Reset()
+{
+	Set(NULL);
 }
 
 template <class CLS> inline emRef<CLS>::operator CLS * () const

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScreen.cpp
 //
-// Copyright (C) 2006-2011,2015-2017,2022,2024 Oliver Hamann.
+// Copyright (C) 2006-2011,2015-2017,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -122,10 +122,11 @@ emWndsScreen::emWndsScreen(emContext & context, const emString & name)
 	WNDCLASS wc;
 	int i;
 
-	InstanceListMutex.Lock();
-	NextInstance=InstanceList;
-	InstanceList=this;
-	InstanceListMutex.Unlock();
+	{
+		emThreadMiniMutex::Locker mutexLocker(InstanceListMutex);
+		NextInstance=InstanceList;
+		InstanceList=this;
+	}
 
 	WindowProcRecursion=0;
 
@@ -190,10 +191,10 @@ emWndsScreen::~emWndsScreen()
 	ViewRenderer.Reset();
 
 	UnregisterClass(WinClassName.Get(),NULL);
-	InstanceListMutex.Lock();
+
+	emThreadMiniMutex::Locker mutexLocker(InstanceListMutex);
 	for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
 	*pp=NextInstance;
-	InstanceListMutex.Unlock();
 }
 
 
@@ -250,14 +251,15 @@ LRESULT CALLBACK emWndsScreen::WindowProc(
 	LRESULT res;
 	int i;
 
-	InstanceListMutex.Lock();
-	for (s=InstanceList, i=-1; s; s=s->NextInstance) {
-		for (i=s->WinPorts.GetCount()-1; i>=0; i--) {
-			if (s->WinPorts[i]->HWnd==hWnd) break;
+	{
+		emThreadMiniMutex::Locker mutexLocker(InstanceListMutex);
+		for (s=InstanceList, i=-1; s; s=s->NextInstance) {
+			for (i=s->WinPorts.GetCount()-1; i>=0; i--) {
+				if (s->WinPorts[i]->HWnd==hWnd) break;
+			}
+			if (i>=0) break;
 		}
-		if (i>=0) break;
 	}
-	InstanceListMutex.Unlock();
 
 	if (s && i>=0) {
 		s->InputStateToBeFlushed=true;
@@ -324,15 +326,15 @@ void emWndsScreen::UpdateGeometry()
 		SignalGeometrySignal();
 
 		rp=&DesktopRect;
-		emDLog(
-			"emWndsScreen::UpdateGeometry: Desktop: x=%ld y=%ld w=%ld h=%ld",
+		EM_DLOG(
+			"UpdateGeometry: Desktop: x=%ld y=%ld w=%ld h=%ld",
 			(long)rp->left, (long)rp->top, (long)(rp->right-rp->left),
 			(long)(rp->bottom-rp->top)
 		);
 		for (i=0; i<MonitorRects.GetCount(); i++) {
 			rp=&MonitorRects[i];
-			emDLog(
-				"emWndsScreen::UpdateGeometry: Monitor %d: x=%ld y=%ld w=%ld h=%ld",
+			EM_DLOG(
+				"UpdateGeometry: Monitor %d: x=%ld y=%ld w=%ld h=%ld",
 				i, (long)rp->left, (long)rp->top, (long)(rp->right-rp->left),
 				(long)(rp->bottom-rp->top)
 			);
@@ -593,9 +595,8 @@ emWndsScreen::WaitCursorThread::~WaitCursorThread()
 
 void emWndsScreen::WaitCursorThread::SignOfLife()
 {
-	Mutex.Lock();
+	emThreadMutex::Locker mutexLocker(Mutex);
 	Clock=emGetClockMS();
-	Mutex.Unlock();
 }
 
 
@@ -603,10 +604,9 @@ bool emWndsScreen::WaitCursorThread::CursorToRestore()
 {
 	bool b;
 
-	Mutex.Lock();
+	emThreadMutex::Locker mutexLocker(Mutex);
 	b=CursorChanged;
 	CursorChanged=false;
-	Mutex.Unlock();
 	return b;
 }
 
@@ -629,19 +629,21 @@ int emWndsScreen::WaitCursorThread::Run(void * arg)
 	}
 
 	do {
-		Mutex.Lock();
-		t=Clock;
-		Mutex.Unlock();
+		{
+			emThreadMutex::Locker mutexLocker(Mutex);
+			t=Clock;
+		}
 		t=emGetClockMS()-t;
 		if (t<blockTimeMS) {
 			t=blockTimeMS-t+1;
 		}
 		else {
-			emDLog("emWndsScreen::WaitCursorThread: blocking detected");
-			Mutex.Lock();
-			SetCursor(hcur);
-			CursorChanged=true;
-			Mutex.Unlock();
+			EM_DLOG("WaitCursorThread: blocking detected");
+			{
+				emThreadMutex::Locker mutexLocker(Mutex);
+				SetCursor(hcur);
+				CursorChanged=true;
+			}
 			t=blockTimeMS;
 		}
 	} while (!QuitEvent.Receive(1,(unsigned)t));

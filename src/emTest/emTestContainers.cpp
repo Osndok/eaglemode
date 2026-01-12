@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestContainers.cpp
 //
-// Copyright (C) 2005-2009,2014-2016 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -23,9 +23,8 @@
 #include <emCore/emAvlTreeMap.h>
 #include <emCore/emAvlTreeSet.h>
 #include <emCore/emAnything.h>
-
-#define MY_ASSERT(c) \
-	if (!(c)) emFatalError("%s, %d: assertion failed: %s",__FILE__,__LINE__,#c)
+#include <emCore/emFileStream.h>
+#include <emCore/emTmpFile.h>
 
 
 static void TestSortArray()
@@ -45,7 +44,7 @@ static void TestSortArray()
 	);
 	printf("time = %dms\n",(int)(emGetClockMS()-clk));
 	for (i=0; i<b.GetCount()-1; i++) {
-		MY_ASSERT(b[i]<=b[i+1]);
+		EM_ASSERT(b[i]<=b[i+1]);
 	}
 }
 
@@ -64,7 +63,7 @@ static void TestSortList()
 	printf("time = %dms\n",(int)(emGetClockMS()-clk));
 	for (li.SetFirst(l); li; ++li) {
 		if (l.GetNext(li)) {
-			MY_ASSERT(*li.Get() <= *l.GetNext(li));
+			EM_ASSERT(*li.Get() <= *l.GetNext(li));
 		}
 	}
 #if defined(_WIN32)
@@ -88,7 +87,7 @@ static void TestStringList()
 	for (i.SetLast(a); i; --i) a.InsertAfter(i," ");
 	*a.GetLastWritable()="\n";
 	for (str="", j=a.GetFirst(); j; j=a.GetNext(j)) str+=*j;
-	MY_ASSERT(str=="hello world\n");
+	EM_ASSERT(str=="hello world\n");
 
 	a=emString("fox");
 	i1.SetLast(a);
@@ -108,21 +107,21 @@ static void TestStringList()
 		str+=*j;
 		if (j!=a.GetLast()) str+=" ";
 	}
-	MY_ASSERT(str=="the quick brown fox jumps over the lazy dog");
+	EM_ASSERT(str=="the quick brown fox jumps over the lazy dog");
 
 	a.InsertBefore(a.GetAtIndex(a.GetCount()/2),a);
 	for (str="", j=a.GetFirst(); j; j=a.GetNext(j)) {
 		str+=*j;
 		if (j!=a.GetLast()) str+=" ";
 	}
-	MY_ASSERT(str=="the quick brown fox the quick brown fox jumps over the lazy dog jumps over the lazy dog");
+	EM_ASSERT(str=="the quick brown fox the quick brown fox jumps over the lazy dog jumps over the lazy dog");
 
 	a.Sort(emStdComparer<emString>::Compare);
 	for (str="", j=a.GetFirst(); j; j=a.GetNext(j)) {
 		str+=*j;
 		if (j!=a.GetLast()) str+=" ";
 	}
-	MY_ASSERT(str=="brown brown dog dog fox fox jumps jumps lazy lazy over over quick quick the the the the");
+	EM_ASSERT(str=="brown brown dog dog fox fox jumps jumps lazy lazy over over quick quick the the the the");
 }
 
 
@@ -140,12 +139,12 @@ static void TestCharArray()
 		a1.Add("cd",2,true);
 		a1.AddNew(1);
 		a2=a1;
-		MY_ASSERT(a2.GetTuningLevel()==tuningLevel);
+		EM_ASSERT(a2.GetTuningLevel()==tuningLevel);
 		a1.GetWritable(a1.GetCount()-1)='e';
 		a2.Set(a2.GetCount()-1,'E');
 		a1+=a2.Extract(2,1);
 		a1+=a2;
-		MY_ASSERT(memcmp(a1.Get(),"aacdecaadE",10)==0);
+		EM_ASSERT(memcmp(a1.Get(),"aacdecaadE",10)==0);
 		a1.Replace(1,1,"ABC",3);
 		a1.Sort(emStdComparer<char>::Compare);
 		a1.BinaryInsert('b',emStdComparer<char>::Compare);
@@ -154,8 +153,8 @@ static void TestCharArray()
 		a1.Replace(4,3,a1.Get()+2,3);
 		a1+=a1;
 		a1.Insert(13,"xy",2);
-		MY_ASSERT(memcmp(a1.Get(),"ABCaCadbccddexyABCaCadbccdde",28)==0);
-		MY_ASSERT(a1.GetTuningLevel()==tuningLevel);
+		EM_ASSERT(memcmp(a1.Get(),"ABCaCadbccddexyABCaCadbccdde",28)==0);
+		EM_ASSERT(a1.GetTuningLevel()==tuningLevel);
 	}
 }
 
@@ -181,7 +180,7 @@ static void TestStringArray()
 		a1.Replace(a1.GetCount()-1,1,emString("dog"));
 		a1.GetWritable(6).Replace(0,1,'t');
 		a2=a1;
-		MY_ASSERT(a2.GetTuningLevel()==tuningLevel);
+		EM_ASSERT(a2.GetTuningLevel()==tuningLevel);
 		a1+=emString("|");
 		a1=a1+a2;
 		a2=a1.Extract(5,10);
@@ -190,14 +189,14 @@ static void TestStringArray()
 		a1.SetCount(9);
 		a1.SetCount(10);
 		for (str=a1[0], i=1; i<a1.GetCount(); i++) str+=","+a1[i];
-		MY_ASSERT(str=="The,quick,brown,fox,jumps,over,the,lazy,dog,");
+		EM_ASSERT(str=="The,quick,brown,fox,jumps,over,the,lazy,dog,");
 		a1.Sort(emStdComparer<emString>::Compare);
 		a1.BinaryInsert("hello",emStdComparer<emString>::Compare);
 		a1.BinaryInsert("bello",emStdComparer<emString>::Compare);
 		a1.BinaryInsert("hello",emStdComparer<emString>::Compare);
 		for (str=a1[0], i=1; i<a1.GetCount(); i++) str+=","+a1[i];
-		MY_ASSERT(str==",The,bello,brown,dog,fox,hello,hello,jumps,lazy,over,quick,the");
-		MY_ASSERT(a1.GetTuningLevel()==tuningLevel);
+		EM_ASSERT(str==",The,bello,brown,dog,fox,hello,hello,jumps,lazy,over,quick,the");
+		EM_ASSERT(a1.GetTuningLevel()==tuningLevel);
 	}
 }
 
@@ -210,11 +209,11 @@ static void TestAvlTreeMap()
 	emAvlTreeMap<emString,emString>::Iterator i,i2;
 
 	m["1"]="a";
-	MY_ASSERT(!m.IsEmpty());
+	EM_ASSERT(!m.IsEmpty());
 	i.SetFirst(m);
 	m.RemoveFirst();
-	MY_ASSERT(m.IsEmpty());
-	MY_ASSERT(i.Get()==NULL);
+	EM_ASSERT(m.IsEmpty());
+	EM_ASSERT(i.Get()==NULL);
 	m["3"]="c";
 	i.SetFirst(m);
 	m["4"]="D";
@@ -222,47 +221,47 @@ static void TestAvlTreeMap()
 	m2=m;
 	m["1b"]="N";
 	m["3"]="C";
-	MY_ASSERT((++i)->Key=="4");
-	MY_ASSERT(i->Key=="4");
-	MY_ASSERT(i2->Key=="4");
-	MY_ASSERT(i==i2);
-	MY_ASSERT((--i)->Key=="3");
-	MY_ASSERT(i!=i2);
-	MY_ASSERT((--i)->Key=="1b");
+	EM_ASSERT((++i)->Key=="4");
+	EM_ASSERT(i->Key=="4");
+	EM_ASSERT(i2->Key=="4");
+	EM_ASSERT(i==i2);
+	EM_ASSERT((--i)->Key=="3");
+	EM_ASSERT(i!=i2);
+	EM_ASSERT((--i)->Key=="1b");
 	m["5"]="Q";
 	m["1"]="Z";
 	m.RemoveLast();
 	m["1"]="A";
-	MY_ASSERT(m.GetValueWritable("2",false)==NULL);
+	EM_ASSERT(m.GetValueWritable("2",false)==NULL);
 	m.Remove("1b");
-	MY_ASSERT(m.GetCount()==3);
-	MY_ASSERT(m.GetValueWritable("2",true)->Get()==emString().Get());
+	EM_ASSERT(m.GetCount()==3);
+	EM_ASSERT(m.GetValueWritable("2",true)->Get()==emString().Get());
 	*m.GetValueWritable("2",false)="B";
-	MY_ASSERT(m.GetCount()==4);
-	MY_ASSERT((--i)->Key=="2");
-	MY_ASSERT(m.GetFirst()->Key=="1");
-	MY_ASSERT(m.GetLast()->Value=="D");
-	MY_ASSERT(m.Get("B")==NULL);
-	MY_ASSERT(m.Get("3")->Value=="C");
-	MY_ASSERT((*m.GetValue("2"))=="B");
-	MY_ASSERT((*m.GetKey("2"))=="2");
+	EM_ASSERT(m.GetCount()==4);
+	EM_ASSERT((--i)->Key=="2");
+	EM_ASSERT(m.GetFirst()->Key=="1");
+	EM_ASSERT(m.GetLast()->Value=="D");
+	EM_ASSERT(m.Get("B")==NULL);
+	EM_ASSERT(m.Get("3")->Value=="C");
+	EM_ASSERT((*m.GetValue("2"))=="B");
+	EM_ASSERT((*m.GetKey("2"))=="2");
 	i.Set(m2,"9");
-	MY_ASSERT(!i);
+	EM_ASSERT(!i);
 	i.Set(m,"2");
 	i++;
-	MY_ASSERT(i);
-	MY_ASSERT(i->Key=="3");
-	MY_ASSERT(m2.GetCount()==2);
-	MY_ASSERT(*m2.GetValue("3")=="c");
-	MY_ASSERT(m2.Get("4")->Value=="D");
+	EM_ASSERT(i);
+	EM_ASSERT(i->Key=="3");
+	EM_ASSERT(m2.GetCount()==2);
+	EM_ASSERT(*m2.GetValue("3")=="c");
+	EM_ASSERT(m2.Get("4")->Value=="D");
 	for (i.SetLast(m); i; --i) {
 		*m.GetValueWritable(i) = i->Value + m[i->Key];
 	}
-	MY_ASSERT(m["3"]=="CC");
+	EM_ASSERT(m["3"]=="CC");
 	m.Clear();
-	MY_ASSERT(m.GetCount()==0);
+	EM_ASSERT(m.GetCount()==0);
 	m3[815]="foo";
-	MY_ASSERT(strcmp(m3[815],"foo")==0);
+	EM_ASSERT(strcmp(m3[815],"foo")==0);
 }
 
 
@@ -278,56 +277,56 @@ static void TestAvlTreeSet()
 	s=ISet(2);
 	s.Insert(4);
 	s+=ISet(3)+7+(ISet(5)+8+9)-7-(ISet(8)+9);
-	MY_ASSERT(s==4+ISet(5)+3+2);
-	MY_ASSERT(s!=ISet());
-	MY_ASSERT(s.GetCount()==4);
-	MY_ASSERT(s.Contains(4));
-	MY_ASSERT(!s.Contains(1));
+	EM_ASSERT(s==4+ISet(5)+3+2);
+	EM_ASSERT(s!=ISet());
+	EM_ASSERT(s.GetCount()==4);
+	EM_ASSERT(s.Contains(4));
+	EM_ASSERT(!s.Contains(1));
 	s-=ISet(3)|2;
 	s=s|((8|ISet(5)|9)&(ISet(4)|5|6|7|8));
-	MY_ASSERT(s==ISet(5)+4+8);
+	EM_ASSERT(s==ISet(5)+4+8);
 	i.SetFirst(s);
 	++i;
-	MY_ASSERT(*i.Get()==5);
+	EM_ASSERT(*i.Get()==5);
 	s&=4;
-	MY_ASSERT(s==ISet(4));
+	EM_ASSERT(s==ISet(4));
 	s-=5;
-	MY_ASSERT(!s.IsEmpty());
+	EM_ASSERT(!s.IsEmpty());
 	s-=4;
-	MY_ASSERT(s.IsEmpty());
+	EM_ASSERT(s.IsEmpty());
 	s=s+0+2+4+6+8+10+11+14+16+18+20+22;
 	*s.GetWritable(11,false)=12;
 	s.RemoveFirst();
 	s.RemoveLast();
 	s2=s;
 	s2.Intersect(ISet(2)+4+8+9);
-	MY_ASSERT(s2==ISet(4)+2+8);
+	EM_ASSERT(s2==ISet(4)+2+8);
 	for (i.SetFirst(s), k=2; i; ++i, k+=2) {
-		MY_ASSERT(*i.Get()==k);
+		EM_ASSERT(*i.Get()==k);
 	}
-	MY_ASSERT(k==22);
-	MY_ASSERT(*s.Get(8)==8);
-	MY_ASSERT(!s.Get(9));
-	MY_ASSERT(*s.GetFirst()==2);
-	MY_ASSERT(*s.GetLast()==20);
-	MY_ASSERT(*s.GetNearestGreater(0)==2);
-	MY_ASSERT(*s.GetNearestGreater(4)==6);
-	MY_ASSERT(*s.GetNearestGreater(5)==6);
-	MY_ASSERT(!s.GetNearestGreater(20));
-	MY_ASSERT(*s.GetNearestGreaterOrEqual(4)==4);
-	MY_ASSERT(*s.GetNearestGreaterOrEqual(5)==6);
-	MY_ASSERT(*s.GetNearestLess(4)==2);
-	MY_ASSERT(*s.GetNearestLess(5)==4);
-	MY_ASSERT(*s.GetNearestLessOrEqual(4)==4);
-	MY_ASSERT(*s.GetNearestLessOrEqual(5)==4);
+	EM_ASSERT(k==22);
+	EM_ASSERT(*s.Get(8)==8);
+	EM_ASSERT(!s.Get(9));
+	EM_ASSERT(*s.GetFirst()==2);
+	EM_ASSERT(*s.GetLast()==20);
+	EM_ASSERT(*s.GetNearestGreater(0)==2);
+	EM_ASSERT(*s.GetNearestGreater(4)==6);
+	EM_ASSERT(*s.GetNearestGreater(5)==6);
+	EM_ASSERT(!s.GetNearestGreater(20));
+	EM_ASSERT(*s.GetNearestGreaterOrEqual(4)==4);
+	EM_ASSERT(*s.GetNearestGreaterOrEqual(5)==6);
+	EM_ASSERT(*s.GetNearestLess(4)==2);
+	EM_ASSERT(*s.GetNearestLess(5)==4);
+	EM_ASSERT(*s.GetNearestLessOrEqual(4)==4);
+	EM_ASSERT(*s.GetNearestLessOrEqual(5)==4);
 	i.Set(s,s.Get(10));
 	s2=s;
 	j.Set(s,s.Get(12));
 	s2+=11;
-	MY_ASSERT(i!=j);
+	EM_ASSERT(i!=j);
 	s.Remove(i);
-	MY_ASSERT(i==j);
-	MY_ASSERT(*i.Get()==12);
+	EM_ASSERT(i==j);
+	EM_ASSERT(*i.Get()==12);
 }
 
 
@@ -343,14 +342,14 @@ static void TestUtf8()
 	for (i=0; i<10000000; i++) {
 		u=emGetIntRandom(1,INT_MAX);
 		l=emEncodeUtf8Char(tmp,u);
-		MY_ASSERT(l>=1);
-		MY_ASSERT(l<=6);
+		EM_ASSERT(l>=1);
+		EM_ASSERT(l<=6);
 		m=emDecodeUtf8Char(&j,tmp,l);
-		MY_ASSERT(u==j);
-		MY_ASSERT(m==l);
+		EM_ASSERT(u==j);
+		EM_ASSERT(m==l);
 		//n=mbstowcs(wcs,tmp,l);
-		//MY_ASSERT(n==1);
-		//MY_ASSERT(u==wcs[0]);
+		//EM_ASSERT(n==1);
+		//EM_ASSERT(u==wcs[0]);
 	}
 }
 
@@ -359,14 +358,90 @@ static void TestAnything()
 {
 	emAnything a1,a2;
 
-	MY_ASSERT(!emCastAnything<int>(a1));
+	EM_ASSERT(!emCastAnything<int>(a1));
 	a1=emCastAnything<int>(4711);
 	a2=a1;
 	a1=emCastAnything<const char*>("Hello");
-	MY_ASSERT(!emCastAnything<int>(a1));
-	MY_ASSERT(!emCastAnything<const char*>(a2));
-	MY_ASSERT(emCastAnything<const char*>(a1) && strcmp(*emCastAnything<const char*>(a1),"Hello")==0);
-	MY_ASSERT(emCastAnything<int>(a2) && *emCastAnything<int>(a2)==4711);
+	EM_ASSERT(!emCastAnything<int>(a1));
+	EM_ASSERT(!emCastAnything<const char*>(a2));
+	EM_ASSERT(emCastAnything<const char*>(a1) && strcmp(*emCastAnything<const char*>(a1),"Hello")==0);
+	EM_ASSERT(emCastAnything<int>(a2) && *emCastAnything<int>(a2)==4711);
+}
+
+
+static void TestFileStream()
+{
+	printf("TestFileStream...\n");
+	emStandardScheduler scheduler;
+	emRootContext rootContext(scheduler);
+	emTmpFile tmpFile(rootContext,"TestFileStream");
+	emString tmpFilePath=tmpFile.GetPath();
+
+	try {
+		emFileStream fs(NULL,9);
+		fs.TryOpen(tmpFilePath,"wb");
+		fs.TryWrite("ABCCCFGHIJKLMNOPQRSTUVWZZZ",26);
+		fs.TrySeek(3);
+		fs.TryWrite("DE");
+		fs.TrySeekEnd(-3);
+		fs.TryWrite("XY");
+		fs.TrySeekEnd();
+		fs.TryWriteChar('\n');
+		fs.TryWriteChar('c');
+		fs.TryWriteInt8(123);
+		fs.TryWriteUInt8(234);
+		fs.TryWriteInt16LE(456);
+		fs.TryWriteInt16BE(567);
+		fs.TryWriteUInt16LE(678);
+		fs.TryWriteUInt16BE(789);
+		fs.TryWriteInt32LE(0x08091011);
+		fs.TryWriteInt32BE(0x09101112);
+		fs.TryWriteUInt32LE(0x10111213);
+		fs.TryWriteUInt32BE(0x11121314);
+		fs.TryWriteInt64LE(121314*(emInt64)0x789abcde);
+		fs.TryWriteInt64BE(131415*(emInt64)0x9abcdef0);
+		fs.TryWriteUInt64LE(141516*(emUInt64)0xbcdef012);
+		fs.TryWriteUInt64BE(151617*(emUInt64)0xdef01234);
+		fs.TryFlush();
+		fs.Close();
+	}
+	catch (const emException & e) {
+		EM_DLOG("Write failed: %s",e.GetText().Get());
+		EM_ASSERT(false);
+	}
+
+	try {
+		emFileStream fs(NULL,11);
+		fs.TryOpen(tmpFilePath,"rb");
+		char buf[256];
+		fs.TryRead(buf,3);
+		EM_ASSERT(emString(buf,3)=="ABC");
+		fs.TrySkip(3);
+		EM_ASSERT(fs.TryReadLine(true)=="GHIJKLMNOPQRSTUVWXYZ");
+		fs.TrySkip(-4);
+		EM_ASSERT(fs.TryReadLine(false)=="XYZ\n");
+		EM_ASSERT(fs.TryReadCharOrEOF()=='c');
+		EM_ASSERT(fs.TryReadInt8()==123);
+		EM_ASSERT(fs.TryReadUInt8()==234);
+		EM_ASSERT(fs.TryReadInt16LE()==456);
+		EM_ASSERT(fs.TryReadInt16BE()==567);
+		EM_ASSERT(fs.TryReadUInt16LE()==678);
+		EM_ASSERT(fs.TryReadUInt16BE()==789);
+		EM_ASSERT(fs.TryReadInt32LE()==0x08091011);
+		EM_ASSERT(fs.TryReadInt32BE()==0x09101112);
+		EM_ASSERT(fs.TryReadUInt32LE()==0x10111213);
+		EM_ASSERT(fs.TryReadUInt32BE()==0x11121314);
+		EM_ASSERT(fs.TryReadInt64LE()==121314*(emInt64)0x789abcde);
+		EM_ASSERT(fs.TryReadInt64BE()==131415*(emInt64)0x9abcdef0);
+		EM_ASSERT(fs.TryReadUInt64LE()==141516*(emUInt64)0xbcdef012);
+		EM_ASSERT(fs.TryReadUInt64BE()==151617*(emUInt64)0xdef01234);
+		EM_ASSERT(fs.TryReadCharOrEOF()==-1);
+		fs.Close();
+	}
+	catch (const emException & e) {
+		EM_DLOG("Write failed: %s",e.GetText().Get());
+		EM_ASSERT(false);
+	}
 }
 
 
@@ -384,6 +459,7 @@ int main(int argc, char * argv[])
 	TestAvlTreeSet();
 	TestUtf8();
 	TestAnything();
+	TestFileStream();
 
 	printf("Success\n");
 	return 0;

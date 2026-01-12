@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emColor.cpp
 //
-// Copyright (C) 2001,2003-2008,2014,2018,2021 Oliver Hamann.
+// Copyright (C) 2001,2003-2008,2014,2018,2021,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -695,10 +695,32 @@ static const struct {
 };
 
 
+emString emColor::ToString() const
+{
+	if (Components.Alpha!=255) {
+		return emString::Format(
+			"#%02X%02X%02X%02X",
+			(unsigned int)Components.Red,
+			(unsigned int)Components.Green,
+			(unsigned int)Components.Blue,
+			(unsigned int)Components.Alpha
+		);
+	}
+	else {
+		return emString::Format(
+			"#%02X%02X%02X",
+			(unsigned int)Components.Red,
+			(unsigned int)Components.Green,
+			(unsigned int)Components.Blue
+		);
+	}
+}
+
+
 void emColor::TryParse(const char * str)
 {
 	char buf[256];
-	int i,c,len,v,m,n;
+	int i,j,c,len,v,m,n;
 
 	// Convert to lower case and remove white spaces.
 	for (i=0, len=0; str[i]!=0; i++) {
@@ -713,24 +735,33 @@ void emColor::TryParse(const char * str)
 
 	if (buf[0]=='#') {
 		// Parse hex string.
-		n=(len-1)/3;
-		if (len!=3*n+1 || n<=0) goto L_Error;
-		for (i=1, v=0; i<len; i++) {
-			c=(unsigned char)buf[i];
-			if (c>='0' && c<='9') c=c-'0';
-			else if (c>='a' && c<='f') c=c-'a'+10;
-			else goto L_Error;
-			v=(v<<4)|c;
-			if (i%n==0) {
-				if (n==1) v=(c*255+7)/15;
-				else if (n>2) v>>=(n-2)*4;
-				if (i==n) Components.Red=(emByte)v;
-				else if (i==2*n) Components.Green=(emByte)v;
-				else Components.Blue=(emByte)v;
-				v=0;
-			}
+		switch (len) {
+			case  4: n=3; m=1; break;
+			case  5: n=4; m=1; break;
+			case  7: n=3; m=2; break;
+			case  9: n=4; m=2; break;
+			case 10: n=3; m=3; break;
+			case 13: n=3; m=4; break;
+			case 17: n=4; m=4; break;
+			default: goto L_Error;
 		}
 		Components.Alpha=255;
+		for (i=0; i<n; i++) {
+			v=0;
+			for (j=0; j<m; j++) {
+				c=(unsigned char)buf[1+i*m+j];
+				if (c>='0' && c<='9') c=c-'0';
+				else if (c>='a' && c<='f') c=c-'a'+10;
+				else goto L_Error;
+				v=(v<<4)|c;
+			}
+			if (m==1) v=(c*255+7)/15;
+			else if (m>2) v>>=(n-2)*4;
+			if (i==0) Components.Red=(emByte)v;
+			else if (i==1) Components.Green=(emByte)v;
+			else if (i==2) Components.Blue=(emByte)v;
+			else Components.Alpha=(emByte)v;
+		}
 	}
 	else {
 		// Binary search for the name.

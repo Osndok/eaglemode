@@ -69,7 +69,7 @@ my $url=
 	'https://www.alphavantage.co/query'.
 	'?function=TIME_SERIES_DAILY'.
 	'&symbol='.$symbol.
-	'&outputsize='.($days <= 100 ? 'compact' : 'full').
+	'&outputsize=compact'.
 	'&datatype=csv'.
 	'&apikey='.$apiKey
 ;

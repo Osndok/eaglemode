@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXpmImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emXpmImageFileModel_h
 #define emXpmImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -49,17 +53,31 @@ protected:
 
 private:
 
-	bool FindCString(int startPos, int * pPos, int * pLen);
+	bool FindCString(int startPos, int * pPos, int * pLen) const;
 
 	struct LoadingState {
-		FILE * File;
-		char * Buffer;
+		emFileStream File;
+		emOwnArrayPtr<char> Buffer;
 		int FileSize;
 		int BufferFill;
-		char * * StringArray;
+		emOwnArrayPtr<char *> StringArray;
 	};
 
-	LoadingState * L;
+	struct SavingState {
+		emFileStream File;
+		int MaxPalSize;
+		int PalSize;
+		int PixSize;
+		int Stage;
+		int Index;
+		emOwnArrayPtr<emUInt32> Pal;
+	};
+
+	enum { XpmSymCharsCount = 92 };
+	static const char * const XpmSymChars;
+
+	emOwnPtr<LoadingState> L;
+	emOwnPtr<SavingState> S;
 };
 
 

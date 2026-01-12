@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>.h
 //
-// Copyright (C) 2005-2009,2014-2016,2024 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -214,6 +214,7 @@
 
         </SPAN>OBJ * GetWritable();
         OBJ &amp; GetWritable(<SPAN CLASS=t>int </SPAN>index);
+        OBJ * GetWritable(<SPAN CLASS=t>const </SPAN>OBJ * obj);
                 <SPAN CLASS=c>// Like Get() and Get(index), but for modifying the elements.
                 // There is no non-const version of the operator [], because
                 // that would probably be used accidentally quite often just for
@@ -439,6 +440,97 @@
                 // thread. This method is not recursive. So if the object class
                 // even has such a method, you have to call it on every object
                 // too.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>Iterator <SPAN CLASS=b>{
+
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+
+                <SPAN CLASS=c>// Class for an index-based iterator. This is stable against
+                // deep copies by the copy-on-write mechanism. Note the
+                // auto-cast operator to a 'const OBJ *'. Wherever there is an
+                // argument 'const OBJ *' in the methods of <A CLASS=m HREF="emCore_emArray_h.html#emArray">emArray</A>, you can
+                // also give an instance of this class as the argument.
+
+                </SPAN>Iterator();
+                        <SPAN CLASS=c>// Construct an invalid iterator.
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Construct a copied iterator.
+
+                </SPAN>Iterator(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index = <SPAN CLASS=u>0</SPAN>);
+                        <SPAN CLASS=c>// Construct an iterator pointing to a particular
+                        // element.
+                        // Arguments:
+                        //   array - The Array.
+                        //   index - Index of the element.
+
+                </SPAN>Iterator &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy an iterator.
+
+                </SPAN><SPAN CLASS=t>bool </SPAN>IsValid() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Whether this iterator points to a valid element. For
+                        // example, this is false after incrementing past last
+                        // element.
+
+                </SPAN><SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ &amp; <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>OBJ * Get() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the element pointer or reference. This is never
+                        // NULL and may point to an invalid element (e.g. after
+                        // incrementing past last element).
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy the given iterator.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index);
+                        <SPAN CLASS=c>// Set this iterator to the given element of the given
+                        // array.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>SetFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array);
+                <SPAN CLASS=t>void </SPAN>SetLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array);
+                        <SPAN CLASS=c>// Set this iterator to the first or last element of the
+                        // given array.
+
+                </SPAN><SPAN CLASS=t>void </SPAN>SetNext();
+                <SPAN CLASS=t>void </SPAN>SetPrev();
+                        <SPAN CLASS=c>// Set this iterator to the next or previous element.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>++();
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>--();
+                        <SPAN CLASS=c>// Set this iterator to the next or previous element and
+                        // return the new element pointer.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>);
+                <SPAN CLASS=t>const </SPAN>OBJ * <SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>);
+                        <SPAN CLASS=c>// Like above, but return the old element pointer.
+
+                </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>&lt;  (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>&lt;= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>&gt;  (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>&gt;= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Ordinary compare operators.
+
+                </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; GetArray() <SPAN CLASS=t>const</SPAN>;
+                        <SPAN CLASS=c>// Get the array this iterator is attached to.
+
+        </SPAN><SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; * Array;
+                <SPAN CLASS=t>int </SPAN>Index;
+        <SPAN CLASS=b>}</SPAN>;
+
+        Iterator begin() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+        </SPAN>Iterator end() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+                // Support range-based for loops. This only allows to loop
+                // constant element references. If you want a loop that modifies
+                // elements, make use of GetWritable. Example:
+                //   for (const auto &amp; elem: myArray) {
+                //     auto &amp; writableElem = *myArray.GetWritable(&amp;elem);
+                //     // Do not use elem from here on (address may not belong
+                //     // to myArray after calling GetWritable).
+                //   }
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
 
@@ -743,6 +835,12 @@
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(Data-&gt;RefCount&gt;<SPAN CLASS=u>1</SPAN>) MakeWritable();
         <SPAN CLASS=k>return </SPAN>Data-&gt;Obj[index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::GetWritable(<SPAN CLASS=t>const </SPAN>OBJ * obj)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>if </SPAN>(!obj) <SPAN CLASS=k>return </SPAN><SPAN CLASS=u>NULL</SPAN>;
+        <SPAN CLASS=k>return </SPAN>&amp;GetWritable(obj-Data-&gt;Obj);
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Set(<SPAN CLASS=t>int </SPAN>index, <SPAN CLASS=t>const </SPAN>OBJ &amp; obj)
@@ -1085,6 +1183,197 @@
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::MakeNonShared()
 <SPAN CLASS=b>{
         </SPAN>MakeWritable();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::Iterator()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>static const </SPAN>EmptySharedData * <SPAN CLASS=t>const </SPAN>emptyDataPtr = &amp;EmptyData[<SPAN CLASS=u>0</SPAN>];
+
+        static_assert(
+                <SPAN CLASS=k>sizeof</SPAN>(Array) == <SPAN CLASS=k>sizeof</SPAN>(SharedData*),
+                <SPAN CLASS=v>"emArray isn't just a pointer"
+        </SPAN>);
+        Array=(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; *)&amp;emptyDataPtr;
+        Index=<SPAN CLASS=u>0</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator &amp; iter
+)
+        : Array(iter.Array),
+        Index(iter.Index)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index
+)
+        : Array(&amp;array),
+        Index(index)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline typename </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator &amp;
+        <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter)
+<SPAN CLASS=b>{
+        </SPAN>Array=iter.Array;
+        Index=iter.Index;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::IsValid() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>((<SPAN CLASS=t>unsigned</SPAN>)Index)&lt;((<SPAN CLASS=t>unsigned</SPAN>)Array-&gt;Data-&gt;Count);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator const </SPAN>OBJ * () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        const </SPAN>OBJ &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj[Index];
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+)
+<SPAN CLASS=b>{
+        </SPAN>Array=iter.Array;
+        Index=iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::Set(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index
+)
+<SPAN CLASS=b>{
+        </SPAN>Array=&amp;array;
+        Index=index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::SetFirst(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array
+)
+<SPAN CLASS=b>{
+        </SPAN>Set(array,<SPAN CLASS=u>0</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::SetLast(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; array
+)
+<SPAN CLASS=b>{
+        </SPAN>Set(array,array.GetCount()-<SPAN CLASS=u>1</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::SetNext()
+<SPAN CLASS=b>{
+        </SPAN>Index++;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::SetPrev()
+<SPAN CLASS=b>{
+        </SPAN>Index--;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++()
+<SPAN CLASS=b>{
+        </SPAN>Index++;
+        <SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--()
+<SPAN CLASS=b>{
+        </SPAN>Index--;
+        <SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * res=Array-&gt;Data-&gt;Obj+Index;
+        Index++;
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline const </SPAN>OBJ * <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--(<SPAN CLASS=t>int</SPAN>)
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>const </SPAN>OBJ * res=Array-&gt;Data-&gt;Obj+Index;
+        Index--;
+        <SPAN CLASS=k>return </SPAN>res;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index==iter.Array-&gt;Data-&gt;Obj+iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index!=iter.Array-&gt;Data-&gt;Obj+iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>&lt;= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index&lt;=iter.Array-&gt;Data-&gt;Obj+iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>&lt; (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index&lt;iter.Array-&gt;Data-&gt;Obj+iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>&gt;= (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index&gt;=iter.Array-&gt;Data-&gt;Obj+iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline bool </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>&gt; (
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array-&gt;Data-&gt;Obj+Index&gt;iter.Array-&gt;Data-&gt;Obj+iter.Index;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        const </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt; &amp; <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator::GetArray() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Array;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        typename </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::begin() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Iterator(*<SPAN CLASS=k>this</SPAN>,<SPAN CLASS=u>0</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>inline
+        typename </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Iterator <A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::end() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Iterator(*<SPAN CLASS=k>this</SPAN>,Data-&gt;Count);
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>OBJ&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;OBJ&gt;::Construct(

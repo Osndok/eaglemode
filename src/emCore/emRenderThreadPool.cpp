@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRenderThreadPool.cpp
 //
-// Copyright (C) 2016-2017 Oliver Hamann.
+// Copyright (C) 2016-2017,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -130,7 +130,7 @@ void emRenderThreadPool::CreateChildThreads(int count)
 		ChildThreads.Add(t);
 	}
 
-	emDLog("emRenderThreadPool: ThreadCount = %d", GetThreadCount());
+	EM_DLOG("ThreadCount = %d", GetThreadCount());
 }
 
 

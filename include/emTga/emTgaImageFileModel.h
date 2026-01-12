@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTgaImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emTgaImageFileModel_h
 #define emTgaImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -49,12 +53,22 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
+	class RleEncoder {
+	public:
+		RleEncoder(emFileStream & file, int pixelSize);
+		void TryPut(emUInt32 pixel);
+		void TryFlush();
+	private:
+		void TryWriteNext();
+		emFileStream & File;
+		emUInt32 Buf[256];
+		int PixelSize;
+		int Pos,Fill;
+	};
 
 	struct LoadingState {
-		FILE * File;
-		emColor * Palette;
+		emFileStream File;
+		emOwnArrayPtr<emColor> Palette;
 		emColor RunCol;
 		int IDLen,CMapType,IMapType,CMapSize,CMapBitsPP;
 		int Width,Height,BitsPP,Descriptor,ChannelCount;
@@ -62,8 +76,26 @@ private:
 		bool ImagePrepared;
 	};
 
-	LoadingState * L;
+	struct SavingState {
+		emFileStream File;
+		emOwnPtr<RleEncoder> Encoder;
+		emArray<emColor> Pal;
+		bool HaveColor,HaveAlpha;
+		int PixelSize;
+		int NextY;
+	};
+
+	emOwnPtr<LoadingState> L;
+	emOwnPtr<SavingState> S;
 };
+
+
+inline void emTgaImageFileModel::RleEncoder::TryPut(emUInt32 pixel)
+{
+	if (Fill>=256) TryWriteNext();
+	Buf[(Pos+Fill)&255]=pixel;
+	Fill++;
+}
 
 
 #endif

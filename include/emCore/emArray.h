@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emArray.h
 //
-// Copyright (C) 2005-2009,2014-2016,2024 Oliver Hamann.
+// Copyright (C) 2005-2009,2014-2016,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -205,6 +205,7 @@ public:
 
 	OBJ * GetWritable();
 	OBJ & GetWritable(int index);
+	OBJ * GetWritable(const OBJ * obj);
 		// Like Get() and Get(index), but for modifying the elements.
 		// There is no non-const version of the operator [], because
 		// that would probably be used accidentally quite often just for
@@ -430,6 +431,97 @@ public:
 		// thread. This method is not recursive. So if the object class
 		// even has such a method, you have to call it on every object
 		// too.
+
+	class Iterator {
+
+	public:
+
+		// Class for an index-based iterator. This is stable against
+		// deep copies by the copy-on-write mechanism. Note the
+		// auto-cast operator to a 'const OBJ *'. Wherever there is an
+		// argument 'const OBJ *' in the methods of emArray, you can
+		// also give an instance of this class as the argument.
+
+		Iterator();
+			// Construct an invalid iterator.
+
+		Iterator(const Iterator & iter);
+			// Construct a copied iterator.
+
+		Iterator(const emArray<OBJ> & array, int index = 0);
+			// Construct an iterator pointing to a particular
+			// element.
+			// Arguments:
+			//   array - The Array.
+			//   index - Index of the element.
+
+		Iterator & operator = (const Iterator & iter);
+			// Copy an iterator.
+
+		bool IsValid() const;
+			// Whether this iterator points to a valid element. For
+			// example, this is false after incrementing past last
+			// element.
+
+		operator const OBJ * () const;
+		const OBJ & operator * () const;
+		const OBJ * operator -> () const;
+		const OBJ * Get() const;
+			// Get the element pointer or reference. This is never
+			// NULL and may point to an invalid element (e.g. after
+			// incrementing past last element).
+
+		void Set(const Iterator & iter);
+			// Copy the given iterator.
+
+		void Set(const emArray<OBJ> & array, int index);
+			// Set this iterator to the given element of the given
+			// array.
+
+		void SetFirst(const emArray<OBJ> & array);
+		void SetLast(const emArray<OBJ> & array);
+			// Set this iterator to the first or last element of the
+			// given array.
+
+		void SetNext();
+		void SetPrev();
+			// Set this iterator to the next or previous element.
+
+		const OBJ * operator ++();
+		const OBJ * operator --();
+			// Set this iterator to the next or previous element and
+			// return the new element pointer.
+
+		const OBJ * operator ++(int);
+		const OBJ * operator --(int);
+			// Like above, but return the old element pointer.
+
+		bool operator == (const Iterator & iter) const;
+		bool operator != (const Iterator & iter) const;
+		bool operator <  (const Iterator & iter) const;
+		bool operator <= (const Iterator & iter) const;
+		bool operator >  (const Iterator & iter) const;
+		bool operator >= (const Iterator & iter) const;
+			// Ordinary compare operators.
+
+		const emArray<OBJ> & GetArray() const;
+			// Get the array this iterator is attached to.
+
+	private:
+		const emArray<OBJ> * Array;
+		int Index;
+	};
+
+	Iterator begin() const; // NOLINT(*-identifier-naming)
+	Iterator end() const; // NOLINT(*-identifier-naming)
+		// Support range-based for loops. This only allows to loop
+		// constant element references. If you want a loop that modifies
+		// elements, make use of GetWritable. Example:
+		//   for (const auto & elem: myArray) {
+		//     auto & writableElem = *myArray.GetWritable(&elem);
+		//     // Do not use elem from here on (address may not belong
+		//     // to myArray after calling GetWritable).
+		//   }
 
 private:
 
@@ -734,6 +826,12 @@ template <class OBJ> inline OBJ & emArray<OBJ>::GetWritable(int index)
 {
 	if (Data->RefCount>1) MakeWritable();
 	return Data->Obj[index];
+}
+
+template <class OBJ> inline OBJ * emArray<OBJ>::GetWritable(const OBJ * obj)
+{
+	if (!obj) return NULL;
+	return &GetWritable(obj-Data->Obj);
 }
 
 template <class OBJ> inline void emArray<OBJ>::Set(int index, const OBJ & obj)
@@ -1076,6 +1174,197 @@ template <class OBJ> unsigned int emArray<OBJ>::GetDataRefCount() const
 template <class OBJ> inline void emArray<OBJ>::MakeNonShared()
 {
 	MakeWritable();
+}
+
+template <class OBJ> inline emArray<OBJ>::Iterator::Iterator()
+{
+	static const EmptySharedData * const emptyDataPtr = &EmptyData[0];
+
+	static_assert(
+		sizeof(Array) == sizeof(SharedData*),
+		"emArray isn't just a pointer"
+	);
+	Array=(const emArray<OBJ> *)&emptyDataPtr;
+	Index=0;
+}
+
+template <class OBJ> inline emArray<OBJ>::Iterator::Iterator(
+	const typename emArray<OBJ>::Iterator & iter
+)
+	: Array(iter.Array),
+	Index(iter.Index)
+{
+}
+
+template <class OBJ> inline emArray<OBJ>::Iterator::Iterator(
+	const emArray<OBJ> & array, int index
+)
+	: Array(&array),
+	Index(index)
+{
+}
+
+template <class OBJ> inline typename emArray<OBJ>::Iterator &
+	emArray<OBJ>::Iterator::operator = (const Iterator & iter)
+{
+	Array=iter.Array;
+	Index=iter.Index;
+	return *this;
+}
+
+template <class OBJ> inline
+	bool emArray<OBJ>::Iterator::IsValid() const
+{
+	return ((unsigned)Index)<((unsigned)Array->Data->Count);
+}
+
+template <class OBJ> inline
+	emArray<OBJ>::Iterator::operator const OBJ * () const
+{
+	return Array->Data->Obj+Index;
+}
+
+template <class OBJ> inline
+	const OBJ & emArray<OBJ>::Iterator::operator * () const
+{
+	return Array->Data->Obj[Index];
+}
+
+template <class OBJ> inline
+	const OBJ * emArray<OBJ>::Iterator::operator -> () const
+{
+	return Array->Data->Obj+Index;
+}
+
+template <class OBJ> inline const OBJ * emArray<OBJ>::Iterator::Get() const
+{
+	return Array->Data->Obj+Index;
+}
+
+template <class OBJ> inline void emArray<OBJ>::Iterator::Set(
+	const Iterator & iter
+)
+{
+	Array=iter.Array;
+	Index=iter.Index;
+}
+
+template <class OBJ> inline void emArray<OBJ>::Iterator::Set(
+	const emArray<OBJ> & array, int index
+)
+{
+	Array=&array;
+	Index=index;
+}
+
+template <class OBJ> inline void emArray<OBJ>::Iterator::SetFirst(
+	const emArray<OBJ> & array
+)
+{
+	Set(array,0);
+}
+
+template <class OBJ> inline void emArray<OBJ>::Iterator::SetLast(
+	const emArray<OBJ> & array
+)
+{
+	Set(array,array.GetCount()-1);
+}
+
+template <class OBJ> inline void emArray<OBJ>::Iterator::SetNext()
+{
+	Index++;
+}
+
+template <class OBJ> inline void emArray<OBJ>::Iterator::SetPrev()
+{
+	Index--;
+}
+
+template <class OBJ> inline const OBJ * emArray<OBJ>::Iterator::operator ++()
+{
+	Index++;
+	return Array->Data->Obj+Index;
+}
+
+template <class OBJ> inline const OBJ * emArray<OBJ>::Iterator::operator --()
+{
+	Index--;
+	return Array->Data->Obj+Index;
+}
+
+template <class OBJ> inline const OBJ * emArray<OBJ>::Iterator::operator ++(int)
+{
+	const OBJ * res=Array->Data->Obj+Index;
+	Index++;
+	return res;
+}
+
+template <class OBJ> inline const OBJ * emArray<OBJ>::Iterator::operator --(int)
+{
+	const OBJ * res=Array->Data->Obj+Index;
+	Index--;
+	return res;
+}
+
+template <class OBJ> inline bool emArray<OBJ>::Iterator::operator == (
+	const Iterator & iter
+) const
+{
+	return Array->Data->Obj+Index==iter.Array->Data->Obj+iter.Index;
+}
+
+template <class OBJ> inline bool emArray<OBJ>::Iterator::operator != (
+	const Iterator & iter
+) const
+{
+	return Array->Data->Obj+Index!=iter.Array->Data->Obj+iter.Index;
+}
+
+template <class OBJ> inline bool emArray<OBJ>::Iterator::operator <= (
+	const Iterator & iter
+) const
+{
+	return Array->Data->Obj+Index<=iter.Array->Data->Obj+iter.Index;
+}
+
+template <class OBJ> inline bool emArray<OBJ>::Iterator::operator < (
+	const Iterator & iter
+) const
+{
+	return Array->Data->Obj+Index<iter.Array->Data->Obj+iter.Index;
+}
+
+template <class OBJ> inline bool emArray<OBJ>::Iterator::operator >= (
+	const Iterator & iter
+) const
+{
+	return Array->Data->Obj+Index>=iter.Array->Data->Obj+iter.Index;
+}
+
+template <class OBJ> inline bool emArray<OBJ>::Iterator::operator > (
+	const Iterator & iter
+) const
+{
+	return Array->Data->Obj+Index>iter.Array->Data->Obj+iter.Index;
+}
+
+template <class OBJ> inline
+	const emArray<OBJ> & emArray<OBJ>::Iterator::GetArray() const
+{
+	return *Array;
+}
+
+template <class OBJ> inline
+	typename emArray<OBJ>::Iterator emArray<OBJ>::begin() const
+{
+	return Iterator(*this,0);
+}
+
+template <class OBJ> inline
+	typename emArray<OBJ>::Iterator emArray<OBJ>::end() const
+{
+	return Iterator(*this,Data->Count);
 }
 
 template <class OBJ> void emArray<OBJ>::Construct(

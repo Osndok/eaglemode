@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".dia" }
+FileFormatName = "Dia"
 Priority = 0.5
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"

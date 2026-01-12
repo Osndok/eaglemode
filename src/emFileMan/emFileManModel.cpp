@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileManModel.cpp
 //
-// Copyright (C) 2004-2009,2011,2014-2021,2024 Oliver Hamann.
+// Copyright (C) 2004-2009,2011,2014-2021,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -612,7 +612,7 @@ void emFileManModel::UpdateCommands()
 
 	rootDir=emGetConfigDirOverloadable(GetRootContext(),"emFileMan","Commands");
 	if (CmdRoot->Dir!=rootDir || !CheckCRCs(CmdRoot)) {
-		emDLog("emFileManModel: Reloading commands.");
+		EM_DLOG("Reloading commands.");
 		LoadCommands(rootDir);
 		Signal(CommandsSignal);
 	}

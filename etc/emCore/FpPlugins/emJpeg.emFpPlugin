@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".jpeg" ".jpg" }
+FileFormatName = "JPEG"
 Priority = 1.0
 Library = "emJpeg"
 Function = "emJpegFpPluginFunc"
+ModelFunction = "emJpegFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emJpegImageFileModel" }
+ModelAbleToSave = yes

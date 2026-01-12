@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".xpm" }
+FileFormatName = "X PixMap"
 Priority = 1.0
 Library = "emXpm"
 Function = "emXpmFpPluginFunc"
+ModelFunction = "emXpmFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emXpmImageFileModel" }
+ModelAbleToSave = yes

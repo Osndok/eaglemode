@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emIlbmImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018-2019,2025-2026 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emIlbmImageFileModel_h
 #define emIlbmImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -49,16 +53,12 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
-	int Read32();
-
 	struct LoadingState {
 		bool HeaderFound;
 		int Width,Height,Depth,Compress,NextY;
-		FILE * File;
+		emFileStream File;
 		unsigned char * Palette, * RowBuf;
-		long BodyPos;
+		emUInt64 BodyPos;
 	};
 
 	LoadingState * L;

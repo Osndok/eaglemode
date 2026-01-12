@@ -3,6 +3,23 @@
 <BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000E0" VLINK="#600080" ALINK="#F00000">
 <H1>Change Log</H1>
 
+<H2>Version 0.96.4</H2>
+<UL>
+<LI>Extended the file panel plugin interface by model acquisition functionality
+and made use of that for the image file models. In particular, this allows many
+more image file types for the bookmark icons.</LI>
+<LI>Implemented saving of BMP, JPEG, PNG, PNM, TGA, TIFF, and XPM files (for use
+in future applications).</LI>
+<LI>Added a JSON parser library namely emJson (also for use in future
+applications).</LI>
+<LI>Accelerated some archive operations on multi-core CPUs by using pigz instead
+of gzip, and 7z instead of zip and unzip.</LI>
+<LI>Removed the emPs plugin as it is not adaptable to newer Ghostscript
+versions. Instead, ps files are shown with temporary conversion now.</LI>
+<LI>Migrated PDF viewer from GTK2 to GTK3.</LI>
+<LI>Minor API improvements and fixes.</LI>
+</UL>
+
 <H2>Version 0.96.3</H2>
 <UL>
 <LI>Reworked and released the Open Street Map viewer.</LI>

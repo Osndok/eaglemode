@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // emImageFile.h
 //
-// Copyright (C) 2004-2008,2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2016,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -63,6 +63,13 @@
         <SPAN CLASS=t>void </SPAN>SetFileFormatInfo(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; fileFormatInfo);
                 <SPAN CLASS=c>// User-readable Information about the file format. Setting this
                 // may not be useful.
+
+        </SPAN><SPAN CLASS=t>int </SPAN>GetSavingQuality() <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>void </SPAN>SetSavingQuality(<SPAN CLASS=t>int </SPAN>qualityPercent);
+                <SPAN CLASS=c>// Desired quality in percent when saving the image to a file.
+                // The higher this value, the better the image is preserved and
+                // the worse is the compression. This is not supported by every
+                // image file format.
 
         </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emSignal_h.html#emSignal">emSignal</A> &amp; GetChangeSignal() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Signaled on every change of the image, the comment or the

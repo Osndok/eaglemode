@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImageFile.cpp
 //
-// Copyright (C) 2004-2008,2014-2016 Oliver Hamann.
+// Copyright (C) 2004-2008,2014-2016,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,6 +56,29 @@ void emImageFileModel::SetFileFormatInfo(const emString & fileFormatInfo)
 }
 
 
+int emImageFileModel::GetSavingQuality() const
+{
+	// ??? Change in 0.97.0:
+	return emVarModel<int>::Get(
+		GetContext(),
+		emString::Format("emImageFileModelSavingQuality_%p",(void*)this),
+		100
+	);
+}
+
+
+void emImageFileModel::SetSavingQuality(int qualityPercent)
+{
+	// ??? Change in 0.97.0:
+	emVarModel<int>::Set(
+		GetContext(),
+		emString::Format("emImageFileModelSavingQuality_%p",(void*)this),
+		qualityPercent,
+		UINT_MAX
+	);
+}
+
+
 emImageFileModel::emImageFileModel(emContext & context, const emString & name)
 	: emFileModel(context,name)
 {
@@ -64,6 +87,11 @@ emImageFileModel::emImageFileModel(emContext & context, const emString & name)
 
 emImageFileModel::~emImageFileModel()
 {
+	// ??? Change in 0.97.0:
+	emVarModel<int>::Remove(
+		GetContext(),
+		emString::Format("emImageFileModelSavingQuality_%p",(void*)this)
+	);
 }
 
 

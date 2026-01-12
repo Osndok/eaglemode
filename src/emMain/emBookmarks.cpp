@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBookmarks.cpp
 //
-// Copyright (C) 2007-2008,2011,2014-2016,2018-2020,2022 Oliver Hamann.
+// Copyright (C) 2007-2008,2011,2014-2016,2018-2020,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1117,7 +1117,7 @@ void emBookmarkEntryAuxPanel::AutoExpand()
 		FlbIcon->SetBorderType(OBT_INSTRUMENT,IBT_NONE);
 		FlbIcon->SetBorderScaling(0.5);
 		filters.Clear();
-		filters.Add("Targa Files (*.tga)");
+		filters.Add("Image Files (*.bmp, *.ico, *.pcx, *.png, *.tga, *.xpm)");
 		FlbIcon->SetFilters(filters);
 		FlbIcon->SetParentDirectory(emBookmarksModel::GetDefaultIconDir());
 		AddWakeUpSignal(FlbIcon->GetSelectionSignal());

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfPagePanel.cpp
 //
-// Copyright (C) 2011,2014,2016,2020-2024 Oliver Hamann.
+// Copyright (C) 2011,2014,2016,2020-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -48,8 +48,8 @@ emPdfPagePanel::emPdfPagePanel(
 	Layers[LT_CONTENT].Type=LT_CONTENT;
 	Layers[LT_SELECTION].Type=LT_SELECTION;
 
-	WaitIcon=emGetInsResImage(GetRootContext(),"emPs","waiting.tga");
-	RenderIcon=emGetInsResImage(GetRootContext(),"emPs","rendering.tga");
+	WaitIcon=emGetInsResImage(GetRootContext(),"emPdf","waiting.tga");
+	RenderIcon=emGetInsResImage(GetRootContext(),"emPdf","rendering.tga");
 	AddWakeUpSignal(FileModel->GetChangeSignal());
 	AddWakeUpSignal(Selection.GetSelectionSignal());
 	AddWakeUpSignal(FileModel->GetPageAreasMap().GetPageAreasSignal());

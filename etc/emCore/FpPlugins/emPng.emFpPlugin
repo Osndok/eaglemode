@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".png" }
+FileFormatName = "PNG"
 Priority = 1.0
 Library = "emPng"
 Function = "emPngFpPluginFunc"
+ModelFunction = "emPngFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emPngImageFileModel" }
+ModelAbleToSave = yes

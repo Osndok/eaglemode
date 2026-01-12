@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFpPlugin.cpp
 //
-// Copyright (C) 2006-2008 Oliver Hamann.
+// Copyright (C) 2006-2008,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,7 @@
 
 #include <emCore/emFpPlugin.h>
 #include <emGif/emGifFilePanel.h>
+#include <emGif/emGifImageFileModel.h>
 
 
 extern "C" {
@@ -37,5 +38,36 @@ extern "C" {
 			parent,name,
 			emGifFileModel::Acquire(parent.GetRootContext(),path)
 		);
+	}
+
+	bool emGifFpPluginModelFunc(
+		emContext & context, const char * className,
+		const emString & name, bool common, emFpPlugin * plugin,
+		emRef<emModel> * pResult, emString * errorBuf
+	)
+	{
+		if (
+			strcmp(className,"emFileModel")==0 ||
+			strcmp(className,"emGifFileModel")==0
+		)
+		{
+			*pResult=emGifFileModel::Acquire(context,name,common);
+			return true;
+		}
+		else if (
+			strcmp(className,"emImageFileModel")==0 ||
+			strcmp(className,"emGifImageFileModel")==0
+		)
+		{
+			*pResult=emGifImageFileModel::Acquire(context,name,common);
+			return true;
+		}
+		else {
+			*errorBuf=emString::Format(
+				"emGifFpPluginModelFunc: Unsupported class name: %s",
+				className
+			);
+			return false;
+		}
 	}
 }

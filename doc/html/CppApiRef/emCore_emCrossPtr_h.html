@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>.h
 //
-// Copyright (C) 2007-2008,2024 Oliver Hamann.
+// Copyright (C) 2007-2008,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -77,8 +77,14 @@
                 <SPAN CLASS=c>// Destructor.
 
         </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; crossPtr);
+                <SPAN CLASS=c>// Copy a cross pointer.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Set(CLS * obj = <SPAN CLASS=u>NULL</SPAN>);
         <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A> &amp; <SPAN CLASS=t>operator </SPAN>= (CLS * obj);
-                <SPAN CLASS=c>// Copy operators (NULL-pointer is allowed).
+                <SPAN CLASS=c>// Assign an object pointer. NULL is allowed.
+
+        </SPAN><SPAN CLASS=t>void </SPAN>Reset();
+                <SPAN CLASS=c>// Same as Set(NULL).
 
         </SPAN><SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// Cast this to a normal pointer (can be NULL).
@@ -168,12 +174,23 @@
         <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
 <SPAN CLASS=b>}
 
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (CLS * obj)
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::Set(CLS * obj)
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>if </SPAN>(Obj) Unlink();
         Obj=obj;
         <SPAN CLASS=k>if </SPAN>(obj) obj-&gt;LinkCrossPtr(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt;
+<SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt; &amp; <A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>= (CLS * obj)
+<SPAN CLASS=b>{
+        </SPAN>Set(obj);
         <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline void </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::Reset()
+<SPAN CLASS=b>{
+        </SPAN>Set(<SPAN CLASS=u>NULL</SPAN>);
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>CLS&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emCrossPtr_h.html#emCrossPtr">emCrossPtr</A>&lt;CLS&gt;::<SPAN CLASS=t>operator </SPAN>CLS * () <SPAN CLASS=t>const

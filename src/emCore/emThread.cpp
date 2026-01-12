@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emThread.cpp
 //
-// Copyright (C) 2009,2011,2016-2017,2022-2023 Oliver Hamann.
+// Copyright (C) 2009,2011,2016-2017,2022-2023,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -658,7 +658,7 @@ bool emThreadEvent::Receive(emInt64 n, unsigned timeoutMS)
 		static bool logged=false;
 		if (!logged) {
 			logged=true;
-			emDLog("emThreadEvent: eventfd works :-)");
+			EM_DLOG("eventfd works :-)");
 		}
 		r.Pipe[1]=-1;
 	}

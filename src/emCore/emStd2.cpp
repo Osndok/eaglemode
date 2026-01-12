@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emStd2.cpp
 //
-// Copyright (C) 2004-2012,2014-2020,2024 Oliver Hamann.
+// Copyright (C) 2004-2012,2014-2020,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -279,12 +279,11 @@ emUInt64 emGetClockMS()
 	DWORD t;
 	emUInt64 res;
 
-	mutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(mutex);
 	t=GetTickCount();
 	ms64+=(DWORD)(t-tcks);
 	tcks=t;
 	res=ms64;
-	mutex.Unlock();
 	return res;
 #else
 	static emThreadMiniMutex mutex;
@@ -303,6 +302,7 @@ emUInt64 emGetClockMS()
 		if (tps<=0) {
 			tps=(unsigned long)sysconf(_SC_CLK_TCK);
 			if (((long)tps)<=0) {
+				mutex.Unlock();
 				emFatalError("sysconf(_SC_CLK_TCK) failed");
 			}
 		}
@@ -1320,7 +1320,7 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename)
 #endif
 	}
 
-	emLibTableMutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(emLibTableMutex);
 
 	idx=emLibTable.BinarySearchByKey(
 		(void*)filename.Get(),
@@ -1329,13 +1329,11 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename)
 	if (idx>=0) {
 		e=emLibTable[idx];
 		if (e->RefCount) e->RefCount++;
-		emLibTableMutex.Unlock();
 		return e;
 	}
 #if defined(_WIN32)
 	hModule=LoadLibrary(filename.Get());
 	if (!hModule) {
-		emLibTableMutex.Unlock();
 		throw emException(
 			"Failed to load library \"%s\": %s",
 			filename.Get(),
@@ -1345,7 +1343,6 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename)
 #else
 	dlHandle=dlopen(filename,RTLD_NOW|RTLD_GLOBAL);
 	if (!dlHandle) {
-		emLibTableMutex.Unlock();
 #		if defined(__linux__) || defined(__sun__) || defined(__FreeBSD__)
 			throw emException("%s",dlerror());
 #		else
@@ -1370,7 +1367,6 @@ emLibHandle emTryOpenLib(const char * libName, bool isFilename)
 	filename.Clear();
 	e->Filename.MakeNonShared();
 
-	emLibTableMutex.Unlock();
 	return e;
 }
 
@@ -1426,7 +1422,7 @@ void emCloseLib(emLibHandle handle)
 {
 	emLibTableEntry * e;
 
-	emLibTableMutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(emLibTableMutex);
 	e=(emLibTableEntry*)handle;
 	if (e->RefCount) {
 		if (!--e->RefCount) {
@@ -1444,7 +1440,6 @@ void emCloseLib(emLibHandle handle)
 			delete e;
 		}
 	}
-	emLibTableMutex.Unlock();
 }
 
 
@@ -1457,9 +1452,8 @@ void * emTryResolveSymbol(
 
 	e=(emLibTableEntry*)emTryOpenLib(libName,isFilename);
 	r=emTryResolveSymbolFromLib(e,symbol);
-	emLibTableMutex.Lock();
+	emThreadMiniMutex::Locker mutexLocker(emLibTableMutex);
 	e->RefCount=0;
-	emLibTableMutex.Unlock();
 	return r;
 }
 

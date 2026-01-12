@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emGifFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -259,7 +259,6 @@ emGifFileModel::emGifFileModel(emContext & context, const emString & name)
 	Comment.Clear();
 	Colors=NULL;
 	RenderArray=NULL;
-	File=NULL;
 	InLoadingRenderData=false;
 	NextDisposal=0;
 	NextUserInput=false;
@@ -315,18 +314,15 @@ void emGifFileModel::TryStartLoading()
 
 	FileSize=emTryGetFileSize(GetFilePath());
 
-	errno=0;
+	File=new emFileStream();
+	File->TryOpen(GetFilePath(),"rb");
 
-	File=fopen(GetFilePath(),"rb");
-	if (!File) goto Err;
-
-	if (fread(sigver,1,6,File)!=6) goto Err;
-	Width=Read16();
-	Height=Read16();
-	flags=Read8();
-	bgIndex=Read8();
-	aspect=Read8();
-	if (ferror(File) || feof(File)) goto Err;
+	File->TryRead(sigver,6);
+	Width=File->TryReadUInt16LE();
+	Height=File->TryReadUInt16LE();
+	flags=File->TryReadUInt8();
+	bgIndex=File->TryReadUInt8();
+	aspect=File->TryReadUInt8();
 
 #if 0 // Too many buggy encoders...
 	if (aspect) PixelTallness=64.0/(aspect+15.0);
@@ -342,12 +338,11 @@ void emGifFileModel::TryStartLoading()
 		ColorCount=2<<(flags&7);
 		Colors=new emColor[ColorCount];
 		for (i=0; i<ColorCount; i++) {
-			Colors[i].SetRed((emByte)Read8());
-			Colors[i].SetGreen((emByte)Read8());
-			Colors[i].SetBlue((emByte)Read8());
+			Colors[i].SetRed(File->TryReadUInt8());
+			Colors[i].SetGreen(File->TryReadUInt8());
+			Colors[i].SetBlue(File->TryReadUInt8());
 			Colors[i].SetAlpha(255);
 		}
-		if (ferror(File) || feof(File)) goto Err;
 		if (bgIndex<ColorCount) {
 			BGColor=Colors[bgIndex];
 			BGColor.SetAlpha(0);
@@ -356,8 +351,7 @@ void emGifFileModel::TryStartLoading()
 
 	return;
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("GIF format error");
+	throw emException("GIF format error");
 }
 
 
@@ -369,11 +363,9 @@ bool emGifFileModel::TryContinueLoading()
 	char tmp[256];
 	int b,i;
 
-	errno=0;
-
 	if (InLoadingRenderData) {
 		r=RenderArray[RenderCount-1];
-		b=Read8();
+		b=File->TryReadUInt8();
 		if (b) {
 			if (r->DataFill+b>r->DataSize) {
 				r->DataSize+=65536;
@@ -384,7 +376,7 @@ bool emGifFileModel::TryContinueLoading()
 				}
 				r->Data=p;
 			}
-			if (fread(r->Data+r->DataFill,1,b,File)!=(size_t)b) goto Err;
+			File->TryRead(r->Data+r->DataFill,b);
 			r->DataFill+=b;
 		}
 		else {
@@ -398,17 +390,12 @@ bool emGifFileModel::TryContinueLoading()
 			}
 			InLoadingRenderData=false;
 		}
-		if (ferror(File) || feof(File)) goto Err;
 		return false;
 	}
 
-	b=Read8();
-	if (ferror(File)) {
-		goto Err;
-	}
-	else if (feof(File) || b==0x3B) {
-		fclose(File);
-		File=NULL;
+	b=File->TryReadUInt8();
+	if (b==0x3B) {
+		File.Reset();
 		if (!PostProcess()) goto Err;
 		return true;
 	}
@@ -419,10 +406,10 @@ bool emGifFileModel::TryContinueLoading()
 		r->Transparent=NextTransparent;
 		r->UserInput=NextUserInput;
 		r->Interlaced=false;
-		r->X=Read16();
-		r->Y=Read16();
-		r->Width=Read16();
-		r->Height=Read16();
+		r->X=File->TryReadUInt16LE();
+		r->Y=File->TryReadUInt16LE();
+		r->Width=File->TryReadUInt16LE();
+		r->Height=File->TryReadUInt16LE();
 		r->ColorCount=0;
 		r->DataSize=0;
 		r->DataFill=0;
@@ -438,24 +425,22 @@ bool emGifFileModel::TryContinueLoading()
 			RenderArray=pr;
 		}
 		RenderArray[RenderCount++]=r;
-		b=Read8();
-		if (ferror(File) || feof(File)) goto Err;
+		b=File->TryReadUInt8();
 		if ((b&0x40)!=0) r->Interlaced=true;
 		if ((b&0x80)!=0) {
 			r->ColorCount=2<<(b&7);
 			r->Colors=new emColor[r->ColorCount];
 			for (i=0; i<r->ColorCount; i++) {
-				r->Colors[i].SetRed((emByte)Read8());
-				r->Colors[i].SetGreen((emByte)Read8());
-				r->Colors[i].SetBlue((emByte)Read8());
+				r->Colors[i].SetRed(File->TryReadUInt8());
+				r->Colors[i].SetGreen(File->TryReadUInt8());
+				r->Colors[i].SetBlue(File->TryReadUInt8());
 				r->Colors[i].SetAlpha(255);
 			}
-			if (ferror(File) || feof(File)) goto Err;
 		}
 		else {
 			if (ColorCount<=0) goto Err;
 		}
-		r->MinCodeSize=Read8();
+		r->MinCodeSize=File->TryReadUInt8();
 		if (r->MinCodeSize<1 || r->MinCodeSize>8) goto Err;
 		NextDisposal=0;
 		NextUserInput=false;
@@ -464,27 +449,25 @@ bool emGifFileModel::TryContinueLoading()
 		InLoadingRenderData=true;
 	}
 	else if (b==0x21) {
-		b=Read8();
+		b=File->TryReadUInt8();
 		if (b==0xfe) {
 			if (Comment.GetLen()>=65536) goto Err;
 			for (i=0;;) {
-				b=Read8();
-				if (ferror(File) || feof(File)) goto Err;
+				b=File->TryReadUInt8();
 				if (!b) break;
 				i+=b;
 				if (i>=65536) goto Err;
-				if (fread(tmp,1,b,File)!=(size_t)b) goto Err;
+				File->TryRead(tmp,b);
 				tmp[b]=0;
 				Comment+=tmp;
 			}
 		}
 		else if (b==0xf9) {
-			if (Read8()!=4) goto Err;
-			b=Read8();
-			NextDelay=Read16();
-			NextTransparent=Read8();
-			Read8();
-			if (ferror(File) || feof(File)) goto Err;
+			if (File->TryReadUInt8()!=4) goto Err;
+			b=File->TryReadUInt8();
+			NextDelay=File->TryReadUInt16LE();
+			NextTransparent=File->TryReadUInt8();
+			File->TryReadUInt8();
 			NextDisposal=(b>>2)&7;
 			if (NextDisposal==4) NextDisposal=3;
 			if (NextDisposal>3) goto Err;
@@ -497,18 +480,16 @@ bool emGifFileModel::TryContinueLoading()
 			NextDelay=0;
 			NextTransparent=-1;
 			for (;;) {
-				b=Read8();
-				if (ferror(File) || feof(File)) goto Err;
+				b=File->TryReadUInt8();
 				if (!b) break;
-				fseek(File,b,SEEK_CUR);
+				File->TrySkip(b);
 			}
 		}
 		else {
 			for (;;) {
-				b=Read8();
-				if (ferror(File) || feof(File)) goto Err;
+				b=File->TryReadUInt8();
 				if (!b) break;
-				fseek(File,b,SEEK_CUR);
+				File->TrySkip(b);
 			}
 		}
 	}
@@ -518,17 +499,13 @@ bool emGifFileModel::TryContinueLoading()
 	return false;
 
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("GIF format error");
+	throw emException("GIF format error");
 }
 
 
 void emGifFileModel::QuitLoading()
 {
-	if (File) {
-		fclose(File);
-		File=NULL;
-	}
+	File.Reset();
 	InLoadingRenderData=false;
 	NextDisposal=0;
 	NextUserInput=false;
@@ -722,20 +699,4 @@ bool emGifFileModel::PostProcess()
 	}
 
 	return true;
-}
-
-
-int emGifFileModel::Read8()
-{
-	return (unsigned char)fgetc(File);
-}
-
-
-int emGifFileModel::Read16()
-{
-	int i;
-
-	i=Read8();
-	i|=Read8()<<8;
-	return i;
 }

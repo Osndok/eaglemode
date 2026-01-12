@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emList.h
 //
-// Copyright (C) 2005-2010,2014-2015 Oliver Hamann.
+// Copyright (C) 2005-2010,2014-2015,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -449,27 +449,30 @@ public:
 			// Copy an iterator.
 
 		operator const OBJ * () const;
-		const OBJ * operator * () const;
+		const OBJ & operator * () const;
 		const OBJ * operator -> () const;
 		const OBJ * Get() const;
-			// Get the element pointer. It is NULL if this iterator
-			// does not point to any element.
+			// Get the element pointer or reference. It is NULL if
+			// this iterator does not point to any element.
 
-		const OBJ * Set(const Iterator & iter);
-			// Copy the given iterator and return the element
-			// pointer.
+		void Set(const Iterator & iter);
+			// Copy the given iterator.
 
-		const OBJ * Set(const emList<OBJ> & list, const OBJ * elem);
+		void Set(const emList<OBJ> & list, const OBJ * elem);
 			// Set this iterator to the given element of the given
-			// list and return the element pointer.
+			// list.
 
-		const OBJ * SetFirst(const emList<OBJ> & list);
-		const OBJ * SetLast(const emList<OBJ> & list);
+		void SetFirst(const emList<OBJ> & list);
+		void SetLast(const emList<OBJ> & list);
 			// Set this iterator to the first or last element of the
-			// given list and return the element pointer.
+			// given list.
 
-		const OBJ * SetNext();
-		const OBJ * SetPrev();
+		void SetNext();
+		void SetPrev();
+			// Set this iterator to the next or previous element.
+			// This must be called only if the old element pointer
+			// is not NULL.
+
 		const OBJ * operator ++();
 		const OBJ * operator --();
 			// Set this iterator to the next or previous element and
@@ -482,8 +485,6 @@ public:
 
 		bool operator == (const Iterator & iter) const;
 		bool operator != (const Iterator & iter) const;
-		bool operator == (const OBJ * elem) const;
-		bool operator != (const OBJ * elem) const;
 			// Ordinary compare operators.
 
 		const emList<OBJ> * GetList() const;
@@ -507,6 +508,17 @@ public:
 		emList<OBJ> * List;
 		Iterator * NextIter; // Undefined if List==NULL
 	};
+
+	Iterator begin() const; // NOLINT(*-identifier-naming)
+	Iterator end() const; // NOLINT(*-identifier-naming)
+		// Support range-based for loops. This only allows to loop
+		// constant element references. If you want a loop that modifies
+		// elements, make use of GetWritable. Example:
+		//   for (const auto & elem: myList) {
+		//     auto & writableElem = *myList.GetWritable(&elem);
+		//     // Do not use elem from here on (address may not belong
+		//     // to myList after calling GetWritable).
+		//   }
 
 private:
 	friend class Iterator;
@@ -1534,9 +1546,9 @@ template <class OBJ> inline
 }
 
 template <class OBJ> inline
-	const OBJ * emList<OBJ>::Iterator::operator * () const
+	const OBJ & emList<OBJ>::Iterator::operator * () const
 {
-	return Pos;
+	return *Pos;
 }
 
 template <class OBJ> inline
@@ -1550,7 +1562,7 @@ template <class OBJ> inline const OBJ * emList<OBJ>::Iterator::Get() const
 	return Pos;
 }
 
-template <class OBJ> const OBJ * emList<OBJ>::Iterator::Set(
+template <class OBJ> void emList<OBJ>::Iterator::Set(
 	const Iterator & iter
 )
 {
@@ -1567,10 +1579,9 @@ template <class OBJ> const OBJ * emList<OBJ>::Iterator::Set(
 		}
 	}
 	Pos=iter.Pos;
-	return Pos;
 }
 
-template <class OBJ> const OBJ * emList<OBJ>::Iterator::Set(
+template <class OBJ> void emList<OBJ>::Iterator::Set(
 	const emList<OBJ> & list, const OBJ * elem
 )
 {
@@ -1586,33 +1597,30 @@ template <class OBJ> const OBJ * emList<OBJ>::Iterator::Set(
 		List->Iterators=this;
 	}
 	Pos=elem;
-	return elem;
 }
 
-template <class OBJ> inline const OBJ * emList<OBJ>::Iterator::SetFirst(
+template <class OBJ> inline void emList<OBJ>::Iterator::SetFirst(
 	const emList<OBJ> & list
 )
 {
-	return Set(list,list.Data->First);
+	Set(list,list.Data->First);
 }
 
-template <class OBJ> inline const OBJ * emList<OBJ>::Iterator::SetLast(
+template <class OBJ> inline void emList<OBJ>::Iterator::SetLast(
 	const emList<OBJ> & list
 )
 {
-	return Set(list,list.Data->Last);
+	Set(list,list.Data->Last);
 }
 
-template <class OBJ> inline const OBJ * emList<OBJ>::Iterator::SetNext()
+template <class OBJ> inline void emList<OBJ>::Iterator::SetNext()
 {
 	Pos=EM_LSTIMP_NEXT(Pos);
-	return Pos;
 }
 
-template <class OBJ> inline const OBJ * emList<OBJ>::Iterator::SetPrev()
+template <class OBJ> inline void emList<OBJ>::Iterator::SetPrev()
 {
 	Pos=EM_LSTIMP_PREV(Pos);
-	return Pos;
 }
 
 template <class OBJ> inline const OBJ * emList<OBJ>::Iterator::operator ++()
@@ -1655,20 +1663,6 @@ template <class OBJ> inline bool emList<OBJ>::Iterator::operator != (
 	return Pos!=iter.Pos;
 }
 
-template <class OBJ> inline bool emList<OBJ>::Iterator::operator == (
-	const OBJ * elem
-) const
-{
-	return Pos==elem;
-}
-
-template <class OBJ> inline bool emList<OBJ>::Iterator::operator != (
-	const OBJ * elem
-) const
-{
-	return Pos!=elem;
-}
-
 template <class OBJ> inline
 	const emList<OBJ> * emList<OBJ>::Iterator::GetList() const
 {
@@ -1685,6 +1679,18 @@ template <class OBJ> void emList<OBJ>::Iterator::Detach()
 		List=NULL;
 		Pos=NULL;
 	}
+}
+
+template <class OBJ> inline
+	typename emList<OBJ>::Iterator emList<OBJ>::begin() const
+{
+	return Iterator(*this,GetFirst());
+}
+
+template <class OBJ> inline
+	typename emList<OBJ>::Iterator emList<OBJ>::end() const
+{
+	return Iterator();
 }
 
 template <class OBJ> typename emList<OBJ>::SharedData emList<OBJ>::EmptyData=

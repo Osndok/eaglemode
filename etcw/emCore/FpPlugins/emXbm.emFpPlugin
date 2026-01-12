@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".xbm" }
+FileFormatName = "X BitMap"
 Priority = 1.0
 Library = "emXbm"
 Function = "emXbmFpPluginFunc"
+ModelFunction = "emXbmFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emXbmImageFileModel" }
+ModelAbleToSave = no

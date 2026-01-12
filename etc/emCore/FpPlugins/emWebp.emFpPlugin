@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".webp" }
+FileFormatName = "WebP"
 Priority = 1.0
 Library = "emWebp"
 Function = "emWebpFpPluginFunc"
+ModelFunction = "emWebpFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emWebpImageFileModel" }
+ModelAbleToSave = no

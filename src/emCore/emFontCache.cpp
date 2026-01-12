@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFontCache.cpp
 //
-// Copyright (C) 2009,2014-2020,2024 Oliver Hamann.
+// Copyright (C) 2009,2014-2020,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,8 @@
 //------------------------------------------------------------------------------
 
 #include <emCore/emFontCache.h>
+#include <emCore/emFpPlugin.h>
+#include <emCore/emImageFile.h>
 #include <emCore/emInstallInfo.h>
 #include <emCore/emRes.h>
 
@@ -60,7 +62,7 @@ void emFontCache::GetChar(
 	}
 
 	if (!entry->LoadedInEarlierTimeSlice) {
-		Mutex.Lock();
+		emThreadMutex::Locker mutexLocker(Mutex);
 		if (!entry->Loaded) {
 			t=emGetClockMS()-LastLoadTime;
 			if (t>0) {
@@ -77,7 +79,6 @@ void emFontCache::GetChar(
 					*pImgY=0;
 					*pImgW=ImgCostlyChar.GetWidth();
 					*pImgH=ImgCostlyChar.GetHeight();
-					Mutex.Unlock();
 					return;
 				}
 			}
@@ -85,7 +86,6 @@ void emFontCache::GetChar(
 			Stress+=1.0;
 			SomeLoadedNewly=true;
 		}
-		Mutex.Unlock();
 	}
 
 	entry->LastUseClock=Clock;
@@ -171,21 +171,21 @@ bool emFontCache::Cycle()
 
 void emFontCache::LoadEntry(Entry * entry)
 {
-	emArray<char> buf;
-
 	if (!entry->Loaded) {
-		emDLog("emFontCache: Loading %s",entry->FilePath.Get());
+		EM_DLOG("Loading %s",entry->FilePath.Get());
 		try {
-			buf=emTryLoadFile(entry->FilePath);
-		}
-		catch (const emException & exception) {
-			emFatalError("%s",exception.GetText().Get());
-		}
-		try {
-			entry->Image.TryParseTga(
-				(const unsigned char*)buf.Get(),
-				buf.GetCount()
-			);
+			emRef<emFpPluginList> pluginList=emFpPluginList::Acquire(GetRootContext());
+			emRef<emImageFileModel> imageFileModel=
+				pluginList->TryAcquireModel<emImageFileModel>(
+					GetRootContext(),"emImageFileModel",entry->FilePath,true,false
+				)
+			;
+			emAbsoluteFileModelClient imageFileModelClient(imageFileModel);
+			imageFileModel->Load(true);
+			if (imageFileModel->GetFileState()!=emFileModel::FS_LOADED) {
+				throw emException("%s",imageFileModel->GetErrorText().Get());
+			}
+			entry->Image=imageFileModel->GetImage();
 		}
 		catch (const emException & exception) {
 			emFatalError(
@@ -200,7 +200,6 @@ void emFontCache::LoadEntry(Entry * entry)
 				entry->FilePath.Get()
 			);
 		}
-		buf.Clear();
 		entry->ColumnCount=entry->Image.GetWidth()/entry->CharWidth;
 		if (entry->ColumnCount<1) entry->ColumnCount=1;
 		entry->LastUseClock=Clock;

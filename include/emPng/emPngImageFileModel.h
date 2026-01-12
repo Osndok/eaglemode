@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPngImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018,2022 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,14 +49,23 @@ protected:
 
 private:
 	struct LoadingState {
-		FILE * file;
-		void * decodeInstance;
-		int width,height,channelCount,passCount;
-		bool imagePrepared;
-		int y,pass;
+		FILE * File;
+		void * DecodeInstance;
+		int Width,Height,ChannelCount,PassCount;
+		bool ImagePrepared;
+		int Y,Pass;
+	};
+
+	struct SavingState {
+		FILE * File;
+		void * EncodeInstance;
+		emArray<emColor> Pal;
+		emOwnArrayPtr<emByte> RowBuf;
+		int BitDepth,PixelBits,RowSize,Y;
 	};
 
 	LoadingState * L;
+	SavingState * S;
 };
 
 

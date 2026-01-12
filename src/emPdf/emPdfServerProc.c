@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 // emPdfServerProc.c
 //
-// Copyright (C) 2011-2013,2017-2019,2022-2024 Oliver Hamann.
+// Copyright (C) 2011-2013,2017-2019,2022-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -105,7 +105,7 @@ static char * emPdfEncodeFileUri(const char * absFilePath)
 	char * uri, * p;
 	int c;
 
-	uri=malloc(16+3*strlen(absFilePath));
+	uri=(char*)malloc(16+3*strlen(absFilePath));
 
 	p=uri;
 	strcpy(p,"file://");
@@ -131,7 +131,7 @@ static char * emPdfEncodeFileUri(const char * absFilePath)
 			c=='@' ||
 			c==127
 		) {
-			sprintf(p,"%%%02X",c);
+			sprintf(p,"%%%02X",(unsigned)c);
 			p+=3;
 		}
 #ifdef _WIN32
@@ -696,7 +696,7 @@ static int emPdfServe(int argc, char * argv[])
 	setlocale(LC_NUMERIC,"C");
 
 	bufSize=16384;
-	buf=malloc(bufSize);
+	buf=(char*)malloc(bufSize);
 
 	while (fgets(buf,bufSize,stdin)) {
 		len=strlen(buf);

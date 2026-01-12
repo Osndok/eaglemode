@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
-// emPngDecode.h
+// emPngFunctions.h
 //
-// Copyright (C) 2022 Oliver Hamann.
+// Copyright (C) 2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,8 +18,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //----------------------------------------------------------------------------*/
 
-#ifndef emPngDecode_h
-#define emPngDecode_h
+#ifndef emPngFunctions_h
+#define emPngFunctions_h
 
 #include <stdio.h>
 
@@ -46,6 +46,19 @@ int emPngContinueDecoding(
 );
 
 void emPngQuitDecoding(void * instance);
+
+void * emPngStartEncoding(
+	FILE * file, int width, int height, int bitDepth, int pixelBits,
+	unsigned char * palette, int palSize, const char * comment,
+	char * errorBuf, size_t errorBufSize
+);
+
+int emPngContinueEncoding(
+	void * instance, const unsigned char * rowBuf, char * errorBuf,
+	size_t errorBufSize
+);
+
+void emPngQuitEncoding(void * instance);
 
 
 #ifdef __cplusplus

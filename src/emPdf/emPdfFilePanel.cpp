@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPdfFilePanel.cpp
 //
-// Copyright (C) 2011-2014,2016,2020,2023 Oliver Hamann.
+// Copyright (C) 2011-2014,2016,2020,2023,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,7 +33,7 @@ emPdfFilePanel::emPdfFilePanel(
 	BGColor=emColor(0,0,0,0);
 	FGColor=emColor(0,0,0);
 	LayoutValid=false;
-	ShadowImage=emGetInsResImage(GetRootContext(),"emPs","page_shadow.tga");
+	ShadowImage=emGetInsResImage(GetRootContext(),"emPdf","page_shadow.tga");
 	AddWakeUpSignal(GetVirFileStateSignal());
 	CalcLayout();
 	UpdatePagePanels();

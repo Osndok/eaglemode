@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emBmpImageFileModel.h
 //
-// Copyright (C) 2004-2008,2010,2014,2018-2019,2022 Oliver Hamann.
+// Copyright (C) 2004-2008,2010,2014,2018-2019,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emBmpImageFileModel_h
 #define emBmpImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -51,10 +55,6 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
-	int Read32();
-
 	typedef void * (*PngStartDecodingFunc)(
 		FILE * file, int * width, int * height, int * channelCount,
 		int * passCount, char * infoBuf, size_t infoBufSize,
@@ -67,6 +67,8 @@ private:
 	typedef void (*PngQuitDecodingFunc)(void * instance);
 
 	struct LoadingState {
+		LoadingState();
+		~LoadingState();
 		int Width,Height,Channels;
 		int BitsPerPixel;
 		long BitsOffset,ColsOffset;
@@ -81,11 +83,21 @@ private:
 		void * PngInst;
 		int PassCount,Pass;
 		bool ImagePrepared;
-		FILE * File;
-		unsigned char * Palette;
+		emFileStream File;
+		emOwnArrayPtr<unsigned char> Palette;
 	};
 
-	LoadingState * L;
+	struct SavingState {
+		SavingState();
+		~SavingState();
+		emFileStream File;
+		emArray<emColor> Palette;
+		int BitsPerPixel;
+		int NextY;
+	};
+
+	emOwnPtr<LoadingState> L;
+	emOwnPtr<SavingState> S;
 };
 
 

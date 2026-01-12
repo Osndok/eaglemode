@@ -1,16 +1,17 @@
 #%rec:emFpPlugin%#
 
-FileTypes = { ".eps" }
+FileTypes = { ".ps" ".eps" }
+FileFormatName = "PostScript"
 Priority = 0.5
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"
 Properties = {
  {
   Name="OutFileEnding"
-  Value=".ps"
+  Value=".pdf"
  }
  {
   Name="Command"
-  Value="exec gs -q -dNOPAUSE -dSAFER -sDEVICE=ps2write \"-sOutputFile=$OUTFILE\" - < \"$INFILE\""
+  Value="exec ps2pdf \"$INFILE\" \"$OUTFILE\""
  }
 }

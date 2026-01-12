@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRes.cpp
 //
-// Copyright (C) 2006-2008,2014,2018-2020 Oliver Hamann.
+// Copyright (C) 2006-2008,2014,2018-2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -18,8 +18,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <emCore/emInstallInfo.h>
 #include <emCore/emRes.h>
+#include <emCore/emFpPlugin.h>
+#include <emCore/emImageFile.h>
+#include <emCore/emInstallInfo.h>
 
 
 //==============================================================================
@@ -35,7 +37,6 @@ emImage emGetResImage(
 	}
 	catch (const emException & exception) {
 		emFatalError("%s",exception.GetText().Get());
-		return emImage();
 	}
 }
 
@@ -45,7 +46,6 @@ emImage emTryGetResImage(
 )
 {
 	emRef<emResModel<emImage> > m;
-	emArray<char> buf;
 	emString absPath;
 	emImage img;
 
@@ -56,22 +56,28 @@ emImage emTryGetResImage(
 		img=m->Get();
 	}
 	else {
-		emDLog("emRes: Loading %s",absPath.Get());
-		buf=emTryLoadFile(absPath);
+		EM_DLOG("Loading %s",absPath.Get());
 		try {
-			img.TryParseTga(
-				(unsigned char*)buf.Get(),
-				buf.GetCount()
-			);
+			emRef<emFpPluginList> pluginList=emFpPluginList::Acquire(rootContext);
+			emRef<emImageFileModel> imageFileModel=
+				pluginList->TryAcquireModel<emImageFileModel>(
+					rootContext,"emImageFileModel",absPath,true,false
+				)
+			;
+			emAbsoluteFileModelClient imageFileModelClient(imageFileModel);
+			imageFileModel->Load(true);
+			if (imageFileModel->GetFileState()!=emFileModel::FS_LOADED) {
+				throw emException("%s",imageFileModel->GetErrorText().Get());
+			}
+			img=imageFileModel->GetImage();
 		}
 		catch (const emException & exception) {
 			throw emException(
-				"Could not read image file \"%s\": %s",
+				"Could not read image file \"%s\":\n%s",
 				absPath.Get(),
 				exception.GetText().Get()
 			);
 		}
-		buf.Clear();
 		m=emResModel<emImage>::Acquire(rootContext,absPath);
 		m->Set(img);
 	}

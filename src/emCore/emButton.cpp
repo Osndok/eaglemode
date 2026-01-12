@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emButton.cpp
 //
-// Copyright (C) 2005-2011,2014-2016,2019-2022 Oliver Hamann.
+// Copyright (C) 2005-2011,2014-2016,2019-2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -74,7 +74,7 @@ void emButton::Input(
 	emInputEvent & event, const emInputState & state, double mx, double my
 )
 {
-	static const double minExt=7.0;
+	static const double minExt=8.0;
 	double vmx,vmy;
 	bool inBox;
 

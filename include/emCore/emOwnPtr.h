@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emOwnPtr.h
 //
-// Copyright (C) 2024 Oliver Hamann.
+// Copyright (C) 2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -58,16 +58,13 @@ public:
 		// Release ownership of the object, make this emOwnPtrBase a
 		// NULL pointer, and return the object pointer.
 
-	operator const OBJECT * () const;
-	operator OBJECT * ();
+	operator OBJECT * () const;
 		// Cast this to a normal pointer (can be NULL).
 
-	const OBJECT * Get() const;
-	OBJECT * Get();
+	OBJECT * Get() const;
 		// Get the normal pointer (can be NULL).
 
-	const OBJECT * operator -> () const;
-	OBJECT * operator -> ();
+	OBJECT * operator -> () const;
 		// This makes this class a so-called "smart pointer". For
 		// example, if p is an emOwnPtrBase to an object which has a
 		// method named Hello(), one could say p->Hello() instead of
@@ -177,37 +174,19 @@ inline OBJECT * emOwnPtrBase<OBJECT, DELETER>::Release()
 }
 
 template <class OBJECT, class DELETER>
-inline emOwnPtrBase<OBJECT, DELETER>::operator const OBJECT * () const
+inline emOwnPtrBase<OBJECT, DELETER>::operator OBJECT * () const
 {
 	return Ptr;
 }
 
 template <class OBJECT, class DELETER>
-inline emOwnPtrBase<OBJECT, DELETER>::operator OBJECT * ()
+inline OBJECT * emOwnPtrBase<OBJECT, DELETER>::Get() const
 {
 	return Ptr;
 }
 
 template <class OBJECT, class DELETER>
-inline const OBJECT * emOwnPtrBase<OBJECT, DELETER>::Get() const
-{
-	return Ptr;
-}
-
-template <class OBJECT, class DELETER>
-inline OBJECT * emOwnPtrBase<OBJECT, DELETER>::Get()
-{
-	return Ptr;
-}
-
-template <class OBJECT, class DELETER>
-inline const OBJECT * emOwnPtrBase<OBJECT, DELETER>::operator -> () const
-{
-	return Ptr;
-}
-
-template <class OBJECT, class DELETER>
-inline OBJECT * emOwnPtrBase<OBJECT, DELETER>::operator -> ()
+inline OBJECT * emOwnPtrBase<OBJECT, DELETER>::operator -> () const
 {
 	return Ptr;
 }

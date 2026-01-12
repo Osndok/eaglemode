@@ -1090,7 +1090,7 @@ bool emX11WindowPort::Cycle()
 	}
 
 	if (IsSignaled(AfterMapNotifyTimer.GetSignal()) && FocusPending) {
-		 GrabFocus();
+		GrabFocus();
 	}
 
 	if (!InvalidRects.IsEmpty() && Mapped) {

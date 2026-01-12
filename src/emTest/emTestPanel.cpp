@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emTestPanel.cpp
 //
-// Copyright (C) 2005-2009,2011,2014-2016,2020-2022 Oliver Hamann.
+// Copyright (C) 2005-2009,2011,2014-2016,2020-2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -528,7 +528,7 @@ void emTestPanel::UpdateControlPanel()
 				"Panel Identity: %s\n"
 				"BgColor: 0x%08X",
 				GetIdentity().Get(),
-				(int)BgColor
+				(unsigned)BgColor
 			)
 		);
 	}

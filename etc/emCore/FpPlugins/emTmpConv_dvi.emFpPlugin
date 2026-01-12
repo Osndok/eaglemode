@@ -1,16 +1,17 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".dvi" }
+FileFormatName = "DVI"
 Priority = 0.5
 Library = "emTmpConv"
 Function = "emTmpConvFpPluginFunc"
 Properties = {
  {
   Name="OutFileEnding"
-  Value=".ps"
+  Value=".pdf"
  }
  {
   Name="Command"
-  Value="exec dvips -R -q -f < \"$INFILE\" > \"$OUTFILE\""
+  Value="exec dvipdf \"$INFILE\" \"$OUTFILE\""
  }
 }

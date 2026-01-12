@@ -19,7 +19,7 @@ carefully.
 	</TR>
 	<TR VALIGN="top">
 		<TD><B>Memory:</B></TD>
-		<TD>4 GB RAM. This is a recommendation. If you run Eagle Mode
+		<TD>8 GB RAM. This is a recommendation. If you run Eagle Mode
 		with less memory, then please lessen the value for <I>Max
 		Megabytes Per View</I> in the <I>General Preferences</I> (that's
 		at the left end of the control view).</TD>
@@ -90,11 +90,6 @@ carefully.
 		<TD>Highly recommended (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>gs&nbsp;(Ghostscript&nbsp;&ge;&nbsp;9.x)</TD>
-		<TD>ghostscript</TD>
-		<TD>Highly recommended</TD>
-	</TR>
-	<TR VALIGN="top">
 		<TD>JPEG library</TD>
 		<TD>libjpeg-dev</TD>
 		<TD>Only for viewing jpeg files</TD>
@@ -131,7 +126,7 @@ carefully.
 	</TR>
 	<TR VALIGN="top">
 		<TD>GTK+ library</TD>
-		<TD>libgtk2.0-dev</TD>
+		<TD>libgtk-3-dev</TD>
 		<TD>Only for viewing pdf files</TD>
 	</TR>
 	<TR VALIGN="top">
@@ -142,7 +137,7 @@ carefully.
 	<TR VALIGN="top">
 		<TD>7z</TD>
 		<TD>p7zip-full</TD>
-		<TD>Only for working with 7z files</TD>
+		<TD>Only for working with 7z and zip files</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD>ar</TD>
@@ -155,14 +150,14 @@ carefully.
 		<TD>Only for working with bz and bz2 files</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>gzip</TD>
-		<TD>gzip</TD>
-		<TD>Only for working with gz files</TD>
-	</TR>
-	<TR VALIGN="top">
 		<TD>lzop</TD>
 		<TD>lzop</TD>
 		<TD>Only for working with lzo files (not on Windows)</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>pigz</TD>
+		<TD>pigz</TD>
+		<TD>Only for working with gz files</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD>tar</TD>
@@ -173,11 +168,6 @@ carefully.
 		<TD>xz</TD>
 		<TD>xz-utils</TD>
 		<TD>Only for working with lzma and xz files</TD>
-	</TR>
-	<TR VALIGN="top">
-		<TD>zip &amp; unzip</TD>
-		<TD>zip &amp; unzip</TD>
-		<TD>Only for working with zip files</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD>abiword</TD>
@@ -196,9 +186,14 @@ carefully.
 		<TD>Only for viewing dia files (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
-		<TD>dvips</TD>
-		<TD>texlive-binaries</TD>
+		<TD>dvipdf</TD>
+		<TD>ghostscript</TD>
 		<TD>Only for viewing dvi files (not on Windows)</TD>
+	</TR>
+	<TR VALIGN="top">
+		<TD>ps2pdf</TD>
+		<TD>ghostscript</TD>
+		<TD>Only for viewing ps files (not on Windows)</TD>
 	</TR>
 	<TR VALIGN="top">
 		<TD>fig2dev</TD>
@@ -246,10 +241,10 @@ carefully.
 <B><FONT SIZE=5>Do not have the wrong program to a name</FONT></B>
 <P>
 Eagle Mode runs many standard programs by names like they have on Debian
-GNU/Linux 9. Your system must not have another program with one of those
-names, otherwise unforeseeable things could happen. For example, Eagle Mode runs
-"gs" when it means Ghostscript, and therefore you should not have another
-program named "gs" which, for example, formats the hard disk. In detail, Eagle
+GNU/Linux 13. Your system must not have another program with one of those names,
+otherwise unforeseeable things could happen. For example, Eagle Mode runs "tar"
+when it means the Tar archive utility, and therefore you should not have another
+program named "tar" which, for example, formats the hard disk. In detail, Eagle
 Mode runs standard UNIX shell commands like "cp", "mv", "rm", "grep" and so on,
 and it runs the programs listed in the table above. Many of these are run when
 you just navigate around in Eagle Mode, without asking you. In addition, many

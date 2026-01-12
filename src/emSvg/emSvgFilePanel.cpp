@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emSvgFilePanel.cpp
 //
-// Copyright (C) 2010-2011,2014-2016,2023-2024 Oliver Hamann.
+// Copyright (C) 2010-2011,2014-2016,2023-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,7 +34,7 @@ emSvgFilePanel::emSvgFilePanel(
 	ServerModel=emSvgServerModel::Acquire(GetRootContext());
 	JobUpToDate=false;
 	JobDelayStartTime=emGetClockMS();
-	RenderIcon=emGetInsResImage(GetRootContext(),"emPs","rendering.tga");
+	RenderIcon=emGetInsResImage(GetRootContext(),"emPdf","rendering.tga");
 	ShowIcon=false;
 	AddWakeUpSignal(GetVirFileStateSignal());
 	AddWakeUpSignal(JobDelayTimer.GetSignal());

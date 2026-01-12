@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRgbImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emRgbImageFileModel_h
 #define emRgbImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -51,15 +55,11 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
-	int Read32();
-
 	struct LoadingState {
 		int Storage,BytesPerChannel,XSize,YSize,ZSize;
 		int PixMin,PixMax,NextY,NextZ,ZUse;
 		bool ImagePrepared;
-		FILE * File;
+		emFileStream File;
 		emUInt32 * OffsetTable;
 	};
 

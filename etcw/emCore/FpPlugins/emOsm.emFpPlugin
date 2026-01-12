@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emOsm" }
+FileFormatName = "emOsm"
 Priority = 1.0
 Library = "emOsm"
 Function = "emOsmFpPluginFunc"

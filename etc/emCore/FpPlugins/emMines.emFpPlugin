@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emMines" }
+FileFormatName = "emMines"
 Priority = 1.0
 Library = "emMines"
 Function = "emMinesFpPluginFunc"

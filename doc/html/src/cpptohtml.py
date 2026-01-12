@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # cpptohtml.py
 #
-# Copyright (C) 2010,2022 Oliver Hamann.
+# Copyright (C) 2010,2022,2025 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -210,9 +210,9 @@ class CppHtmlConverter:
 		self._reNumeric=re.compile(
 			"("
 			"((([0-9]+)|(0[xX][0-9a-fA-F]*))[uU]?[lL]*)|"
-			"([0-9]*\.?[0-9]+([eE][\+-]?[0-9]+)?[fF]?)"
+			"([0-9]*\\.?[0-9]+([eE][\\+-]?[0-9]+)?[fF]?)"
 			")"
-			"(?![0-9a-zA-Z\.])"
+			"(?![0-9a-zA-Z\\.])"
 		)
 		self._keywordDictionary=dict({
 			'NULL'            :'u',

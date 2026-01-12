@@ -48,7 +48,7 @@
 
 </SPAN><SPAN CLASS=p>#define EM_MAJOR_VERSION 0
 #define EM_MINOR_VERSION 96
-#define EM_MICRO_VERSION 3
+#define EM_MICRO_VERSION 4
 #define EM_VERSION_POSTFIX ""
         </SPAN><SPAN CLASS=c>// Version numbers and postfix. Postfix is a string like ".rc1" or "".
 
@@ -297,8 +297,8 @@
         // Returns:
         //   On success, the number of bytes read from the UTF-8 string is
         //   returned (1 - 6). If the UTF-8 string is empty, zero is returned.
-        //   And if the UTF-8 string does not contain a valid and complete code
-        //   sequence, -1 is returned.
+        //   If the UTF-8 string contains an invalid code sequence, -1 is
+        //   returned. And if the code sequence is incomplete, -2 is returned.
 
 //------------------ Character encoding of the current locale ------------------
 
@@ -334,7 +334,15 @@
         //   strLen - Maximum number of bytes to be read from the encoded
         //            string, if it is not null-terminated.
         //   state  - Input and output of character encoding state or shift state.
-        // Returns: Number of bytes read from the encoded string (&gt;=0).
+        // Returns: Number of bytes read from the encoded string (&gt;=0). If the
+        // code sequence is invalid or incomplete, one character is eaten as is
+        // and 1 is returned.
+
+</SPAN><SPAN CLASS=t>int </SPAN>emDecodeCharStrictly(<SPAN CLASS=t>int </SPAN>* pUcs4, <SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX,
+                         emMBState * state=<SPAN CLASS=u>NULL</SPAN>);
+        <SPAN CLASS=c>// Like emDecodeChar, but if the UTF-8 string contains an invalid code
+        // sequence, -1 is returned. And if the code sequence is incomplete, -2
+        // is returned.
 
 </SPAN><SPAN CLASS=t>int </SPAN>emGetDecodedCharCount(<SPAN CLASS=t>const char </SPAN>* str, <SPAN CLASS=t>int </SPAN>strLen=INT_MAX);
         <SPAN CLASS=c>// Get the number of 31-bit Unicode characters which could be decoded
@@ -357,22 +365,44 @@
         // a temp directory (the directory returned by the Win-API function
         // GetTempPath).
 
-</SPAN><SPAN CLASS=t>void </SPAN>emEnableDLog(<SPAN CLASS=t>bool </SPAN>devLogEnabled=<SPAN CLASS=k>true</SPAN>);
-<SPAN CLASS=t>bool </SPAN>emIsDLogEnabled();
-        <SPAN CLASS=c>// Whether messages for development and debugging should be made. This
-        // is to be modified by the main program only, maybe through a command
-        // line option. The default is 'false'.
+</SPAN><SPAN CLASS=t>void </SPAN>emMLog(<SPAN CLASS=t>const char </SPAN>* srcFile, <SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>2</SPAN>);
+        <SPAN CLASS=c>// Like emLog, but prefix the message with a module name (plus colon and
+        // space). The module name is extracted from the given source file path.
+        // It's the pure file name without extension.
 
-</SPAN><SPAN CLASS=t>void </SPAN>emDLog(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
-        <SPAN CLASS=c>// Like emLog, but the call is ignored if emIsDLogEnabled()==false.
+</SPAN><SPAN CLASS=t>void </SPAN>emEnableDLog(<SPAN CLASS=t>bool </SPAN>devLogEnabled=<SPAN CLASS=k>true</SPAN>);
+<SPAN CLASS=t>void </SPAN>emEnableDLog(<SPAN CLASS=t>bool </SPAN>devLogEnabled, <SPAN CLASS=t>const char </SPAN>* moduleSelection);
+        <SPAN CLASS=c>// Enable or disable debug log messages which are produced with EM_DLOG.
+        // Arguments:
+        //   devLogEnabled   - Whether to enable (true) or disable (false).
+        //   moduleSelection - When enabling, and if this is not NULL, then it
+        //                     is a filter to output debug log messages only
+        //                     from certain modules. It is interpreted as a
+        //                     comma-separated list of module names (with colon)
+        //                     or module name beginnings (without colon).
+
+</SPAN><SPAN CLASS=t>bool </SPAN>emIsDLogEnabled();
+<SPAN CLASS=t>bool </SPAN>emIsDLogEnabled(<SPAN CLASS=t>const char </SPAN>* srcFile);
+        <SPAN CLASS=c>// Whether debug log is enabled for the given source file.
+
+</SPAN>EM_DEPRECATED(<SPAN CLASS=t>void </SPAN>emDLog(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>));
+
+<SPAN CLASS=p>#define EM_DLOG(...) \
+        </SPAN>emIsDLogEnabled(__FILE__) ? emMLog(__FILE__,__VA_ARGS__) : (<SPAN CLASS=t>void</SPAN>)<SPAN CLASS=u>0
+        </SPAN><SPAN CLASS=c>// Output a debug log message with the module name from the currenct
+        // source file, if enabled by emEnableDLog(..).
 
 </SPAN><SPAN CLASS=t>void </SPAN>emWarning(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
         <SPAN CLASS=c>// Like emLog, but "WARNING: " is prepended.
 
-</SPAN><SPAN CLASS=t>void </SPAN>emFatalError(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
+</SPAN>[[noreturn]] <SPAN CLASS=t>void </SPAN>emFatalError(<SPAN CLASS=t>const char </SPAN>* format, ...) EM_FUNC_ATTR_PRINTF(<SPAN CLASS=u>1</SPAN>);
         <SPAN CLASS=c>// Output an error message and exit this process. The message is written
         // to stderr (a line break is appended). Optionally it is also shown in
         // a GUI message box - see emSetFatalErrorGraphical.
+
+</SPAN><SPAN CLASS=p>#define EM_ASSERT(C) \
+        </SPAN>(C) ? (<SPAN CLASS=t>void</SPAN>)<SPAN CLASS=u>0</SPAN>: emFatalError(<SPAN CLASS=v>"%s, %d: Assertion failed: %s"</SPAN>,__FILE__,__LINE__,#C)
+        <SPAN CLASS=c>// Assert that the given condition is true or call emFatalError.
 
 </SPAN><SPAN CLASS=t>void </SPAN>emSetFatalErrorGraphical(<SPAN CLASS=t>bool </SPAN>graphical);
         <SPAN CLASS=c>// Whether to show the fatal error message in a dialog (default: false).

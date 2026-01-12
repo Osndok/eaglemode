@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emAvServerModel.cpp
 //
-// Copyright (C) 2008-2010,2012,2014,2018-2020 Oliver Hamann.
+// Copyright (C) 2008-2010,2012,2014,2018-2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -81,11 +81,11 @@ emAvServerModel::~emAvServerModel()
 			ServerProc.WaitPipes(emProcess::WF_WAIT_STDOUT,10);
 		}
 		if (ServerProc.IsRunning()) {
-			emDLog("emAvServerModel::~emAvServerModel: Server process did not terminate properly - sending a signal.");
+			EM_DLOG("~emAvServerModel: Server process did not terminate properly - sending a signal.");
 			ServerProc.Terminate();
 		}
 		else {
-			emDLog("emAvServerModel::~emAvServerModel: Server process terminated properly.");
+			EM_DLOG("~emAvServerModel: Server process terminated properly.");
 		}
 	}
 
@@ -200,7 +200,7 @@ L_ENTER_TERM_PROC:
 			if (r<=0) break;
 		}
 		if (!ServerProc.IsRunning()) {
-			emDLog("emAvServerModel::Cycle: Server process terminated properly.");
+			EM_DLOG("Cycle: Server process terminated properly.");
 			for (i=0; i<MAX_INSTANCES; i++) {
 				if (Instances[i] && Instances[i]->OldProc) {
 					DeleteInstance(i);
@@ -209,7 +209,7 @@ L_ENTER_TERM_PROC:
 			goto L_ENTER_IDLE;
 		}
 		if (!StateTimer.IsRunning()) {
-			emDLog("emAvServerModel::Cycle: Server process did not terminate properly - sending a signal.");
+			EM_DLOG("Cycle: Server process did not terminate properly - sending a signal.");
 			ServerProc.CloseReading();
 			ServerProc.SendTerminationSignal();
 			termProcReason="Server process hangs.";
@@ -285,7 +285,7 @@ void emAvServerModel::SendCommand(
 
 	if (OutBufOverflowed) return;
 
-	emDLog("emAvServerModel: client->server: %d:%s:%s",inst->Index,tag,data);
+	EM_DLOG("client->server: %d:%s:%s",inst->Index,tag,data);
 
 	sprintf(instStr,"%d",inst->Index);
 	l1=strlen(instStr);
@@ -405,7 +405,7 @@ void emAvServerModel::HandleMessage(
 	const char * p;
 	Instance * inst;
 
-	emDLog("emAvServerModel: server->client: %d:%s:%s",instIndex,tag,data);
+	EM_DLOG("server->client: %d:%s:%s",instIndex,tag,data);
 
 	if (instIndex<0 || instIndex>=MAX_INSTANCES) return;
 	inst=Instances[instIndex];
@@ -446,10 +446,7 @@ void emAvServerModel::HandleMessage(
 			UpdateShm(inst);
 		}
 		else {
-			emDLog(
-				"emAvServerModel::HandleMessage: Unsupported ok tag \"%s\".",
-				data
-			);
+			EM_DLOG("HandleMessage: Unsupported ok tag \"%s\".",data);
 		}
 	}
 	else if (strcmp(tag,"minshmsize")==0) {
@@ -460,10 +457,7 @@ void emAvServerModel::HandleMessage(
 		if (inst->Client) inst->Client->SetStreamErrored(data);
 	}
 	else {
-		emDLog(
-			"emAvServerModel::HandleMessage: Unsupported tag \"%s\".",
-			name.Get()
-		);
+		EM_DLOG("HandleMessage: Unsupported tag \"%s\".",name.Get());
 	}
 }
 
@@ -511,9 +505,10 @@ void emAvServerModel::TryCreateShm(Instance * inst)
 	static unsigned long sharedCounter=0;
 	unsigned long counter;
 
-	sharedCounterMutex.Lock();
-	counter=sharedCounter++;
-	sharedCounterMutex.Unlock();
+	{
+		emThreadMiniMutex::Locker mutexLocker(sharedCounterMutex);
+		counter=sharedCounter++;
+	}
 
 	sprintf(
 		inst->ShmId,
@@ -524,7 +519,7 @@ void emAvServerModel::TryCreateShm(Instance * inst)
 		(unsigned long)GetTickCount(),
 		(unsigned long)emGetUInt64Random(0,0xffffffff) //???
 	);
-	emDLog("emAvServerModel: ShmId=%s",inst->ShmId);
+	EM_DLOG("ShmId=%s",inst->ShmId);
 
 	SetLastError(ERROR_SUCCESS);
 	inst->ShmHdl=CreateFileMapping(
@@ -738,7 +733,7 @@ void emAvServerModel::TransferFrame(Instance * inst)
 	return;
 
 L_BAD_DATA:
-	emDLog("emAvServerModel::TransferFrame: Bad data!");
+	EM_DLOG("TransferFrame: Bad data!");
 	inst->Image.Clear();
 	if (inst->Client) inst->Client->ShowFrame(inst->Image,3.0/4.0);
 }

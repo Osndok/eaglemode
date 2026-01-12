@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".gif" }
+FileFormatName = "GIF"
 Priority = 1.0
 Library = "emGif"
 Function = "emGifFpPluginFunc"
+ModelFunction = "emGifFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emGifFileModel" "emImageFileModel" "emGifImageFileModel" }
+ModelAbleToSave = no

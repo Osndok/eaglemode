@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # pack_tar-gz.pl
 #
-# Copyright (C) 2010,2017 Oliver Hamann.
+# Copyright (C) 2010,2017,2026 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -26,10 +26,10 @@ use File::Basename;
 BEGIN { require (abs_path(dirname($0).'/common.pm')); }
 
 # Dependencies
-my $tbzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.bz2');
-if (!-e $tbzFile) { system('perl','pack_tar-bz2.pl')==0 || exit(1); }
+my $txzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.xz');
+if (!-e $txzFile) { system('perl','pack_tar-xz.pl')==0 || exit(1); }
 
 # Create output file.
 my $tgzFile=catfile(Var('PKG_DIR'),Var('NAME').'-'.Var('VERSION').'.tar.gz');
-print("Creating $tgzFile from $tbzFile\n");
-system("bzip2 -dc $tbzFile | gzip > $tgzFile")==0 || exit(1);
+print("Creating $tgzFile from $txzFile\n");
+system("xz -dc $txzFile | gzip > $tgzFile")==0 || exit(1);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsViewRenderer.cpp
 //
-// Copyright (C) 2016 Oliver Hamann.
+// Copyright (C) 2016,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -88,7 +88,7 @@ void emWndsViewRenderer::AsyncFlushBuffer(
 	int bufIndex, int x, int y, int w, int h
 )
 {
-	GdiMutex.Lock();
+	emThreadMutex::Locker mutexLocker(GdiMutex);
 
 	StretchDIBits(
 		CurrentHdc,
@@ -103,8 +103,6 @@ void emWndsViewRenderer::AsyncFlushBuffer(
 	);
 
 	GdiFlush();
-
-	GdiMutex.Unlock();
 }
 
 

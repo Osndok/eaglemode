@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emContext.cpp
 //
-// Copyright (C) 2005-2008,2012,2016,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2012,2016,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -387,19 +387,17 @@ void emContext::CollectGarbage()
 	int minHash;
 
 	if (DoGCOnModels) {
-		emDLog("emContext %p: Garbage Collection...",(const void*)this);
+		EM_DLOG("%p: Garbage Collection...",(const void*)this);
 		DoGCOnModels=false;
 		while (AvlTree) {
 			m=SearchGarbage();
 			if (!m) break;
 			do {
-				if (emIsDLogEnabled()) {
-					emDLog(
-						"emContext: Removing by GC: class=\"%s\" name=\"%s\"",
-						typeid(*m).name(),
-						m->Name.Get()
-					);
-				}
+				EM_DLOG(
+					"Removing by GC: class=\"%s\" name=\"%s\"",
+					typeid(*m).name(),
+					m->Name.Get()
+				);
 				minHash=m->AvlHashCode;
 				UnregisterModel(m);
 				if (!AvlTree) break;

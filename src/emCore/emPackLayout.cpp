@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPackLayout.cpp
 //
-// Copyright (C) 2015,2021 Oliver Hamann.
+// Copyright (C) 2015,2021,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -175,8 +175,8 @@ void emPackLayout::LayoutChildren()
 
 		PackN(0, cells, x, y, w, h, 1E100, true);
 
-		emDLog(
-			"emPackLayout::LayoutChildren: cells = %d, ratings = %d, ratings/cell = %g",
+		EM_DLOG(
+			"LayoutChildren: cells = %d, ratings = %d, ratings/cell = %g",
 			cells, Ratings, cells>0 ? ((double)Ratings)/cells : 0.0
 		);
 

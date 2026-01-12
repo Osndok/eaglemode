@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emWndsScheduler.cpp
 //
-// Copyright (C) 2007-2010 Oliver Hamann.
+// Copyright (C) 2007-2010,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -42,10 +42,11 @@ int emWndsScheduler::Run()
 	MSG msg;
 	BOOL b;
 
-	InstanceListMutex.Lock();
-	NextInstance=InstanceList;
-	InstanceList=this;
-	InstanceListMutex.Unlock();
+	{
+		emThreadMiniMutex::Locker mutexLocker(InstanceListMutex);
+		NextInstance=InstanceList;
+		InstanceList=this;
+	}
 
 	TerminationInitiated=false;
 
@@ -83,10 +84,11 @@ int emWndsScheduler::Run()
 	KillTimer(NULL,TimerId);
 	TimerId=0;
 
-	InstanceListMutex.Lock();
-	for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
-	*pp=NextInstance;
-	InstanceListMutex.Unlock();
+	{
+		emThreadMiniMutex::Locker mutexLocker(InstanceListMutex);
+		for (pp=&InstanceList; *pp!=this; pp=&(*pp)->NextInstance);
+		*pp=NextInstance;
+	}
 	NextInstance=NULL;
 
 	return msg.wParam;
@@ -151,9 +153,10 @@ VOID CALLBACK emWndsScheduler::TimerProc(
 
 	s=NULL;
 	try {
-		InstanceListMutex.Lock();
-		for (s=InstanceList; s && s->TimerId!=idEvent; s=s->NextInstance);
-		InstanceListMutex.Unlock();
+		{
+			emThreadMiniMutex::Locker mutexLocker(InstanceListMutex);
+			for (s=InstanceList; s && s->TimerId!=idEvent; s=s->NextInstance);
+		}
 		if (s) s->DoTimeSlice();
 	}
 	catch (...) {

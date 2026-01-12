@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPcxImageFileModel.cpp
 //
-// Copyright (C) 2005-2009,2012,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2005-2009,2012,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -49,8 +49,6 @@ void emPcxImageFileModel::TryStartLoading()
 {
 	int manufacturer,version,encoding;
 
-	errno=0;
-
 	L=new LoadingState;
 	L->Width=0;
 	L->Height=0;
@@ -60,25 +58,22 @@ void emPcxImageFileModel::TryStartLoading()
 	L->BytesPerLine=0;
 	L->RowPlaneSize=0;
 	L->NextY=0;
-	L->File=NULL;
 	L->Palette=NULL;
 	L->RowBuffer=NULL;
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto Err;
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	manufacturer=Read8();
-	version=Read8();
-	encoding=Read8();
-	L->PlanePixBits=Read8();
-	L->Width=1-Read16();
-	L->Height=1-Read16();
-	L->Width+=Read16();
-	L->Height+=Read16();
-	fseek(L->File,65,SEEK_SET);
-	L->PlaneCount=Read8();
-	L->BytesPerLine=Read16();
-	if (ferror(L->File) || feof(L->File)) goto Err;
+	manufacturer=L->File.TryReadUInt8();
+	version=L->File.TryReadUInt8();
+	encoding=L->File.TryReadUInt8();
+	L->PlanePixBits=L->File.TryReadUInt8();
+	L->Width=1-L->File.TryReadUInt16LE();
+	L->Height=1-L->File.TryReadUInt16LE();
+	L->Width+=L->File.TryReadUInt16LE();
+	L->Height+=L->File.TryReadUInt16LE();
+	L->File.TrySeek(65);
+	L->PlaneCount=L->File.TryReadUInt8();
+	L->BytesPerLine=L->File.TryReadUInt16LE();
 
 	if (manufacturer!=0x0a) goto Err;
 	if (version<1 || version>5) goto Err;
@@ -104,8 +99,7 @@ void emPcxImageFileModel::TryStartLoading()
 	return;
 
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("PCX format error");
+	throw emException("PCX format error");
 }
 
 
@@ -114,8 +108,6 @@ bool emPcxImageFileModel::TryContinueLoading()
 	unsigned char * map;
 	unsigned int val;
 	int i,j,n,d,x;
-
-	errno = 0;
 
 	if (!L->RowBuffer) {
 		FileFormatInfo=emString::Format(
@@ -128,32 +120,30 @@ bool emPcxImageFileModel::TryContinueLoading()
 		n=1<<(L->PlanePixBits*L->PlaneCount);
 		if (n<=256) {
 			L->Palette=new unsigned char[3*n];
-			if (n<=16) fseek(L->File,16,SEEK_SET);
-			else fseek(L->File,-3*256,SEEK_END);
-			if (fread(L->Palette,1,3*n,L->File)!=(size_t)(3*n)) goto Err;
+			if (n<=16) L->File.TrySeek(16);
+			else L->File.TrySeekEnd(-3*256);
+			L->File.TryRead(L->Palette,3*n);
 		}
 		L->RowBuffer=new unsigned char[L->BytesPerLine*L->PlaneCount];
-		fseek(L->File,128,SEEK_SET);
-		if (ferror(L->File) || feof(L->File)) goto Err;
+		L->File.TrySeek(128);
 		return false;
 	}
 
 	i=0;
 	n=L->BytesPerLine*L->PlaneCount;
 	do {
-		d=Read8();
+		d=L->File.TryReadUInt8();
 		j=i;
 		if (d>=0xc0) {
 			j+=d-0xc1;
 			if (j>=n) goto Err;
-			d=Read8();
+			d=L->File.TryReadUInt8();
 		}
 		do {
 			L->RowBuffer[i]=(unsigned char)d;
 			i++;
 		} while (i<=j);
 	} while (i<n);
-	if (ferror(L->File)) goto Err;
 
 	map=Image.GetWritableMap()+L->NextY*(size_t)L->Width*L->Channels;
 	for (x=0; x<L->Width; x++) {
@@ -200,15 +190,13 @@ bool emPcxImageFileModel::TryContinueLoading()
 
 	return true;
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("PCX format error");
+	throw emException("PCX format error");
 }
 
 
 void emPcxImageFileModel::QuitLoading()
 {
 	if (L) {
-		if (L->File) fclose(L->File);
 		if (L->Palette) delete [] L->Palette;
 		if (L->RowBuffer) delete [] L->RowBuffer;
 		delete L;
@@ -255,20 +243,4 @@ double emPcxImageFileModel::CalcFileProgress()
 	else {
 		return 0.0;
 	}
-}
-
-
-int emPcxImageFileModel::Read8()
-{
-	return (unsigned char)fgetc(L->File);
-}
-
-
-int emPcxImageFileModel::Read16()
-{
-	int i;
-
-	i=Read8();
-	i|=Read8()<<8;
-	return i;
 }

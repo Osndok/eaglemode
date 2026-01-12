@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -47,8 +47,6 @@ emRasImageFileModel::~emRasImageFileModel()
 
 void emRasImageFileModel::TryStartLoading()
 {
-	errno=0;
-
 	L=new LoadingState;
 	L->Width=0;
 	L->Height=0;
@@ -59,22 +57,19 @@ void emRasImageFileModel::TryStartLoading()
 	L->NextY=0;
 	L->RowSize=0;
 	L->BufFill=0;
-	L->File=NULL;
 	L->ColMap=NULL;
 	L->PixBuf=NULL;
 
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto Err;
+	L->File.TryOpen(GetFilePath(),"rb");
 
-	if (Read32()!=0x59a66a95) goto Err;
-	L->Width=Read32();
-	L->Height=Read32();
-	L->Depth=Read32();
-	Read32();
-	L->PixMapType=Read32();
-	L->ColMapType=Read32();
-	L->ColMapSize=Read32();
-	if (ferror(L->File) || feof(L->File)) goto Err;
+	if (L->File.TryReadUInt32BE()!=0x59a66a95) goto Err;
+	L->Width=L->File.TryReadUInt32BE();
+	L->Height=L->File.TryReadUInt32BE();
+	L->Depth=L->File.TryReadUInt32BE();
+	L->File.TryReadUInt32BE();
+	L->PixMapType=L->File.TryReadUInt32BE();
+	L->ColMapType=L->File.TryReadUInt32BE();
+	L->ColMapSize=L->File.TryReadUInt32BE();
 	if (L->Width<1 || L->Height<1) goto Err;
 	if (L->Width>0x7fffff || L->Height>0x7fffff) goto Err;
 	if (L->Depth!=1 && L->Depth!=8 && L->Depth!=24) goto Err;
@@ -91,8 +86,7 @@ void emRasImageFileModel::TryStartLoading()
 
 	return;
 Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("RAS format error");
+	throw emException("RAS format error");
 }
 
 
@@ -100,8 +94,6 @@ bool emRasImageFileModel::TryContinueLoading()
 {
 	unsigned char * map;
 	int x,n;
-
-	errno = 0;
 
 	if (!L->PixBuf) {
 		FileFormatInfo=emString::Format(
@@ -114,7 +106,7 @@ bool emRasImageFileModel::TryContinueLoading()
 		if (L->Depth<24) {
 			L->ColMap=new unsigned char[3<<L->Depth];
 			memset(L->ColMap,0,3<<L->Depth);
-			if (fread(L->ColMap,1,L->ColMapSize,L->File)!=(size_t)L->ColMapSize) goto Err;
+			L->File.TryRead(L->ColMap,L->ColMapSize);
 		}
 		L->PixBuf=new unsigned char[L->RowSize+256];
 		return false;
@@ -124,13 +116,13 @@ bool emRasImageFileModel::TryContinueLoading()
 
 	if (L->PixMapType==2) {
 		while (L->BufFill<L->RowSize) {
-			n=Read8();
+			n=L->File.TryReadUInt8();
 			if (n!=0x80) {
 				L->PixBuf[L->BufFill++]=(unsigned char)n;
 			}
-			else if ((n=Read8())>0) {
+			else if ((n=L->File.TryReadUInt8())>0) {
 				n++;
-				memset(L->PixBuf+L->BufFill,Read8(),n);
+				memset(L->PixBuf+L->BufFill,L->File.TryReadUInt8(),n);
 				L->BufFill+=n;
 			}
 			else {
@@ -139,7 +131,7 @@ bool emRasImageFileModel::TryContinueLoading()
 		}
 	}
 	else {
-		if (fread(L->PixBuf,1,L->RowSize,L->File)!=(size_t)L->RowSize) goto Err;
+		L->File.TryRead(L->PixBuf,L->RowSize);
 		L->BufFill=L->RowSize;
 	}
 
@@ -185,16 +177,10 @@ bool emRasImageFileModel::TryContinueLoading()
 
 	Signal(ChangeSignal);
 
-	if (ferror(L->File)) goto Err;
-
 	L->NextY++;
 	if (L->NextY>=L->Height) return true;
 
 	return false;
-
-Err:
-	if (errno) throw emException("%s",emGetErrorText(errno).Get());
-	else throw emException("RAS format error");
 }
 
 
@@ -202,7 +188,6 @@ void emRasImageFileModel::QuitLoading()
 {
 	if (L) {
 		if (L->PixBuf) delete [] L->PixBuf;
-		if (L->File) fclose(L->File);
 		if (L->ColMap) delete [] L->ColMap;
 		delete L;
 		L=NULL;
@@ -248,30 +233,4 @@ double emRasImageFileModel::CalcFileProgress()
 	else {
 		return 0.0;
 	}
-}
-
-
-int emRasImageFileModel::Read8()
-{
-	return (unsigned char)fgetc(L->File);
-}
-
-
-int emRasImageFileModel::Read16()
-{
-	int i;
-
-	i=Read8()<<8;
-	i|=Read8();
-	return i;
-}
-
-
-int emRasImageFileModel::Read32()
-{
-	int i;
-
-	i=Read16()<<16;
-	i|=Read16();
-	return i;
 }

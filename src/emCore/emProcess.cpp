@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emProcess.cpp
 //
-// Copyright (C) 2006-2009,2012,2014,2017-2018,2022 Oliver Hamann.
+// Copyright (C) 2006-2009,2012,2014,2017-2018,2022,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -495,6 +495,12 @@ int emProcess::GetExitStatus() const
 }
 
 
+const emString & emProcess::GetArg0() const
+{
+	return P->Arg0;
+}
+
+
 HANDLE emProcessPrivate::PreparePipe(int index)
 {
 	static int counter=0;
@@ -959,6 +965,12 @@ void emProcess::Terminate(unsigned fatalTimeoutMS)
 int emProcess::GetExitStatus() const
 {
 	return P->ExitStatus;
+}
+
+
+const emString & emProcess::GetArg0() const
+{
+	return P->Arg0;
 }
 
 

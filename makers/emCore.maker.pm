@@ -80,6 +80,7 @@ sub Build
 		"src/emCore/emFileModel.cpp",
 		"src/emCore/emFilePanel.cpp",
 		"src/emCore/emFileSelectionBox.cpp",
+		"src/emCore/emFileStream.cpp",
 		"src/emCore/emFontCache.cpp",
 		"src/emCore/emFpPlugin.cpp",
 		"src/emCore/emGUIFramework.cpp",

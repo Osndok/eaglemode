@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emPcxImageFileModel.h
 //
-// Copyright (C) 2005-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emPcxImageFileModel_h
 #define emPcxImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -49,13 +53,10 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
-
 	struct LoadingState {
 		int Width,Height,Channels,PlanePixBits;
 		int PlaneCount,BytesPerLine,RowPlaneSize,NextY;
-		FILE * File;
+		emFileStream File;
 		unsigned char * Palette;
 		unsigned char * RowBuffer;
 	};

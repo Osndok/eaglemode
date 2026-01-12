@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>.h
 //
-// Copyright (C) 2006-2008,2010,2014,2018,2024 Oliver Hamann.
+// Copyright (C) 2006-2008,2010,2014,2018,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -37,6 +37,51 @@
 #ifndef emPanel_h
 #include &lt;<A CLASS=f HREF="emCore_emPanel_h.html">emCore/emPanel.h</A>&gt;
 #endif
+
+</SPAN><SPAN CLASS=t>class </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>;
+
+
+<A NAME="Plugin_function_types"></A><SPAN CLASS=c>//==============================================================================
+//=========================== Plugin function types ============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>extern </SPAN><SPAN CLASS=v>"C" </SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * (*emFpPluginFunc) (
+                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; path, <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * plugin,
+                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * errorBuf
+        );
+                <SPAN CLASS=c>// Type of the plugin function of an <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>. Such a function
+                // creates a panel for showing a file.
+                // Arguments:
+                //   parent   - Parent of the panel.
+                //   name     - Name of the panel.
+                //   path     - Path name of the file to be shown.
+                //   plugin   - The plugin record (mainly for reading the
+                //              plugin-defined properties).
+                //   errorBuf - For returning an error message on failure.
+                // Returns: The created panel, or NULL on failure.
+
+        </SPAN><SPAN CLASS=t>typedef bool </SPAN>(*emFpPluginModelFunc) (
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common, <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * plugin,
+                <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>&gt; * pResult, <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * errorBuf
+        );
+                <SPAN CLASS=c>// Type of the plugin model function of an <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>.
+                // Such a function acquires a model of a desired class.
+                // Arguments:
+                //   context   - The context of the model.
+                //   className - The class name or base class name of the model.
+                //   name      - The name of the model (usually the file path).
+                //   common    - true for refinding or creating a common model,
+                //               false for creating a private model.
+                //   plugin    - The plugin record (mainly for reading the
+                //               plugin-defined properties).
+                //   pResult   - Pointer for returning the acquired model.
+                //   errorBuf  - For returning an error message on failure.
+                // Returns: true if the acquired model has been assigned to
+                //          *pResult, false on on failure.
+</SPAN><SPAN CLASS=b>}
 
 
 <A NAME="emFpPlugin"></A></SPAN><SPAN CLASS=c>//==============================================================================
@@ -67,6 +112,9 @@
                 // special string "file" for accepting all regular files, or the
                 // special string "directory" for accepting directories.
 
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> FileFormatName;
+                <SPAN CLASS=c>// A display name for the file type(s).
+
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emDoubleRec">emDoubleRec</A> Priority;
                 <SPAN CLASS=c>// Priority of the plugin. If there are two plugins able to
                 // handle a file, the one with the higher priority is taken
@@ -78,7 +126,22 @@
 
         </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> Function;
                 <SPAN CLASS=c>// Name of the plugin function. It must match the interface
-                // defined by <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A>.
+                // defined by emFpPluginFunc.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A> ModelFunction;
+                <SPAN CLASS=c>// Name of the plugin model function. It must match the
+                // interface defined by emFpPluginModelFunc. This is optional
+                // and can be left empty if the plugin does not provide such
+                // function.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;<A CLASS=l HREF="emCore_emRec_h.html#emStringRec">emStringRec</A>&gt; ModelClasses;
+                <SPAN CLASS=c>// Which classes are supported by the model function. This is an
+                // array of class names which can be given to the className
+                // parameter when calling the plugin model functions.
+
+        </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emBoolRec">emBoolRec</A> ModelAbleToSave;
+                <SPAN CLASS=c>// Whether the model acquired by the model function also
+                // supports saving to the interfaced file.
 
         </SPAN><SPAN CLASS=t>class </SPAN>PropertyRec : <SPAN CLASS=t>public </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emStructRec">emStructRec</A> <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=t>public</SPAN>:
@@ -110,41 +173,43 @@
                 // Returns: The created panel.
                 // Throws: An error message on failure.
 
+        </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>MDL&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;MDL&gt; TryAcquireModel(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common=<SPAN CLASS=k>true
+        </SPAN>);
+                <SPAN CLASS=c>// Acquire a model via this plugin. MDL must be <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A> or a
+                // derivation of that.
+                // Arguments:
+                //   context   - The context of the model.
+                //   className - The class name or base class name of the model.
+                //               This must match the template parameter MDL and
+                //               usually has to be one of the names in
+                //               ModelClasses.
+                //   name      - The name of the model (usually the file path).
+                //   common    - true for refinding or creating a common model,
+                //               false for creating a private model.
+                // Returns: The model (never NULL).
+                // Throws: An error message on failure.
+
         </SPAN><SPAN CLASS=t>virtual const char </SPAN>* GetFormatName() <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=c>// The file format name of this record file format.
 
 </SPAN><SPAN CLASS=t>private</SPAN>:
-        <SPAN CLASS=t>void </SPAN>* CachedFunc;
-        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> CachedFuncLib;
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>&gt; TryAcquireModelImpl(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common
+        );
+
+        emFpPluginFunc CachedFunc;
+        emFpPluginModelFunc CachedModelFunc;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> CachedLibName;
         <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> CachedFuncName;
+        <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> CachedModelFuncName;
 <SPAN CLASS=b>}</SPAN>;
 
 
-<A NAME="emFpPluginFunc"></A><SPAN CLASS=c>//==============================================================================
-//=============================== <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A> ===============================
-//==============================================================================
-
-
-</SPAN><SPAN CLASS=t>extern </SPAN><SPAN CLASS=v>"C" </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=t>typedef </SPAN><A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A> * (*<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginFunc">emFpPluginFunc</A>) (
-                <A CLASS=l HREF="emCore_emPanel_h.html#emPanel">emPanel</A>::ParentArg parent, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name,
-                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; path, <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * plugin,
-                <A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> * errorBuf
-        );
-                <SPAN CLASS=c>// Type of the plugin function of an <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>. Such a function
-                // creates a panel for showing a file.
-                // Arguments:
-                //   parent   - Parent of the panel.
-                //   name     - Name of the panel.
-                //   path     - Path name of the file to be shown.
-                //   plugin   - The plugin record (mainly for reading the
-                //              plugin-defined properties).
-                //   errorBuf - For returning an error message on failure.
-                // Returns: The created panel, or NULL on failure.
-</SPAN><SPAN CLASS=b>}
-
-
-<A NAME="emFpPluginList"></A></SPAN><SPAN CLASS=c>//==============================================================================
+<A NAME="emFpPluginList"></A><SPAN CLASS=c>//==============================================================================
 //=============================== <A CLASS=m HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A> ===============================
 //==============================================================================
 
@@ -194,12 +259,96 @@
                 //   alternative  - Like with the above method.
                 // Returns: The created panel.
 
+        </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>MDL&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;MDL&gt; TryAcquireModel(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>nameIsFilePath=<SPAN CLASS=k>true</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>common=<SPAN CLASS=k>true</SPAN>, <SPAN CLASS=t>int </SPAN>alternative=<SPAN CLASS=u>0</SPAN>,
+                <SPAN CLASS=t>long </SPAN>statMode=S_IFREG
+        );
+                <SPAN CLASS=c>// Acquire a model via a suitable plugin. MDL must be <A CLASS=m HREF="emCore_emModel_h.html#emModel">emModel</A> or
+                // a derivation of that. This searches for a plugin which can
+                // acquire a model with the given model class name and which
+                // optionally can handle the given file path. On success, the
+                // plugin model function is called to acquire the model.
+                // Arguments:
+                //   context        - The context of the model.
+                //   className      - The class name or base class name of the
+                //                    model. This must match the template
+                //                    parameter MDL. A plugin that has this name
+                //                    in ModelClasses is searched for.
+                //   name           - The name of the model.
+                //   nameIsFilePath - If true, then the name is a file path
+                //                    (which must be absolute!), and then only
+                //                    plugins whose FileTypes matches that file
+                //                    are considered. Otherwise only className
+                //                    is used to choose a plugin.
+                //   common         - true for refinding or creating a common
+                //                    model, false for creating a private model.
+                //   alternative    - If there are multiple matching plugins,
+                //                    then the one with the highest priority is
+                //                    chosen if this argument is 0. If this
+                //                    argument is 1, the one with the
+                //                    second-highest priority is chosen, and so
+                //                    on.
+                //   statMode       - This has to be S_IFREG to acquire the
+                //                    model for a regular file, or S_IFDIR for a
+                //                    directory. The parameter is ignored if
+                //                    nameIsFilePath is false.
+                // Returns: The model (never NULL).
+                // Throws: An error message on failure, also if no suitable
+                //         plugin found.
+
+        </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * SearchPlugin(
+                <SPAN CLASS=t>const char </SPAN>* modelClassName=<SPAN CLASS=u>NULL</SPAN>, <SPAN CLASS=t>const char </SPAN>* filePath=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>requireAbleToSave=<SPAN CLASS=k>false</SPAN>, <SPAN CLASS=t>int </SPAN>alternative=<SPAN CLASS=u>0</SPAN>,
+                <SPAN CLASS=t>long </SPAN>statMode=S_IFREG
+        );
+                <SPAN CLASS=c>// Search a plugin that fits the given criteria.
+                // Arguments:
+                //   modelClassName    - If not NULL, then only consider plugins
+                //                       whose ModelClasses contains this name.
+                //   filePath          - If not NULL, then only consider plugins
+                //                       whose FileTypes matches that file.
+                //   requireAbleToSave - Whether to consider only plugins where
+                //                       ModelAbleToSave is true.
+                //   alternative       - If there are multiple matching plugins,
+                //                       then the one with the highest priority
+                //                       is chosen if this argument is 0. If
+                //                       this argument is 1, the one with the
+                //                       second-highest priority is chosen, and
+                //                       so on.
+                //   statMode          - This has to be S_IFREG if filePath
+                //                       denotes a regular file, or S_IFDIR for
+                //                       a directory. The parameter is ignored
+                //                       if filePath is NULL.
+                // Returns: A pointer to the plugin or NULL if not found.
+
+        </SPAN><A CLASS=l HREF="emCore_emArray_h.html#emArray">emArray</A>&lt;<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>*&gt; SearchPlugins(
+                <SPAN CLASS=t>const char </SPAN>* modelClassName=<SPAN CLASS=u>NULL</SPAN>, <SPAN CLASS=t>const char </SPAN>* filePath=<SPAN CLASS=u>NULL</SPAN>,
+                <SPAN CLASS=t>bool </SPAN>requireAbleToSave=<SPAN CLASS=k>false</SPAN>, <SPAN CLASS=t>long </SPAN>statMode=S_IFREG
+        );
+                <SPAN CLASS=c>// Same as SearchPlugin, but return all plugins which match
+                // the criteria, sorted from highest priority to lowest. The
+                // returned array never contains any NULL.
+
 </SPAN><SPAN CLASS=t>protected</SPAN>:
 
         <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>(<A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name);
         <SPAN CLASS=t>virtual </SPAN>~<A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>();
 
 <SPAN CLASS=t>private</SPAN>:
+
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>&gt; TryAcquireModelImpl(
+                <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>nameIsFilePath,
+                <SPAN CLASS=t>bool </SPAN>common, <SPAN CLASS=t>int </SPAN>alternative, <SPAN CLASS=t>long </SPAN>statMode
+        );
+
+        <SPAN CLASS=t>static bool </SPAN>IsMatchingPlugin(
+                <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> &amp; plugin, <SPAN CLASS=t>const char </SPAN>* modelClassName,
+                <SPAN CLASS=t>const char </SPAN>* fileName, <SPAN CLASS=t>int </SPAN>fileNameLen,
+                <SPAN CLASS=t>bool </SPAN>requireAbleToSave, <SPAN CLASS=t>long </SPAN>statMode
+        );
 
         <SPAN CLASS=t>static int </SPAN>CmpReversePluginPriorities(
                 <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * obj1, <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A> * obj2,
@@ -211,7 +360,43 @@
 </SPAN><SPAN CLASS=b>}</SPAN>;
 
 
-<SPAN CLASS=p>#endif
+<SPAN CLASS=c>//==============================================================================
+//============================== Implementations ===============================
+//==============================================================================
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>MDL&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;MDL&gt; <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPlugin">emFpPlugin</A>::TryAcquireModel(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>common
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>&gt; base=TryAcquireModelImpl(context,className,name,common);
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;MDL&gt; model=<SPAN CLASS=k>dynamic_cast</SPAN>&lt;MDL*&gt;(base.Get());
+        <SPAN CLASS=k>if </SPAN>(!model) <SPAN CLASS=k>throw </SPAN><A CLASS=l HREF="emCore_emStd2_h.html#emException">emException</A>(
+                <SPAN CLASS=v>"emFpPlugin::TryAcquireModel: dynamic cast failed for %s"</SPAN>,
+                className
+        );
+        <SPAN CLASS=k>return </SPAN>model;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>MDL&gt; <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;MDL&gt; <A CLASS=l HREF="emCore_emFpPlugin_h.html#emFpPluginList">emFpPluginList</A>::TryAcquireModel(
+        <A CLASS=l HREF="emCore_emContext_h.html#emContext">emContext</A> &amp; context, <SPAN CLASS=t>const char </SPAN>* className,
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emString_h.html#emString">emString</A> &amp; name, <SPAN CLASS=t>bool </SPAN>nameIsFilePath,
+        <SPAN CLASS=t>bool </SPAN>common, <SPAN CLASS=t>int </SPAN>alternative, <SPAN CLASS=t>long </SPAN>statMode
+)
+<SPAN CLASS=b>{
+        </SPAN><A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;<A CLASS=l HREF="emCore_emModel_h.html#emModel">emModel</A>&gt; base=TryAcquireModelImpl(
+                context,className,name,nameIsFilePath,common,alternative,statMode
+        );
+        <A CLASS=l HREF="emCore_emRef_h.html#emRef">emRef</A>&lt;MDL&gt; model=<SPAN CLASS=k>dynamic_cast</SPAN>&lt;MDL*&gt;(base.Get());
+        <SPAN CLASS=k>if </SPAN>(!model) <SPAN CLASS=k>throw </SPAN><A CLASS=l HREF="emCore_emStd2_h.html#emException">emException</A>(
+                <SPAN CLASS=v>"emFpPluginList::TryAcquireModel: dynamic cast failed for %s"</SPAN>,
+                className
+        );
+        <SPAN CLASS=k>return </SPAN>model;
+<SPAN CLASS=b>}
+
+
+</SPAN><SPAN CLASS=p>#endif
 </SPAN></SPAN></TT></PRE>
 </BODY>
 </HTML>

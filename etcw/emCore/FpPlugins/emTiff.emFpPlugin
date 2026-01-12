@@ -1,6 +1,10 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".tiff" ".tif" }
+FileFormatName = "TIFF"
 Priority = 1.0
 Library = "emTiff"
 Function = "emTiffFpPluginFunc"
+ModelFunction = "emTiffFpPluginModelFunc"
+ModelClasses = { "emFileModel" "emImageFileModel" "emTiffImageFileModel" }
+ModelAbleToSave = yes

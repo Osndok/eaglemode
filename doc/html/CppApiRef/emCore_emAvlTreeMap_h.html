@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>.h
 //
-// Copyright (C) 2015-2016,2021,2024 Oliver Hamann.
+// Copyright (C) 2015-2016,2021,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -221,29 +221,32 @@
                         <SPAN CLASS=c>// Copy an iterator.
 
                 </SPAN><SPAN CLASS=t>operator const </SPAN>Element * () <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>Element &amp; <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>const </SPAN>Element * Get() <SPAN CLASS=t>const</SPAN>;
-                        <SPAN CLASS=c>// Get the element pointer. It is NULL if this iterator
-                        // does not point to any element.
+                        <SPAN CLASS=c>// Get the element pointer or reference. It is NULL if
+                        // this iterator does not point to any element.
 
-                </SPAN><SPAN CLASS=t>const </SPAN>Element * Set(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
-                        <SPAN CLASS=c>// Copy the given iterator and return the element
-                        // pointer.
+                </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                        <SPAN CLASS=c>// Copy the given iterator.
 
-                </SPAN><SPAN CLASS=t>const </SPAN>Element * Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key);
-                <SPAN CLASS=t>const </SPAN>Element * Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>Element * elem);
+                </SPAN><SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key);
+                <SPAN CLASS=t>void </SPAN>Set(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>Element * elem);
                         <SPAN CLASS=c>// Set this iterator to the given element of the given
-                        // map and return the element pointer.
+                        // map.
 
-                </SPAN><SPAN CLASS=t>const </SPAN>Element * SetFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map);
-                <SPAN CLASS=t>const </SPAN>Element * SetLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map);
+                </SPAN><SPAN CLASS=t>void </SPAN>SetFirst(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map);
+                <SPAN CLASS=t>void </SPAN>SetLast(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map);
                         <SPAN CLASS=c>// Set this iterator to the first or last element of the
-                        // given map and return the element pointer.
+                        // given map.
 
-                </SPAN><SPAN CLASS=t>const </SPAN>Element * SetNext();
-                <SPAN CLASS=t>const </SPAN>Element * SetPrev();
-                <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>++();
+                </SPAN><SPAN CLASS=t>void </SPAN>SetNext();
+                <SPAN CLASS=t>void </SPAN>SetPrev();
+                        <SPAN CLASS=c>// Set this iterator to the next or previous element.
+                        // This must be called only if the old element pointer
+                        // is not NULL.
+
+                </SPAN><SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>++();
                 <SPAN CLASS=t>const </SPAN>Element * <SPAN CLASS=t>operator </SPAN>--();
                         <SPAN CLASS=c>// Set this iterator to the next or previous element and
                         // return the new element pointer. This must be called
@@ -255,8 +258,6 @@
 
                 </SPAN><SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
                 <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const</SPAN>;
-                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Element * elem) <SPAN CLASS=t>const</SPAN>;
                         <SPAN CLASS=c>// Ordinary compare operators.
 
                 </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; * GetMap() <SPAN CLASS=t>const</SPAN>;
@@ -284,7 +285,13 @@
                 Iterator * NextIter; <SPAN CLASS=c>// Undefined if Map==NULL
         </SPAN><SPAN CLASS=b>}</SPAN>;
 
-<SPAN CLASS=t>private</SPAN>:
+        Iterator begin() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+        </SPAN>Iterator end() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+                // Support range-based for loops. This only allows to loop
+                // constant Element references. If you want to modify elements
+                // within such a loop, make use of SetValue or GetValueWritable.
+
+</SPAN><SPAN CLASS=t>private</SPAN>:
         <SPAN CLASS=t>friend class </SPAN>Iterator;
 
         <SPAN CLASS=t>struct </SPAN>SharedData <SPAN CLASS=b>{
@@ -724,10 +731,10 @@ typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlT
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
-const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
+const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element &amp;
 <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
@@ -745,8 +752,7 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
         <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
 )
 <SPAN CLASS=b>{
@@ -755,12 +761,10 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
                 </SPAN>AvlIterValid=<SPAN CLASS=k>false</SPAN>;
                 Pos=iter.Pos;
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
-<SPAN CLASS=b>}
+}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>KEY &amp; key
 )
 <SPAN CLASS=b>{
@@ -773,12 +777,10 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
         EM_AVL_ITER_START_ANY_END
         AvlIterValid=<SPAN CLASS=k>true</SPAN>;
         Pos=element;
-        <SPAN CLASS=k>return </SPAN>Pos;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::Set(
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map, <SPAN CLASS=t>const </SPAN>Element * elem
 )
 <SPAN CLASS=b>{
@@ -787,12 +789,10 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
                 </SPAN>AvlIterValid=<SPAN CLASS=k>false</SPAN>;
                 Pos=elem;
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
-<SPAN CLASS=b>}
+}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetFirst(
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetFirst(
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map
 )
 <SPAN CLASS=b>{
@@ -802,12 +802,10 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
         EM_AVL_ITER_FIRST(Element,AvlNode,Map-&gt;Data-&gt;AvlTree,AvlIter)
         AvlIterValid=<SPAN CLASS=k>true</SPAN>;
         Pos=element;
-        <SPAN CLASS=k>return </SPAN>Pos;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetLast(
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetLast(
         <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt; &amp; map
 )
 <SPAN CLASS=b>{
@@ -817,12 +815,10 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
         EM_AVL_ITER_LAST(Element,AvlNode,Map-&gt;Data-&gt;AvlTree,AvlIter)
         AvlIterValid=<SPAN CLASS=k>true</SPAN>;
         Pos=element;
-        <SPAN CLASS=k>return </SPAN>Pos;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetNext()
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetNext()
 <SPAN CLASS=b>{
         </SPAN>EM_AVL_ITER_VARS(Element)
 
@@ -831,12 +827,10 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
                 EM_AVL_ITER_NEXT(Element,AvlNode,AvlIter)
                 Pos=element;
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
-<SPAN CLASS=b>}
+}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
-<SPAN CLASS=t>const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
-<A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetPrev()
+<SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::SetPrev()
 <SPAN CLASS=b>{
         </SPAN>EM_AVL_ITER_VARS(Element)
 
@@ -845,21 +839,22 @@ const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">
                 EM_AVL_ITER_PREV(Element,AvlNode,AvlIter)
                 Pos=element;
         <SPAN CLASS=b>}
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos;
-<SPAN CLASS=b>}
+}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
 const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
 <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++()
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>SetNext();
+        </SPAN>SetNext();
+        <SPAN CLASS=k>return </SPAN>Pos;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
 const typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Element *
 <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--()
 <SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>SetPrev();
+        </SPAN>SetPrev();
+        <SPAN CLASS=k>return </SPAN>Pos;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
@@ -894,22 +889,6 @@ bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeM
 ) <SPAN CLASS=t>const
 </SPAN><SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>Pos!=iter.Pos;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
-bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (
-        <SPAN CLASS=t>const </SPAN>Element * elem
-) <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos==elem;
-<SPAN CLASS=b>}
-
-</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
-bool </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (
-        <SPAN CLASS=t>const </SPAN>Element * elem
-) <SPAN CLASS=t>const
-</SPAN><SPAN CLASS=b>{
-        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=elem;
 <SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
@@ -951,6 +930,18 @@ const </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTree
                 <SPAN CLASS=b>}
         }
 }
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::begin() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Iterator(*<SPAN CLASS=k>this</SPAN>,GetFirst());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::Iterator <A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::end() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Iterator();
+<SPAN CLASS=b>}
 
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>KEY, <SPAN CLASS=t>class </SPAN>VALUE&gt;
 <SPAN CLASS=t>void </SPAN><A CLASS=l HREF="emCore_emAvlTreeMap_h.html#emAvlTreeMap">emAvlTreeMap</A>&lt;KEY,VALUE&gt;::MakeWritable(<SPAN CLASS=t>const </SPAN>Element * * preserve)

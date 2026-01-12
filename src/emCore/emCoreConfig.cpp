@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emCoreConfig.cpp
 //
-// Copyright (C) 2006-2012,2014,2016,2018-2020 Oliver Hamann.
+// Copyright (C) 2006-2012,2014,2016,2018-2020,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -56,7 +56,7 @@ emCoreConfig::emCoreConfig(emContext & context, const emString & name)
 #if defined(ANDROID)
 		64,
 #else
-		1024,
+		2048,
 #endif
 		8,16384
 	),

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emJpegImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -24,10 +24,6 @@
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
 #endif
-
-extern "C" {
-	struct emJpegLoadingState;
-}
 
 
 class emJpegImageFileModel : public emImageFileModel {
@@ -53,7 +49,11 @@ protected:
 
 private:
 
-	emJpegLoadingState * L;
+	struct LoadingState;
+	struct SavingState;
+
+	emOwnPtr<LoadingState> L;
+	emOwnPtr<SavingState> S;
 };
 
 

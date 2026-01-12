@@ -1,4 +1,4 @@
-package emPs;
+package emJson;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ sub GetDependencies
 
 sub IsEssential
 {
-	return 0;
+	return 1;
 }
 
 sub GetFileHandlingRules
@@ -39,14 +39,12 @@ sub Build
 		"--inc-search-dir", "include",
 		"--link"          , "emCore",
 		"--type"          , "dynlib",
-		"--name"          , "emPs",
-		"src/emPs/emPsDocument.cpp",
-		"src/emPs/emPsDocumentPanel.cpp",
-		"src/emPs/emPsFileModel.cpp",
-		"src/emPs/emPsFilePanel.cpp",
-		"src/emPs/emPsFpPlugin.cpp",
-		"src/emPs/emPsPagePanel.cpp",
-		"src/emPs/emPsRenderer.cpp"
+		"--name"          , "emJson",
+		"src/emJson/emJsonElement.cpp",
+		"src/emJson/emJsonException.cpp",
+		"src/emJson/emJsonKeyMap.cpp",
+		"src/emJson/emJsonParser.cpp",
+		"src/emJson/emJsonPositionTracker.cpp"
 	)==0 or return 0;
 
 	return 1;

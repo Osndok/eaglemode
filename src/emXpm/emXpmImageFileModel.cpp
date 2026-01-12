@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emXpmImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -34,14 +34,11 @@ emXpmImageFileModel::emXpmImageFileModel(
 )
 	: emImageFileModel(context,name)
 {
-	L=NULL;
 }
 
 
 emXpmImageFileModel::~emXpmImageFileModel()
 {
-	emXpmImageFileModel::QuitLoading();
-	emXpmImageFileModel::QuitSaving();
 }
 
 
@@ -50,19 +47,14 @@ void emXpmImageFileModel::TryStartLoading()
 	emInt64 l;
 
 	L=new LoadingState;
-	memset(L,0,sizeof(LoadingState));
-	L->File=fopen(GetFilePath(),"rb");
-	if (!L->File) goto Err;
-	if (fseek(L->File,0,SEEK_END)) goto Err;
-	l=ftell(L->File);
-	if (l<0) goto Err;
+	L->FileSize=0;
+	L->BufferFill=0;
+	L->File.TryOpen(GetFilePath(),"rb");
+	L->File.TrySeekEnd();
+	l=L->File.TryTell();
 	if (l>INT_MAX-3) throw emException("File too large.");
 	L->FileSize=(int)l;
-	if (L->FileSize<0) goto Err;
-	if (fseek(L->File,0,SEEK_SET)) goto Err;
-	return;
-Err:
-	throw emException("%s",emGetErrorText(errno).Get());
+	L->File.TrySeek(0);
 }
 
 
@@ -75,18 +67,15 @@ bool emXpmImageFileModel::TryContinueLoading()
 	if (!L->Buffer) {
 		L->Buffer=new char[L->FileSize];
 	}
-	else if (L->File) {
+	else if (L->File.IsOpen()) {
 		len=L->FileSize-L->BufferFill;
 		if (len>4096) len=4096;
-		if (len>0) len=fread(L->Buffer+L->BufferFill,1,len,L->File);
+		if (len>0) len=L->File.TryReadAtMost(L->Buffer+L->BufferFill,len);
 		if (len>0) L->BufferFill+=len;
-		else {
-			fclose(L->File);
-			L->File=NULL;
-		}
+		else L->File.Close();
 	}
 	else if (!L->StringArray) {
-		if (L->BufferFill<9 || memcmp(L->Buffer,"/* XPM */",9)!=0) {
+		if (L->BufferFill<9 || memcmp(L->Buffer.Get(),"/* XPM */",9)!=0) {
 			throw emException("Not an XPM file.");
 		}
 		for (i=0, pos=0; FindCString(pos,&pos,&len); i++) pos+=len+1;
@@ -127,30 +116,148 @@ bool emXpmImageFileModel::TryContinueLoading()
 
 void emXpmImageFileModel::QuitLoading()
 {
-	if (L) {
-		if (L->File) fclose(L->File);
-		if (L->Buffer) delete [] L->Buffer;
-		if (L->StringArray) delete [] L->StringArray;
-		delete L;
-		L=NULL;
-	}
+	L.Reset();
 }
 
 
 void emXpmImageFileModel::TryStartSaving()
 {
-	throw emException("emXpmImageFileModel: Saving not implemented.");
+	S=new SavingState;
+	S->MaxPalSize=emMin(
+		GetImage().GetWidth()*GetImage().GetHeight(),
+		emMin(
+			XpmSymCharsCount*XpmSymCharsCount*XpmSymCharsCount*XpmSymCharsCount,
+			1000000
+		)
+	);
+	S->PalSize=0;
+	S->PixSize=0;
+	S->Stage=0;
+	S->Index=0;
+	S->Pal=new emUInt32[S->MaxPalSize];
 }
 
 
 bool emXpmImageFileModel::TryContinueSaving()
 {
-	return true;
+	int x,y,width,height,palSize,pixSize,i,j,k;
+	emUInt32 * pal;
+	emUInt32 c;
+	emColor col;
+
+	width=GetImage().GetWidth();
+	height=GetImage().GetHeight();
+
+	switch (S->Stage) {
+	case 0:
+		y=S->Index++;
+		if (y>=height) {
+			S->Stage++;
+			S->Index=0;
+			return false;
+		}
+		palSize=S->PalSize;
+		pal=S->Pal;
+		for (x=0; x<width; x++) {
+			col=GetImage().GetPixel(x,y);
+			if (col.GetAlpha()<128) c=0;
+			else c=0x01000000|(col.GetRed()<<16)|(col.GetGreen()<<8)|col.GetBlue();
+			for (i=0, j=palSize; i<j;) {
+				k=(i+j)/2;
+				if (pal[k]<c) i=k+1; else j=k;
+			}
+			if (i>=palSize || S->Pal[i]!=c) {
+				if (palSize>=S->MaxPalSize) {
+					throw emException("Too many colors for XPM");
+				}
+				if (i<palSize) memmove(pal+i+1,pal+i,sizeof(emUInt32)*(palSize-i));
+				pal[i]=c;
+				palSize++;
+			}
+		}
+		S->PalSize=palSize;
+		return false;
+
+	case 1:
+		S->File.TryOpen(GetFilePath(),"wb");
+
+		S->File.TryWrite("/* XPM */\n");
+
+		{
+			emString name=emGetNameInPath(GetFilePath());
+			const char * e=emGetExtensionInPath(name);
+			if (e) name=name.GetSubString(0,e-name);
+			S->File.TryWrite(
+				emString::Format("static char * %s_xpm[] = {\n",name.Get())
+			);
+		}
+
+		S->PixSize=1;
+		for (i=XpmSymCharsCount; i<S->PalSize; i*=XpmSymCharsCount) S->PixSize++;
+		S->File.TryWrite(
+			emString::Format("\"%d %d %d %d",width,height,S->PalSize,S->PixSize)
+		);
+		S->Stage++;
+		return false;
+
+	case 2:
+		i=S->Index++;
+		if (i>=S->PalSize) {
+			S->Stage++;
+			S->Index=0;
+			return false;
+		}
+		S->File.TryWrite("\",\n\"");
+		for (j=0, k=i; j<S->PixSize; j++) {
+			S->File.TryWriteUInt8(XpmSymChars[k%XpmSymCharsCount]);
+			k/=XpmSymCharsCount;
+		}
+		c=S->Pal[i];
+		if (!c) {
+			S->File.TryWrite(" c none");
+		}
+		else {
+			S->File.TryWrite(emString::Format(
+				" c #%02X%02X%02X",
+				(c>>16)&255,
+				(c>>8)&255,
+				c&255
+			));
+		}
+		return false;
+
+	default:
+		y=S->Index++;
+		if (y>=height) {
+			S->File.TryWrite("\"\n};\n");
+			S->File.TryClose();
+			return true;
+		}
+		S->File.TryWrite("\",\n\"");
+		palSize=S->PalSize;
+		pixSize=S->PixSize;
+		pal=S->Pal;
+		for (x=0; x<width; x++) {
+			col=GetImage().GetPixel(x,y);
+			if (col.GetAlpha()<128) c=0;
+			else c=0x01000000|(col.GetRed()<<16)|(col.GetGreen()<<8)|col.GetBlue();
+			for (i=0, j=palSize; i<j;) {
+				k=(i+j)/2;
+				if (pal[k]<c) i=k+1; else j=k;
+			}
+			for (j=0; j<pixSize; j++) {
+				S->File.TryWriteUInt8(XpmSymChars[i%XpmSymCharsCount]);
+				i/=XpmSymCharsCount;
+			}
+		}
+		return false;
+	}
 }
 
 
 void emXpmImageFileModel::QuitSaving()
 {
+	S.Reset();
 }
 
 
@@ -177,11 +284,35 @@ double emXpmImageFileModel::CalcFileProgress()
 		if (L->FileSize>0) progress+=70.0*L->BufferFill/L->FileSize;
 		if (L->StringArray) progress+=10.0;
 	}
+	else if (S) {
+		switch (S->Stage) {
+		case 0:
+			if (GetImage().GetHeight()>0) {
+				progress+=40.0*S->Index/GetImage().GetHeight();
+			}
+			break;
+		case 1:
+			progress+=40.0;
+			break;
+		case 2:
+			progress+=45.0;
+			if (S->PalSize>0) {
+				progress+=5.0*S->Index/S->PalSize;
+			}
+			break;
+		default:
+			progress+=50.0;
+			if (GetImage().GetHeight()>0) {
+				progress+=49.0*S->Index/GetImage().GetHeight();
+			}
+			break;
+		}
+	}
 	return progress;
 }
 
 
-bool emXpmImageFileModel::FindCString(int startPos, int * pPos, int * pLen)
+bool emXpmImageFileModel::FindCString(int startPos, int * pPos, int * pLen) const
 {
 	int i,pos,len;
 
@@ -204,3 +335,15 @@ bool emXpmImageFileModel::FindCString(int startPos, int * pPos, int * pLen)
 	*pLen=len;
 	return true;
 }
+
+
+const char * const emXpmImageFileModel::XpmSymChars=
+	// Remember to adapt XpmSymCharsCount when changing this.
+	// Impossible: '\', '"' and '?' (last because of trigraphs)
+	" 123456789ABCDEF"
+	"GHIJKLMNOPQRSTUV"
+	"WXYZ0abcdefghijk"
+	"lmnopqrstuvwxyz!"
+	"#$%&'()*+,-./:;<"
+	"=>@[]^_`{|}~"
+;

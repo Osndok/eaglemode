@@ -10,7 +10,7 @@
 <PRE><TT><SPAN CLASS=d><SPAN CLASS=c>//------------------------------------------------------------------------------
 // <A CLASS=m HREF="emCore_emRec_h.html#emRec">emRec</A>.h - Recordable data structures
 //
-// Copyright (C) 2005-2010,2012,2014,2016,2018,2022,2024 Oliver Hamann.
+// Copyright (C) 2005-2010,2012,2014,2016,2018,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -1202,6 +1202,10 @@
                 <SPAN CLASS=c>// Get a reference to an element. The index must be within the
                 // range of 0 to GetCount()-1.
 
+        </SPAN><SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * <SPAN CLASS=t>const </SPAN>* Get() <SPAN CLASS=t>const</SPAN>;
+        <A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * * Get();
+                <SPAN CLASS=c>// Get a pointer to the internal array of element pointers.
+
         </SPAN><SPAN CLASS=t>virtual void </SPAN>SetToDefault();
         <SPAN CLASS=t>virtual bool </SPAN>IsSetToDefault() <SPAN CLASS=t>const</SPAN>;
         <SPAN CLASS=t>virtual void </SPAN>TryStartReading(<A CLASS=l HREF="emCore_emRec_h.html#emRecReader">emRecReader</A> &amp; reader);
@@ -1258,6 +1262,16 @@
         </SPAN><SPAN CLASS=k>return </SPAN>*Array[index];
 <SPAN CLASS=b>}
 
+</SPAN><SPAN CLASS=t>inline const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * <SPAN CLASS=t>const </SPAN>* <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emRec">emRec</A> * * <A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Array;
+<SPAN CLASS=b>}
+
 
 <A NAME="emTArrayRec"></A></SPAN><SPAN CLASS=c>//==============================================================================
 //================================ <A CLASS=m HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A> =================================
@@ -1280,6 +1294,52 @@
         <SPAN CLASS=t>const </SPAN>REC &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index) <SPAN CLASS=t>const</SPAN>;
         REC &amp; <SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index);
                 <SPAN CLASS=c>// Like with <A CLASS=m HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>, but the results are cast to template type.
+
+        </SPAN><SPAN CLASS=t>const </SPAN>REC * <SPAN CLASS=t>const </SPAN>* Get() <SPAN CLASS=t>const</SPAN>;
+        REC * * Get();
+                <SPAN CLASS=c>// Get a pointer to the internal array of element pointers.
+
+        </SPAN><SPAN CLASS=t>class </SPAN>ConstIterator <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                ConstIterator();
+                ConstIterator(<SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter);
+                ConstIterator(<SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index = <SPAN CLASS=u>0</SPAN>);
+                ConstIterator &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter);
+                <SPAN CLASS=t>operator const </SPAN>REC * () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>REC * Get() <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>REC &amp; <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>const </SPAN>REC * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                ConstIterator &amp; <SPAN CLASS=t>operator </SPAN>++();
+                ConstIterator &amp; <SPAN CLASS=t>operator </SPAN>--();
+                <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>private</SPAN>:
+                <SPAN CLASS=t>const </SPAN>REC * <SPAN CLASS=t>const </SPAN>* Pos;
+        <SPAN CLASS=b>}</SPAN>;
+
+        <SPAN CLASS=t>class </SPAN>Iterator <SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=t>public</SPAN>:
+                Iterator();
+                Iterator(<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                Iterator(<A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index = <SPAN CLASS=u>0</SPAN>);
+                Iterator &amp; <SPAN CLASS=t>operator </SPAN>= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter);
+                <SPAN CLASS=t>operator </SPAN>REC * () <SPAN CLASS=t>const</SPAN>;
+                REC * Get() <SPAN CLASS=t>const</SPAN>;
+                REC &amp; <SPAN CLASS=t>operator </SPAN>* () <SPAN CLASS=t>const</SPAN>;
+                REC * <SPAN CLASS=t>operator </SPAN>-&gt; () <SPAN CLASS=t>const</SPAN>;
+                Iterator &amp; <SPAN CLASS=t>operator </SPAN>++();
+                Iterator &amp; <SPAN CLASS=t>operator </SPAN>--();
+                <SPAN CLASS=t>bool operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+                <SPAN CLASS=t>bool operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const</SPAN>;
+        <SPAN CLASS=t>private</SPAN>:
+                REC * * Pos;
+        <SPAN CLASS=b>}</SPAN>;
+
+        ConstIterator begin() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+        </SPAN>Iterator begin(); <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+        </SPAN>ConstIterator end() <SPAN CLASS=t>const</SPAN>; <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+        </SPAN>Iterator end(); <SPAN CLASS=c>// NOLINT(*-identifier-naming)
+                // Support range-based for loops.
 </SPAN><SPAN CLASS=b>}</SPAN>;
 
 <SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::<A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>(
@@ -1318,6 +1378,172 @@
 </SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::<SPAN CLASS=t>operator </SPAN>[] (<SPAN CLASS=t>int </SPAN>index)
 <SPAN CLASS=b>{
         </SPAN><SPAN CLASS=k>return </SPAN>(REC &amp;)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get(index);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline const </SPAN>REC * <SPAN CLASS=t>const </SPAN>* <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(<SPAN CLASS=t>const </SPAN>REC * <SPAN CLASS=t>const </SPAN>*)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC * * <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Get()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>(REC**)<A CLASS=l HREF="emCore_emRec_h.html#emArrayRec">emArrayRec</A>::Get();
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::ConstIterator()
+        : Pos(<SPAN CLASS=u>NULL</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::ConstIterator(
+        <SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter
+) : Pos(iter.Pos)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::ConstIterator(
+        <SPAN CLASS=t>const </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index
+) : Pos(array.Get() + index)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+</SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator const </SPAN>REC *() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+const </SPAN>REC * <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+const </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator </SPAN>*() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>**Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+const </SPAN>REC * <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator </SPAN>-&gt;() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator &amp;
+<A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator </SPAN>++()
+<SPAN CLASS=b>{
+        </SPAN>Pos++;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator &amp;
+<A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator </SPAN>--()
+<SPAN CLASS=b>{
+        </SPAN>Pos--;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline bool
+</SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline bool
+</SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>ConstIterator &amp; iter) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::Iterator()
+        : Pos(<SPAN CLASS=u>NULL</SPAN>)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::Iterator(
+        <SPAN CLASS=t>const </SPAN>Iterator &amp; iter
+) : Pos(iter.Pos)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::Iterator(
+        <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt; &amp; array, <SPAN CLASS=t>int </SPAN>index
+) : Pos(array.Get() + index)
+<SPAN CLASS=b>{
+}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>REC *() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC * <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::Get() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>*() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>**Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline </SPAN>REC * <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>-&gt;() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>*Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>++()
+<SPAN CLASS=b>{
+        </SPAN>Pos++;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator &amp; <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>--()
+<SPAN CLASS=b>{
+        </SPAN>Pos--;
+        <SPAN CLASS=k>return </SPAN>*<SPAN CLASS=k>this</SPAN>;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline bool
+</SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>== (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos==iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline bool
+</SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator::<SPAN CLASS=t>operator </SPAN>!= (<SPAN CLASS=t>const </SPAN>Iterator &amp; iter) <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Pos!=iter.Pos;
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::begin() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ConstIterator(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::begin()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Iterator(*<SPAN CLASS=k>this</SPAN>);
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::ConstIterator <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::end() <SPAN CLASS=t>const
+</SPAN><SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>ConstIterator(*<SPAN CLASS=k>this</SPAN>,GetCount());
+<SPAN CLASS=b>}
+
+</SPAN><SPAN CLASS=t>template </SPAN>&lt;<SPAN CLASS=t>class </SPAN>REC&gt; <SPAN CLASS=t>inline
+typename </SPAN><A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::Iterator <A CLASS=l HREF="emCore_emRec_h.html#emTArrayRec">emTArrayRec</A>&lt;REC&gt;::end()
+<SPAN CLASS=b>{
+        </SPAN><SPAN CLASS=k>return </SPAN>Iterator(*<SPAN CLASS=k>this</SPAN>,GetCount());
 <SPAN CLASS=b>}
 
 

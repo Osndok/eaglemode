@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emTestPanel" }
+FileFormatName = "emTestPanel"
 Priority = 1.0
 Library = "emTestPanel"
 Function = "emTestPanelFpPluginFunc"

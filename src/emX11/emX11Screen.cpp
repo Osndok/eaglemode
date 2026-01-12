@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emX11Screen.cpp
 //
-// Copyright (C) 2005-2012,2014-2022,2024 Oliver Hamann.
+// Copyright (C) 2005-2012,2014-2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -151,7 +151,7 @@ emX11Screen::emX11Screen(emContext & context, const emString & name)
 	}
 	else {
 		modifiers=getenv("XMODIFIERS");
-		emDLog("emX11Screen: XMODIFIERS=%s",modifiers?modifiers:"<not defined>");
+		EM_DLOG("XMODIFIERS=%s",modifiers?modifiers:"<not defined>");
 		XMutex.Lock();
 		modifiers=XSetLocaleModifiers("");
 		XMutex.Unlock();
@@ -587,21 +587,21 @@ void emX11Screen::UpdateGeometry()
 	if (anyChange) {
 		SignalGeometrySignal();
 
-		emDLog("emX11Screen::UpdateGeometry: API=%s, Pannable=%d",api,MonitorRectPannable);
+		EM_DLOG("UpdateGeometry: API=%s, Pannable=%d",api,MonitorRectPannable);
 		rp=&DesktopRect;
-		emDLog(
-			"emX11Screen::UpdateGeometry: Desktop: x=%d y=%d w=%d h=%d",
+		EM_DLOG(
+			"UpdateGeometry: Desktop: x=%d y=%d w=%d h=%d",
 			rp->x, rp->y, rp->w, rp->h
 		);
 		for (i=0; i<MonitorRects.GetCount(); i++) {
 			rp=&MonitorRects[i];
-			emDLog(
-				"emX11Screen::UpdateGeometry: Monitor %d: x=%d y=%d w=%d h=%d",
+			EM_DLOG(
+				"UpdateGeometry: Monitor %d: x=%d y=%d w=%d h=%d",
 				i, rp->x, rp->y, rp->w, rp->h
 			);
 		}
-		emDLog("emX11Screen::UpdateGeometry: DPI=%f",DPI);
-		emDLog("emX11Screen::UpdateGeometry: PixelTallness=%f",PixelTallness);
+		EM_DLOG("UpdateGeometry: DPI=%f",DPI);
+		EM_DLOG("UpdateGeometry: PixelTallness=%f",PixelTallness);
 	}
 }
 
@@ -748,7 +748,7 @@ void emX11Screen::UpdateScreensaver()
 	}
 
 	if (inhibit) {
-		emDLog("emX11Screen: Touching screensavers.");
+		EM_DLOG("Touching screensavers.");
 		// Against the built-in screensaver of the X server:
 		XMutex.Lock();
 		XResetScreenSaver(Disp);
@@ -756,7 +756,10 @@ void emX11Screen::UpdateScreensaver()
 		XMutex.Unlock();
 		// Against xscreensaver:
 		if (system("xscreensaver-command -deactivate >&- 2>&- &")==-1) {
-			emDLog("Could not run xscreensaver-command: %s",emGetErrorText(errno).Get());
+			EM_DLOG(
+				"Could not run xscreensaver-command: %s",
+				emGetErrorText(errno).Get()
+			);
 		}
 	}
 }
@@ -821,7 +824,7 @@ int emX11Screen::CompareCurMapElemAgainstKey(
 			break;
 		case emCursor::HAND:
 			XMutex.Lock();
-			c=XCreateFontCursor(Disp,XC_hand1);
+			c=XCreateFontCursor(Disp,XC_hand2);
 			XMutex.Unlock();
 			break;
 		case emCursor::LEFT_RIGHT_ARROW:
@@ -1123,7 +1126,7 @@ int emX11Screen::WaitCursorThread::Run(void * arg)
 			t=blockTimeMS-t+1;
 		}
 		else {
-			emDLog("emX11Screen::WaitCursorThread: blocking detected");
+			EM_DLOG("WaitCursorThread: blocking detected");
 			DataMutex.Lock();
 			for (i=Windows.GetCount()-1; i>=0; i--) {
 				XMutex.Lock();
@@ -1216,6 +1219,9 @@ void emX11Screen::DetectXWayland()
 	// The X.Org Foundation | 12101003 | Ubuntu 22.10            | focus, back pixel flicker
 	// The X.Org Foundation | 12302000 | Ubuntu 23.10            | focus, back pixel flicker
 	// The X.Org Foundation | 12302006 | Ubuntu 24.04            | focus, back pixel flicker
+	// The X.Org Foundation | 12401006 | Ubuntu 25.10            | focus, back pixel flicker
+	// Fedora Project       | 12401008 | Fedora 42               | focus, back pixel flicker
+	// The X.Org Foundation | 12401009 | Fedora 43               | focus, back pixel flicker
 	vendor=ServerVendor(Disp);
 	release=VendorRelease(Disp);
 	if (
@@ -1223,7 +1229,7 @@ void emX11Screen::DetectXWayland()
 		strcmp(vendor,"The X.Org Foundation")!=0
 	) return;
 
-	emDLog("emX11Screen: Working around XWayland bugs");
+	EM_DLOG("Working around XWayland bugs");
 	WorkAroundXWaylandFocusBug=true;
 	WorkAroundXWaylandBackPixelBug=true;
 }

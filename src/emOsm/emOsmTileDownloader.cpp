@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emOsmTileDownloader.cpp
 //
-// Copyright (C) 2024 Oliver Hamann.
+// Copyright (C) 2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -106,6 +106,7 @@ bool emOsmTileDownloader::Cycle()
 
 	args.Add("curl");
 	args.Add("--silent");
+	args.Add("--show-error");
 	args.Add("--user-agent");
 	args.Add("EagleMode");
 
@@ -117,9 +118,9 @@ bool emOsmTileDownloader::Cycle()
 		args.Add("--output");
 		args.Add(downloadJob->FilePath);
 		args.Add(downloadJob->Url);
-		emDLog("emOsmTileDownloader: Downloading %s",downloadJob->Url.Get());
+		EM_DLOG("Downloading %s",downloadJob->Url.Get());
 	}
-	emDLog("emOsmTileDownloader: Downloading %d files with one connection",i);
+	EM_DLOG("Downloading %d files with one connection",i);
 
 	try {
 		Process.TryStart(

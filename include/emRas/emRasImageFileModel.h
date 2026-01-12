@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emRasImageFileModel.h
 //
-// Copyright (C) 2004-2008,2014,2018 Oliver Hamann.
+// Copyright (C) 2004-2008,2014,2018,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -20,6 +20,10 @@
 
 #ifndef emRasImageFileModel_h
 #define emRasImageFileModel_h
+
+#ifndef emFileStream_h
+#include <emCore/emFileStream.h>
+#endif
 
 #ifndef emImageFile_h
 #include <emCore/emImageFile.h>
@@ -51,14 +55,10 @@ protected:
 
 private:
 
-	int Read8();
-	int Read16();
-	int Read32();
-
 	struct LoadingState {
 		int Width,Height,Depth,PixMapType,ColMapType,ColMapSize;
 		int NextY,RowSize,BufFill;
-		FILE * File;
+		emFileStream File;
 		unsigned char * ColMap;
 		unsigned char * PixBuf;
 	};

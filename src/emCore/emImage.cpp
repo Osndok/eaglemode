@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emImage.cpp
 //
-// Copyright (C) 2001,2003-2010,2014,2016,2018-2020,2024 Oliver Hamann.
+// Copyright (C) 2001,2003-2010,2014,2016,2018-2020,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -112,12 +112,23 @@ void emImage::TryParseXpm(
 	const char * const * xpm, int channelCount
 )
 {
+	struct ColorEntry {
+		emUInt32 Symbol;
+		emColor Color;
+
+		static int CompareBySym(const ColorEntry * e1, const ColorEntry * e2, void *)
+		{
+			if (e1->Symbol > e2->Symbol) return 1;
+			if (e1->Symbol < e2->Symbol) return -1;
+			return 0;
+		}
+	};
+
 	char tmp[256];
 	const char * s, * s2, * s3, * s4, * s5;
 	emByte * p;
-	emOwnArrayPtr<emUInt32> syms;
+	emOwnArrayPtr<ColorEntry> colors;
 	emUInt32 sym;
-	emOwnArrayPtr<emColor> cols;
 	emColor col;
 	bool colFound;
 	int width,height,num_colors,sym_size,n,i,j,k,x,y;
@@ -132,8 +143,7 @@ void emImage::TryParseXpm(
 	if (num_colors<1) goto L_Error;
 	sym_size=(int)strtol(s,(char**)&s,0);
 	if (sym_size<1 || sym_size>4) goto L_Error;
-	syms=new emUInt32[num_colors];
-	cols=new emColor[num_colors];
+	colors=new ColorEntry[num_colors];
 	for (n=0; n<num_colors; n++) {
 		s=*(xpm++);
 		if (!s) goto L_Error;
@@ -202,32 +212,22 @@ void emImage::TryParseXpm(
 			}
 		}
 		if (!colFound) goto L_Error;
-		i=0;
-		j=n;
-		while (i<j) {
-			k=(i+j)/2;
-			if (syms[k]>sym) j=k;
-			else i=k+1;
-		}
-		if (i<n) {
-			memmove(syms+i+1,syms+i,sizeof(emUInt32)*(n-i));
-#			pragma GCC diagnostic push
-#			pragma GCC diagnostic ignored "-Wclass-memaccess"
-			memmove(cols+i+1,cols+i,sizeof(emColor)*(n-i));
-#			pragma GCC diagnostic pop
-		}
-		syms[i]=sym;
-		cols[i]=col;
+		colors[n].Symbol=sym;
+		colors[n].Color=col;
 	}
+
+	emSortArray(colors.Get(),num_colors,ColorEntry::CompareBySym,NULL);
+
 	if (channelCount<1 || channelCount>4) {
 		channelCount=1;
 		for (i=0; i<num_colors; i++) {
-			if (!cols[i].IsGrey()) { channelCount+=2; break; }
+			if (!colors[i].Color.IsGrey()) { channelCount+=2; break; }
 		}
 		for (i=0; i<num_colors; i++) {
-			if (cols[i].GetAlpha()!=255) { channelCount++; break; }
+			if (colors[i].Color.GetAlpha()!=255) { channelCount++; break; }
 		}
 	}
+
 	Setup(width,height,channelCount);
 	p=GetWritableMap();
 	for (y=0; y<height; y++) {
@@ -242,32 +242,33 @@ void emImage::TryParseXpm(
 			for (;;) {
 				if (i>=j) goto L_Error;
 				k=(i+j)/2;
-				if (syms[k]>sym) j=k;
-				else if (syms[k]<sym) i=k+1;
+				if (colors[k].Symbol>sym) j=k;
+				else if (colors[k].Symbol<sym) i=k+1;
 				else break;
 			}
+			col=colors[k].Color;
 			switch (channelCount)
 			{
 			case 1:
-				p[0]=cols[k].GetGrey();
+				p[0]=col.GetGrey();
 				p++;
 				break;
 			case 2:
-				p[0]=cols[k].GetGrey();
-				p[1]=cols[k].GetAlpha();
+				p[0]=col.GetGrey();
+				p[1]=col.GetAlpha();
 				p+=2;
 				break;
 			case 3:
-				p[0]=cols[k].GetRed();
-				p[1]=cols[k].GetGreen();
-				p[2]=cols[k].GetBlue();
+				p[0]=col.GetRed();
+				p[1]=col.GetGreen();
+				p[2]=col.GetBlue();
 				p+=3;
 				break;
 			default:
-				p[0]=cols[k].GetRed();
-				p[1]=cols[k].GetGreen();
-				p[2]=cols[k].GetBlue();
-				p[3]=cols[k].GetAlpha();
+				p[0]=col.GetRed();
+				p[1]=col.GetGreen();
+				p[2]=col.GetBlue();
+				p[3]=col.GetAlpha();
 				p+=4;
 				break;
 			}
@@ -278,199 +279,6 @@ void emImage::TryParseXpm(
 L_Error:
 	Clear();
 	throw emException("Unsupported XPM format");
-}
-
-
-void emImage::TryParseTga(
-	const unsigned char * tgaData, size_t tgaSize, int channelCount
-)
-{
-	const unsigned char * tgaEnd, * p;
-	emOwnArrayPtr<emColor> palette;
-	emColor runCol;
-	size_t n;
-	int runLen,i,x,y,c,w,h,idLen,palType,palBitsPP,bitsPP,desc,palSize;
-	int alphaMask,imgType,maxCC;
-
-	tgaEnd=tgaData+tgaSize;
-
-	if (tgaData+17>=tgaEnd) goto L_Error;
-	idLen=tgaData[0];
-	palType=tgaData[1];
-	imgType=tgaData[2];
-	palSize=tgaData[5];
-	palSize|=((int)tgaData[6])<<8;
-	palBitsPP=tgaData[7];
-	w=tgaData[12];
-	w|=((int)tgaData[13])<<8;
-	h=tgaData[14];
-	h|=((int)tgaData[15])<<8;
-	bitsPP=tgaData[16];
-	desc=tgaData[17];
-	tgaData+=18+idLen;
-
-	alphaMask = (desc&0x0f)==0 ? 255 : 0;
-
-	if ((imgType&~8)==1) {
-		if (palType!=1) goto L_Error;
-		if (bitsPP!=8 && bitsPP!=16) goto L_Error;
-		palette=new emColor[palSize];
-		for (i=0; i<palSize; i++) {
-			if (palBitsPP==16) {
-				if (tgaData+1>=tgaEnd) goto L_Error;
-				c=*tgaData++;
-				c|=((int)*tgaData++)<<8;
-				palette[i].SetRed((emByte)((((c>>10)&31)*255)/31));
-				palette[i].SetGreen((emByte)((((c>>5)&31)*255)/31));
-				palette[i].SetBlue((emByte)(((c&31)*255)/31));
-				palette[i].SetAlpha((emByte)((c&0x8000)?255:alphaMask));
-			}
-			else if (palBitsPP==24) {
-				if (tgaData+2>=tgaEnd) goto L_Error;
-				palette[i].SetBlue(*tgaData++);
-				palette[i].SetGreen(*tgaData++);
-				palette[i].SetRed(*tgaData++);
-				palette[i].SetAlpha(255);
-			}
-			else if (palBitsPP==32) {
-				if (tgaData+3>=tgaEnd) goto L_Error;
-				palette[i].SetBlue(*tgaData++);
-				palette[i].SetGreen(*tgaData++);
-				palette[i].SetRed(*tgaData++);
-				palette[i].SetAlpha((emByte)((*tgaData++)|alphaMask));
-			}
-			else goto L_Error;
-		}
-	}
-	else if ((imgType&~8)==2) {
-		if (palType!=0) goto L_Error;
-		if (bitsPP!=16 && bitsPP!=24 && bitsPP!=32) goto L_Error;
-	}
-	else if ((imgType&~8)==3) {
-		if (palType!=0) goto L_Error;
-		if (bitsPP!=8 && bitsPP!=16) goto L_Error;
-	}
-	else goto L_Error;
-
-	if (channelCount<1 || channelCount>4) {
-		if (palette) {
-			if (palBitsPP==24 || alphaMask==255) maxCC=3;
-			else maxCC=4;
-			channelCount=1;
-			for (i=0; i<palSize; i++) {
-				if (channelCount<3 && !palette[i].IsGrey()) channelCount+=2;
-				if ((channelCount&1)!=0 && palette[i].GetAlpha()!=255) channelCount+=1;
-				if (channelCount>=maxCC) break;
-			}
-		}
-		else if ((imgType&~8)==3 && bitsPP==8) channelCount=1;
-		else {
-			if ((imgType&~8)==2) {
-				if (bitsPP==24 || alphaMask==255) maxCC=3;
-				else maxCC=4;
-			}
-			else {
-				if (bitsPP==8 || alphaMask==255) maxCC=1;
-				else maxCC=2;
-			}
-			channelCount=1;
-			runCol=0;
-			runLen=0;
-			p=tgaData;
-			for (n=h*(size_t)w; n>0; n--) {
-				if ((imgType&8)!=0 && runLen<0) runLen++;
-				else {
-					if ((imgType&8)!=0 && runLen==0) {
-						if (p>=tgaEnd) goto L_Error;
-						runLen=*p++;
-						if (runLen&0x80) runLen=-(runLen&0x7f)+1;
-						else runLen++;
-					}
-					runLen--;
-					for (c=0, i=0; i<bitsPP; i+=8) {
-						if (p>=tgaEnd) goto L_Error;
-						c|=((int)*p++)<<i;
-					}
-					if ((imgType&~8)==2) {
-						if (bitsPP==16) {
-							runCol.SetRed((emByte)((((c>>10)&31)*255)/31));
-							runCol.SetGreen((emByte)((((c>>5)&31)*255)/31));
-							runCol.SetBlue((emByte)(((c&31)*255)/31));
-							runCol.SetAlpha((emByte)((c&0x8000)?255:alphaMask));
-						}
-						else {
-							runCol.SetRed((emByte)(c>>16));
-							runCol.SetGreen((emByte)(c>>8));
-							runCol.SetBlue((emByte)c);
-							runCol.SetAlpha((emByte)(bitsPP==24 ? 255 : ((c>>24)|alphaMask)));
-						}
-					}
-					else {
-						runCol.SetRed((emByte)c);
-						runCol.SetGreen((emByte)c);
-						runCol.SetBlue((emByte)c);
-						runCol.SetAlpha((emByte)(bitsPP==8 ? 255 : ((c>>8)|alphaMask)));
-					}
-					if (channelCount<3 && !runCol.IsGrey()) channelCount+=2;
-					if ((channelCount&1)!=0 && runCol.GetAlpha()!=255) channelCount+=1;
-					if (channelCount>=maxCC) break;
-				}
-			}
-		}
-	}
-
-	Setup(w,h,channelCount);
-	runCol=0;
-	runLen=0;
-	p=tgaData;
-	for (y=0; y<h; y++) {
-		for (x=0; x<w; x++) {
-			if ((imgType&8)!=0 && runLen<0) runLen++;
-			else {
-				if ((imgType&8)!=0 && runLen==0) {
-					if (p>=tgaEnd) goto L_Error;
-					runLen=*p++;
-					if (runLen&0x80) runLen=-(runLen&0x7f)+1;
-					else runLen++;
-				}
-				runLen--;
-				for (c=0, i=0; i<bitsPP; i+=8) {
-					if (p>=tgaEnd) goto L_Error;
-					c|=((int)*p++)<<i;
-				}
-				if ((imgType&~8)==1) {
-					if (c<0 || c>=palSize) goto L_Error;
-					runCol=palette[c];
-				}
-				else if ((imgType&~8)==2) {
-					if (bitsPP==16) {
-						runCol.SetRed((emByte)((((c>>10)&31)*255)/31));
-						runCol.SetGreen((emByte)((((c>>5)&31)*255)/31));
-						runCol.SetBlue((emByte)(((c&31)*255)/31));
-						runCol.SetAlpha((emByte)((c&0x8000)?255:alphaMask));
-					}
-					else {
-						runCol.SetRed((emByte)(c>>16));
-						runCol.SetGreen((emByte)(c>>8));
-						runCol.SetBlue((emByte)c);
-						runCol.SetAlpha((emByte)(bitsPP==24 ? 255 : ((c>>24)|alphaMask)));
-					}
-				}
-				else {
-					runCol.SetRed((emByte)c);
-					runCol.SetGreen((emByte)c);
-					runCol.SetBlue((emByte)c);
-					runCol.SetAlpha((emByte)(bitsPP==8 ? 255 : ((c>>8)|alphaMask)));
-				}
-			}
-			SetPixel(x,(desc&0x20)?y:h-y-1,runCol);
-		}
-	}
-	return;
-
-L_Error:
-	Clear();
-	throw emException("Unsupported TGA format");
 }
 
 
@@ -1530,6 +1338,97 @@ emImage emImage::GetCroppedByAlpha(int channelCount) const
 
 	CalcAlphaMinMaxRect(&x,&y,&w,&h);
 	return GetCropped(x,y,w,h,channelCount);
+}
+
+
+bool emImage::HasAnyNonGreyPixel() const
+{
+	const emByte * p, * pe;
+
+	switch (Data->ChannelCount) {
+	case 3:
+		p=Data->Map;
+		pe=p+Data->Width*Data->Height*3;
+		while (p<pe) {
+			if (p[0]!=p[1] || p[1]!=p[2]) return true;
+			p+=3;
+		}
+		return false;
+	case 4:
+		p=Data->Map;
+		pe=p+Data->Width*Data->Height*4;
+		while (p<pe) {
+			if (p[0]!=p[1] || p[1]!=p[2]) return true;
+			p+=4;
+		}
+		return false;
+	default:
+		return false;
+	}
+}
+
+
+bool emImage::HasAnyTransparentPixel() const
+{
+	const emByte * p, * pe;
+
+	switch (Data->ChannelCount) {
+	case 2:
+		p=Data->Map;
+		pe=p+Data->Width*Data->Height*2;
+		while (p<pe) {
+			if (p[1]!=255) return true;
+			p+=2;
+		}
+		return false;
+	case 4:
+		p=Data->Map;
+		pe=p+Data->Width*Data->Height*4;
+		while (p<pe) {
+			if (p[3]!=255) return true;
+			p+=4;
+		}
+		return false;
+	default:
+		return false;
+	}
+}
+
+
+emArray<emColor> emImage::DetermineAllColorsSorted(int limit) const
+{
+	const emByte * p, * pe;
+	emArray<emColor> array;
+	emColor c;
+	int cc,i,j,k,n;
+
+	cc=Data->ChannelCount;
+	p=Data->Map;
+	pe=p+Data->Width*Data->Height*cc;
+	n=0;
+	array.SetTuningLevel(4);
+	while (p<pe) {
+		switch (cc) {
+			case 1:  c=emColor(p[0],p[0],p[0]);      break;
+			case 2:  c=emColor(p[0],p[0],p[0],p[1]); break;
+			case 3:  c=emColor(p[0],p[1],p[2]);      break;
+			default: c=emColor(p[0],p[1],p[2],p[3]); break;
+		}
+		p+=cc;
+		for (i=0, j=n; i<j;) {
+			k=(i+j)/2;
+			if (array[k].Get()<c.Get()) i=k+1; else j=k;
+		}
+		if (i<n && array[i]==c) continue;
+		if (n>=limit) {
+			array.Clear(true);
+			break;
+		}
+		array.Insert(i,c);
+		n++;
+	}
+	array.Compact();
+	return array;
 }
 
 

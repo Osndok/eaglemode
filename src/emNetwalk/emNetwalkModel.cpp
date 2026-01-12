@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emNetwalkModel.cpp
 //
-// Copyright (C) 2010-2012,2014,2018,2024 Oliver Hamann.
+// Copyright (C) 2010-2012,2014,2018,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -90,7 +90,7 @@ void emNetwalkModel::TrySetup(
 	for (i=1;;i++) {
 		Invent();
 		if (Solver(this).IsUniqueSolution()) {
-			emDLog("emNetwalkModel::Setup: Invented %d setups for finding one with unique solution",i);
+			EM_DLOG("Setup: Invented %d setups for finding one with unique solution",i);
 			break;
 		}
 		if (i>1000) {

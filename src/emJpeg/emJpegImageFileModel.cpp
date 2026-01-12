@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emJpegImageFileModel.cpp
 //
-// Copyright (C) 2004-2009,2014,2018-2019 Oliver Hamann.
+// Copyright (C) 2004-2009,2014,2018-2019,2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <emJpeg/emJpegImageFileModel.h>
+#include <emCore/emFileStream.h>
 #include <setjmp.h>
 extern "C" {
 #	include <jerror.h>
@@ -26,38 +27,67 @@ extern "C" {
 }
 
 
-extern "C" {
-	struct emJpegLoadingState {
-		int imagePrepared;
-		jpeg_decompress_struct cinfo;
-		int cinfo_initialized;
-		struct jpeg_error_mgr err;
-		jmp_buf jmpbuffer;
-		char errorText[JMSG_LENGTH_MAX+1];
-		FILE * file;
-		int y;
-	};
-
-	METHODDEF(void) emJpeg_error_exit(j_common_ptr cinfo)
+struct emJpegImageFileModel::LoadingState {
+	LoadingState()
+		: ImagePrepared(false),
+		CInfoInitialized(false),
+		NextY(0)
 	{
-		struct emJpegLoadingState * L;
-
-		L=(struct emJpegLoadingState *)cinfo->client_data;
-		L->errorText[0]=0;
-		(*cinfo->err->output_message)(cinfo);
-		if (!L->errorText[0]) {
-			strcpy(L->errorText,"Failed to read JPEG file.");
-		}
-		longjmp(L->jmpbuffer,1);
+		memset(&CInfo,0,sizeof(jpeg_decompress_struct));
+		memset(&Err,0,sizeof(struct jpeg_error_mgr));
 	}
 
-	METHODDEF(void) emJpeg_output_message(j_common_ptr cinfo)
+	~LoadingState()
 	{
-		struct emJpegLoadingState * L;
-
-		L=(struct emJpegLoadingState *)cinfo->client_data;
-		(*cinfo->err->format_message)(cinfo, L->errorText);
+		if (CInfoInitialized) jpeg_destroy_decompress(&CInfo);
 	}
+
+	bool ImagePrepared;
+	bool CInfoInitialized;
+	jpeg_decompress_struct CInfo;
+	struct jpeg_error_mgr Err;
+	emFileStream File;
+	int NextY;
+};
+
+
+struct emJpegImageFileModel::SavingState {
+	SavingState()
+		: CInfoInitialized(false),
+		RowSize(0),
+		NextY(0)
+	{
+		memset(&CInfo,0,sizeof(jpeg_compress_struct));
+		memset(&Err,0,sizeof(struct jpeg_error_mgr));
+	}
+
+	~SavingState()
+	{
+		if (CInfoInitialized) jpeg_destroy_compress(&CInfo);
+	}
+
+	bool CInfoInitialized;
+	jpeg_compress_struct CInfo;
+	struct jpeg_error_mgr Err;
+	emFileStream File;
+	emOwnArrayPtr<emByte> RowBuf;
+	int RowSize;
+	int NextY;
+};
+
+
+static void emJpegErrorExit(j_common_ptr cinfo)
+{
+	char errorText[JMSG_LENGTH_MAX+1];
+	errorText[0]=0;
+	(*cinfo->err->format_message)(cinfo,errorText);
+	if (!errorText[0]) strcpy(errorText,"Unknown JPEG error.");
+	throw emException("%s",errorText);
+}
+
+
+static void emJpegOutputMessage(j_common_ptr)
+{
 }
 
 
@@ -74,14 +104,11 @@ emJpegImageFileModel::emJpegImageFileModel(
 )
 	: emImageFileModel(context,name)
 {
-	L=NULL;
 }
 
 
 emJpegImageFileModel::~emJpegImageFileModel()
 {
-	emJpegImageFileModel::QuitLoading();
-	emJpegImageFileModel::QuitSaving();
 }
 
 
@@ -90,28 +117,23 @@ void emJpegImageFileModel::TryStartLoading()
 	jpeg_saved_marker_ptr smp;
 	const char * csstr;
 
-	L=new emJpegLoadingState;
-	memset(L,0,sizeof(emJpegLoadingState));
+	L=new LoadingState;
 
-	L->file=fopen(GetFilePath(),"rb");
-	if (!L->file) throw emException("%s",emGetErrorText(errno).Get());
+	L->CInfo.err=jpeg_std_error(&L->Err);
+	L->Err.error_exit=emJpegErrorExit;
+	L->Err.output_message=emJpegOutputMessage;
 
-	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
+	jpeg_create_decompress(&L->CInfo);
+	L->CInfoInitialized=true;
 
-	L->cinfo.client_data=L;
-	L->cinfo.err=jpeg_std_error(&L->err);
-	L->err.error_exit = emJpeg_error_exit;
-	L->err.output_message = emJpeg_output_message;
+	L->File.TryOpen(GetFilePath(),"rb");
+	jpeg_stdio_src(&L->CInfo,L->File.TryGetFile());
 
-	jpeg_create_decompress(&L->cinfo);
-	L->cinfo_initialized=1;
-	jpeg_stdio_src(&L->cinfo,L->file);
+	jpeg_save_markers(&L->CInfo,JPEG_COM,0xffff);
 
-	jpeg_save_markers(&L->cinfo,JPEG_COM,0xffff);
+	jpeg_read_header(&L->CInfo,TRUE);
 
-	jpeg_read_header(&L->cinfo,TRUE);
-
-	for (smp=L->cinfo.marker_list; smp; smp=smp->next) {
+	for (smp=L->CInfo.marker_list; smp; smp=smp->next) {
 		if (smp->marker==JPEG_COM) {
 			Comment=emString(
 				(const char*)smp->data,
@@ -120,30 +142,30 @@ void emJpegImageFileModel::TryStartLoading()
 		}
 	}
 
-	switch (L->cinfo.jpeg_color_space) {
+	switch (L->CInfo.jpeg_color_space) {
 	case JCS_GRAYSCALE:
 		csstr="monochrome";
-		L->cinfo.out_color_space=JCS_GRAYSCALE;
+		L->CInfo.out_color_space=JCS_GRAYSCALE;
 		break;
 	case JCS_RGB:
 		csstr="RGB";
-		L->cinfo.out_color_space=JCS_RGB;
+		L->CInfo.out_color_space=JCS_RGB;
 		break;
 	case JCS_YCbCr:
 		csstr="YUV";
-		L->cinfo.out_color_space=JCS_RGB;
+		L->CInfo.out_color_space=JCS_RGB;
 		break;
 	case JCS_CMYK:
 		csstr="CMYK";
-		L->cinfo.out_color_space=JCS_RGB;
+		L->CInfo.out_color_space=JCS_RGB;
 		break;
 	case JCS_YCCK:
 		csstr="YCCK";
-		L->cinfo.out_color_space=JCS_RGB;
+		L->CInfo.out_color_space=JCS_RGB;
 		break;
 	default:
 		csstr="unknown";
-		L->cinfo.out_color_space=JCS_RGB;
+		L->CInfo.out_color_space=JCS_RGB;
 		break;
 	}
 
@@ -151,18 +173,18 @@ void emJpegImageFileModel::TryStartLoading()
 
 	Signal(ChangeSignal);
 
-	L->cinfo.scale_num=1;
-	L->cinfo.scale_denom=1;
-	L->cinfo.output_gamma=1.0;
-	L->cinfo.raw_data_out=FALSE;
-	L->cinfo.quantize_colors=FALSE;
-	L->cinfo.dct_method=JDCT_FLOAT;
-	jpeg_start_decompress(&L->cinfo);
+	L->CInfo.scale_num=1;
+	L->CInfo.scale_denom=1;
+	L->CInfo.output_gamma=1.0;
+	L->CInfo.raw_data_out=FALSE;
+	L->CInfo.quantize_colors=FALSE;
+	L->CInfo.dct_method=JDCT_FLOAT;
+	jpeg_start_decompress(&L->CInfo);
 
 	if (
-		(L->cinfo.output_components!=1 && L->cinfo.output_components!=3) ||
-		L->cinfo.output_width<1 || L->cinfo.output_width>0x7fffff ||
-		L->cinfo.output_height<1 || L->cinfo.output_height>0x7fffff
+		(L->CInfo.output_components!=1 && L->CInfo.output_components!=3) ||
+		L->CInfo.output_width<1 || L->CInfo.output_width>0x7fffff ||
+		L->CInfo.output_height<1 || L->CInfo.output_height>0x7fffff
 	) {
 		throw emException("Unsupported JPEG file format.");
 	}
@@ -173,30 +195,28 @@ bool emJpegImageFileModel::TryContinueLoading()
 {
 	JSAMPROW row;
 
-	if (!L->imagePrepared) {
+	if (!L->ImagePrepared) {
 		Image.Setup(
-			L->cinfo.output_width,
-			L->cinfo.output_height,
-			L->cinfo.output_components
+			L->CInfo.output_width,
+			L->CInfo.output_height,
+			L->CInfo.output_components
 		);
-		L->imagePrepared=1;
+		L->ImagePrepared=true;
 		Signal(ChangeSignal);
 	}
 
-	if (setjmp(L->jmpbuffer)) throw emException("%s",L->errorText);
-
-	if (L->y<Image.GetHeight()) {
+	if (L->NextY<Image.GetHeight()) {
 		row=
 			(JSAMPROW)Image.GetWritableMap()+
-			L->y*(size_t)Image.GetWidth()*Image.GetChannelCount()
+			L->NextY*(size_t)Image.GetWidth()*Image.GetChannelCount()
 		;
-		jpeg_read_scanlines(&L->cinfo,&row,1);
-		L->y++;
+		jpeg_read_scanlines(&L->CInfo,&row,1);
+		L->NextY++;
 		Signal(ChangeSignal);
 	}
 
-	if (L->y>=Image.GetHeight()) {
-		jpeg_finish_decompress(&L->cinfo);
+	if (L->NextY>=Image.GetHeight()) {
+		jpeg_finish_decompress(&L->CInfo);
 		return true;
 	}
 
@@ -206,33 +226,99 @@ bool emJpegImageFileModel::TryContinueLoading()
 
 void emJpegImageFileModel::QuitLoading()
 {
-	if (L) {
-		if (L->cinfo_initialized) {
-			if (!setjmp(L->jmpbuffer)) {
-				jpeg_destroy_decompress(&L->cinfo);
-			}
-		}
-		if (L->file) fclose(L->file);
-		delete L;
-		L=NULL;
-	}
+	L.Reset();
 }
 
 
 void emJpegImageFileModel::TryStartSaving()
 {
-	throw emException("emJpegImageFileModel: Saving not implemented.");
+	S=new SavingState;
+
+	S->CInfo.err=jpeg_std_error(&S->Err);
+	S->Err.error_exit=emJpegErrorExit;
+	S->Err.output_message=emJpegOutputMessage;
+
+	jpeg_create_compress(&S->CInfo);
+	S->CInfoInitialized=true;
+
+	S->File.TryOpen(GetFilePath(),"wb");
+	jpeg_stdio_dest(&S->CInfo,S->File.TryGetFile());
+
+	S->CInfo.image_width=GetImage().GetWidth();
+	S->CInfo.image_height=GetImage().GetHeight();
+	if (GetImage().HasAnyNonGreyPixel()) {
+		S->CInfo.input_components=3;
+		S->CInfo.in_color_space=JCS_RGB;
+	}
+	else {
+		S->CInfo.input_components=1;
+		S->CInfo.in_color_space=JCS_GRAYSCALE;
+	}
+	jpeg_set_defaults(&S->CInfo);
+	S->CInfo.dct_method=JDCT_FLOAT;
+	S->CInfo.optimize_coding=TRUE;
+	jpeg_set_quality(&S->CInfo,GetSavingQuality(),TRUE);
+	jpeg_start_compress(&S->CInfo,TRUE);
+	if (!Comment.IsEmpty()) {
+		jpeg_write_marker(
+			&S->CInfo,JPEG_COM,
+			(const JOCTET*)Comment.Get(),
+			Comment.GetLen()
+		);
+	}
+	S->RowSize=GetImage().GetWidth()*S->CInfo.input_components;
+	S->RowBuf=new emByte[S->RowSize];
 }
 
 
 bool emJpegImageFileModel::TryContinueSaving()
 {
-	return false;
+	emString str;
+	emByte * p;
+	JSAMPROW row;
+	int x,y,w;
+	emColor c;
+
+	y=S->NextY++;
+	if (y<GetImage().GetHeight()) {
+		w=GetImage().GetWidth();
+		row=S->RowBuf;
+		p=row;
+		if (S->CInfo.input_components==1) {
+			for (x=0; x<w; x++) {
+				c=GetImage().GetPixel(x,y);
+				*p++=c.GetGrey();
+			}
+		}
+		else {
+			for (x=0; x<w; x++) {
+				c=GetImage().GetPixel(x,y);
+				p[0]=c.GetRed();
+				p[1]=c.GetGreen();
+				p[2]=c.GetBlue();
+				p+=3;
+			}
+		}
+		jpeg_write_scanlines(&S->CInfo,&row,1);
+		return false;
+	}
+
+	jpeg_finish_compress(&S->CInfo);
+	S->File.TryClose();
+
+	str="JPEG";
+	if (FileFormatInfo!=str) {
+		FileFormatInfo=str;
+		Signal(ChangeSignal);
+	}
+
+	return true;
 }
 
 
 void emJpegImageFileModel::QuitSaving()
 {
+	S.Reset();
 }
 
 
@@ -240,9 +326,9 @@ emUInt64 emJpegImageFileModel::CalcMemoryNeed()
 {
 	if (L) {
 		return
-			((emUInt64)L->cinfo.output_width)*
-			L->cinfo.output_height*
-			L->cinfo.output_components+
+			((emUInt64)L->CInfo.output_width)*
+			L->CInfo.output_height*
+			L->CInfo.output_components+
 			Comment.GetLen()
 		;
 	}
@@ -259,8 +345,11 @@ emUInt64 emJpegImageFileModel::CalcMemoryNeed()
 
 double emJpegImageFileModel::CalcFileProgress()
 {
-	if (L && L->cinfo.output_height>0) {
-		return 100.0*L->y/L->cinfo.output_height;
+	if (L && L->CInfo.output_height>0) {
+		return 100.0*L->NextY/L->CInfo.output_height;
+	}
+	if (S && Image.GetHeight()>0) {
+		return 100.0*S->NextY/Image.GetHeight();
 	}
 	else {
 		return 0.0;

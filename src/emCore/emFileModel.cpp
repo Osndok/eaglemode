@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // emFileModel.cpp
 //
-// Copyright (C) 2005-2008,2014,2016,2018-2019,2022,2024 Oliver Hamann.
+// Copyright (C) 2005-2008,2014,2016,2018-2019,2022,2024-2025 Oliver Hamann.
 //
 // Homepage: http://eaglemode.sourceforge.net/
 //
@@ -33,6 +33,8 @@ const emString & emFileModel::GetFilePath() const
 
 void emFileModel::Update()
 {
+	if (MemoryLimitInvalid) UpdateMemoryLimit();
+
 	switch (State) {
 		case FS_WAITING:
 			if (MemoryNeed>1) {
@@ -108,6 +110,8 @@ void emFileModel::Load(bool immediately)
 {
 	bool stateChanged;
 
+	if (MemoryLimitInvalid) UpdateMemoryLimit();
+
 	if (State==FS_WAITING || State==FS_LOADING) {
 		stateChanged=StepLoading();
 		if (immediately) {
@@ -125,6 +129,8 @@ void emFileModel::Load(bool immediately)
 void emFileModel::Save(bool immediately)
 {
 	bool stateChanged;
+
+	if (MemoryLimitInvalid) UpdateMemoryLimit();
 
 	if (State==FS_SAVING || State==FS_UNSAVED) {
 		stateChanged=StepSaving();
@@ -174,7 +180,8 @@ void emFileModel::HardResetFileState()
 	MemoryNeed=1;
 	FileProgress=0.0;
 	ErrorText.Clear();
-	if (MemoryLimit>=MemoryNeed) {
+	if (MemoryLimitInvalid) UpdateMemoryLimit();
+	if (State==FS_TOO_COSTLY && MemoryLimit>=MemoryNeed) {
 		State=FS_WAITING;
 		StartPSAgent();
 	}

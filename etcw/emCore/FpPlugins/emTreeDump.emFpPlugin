@@ -1,6 +1,7 @@
 #%rec:emFpPlugin%#
 
 FileTypes = { ".emTreeDump" }
+FileFormatName = "emTreeDump"
 Priority = 1.0
 Library = "emTreeDump"
 Function = "emTreeDumpFpPluginFunc"

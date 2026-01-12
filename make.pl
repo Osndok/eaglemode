@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # make.pl
 #
-# Copyright (C) 2006-2011,2014,2017,2019-2020 Oliver Hamann.
+# Copyright (C) 2006-2011,2014,2017,2019-2020,2026 Oliver Hamann.
 #
 # Homepage: http://eaglemode.sourceforge.net/
 #
@@ -128,7 +128,7 @@ sub Help
 		"      rpm    - Red Hat package.\n".
 		"      sb     - Slax bundle.\n".
 		"      txz    - Slackware package.\n".
-		"      tar.bz2, tar.gz or zip - Source package.\n".
+		"      tar.xz, tar.gz or zip - Source package.\n".
 		"    The packages are created in a subdirectory named \"packages\".\n".
 		"  perl $0 clean [<option>=<value>]...\n".
 		"    Delete generated files.\n".
